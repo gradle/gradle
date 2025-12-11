@@ -19,6 +19,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,7 +50,7 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
     }
 
     @Override
-    public ClassLoader createChildClassLoader(String name, ClassLoader parent, ClassPath classPath, HashCode implementationHash) {
+    public ClassLoader createChildClassLoader(String name, ClassLoader parent, ClassPath classPath, @Nullable HashCode implementationHash) {
         HashCode hashCode = implementationHash != null
             ? implementationHash
             : calculateClassLoaderHash(classPath);
@@ -59,7 +60,7 @@ public class DefaultHashingClassLoaderFactory extends DefaultClassLoaderFactory 
     }
 
     @Override
-    public HashCode getClassLoaderClasspathHash(ClassLoader classLoader) {
+    public @Nullable HashCode getClassLoaderClasspathHash(ClassLoader classLoader) {
         if (classLoader instanceof ImplementationHashAware) {
             ImplementationHashAware loader = (ImplementationHashAware) classLoader;
             return loader.getImplementationHash();
