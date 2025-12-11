@@ -61,7 +61,7 @@ public class Path implements Comparable<Path> {
         validatePathInternal(path);
     }
 
-    @Contract("null -> fail") // TODO(mlopatkin) Maybe exposing Contract in the public API is fine?
+    @Contract("null -> fail")
     private static void validatePathInternal(@Nullable String path) {
         if (Strings.isNullOrEmpty(path)) {
             throw new InvalidUserDataException("A path must be specified!");
