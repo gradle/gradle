@@ -270,6 +270,11 @@ dependencies {
 }
 ----
 
+[[findAll_removal]]
+==== Deprecation of `DomainObjectCollection.findAll(Closure)`
+
+TBD
+
 [[changes_9.2.0]]
 == Upgrading from 9.1.0 and earlier
 

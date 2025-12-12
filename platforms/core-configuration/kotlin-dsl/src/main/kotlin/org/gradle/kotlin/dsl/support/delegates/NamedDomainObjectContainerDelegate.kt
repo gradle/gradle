@@ -128,6 +128,8 @@ abstract class NamedDomainObjectContainerDelegate<T : Any> : NamedDomainObjectCo
     override fun whenObjectRemoved(action: Closure<Any>) =
         delegate.whenObjectRemoved(action)
 
+    @Suppress("DEPRECATION")
+    @Deprecated("Deprecated Groovy-only API")
     override fun findAll(spec: Closure<Any>): MutableSet<T> =
         delegate.findAll(spec)
 
