@@ -85,6 +85,7 @@ import org.gradle.configuration.project.ProjectEvaluator;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -428,8 +429,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public DynamicObject getInheritedScope() {
-        return extensibleDynamicObject.getInheritable();
+    public DynamicObject getInheritedScope(DisplayName referrerDisplayName) {
+        return extensibleDynamicObject.getInheritable(referrerDisplayName);
     }
 
     @Override

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.extensibility;
 
-import org.gradle.api.Action;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.reflect.TypeOf;
@@ -56,18 +55,6 @@ public class ExtensionsStorage {
 
     public ExtensionsSchema getSchema() {
         return DefaultExtensionsSchema.create(extensions.values());
-    }
-
-    public <T> T configureExtension(String name, Action<? super T> action) {
-        ExtensionHolder<T> extensionHolder = uncheckedCast(extensions.get(name));
-        if (extensionHolder != null) {
-            return extensionHolder.configure(action);
-        }
-        throw unknownExtensionException(name);
-    }
-
-    public <T> void configureExtension(TypeOf<T> type, Action<? super T> action) {
-        getHolderByType(type).configure(action);
     }
 
     public <T> T getByType(TypeOf<T> type) {
@@ -173,9 +160,5 @@ public class ExtensionsStorage {
             return extension;
         }
 
-        public T configure(Action<? super T> action) {
-            action.execute(extension);
-            return extension;
-        }
     }
 }

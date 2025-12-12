@@ -40,8 +40,8 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 
 public class DefaultExtensionContainer implements ExtensionContainerInternal {
     private static final TypeOf<ExtraPropertiesExtension> EXTRA_PROPERTIES_EXTENSION_TYPE = typeOf(ExtraPropertiesExtension.class);
-    private final DefaultExtensionContainer.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
     private final ExtensionsStorage extensionsStorage = new ExtensionsStorage();
+    private final DefaultExtensionContainer.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject(extensionsStorage);
     private final ExtraPropertiesExtension extraProperties = new DefaultExtraPropertiesExtension();
     private final InstanceGenerator instanceGenerator;
 
@@ -144,12 +144,12 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
 
     @Override
     public <T> void configure(TypeOf<T> type, Action<? super T> action) {
-        extensionsStorage.configureExtension(type, action);
+        action.execute(extensionsStorage.getByType(type));
     }
 
     @Override
     public <T> void configure(String name, Action<? super T> action) {
-        extensionsStorage.configureExtension(name, action);
+        action.execute(Cast.uncheckedCast(extensionsStorage.getByName(name)));
     }
 
     @Override
@@ -162,7 +162,9 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
     }
 
     public void propertyMissing(String name, Object value) {
-        checkExtensionIsNotReassigned(name);
+        if (extensionsStorage.hasExtension(name)) {
+            throw extensionReassignedFailure(name);
+        }
         add(name, value);
     }
 
@@ -174,7 +176,14 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
         return instanceGenerator.newInstanceWithDisplayName(instanceType, Describables.withTypeAndName("extension", name), constructionArguments);
     }
 
-    private class ExtensionsDynamicObject extends AbstractDynamicObject {
+    private static class ExtensionsDynamicObject extends AbstractDynamicObject {
+
+        private final ExtensionsStorage extensionsStorage;
+
+        public ExtensionsDynamicObject(ExtensionsStorage extensionsStorage) {
+            this.extensionsStorage = extensionsStorage;
+        }
+
         @Override
         public String getDisplayName() {
             return "extensions";
@@ -223,16 +232,34 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
         }
 
         private DynamicInvokeResult trySetProperty(String name) {
-            checkExtensionIsNotReassigned(name);
+            if (extensionsStorage.hasExtension(name)) {
+                throw extensionReassignedFailure(name);
+            }
             return DynamicInvokeResult.notFound();
         }
 
         @Override
         public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... args) {
-            if (isConfigureExtensionMethod(name, args)) {
-                return DynamicInvokeResult.found(configureExtension(name, args));
+            if (args.length != 1) {
+                return DynamicInvokeResult.notFound();
             }
-            return DynamicInvokeResult.notFound();
+
+            Action<Object> action;
+            if (args[0] instanceof Closure) {
+                action = ConfigureUtil.configureUsing(Cast.uncheckedCast(args[0]));
+            } else if (args[0] instanceof Action) {
+                action = Cast.uncheckedCast(args[0]);
+            } else {
+                return DynamicInvokeResult.notFound();
+            }
+
+            Object extension = extensionsStorage.findByName(name);
+            if (extension == null) {
+                return DynamicInvokeResult.notFound();
+            }
+
+            action.execute(extension);
+            return DynamicInvokeResult.found(extension);
         }
 
         @Nullable
@@ -243,30 +270,16 @@ public class DefaultExtensionContainer implements ExtensionContainerInternal {
 
         @Override
         public boolean hasMethod(String name, @Nullable Object... args) {
-            return isConfigureExtensionMethod(name, args);
+            return args.length == 1 &&
+                (args[0] instanceof Closure || args[0] instanceof Action) &&
+                extensionsStorage.hasExtension(name);
         }
+
     }
 
-    private void checkExtensionIsNotReassigned(String name) {
-        if (extensionsStorage.hasExtension(name)) {
-            throw new IllegalArgumentException(
-                format("There's an extension registered with name '%s'. You should not reassign it via a property setter.", name));
-        }
+    private static IllegalArgumentException extensionReassignedFailure(String name) {
+        return new IllegalArgumentException(
+            format("There's an extension registered with name '%s'. You should not reassign it via a property setter.", name));
     }
 
-    private boolean isConfigureExtensionMethod(String name, @Nullable Object[] args) {
-        return args.length == 1 &&
-            (args[0] instanceof Closure || args[0] instanceof Action) &&
-            extensionsStorage.hasExtension(name);
-    }
-
-    private Object configureExtension(String name, Object[] args) {
-        Action<Object> action;
-        if (args[0] instanceof Closure) {
-            action = ConfigureUtil.configureUsing(Cast.uncheckedCast(args[0]));
-        } else {
-            action = Cast.uncheckedCast(args[0]);
-        }
-        return extensionsStorage.configureExtension(name, action);
-    }
 }

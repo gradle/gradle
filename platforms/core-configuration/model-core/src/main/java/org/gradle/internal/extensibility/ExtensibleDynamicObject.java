@@ -17,8 +17,11 @@ package org.gradle.internal.extensibility;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import org.gradle.api.Describable;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.DisplayName;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -149,10 +152,12 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     /**
      * Returns the inheritable properties and methods of this object.
      *
+     * @param referrerDisplayName The display name of the object inheriting from this object.
+     *
      * @return an object containing the inheritable properties and methods of this object.
      */
-    public DynamicObject getInheritable() {
-        return new InheritedDynamicObject();
+    public DynamicObject getInheritable(DisplayName referrerDisplayName) {
+        return new InheritedDynamicObject(referrerDisplayName);
     }
 
     private DynamicObject snapshotInheritable() {
@@ -178,9 +183,20 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     }
 
     private class InheritedDynamicObject implements DynamicObject {
+
+        private final Describable referrerDisplayName;
+
+        public InheritedDynamicObject(DisplayName referrerDisplayName) {
+            this.referrerDisplayName = referrerDisplayName;
+        }
+
         @Override
-        public void setProperty(String name, @Nullable Object value) {
-            throw new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
+        public void setProperty(String name, @Nullable Object value) throws MissingPropertyException {
+            throw setPropertyFailure(name);
+        }
+
+        private MissingPropertyException setPropertyFailure(String name) {
+            return new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
                 dynamicDelegate.getDisplayName()));
         }
 
@@ -201,51 +217,82 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
         @Override
         public DynamicInvokeResult trySetProperty(String name, @Nullable Object value) {
-            setProperty(name, value);
-            return DynamicInvokeResult.found();
+            throw setPropertyFailure(name);
         }
 
         @Override
         public DynamicInvokeResult trySetPropertyWithoutInstrumentation(String name, @Nullable Object value) {
-            setProperty(name, value);
-            return DynamicInvokeResult.found();
+            throw setPropertyFailure(name);
         }
 
         @Override
         public boolean hasProperty(String name) {
-            return snapshotInheritable().hasProperty(name);
+            boolean doesHaveProperty = snapshotInheritable().hasProperty(name);
+            if (doesHaveProperty) {
+                emitDeprecation();
+            }
+            return doesHaveProperty;
         }
 
         @Override
-        public Object getProperty(String name) {
-            return snapshotInheritable().getProperty(name);
+        public @Nullable Object getProperty(String name) throws MissingPropertyException {
+            Object property = snapshotInheritable().getProperty(name);
+            if (property != null) {
+                emitDeprecation();
+            }
+            return property;
         }
 
         @Override
         public DynamicInvokeResult tryGetProperty(String name) {
-            return snapshotInheritable().tryGetProperty(name);
+            DynamicInvokeResult result = snapshotInheritable().tryGetProperty(name);
+            if (result.isFound()) {
+                emitDeprecation();
+            }
+            return result;
         }
 
         @Override
         public Map<String, ? extends @Nullable Object> getProperties() {
+            emitDeprecation();
             return snapshotInheritable().getProperties();
         }
 
         @Override
         public boolean hasMethod(String name, @Nullable Object... arguments) {
-            return snapshotInheritable().hasMethod(name, arguments);
+            boolean doesHaveMethod = snapshotInheritable().hasMethod(name, arguments);
+            if (doesHaveMethod) {
+                emitDeprecation();
+            }
+            return doesHaveMethod;
         }
 
         @Override
         public DynamicInvokeResult tryInvokeMethod(String name, @Nullable Object... arguments) {
-            return snapshotInheritable().tryInvokeMethod(name, arguments);
+            DynamicInvokeResult result = snapshotInheritable().tryInvokeMethod(name, arguments);
+            if (result.isFound()) {
+                DeprecationLogger.deprecateAction("Dynamically invoking parent method from a child project")
+                    .withContext("Cannot dynamically invoke method '" + name + "' on " + dynamicDelegate.getDisplayName() + " from " + referrerDisplayName + ".")
+                    .willBecomeAnErrorInGradle10()
+                    .undocumented()
+                    .nagUser();
+            }
+            return result;
         }
 
         @Override
-        public Object invokeMethod(String name, @Nullable Object... arguments) {
+        public @Nullable Object invokeMethod(String name, @Nullable Object... arguments) throws MissingMethodException {
+            emitDeprecation();
             return snapshotInheritable().invokeMethod(name, arguments);
         }
 
+        // TODO: Make this much better
+        private void emitDeprecation() {
+            DeprecationLogger.deprecateAction("Getting property from parent")
+                .willBecomeAnErrorInGradle10()
+                .undocumented()
+                .nagUser();
+        }
     }
 }
 
