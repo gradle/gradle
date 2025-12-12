@@ -57,7 +57,7 @@ The size of the report file is reduced.
 ### Test Metadata Logging
 
 Gradle now allows listening for test metadata events during test execution.
-In the exact same manner as [`TestOutputListener`](api/org/gradle/api/tasks/testing/TestOutputListener.html), a [`TestMetadataListener`](api/org/gradle/api/tasks/testing/TestMetadataListener.html) can be registered to receive metadata events emitted by the test framework during via the new [`Test#addTestMetadataListener(TestMetadataListener)`](dsl/org.gradle.api.tasks.testing.Test.html#addTestMetadataListener(TestMetadataListener)) method.
+In the exact same manner as [`TestOutputListener`](javadoc/org/gradle/api/tasks/testing/TestOutputListener.html), a [`TestMetadataListener`](javadoc/org/gradle/api/tasks/testing/TestMetadataListener.html) can be registered to receive metadata events emitted by the test framework during via the new [`Test#addTestMetadataListener(TestMetadataListener)`](dsl/org.gradle.api.tasks.testing.Test.html#addTestMetadataListener(TestMetadataListener)) method.
 
 ```kotlin
 test {
