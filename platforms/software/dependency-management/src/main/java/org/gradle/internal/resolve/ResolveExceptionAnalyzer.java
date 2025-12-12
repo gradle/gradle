@@ -19,6 +19,7 @@ import com.google.common.base.Throwables;
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
 
 import java.io.InterruptedIOException;
+import java.net.UnknownHostException;
 import java.util.Collection;
 
 public class ResolveExceptionAnalyzer {
@@ -34,7 +35,11 @@ public class ResolveExceptionAnalyzer {
 
     public static boolean isCriticalFailure(Throwable throwable) {
         Throwable rootCause = Throwables.getRootCause(throwable);
-        return isTimeoutException(rootCause) || isUnrecoverable5xxStatusCode(rootCause);
+        return isTimeoutException(rootCause) || isUnrecoverable5xxStatusCode(rootCause) || isUnknownHostException(rootCause);
+    }
+
+    private static boolean isUnknownHostException(Throwable rootCause) {
+        return rootCause instanceof UnknownHostException;
     }
 
     /**
