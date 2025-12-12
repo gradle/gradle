@@ -28,11 +28,11 @@ plugins {
 description = "Contains the Java Test Fixtures plugin"
 
 dependencies {
+    api(projects.baseServices)
     api(projects.coreApi)
+    api(projects.declarativeDslApi)
+    api(projects.languageJvm)
 
-    api(libs.inject)
-
-    implementation(projects.baseServices)
     implementation(projects.dependencyManagement)
     implementation(projects.core)
     implementation(projects.languageJava)
