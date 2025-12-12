@@ -24,7 +24,10 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 import spock.lang.Timeout
 
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT5_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT6_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_PLATFORM_VERSIONS
 import static org.hamcrest.CoreMatchers.containsString
 
 class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
@@ -344,12 +347,12 @@ public class StaticInnerTest {
     }
 
     @Issue("https://github.com/junit-team/junit5/issues/2028 and https://github.com/gradle/gradle/issues/12073")
-    def 'properly fails when engine fails during discovery #scenario'() {
+    def 'properly fails when engine fails during discovery #scenario with platform version #platformVersion'() {
         given:
         createSimpleJupiterTest()
         buildFile << """
             dependencies {
-                testImplementation 'org.junit.platform:junit-platform-engine:${LATEST_PLATFORM_VERSION}'
+                testImplementation 'org.junit.platform:junit-platform-engine:${platformVersion}'
             }
         """
         file('src/test/java/EngineFailingDiscovery.java') << '''
@@ -377,9 +380,11 @@ public class StaticInnerTest {
         failure.assertHasCause('Test process encountered an unexpected problem.')
 
         where:
-        scenario       | extraArgs
-        "w/o filters"  | []
-        "with filters" | ['--tests', 'JUnitJupiterTest']
+        scenario       | extraArgs                         | platformVersion
+        "w/o filters"  | []                                | JUNIT_PLATFORM_VERSIONS[0]
+        "with filters" | ['--tests', 'JUnitJupiterTest']   | JUNIT_PLATFORM_VERSIONS[0]
+        "w/o filters"  | []                                | JUNIT_PLATFORM_VERSIONS[1]
+        "with filters" | ['--tests', 'JUnitJupiterTest']   | JUNIT_PLATFORM_VERSIONS[1]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23602")
@@ -468,14 +473,14 @@ public class StaticInnerTest {
         succeeds "test"
 
         where:
-        version << ["5.9.2", "5.6.3"]
+        version << [LATEST_JUPITER_VERSION, LATEST_JUNIT5_VERSION, "5.9.2", "5.6.3"]
     }
 
-    def 'properly fails when engine fails during execution'() {
+    def 'properly fails when engine fails during execution with platform version #platformVersion'() {
         given:
         buildFile << """
             dependencies {
-                testImplementation 'org.junit.platform:junit-platform-engine:${LATEST_PLATFORM_VERSION}'
+                testImplementation 'org.junit.platform:junit-platform-engine:${platformVersion}'
             }
             test {
                 afterSuite { descriptor, result ->
@@ -516,5 +521,85 @@ public class StaticInnerTest {
         then:
         failureCauseContains('There were failing tests.')
         outputContains("afterSuite: Test class engine_EngineFailingExecution -> FAILURE")
+
+        where:
+        platformVersion << JUNIT_PLATFORM_VERSIONS
+    }
+
+    def "works with JUnit 6 features (MethodOrderer.Default and ClassOrderer.Default)"() {
+        given:
+        buildScriptWithJupiterDependencies("""
+            test {
+                useJUnitPlatform()
+
+                testLogging {
+                    showStandardStreams = true
+                }
+            }
+        """, LATEST_JUNIT6_VERSION)
+
+        file('src/test/java/org/gradle/JUnit6OrderingTest.java') << '''
+            package org.gradle;
+
+            import org.junit.jupiter.api.Nested;
+            import org.junit.jupiter.api.Test;
+            import org.junit.jupiter.api.TestMethodOrder;
+            import org.junit.jupiter.api.MethodOrderer;
+            import org.junit.jupiter.api.Order;
+
+            @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+            public class JUnit6OrderingTest {
+                @Test
+                @Order(2)
+                public void testB() {
+                    // Runs second in outer class
+                    System.out.println("testB");
+                }
+
+                @Test
+                @Order(1)
+                public void testA() {
+                    // Runs first in outer class
+                    System.out.println("testA");
+                }
+
+                @Nested
+                @TestMethodOrder(MethodOrderer.Default.class)
+                class NestedTestWithDefaultOrdering {
+                    @Test
+                    public void testZ() {
+                        // Uses default ordering (not parent's OrderAnnotation)
+                        System.out.println("testZ");
+                    }
+
+                    @Test
+                    public void testY() {
+                        // Uses default ordering (not parent's OrderAnnotation)
+                        System.out.println("testY");
+                    }
+                }
+            }
+        '''
+
+        when:
+        succeeds('test')
+
+        then:
+        def results = resultsFor(testDirectory)
+        results.testPathPreNormalized(':org.gradle.JUnit6OrderingTest').onlyRoot().assertChildCount(3, 0)
+        results.testPathPreNormalized(':org.gradle.JUnit6OrderingTest:org.gradle.JUnit6OrderingTest$NestedTestWithDefaultOrdering').onlyRoot().assertChildCount(2, 0)
+
+        and: "tests are run in the proper order"
+        outputContains("""JUnit6OrderingTest > testA() STANDARD_OUT
+    testA
+
+JUnit6OrderingTest > testB() STANDARD_OUT
+    testB
+
+JUnit6OrderingTest > NestedTestWithDefaultOrdering > testY() STANDARD_OUT
+    testY
+
+JUnit6OrderingTest > NestedTestWithDefaultOrdering > testZ() STANDARD_OUT
+    testZ""")
     }
 }
