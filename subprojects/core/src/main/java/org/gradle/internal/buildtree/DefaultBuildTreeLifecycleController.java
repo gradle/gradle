@@ -82,13 +82,13 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     public <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action) {
         return runBuild(() -> {
             modelCreator.beforeTasks(action);
-            if (runTasks && isEligibleToRunTasks()) {
-                ExecutionResult<Void> result = runTasks();
-                if (!result.isSuccessful()) {
-                    return result.asFailure();
-                }
-            }
+            ExecutionResult<Void> taskExecution = runTasks && isEligibleToRunTasks()
+                ? runTasks()
+                : ExecutionResult.succeeded();
             T model = modelCreator.fromBuildModel(action);
+            if (!taskExecution.isSuccessful()) {
+                return taskExecution.asFailure();
+            }
             return ExecutionResult.succeeded(model);
         });
     }
