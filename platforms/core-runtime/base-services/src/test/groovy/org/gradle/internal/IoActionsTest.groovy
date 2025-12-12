@@ -64,21 +64,21 @@ class IoActionsTest extends Specification {
         e.cause instanceof IOException
         e.cause.message.startsWith("Unable to create directory")
     }
-
-
+    
     def "fails to with useful error when file path is too long"() {
         given:
         def maxLength = FileSystem.current.maxPathLength
         def fileName = "foo.txt"
-        def subdirNameLength = Math.floor((maxLength - fileName.length() - tmp.testDirectory.absolutePath.size())/5)
+        def subdirNameLength = Math.floor((maxLength - fileName.length() - tmp.testDirectory.absolutePath.length())/5)
         assert subdirNameLength > 0
         def subdir = tmp.file("deep/" * subdirNameLength)
         def file = new File(subdir, fileName)
+        assert file.absolutePath.length() >= maxLength
 
         when:
         writeTextFile(file, "UTF-8", {
             // we should not get here
-            assert false
+            assert false : "should have failed when creating file"
         })
 
         then:
