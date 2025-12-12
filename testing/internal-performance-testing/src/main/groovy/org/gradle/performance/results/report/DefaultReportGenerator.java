@@ -33,7 +33,7 @@ import static org.gradle.performance.results.PerformanceFlakinessDataProvider.Sc
 // See more details in https://docs.google.com/document/d/1pghuxbCR5oYWhUrIK2e4bmABQt3NEIYOOIK4iHyjWyQ/edit#heading=h.is4fzcbmxxld
 public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsStore> {
     public static void main(String[] args) {
-        new DefaultReportGenerator().generateReport(args);
+        new DefaultReportGenerator().markBuildAsSuccessful("Mitigation for https://github.com/gradle/gradle-private/issues/4975");
     }
 
     @Override

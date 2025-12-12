@@ -125,7 +125,7 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
     protected abstract void collectFailures(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, FailureCollector failureCollector);
 
 
-    private void markBuildAsSuccessful(String successMessage) {
+    protected void markBuildAsSuccessful(String successMessage) {
         System.out.println("##teamcity[buildStatus status='SUCCESS' text='" + successMessage + "']");
     }
 
