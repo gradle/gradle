@@ -68,7 +68,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -1091,6 +1090,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Nullable
     public UserCodeSource getUserCodeSource() {
-        return identity.userCodeSource;
+        return identity.getUserCodeSource();
     }
 }

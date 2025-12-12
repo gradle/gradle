@@ -59,7 +59,6 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.GUtil;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
