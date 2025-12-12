@@ -25,6 +25,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assume
 import spock.lang.Issue
 
@@ -564,6 +565,8 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    // We can create directories and files that exceed Windows max path, but Java cannot execute processes from them https://bugs.openjdk.org/browse/JDK-8315405
+    @Requires(UnitTestPreconditions.NotWindows)
     def "downloaded archive filename is truncated to meet generic file-system limits"() {
         def jvm = AvailableJavaHomes.getDifferentVersion()
         given:
