@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
@@ -289,7 +290,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             builder.setWorkingDir(getWorkingDir());
             builder.setExecutable(new File(getJavaHomeLocation(), "bin/java"));
             builder.classpath(getExecHandleFactoryClasspath());
-            builder.jvmArgs(invocation.launcherJvmArgs);
+            List<String> launcherJvmArgs = invocation.launcherJvmArgs;
+            ImmutableList.Builder<Object> launchArgsBuilder = ImmutableList.builderWithExpectedSize(invocation.launcherJvmArgs.size() + 1);
+            launchArgsBuilder.addAll(launcherJvmArgs);
+
+//            launchArgsBuilder.add("-D" + AnsiConsole.JANSI_MODE + "=" + AnsiConsole.JANSI_MODE_FORCE);
+            builder.jvmArgs(launchArgsBuilder.build());
             // Apply the agent to the newly created daemon. The feature flag decides if it is going to be used.
             for (File agent : GLOBAL_SERVICES.get(ModuleRegistry.class).getModule(AgentUtils.AGENT_MODULE_NAME).getClasspath().getAsFiles()) {
                 builder.jvmArgs("-javaagent:" + agent.getAbsolutePath());
