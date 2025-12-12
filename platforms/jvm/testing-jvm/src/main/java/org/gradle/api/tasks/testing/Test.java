@@ -89,6 +89,7 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.internal.ConfigureUtil;
+import org.gradle.work.NormalizeLineEndings;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -1276,6 +1277,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @InputFiles
     @SkipWhenEmpty
+    @NormalizeLineEndings
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     @ToBeReplacedByLazyProperty(comment = "Should this be kept as it is?")
