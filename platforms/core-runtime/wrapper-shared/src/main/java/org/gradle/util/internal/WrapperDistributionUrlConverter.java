@@ -24,6 +24,9 @@ import java.net.URISyntaxException;
  * Converts a wrapper distribution url to a URI.
  */
 public class WrapperDistributionUrlConverter {
+    public static final String WRAPPER_USER_SYSTEM_PROPERTY_NAME = "gradle.wrapperUser";
+    public static final String WRAPPER_PASSWORD_SYSTEM_PROPERTY_NAME = "gradle.wrapperPassword";
+
     /**
      * Converts the given distribution url to a URI.
      * <p>
