@@ -93,7 +93,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             failure = e;
         }
 
-        if (failure == null) {
+        if (failure == None) {
             connection.useParameterSerializers(RequestSerializerRegistry.create(this.getClass().getClassLoader(), argumentSerializers));
         } else {
             // Discard incoming requests, as the serializers may not have been configured
