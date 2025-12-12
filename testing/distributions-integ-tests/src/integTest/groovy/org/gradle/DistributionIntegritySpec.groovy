@@ -38,7 +38,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
     @Override
     int getDistributionSizeMiB() {
-        return 130
+        return 136
     }
 
     /**
@@ -50,6 +50,8 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
     def "validate dependency archives"() {
         when:
         def jars = collectJars(unpackDistribution())
+            // Skip the ABI jars that purposedly duplicate class entries
+            .findAll { !it.name.startsWith("gradle-public-api-")}
         then:
         jars != []
 

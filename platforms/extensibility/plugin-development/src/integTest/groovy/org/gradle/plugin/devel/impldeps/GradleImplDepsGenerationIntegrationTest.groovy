@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.devel.impldeps
 
-
+import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
@@ -31,7 +31,7 @@ class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrat
         succeeds 'build'
 
         then:
-        file("user-home/caches/${distribution.version.version}/generated-gradle-jars").assertIsEmptyDir()
+        file("user-home/caches/${distribution.version.version}/$GeneratedGradleJarCache.CACHE_KEY").assertIsEmptyDir()
     }
 
     def "buildSrc project implicitly forces generation of Gradle API JAR"() {
@@ -43,7 +43,7 @@ class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrat
         succeeds 'build'
 
         then:
-        file("user-home/caches/${distribution.version.version}/generated-gradle-jars/gradle-api-${distribution.version.version}.jar").assertExists()
+        file("user-home/caches/${distribution.version.version}/$GeneratedGradleJarCache.CACHE_KEY/gradle-api-${distribution.version.version}.jar").assertExists()
     }
 
     def "Gradle API dependency resolves the expected JAR files"() {

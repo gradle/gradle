@@ -30,6 +30,7 @@ import gradlebuild.identity.provider.BuildTimestampFromBuildReceiptValueSource
 import gradlebuild.identity.provider.BuildTimestampValueSource
 import gradlebuild.identity.tasks.BuildReceipt
 import java.util.Optional
+import java.util.jar.Attributes
 
 plugins {
     `java-base`
@@ -82,6 +83,17 @@ class LazyProjectVersion(private val version: Provider<String>) {
 
 group = "org.gradle"
 version = LazyProjectVersion(gradleModule.identity.version.map { it.version })
+
+tasks.withType<Jar>().configureEach {
+    archiveBaseName = gradleModule.identity.baseName
+    archiveVersion = gradleModule.identity.version.map { it.baseVersion.version }
+    manifest.attributes(
+        mapOf(
+            Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
+            Attributes.Name.IMPLEMENTATION_VERSION.toString() to gradleModule.identity.version.map { it.baseVersion.version }
+        )
+    )
+}
 
 /**
  * Returns the trimmed contents of the file at the given [path] after
