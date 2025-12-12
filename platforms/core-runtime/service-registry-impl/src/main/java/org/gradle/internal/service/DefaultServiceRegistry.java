@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.service;
 
+import org.gradle.internal.collect.PersistentArray;
+import org.gradle.internal.collect.PersistentMap;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.jspecify.annotations.Nullable;
@@ -31,10 +33,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Formatter;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
@@ -391,17 +391,24 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     private class OwnServices implements ServiceProvider {
-        private final Map<Class<?>, List<ServiceProvider>> providersByType = new HashMap<Class<?>, List<ServiceProvider>>(16, 0.5f);
         private final CompositeStoppable stoppable = CompositeStoppable.stoppable();
-        private final AtomicReference<ServicesSnapshot> services = new AtomicReference<>(ServicesSnapshot.EMPTY);
+        private final AtomicReference<ServicesSnapshot> services;
 
         public OwnServices() {
-            providersByType.put(ServiceRegistry.class, Collections.<ServiceProvider>singletonList(new ThisAsService(ServiceAccess.getPublicScope())));
+            final ThisAsService thisServiceRegistry = new ThisAsService(ServiceAccess.getPublicScope());
+            services = new AtomicReference<>(
+                ServicesSnapshot.of(
+                    PersistentMap.of(
+                        ServiceRegistry.class,
+                        PersistentArray.of(thisServiceRegistry)
+                    )
+                )
+            );
         }
 
         @Override
         public Service getService(Type type, @Nullable ServiceAccessToken token) {
-            List<ServiceProvider> serviceProviders = getProviders(unwrap(type));
+            PersistentArray<ServiceProvider> serviceProviders = getProviders(unwrap(type));
             if (serviceProviders.isEmpty()) {
                 return null;
             }
@@ -438,9 +445,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             throw new ServiceLookupException(formatter.toString());
         }
 
-        private List<ServiceProvider> getProviders(Class<?> type) {
-            List<ServiceProvider> providers = providersByType.get(type);
-            return providers == null ? Collections.<ServiceProvider>emptyList() : providers;
+        private PersistentArray<ServiceProvider> getProviders(Class<?> type) {
+            return services.get().providersByType.getOrDefault(type, PersistentArray.of());
         }
 
         @Override
@@ -459,40 +465,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         public void add(SingletonService serviceProvider) {
             assertMutable();
             stoppable.add(serviceProvider);
-            collectProvidersForClassHierarchy(inspector, serviceProvider.getDeclaredServiceTypes(), serviceProvider);
-            ServicesSnapshot snapshot = services.updateAndGet(it -> it.addService(serviceProvider));
+            ServicesSnapshot snapshot = services.updateAndGet(it -> it.addService(serviceProvider, inspector));
             for (AnnotatedServiceLifecycleHandler annotationHandler : snapshot.lifecycleHandlers) {
                 notifyAnnotationHandler(annotationHandler, serviceProvider);
-            }
-        }
-
-        public void collectProvidersForClassHierarchy(ClassInspector inspector, List<Class<?>> declaredServiceTypes, ServiceProvider serviceProvider) {
-            for (Class<?> serviceType : declaredServiceTypes) {
-                for (Class<?> type : inspector.getHierarchy(serviceType)) {
-                    if (type.equals(Object.class)) {
-                        continue;
-                    }
-                    if (type.equals(ServiceRegistry.class)) {
-                        // Disallow custom services of type ServiceRegistry, as these are automatically provided
-                        throw new IllegalArgumentException("Cannot define a service of type ServiceRegistry: " + serviceProvider);
-                    }
-                    putServiceType(type, serviceProvider);
-                }
-            }
-        }
-
-        private void putServiceType(Class<?> type, ServiceProvider serviceProvider) {
-            List<ServiceProvider> serviceProviders = providersByType.get(type);
-            if (serviceProviders == null) {
-                serviceProviders = new ArrayList<ServiceProvider>(2);
-                serviceProviders.add(serviceProvider);
-                providersByType.put(type, serviceProviders);
-                return;
-            }
-
-            // Adding of the service provider for the same type may happen when it has multiple declared service types
-            if (!serviceProviders.contains(serviceProvider)) {
-                serviceProviders.add(serviceProvider);
             }
         }
 
@@ -1422,42 +1397,79 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     /**
      * Carries a snapshot of the current set of services and lifecycle handlers so they can change together.
      *
-     * Lifecycle handlers are maintained in a copy-on-write array since there are at most 3 lifecycle handler instances
+     * Lifecycle handlers are maintained in a persistent array since there are at most 3 lifecycle handler instances
      * per registry, and they are iterated frequently (for every service registration).
      *
      * Services are maintained in a linked list since there are many, they are frequently written and iterated very
      * rarely (once per lifecycle handler).
      */
     private static class ServicesSnapshot {
-        static final ServicesSnapshot EMPTY = new ServicesSnapshot(null, new AnnotatedServiceLifecycleHandler[0]);
 
-        final @Nullable ServiceList services;
-        final AnnotatedServiceLifecycleHandler[] lifecycleHandlers;
-
-        ServicesSnapshot(@Nullable ServiceList services, AnnotatedServiceLifecycleHandler[] lifecycleHandlers) {
-            this.services = services;
-            this.lifecycleHandlers = lifecycleHandlers;
+        public static ServicesSnapshot of(PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType) {
+            return new ServicesSnapshot(
+                null,
+                PersistentArray.of(),
+                providersByType
+            );
         }
 
-        ServicesSnapshot addService(SingletonService service) {
+        final @Nullable ServiceList services;
+        final PersistentArray<AnnotatedServiceLifecycleHandler> lifecycleHandlers;
+        final PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType;
+
+        private ServicesSnapshot(
+            @Nullable ServiceList services,
+            PersistentArray<AnnotatedServiceLifecycleHandler> lifecycleHandlers,
+            PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType
+        ) {
+            this.services = services;
+            this.lifecycleHandlers = lifecycleHandlers;
+            this.providersByType = providersByType;
+        }
+
+        ServicesSnapshot addService(SingletonService service, ClassInspector inspector) {
             return new ServicesSnapshot(
                 new ServiceList(service, services),
-                lifecycleHandlers
+                lifecycleHandlers,
+                collectProvidersForClassHierarchyOf(service, inspector, providersByType)
             );
         }
 
         ServicesSnapshot addLifecycleHandler(AnnotatedServiceLifecycleHandler lifecycleHandler) {
             return new ServicesSnapshot(
                 services,
-                append(lifecycleHandlers, lifecycleHandler)
+                lifecycleHandlers.plus(lifecycleHandler),
+                providersByType
             );
         }
 
-        private static AnnotatedServiceLifecycleHandler[] append(AnnotatedServiceLifecycleHandler[] array, AnnotatedServiceLifecycleHandler annotationHandler) {
-            AnnotatedServiceLifecycleHandler[] newArray = new AnnotatedServiceLifecycleHandler[array.length + 1];
-            System.arraycopy(array, 0, newArray, 0, array.length);
-            newArray[array.length] = annotationHandler;
-            return newArray;
+        private static PersistentMap<Class<?>, PersistentArray<ServiceProvider>> collectProvidersForClassHierarchyOf(
+            SingletonService serviceProvider,
+            ClassInspector inspector,
+            PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType
+        ) {
+            PersistentArray<ServiceProvider> newProviders = PersistentArray.of(serviceProvider);
+            for (Class<?> serviceType : serviceProvider.getDeclaredServiceTypes()) {
+                for (Class<?> type : inspector.getHierarchy(serviceType)) {
+                    if (type.equals(Object.class)) {
+                        continue;
+                    }
+                    if (type.equals(ServiceRegistry.class)) {
+                        // Disallow custom services of type ServiceRegistry, as these are automatically provided
+                        throw new IllegalArgumentException("Cannot define a service of type ServiceRegistry: " + serviceProvider);
+                    }
+                    providersByType = providersByType.modify(type, (key, providers) -> {
+                        if (providers == null) {
+                            return newProviders;
+                        } else {
+                            return providers.contains(serviceProvider)
+                                ? providers
+                                : providers.plus(serviceProvider);
+                        }
+                    });
+                }
+            }
+            return providersByType;
         }
     }
 
