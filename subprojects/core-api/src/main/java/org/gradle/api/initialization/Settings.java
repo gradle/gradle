@@ -407,6 +407,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
+    @HiddenInDeclarativeDsl
     DependencyResolutionManagement getDependencyResolutionManagement();
 
     /**

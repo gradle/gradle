@@ -93,7 +93,17 @@ class PluginsInterpretationSequenceStep(
     override fun whenEvaluated(target: Any, resultReceiver: PluginsTopLevelReceiver) {
         with(produceHost(target)) {
             val pluginRequests = resultReceiver.plugins.specs.map {
-                DefaultPluginRequest(DefaultPluginId.unvalidated(it.id), it.apply, PluginRequestInternal.Origin.OTHER, scriptSource.displayName, null, it.version, null, null, null)
+                DefaultPluginRequest(
+                    DefaultPluginId.unvalidated(it.id),
+                    it.apply,
+                    PluginRequestInternal.Origin.OTHER,
+                    scriptSource.displayName,
+                    null,
+                    if (it.versionIsSet) it.version else null,
+                    null,
+                    null,
+                    null
+                )
             }
             with(targetServices) {
                 val scriptHandler = get(ScriptHandlerFactory::class.java).create(scriptSource, targetScope, StandaloneDomainObjectContext.forScript(scriptSource))

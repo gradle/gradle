@@ -32,13 +32,9 @@ package org.gradle.internal.declarativedsl.plugins
  * limitations under the License.
  */
 
-import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Builder
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
-import org.gradle.plugin.use.PluginDependenciesSpec
-import org.gradle.plugin.use.PluginDependencySpec
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 
 
 class PluginsTopLevelReceiver {
@@ -46,7 +42,7 @@ class PluginsTopLevelReceiver {
 }
 
 
-class PluginsCollectingPluginsBlock : PluginDependenciesSpec {
+class PluginsCollectingPluginsBlock {
     val specs: List<MutablePluginDependencySpec>
         get() = _specs
 
@@ -54,7 +50,7 @@ class PluginsCollectingPluginsBlock : PluginDependenciesSpec {
     val _specs = mutableListOf<MutablePluginDependencySpec>()
 
     @Adding
-    override fun id(id: String): MutablePluginDependencySpec = MutablePluginDependencySpec(id).also(_specs::add)
+    fun id(id: String): MutablePluginDependencySpec = MutablePluginDependencySpec(id).also(_specs::add)
 
     @Adding
     fun kotlin(id: String) = id("org.jetbrains.kotlin.$id")
@@ -63,25 +59,29 @@ class PluginsCollectingPluginsBlock : PluginDependenciesSpec {
 
 class MutablePluginDependencySpec(
     val id: String
-) : PluginDependencySpec {
-    @get:Restricted
-    var version: String? = null
-        private
-        set
+) {
+    @get:HiddenInDeclarativeDsl
+    var versionIsSet = false
+        private set
 
-    @get:Restricted
+    var version: String = ""
+        private set(version) {
+            field = version
+            versionIsSet = true
+        }
+
     var apply: Boolean = true
         private
         set
 
     @Builder
-    override fun version(version: String?): MutablePluginDependencySpec {
+    fun version(version: String): MutablePluginDependencySpec {
         this.version = version
         return this
     }
 
     @Builder
-    override fun apply(apply: Boolean): MutablePluginDependencySpec {
+    fun apply(apply: Boolean): MutablePluginDependencySpec {
         this.apply = apply
         return this
     }
