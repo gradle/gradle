@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.caching.http.internal;
+package org.gradle.internal.resource.transport.http;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import java.util.function.BiConsumer;
+import org.jspecify.annotations.NullMarked;
 
 /**
- * Modifies HTTP requests.
+ * Factory for creating HTTP clients with specific settings.
+ * <p>
+ * Returned clients must be thread-safe. Implementations of this
+ * factory may retain state to support features like connection pooling.
  */
-@ServiceScope(Scope.Build.class)
-public interface HttpBuildCacheRequestCustomizer {
+@NullMarked
+@ServiceScope(Scope.Global.class)
+public interface HttpClientFactory {
 
     /**
-     * Visit all headers to be added to customized HTTP requests.
+     * Create a new HTTP client with the given settings.
      */
-    void visitHeaders(BiConsumer<String, String> headerConsumer);
+    HttpClient createClient(HttpSettings settings);
 
 }

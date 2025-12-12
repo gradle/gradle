@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
+import com.google.common.collect.ImmutableMap
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -35,7 +36,7 @@ import java.security.KeyStore
 import java.security.Security
 import java.security.UnrecoverableKeyException
 
-class HttpClientHelperSSLTest extends Specification {
+class HttpClientSSLTest extends Specification {
     @Rule
     SetSystemProperties properties = new SetSystemProperties()
     @Rule
@@ -45,7 +46,7 @@ class HttpClientHelperSSLTest extends Specification {
     @Rule
     BlockingHttpsServer server = new BlockingHttpsServer()
 
-    private HttpClientHelper client
+    private HttpClient client
     private TestKeyStore keyStore
 
     def cleanup() {
@@ -251,7 +252,7 @@ class HttpClientHelperSSLTest extends Specification {
         client.close()
         System.properties["javax.net.ssl.trustStore"] = "will-not-exist"
         createClient()
-        client.performGet("${server.getUri()}/test", false)
+        client.performGet(URI.create("${server.getUri()}/test"), ImmutableMap.of())
 
         then:
         thrown(Exception)
@@ -260,7 +261,7 @@ class HttpClientHelperSSLTest extends Specification {
         client.close()
         System.properties["javax.net.ssl.keyStore"] = "will-not-exist"
         createClient()
-        client.performGet("${server.getUri()}/test", false)
+        client.performGet(URI.create("${server.getUri()}/test"), ImmutableMap.of())
 
         then:
         Exception keyStoreException = thrown()
@@ -300,7 +301,7 @@ class HttpClientHelperSSLTest extends Specification {
             .withSslContextFactory(factory)
             .build()
 
-        client = new HttpClientHelper(new DocumentationRegistry(), settings)
+        client = new ApacheCommonsHttpClientFactory(new DocumentationRegistry()).createClient(settings)
     }
 
     private def performRequest(boolean expectSuccess = true, boolean needClientAuth = false) {
@@ -312,7 +313,7 @@ class HttpClientHelperSSLTest extends Specification {
             server.expect("/test")
         }
 
-        client.performGet("${server.getUri()}/test", false)
+        client.performGet(URI.create("${server.getUri()}/test"), ImmutableMap.of())
     }
 
     private def performAuthenticatedRequest(boolean expectSuccess = true) {
@@ -322,7 +323,7 @@ class HttpClientHelperSSLTest extends Specification {
     private def performExternalRequest(String targetWebsite = "https://gradle.org") {
         createClient()
 
-        client.performGet(targetWebsite, false)
+        client.performGet(URI.create(targetWebsite), ImmutableMap.of())
     }
 
 }
