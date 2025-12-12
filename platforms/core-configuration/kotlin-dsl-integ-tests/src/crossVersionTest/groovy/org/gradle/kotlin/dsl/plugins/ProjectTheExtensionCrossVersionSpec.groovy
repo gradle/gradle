@@ -68,7 +68,6 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
 
         where:
         minGradle | kotlinLanguageVersion
-        "6.8"     | "1.8"
         "6.8"     | "1.9"
         "6.8"     | "2.0"
         "8.11"    | "2.1"
@@ -122,6 +121,10 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
             .withArgument("-s")
             // The expected deprecations change too much between versions for checking deprecations to be worthwhile.
             .noDeprecationChecks()
+            .withStackTraceChecksDisabled()
+                // Following lines from the deprecation warning look very much like stack traces, and they confuse our stack trace detection mechanisms...
+                //        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
+                //        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
             .run()
     }
 

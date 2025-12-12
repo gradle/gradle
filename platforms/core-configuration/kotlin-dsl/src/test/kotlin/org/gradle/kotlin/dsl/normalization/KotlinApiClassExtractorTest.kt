@@ -19,9 +19,7 @@ package org.gradle.kotlin.dsl.normalization
 import org.gradle.internal.tools.api.ApiClassExtractionException
 import org.gradle.internal.tools.api.ApiClassExtractor
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
-import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
-import org.gradle.kotlin.dsl.support.compileToDirectory
-import org.gradle.kotlin.dsl.support.loggerFor
+import org.gradle.kotlin.dsl.fixtures.compileToDirectory
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
@@ -312,10 +310,8 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
         val binDir = newFolder("bin")
         compileToDirectory(
             binDir,
-            KotlinCompilerOptions(),
             "test",
             listOf(sourceFile),
-            loggerFor<KotlinApiClassExtractorTest>(),
             emptyList()
         )
 
