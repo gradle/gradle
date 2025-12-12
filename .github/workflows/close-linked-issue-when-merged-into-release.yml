@@ -10,7 +10,6 @@ on:
 
 permissions:
   issues: write
-
 jobs:
   closeIssueOnPrMerge:
     runs-on: ubuntu-latest

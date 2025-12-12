@@ -4,8 +4,6 @@ on:
   issues:
     types: [ opened, labeled, unlabeled, closed, reopened, milestoned, demilestoned ]
 
-permissions: {}
-
 jobs:
   check_issue_metadata:
     permissions:

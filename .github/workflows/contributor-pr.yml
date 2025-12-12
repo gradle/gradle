@@ -1,5 +1,4 @@
-name: Contributor CI Build
-
+name: CI Build 🏗️
 on:
   push:
     branches:
@@ -7,32 +6,29 @@ on:
   pull_request:
     branches:
       - master
-
 concurrency:
-  # On master/release, we don't want any jobs cancelled so the sha is used to name the group
-  group: ${{ (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/release' ) && format('contributor-pr-base-{0}', github.sha) || format('contributor-pr-{0}', github.ref) }}
+  group: ${{ # On master/release, we don't want any jobs cancelled so the sha is used to name the group.
+    github.ref == 'refs/heads/master'
+    || github.ref == 'refs/heads/release'
+    && format('contributor-pr-base-{0}', github.sha)
+    || format('contributor-pr-{0}', github.ref)
+  }}
   cancel-in-progress: false
-
 env:
-  # Set the DEVELOCITY_ACCESS_KEY so that a Build Scan is generated
-  DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
-  # Enable debug for the `gradle-build-action` cache operations
-  GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true
-
-permissions: {}
-
+  DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }} # Set the DEVELOCITY_ACCESS_KEY so that a Build Scan is generated.
+  GRADLE_BUILD_ACTION_CACHE_DEBUG_ENABLED: true # Enable debug for the `gradle-build-action` cache operations.
 jobs:
   build:
-    name: "Compile All"
+    name: Compile All 📦️
     permissions:
       contents: read
     runs-on: ubuntu-latest
     steps:
-      - name: git clone
+      - name: Checkout Repository 📥
         uses: actions/checkout@v6
       - id: setup-matrix
-        run: echo "matrix=$(jq -c -f .github/workflows/extract-unit-test-split.jq .teamcity/subprojects.json)" >> $GITHUB_OUTPUT
-      - name: setup java
+        run: echo matrix=$(jq -c -f .github/workflows/extract-unit-test-split.jq .teamcity/subprojects.json) >> $GITHUB_OUTPUT
+      - name: Setup Java ☕️
         uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -46,7 +42,7 @@ jobs:
             } else {
                 core.setOutput('sys-prop-args', '')
             }
-      - name: Setup Gradle
+      - name: Run Compile 🐘
         uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
@@ -59,17 +55,16 @@ jobs:
     outputs:
       matrix: ${{ steps.setup-matrix.outputs.matrix }}
       sys-prop-args: ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
-
   sanity-check:
-    name: "Sanity Check on Linux"
+    name: Sanity Check 🕊
     permissions:
       contents: read
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: git clone
+      - name: Checkout Repository 📥
         uses: actions/checkout@v6
-      - name: setup java
+      - name: Setup Java ☕️
         uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -78,20 +73,19 @@ jobs:
         with:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
-      - name: Setup Gradle
+      - name: Sanity Check 🔍
         uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - run: ./gradlew sanityCheck -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }}
-      - name: Upload Compatibility Report
+      - name: Upload Report 📊
         if: always()
         uses: actions/upload-artifact@v5
         with:
           name: binary-compatibility-report
           path: testing/architecture-test/build/reports/binary-compatibility/report.html
-
   unit-test:
-    name: "${{ matrix.bucket.name }} (Unit Test)"
+    name: Unit Test 🧪 Matrix 🎲️ (${{ matrix.bucket.name }})
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -101,9 +95,9 @@ jobs:
         bucket: ${{ fromJson(needs.build.outputs.matrix) }}
       fail-fast: false
     steps:
-      - name: git clone
+      - name: Checkout Repository 📥
         uses: actions/checkout@v6
-      - name: setup java
+      - name: Setup Java ☕️
         uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -112,14 +106,13 @@ jobs:
         with:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
-      - name: Setup Gradle
+      - name: Run Task (${{ matrix.bucket.tasks }}) 🐘
         uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - run: ./gradlew ${{ matrix.bucket.tasks }} -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
-
   unit-test-windows-arm:
-    name: "Unit Test Windows ARM"
+    name: Unit Test 🧪 Windows 🪟 (ARM)
     permissions:
       contents: read
     runs-on: windows-11-arm
@@ -128,18 +121,18 @@ jobs:
       run:
         shell: pwsh
     steps:
-      - name: git clone
+      - name: Checkout Repository 📥
         uses: actions/checkout@v6
-      - name: setup java
+      - name: Setup Java ☕️
         uses: actions/setup-java@v5
         with:
-          distribution: microsoft #because that's what is available on ARM windows. zulu would also be an option.
+          distribution: microsoft # because that's what is available on ARM windows. zulu would also be an option.
           java-version: 17
       - uses: actions/download-artifact@v6
         with:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
-      - name: Setup Gradle
+      - name: Run Native Test 🐘
         uses: gradle/actions/setup-gradle@v5
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}

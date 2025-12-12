@@ -1,5 +1,4 @@
-ame: "Gradle CodeQL Configuration"
-
+name: Gradle CodeQL Configuration
 paths-ignore:
   - "**/build/"
   - out/

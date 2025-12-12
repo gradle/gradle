@@ -9,7 +9,6 @@ permissions:
   contents: write
   id-token: write
   pull-requests: write
-
 jobs:
   update-perf-test-buckets:
     runs-on: ubuntu-latest
@@ -17,26 +16,26 @@ jobs:
     if: github.repository == 'gradle/gradle'
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository 📥
         uses: actions/checkout@v6
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::992382829881:role/GHASecrets_gradle_all
           aws-region: "eu-central-1"
-      - name: get secrets
+      - name: Get Secrets 🔐
         uses: aws-actions/aws-secretsmanager-get-secrets@v2
         with:
           secret-ids: |
             PERFORMANCE_DB_URL, gha/gradle/_all/PERFORMANCE_DB_URL
             PERFORMANCE_DB_USERNAME, gha/gradle/_all/PERFORMANCE_DB_USERNAME
             PERFORMANCE_DB_PASSWORD_TCAGENT, gha/gradle/_all/PERFORMANCE_DB_PASSWORD
-      - name: Setup java
+      - name: Setup Java ☕️
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
-      - name: Setup Gradle
+      - name: Setup Gradle 🐘
         uses: gradle/actions/setup-gradle@v5
       - name: Update performance-test-durations.json
         run: |

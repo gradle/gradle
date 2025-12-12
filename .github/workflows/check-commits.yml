@@ -1,43 +1,39 @@
-name: Check commits
+name: Commits 🔍
 on:
   merge_group:
   workflow_dispatch:
   pull_request:
     types:
-     - opened
-     - synchronize
-
-permissions: {}
-
+      - opened
+      - synchronize
 jobs:
-  # See .github/workflows/CheckBadMerge.groovy for explanation
-  check_bad_merge:
+  bad-merge:
+    name: Bad Merge 🚧️
     if: github.event.pull_request.base.ref == 'master'
     permissions:
       contents: read
       issues: write
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Checkout Repository 📥
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Set up JDK 17
+      - name: Setup Java ☕️
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
-      - name: Install Groovy
+      - name: Install Groovy 📦
         run: sudo apt-get install groovy
-      - name: List PR commits
+      - name: List PR commits 📝
         run: |
           git log --pretty=format:"%H" ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} > pr_commits.txt
-      - name: Check PR commits
+      - name: PR commits 🔍
         id: run_check
         run: |
           groovy .github/workflows/CheckBadMerge.groovy pr_commits.txt > output.txt 2>&1
-      - name: Read output file
+      - name: Read output file 📄
         id: read_output
         if: ${{ always() }}
         run: |
@@ -46,7 +42,7 @@ jobs:
           echo "OUTPUT<<EOF" >> $GITHUB_ENV
           echo "$OUTPUT" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-      - name: Comment on PR if check failed
+      - name: Comment on PR if check failed 💬
         if: ${{ failure() }}
         uses: actions/github-script@v8
         with:
@@ -64,18 +60,17 @@ jobs:
               repo: context.repo.repo,
               body: output
             })
-  # check that only released Gradle versions are used in the wrapper
-  check_wrapper:
+  wrapper: # check that only released Gradle versions are used in the wrapper
+    name: Wrapper 🎁
     permissions:
       contents: read
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Checkout Repository 📥
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Check used wrapper
+      - name: Used wrapper 🔍
         run: |
           set -eu
           for commit in $(git rev-list ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}); do
