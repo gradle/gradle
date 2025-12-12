@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.tasks.testing.TestFileAttachmentDataEvent;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -28,7 +29,7 @@ import java.time.Instant;
  * This implementation is intended to be kept within the build process and workers.
  */
 @NullMarked
-public class DefaultTestFileAttachmentDataEvent extends AbstractTestDataEvent {
+public class DefaultTestFileAttachmentDataEvent extends AbstractTestDataEvent implements TestFileAttachmentDataEvent {
     private final Path path;
     private final @Nullable String mediaType;
 
@@ -39,12 +40,23 @@ public class DefaultTestFileAttachmentDataEvent extends AbstractTestDataEvent {
         this.mediaType = mediaType;
     }
 
+    @Override
     public Path getPath() {
         return path;
     }
 
+    @Override
     @Nullable
     public String getMediaType() {
         return mediaType;
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultTestFileAttachmentDataEvent{" +
+            "logTime=" + getLogTime() +
+            ", path=" + path +
+            ", mediaType='" + mediaType + '\'' +
+            '}';
     }
 }
