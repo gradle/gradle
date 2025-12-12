@@ -19,6 +19,8 @@ package org.gradle.internal
 import org.apache.commons.io.FileSystem
 import org.gradle.api.Action
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -64,12 +66,16 @@ class IoActionsTest extends Specification {
         e.cause instanceof IOException
         e.cause.message.startsWith("Unable to create directory")
     }
-    
+
+    // Windows supports much longer file paths than Linux or macOS, but it's tricky to set this up accurately
+    // in a test because Java canonicalizes file paths internally in a way that count towards the overall length
+    // and Filesystem.WINDOWS.maxPathLength is conservative in its maximum path length.
+    @Requires(UnitTestPreconditions.NotWindows)
     def "fails to with useful error when file path is too long"() {
         given:
         def maxLength = FileSystem.current.maxPathLength
-        def fileName = "foo.txt"
-        def subdirNameLength = Math.floor((maxLength - fileName.length() - tmp.testDirectory.absolutePath.length())/5)
+        def fileName = "longfoo.txt"
+        def subdirNameLength = Math.ceil((maxLength - fileName.length() - tmp.testDirectory.absolutePath.length())/5)
         assert subdirNameLength > 0
         def subdir = tmp.file("deep/" * subdirNameLength)
         def file = new File(subdir, fileName)
@@ -84,7 +90,7 @@ class IoActionsTest extends Specification {
         then:
         def e = thrown UncheckedIOException
         e.cause instanceof FileSystemException
-        e.cause.message.contains("foo.txt")
+        e.cause.message.contains(fileName)
         ((FileSystemException)e.cause).reason == "File name too long"
     }
 
