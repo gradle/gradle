@@ -19,6 +19,7 @@ import org.gradle.internal.FileUtils;
 import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolver;
+import org.gradle.internal.scripts.ScriptResolutionResult;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
@@ -60,11 +61,6 @@ public class BuildLayoutFactory {
     }
 
     @Nullable
-    public File findExistingSettingsFileIn(File directory) {
-        return scriptFileResolver.resolveScriptFile(directory, BuildLogicFiles.SETTINGS_FILE_BASENAME);
-    }
-
-    @Nullable
     private BuildLayout findLayoutRecursively(File dir) {
         while (dir != null) {
             BuildLayout layout = findLayout(dir);
@@ -78,17 +74,24 @@ public class BuildLayoutFactory {
 
     @Nullable
     private BuildLayout findLayout(File dir) {
-        File settingsFile = findExistingSettingsFileIn(dir);
-        return settingsFile != null ? layout(dir, settingsFile) : null;
+        ScriptResolutionResult resolutionResult = scriptFileResolver.resolveScriptFile(dir, BuildLogicFiles.SETTINGS_FILE_BASENAME);
+        if (resolutionResult.isScriptFound()) {
+            return layout(dir, resolutionResult);
+        } else {
+            return null;
+        }
     }
 
     private BuildLayout getLayoutWithDefaultSettingsFile(File dir) {
-        return layout(dir, new File(dir, BuildLogicFiles.DEFAULT_SETTINGS_FILE));
+        ScriptResolutionResult resolution = ScriptResolutionResult.fromSingleFile(
+            BuildLogicFiles.SETTINGS_FILE_BASENAME,
+            FileUtils.canonicalize(new File(dir, BuildLogicFiles.DEFAULT_SETTINGS_FILE))
+        );
+        return layout(dir, resolution);
     }
 
-    private BuildLayout layout(File rootDir, @Nullable File settingsFile) {
-        File canonicalSettingsFile = settingsFile != null ? FileUtils.canonicalize(settingsFile) : null;
-        return new BuildLayout(rootDir, canonicalSettingsFile, scriptFileResolver);
+    private BuildLayout layout(File rootDir, @Nullable ScriptResolutionResult settingsFileResolution) {
+        return new BuildLayout(rootDir, settingsFileResolution, scriptFileResolver);
     }
 
     private static boolean isBuildSrc(File dir) {
