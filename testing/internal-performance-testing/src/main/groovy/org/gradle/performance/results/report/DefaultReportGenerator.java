@@ -51,6 +51,7 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
     protected void collectFailures(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, FailureCollector failureCollector) {
         executionDataProvider.getReportScenarios()
             .forEach(scenario -> {
+                System.out.println("Generating for scenario: " + scenario.getName());
                 if (scenario.isBuildFailed()) {
                     System.out.println("Build failed for " + scenario.getName() + scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getWebUrl).collect(Collectors.joining(", ")));
                     failureCollector.scenarioFailed();

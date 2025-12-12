@@ -220,6 +220,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
         List<String> teamcityBuildIds
     ) {
         return withConnection("load results", connection -> {
+            System.out.println("Loading results from " + experiment.getTestProject() + ", " + channelPatterns + ", " + teamcityBuildIds);
             String buildIdQuery = teamcityBuildIdQueryFor(teamcityBuildIds);
             String channelPatternQuery = channelPatternQueryFor(channelPatterns);
             try (
@@ -308,6 +309,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                         }
                     }
                 }
+                System.out.println("Finish loading results from " + experiment.getTestProject() + ", " + channelPatterns + ", " + teamcityBuildIds);
                 return new CrossVersionPerformanceTestHistory(experiment, new ArrayList<>(allVersions), new ArrayList<>(allBranches), Lists.newArrayList(results.values()));
             }
         });
@@ -359,6 +361,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
 
     private Map<PerformanceExperiment, BigDecimal> queryFlakinessData(String sql, OperatingSystem os, Timestamp time) {
         return withConnection("query flakiness data", connection -> {
+            System.out.println("Executing query flakiness data: " + sql);
             Map<PerformanceExperiment, BigDecimal> results = new HashMap<>();
             try (
                 PreparedStatement statement = prepareStatement(connection, sql, os, time);
@@ -372,6 +375,7 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                     results.put(new PerformanceExperiment(testProject, new PerformanceScenario(testClass, testName)), value);
                 }
             }
+            System.out.println("Finish executing query flakiness data: " + sql);
             return results;
         });
     }

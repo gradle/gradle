@@ -56,7 +56,9 @@ public abstract class PerformanceExecutionDataProvider {
 
     public TreeSet<PerformanceReportScenario> getReportScenarios() {
         if (scenarioExecutions == null) {
+            System.out.println("Getting scenario executions");
             scenarioExecutions = readResultJsonAndQueryFromDatabase();
+            System.out.println("Finish getting scenario executions");
         }
 
         return scenarioExecutions;

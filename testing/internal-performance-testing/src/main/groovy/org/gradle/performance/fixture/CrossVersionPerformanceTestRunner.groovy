@@ -72,6 +72,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     List<String> studioJvmArgs = []
     List<String> studioIdeaProperties = []
     File studioInstallDir
+    String baselineVersion
 
     List<String> tasksToRun = []
     List<String> cleanTasks = []
@@ -194,8 +195,8 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         def builder = GradleBuildExperimentSpec.builder()
             .projectName(testProject)
             .displayName(displayName)
-            .warmUpCount(warmUpRuns)
-            .invocationCount(runs)
+            .warmUpCount(1)
+            .invocationCount(1)
             .buildMutators(buildMutators)
             .crossVersion(true)
             .measuredBuildOperations(measuredBuildOperations)
