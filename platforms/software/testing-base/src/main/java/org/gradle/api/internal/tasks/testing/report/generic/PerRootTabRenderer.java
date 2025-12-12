@@ -88,6 +88,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
     }
 
     public static final class ForSummary extends PerRootTabRenderer {
+
         public ForSummary(int rootIndex, int perRootInfoIndex) {
             super(rootIndex, perRootInfoIndex);
         }
@@ -96,7 +97,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("div");
             renderSummary(info, htmlWriter);
-            if (info.getChildren().isEmpty()) {
+            if (info.isLeaf()) {
                 renderLeafDetails(info, htmlWriter);
             } else {
                 renderContainerDetails(htmlWriter);
@@ -134,7 +135,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             return childTableRenderers.build();
         }
 
-        private static void addResultTabIfNeeded(
+        private void addResultTabIfNeeded(
             String name,
             TestResult.ResultType resultType,
             List<ChildEntry> children,
@@ -307,9 +308,12 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 );
 
                 htmlWriter.startElement("th").characters("Child").endElement();
-                if (anyNameAndDisplayNameDiffer) {
-                    htmlWriter.startElement("th").characters("Name").endElement();
+                htmlWriter.startElement("th");
+                if (!anyNameAndDisplayNameDiffer) {
+                    htmlWriter.attribute("hidden", "");
                 }
+                htmlWriter.characters("Name").endElement();
+
                 htmlWriter.startElement("th").characters("Tests").endElement();
                 htmlWriter.startElement("th").characters("Failures").endElement();
                 htmlWriter.startElement("th").characters("Skipped").endElement();
@@ -330,17 +334,24 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                     htmlWriter.startElement("td").attribute("class", statusClass);
 
                     String displayName = SerializableTestResult.getCombinedDisplayName(perRootInfo.getResults());
-                    htmlWriter.startElement("a")
-                        .attribute("href", GenericPageRenderer.getUrlTo(
-                            model.getPath(), false,
-                            pair.model.getPath(), pair.model.getChildren().isEmpty()
-                        ))
-                        .characters(displayName).endElement();
+                    // Don't link to leaf tests that don't have their own HTML file
+                    if (pair.model.hasUsefulDetails()) {
+                        htmlWriter.startElement("a")
+                            .attribute("href", GenericPageRenderer.getUrlTo(
+                                model.getPath(), false,
+                                pair.model.getPath(), pair.model.getChildren().isEmpty()
+                            ))
+                            .characters(displayName).endElement();
+                    } else {
+                        htmlWriter.characters(displayName);
+                    }
                     htmlWriter.endElement();
 
-                    if (anyNameAndDisplayNameDiffer) {
-                        htmlWriter.startElement("td").characters(perRootInfo.getResults().get(0).getName()).endElement();
+                    htmlWriter.startElement("td").attribute("class", "path");
+                    if (!anyNameAndDisplayNameDiffer) {
+                        htmlWriter.attribute("hidden", "");
                     }
+                    htmlWriter.characters(perRootInfo.getResults().get(0).getName()).endElement();
 
                     htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getTotalLeafCount())).endElement();
                     htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getFailedLeafCount())).endElement();
@@ -355,7 +366,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         }
 
         private static TestResult.ResultType getResultType(PerRootInfo info) {
-            if (info.getChildren().isEmpty()) {
+            if (info.isLeaf()) {
                 // For leaf nodes, we use the result type of the single result
                 if (info.getResults().size() > 1) {
                     throw new IllegalStateException("Leaf nodes should only have one result");

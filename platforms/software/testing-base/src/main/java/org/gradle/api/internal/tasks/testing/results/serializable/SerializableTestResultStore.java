@@ -169,7 +169,6 @@ public final class SerializableTestResultStore {
                 .name(testDescriptor.getName())
                 .displayName(testDescriptor.getDisplayName())
                 .className(testDescriptor.getClassName())
-                .classDisplayName(testDescriptor.getClassDisplayName())
                 .startTime(testResult.getStartTime())
                 .endTime(testResult.getEndTime())
                 .resultType(testResult.getResultType());

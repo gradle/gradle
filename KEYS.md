@@ -25,7 +25,7 @@ gpg --keyserver hkps://keys.openpgp.org --recv-keys 1BD97A6A154E7810EE0BC832E2F3
 
 ### Verifying signatures
 
-Once you've downloaded a Gradle JAR file and its corresponding signature file (with a `.asc` extension), you can verify its authenticity against the public key.
+Once you've downloaded a Gradle JAR file or a distribution and its corresponding signature file (with a `.asc` extension), you can verify its authenticity against the public key.
 
 For example, to verify the signature of `plugin-publish-plugin-2.0.0.jar` and its signature file `plugin-publish-plugin-2.0.0.jar.asc`, use this command:
 

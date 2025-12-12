@@ -17,7 +17,6 @@
 package org.gradle.testing.junit.platform
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_ARCHUNIT_VERSION
@@ -63,9 +62,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         results.testPath("org.gradle.NestedTest").onlyRoot()
             .assertChildCount(1, 0)
         results.testPathPreNormalized(':org.gradle.NestedTest:org.gradle.NestedTest$Inner').onlyRoot()
-            .assertChildCount(1, 0)
-        results.testPathPreNormalized(':org.gradle.NestedTest:org.gradle.NestedTest$Inner:innerTest()').onlyRoot()
-            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertOnlyChildrenExecuted("innerTest()")
     }
 
     def 'can use nested class as test pattern'() {
@@ -106,8 +103,6 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         results.testPathPreNormalized(':EnclosingClass:EnclosingClass$NestedClass').onlyRoot()
             .assertChildCount(1, 0)
             .assertChildrenExecuted("nestedTest()")
-        results.testPathPreNormalized(':EnclosingClass:EnclosingClass$NestedClass:nestedTest()').onlyRoot()
-            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def 'can filter tests from a superclass'() {
@@ -138,8 +133,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         def results = resultsFor(testDirectory)
         results.testPath("SubClass").onlyRoot()
             .assertChildCount(1, 0)
-        results.testPathPreNormalized(':SubClass:superTest()').onlyRoot()
-            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertOnlyChildrenExecuted("superTest()")
     }
 
     /**
@@ -184,8 +178,6 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         def results = resultsFor(testDirectory)
         results.testPath('DeclaresTestsAsFieldsNotMethodsTest').onlyRoot()
             .assertChildCount(1, 0)
-        results.testPathPreNormalized(':DeclaresTestsAsFieldsNotMethodsTest:example').onlyRoot()
-            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     /**
@@ -230,8 +222,6 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         def results = resultsFor(testDirectory)
         results.testPath('DeclaresTestsAsFieldsNotMethodsTest').onlyRoot()
             .assertChildCount(1, 0)
-        results.testPathPreNormalized(':DeclaresTestsAsFieldsNotMethodsTest:example').onlyRoot()
-            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     /**
