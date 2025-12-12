@@ -37,6 +37,7 @@ import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
@@ -747,6 +748,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             ));
         }
 
+        verifyAppropriateFilterConfiguration();
+
         if (getDebug()) {
             getLogger().info("Running tests for remote debugging.");
         }
@@ -755,6 +758,40 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             super.executeTests();
         } finally {
             CompositeStoppable.stoppable(getTestFramework()).stop();
+        }
+    }
+
+    private void verifyAppropriateFilterConfiguration() {
+        boolean hasClassBasedTests = !getTestClassesDirs().getAsFileTree().isEmpty();
+        boolean hasDefinitionBasedTests = !getTestDefinitionDirs().isEmpty();
+
+        if (!hasClassBasedTests) {
+            getFilter().getExcludePatterns().forEach(exclude -> {
+                if (TestSelectionMatcher.isClassBasedPattern(exclude)) {
+                    throw new IllegalArgumentException("Exclude pattern '" + exclude + "' is class-based, but no class-based tests were found. " +
+                        "Please remove class-based exclude patterns when running only non-class-based tests.");
+                }
+            });
+            getFilter().getIncludePatterns().forEach(include -> {
+                if (TestSelectionMatcher.isClassBasedPattern(include)) {
+                    throw new IllegalArgumentException("Include pattern '" + include + "' is class-based, but no class-based tests were found. " +
+                        "Please remove class-based include patterns when running only non-class-based tests.");
+                }
+            });
+        }
+        if (!hasDefinitionBasedTests) {
+            getFilter().getExcludePatterns().forEach(exclude -> {
+                if (TestSelectionMatcher.isPathBasedPattern(exclude)) {
+                    throw new IllegalArgumentException("Exclude pattern '" + exclude + "' is path-based, but no non-class-based tests were found. " +
+                        "Please remove path-based exclude patterns when running only class-based tests.");
+                }
+            });
+            getFilter().getIncludePatterns().forEach(include -> {
+                if (TestSelectionMatcher.isPathBasedPattern(include)) {
+                    throw new IllegalArgumentException("Include pattern '" + include + "' is path-based, but no non-class-based tests were found. " +
+                        "Please remove path-based include patterns when running only class-based tests.");
+                }
+            });
         }
     }
 

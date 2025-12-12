@@ -79,11 +79,11 @@ public class TestSelectionMatcher {
             .collect(Collectors.toList());
     }
 
-    private static boolean isClassBasedPattern(String pattern) {
+    public static boolean isClassBasedPattern(String pattern) {
         return !isPathBasedPattern(pattern);
     }
 
-    private static boolean isPathBasedPattern(String pattern) {
+    public static boolean isPathBasedPattern(String pattern) {
         return pattern.contains("/"); // Only Unix-style paths are supported in test selection patterns
     }
 
