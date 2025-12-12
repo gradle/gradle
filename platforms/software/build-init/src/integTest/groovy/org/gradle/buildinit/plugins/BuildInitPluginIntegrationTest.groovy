@@ -20,6 +20,7 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.util.GradleVersion
+import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
 import spock.lang.Issue
 
@@ -266,7 +267,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         def buildFile = rootProjectDslFixtureFor(scriptDsl).buildFile
-        buildFile.assertContents(containsString("""
+        buildFile.assertContents(containsString(TextUtil.toPlatformLineSeparators("""
 dependencies {
     api(libs.org.example.example.lib) {
         // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent, see: https://docs.gradle.org/${GradleVersion.current().version}/userguide/build_init_plugin.html#sec:pom_maven_conversion
@@ -275,7 +276,7 @@ dependencies {
         // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent, see: https://docs.gradle.org/${GradleVersion.current().version}/userguide/build_init_plugin.html#sec:pom_maven_conversion
         $dangerousLibExclude
     }
-}"""))
+}""")))
 
         where:
         scriptDsl   | unWantedLibExclude                                                        | dangerousLibExclude
