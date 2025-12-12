@@ -20,6 +20,7 @@ package org.gradle.internal.logging.sink
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.internal.logging.DefaultLoggingConfiguration
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.console.ConsoleStub
 import org.gradle.internal.logging.console.GlobalUserInputReceiver
@@ -424,7 +425,9 @@ class OutputEventRendererTest extends OutputSpecification {
         def snapshot = renderer.snapshot()
         def output = new ByteArrayOutputStream()
         def error = new ByteArrayOutputStream()
-        renderer.attachConsole(output, error, ConsoleOutput.Plain)
+        def config = new DefaultLoggingConfiguration()
+        config.setConsoleOutput(ConsoleOutput.Plain)
+        renderer.attachConsole(output, error, config)
 
         when:
         renderer.onOutput(start(description: 'description', buildOperationStart: true, id: 1L, buildOperationId: 1L, buildOperationCategory: BuildOperationCategory.TASK))
@@ -444,7 +447,9 @@ class OutputEventRendererTest extends OutputSpecification {
         def snapshot = renderer.snapshot()
         def output = new ByteArrayOutputStream()
         def error = new ByteArrayOutputStream()
-        renderer.attachConsole(output, error, ConsoleOutput.Plain)
+        def config = new DefaultLoggingConfiguration()
+        config.setConsoleOutput(ConsoleOutput.Plain)
+        renderer.attachConsole(output, error, config)
 
         when:
         renderer.onOutput(event(tenAm, 'info', LogLevel.INFO))
@@ -460,9 +465,11 @@ class OutputEventRendererTest extends OutputSpecification {
         when:
         def output = new ByteArrayOutputStream()
         def error = new ByteArrayOutputStream()
+        def config = new DefaultLoggingConfiguration()
+        config.setConsoleOutput(ConsoleOutput.Plain)
         renderer.attachSystemOutAndErr()
         def snapshot = renderer.snapshot()
-        renderer.attachConsole(output, error, ConsoleOutput.Plain)
+        renderer.attachConsole(output, error, config)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.restore(snapshot) // close console to flush
