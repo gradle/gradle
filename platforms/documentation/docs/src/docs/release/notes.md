@@ -182,7 +182,7 @@ For example:
     }
 ```
 
-Gradle now captures this additional data and includes it in both the HTML test report and the XML test results.
+Gradle now captures this additional data and includes it in both the [HTML test report and the XML test results](userguide/java_testing.html#test_reporting).
 
 In the HTML test report, when such data is published during a test, two new tabs are shown alongside `stdout` and `stderr`:
 
