@@ -19,6 +19,40 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
+
+    def "can report task provenance when registered in project"() {
+        given:
+        settingsFile """
+            includeBuild("included")
+            include(":lib")
+        """
+        buildFile("included/settings.gradle", "")
+        buildFile("buildSrc/build.gradle", "")
+        buildFile("included/build.gradle", "")
+        buildFile("lib/build.gradle", "")
+
+        buildFile(buildScriptPath, """
+            tasks.register('foo') {
+              doLast {
+                    throw new RuntimeException("Failure!")
+              }
+            }
+        """
+        )
+
+        when:
+        fails task
+
+        then:
+        failureDescriptionContains expectedFailureDescription
+
+        where:
+        buildScriptPath         | task           | expectedFailureDescription
+        "buildSrc/build.gradle" | "buildSrc:foo" | "Execution failed for task ':buildSrc:foo' created by build file 'buildSrc/build.gradle'"
+        "included/build.gradle" | "included:foo" | "Execution failed for task ':included:foo' created by build file 'included/build.gradle'"
+        "lib/build.gradle"      | "foo"          | "Execution failed for task ':lib:foo' created by build file 'lib/build.gradle'"
+    }
+
     def "can read task user code source"() {
         given:
         buildFile """
@@ -82,23 +116,6 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("Hello from plugin class 'MyPlugin'")
-    }
-
-    def "task fails"() {
-        given:
-        buildFile """
-            task foo {
-                doLast {
-                    throw new RuntimeException("foo")
-                }
-            }
-        """
-
-        when:
-        fails("foo")
-
-        then:
-        failureDescriptionContains("Execution failed for task ':foo' created by build file 'build.gradle'.")
     }
 
     def "task fails in afterEvaluate"() {
