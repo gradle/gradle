@@ -122,6 +122,7 @@ public class ConsoleConfigureAction {
     }
 
     private static Console consoleFor(OutputStream stream, Supplier<OutputStream> jansiFallback, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
+        org.fusesource.jansi.AnsiConsole.systemInstall();
         boolean force = !consoleMetaData.isWrapStreams();
         OutputStreamWriter writer = new OutputStreamWriter(force ? stream : jansiFallback.get(), Charset.defaultCharset());
         return new AnsiConsole(writer, writer, colourMap, consoleMetaData, force);
