@@ -37,7 +37,7 @@ public abstract class OperatingSystem {
     public static final Linux LINUX = new Linux();
     public static final FreeBSD FREE_BSD = new FreeBSD();
     public static final Unix UNIX = new Unix();
-    private static OperatingSystem currentOs;
+    private static @Nullable OperatingSystem currentOs;
     private final String toStringValue;
     private final String osName;
     private final String osVersion;
