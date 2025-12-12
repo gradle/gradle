@@ -401,4 +401,9 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         int estimate = (int) (512 * Math.log(numDependencies));
         return Math.max(10, estimate);
     }
+
+    @Override
+    public String toString() {
+        return root.getDisplayName() + " resolve state";
+    }
 }

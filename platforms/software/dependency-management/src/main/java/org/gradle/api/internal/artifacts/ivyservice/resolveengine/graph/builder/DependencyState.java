@@ -173,4 +173,12 @@ public class DependencyState {
             || !reasons.contains(reason);
     }
 
+    @Override
+    public String toString() {
+        if (requested.equals(dependency.getSelector())) {
+            return dependency.toString();
+        } else {
+            return dependency + " (requested " + requested + ")";
+        }
+    }
 }
