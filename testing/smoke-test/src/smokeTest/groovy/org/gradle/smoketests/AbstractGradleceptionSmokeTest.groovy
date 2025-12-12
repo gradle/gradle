@@ -32,7 +32,7 @@ import java.text.SimpleDateFormat
 @Requires([
     UnitTestPreconditions.Jdk9OrLater,
     IntegTestPreconditions.NotConfigCached,
-    SmokeTestPreconditions.GradleBuildJvmSpecAvailable
+    SmokeTestPreconditions.Jdk17Available
 ])
 abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
@@ -46,7 +46,7 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
         and:
         def buildJavaHome = AvailableJavaHomes.getAvailableJdks(new GradleBuildJvmSpec()).last().javaHome
-        file("gradle.properties") << "\norg.gradle.java.home=${buildJavaHome}\n"
+        file("gradle.properties") << "\norg.gradle.java.home=${buildJavaHome.absolutePath.replace('\\', '/')}\n"
     }
 
     SmokeTestGradleRunner.SmokeTestBuildResult getResult() {

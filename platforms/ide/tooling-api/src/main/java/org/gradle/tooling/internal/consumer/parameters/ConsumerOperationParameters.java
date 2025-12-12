@@ -353,6 +353,10 @@ public class ConsumerOperationParameters implements BuildParameters {
         }
     }
 
+    public ConnectionParameters getConnectionParameters() {
+        return parameters;
+    }
+
     public String getEntryPointName() {
         return entryPointName;
     }
