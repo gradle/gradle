@@ -17,26 +17,37 @@
 package org.gradle.util.internal
 
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.internal.time.ExponentialBackoff
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
+import static java.util.concurrent.TimeUnit.SECONDS
+
+/**
+ * Integration test for DistributionLocator that uses real network connections to verify that distributions can be located.
+ * <p>
+ * To avoid sporadic 503 responses from the server causing test failures, the test will retry using {@link ExponentialBackoff}
+ * for up to {@link #RETRY_TIMEOUT_SECONDS} seconds.
+ */
 @Requires(UnitTestPreconditions.Online)
 class DistributionLocatorIntegrationTest extends Specification {
-    private static final int NUM_RETRIES = 3
-    private static final int RETRY_DELAY_SECONDS = 5
-    private static final int CONNECTION_TIMEOUT_SECONDS = 60 * 1000
-    private static final int READ_TIMEOUT_SECONDS = 60 * 1000
-    def locator = new DistributionLocator()
-    def distributions = new ReleasedVersionDistributions()
+    private static final int RETRY_TIMEOUT_SECONDS = 120
+    private static final int CONNECTION_TIMEOUT_SECONDS = 5
+    private static final int READ_TIMEOUT_SECONDS = 5
+
+    private final locator = new DistributionLocator()
+    private final distributions = new ReleasedVersionDistributions()
+    private final queryRunner = ExponentialBackoff.of(RETRY_TIMEOUT_SECONDS, SECONDS, ExponentialBackoff.Signal.SLEEP)
 
     def "locates release versions"() {
         expect:
-        urlExist(locator.getDistributionFor(GradleVersion.version("0.8")))
-        urlExist(locator.getDistributionFor(GradleVersion.version("0.9.1")))
-        urlExist(locator.getDistributionFor(GradleVersion.version("1.0-milestone-3")))
-        urlExist(locator.getDistributionFor(GradleVersion.version("1.12")))
+        urlExists(locator.getDistributionFor(GradleVersion.version("0.8")))
+        urlExists(locator.getDistributionFor(GradleVersion.version("0.9.1")))
+        urlExists(locator.getDistributionFor(GradleVersion.version("1.0-milestone-3")))
+        urlExists(locator.getDistributionFor(GradleVersion.version("1.12")))
+        urlExists(locator.getDistributionFor(distributions.mostRecentRelease.version))
     }
 
     /**
@@ -45,29 +56,42 @@ class DistributionLocatorIntegrationTest extends Specification {
      */
     def "locates snapshot versions"() {
         expect:
-        urlExist(locator.getDistributionFor(distributions.mostRecentReleaseSnapshot.version))
+        urlExists(locator.getDistributionFor(distributions.mostRecentReleaseSnapshot.version))
     }
 
-    private void urlExist(URI url) {
-        int responseCode = 0
-        for (int attempt = 1; attempt <= NUM_RETRIES; attempt++) {
-            responseCode = attemptConnection(url)
-            if (responseCode == 200) {
-                break
-            } else {
-                println "Attempt ${attempt}: Failed to connect to ${url}, response code: ${responseCode}"
-                Thread.sleep(RETRY_DELAY_SECONDS * 1000)
-            }
-        }
+    private void urlExists(URI url) {
+        def query = new DistributionExistsQuery(url)
+        def responseCode = queryRunner.retryUntil(query)
         assert responseCode == 200
     }
 
-    private int attemptConnection(URI url) {
-        def connection = url.toURL().openConnection() as HttpURLConnection
-        connection.setConnectTimeout(CONNECTION_TIMEOUT_SECONDS)
-        connection.setReadTimeout(READ_TIMEOUT_SECONDS)
-        connection.requestMethod = "HEAD"
-        connection.connect()
-        return connection.responseCode
+    private static final class DistributionExistsQuery implements ExponentialBackoff.Query<Integer> {
+        private final URI url
+        private int attempt = 0
+
+        DistributionExistsQuery(URI url) {
+            this.url = url
+        }
+
+        @Override
+        ExponentialBackoff.Result<Integer> run() throws IOException, InterruptedException {
+            attempt++
+            int responseCode = attemptConnection(url)
+            if (responseCode == 200) {
+                return ExponentialBackoff.Result.successful(responseCode)
+            } else {
+                println "Attempt ${attempt}: Failed to connect to ${url}, response code: ${responseCode}"
+                return ExponentialBackoff.Result.notSuccessful(responseCode)
+            }
+        }
+
+        private int attemptConnection(URI url) {
+            def connection = url.toURL().openConnection() as HttpURLConnection
+            connection.setConnectTimeout(CONNECTION_TIMEOUT_SECONDS * 1000)
+            connection.setReadTimeout(READ_TIMEOUT_SECONDS * 1000)
+            connection.requestMethod = "HEAD"
+            connection.connect()
+            return connection.responseCode
+        }
     }
 }
