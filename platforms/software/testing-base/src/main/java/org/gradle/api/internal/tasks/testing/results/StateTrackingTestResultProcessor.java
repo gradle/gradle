@@ -43,8 +43,15 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
     @Override
     public final void started(TestDescriptorInternal test, TestStartEvent event) {
         TestDescriptorInternal parent = null;
-        if (event.getParentId() != null) {
-            parent = executing.get(event.getParentId()).test;
+        Object parentId = event.getParentId();
+        if (parentId != null) {
+            TestState testState = executing.get(parentId);
+            if (testState == null) {
+                throw new IllegalArgumentException(String.format(
+                    "Received a started event for %s (id '%s') with parent id '%s', but no such parent is currently executing. Registered test ids: '%s'",
+                    test, test.getId(), parentId, executing.keySet()));
+            }
+            parent = testState.test;
         }
         TestState state = new TestState(new DecoratingTestDescriptor(test, parent), event, executing);
         TestState oldState = executing.put(test.getId(), state);
