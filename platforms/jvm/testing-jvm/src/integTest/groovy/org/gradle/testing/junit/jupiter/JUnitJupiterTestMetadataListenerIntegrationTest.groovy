@@ -45,7 +45,7 @@ class JUnitJupiterTestMetadataListenerIntegrationTest extends AbstractTestingMul
         """.stripIndent()
     }
 
-    def "can use standard metadata listener for tests"() {
+    def "can register metadata listener for tests"() {
         given:
         javaFile("src/test/java/SomeTest.java", """
             ${testFrameworkImports}
@@ -99,7 +99,10 @@ class JUnitJupiterTestMetadataListenerIntegrationTest extends AbstractTestingMul
         !failure.output.contains("remove me!")
     }
 
-    @Ignore // Test fails
+    // Ideally, this test should fail as coded, but currently it doesn't since we have to leave
+    // the TestMetadataListener registered at the build level
+    // instead of the project level.  Both this and TestOutputListener should be fixed together.
+    @Ignore
     @UnsupportedWithConfigurationCache
     def "can register metadata listener at gradle level"() {
         given:
