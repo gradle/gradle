@@ -23,3 +23,6 @@ dependencies {
     implementation(libs.inject)
 }
 
+errorprone {
+    nullawayEnabled = true
+}
