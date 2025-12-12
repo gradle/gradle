@@ -34,5 +34,9 @@ dependencies {
     api(libs.jspecify)
 
     implementation(libs.groovy)
+
+    testFixturesImplementation(testFixtures(projects.declarativeDslProvider))
+
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 

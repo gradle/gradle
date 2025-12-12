@@ -378,7 +378,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             public abstract class RestrictedPlugin implements Plugin<Project> {
                 public static class Binding implements ${ProjectTypeBinding.class.simpleName} {
                     public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
-                        builder.bindProjectType("restricted",  Extension.class, (context, definition, model) -> { });
+                        builder.bindProjectType("restricted",  Extension.class, (context, definition, model) -> { }).withUnsafeDefinition();
                     }
                 }
 

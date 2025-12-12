@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.settings
+package org.gradle.plugin.software.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
+import org.gradle.internal.declarativedsl.settings.ProjectTypeFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.hamcrest.Matchers
@@ -44,7 +46,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
 
     def 'can declare and configure a custom project type from included build'() {
         given:
-        withProjectTypePlugins().prepareToExecute()
+        withProjectType().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -64,7 +66,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
     def 'can declare and configure a custom project type from published plugin'() {
         given:
         pluginPortal.start()
-        def pluginBuilder = withProjectTypePlugins()
+        def pluginBuilder = withProjectType()
         pluginBuilder.publishAs("com", "example", "1.0", pluginPortal, createExecuter()).allowAll()
 
         settingsFile() << """
@@ -86,12 +88,9 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         outputDoesNotContain("Applying AnotherProjectTypeImplPlugin")
     }
 
-    /**
-     * This test is not yet implemented because it requires a custom repository to be set up which is not possible yet with the declarative dsl.
-     */
     def 'can declare and configure a custom project type from plugin published to a custom repository'() {
         given:
-        def pluginBuilder = withProjectTypePlugins()
+        def pluginBuilder = withProjectType()
         pluginBuilder.publishAs("com", "example", "1.0", mavenHttpRepo, createExecuter()).allowAll()
 
         settingsFile() << """
@@ -172,7 +171,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy has no problem with finding non-public methods/types ...")
     def 'can declare and configure a custom project type with different public and implementation model types'() {
         given:
-        withProjectTypePluginThatHasDifferentPublicAndImplementationModelTypes().prepareToExecute()
+        withProjectTypeThatHasDifferentPublicAndImplementationModelTypes().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -216,6 +215,28 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         failure.assertHasCause("Failed to apply plugin 'com.example.test-software-ecosystem'.")
         failure.assertHasCause("A problem was found with the NotAProjectTypePlugin plugin.")
         failure.assertHasCause("Type 'org.gradle.test.NotAProjectTypePlugin' is registered as a project feature plugin but does not expose a project feature.")
+    }
+
+    def 'sensible error when two plugins register the same project type'() {
+        given:
+        withTwoProjectTypesThatHaveTheSameName().prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
+
+        when:
+        fails(":help")
+
+        then:
+        assertDescriptionOrCause(failure,
+            "Project feature 'testProjectType' is registered by multiple plugins:\n" +
+            "  - Project feature 'testProjectType' is registered by both 'org.gradle.test.AnotherProjectTypeImplPlugin' and 'org.gradle.test.ProjectTypeImplPlugin'.\n" +
+            "    \n" +
+            "    Reason: A project feature or type with a given name can only be registered by a single plugin.\n" +
+            "    \n" +
+            "    Possible solution: Remove one of the plugins from the build."
+        )
     }
 
     def 'a project type plugin can declare multiple project types'() {
@@ -272,7 +293,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Kotlin can use a property value on the assignment RHS")
     def 'sensible error when declarative script uses a property as value for another property'() {
         given:
-        withProjectTypePlugins().prepareToExecute()
+        withProjectType().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -309,5 +330,13 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
 
     void assertThatDeclaredValuesAreSetProperly() {
         outputContains("""id = test\nbar = baz""")
+    }
+
+    void assertDescriptionOrCause(ExecutionFailure failure, String expectedMessage) {
+        if (currentDsl() == GradleDsl.DECLARATIVE) {
+            failure.assertHasDescription(expectedMessage)
+        } else {
+            failure.assertHasCause(expectedMessage)
+        }
     }
 }
