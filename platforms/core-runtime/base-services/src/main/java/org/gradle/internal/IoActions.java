@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.util.function.Function;
 
@@ -145,6 +146,8 @@ public abstract class IoActions {
                 try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(Files.newOutputStream(file.toPath()), encoding))) {
                     action.execute(writer);
                 }
+            } catch (FileSystemException e) {
+                throw new UncheckedIOException(String.format("%s: '%s'.", e.getReason(), file), e);
             } catch (IOException e) {
                 throw new UncheckedIOException(String.format("Could not write to file '%s'.", file), e);
             }

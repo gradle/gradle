@@ -51,10 +51,10 @@ public final class SafeFileLocationUtils {
      *
      * <p>
      * Uses underscores as they are likely valid characters on all filesystems,
-     * and visually distinctive. Uses "cut" instead of "truncated" to keep it short.
+     * and visually distinctive.
      * </p>
      */
-    private static final byte[] TRUNCATED_PREFIX_BYTES = "_cut_".getBytes(StandardCharsets.UTF_8);
+    private static final byte[] TRUNCATED_PREFIX_BYTES = "__".getBytes(StandardCharsets.UTF_8);
 
     /**
      * The maximum file name length in bytes for most filesystems (e.g. ext4, NTFS).
@@ -63,7 +63,7 @@ public final class SafeFileLocationUtils {
      * We use a smaller limit on input, but emit this size for outputs with hashes.
      * </p>
      */
-    private static final int MAX_FILE_NAME_LENGTH_IN_BYTES = 255;
+    private static final int MAX_FILE_NAME_LENGTH_IN_BYTES = 120;
 
     /**
      * The maximum safe file name length in bytes to avoid exceeding filesystem limits after adding a hash suffix.
