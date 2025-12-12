@@ -68,7 +68,7 @@ object BuildModelParametersProvider {
 
     private
     val resilientModelBuilding =
-        InternalFlag("org.gradle.internal.resilient-model-building", false)
+        InternalFlag("org.gradle.internal.resilient-model-building", true)
 
     /**
      * A public *system property* that allows removing the implication that
