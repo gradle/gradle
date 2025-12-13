@@ -88,7 +88,6 @@ public abstract class InitBuild extends DefaultTask {
     private static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 7;
     private static final int DEFAULT_JAVA_VERSION = 21;
 
-    private final DirectoryProperty projectDir = getProject().getObjects().directoryProperty();
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
     private String dsl;
@@ -215,14 +214,12 @@ public abstract class InitBuild extends DefaultTask {
     /**
      * The directory of the generated project, defaults to the directory the project is generated in.
      *
-     * @since 8.13
+     * @since 9.4.0
      */
     @OutputDirectory
     @Incubating
     @Option(option = "into", description = "Set the directory where the project is generated.")
-    public DirectoryProperty getProjectDirectory() {
-        return projectDir;
-    }
+    public abstract DirectoryProperty getProjectDirectory();
 
     /**
      * The name of the generated project, defaults to the name of the directory the project is generated in.
@@ -234,7 +231,7 @@ public abstract class InitBuild extends DefaultTask {
     @Input
     @ToBeReplacedByLazyProperty
     public String getProjectName() {
-        return projectName == null ? projectDir.get().getAsFile().getName() : projectName;
+        return projectName == null ? getProjectDirectory().get().getAsFile().getName() : projectName;
     }
 
     /**
@@ -321,7 +318,7 @@ public abstract class InitBuild extends DefaultTask {
             throw new BuildCancelledException();
         }
         getLogger().lifecycle("Generate '{}'", config.getBuildSpec().getDisplayName());
-        Directory projectDirectory = projectDir.get();
+        Directory projectDirectory = getProjectDirectory().get();
         generator.generate(config, projectDirectory);
         generateWrapper(projectDirectory);
     }
@@ -408,7 +405,7 @@ public abstract class InitBuild extends DefaultTask {
             packageName,
             testFramework,
             insecureProtocol.get(),
-            projectDir.get(),
+            getProjectDirectory().get(),
             javaLanguageVersion,
             generateComments
         );
@@ -455,7 +452,7 @@ public abstract class InitBuild extends DefaultTask {
      */
     private void validateBuildDirectory(UserQuestions userQuestions) {
         if (!isPomConversion()) {
-            File projectDirFile = projectDir.get().getAsFile();
+            File projectDirFile = getProjectDirectory().get().getAsFile();
             File[] existingProjectFiles = projectDirFile.listFiles();
 
             boolean isNotEmptyDirectory = existingProjectFiles != null && existingProjectFiles.length != 0;
@@ -595,7 +592,7 @@ public abstract class InitBuild extends DefaultTask {
         }
 
         BuildConverter converter = projectLayoutRegistry.getBuildConverter();
-        if (converter.canApplyToCurrentDirectory(projectDir.get())) {
+        if (converter.canApplyToCurrentDirectory(getProjectDirectory().get())) {
             if (userQuestions.askBooleanQuestion("Found a " + converter.getSourceBuildDescription() + " build. Generate a Gradle build from this?", true)) {
                 return converter;
             }
@@ -706,7 +703,7 @@ public abstract class InitBuild extends DefaultTask {
     private String detectType() {
         ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
         BuildConverter buildConverter = projectLayoutRegistry.getBuildConverter();
-        if (buildConverter.canApplyToCurrentDirectory(projectDir.get())) {
+        if (buildConverter.canApplyToCurrentDirectory(getProjectDirectory().get())) {
             return buildConverter.getId();
         }
         return projectLayoutRegistry.getDefault().getId();
