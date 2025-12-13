@@ -18,10 +18,13 @@ package org.gradle.cache.internal;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.FineGrainedCacheCleanupStrategy;
+import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.filelock.DefaultLockOptions;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.serialize.Serializer;
@@ -29,7 +32,10 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -37,10 +43,12 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class DefaultCacheFactory implements CacheFactory, Closeable {
-    private final Map<File, DirCacheReference> dirCaches = new HashMap<>();
+    private final Map<File, DirCacheReference<PersistentCache>> singleLockCaches = new HashMap<>();
+    private final Map<File, DirCacheReference<FineGrainedPersistentCache>> multiLockCaches = new HashMap<>();
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
     private final Lock lock = new ReentrantLock();
@@ -67,17 +75,37 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     }
 
     @Override
+    public FineGrainedPersistentCache openFineGrained(File cacheDir, String displayName, int numberOfLocks, FineGrainedCacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
+        lock.lock();
+        try {
+            DirCacheReference<FineGrainedPersistentCache> dirCacheReference = multiLockCaches.get(cacheDir);
+            if (dirCacheReference == null) {
+                FineGrainedPersistentCache cache = new DefaultFineGrainedPersistentCache(cacheDir, displayName, lockManager, numberOfLocks, cacheCleanupStrategy);
+                cache.open();
+                dirCacheReference = new DirCacheReference<>(cache, multiLockCaches, Collections.emptyMap(), DefaultLockOptions.mode(FileLockManager.LockMode.Exclusive));
+                multiLockCaches.put(cacheDir, dirCacheReference);
+            }
+            return new ReferenceTrackingFineGrainedCache(dirCacheReference);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
     public void visitCaches(CacheVisitor visitor) {
-        dirCaches.values().stream().map(dirCacheReference -> dirCacheReference.cache).forEach(visitor::visit);
+        singleLockCaches.values().stream().map(dirCacheReference -> dirCacheReference.cache).forEach(visitor::visit);
+        multiLockCaches.values().stream().map(dirCacheReference -> dirCacheReference.cache).forEach(visitor::visit);
     }
 
     @Override
     public void close() {
         lock.lock();
         try {
-            CompositeStoppable.stoppable(dirCaches.values()).stop();
+            CompositeStoppable.stoppable(singleLockCaches.values()).stop();
+            CompositeStoppable.stoppable(multiLockCaches.values()).stop();
         } finally {
-            dirCaches.clear();
+            singleLockCaches.clear();
+            multiLockCaches.clear();
             lock.unlock();
         }
     }
@@ -90,7 +118,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         @Nullable Consumer<? super PersistentCache> initializer,
         CacheCleanupStrategy cacheCleanupStrategy
     ) {
-        DirCacheReference dirCacheReference = dirCaches.get(cacheDir);
+        DirCacheReference<PersistentCache> dirCacheReference = singleLockCaches.get(cacheDir);
         if (dirCacheReference == null) {
             ReferencablePersistentCache cache;
             if (!properties.isEmpty() || initializer != null) {
@@ -100,8 +128,8 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
                 cache = new DefaultPersistentDirectoryStore(cacheDir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory);
             }
             cache.open();
-            dirCacheReference = new DirCacheReference(cache, properties, lockOptions);
-            dirCaches.put(cacheDir, dirCacheReference);
+            dirCacheReference = new DirCacheReference<>(cache, singleLockCaches, properties, lockOptions);
+            singleLockCaches.put(cacheDir, dirCacheReference);
         } else {
             if (!lockOptions.equals(dirCacheReference.lockOptions)) {
                 throw new IllegalStateException(String.format("Cache '%s' is already open with different lock options.", cacheDir));
@@ -113,24 +141,26 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         return new ReferenceTrackingCache(dirCacheReference);
     }
 
-    private class DirCacheReference implements Closeable {
+    private class DirCacheReference<T extends Closeable> implements Closeable {
         private final Map<String, ?> properties;
         private final LockOptions lockOptions;
-        private final ReferencablePersistentCache cache;
-        private final Set<ReferenceTrackingCache> references = new HashSet<>();
+        private final T cache;
+        private final Set<Object> references = new HashSet<>();
+        private final Map<File, DirCacheReference<T>> caches;
 
-        DirCacheReference(ReferencablePersistentCache cache, Map<String, ?> properties, LockOptions lockOptions) {
+        DirCacheReference(T cache, Map<File, DirCacheReference<T>> caches, Map<String, ?> properties, LockOptions lockOptions) {
             this.cache = cache;
             this.properties = properties;
             this.lockOptions = lockOptions;
+            this.caches = caches;
             onOpen(cache);
         }
 
-        public void addReference(ReferenceTrackingCache cache) {
+        public void addReference(Object cache) {
             references.add(cache);
         }
 
-        public void release(ReferenceTrackingCache cache) {
+        public void release(Object cache) {
             lock.lock();
             try {
                 if (references.remove(cache) && references.isEmpty()) {
@@ -144,16 +174,20 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         @Override
         public void close() {
             onClose(cache);
-            dirCaches.values().remove(this);
+            caches.values().remove(this);
             references.clear();
-            cache.close();
+            try {
+                cache.close();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
     }
 
     private static class ReferenceTrackingCache implements PersistentCache {
-        private final DirCacheReference reference;
+        private final DirCacheReference<PersistentCache> reference;
 
-        private ReferenceTrackingCache(DirCacheReference reference) {
+        private ReferenceTrackingCache(DirCacheReference<PersistentCache> reference) {
             this.reference = reference;
             reference.addReference(this);
         }
@@ -221,6 +255,65 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         @Override
         public void cleanup() {
             reference.cache.cleanup();
+        }
+    }
+
+    private static class ReferenceTrackingFineGrainedCache implements FineGrainedPersistentCache {
+        private final DirCacheReference<FineGrainedPersistentCache> reference;
+
+        public ReferenceTrackingFineGrainedCache(DirCacheReference<FineGrainedPersistentCache> reference) {
+            this.reference = reference;
+            reference.addReference(this);
+        }
+
+        @Override
+        public File getCacheDir(String key) {
+            return reference.cache.getCacheDir(key);
+        }
+
+        @Override
+        public FineGrainedPersistentCache open() {
+            return reference.cache.open();
+        }
+
+        @Override
+        public <T> T useCacheWithLockInfo(String key, Function<LockType, ? extends T> action) {
+            return reference.cache.useCacheWithLockInfo(key, action);
+        }
+
+        @Override
+        public <T> T useCache(String key, Supplier<? extends T> action) {
+            return reference.cache.useCache(key, action);
+        }
+
+        @Override
+        public void useCache(String key, Runnable action) {
+            reference.cache.useCache(key, action);
+        }
+
+        @Override
+        public File getBaseDir() {
+            return reference.cache.getBaseDir();
+        }
+
+        @Override
+        public Collection<File> getReservedCacheFiles() {
+            return reference.cache.getReservedCacheFiles();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return reference.cache.getDisplayName();
+        }
+
+        @Override
+        public void cleanup() {
+            reference.cache.cleanup();
+        }
+
+        @Override
+        public void close() {
+            reference.release(this);
         }
     }
 }

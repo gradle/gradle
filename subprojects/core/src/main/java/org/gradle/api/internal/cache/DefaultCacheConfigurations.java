@@ -40,6 +40,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 abstract public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
@@ -61,7 +62,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private final Property<Cleanup> cleanup;
     private final Property<MarkingStrategy> markingStrategy;
 
-    private boolean cleanupHasBeenConfigured;
+    private final AtomicBoolean cleanupHasBeenConfigured = new AtomicBoolean();
 
     @Inject
     public DefaultCacheConfigurations(ObjectFactory objectFactory, PropertyHost propertyHost, Clock clock) {
@@ -142,8 +143,9 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     @Override
     public Provider<CleanupFrequency> getCleanupFrequency() {
+        AtomicBoolean cleanupHasBeenConfigured = this.cleanupHasBeenConfigured;
         return getCleanup().map(cleanup ->
-            new MustBeConfiguredCleanupFrequency(((CleanupInternal) cleanup).getCleanupFrequency())
+            new MustBeConfiguredCleanupFrequency(cleanupHasBeenConfigured, ((CleanupInternal) cleanup).getCleanupFrequency())
         );
     }
 
@@ -197,7 +199,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     @Override
     public void setCleanupHasBeenConfigured(boolean hasBeenConfigured) {
-        this.cleanupHasBeenConfigured = hasBeenConfigured;
+        this.cleanupHasBeenConfigured.set(hasBeenConfigured);
     }
 
     static abstract class DefaultCacheResourceConfiguration implements CacheResourceConfigurationInternal {
@@ -311,10 +313,12 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         }
     }
 
-    private class MustBeConfiguredCleanupFrequency implements CleanupFrequency {
+    private static class MustBeConfiguredCleanupFrequency implements CleanupFrequency {
+        private final AtomicBoolean cleanupHasBeenConfigured;
         private final CleanupFrequency configuredCleanupFrequency;
 
-        public MustBeConfiguredCleanupFrequency(CleanupFrequency configuredCleanupFrequency) {
+        public MustBeConfiguredCleanupFrequency(AtomicBoolean cleanupHasBeenConfigured, CleanupFrequency configuredCleanupFrequency) {
+            this.cleanupHasBeenConfigured = cleanupHasBeenConfigured;
             this.configuredCleanupFrequency = configuredCleanupFrequency;
         }
 
@@ -325,7 +329,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
         @Override
         public boolean requiresCleanup(@Nullable Instant lastCleanupTime) {
-            return cleanupHasBeenConfigured && configuredCleanupFrequency.requiresCleanup(lastCleanupTime);
+            return cleanupHasBeenConfigured.get() && configuredCleanupFrequency.requiresCleanup(lastCleanupTime);
         }
     }
 }

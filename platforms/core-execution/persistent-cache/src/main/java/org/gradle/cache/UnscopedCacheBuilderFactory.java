@@ -39,4 +39,10 @@ public interface UnscopedCacheBuilderFactory {
      * <p>Caches created with this method can be inherently cross-version if the path is used by multiple versions of Gradle.</p>
      */
     CacheBuilder cache(File baseDir);
+
+
+    /**
+     * Returns a builder for a multi-lock cache with the given base directory. This is used for caches that need to support multiple locks.
+     */
+    FineGrainedCacheBuilder fineGrainedCache(File baseDir);
 }
