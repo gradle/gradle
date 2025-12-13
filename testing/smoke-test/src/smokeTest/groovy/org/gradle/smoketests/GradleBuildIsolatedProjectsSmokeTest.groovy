@@ -42,10 +42,13 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
         then:
         result.assertConfigurationCacheStateStoreDiscarded()
 
-        fixture.assertHtmlReportHasProblems(result.output) {
+        // Prevents the power assert from dumping all the output if the check below fails.
+        def report = fixture.htmlReport(result.output)
+
+        report.assertContents {
             totalProblemsCount = 1
             withUniqueProblems(
-                "Project :docs cannot dynamically look up a property in the parent project :",
+                "Project ':docs' cannot dynamically look up a property in the parent project ':'",
             )
         }
     }
@@ -83,10 +86,10 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
         run(isolatedProjectsRunner(tasks).withEnvironment(requiredEnvironmentVars))
 
         then:
-        fixture.assertHtmlReportHasProblems(result.output) {
+        fixture.htmlReport(result.output).assertContents {
             withUniqueProblems(
-                "Project : cannot access Project.plugins functionality on subprojects via allprojects",
-                "Project : cannot access Project.extensions functionality on subprojects via allprojects",
+                "Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'",
+                "Project ':' cannot access 'Project.extensions' functionality on subprojects via 'allprojects'",
             )
             // maximum number of problems we collect (should be 86520)
             totalProblemsCount = 4096
