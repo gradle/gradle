@@ -24,8 +24,8 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
     public static final String CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER = "Some tasks or features in this build are not compatible with the configuration cache."
     public static final String CONFIGURATION_CACHE_DISABLED_REASON = "Configuration cache disabled because incompatible"
     public static final String CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON = "Configuration cache disabled as cache is in read-only mode."
-    public static final String INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME = "invocation of Task.project at execution time is unsupported with the configuration cache."
-    public static final String INVOCATION_OF_TASK_DEPENDENCIES_AT_EXECUTION_TIME = "invocation of Task.taskDependencies at execution time is unsupported with the configuration cache."
+    public static final String INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME = "invocation of 'Task.project' at execution time is unsupported with the configuration cache."
+    public static final String INVOCATION_OF_TASK_DEPENDENCIES_AT_EXECUTION_TIME = "invocation of 'Task.taskDependencies' at execution time is unsupported with the configuration cache."
 
     def "a compatible build does not print degradation reasons"() {
         buildFile """
@@ -127,7 +127,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.assertResultHtmlReportHasProblems(result) {
+        problems.htmlReport(result).assertContents {
             totalProblemsCount = 1
             withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":a", "Project access.")
@@ -174,7 +174,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.assertResultHtmlReportHasProblems(result) {
+        problems.htmlReport(result).assertContents {
             totalProblemsCount = expectedProblems.size()
             expectedProblems.forEach { withProblem(it) }
             withIncompatibleTask(":a", degradationReason)
@@ -201,7 +201,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.assertResultHtmlReportHasProblems(result) {
+        problems.htmlReport(result).assertContents {
             totalProblemsCount = 1
             withProblem("Feature 'source dependencies' is incompatible with the configuration cache.")
         }
@@ -238,7 +238,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
             totalProblemsCount = 1
             withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported with the configuration cache.")
         }
-        problems.assertResultHtmlReportHasProblems(result) {
+        problems.htmlReport(result).assertContents {
             totalProblemsCount = 2
             withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":foo", "Project access.")
@@ -267,7 +267,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.assertResultHtmlReportHasProblems(result) {
+        problems.htmlReport(result).assertContents {
             totalProblemsCount = 1
             withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":included:foo", "Project access.")
@@ -333,7 +333,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.assertResultHtmlReportHasProblems(result) {
+        problems.htmlReport(result).assertContents {
             totalProblemsCount = 1
             withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":included:foo", "Project access.")
@@ -369,7 +369,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.assertResultHtmlReportHasProblems(result) {
+        problems.htmlReport(result).assertContents {
             totalProblemsCount = 0
             withIncompatibleTask(":$build:foo", "Because reasons.")
         }
@@ -544,7 +544,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         // no problems on the console
         problems.assertResultConsoleSummaryHasNoProblems(result)
         // but problems should be in CC report
-        problems.assertResultHtmlReportHasProblems(result) {
+        problems.htmlReport(result).assertContents {
             totalProblemsCount = 1
             withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":foo", "Because reasons.")
@@ -578,7 +578,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.assertResultHtmlReportHasProblems(result) {
+        problems.htmlReport(result).assertContents {
             totalProblemsCount = 0
             withIncompatibleTask(":foo", "Because reasons.")
         }
@@ -646,7 +646,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
             totalProblemsCount = 1
             withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported with the configuration cache")
         }
-        problems.assertResultHtmlReportHasProblems(result) {
+        problems.htmlReport(result).assertContents {
             totalProblemsCount = 1
             withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":bar", "Project access.")
