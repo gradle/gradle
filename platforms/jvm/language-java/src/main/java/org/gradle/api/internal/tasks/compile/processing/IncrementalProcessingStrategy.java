@@ -40,10 +40,4 @@ abstract class IncrementalProcessingStrategy {
 
     public abstract void recordGeneratedResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName, Element[] originatingElements);
 
-    /**
-     * We don't trigger a full recompile on resource reads, because we already trigger a full recompile when any
-     * resource changes.
-     */
-    public final void recordAccessedResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName) {
-    }
 }
