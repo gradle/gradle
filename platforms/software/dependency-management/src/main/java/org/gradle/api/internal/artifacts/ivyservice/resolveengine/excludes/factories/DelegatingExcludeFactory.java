@@ -25,10 +25,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdSetExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
+import org.gradle.internal.collect.PersistentSet;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 public abstract class DelegatingExcludeFactory implements ExcludeFactory {
     protected final ExcludeFactory delegate;
@@ -73,12 +72,12 @@ public abstract class DelegatingExcludeFactory implements ExcludeFactory {
     }
 
     @Override
-    public ExcludeSpec anyOf(Set<ExcludeSpec> specs) {
+    public ExcludeSpec anyOf(PersistentSet<ExcludeSpec> specs) {
         return delegate.anyOf(specs);
     }
 
     @Override
-    public ExcludeSpec allOf(Set<ExcludeSpec> specs) {
+    public ExcludeSpec allOf(PersistentSet<ExcludeSpec> specs) {
         return delegate.allOf(specs);
     }
 
@@ -88,17 +87,17 @@ public abstract class DelegatingExcludeFactory implements ExcludeFactory {
     }
 
     @Override
-    public ModuleIdSetExclude moduleIdSet(Set<ModuleIdentifier> modules) {
+    public ModuleIdSetExclude moduleIdSet(PersistentSet<ModuleIdentifier> modules) {
         return delegate.moduleIdSet(modules);
     }
 
     @Override
-    public GroupSetExclude groupSet(Set<String> groups) {
+    public GroupSetExclude groupSet(PersistentSet<String> groups) {
         return delegate.groupSet(groups);
     }
 
     @Override
-    public ModuleSetExclude moduleSet(Set<String> modules) {
+    public ModuleSetExclude moduleSet(PersistentSet<String> modules) {
         return delegate.moduleSet(modules);
     }
 }
