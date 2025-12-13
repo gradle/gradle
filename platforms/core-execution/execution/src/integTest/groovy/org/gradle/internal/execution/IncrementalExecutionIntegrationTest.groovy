@@ -22,14 +22,13 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
-import org.gradle.internal.Try
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.impl.DefaultIdentityCache
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.FingerprinterRegistration
@@ -588,7 +587,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
     def "results are loaded from identity cache"() {
         def work = builder.build()
-        def cache = new ManualEvictionInMemoryCache<Identity, Try<Object>>()
+        def cache = DefaultIdentityCache.of(new ManualEvictionInMemoryCache<>())
 
         when:
         def executedResult = executeDeferred(work, cache)
@@ -697,7 +696,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         createExecutor().createRequest(unitOfWork).execute()
     }
 
-    String executeDeferred(UnitOfWork unitOfWork, Cache<Identity, Try<Object>> cache) {
+    String executeDeferred(UnitOfWork unitOfWork, IdentityCache<Object> cache) {
         virtualFileSystem.invalidateAll()
         def result = createExecutor().createRequest(unitOfWork)
             .executeDeferred(cache)
