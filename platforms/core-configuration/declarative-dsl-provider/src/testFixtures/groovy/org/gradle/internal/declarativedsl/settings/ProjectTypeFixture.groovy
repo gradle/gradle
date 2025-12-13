@@ -303,7 +303,6 @@ trait ProjectTypeFixture {
             this.definition = definition
         }
 
-        String applyActionExtraStatements = ""
         List<String> bindingModifiers = []
 
         ProjectTypePluginClassBuilder projectTypePluginClassName(String projectTypePluginClassName) {
@@ -323,11 +322,6 @@ trait ProjectTypeFixture {
 
         ProjectTypePluginClassBuilder withoutConventions() {
             this.conventions = null
-            return this
-        }
-
-        ProjectTypePluginClassBuilder applyActionExtraStatements(String statements) {
-            this.applyActionExtraStatements = statements
             return this
         }
 
@@ -364,8 +358,6 @@ trait ProjectTypeFixture {
                                 System.out.println("Binding " + ${definition.publicTypeClassName}.class.getSimpleName());
                                 ${conventions == null ? "" : conventions}
                                 String projectName = context.getProject().getName();
-
-                                $applyActionExtraStatements
 
                                 ${definition.buildModelMapping}
 
@@ -585,6 +577,10 @@ trait ProjectTypeFixture {
             return this
         }
 
+        String getFullyQualifiedPublicTypeClassName() {
+            return "org.gradle.test." + publicTypeClassName
+        }
+
         String getPublicTypeClassContent() {
             return defaultClassContent(publicTypeClassName)
         }
@@ -682,6 +678,16 @@ trait ProjectTypeFixture {
             return """
                 System.out.println(projectName + ": ${objectType} ${propertyName} = " + ${propertyValueExpression});
             """
+        }
+    }
+
+    static class ProjectTypeDefinitionThatRegistersANestedBindingLocationClassBuilder extends ProjectTypeDefinitionClassBuilder {
+        @Override
+        String getBuildModelMapping() {
+            return """
+                    context.registerBuildModel(definition.getFoo())
+                        .getBarProcessed().set(definition.getFoo().getBar().map(it -> it.toUpperCase()));
+                """
         }
     }
 

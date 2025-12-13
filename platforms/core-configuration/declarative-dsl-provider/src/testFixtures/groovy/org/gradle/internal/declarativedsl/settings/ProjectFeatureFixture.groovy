@@ -222,20 +222,12 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
     }
 
     PluginBuilder withProjectTypeAndFeatureThatBindsToNestedDefinition() {
-        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
-        def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition).applyActionExtraStatements(
-            """
-            context.registerBuildModel(definition.getFoo())
-                .getBarProcessed().set(definition.getFoo().getBar().map(it -> it.toUpperCase()));
-            """
-        )
+        def projectTypeDefinition = new ProjectTypeDefinitionThatRegistersANestedBindingLocationClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
 
-        def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
+        def projectFeatureDefinition = new ProjectFeatureNestedDefinitionClassBuilder()
         def projectFeature = new ProjectFeaturePluginClassBuilder(projectFeatureDefinition)
-            .bindingTypeClassName("org.gradle.test." + projectTypeDefinition.publicTypeClassName + ".Foo")
-            .applyActionExtraStatements("""
-                model.getText().set(context.getProject().provider(() -> definition.getText().get() + " " + context.getBuildModel(parent).getBarProcessed().get()));
-            """.stripIndent())
+            .bindingTypeClassName(projectTypeDefinition.fullyQualifiedPublicTypeClassName + ".Foo")
 
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
@@ -269,7 +261,6 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         final ProjectFeatureDefinitionClassBuilder definition
         String projectFeaturePluginClassName = "ProjectFeatureImplPlugin"
         String bindingTypeClassName = "TestProjectTypeDefinition"
-        String applyActionExtraStatements = ""
         String bindingMethodName = "bindProjectFeatureToDefinition"
         List<String> bindingModifiers = []
         String name = "feature"
@@ -305,11 +296,6 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
         ProjectFeaturePluginClassBuilder bindingTypeClassName(String className) {
             this.bindingTypeClassName = className
-            return this
-        }
-
-        ProjectFeaturePluginClassBuilder applyActionExtraStatements(String statements) {
-            this.applyActionExtraStatements = statements
             return this
         }
 
@@ -350,8 +336,6 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                                             ${definition.displayModelPropertyValues()}
                                         });
                                     });
-
-                                    ${applyActionExtraStatements}
                                 }
                             )
                             ${maybeDeclareDefinitionImplementationType()}
@@ -514,8 +498,6 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
                                     TestProjectTypeDefinition.ModelType parentModel = context.getBuildModel(parent);
                                     parentModel.getId().set(definition.getText());
-
-                                    ${applyActionExtraStatements}
                                 }
                             )
                             ${maybeDeclareDefinitionImplementationType()}
@@ -676,6 +658,15 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
             // accessing the project object at execution time.
             return """
                 System.out.println(projectName + ": ${objectType} ${propertyName} = " + ${propertyValueExpression});
+            """
+        }
+    }
+
+    static class ProjectFeatureNestedDefinitionClassBuilder extends ProjectFeatureDefinitionClassBuilder {
+        @Override
+        String getBuildModelMapping() {
+            return super.getBuildModelMapping() + """
+                model.getText().set(context.getProject().provider(() -> definition.getText().get() + " " + context.getBuildModel(parent).getBarProcessed().get()));
             """
         }
     }
