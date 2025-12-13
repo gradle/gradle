@@ -113,12 +113,13 @@ final class PersistentSetTrie<K> implements PersistentSet<K> {
         return false;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public PersistentSet<K> union(PersistentSet<K> other) {
+    public <S extends K> PersistentSet<K> union(PersistentSet<S> other) {
         if (other.isEmpty()) {
             return this;
         }
-        return join(other, (smaller, larger) -> {
+        return join((PersistentSet<K>) other, (smaller, larger) -> {
             for (K key : smaller) {
                 larger = larger.plus(key);
             }

@@ -18,6 +18,8 @@ package org.gradle.internal.collect
 
 import spock.lang.Specification
 
+import java.util.stream.Stream
+
 class PersistentSetTest extends Specification {
 
     def 'empty === empty'() {
@@ -495,4 +497,8 @@ class PersistentSetTest extends Specification {
         thrown(IllegalArgumentException)
     }
 
+    def 'toPersistentSet collector'() {
+        expect:
+        PersistentSet.of(1, 2, 3) == Stream.of(1, 2, 3).collect(PersistentSet.toPersistentSet())
+    }
 }

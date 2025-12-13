@@ -16,6 +16,14 @@
 
 package org.gradle.internal.collect;
 
+import org.jspecify.annotations.Nullable;
+
+import java.lang.reflect.Array;
+import java.util.Iterator;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collector;
+
 import static org.gradle.internal.collect.Preconditions.keyCannotBeNull;
 
 /// A fully persistent hash-set implemented as a
@@ -60,6 +68,14 @@ public interface PersistentSet<K> extends Iterable<K> {
         return copy;
     }
 
+    /// Collects keys into a new [PersistentSet].
+    ///
+    /// The resulting keys are unique, according to their [Object#equals] and [Object#hashCode].
+    @SuppressWarnings("unchecked")
+    static <K> Collector<K, Object, PersistentSet<K>> toPersistentSet() {
+        return (Collector<K, Object, PersistentSet<K>>) PersistentSetCollector.INSTANCE;
+    }
+
     /// Returns a new persistent set containing all the keys from this set plus the given key,
     /// unless this set already [contains][#contains] the given key,
     /// in which case this set is returned.
@@ -93,11 +109,16 @@ public interface PersistentSet<K> extends Iterable<K> {
     /// Returns whether this set is the [empty set][#of].
     boolean isEmpty();
 
+    /// Returns whether this set is not the [empty set][#of].
+    default boolean isNotEmpty() {
+        return !isEmpty();
+    }
+
     /// Returns a new persistent set containing all unique keys from this set and the other set combined.
     ///
     /// If this set already contains all keys from the other set, then this set is returned.
     /// If the other set already contains all keys from this set, then the other set is returned.
-    PersistentSet<K> union(PersistentSet<K> other);
+    <S extends K> PersistentSet<K> union(PersistentSet<S> other);
 
     /// Returns a new persistent set containing only the keys that are present in both sets.
     ///
@@ -111,4 +132,89 @@ public interface PersistentSet<K> extends Iterable<K> {
     ///
     /// @see #minusAll(Iterable)
     PersistentSet<K> except(PersistentSet<K> other);
+
+    /// Returns a new persistent set with all keys from this set for which `predicate(key) == true`.
+    ///
+    /// Unless `predicate(key) == true` for every key or this is the [empty set][#of], in which case this set is returned.
+    default PersistentSet<K> filter(Predicate<? super K> predicate) {
+        PersistentSet<K> ks = this;
+        for (K k : this) {
+            if (!predicate.test(k)) {
+                ks = ks.minus(k);
+            }
+        }
+        return ks;
+    }
+
+    /// Returns a new persistent set containing `mapper(key)` for every key in this set.
+    ///
+    /// The resulting keys are unique, according to their [Object#equals] and [Object#hashCode].
+    default <R> PersistentSet<R> map(Function<? super K, ? extends R> mapper) {
+        PersistentSet<R> rs = of();
+        for (K k : this) {
+            rs = rs.plus(mapper.apply(k));
+        }
+        return rs;
+    }
+
+    /// Returns a new persistent set containing the union of all sets returned by `mapper(key)` for keys in this set.
+    default <R> PersistentSet<R> flatMap(Function<? super K, PersistentSet<R>> mapper) {
+        PersistentSet<R> rs = of();
+        for (K k : this) {
+            rs = rs.union(mapper.apply(k));
+        }
+        return rs;
+    }
+
+    /// Groups the keys of this set by `group(key)` and returns a persistent map from group to set of keys.
+    ///
+    /// Keys for which `group(key)` is `null` are ignored.
+    default <G> PersistentMap<G, PersistentSet<K>> groupBy(Function<? super K, ? extends @Nullable G> group) {
+        PersistentMap<G, PersistentSet<K>> rs = PersistentMap.of();
+        for (K k : this) {
+            G g = group.apply(k);
+            if (g != null) {
+                rs = rs.modify(g, (g1, set) -> set == null ? PersistentSet.of(k) : set.plus(k));
+            }
+        }
+        return rs;
+    }
+
+    /// Returns whether `predicate(key) == true` for at least one key in this set.
+    default boolean anyMatch(Predicate<? super K> predicate) {
+        for (K k : this) {
+            if (predicate.test(k)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// Returns whether `predicate(key) == true` for no keys in this set.
+    default boolean noneMatch(Predicate<? super K> predicate) {
+        for (K k : this) {
+            if (predicate.test(k)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    /// Copies the keys of this set into an array of the same runtime type as `a`,
+    /// returning the new array when `a` is too small and filling `a` otherwise.
+    default <T> T[] toArray(T[] a) {
+        int size = size();
+        if (a.length < size) {
+            Class<? extends Object[]> newType = a.getClass();
+            a = (newType == Object[].class)
+                ? (T[]) new Object[size]
+                : (T[]) Array.newInstance(newType.getComponentType(), size);
+        }
+        Iterator<K> iterator = iterator();
+        for (int i = size - 1; i >= 0; --i) {
+            a[i] = (T) iterator.next();
+        }
+        return a;
+    }
 }

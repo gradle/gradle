@@ -17,10 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -37,6 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Resolved
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
+import org.gradle.internal.collect.PersistentSet;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
@@ -65,7 +64,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Represents a node in the dependency graph.
@@ -431,7 +429,7 @@ public class NodeState implements DependencyGraphNode {
         this.upcomingNoLongerPendingConstraints = null;
 
         PendingDependenciesVisitor pendingDepsVisitor = resolveState.newPendingDependenciesVisitor();
-        Set<ModuleIdentifier> strictVersionsSet = null;
+        PersistentSet<ModuleIdentifier> strictVersionsSet = PersistentSet.of();
         for (DependencyState dependencyState : dependencies(resolutionFilter)) {
             PendingDependenciesVisitor.PendingState pendingState = pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState);
             if (dependencyState.getDependency().isConstraint()) {
@@ -720,7 +718,7 @@ public class NodeState implements DependencyGraphNode {
                 incomingEdges.stream()
                     .map(EdgeState::getTransitiveExclusions)
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toSet())
+                    .collect(PersistentSet.toPersistentSet())
             );
         }
         if (incomingEdges.size() == 1) {
@@ -763,8 +761,8 @@ public class NodeState implements DependencyGraphNode {
     private ExcludeSpec computeModuleExclusionsManyEdges(List<EdgeState> incomingEdges, ExcludeSpec nodeExclusions, int incomingEdgeCount) {
         ExcludeSpec nothing = moduleExclusions.nothing();
         ExcludeSpec edgeExclusions = null;
-        Set<ExcludeSpec> excludedByBoth = null;
-        Set<ExcludeSpec> excludedByEither = null;
+        PersistentSet<ExcludeSpec> excludedByBoth = PersistentSet.of();
+        PersistentSet<ExcludeSpec> excludedByEither = PersistentSet.of();
         for (EdgeState dependencyEdge : incomingEdges) {
             if (dependencyEdge.isTransitive()) {
                 if (edgeExclusions != nothing) {
@@ -773,18 +771,15 @@ public class NodeState implements DependencyGraphNode {
                     if (edgeExclusions == null || exclusions == nothing) {
                         edgeExclusions = exclusions;
                     } else if (edgeExclusions != exclusions) {
-                        if (excludedByBoth == null) {
-                            excludedByBoth = Sets.newHashSetWithExpectedSize(incomingEdgeCount);
-                        }
-                        excludedByBoth.add(exclusions);
+                        excludedByBoth = excludedByBoth.plus(exclusions);
                     }
                     if (edgeExclusions == nothing) {
                         // if exclusions == nothing, then the intersection will be "nothing"
-                        excludedByBoth = null;
+                        excludedByBoth = PersistentSet.of();
                     }
                 }
             } else if (dependencyEdge.isConstraint()) {
-                excludedByEither = collectEdgeConstraint(nodeExclusions, excludedByEither, dependencyEdge, nothing, incomingEdgeCount);
+                excludedByEither = collectEdgeConstraint(nodeExclusions, excludedByEither, dependencyEdge, nothing);
             }
         }
         edgeExclusions = intersectEdgeExclusions(edgeExclusions, excludedByBoth);
@@ -815,24 +810,20 @@ public class NodeState implements DependencyGraphNode {
         return result;
     }
 
-    @Nullable
-    private static Set<ExcludeSpec> collectEdgeConstraint(ExcludeSpec nodeExclusions, @Nullable Set<ExcludeSpec> excludedByEither, EdgeState dependencyEdge, ExcludeSpec nothing, int incomingEdgeCount) {
+    private static PersistentSet<ExcludeSpec> collectEdgeConstraint(ExcludeSpec nodeExclusions, PersistentSet<ExcludeSpec> excludedByEither, EdgeState dependencyEdge, ExcludeSpec nothing) {
         // Constraint: only consider explicit exclusions declared for this constraint
         ExcludeSpec constraintExclusions = dependencyEdge.getEdgeExclusions();
         if (constraintExclusions != nothing && constraintExclusions != nodeExclusions) {
-            if (excludedByEither == null) {
-                excludedByEither = Sets.newHashSetWithExpectedSize(incomingEdgeCount);
-            }
-            excludedByEither.add(constraintExclusions);
+            excludedByEither = excludedByEither.plus(constraintExclusions);
         }
         return excludedByEither;
     }
 
     @Nullable
-    private ExcludeSpec joinNodeExclusions(@Nullable ExcludeSpec nodeExclusions, @Nullable Set<ExcludeSpec> excludedByEither) {
-        if (excludedByEither != null) {
+    private ExcludeSpec joinNodeExclusions(@Nullable ExcludeSpec nodeExclusions, PersistentSet<ExcludeSpec> excludedByEither) {
+        if (excludedByEither.isNotEmpty()) {
             if (nodeExclusions != null) {
-                excludedByEither.add(nodeExclusions);
+                excludedByEither = excludedByEither.plus(nodeExclusions);
                 nodeExclusions = moduleExclusions.excludeAny(excludedByEither);
             }
         }
@@ -840,13 +831,13 @@ public class NodeState implements DependencyGraphNode {
     }
 
     @Nullable
-    private ExcludeSpec intersectEdgeExclusions(@Nullable ExcludeSpec edgeExclusions, @Nullable Set<ExcludeSpec> excludedByBoth) {
+    private ExcludeSpec intersectEdgeExclusions(@Nullable ExcludeSpec edgeExclusions, PersistentSet<ExcludeSpec> excludedByBoth) {
         if (edgeExclusions == moduleExclusions.nothing()) {
             return edgeExclusions;
         }
-        if (excludedByBoth != null) {
+        if (excludedByBoth.isNotEmpty()) {
             if (edgeExclusions != null) {
-                excludedByBoth.add(edgeExclusions);
+                excludedByBoth = excludedByBoth.plus(edgeExclusions);
             }
             edgeExclusions = moduleExclusions.excludeAll(excludedByBoth);
         }
@@ -855,31 +846,25 @@ public class NodeState implements DependencyGraphNode {
 
     private void collectOwnStrictVersions(ExcludeSpec moduleResolutionFilter) {
         List<DependencyState> dependencies = dependencies(moduleResolutionFilter);
-        Set<ModuleIdentifier> constraintsSet = null;
+        PersistentSet<ModuleIdentifier> constraintsSet = PersistentSet.of();
         for (DependencyState dependencyState : dependencies) {
             constraintsSet = maybeCollectStrictVersions(constraintsSet, dependencyState);
         }
         storeOwnStrictVersions(constraintsSet);
     }
 
-    @Nullable
-    private Set<ModuleIdentifier> maybeCollectStrictVersions(@Nullable Set<ModuleIdentifier> constraintsSet, DependencyState dependencyState) {
+    private static PersistentSet<ModuleIdentifier> maybeCollectStrictVersions(PersistentSet<ModuleIdentifier> constraintsSet, DependencyState dependencyState) {
         if (dependencyState.getDependency().getSelector() instanceof ModuleComponentSelector) {
             ModuleComponentSelector selector = (ModuleComponentSelector) dependencyState.getDependency().getSelector();
             if (!StringUtils.isEmpty(selector.getVersionConstraint().getStrictVersion())) {
-                if (constraintsSet == null) {
-                    constraintsSet = new HashSet<>();
-                }
-                constraintsSet.add(selector.getModuleIdentifier());
+                constraintsSet = constraintsSet.plus(selector.getModuleIdentifier());
             }
         }
         return constraintsSet;
     }
 
-    private void storeOwnStrictVersions(@Nullable Set<ModuleIdentifier> constraintsSet) {
-        StrictVersionConstraints newStrictVersions = constraintsSet == null
-            ? StrictVersionConstraints.EMPTY
-            : StrictVersionConstraints.of(ImmutableSet.copyOf(constraintsSet));
+    private void storeOwnStrictVersions(PersistentSet<ModuleIdentifier> constraintsSet) {
+        StrictVersionConstraints newStrictVersions = StrictVersionConstraints.of(constraintsSet);
 
         StrictVersionConstraints existingOwnStrictVersions = this.ownStrictVersions;
         this.ownStrictVersions = newStrictVersions;
