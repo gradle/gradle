@@ -51,7 +51,7 @@ jobs:
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
       - run: ./gradlew compileAll -DdisableLocalCache=true ${{ steps.determine-sys-prop-args.outputs.sys-prop-args }}
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: build-receipt.properties
@@ -85,7 +85,7 @@ jobs:
       - run: ./gradlew sanityCheck -DdisableLocalCache=true ${{ needs.build.outputs.sys-prop-args }}
       - name: Upload Compatibility Report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: binary-compatibility-report
           path: testing/architecture-test/build/reports/binary-compatibility/report.html
