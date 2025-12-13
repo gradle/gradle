@@ -62,9 +62,10 @@ final class PersistentSet0 implements PersistentSet<Object> {
         return 0;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public PersistentSet<Object> union(PersistentSet<Object> other) {
-        return other;
+    public <R> PersistentSet<Object> union(PersistentSet<R> other) {
+        return (PersistentSet<Object>) other;
     }
 
     @Override

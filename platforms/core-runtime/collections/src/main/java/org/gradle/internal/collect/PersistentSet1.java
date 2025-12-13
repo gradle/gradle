@@ -67,11 +67,12 @@ final class PersistentSet1<K> implements PersistentSet<K> {
         return clear(other.contains(key));
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public PersistentSet<K> union(PersistentSet<K> other) {
+    public <S extends K> PersistentSet<K> union(PersistentSet<S> other) {
         return other.isEmpty()
             ? this
-            : other.plus(key);
+            : (PersistentSet<K>) other.plus((S) key);
     }
 
     @Override
