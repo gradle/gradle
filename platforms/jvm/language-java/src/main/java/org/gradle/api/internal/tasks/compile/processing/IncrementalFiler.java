@@ -61,7 +61,6 @@ public class IncrementalFiler implements Filer {
 
     @Override
     public final FileObject getResource(JavaFileManager.Location location, CharSequence pkg, CharSequence relativeName) throws IOException {
-        strategy.recordAccessedResource(location, pkg, relativeName);
         return delegate.getResource(location, pkg, relativeName);
     }
 }
