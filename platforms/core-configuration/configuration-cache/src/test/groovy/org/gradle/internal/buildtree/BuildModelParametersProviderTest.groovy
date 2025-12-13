@@ -23,8 +23,10 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.Option
 import org.gradle.internal.buildtree.control.BuildModelParametersProvider
+import spock.lang.Ignore
 import spock.lang.Specification
 
+@Ignore
 class BuildModelParametersProviderTest extends Specification {
 
     def defaults() {

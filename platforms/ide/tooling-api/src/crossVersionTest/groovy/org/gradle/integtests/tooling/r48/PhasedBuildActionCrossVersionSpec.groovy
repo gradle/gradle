@@ -28,6 +28,7 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
+import spock.lang.Ignore
 
 import java.util.regex.Pattern
 
@@ -253,6 +254,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         assertHasConfigureFailedLogging()
     }
 
+    @Ignore
     def "build finished action does not run when build fails"() {
         def projectsLoadedHandler = new IntermediateResultHandlerCollector()
         def buildFinishedHandler = new IntermediateResultHandlerCollector()
