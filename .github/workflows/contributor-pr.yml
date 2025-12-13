@@ -74,7 +74,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
@@ -108,7 +108,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
@@ -135,7 +135,7 @@ jobs:
         with:
           distribution: microsoft #because that's what is available on ARM windows. zulu would also be an option.
           java-version: 17
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: build-receipt.properties
           path: incoming-distributions/build-receipt.properties
