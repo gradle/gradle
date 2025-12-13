@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.consistency
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
 
@@ -95,8 +94,8 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
 
         then:
         failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path ':test:unspecified' --> 'org:foo:1.1'
-   Constraint path ':test:unspecified' --> 'org:foo:{strictly 1.0}' because of the following reason: version resolved in configuration ':other' by consistent resolution"""
+   Dependency path: 'root project :' (conf) --> 'org:foo:1.1'
+   Constraint path: 'root project :' (conf) --> 'org:foo:{strictly 1.0}' because of the following reason: version resolved in configuration ':other' by consistent resolution"""
     }
 
     def "first level dependency can be downgraded only if it's a preferred version"() {
@@ -163,8 +162,8 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
                 implementation
                 runtimeOnly.extendsFrom(implementation)
                 compileClasspath.extendsFrom(implementation)
-                runtimeClasspath.extendsFrom(implementation, runtimeOnly)
-                runtimeClasspath {
+                conf.extendsFrom(implementation, runtimeOnly)
+                conf {
                    shouldResolveConsistentlyWith(compileClasspath)
                 }
             }
@@ -174,9 +173,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
                 runtimeOnly 'org:bar:1.0'
             }
         """
-        def resolve = new ResolveTestFixture(buildFile, "runtimeClasspath")
-        resolve.expectDefaultConfiguration("runtime")
-        resolve.prepare()
+
         when:
         repositoryInteractions {
             'org:foo:1.0' {
@@ -195,6 +192,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
                 expectResolve()
             }
         }
+
         succeeds 'checkDeps'
 
         then:

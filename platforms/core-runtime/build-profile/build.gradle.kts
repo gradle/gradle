@@ -13,6 +13,9 @@ dependencies {
     api(projects.coreApi)
     api(projects.enterpriseLogging)
 
+    api(libs.jspecify)
+
+
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.reportRendering)

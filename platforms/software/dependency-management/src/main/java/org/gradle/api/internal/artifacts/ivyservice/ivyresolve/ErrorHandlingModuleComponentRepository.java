@@ -116,15 +116,15 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
             this(delegate, repositoryId, repositoryDisabler, Integer.getInteger(MAX_TENTATIVES_BEFORE_DISABLING, 3), Integer.getInteger(INITIAL_BACKOFF_MS, 1000), repositoryName);
         }
 
-        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate, String repositoryId, RepositoryDisabler repositoryDisabler, int maxTentativesCount, int initialBackoff, String repositoryName) {
+        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate, String repositoryId, RepositoryDisabler repositoryDisabler, int maxTentativesCount, int initialBackOff, String repositoryName) {
             this.repositoryName = repositoryName;
             assert maxTentativesCount > 0 : "Max tentatives must be > 0";
-            assert initialBackoff >= 0 : "Initial backoff must be >= 0";
+            assert initialBackOff >= 0 : "Initial backoff must be >= 0";
             this.delegate = delegate;
             this.repositoryId = repositoryId;
             this.repositoryDisabler = repositoryDisabler;
             this.maxTentativesCount = maxTentativesCount;
-            this.initialBackOff = initialBackoff;
+            this.initialBackOff = initialBackOff;
         }
 
         @Override

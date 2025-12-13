@@ -22,8 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@code SourceSet} represents a logical group of Java source and resource files. They
@@ -273,7 +272,7 @@ public interface SourceSet extends ExtensionAware {
      *
      * @param verb The action, may be null.
      * @param target The target, may be null
-     * @return The task name, generally of the form ${verb}${name}${noun}
+     * @return The task name, generally of the form ${verb}${name}${target}
      */
     String getTaskName(@Nullable String verb, @Nullable String target);
 

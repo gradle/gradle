@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
 import org.gradle.internal.Factory;
-import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.resource.local.AbstractLocallyAvailableResourceFinder;
@@ -29,6 +28,7 @@ import org.gradle.internal.resource.local.AbstractLocallyAvailableResourceFinder
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 
 public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> {
 
@@ -36,10 +36,10 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
         super(createProducer(baseDir, pattern), checksumService);
     }
 
-    private static InternalTransformer<Factory<List<File>>, ModuleComponentArtifactMetadata> createProducer(final File baseDir, final ResourcePattern pattern) {
-        return new InternalTransformer<Factory<List<File>>, ModuleComponentArtifactMetadata>() {
+    private static Function<ModuleComponentArtifactMetadata, Factory<List<File>>> createProducer(final File baseDir, final ResourcePattern pattern) {
+        return new Function<ModuleComponentArtifactMetadata, Factory<List<File>>>() {
             @Override
-            public Factory<List<File>> transform(final ModuleComponentArtifactMetadata artifact) {
+            public Factory<List<File>> apply(final ModuleComponentArtifactMetadata artifact) {
                 return () -> {
                     final List<File> files = new LinkedList<>();
                     if (artifact != null) {

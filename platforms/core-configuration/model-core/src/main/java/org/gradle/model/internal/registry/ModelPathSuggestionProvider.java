@@ -19,7 +19,7 @@ package org.gradle.model.internal.registry;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.util.internal.CollectionUtils;
@@ -69,6 +69,7 @@ class ModelPathSuggestionProvider implements Transformer<List<ModelPath>, ModelP
         Iterable<Suggestion> suggestions = Iterables.transform(availablePaths, new Function<ModelPath, Suggestion>() {
             @Override
             public Suggestion apply(ModelPath available) {
+                @SuppressWarnings("deprecation")
                 int distance = StringUtils.getLevenshteinDistance(unavailable.toString(), available.toString());
                 boolean suggest = distance <= Math.min(3, unavailable.toString().length() / 2);
                 if (suggest) {

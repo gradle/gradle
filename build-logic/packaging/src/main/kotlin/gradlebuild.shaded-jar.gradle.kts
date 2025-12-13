@@ -47,6 +47,14 @@ addInstallShadedJarTask(shadedJarTask)
 addShadedJarVariant(shadedJarTask)
 configureShadedSourcesJarVariant()
 
+plugins.withId("gradlebuild.publish-public-libraries") {
+    gradleModule {
+        // Since all of our dependencies are shaded, we don't care if they are published or not.
+        // Hackily declare this project as non-published to skip the verification.
+        published = false
+    }
+}
+
 fun registerTransforms() {
     dependencies {
         registerTransform(ShadeClasses::class) {
@@ -99,9 +107,13 @@ fun createConfigurationToShade() = configurations.create("jarsToShade") {
 
 fun addShadedJarTask(): TaskProvider<ShadedJar> {
     val configurationToShade = shadedJarExtension.shadedConfiguration
+    val moduleIdentity = gradleModule.identity
+    val shadedJarFile: Provider<String> = moduleIdentity.baseName.zip(moduleIdentity.version) { baseName, version ->
+        "shaded-jar/${baseName}-shaded-${version.baseVersion.version}.jar"
+    }
 
     return tasks.register("${project.name.kebabToCamel()}ShadedJar", ShadedJar::class) {
-        jarFile = layout.buildDirectory.file(provider { "shaded-jar/${moduleIdentity.baseName.get()}-shaded-${moduleIdentity.version.get().baseVersion.version}.jar" })
+        jarFile = layout.buildDirectory.file(shadedJarFile)
         classTreesConfiguration.from(configurationToShade.artifactViewForType(classTreesType))
         entryPointsConfiguration.from(configurationToShade.artifactViewForType(entryPointsType))
         relocatedClassesConfiguration.from(configurationToShade.artifactViewForType(relocatedClassesType))
@@ -145,7 +157,7 @@ fun addShadedJarVariant(shadedJarTask: TaskProvider<ShadedJar>) {
         }
         extendsFrom(shadedImplementation)
         outgoing.artifact(shadedJarTask) {
-            name = moduleIdentity.baseName.get()
+            name = gradleModule.identity.baseName.get()
             type = "jar"
         }
     }

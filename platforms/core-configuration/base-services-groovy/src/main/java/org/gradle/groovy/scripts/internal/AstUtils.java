@@ -38,8 +38,8 @@ import org.codehaus.groovy.ast.stmt.ReturnStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.internal.Pair;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -71,6 +71,7 @@ public abstract class AstUtils {
         }
     }
 
+    @Nullable
     public static ClassNode getScriptClass(SourceUnit source) {
         if (source.getAST().getStatementBlock().getStatements().isEmpty() && source.getAST().getMethods().isEmpty()) {
             // There is no script class when there are no statements or methods declared in the script

@@ -16,8 +16,6 @@
 
 package promotion
 
-import vcsroots.gradlePromotionMaster
-
 abstract class PublishGradleDistributionFullBuild(
     // The branch to be promoted
     promotedBranch: String,
@@ -27,8 +25,7 @@ abstract class PublishGradleDistributionFullBuild(
     gitUserName: String = "bot-teamcity",
     gitUserEmail: String = "bot-teamcity@gradle.com",
     extraParameters: String = "",
-    vcsRootId: String = gradlePromotionMaster
-) : BasePublishGradleDistribution(promotedBranch, prepTask, triggerName, gitUserName, gitUserEmail, extraParameters, vcsRootId) {
+) : BasePublishGradleDistribution(promotedBranch, prepTask, triggerName, gitUserName, gitUserEmail, extraParameters) {
     init {
         steps {
             if (prepTask != null) {

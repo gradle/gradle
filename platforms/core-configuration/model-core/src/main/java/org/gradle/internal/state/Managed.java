@@ -16,7 +16,7 @@
 
 package org.gradle.internal.state;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Implemented by types whose state is fully managed by Gradle. Mixed into generated classes whose state is fully managed.

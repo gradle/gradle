@@ -23,6 +23,7 @@ import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.dom.UnsupportedSyntaxCause
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.toDocument
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
@@ -72,7 +73,7 @@ class UnsupportedSyntaxFeatureCheckTest {
         val document = languageModel.toDocument()
         val resolution = resolutionContainer(analysisSchema, trace, document)
         val isAnalyzedDocumentNode = AnalyzedStatementUtils.produceIsAnalyzedNodeContainer(document.languageTreeMappingContainer, languageModel.topLevelBlock, analysisStatementFilter)
-        return documentChecks.flatMap { it.detectFailures(document, resolution, isAnalyzedDocumentNode) }
+        return documentChecks.flatMap { it.detectFailures(DocumentWithResolution(document, resolution), isAnalyzedDocumentNode) }
     }
 
     private

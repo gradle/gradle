@@ -230,7 +230,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
             '''.stripIndent()
 
         expect:
-        executer.expectDeprecationWarningWithPattern("Changing property value of task ':thing' property 'prop' at execution time. This behavior has been deprecated.*")
+        executer.expectDocumentedDeprecationWarning("Changing property value of task ':thing' property 'prop' at execution time. This behavior has been deprecated. Starting with Gradle 11, changing property value of task ':thing' property 'prop' at execution time will become an error.")
         succeeds('thing')
         outputContains("value: [key1:value1, key2:value2, key3:value3]")
     }
@@ -787,5 +787,52 @@ task thing {
 
         then:
         failureCauseContains("Circular evaluation detected")
+    }
+
+    def "#provider(isFinalized=#isFinalized) carries task dependencies"() {
+        buildFile """
+            def barTask = tasks.register("bar")
+            def barString = barTask.map { "bar" }
+
+            def bazTask = tasks.register("baz")
+            def bazString = bazTask.map { "baz" }
+
+            def map = objects.mapProperty(String, String)
+            map.put("42", barString)
+            map.put("1", bazString)
+
+            if ($isFinalized) {
+                map.finalizeValue()
+            }
+
+            abstract class FooTask extends DefaultTask {
+                @Input
+                abstract Property<String> getEntry()
+
+                @TaskAction
+                void run() {
+                    println("Entry is \${entry.get()}")
+                }
+            }
+
+            tasks.register("foo", FooTask) {
+                entry.set(map.$call)
+            }
+        """
+
+        when:
+        run "foo"
+
+        then:
+        outputContains(expectedOutput)
+        result.assertTasksScheduled(expectedTasks)
+
+        where:
+        provider          | call                                  | isFinalized | expectedTasks            | expectedOutput
+        "entry provider"  | 'getting("42")'                       | true        | [":foo"]                 | "Entry is bar"
+        // Ideally we want to evaluate dependencies in a fine-grained way
+        "entry provider"  | 'getting("42")'                       | false       | [":bar", ":baz", ":foo"] | "Entry is bar"
+        "keySet provider" | 'keySet().map { it.sort().join(",")}' | true        | [":foo"]                 | "Entry is 1,42"
+        "keySet provider" | 'keySet().map { it.sort().join(",")}' | false       | [":bar", ":baz", ":foo"] | "Entry is 1,42"
     }
 }

@@ -27,8 +27,8 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.publish.internal.validation.PublicationErrorChecker;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
 import java.util.Collections;

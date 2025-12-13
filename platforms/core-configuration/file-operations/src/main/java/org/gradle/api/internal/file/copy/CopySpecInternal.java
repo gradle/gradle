@@ -19,8 +19,8 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.SyncSpec;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public interface CopySpecInternal extends SyncSpec {

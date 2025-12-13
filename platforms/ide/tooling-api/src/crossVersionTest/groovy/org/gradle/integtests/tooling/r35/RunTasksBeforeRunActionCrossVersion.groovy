@@ -18,13 +18,9 @@ package org.gradle.integtests.tooling.r35
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.GradleConnectionException
-import org.gradle.tooling.ResultHandler
-import org.gradle.tooling.UnsupportedVersionException
 
 import java.util.regex.Pattern
 
-@TargetGradleVersion('>=3.5')
 class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
     def setup() {
         buildFile << """
@@ -110,7 +106,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        result.assertTasksExecuted(":help")
+        result.assertTasksScheduled(":help")
     }
 
     // older versions do not run any tasks
@@ -131,7 +127,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        result.assertTasksExecuted(":thing")
+        result.assertTasksScheduled(":thing")
     }
 
     // older versions do not run any tasks
@@ -149,7 +145,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        result.assertTasksExecuted(":help")
+        result.assertTasksScheduled(":help")
     }
 
     // older versions do not run any tasks
@@ -170,7 +166,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        result.assertTasksExecuted(":thing")
+        result.assertTasksScheduled(":thing")
     }
 
     // older versions do not run any tasks
@@ -191,7 +187,7 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        result.assertTasksExecuted(":thing")
+        result.assertTasksScheduled(":thing")
     }
 
     // older versions do not run any tasks
@@ -212,41 +208,6 @@ class RunTasksBeforeRunActionCrossVersion extends ToolingApiSpecification {
 
         then:
         assertHasBuildSuccessfulLogging()
-        result.assertTasksExecuted(":thing")
-    }
-
-    @TargetGradleVersion(">=3.0 <3.5")
-    def "BuildExecuter.forTasks() should fail when it is not supported by target"() {
-        when:
-        withConnection {
-            it.action(new SimpleAction())
-                .forTasks("hello")
-                .run()
-        }
-
-        then:
-        UnsupportedVersionException e = thrown()
-        assert e.message == "The version of Gradle you are using (${targetDist.version.version}) does not support the forTasks() method on BuildActionExecuter. Support for this is available in Gradle 3.5 and all later versions."
-    }
-
-    @TargetGradleVersion(">=3.0 <3.5")
-    def "BuildExecuter.forTasks() notifies failure to handler when it is not supported by target"() {
-        def handler = Mock(ResultHandler)
-        def version = targetDist.version.version
-
-        when:
-        withConnection {
-            it.action(new SimpleAction())
-                .forTasks("hello")
-                .run(handler)
-        }
-
-        then:
-        0 * handler.onComplete(_)
-        1 * handler.onFailure(_) >> { args ->
-            GradleConnectionException failure = args[0]
-            assert failure instanceof UnsupportedVersionException
-            assert failure.message == "The version of Gradle you are using (${version}) does not support the forTasks() method on BuildActionExecuter. Support for this is available in Gradle 3.5 and all later versions."
-        }
+        result.assertTasksScheduled(":thing")
     }
 }

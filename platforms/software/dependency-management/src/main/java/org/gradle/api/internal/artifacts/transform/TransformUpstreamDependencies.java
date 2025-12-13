@@ -20,8 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.Try;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface TransformUpstreamDependencies extends TaskDependencyContainer {
 

@@ -16,9 +16,9 @@
 
 package org.gradle.internal.hash;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -279,7 +280,7 @@ public class Hashing {
 
     private static class MessageDigestHasher implements PrimitiveHasher {
         private final ByteBuffer buffer = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
-        private MessageDigest digest;
+        private @Nullable MessageDigest digest;
 
         public MessageDigestHasher(MessageDigest digest) {
             this.digest = digest;
@@ -346,7 +347,7 @@ public class Hashing {
 
         @Override
         public void putString(CharSequence value) {
-            putBytes(value.toString().getBytes(Charsets.UTF_8));
+            putBytes(value.toString().getBytes(StandardCharsets.UTF_8));
         }
 
         @Override

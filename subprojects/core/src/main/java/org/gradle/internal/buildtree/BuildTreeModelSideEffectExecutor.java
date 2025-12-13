@@ -16,9 +16,9 @@
 
 package org.gradle.internal.buildtree;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Executes internal side effects of a build action while ensuring
@@ -26,7 +26,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *
  * @see BuildTreeModelSideEffect
  */
-@NonNullApi
+@NullMarked
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildTreeModelSideEffectExecutor {
 

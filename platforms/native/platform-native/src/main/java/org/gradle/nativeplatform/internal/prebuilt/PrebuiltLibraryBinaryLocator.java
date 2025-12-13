@@ -26,8 +26,7 @@ import org.gradle.nativeplatform.PrebuiltLibrary;
 import org.gradle.nativeplatform.Repositories;
 import org.gradle.nativeplatform.internal.resolve.LibraryBinaryLocator;
 import org.gradle.nativeplatform.internal.resolve.LibraryIdentifier;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class PrebuiltLibraryBinaryLocator implements LibraryBinaryLocator {
     private final ProjectModelResolver projectModelResolver;

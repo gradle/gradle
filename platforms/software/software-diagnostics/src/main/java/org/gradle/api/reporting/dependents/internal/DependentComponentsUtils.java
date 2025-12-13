@@ -24,8 +24,8 @@ import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 

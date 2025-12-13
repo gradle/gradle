@@ -1,1 +1,3 @@
 rootProject.name = "quickstart"
+
+include("inferred-version")

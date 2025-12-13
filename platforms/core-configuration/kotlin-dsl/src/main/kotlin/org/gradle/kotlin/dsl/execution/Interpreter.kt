@@ -51,7 +51,8 @@ import java.lang.reflect.InvocationTargetException
  * a script body? etc), target object and context (top-level or not).
  *
  * The specialized program is then cached via a cheap cache key based on the original,
- * unprocessed contents of the script, the target object type and parent `ClassLoader`.
+ * unprocessed contents of the script, script file name, class name, target object type
+ * and parent `ClassLoader`.
  *
  * Because each program is specialized to a given script structure, a lot of work is
  * avoided. For example, a top-level script containing a `plugins` block but no body
@@ -176,6 +177,8 @@ class Interpreter(val host: Host) {
         val programId =
             ProgramId(
                 templateId,
+                scriptSource.fileName,
+                scriptSource.className,
                 sourceHash,
                 parentClassLoader,
                 compilerOptions = host.compilerOptions
@@ -416,6 +419,8 @@ class Interpreter(val host: Host) {
 
             val programId = ProgramId(
                 scriptTemplateId,
+                scriptHost.scriptSource.fileName,
+                scriptHost.scriptSource.className,
                 sourceHash,
                 parentClassLoader,
                 host.hashOf(accessorsClassPath),

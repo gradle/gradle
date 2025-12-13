@@ -80,15 +80,13 @@ public abstract class BuildEnvironmentReportTask extends DefaultTask {
         return getProject().getBuildscript().getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
     }
 
+    // TODO: Remove this in Gradle 10.0.0?  There is no need for it, but no easy way to warn users about the removal.
+    @Deprecated
     @Inject
-    protected BuildClientMetaData getClientMetaData() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract BuildClientMetaData getClientMetaData();
 
     @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
 
     @Inject
     protected abstract JvmMetadataDetector getMetadataDetector();
@@ -112,6 +110,6 @@ public abstract class BuildEnvironmentReportTask extends DefaultTask {
     }
 
     private ReportGenerator reportGenerator() {
-        return new ReportGenerator(renderer, getClientMetaData(), null, getTextOutputFactory());
+        return new ReportGenerator(renderer, null, getTextOutputFactory());
     }
 }

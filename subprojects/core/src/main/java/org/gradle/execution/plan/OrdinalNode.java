@@ -17,8 +17,8 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Locale;
 
 /**
@@ -30,6 +30,7 @@ import java.util.Locale;
  * ordinality even if the destroyers are delayed waiting on dependencies (and vice versa).
  */
 public class OrdinalNode extends Node implements SelfExecutingNode {
+    // order matters - see NodeComparator
     public enum Type {DESTROYER, PRODUCER}
 
     private final Type type;

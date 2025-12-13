@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.base.Joiner;
 import org.gradle.api.Describable;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -32,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -46,8 +46,8 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -63,10 +63,11 @@ import static org.gradle.util.internal.TextUtil.getPluralEnding;
  * 3. The selector was part of resolution to a particular module version.
  * In this case {@link #resolved} will be `true` and {@link ModuleResolveState#getSelected()} will point to the selected component.
  */
-class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
-    private final Long id;
+public class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
+
     private final DependencyState dependencyState;
     private final DependencyToComponentIdResolver resolver;
+    private final ResolveState resolveState;
     private final ResolvedVersionConstraint versionConstraint;
     private final List<ComponentSelectionDescriptorInternal> dependencyReasons = new ArrayList<>(4);
     private final boolean isProjectSelector;
@@ -82,9 +83,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private boolean fromLock;
     private boolean reusable;
     private boolean markedReusableAlready;
-
-    @SuppressWarnings("deprecation")
-    private org.gradle.api.artifacts.ClientModule clientModule;
     private boolean changing;
 
     // An internal counter used to track the number of outgoing edges
@@ -95,9 +93,9 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     // evicted, but it can still be reintegrated later in a different path.
     private int outgoingEdgeCount;
 
-    SelectorState(Long id, DependencyState dependencyState, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId, boolean versionByAncestor) {
-        this.id = id;
+    SelectorState(DependencyState dependencyState, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId, boolean versionByAncestor) {
         this.resolver = resolver;
+        this.resolveState = resolveState;
         this.targetModule = resolveState.getModule(targetModuleId);
         if (versionByAncestor) {
             dependencyReasons.add(ComponentSelectionReasons.BY_ANCESTOR);
@@ -135,11 +133,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private void removeAndMarkSelectorForReuse() {
         targetModule.removeSelector(this);
         resolved = false;
-    }
-
-    @Override
-    public Long getResultId() {
-        return id;
     }
 
     @Override
@@ -190,12 +183,13 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             }
 
             BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
-            if (dependencyState.failure != null) {
-                idResolveResult.failed(dependencyState.failure);
+            if (dependencyState.getSubstitutionFailure() != null) {
+                idResolveResult.failed(dependencyState.getSubstitutionFailure());
             } else {
                 IvyArtifactName firstArtifact = getFirstDependencyArtifact();
-                ComponentOverrideMetadata overrideMetadata = DefaultComponentOverrideMetadata.forDependency(changing, firstArtifact, clientModule);
-                resolver.resolve(dependencyState.getDependency().getSelector(), overrideMetadata, selector, rejector, idResolveResult);
+                ComponentOverrideMetadata overrideMetadata = DefaultComponentOverrideMetadata.forDependency(changing, firstArtifact);
+                ImmutableAttributes requestAttributes = resolveState.getAttributesFactory().concat(resolveState.getConsumerAttributes(), targetModule.getMergedConstraintAttributes());
+                resolver.resolve(dependencyState.getDependency().getSelector(), overrideMetadata, selector, rejector, idResolveResult, requestAttributes);
             }
 
             if (idResolveResult.getFailure() != null) {
@@ -339,17 +333,12 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     @Override
-    @Deprecated
-    public org.gradle.api.artifacts.ClientModule getClientModule() {
-        return clientModule;
-    }
-
-    @Override
     public boolean isChanging() {
         return changing;
     }
 
     @Override
+    @Nullable
     public ResolvedVersionConstraint getVersionConstraint() {
         return versionConstraint;
     }
@@ -394,21 +383,9 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
                 resolved = false; // when a selector changes from non lock to lock, we must reselect
             }
             dependencyState.addSelectionReasons(dependencyReasons);
-            trackDetailsForOverrideMetadata(dependencyState);
-        }
-    }
 
-    @SuppressWarnings("deprecation")
-    private void trackDetailsForOverrideMetadata(DependencyState dependencyState) {
-        org.gradle.api.artifacts.ClientModule nextClientModule = DefaultComponentOverrideMetadata.extractClientModule(dependencyState.getDependency());
-        if (nextClientModule != null && !nextClientModule.equals(clientModule)) {
-            if (clientModule == null) {
-                clientModule = nextClientModule;
-            } else {
-                throw new InvalidUserDataException(dependencyState.getDependency().getSelector().getDisplayName() + " has more than one client module definitions.");
-            }
+            changing = changing || dependencyState.getDependency().isChanging();
         }
-        changing = changing || dependencyState.getDependency().isChanging();
     }
 
     private static class UnmatchedVersionsReason implements Describable {

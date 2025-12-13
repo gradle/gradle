@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.local.model;
 
-import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 /**
@@ -33,18 +32,5 @@ public interface LocalVariantGraphResolveStateFactory {
      * by this method may not be suitable for selection via attribute matching.</p>
      */
     void visitConsumableVariants(Consumer<LocalVariantGraphResolveState> visitor);
-
-    /**
-     * Invalidates any caching used for producing variant state.
-     */
-    void invalidate();
-
-    /**
-     * Produces a variant state instance from the configuration with the given {@code name}.
-     *
-     * @return Null if the variant with the given configuration name does not exist.
-     */
-    @Nullable
-    LocalVariantGraphResolveState getVariantByConfigurationName(String name);
 
 }

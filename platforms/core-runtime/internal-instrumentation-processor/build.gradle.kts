@@ -23,7 +23,7 @@ dependencies {
 
     api(libs.asm)
     api(libs.javaPoet)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(libs.asmTree)
     implementation(libs.jacksonAnnotations)
@@ -57,7 +57,4 @@ tasks.named<Test>("test").configure {
             "--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED"
         )
     }
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

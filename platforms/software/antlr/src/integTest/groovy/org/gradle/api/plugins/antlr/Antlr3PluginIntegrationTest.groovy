@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins.antlr
 
+import org.gradle.test.fixtures.file.TestFile
+
 class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
     String antlrDependency = "org.antlr:antlr:3.5.2"
@@ -58,10 +60,14 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
     }
 
     private void assertGrammarSourceGenerated(String grammarName) {
+        assertGrammarSourceGenerated(file('grammar-builder/build/generated-src/antlr/main'), grammarName)
+    }
+
+    private static void assertGrammarSourceGenerated(TestFile root, String grammarName) {
         def slashIndex = grammarName.lastIndexOf("/")
-        assert file("grammar-builder/build/generated-src/antlr/main/${slashIndex == -1 ? grammarName : grammarName.substring(slashIndex)}.tokens").exists()
-        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}Lexer.java").exists()
-        assert file("grammar-builder/build/generated-src/antlr/main/${grammarName}Parser.java").exists()
+        assert root.file("${slashIndex == -1 ? grammarName : grammarName.substring(slashIndex)}.tokens").exists()
+        assert root.file("${grammarName}Lexer.java").exists()
+        assert root.file("${grammarName}Parser.java").exists()
     }
 
     def "analyze bad grammar"() {
@@ -71,6 +77,47 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         fails("generateGrammarSource")
         failure.assertHasCause("There were 9 errors during grammar generation")
         assertAntlrVersion(3)
+    }
+
+    def "exception when package is set using #description"() {
+        goodGrammar()
+
+        buildFile "grammar-builder/build.gradle", """
+            generateGrammarSource {
+                ${expression}
+            }
+        """
+        if (expectDeprecationWarning) {
+            expectPackageArgumentDeprecationWarning(executer)
+        }
+
+        expect:
+        fails("generateGrammarSource")
+        failure.assertHasCause("The -package argument is not supported by ANTLR 3.")
+
+        where:
+        description                     | expression                                    | expectDeprecationWarning
+        "arguments"                     | "arguments = ['-package', 'org.acme.test']"   | true
+        "packageName property"          | "packageName = 'org.acme.test'"               | false
+    }
+
+    def "can change output directory and source set reflects change"() {
+        goodGrammar()
+        goodProgram()
+        buildFile "grammar-builder/build.gradle", """
+            generateGrammarSource {
+                outputDirectory = file("build/generated/antlr/main")
+            }
+        """
+
+        expect:
+        succeeds("generateGrammarSource")
+
+        assertGrammarSourceGenerated(file("grammar-builder/build/generated/antlr/main"), "AnotherGrammar")
+        assertGrammarSourceGenerated(file("grammar-builder/build/generated/antlr/main"), "org/acme/test/Test")
+        assertAntlrVersion(3)
+
+        succeeds("build")
     }
 
     private goodGrammar() {

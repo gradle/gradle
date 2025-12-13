@@ -16,27 +16,26 @@
 
 package org.gradle.internal.lazy;
 
-import javax.annotation.Nullable;
+import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
+
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 /**
  * @see Lazy#atomic()
  */
-class AtomicLazy<T> implements Lazy<T> {
-
+class AtomicLazy<T extends @Nullable Object> implements Lazy<T> {
     private static final Object UNINITIALIZED = new Object();
 
-    private final AtomicReference<Object> value = new AtomicReference<>(UNINITIALIZED);
-
-    @Nullable
-    private volatile Supplier<T> supplier;
+    // The type argument is as nullable as T, but it cannot be expressed naturally in Java.
+    private final AtomicReference<@Nullable Object> value = new AtomicReference<>(UNINITIALIZED);
+    private volatile @Nullable Supplier<T> supplier;
 
     public AtomicLazy(Supplier<T> supplier) {
         this.supplier = supplier;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public T get() {
         Supplier<T> s = supplier;
@@ -48,6 +47,7 @@ class AtomicLazy<T> implements Lazy<T> {
             }
             supplier = null;
         }
-        return (T) value.get();
+        // value now holds a valid value of type T from supplier, so we can strip unconditional nullability from it.
+        return Cast.unsafeStripNullable(Cast.uncheckedCast(value.get()));
     }
 }

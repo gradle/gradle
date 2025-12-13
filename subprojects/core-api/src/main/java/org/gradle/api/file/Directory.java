@@ -18,6 +18,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.provider.Provider;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
@@ -92,5 +93,5 @@ public interface Directory extends FileSystemLocation {
      * @return The file collection.
      * @since 6.0
      */
-    FileCollection files(Object... paths);
+    FileCollection files(@Nullable Object... paths);
 }

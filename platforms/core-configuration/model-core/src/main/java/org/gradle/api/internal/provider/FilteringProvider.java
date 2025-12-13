@@ -19,9 +19,8 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A filtering provider that uses a spec to filter the value of another provider.
@@ -78,8 +77,8 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
         }
     }
 
-    @Nonnull
-    protected Value<? extends T> filterValue(@SuppressWarnings("unused") EvaluationScopeContext context, Value<? extends T> value) {
+    @NonNull
+    protected Value<? extends T> filterValue(EvaluationScopeContext ignored, Value<? extends T> value) {
         if (value.isMissing()) {
             return value.asType();
         }
@@ -91,7 +90,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
         }
     }
 
-    protected void beforeRead(@SuppressWarnings("unused") EvaluationScopeContext context) {
+    protected void beforeRead(EvaluationScopeContext ignored) {
         provider.getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
                 throw new InvalidUserCodeException(

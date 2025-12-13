@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.provider.Provider;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
@@ -33,7 +35,7 @@ import java.util.TreeMap;
  * container will override attributes in the fallback container. All mutation operations are
  * forwarded to the primary container.
  */
-final class HierarchicalMutableAttributeContainer extends AbstractAttributeContainer {
+/* package */ final class HierarchicalMutableAttributeContainer extends AbstractAttributeContainer {
     private final AttributesFactory attributesFactory;
     private final AttributeContainerInternal fallback;
     private final AttributeContainerInternal primary;
@@ -61,14 +63,34 @@ final class HierarchicalMutableAttributeContainer extends AbstractAttributeConta
         return this;
     }
 
+    @Override
+    public AttributeContainer addAllLater(AttributeContainer other) {
+        primary.addAllLater(other);
+        return this;
+    }
+
     @Nullable
     @Override
     public <T> T getAttribute(Attribute<T> key) {
+        if (!isValidAttributeRequest(key)) {
+            return null;
+        }
+
         T attribute = primary.getAttribute(key);
         if (attribute != null) {
             return attribute;
         }
         return fallback.getAttribute(key);
+    }
+
+    @Override
+    public Provider<Map<Attribute<?>, AttributeEntry<?>>> getEntriesProvider() {
+        return primary.getEntriesProvider().zip(fallback.getEntriesProvider(), (prim, fall) ->
+            ImmutableMap.<Attribute<?>, AttributeEntry<?>>builderWithExpectedSize(prim.size() + fall.size())
+                .putAll(fall)
+                .putAll(prim)
+                .buildKeepingLast()
+        );
     }
 
     @Override
@@ -83,7 +105,12 @@ final class HierarchicalMutableAttributeContainer extends AbstractAttributeConta
     }
 
     @Override
-    public boolean equals(Object o) {
+    public <T extends Named> T named(Class<T> type, String name) {
+        return primary.named(type, name);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }

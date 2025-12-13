@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalLocation;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ import java.util.List;
  *
  * @since 8.12
  */
-@NonNullApi
+@NullMarked
 public interface InternalBasicProblemDetailsVersion4 extends InternalBasicProblemDetailsVersion3 {
 
     List<InternalLocation> getOriginLocations();

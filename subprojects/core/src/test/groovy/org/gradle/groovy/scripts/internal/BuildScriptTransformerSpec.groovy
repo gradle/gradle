@@ -19,14 +19,17 @@ package org.gradle.groovy.scripts.internal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectScript
+import org.gradle.api.problems.Problems
 import org.gradle.configuration.ImportsReader
 import org.gradle.configuration.ScriptTarget
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.internal.Actions
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.file.Deleter
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -41,9 +44,18 @@ class BuildScriptTransformerSpec extends Specification {
     }
 
     final DefaultScriptCompilationHandler scriptCompilationHandler = new DefaultScriptCompilationHandler(
-        TestFiles.deleter(),
         importsReader
-    )
+    ) {
+        @Override
+        protected Deleter getDeleter() {
+            return TestFiles.deleter()
+        }
+
+        @Override
+        protected Problems getProblemsService() {
+            return TestUtil.problemsService()
+        }
+    }
 
     File scriptCacheDir
     File metadataCacheDir

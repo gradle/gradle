@@ -17,3 +17,11 @@
 plugins {
     id("gradlebuild.kotlin-library")
 }
+
+jvmCompile {
+    compilations {
+        named("main") {
+            targetJvmVersion = 17
+        }
+    }
+}

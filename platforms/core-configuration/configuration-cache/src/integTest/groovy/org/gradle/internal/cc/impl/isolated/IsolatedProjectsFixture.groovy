@@ -20,12 +20,12 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.FirstParam
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
-import org.gradle.internal.cc.impl.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture.HasBuildActions
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture.HasInvalidationReason
+import org.gradle.internal.cc.impl.fixtures.AbstractConfigurationCacheOptInFeatureIntegrationTest
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.tooling.provider.model.internal.QueryToolingModelBuildOperationType
 
@@ -104,6 +104,7 @@ class IsolatedProjectsFixture {
      */
     void assertStateStoredAndDiscarded(@DelegatesTo(StateDiscardedWithProblemsDetails) Closure closure) {
         def details = new StateDiscardedWithProblemsDetails()
+        details.loadsAfterStore = false // in most cases IP-problems are registered before Store, so the entry is discarded before Load
         closure.delegate = details
         closure()
 
@@ -303,7 +304,7 @@ class IsolatedProjectsFixture {
     private <T extends HasBuildActions> T forModels(T details) {
         details.createsModels = true
         details.runsTasks = false
-        details.loadsOnStore = false
+        details.loadsAfterStore = false
         details
     }
 

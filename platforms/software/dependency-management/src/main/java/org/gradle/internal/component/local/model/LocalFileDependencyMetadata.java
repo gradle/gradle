@@ -19,8 +19,7 @@ package org.gradle.internal.component.local.model;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.file.FileCollectionInternal;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a local file dependency. Should be modelled as a regular dependency, but is treated separately as a migration step.

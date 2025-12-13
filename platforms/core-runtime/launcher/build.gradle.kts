@@ -7,10 +7,13 @@ description = "Implementation for launching, controlling and communicating with 
 
 dependencies {
     api(projects.baseServices)
+    api(projects.buildDiscovery)
+    api(projects.buildDiscoveryImpl)
     api(projects.buildEvents)
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.buildState)
+    api(projects.classloaders)
     api(projects.cli)
     api(projects.concurrent)
     api(projects.core)
@@ -46,14 +49,18 @@ dependencies {
     api(projects.daemonServices)
 
     api(libs.guava)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
+    implementation(projects.buildProcessServices)
     implementation(projects.enterpriseOperations)
     implementation(projects.functional)
     implementation(projects.io)
     implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.slf4jApi)
+    // Required directly by CliTextPrinter (uses Ant Main and Groovy ReleaseInfo)
+    implementation(libs.ant)
+    implementation(libs.groovy)
 
     runtimeOnly(projects.gradleCliMain)
     runtimeOnly(projects.declarativeDslProvider)
@@ -80,6 +87,8 @@ dependencies {
     integTestImplementation(libs.commonsLang)
     integTestImplementation(libs.commonsIo)
     integTestImplementation(testFixtures(projects.buildConfiguration))
+    integTestImplementation(testFixtures(projects.buildProcessServices))
+    integTestImplementation(testFixtures(projects.toolchainsJvmShared))
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("built-in options are required to be present at runtime for 'TaskOptionsSpec'")

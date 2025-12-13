@@ -16,24 +16,16 @@
 
 package org.gradle.testing.junit.jupiter
 
+
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.TestClassExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.testing.junit.AbstractJUnitTestExecutionIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
-import static org.hamcrest.CoreMatchers.containsString
 
 @TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterTestExecutionIntegrationTest extends AbstractJUnitTestExecutionIntegrationTest implements JUnitJupiterMultiVersionTest {
     @Override
     String getJUnitVersionAssertion() {
         return "assertEquals(\"${version}\", org.junit.jupiter.api.Test.class.getPackage().getImplementationVersion());"
-    }
-
-    @Override
-    TestClassExecutionResult assertFailedToExecute(TestExecutionResult testResult, String testClassName) {
-        return testResult.testClassStartsWith('Gradle Test Executor')
-            .assertTestFailed("failed to execute tests", containsString("Could not execute test class '${testClassName}'"))
     }
 }

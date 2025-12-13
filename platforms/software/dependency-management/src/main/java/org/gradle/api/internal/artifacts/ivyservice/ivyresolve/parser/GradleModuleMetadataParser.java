@@ -21,12 +21,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.LibraryElements;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
@@ -34,10 +36,11 @@ import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySel
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.repositories.metadata.MavenAttributesFactory;
-import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenVariantAttributesFactory;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
+import org.gradle.api.internal.attributes.UsageCompatibilityHandler;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.logging.Logger;
@@ -67,7 +70,7 @@ import static com.google.gson.stream.JsonToken.END_OBJECT;
 import static com.google.gson.stream.JsonToken.NULL;
 import static com.google.gson.stream.JsonToken.NUMBER;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.commons.lang.StringUtils.capitalize;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 
 public class GradleModuleMetadataParser {
     private final static Logger LOGGER = Logging.getLogger(GradleModuleMetadataParser.class);
@@ -130,10 +133,10 @@ public class GradleModuleMetadataParser {
             return;
         }
         for (MutableComponentVariant variant : ImmutableList.copyOf(variants)) {
-            AttributeValue<String> entry = variant.getAttributes().findEntry(MavenAttributesFactory.CATEGORY_ATTRIBUTE);
-            if (entry.isPresent() && Category.REGULAR_PLATFORM.equals(entry.get()) && variant.getCapabilities().isEmpty()) {
+            ImmutableAttributesEntry<String> entry = variant.getAttributes().findEntry(MavenVariantAttributesFactory.CATEGORY_ATTRIBUTE);
+            if (entry != null && Category.REGULAR_PLATFORM.equals(entry.getIsolatedValue()) && variant.getCapabilities().isEmpty()) {
                 // This generates a synthetic enforced platform variant with the same dependencies, similar to what the Maven variant derivation strategy does
-                ImmutableAttributes enforcedAttributes = attributesFactory.concat(variant.getAttributes(), MavenAttributesFactory.CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.ENFORCED_PLATFORM, instantiator));
+                ImmutableAttributes enforcedAttributes = attributesFactory.concat(variant.getAttributes(), MavenVariantAttributesFactory.CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.ENFORCED_PLATFORM, instantiator));
                 Capability enforcedCapability = buildShadowPlatformCapability(metadata.getId());
                 metadata.addVariant(variant.copy("enforced" + capitalize(variant.getName()), enforcedAttributes, enforcedCapability));
             }
@@ -607,6 +610,7 @@ public class GradleModuleMetadataParser {
     }
 
     private ImmutableAttributes consumeAttributes(JsonReader reader) throws IOException {
+        String libraryElementsValue = null;
         ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
 
         reader.beginObject();
@@ -620,10 +624,26 @@ public class GradleModuleMetadataParser {
                 attributes = attributesFactory.concat(attributes, Attribute.of(attrName, Integer.class), attrValue);
             } else {
                 String attrValue = reader.nextString();
+                if (Usage.USAGE_ATTRIBUTE.getName().equals(attrName)) {
+                    // Handle potentially legacy Usage values. Unfortunately, "published metadata is forever",
+                    // so we need to handle this legacy value for the rest of time.
+                    // In the future, it might make sense to handle this in another place, like in a JVM-specific
+                    // ecosystem plugin.
+                    String legacyUsage = UsageCompatibilityHandler.getReplacementUsage(attrValue);
+                    if (legacyUsage != null) {
+                        libraryElementsValue = UsageCompatibilityHandler.getLibraryElements(attrValue);
+                        attrValue = legacyUsage;
+                    }
+                }
                 attributes = attributesFactory.concat(attributes, Attribute.of(attrName, String.class), new CoercingStringValueSnapshot(attrValue, instantiator));
             }
         }
         reader.endObject();
+
+        // If a legacy Usage value was encountered, only add the corresponding LibraryElements value if there is not already one provided.
+        if (libraryElementsValue != null && attributes.findEntry(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName()) == null) {
+            attributes = attributesFactory.concat(attributes, Attribute.of(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.getName(), String.class), new CoercingStringValueSnapshot(libraryElementsValue, instantiator));
+        }
 
         return attributes;
     }
@@ -690,7 +710,7 @@ public class GradleModuleMetadataParser {
                 && Objects.equal(reason, that.reason)
                 && Objects.equal(attributes, that.attributes)
                 && Objects.equal(requestedCapabilities, that.requestedCapabilities)
-                && Objects.equal(endorsing, that.endorsing)
+                && endorsing == that.endorsing
                 && Objects.equal(artifact, that.artifact);
         }
 

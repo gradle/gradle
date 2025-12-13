@@ -20,16 +20,13 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
-import org.gradle.initialization.layout.BuildLayout
-import org.gradle.internal.Factory
-import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.cc.impl.ConfigurationCacheLoggingParameters
 import org.gradle.internal.cc.impl.Workarounds
-import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.extensions.core.getInternalFlag
+import org.gradle.internal.extensions.core.getStringOrNull
 import org.gradle.internal.extensions.stdlib.unsafeLazy
+import org.gradle.internal.initialization.layout.BuildTreeLocations
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.internal.IncubationLogger
@@ -38,47 +35,20 @@ import java.io.File
 
 @ServiceScope(Scope.BuildTree::class)
 class ConfigurationCacheStartParameter internal constructor(
-    private val buildLayout: BuildLayout,
+    private val buildTreeLocations: BuildTreeLocations,
     private val startParameter: StartParameterInternal,
     options: InternalOptions,
     private val modelParameters: BuildModelParameters,
-    private val loggingParameters: ConfigurationCacheLoggingParameters,
 ) {
-
-    companion object {
-
-        private
-        val loadAfterStoreFlag = InternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)
-
-        private
-        fun InternalOptions.loadAfterStoreRequested(): Boolean {
-            val value = getOption(loadAfterStoreFlag)
-            if (value.isExplicit) {
-                DeprecationLogger.deprecateSystemProperty(loadAfterStoreFlag.systemPropertyName)
-                    .withContext("The behavior is enabled by default.")
-                    .withAdvice("Avoid using the internal flag.")
-                    .startingWithGradle9("it will not be possible to disable load-after-store behavior of Configuration Cache")
-                    .undocumented()
-                    .nagUser()
-            }
-            return value.get()
-        }
-    }
-
     /**
-     * On a CC miss, should we load the newly stored state in the same invocation?
-     *
-     * This provides a benefit of discarding a lot of state (e.g. project state) earlier in the build,
-     * potentially reducing the memory consumption.
-     * Another key benefit is that this eliminates discrepancies in behavior between cache hits and misses.
-     *
-     * We disable load-after-store when tooling model builders are involved.
-     * This is because the builders can be executed after the tasks (if any) in a build action,
-     * and these builders may access project state as well as the task state.
-     * Doing load-after-store would have discarded the project state and isolated the task state,
-     * providing the builders with an incomplete view of the build.
+     * Internal Configuration Cache options.
      */
-    val loadAfterStore: Boolean by lazy { options.loadAfterStoreRequested() && !modelParameters.isRequiresToolingModels }
+    object Options {
+        /**
+         * See [org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter.customReportOutputDirectory].
+         */
+        const val REPORT_OUTPUT_DIR = "org.gradle.configuration-cache.internal.report-output-directory"
+    }
 
     val taskExecutionAccessPreStable: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")
 
@@ -87,6 +57,18 @@ class ConfigurationCacheStartParameter internal constructor(
      * Useful in testing.
      */
     val alwaysLogReportLinkAsWarning: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.report-link-as-warning", false)
+
+    /**
+     * Custom output directory for the Configuration Cache report relative to the build tree root directory.
+     * Useful in testing.
+     *
+     * The default (when null) is to write the report under `<root build buildDir>/reports/configuration-cache`.
+     */
+    val customReportOutputDirectory: File? by lazy {
+        options.getStringOrNull(Options.REPORT_OUTPUT_DIR)?.let {
+            buildTreeLocations.buildTreeRootDirectory.resolve(it)
+        }
+    }
 
     /**
      * Whether strings stored to the configuration cache should be deduplicated
@@ -105,40 +87,18 @@ class ConfigurationCacheStartParameter internal constructor(
     val isSharingObjects: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.share-objects", true)
 
     /**
-     * Whether configuration cache storing/loading should be done in parallel.
-     *
-     * Same as [StartParameterInternal.configurationCacheParallel].
-     *
-     * @see StartParameterInternal.configurationCacheParallel
+     * See [org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheFineGrainedPropertyTracking].
      */
-    val isParallelCache: Boolean by lazy {
-        isIsolatedProjects || startParameter.isConfigurationCacheParallel.also { enabled ->
-            if (enabled) {
-                IncubationLogger.incubatingFeatureUsed("Parallel Configuration Cache")
-            }
-        }
-    }
-
-    /**
-     * Whether configuration should be stored in parallel.
-     *
-     * The default is the value of [isParallelCache].
-     */
-    val isParallelStore = isParallelCache && options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-store", true)
-
-    /**
-     * Whether configuration should be loaded in parallel.
-     *
-     * The default is `true`.
-     */
-    val isParallelLoad = options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
+    val isFineGrainedPropertyTracking: Boolean
+        get() = startParameter.isConfigurationCacheFineGrainedPropertyTracking
 
     val gradleProperties: Map<String, Any?>
-        get() = startParameter.projectProperties
+        get() = startParameter.projectPropertiesUntracked
             .filterKeys { !Workarounds.isIgnoredStartParameterProperty(it) }
 
-    val configurationCacheLogLevel: LogLevel
-        get() = loggingParameters.logLevel
+    val configurationCacheLogLevel: LogLevel by lazy {
+        if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
+    }
 
     val isIgnoreInputsDuringStore: Boolean
         get() = startParameter.isConfigurationCacheIgnoreInputsDuringStore
@@ -152,11 +112,25 @@ class ConfigurationCacheStartParameter internal constructor(
     val isDebug: Boolean
         get() = startParameter.isConfigurationCacheDebug
 
-    val failOnProblems: Boolean
-        get() = startParameter.configurationCacheProblems == ConfigurationCacheProblemsOption.Value.FAIL
+    val isWarningMode: Boolean
+        get() = startParameter.configurationCacheProblems == ConfigurationCacheProblemsOption.Value.WARN
 
     val recreateCache: Boolean
         get() = startParameter.isConfigurationCacheRecreateCache
+
+    /**
+     * Whether we should skip creating an entry in case of a cache miss.
+     */
+    val isReadOnlyCache: Boolean by lazy {
+        startParameter.isConfigurationCacheReadOnly.also { enabled ->
+            if (enabled) {
+                IncubationLogger.incubatingFeatureUsed("Read-only Configuration Cache")
+            }
+        }
+    }
+
+    val isIntegrityCheckEnabled: Boolean
+        get() = startParameter.isConfigurationCacheIntegrityCheckEnabled
 
     /**
      * See [StartParameter.getProjectDir].
@@ -167,15 +141,8 @@ class ConfigurationCacheStartParameter internal constructor(
     val currentDirectory: File
         get() = startParameter.currentDir
 
-    val settingsDirectory: File
-        get() = buildLayout.settingsDir
-
-    @Suppress("DEPRECATION")
-    val settingsFile: File?
-        get() = DeprecationLogger.whileDisabled(Factory { startParameter.settingsFile })
-
-    val rootDirectory: File
-        get() = buildLayout.rootDirectory
+    val buildTreeRootDirectory: File
+        get() = buildTreeLocations.buildTreeRootDirectory
 
     val isOffline
         get() = startParameter.isOffline

@@ -17,12 +17,12 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.util.List;
 
-@NonNullApi
+@NullMarked
 public interface HeaderDependenciesCollector {
     ImmutableSortedSet<File> collectExistingHeaderDependencies(String taskPath, List<File> includeRoots, IncrementalCompilation incrementalCompilation);
 }

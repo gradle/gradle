@@ -20,8 +20,8 @@ import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 public class TaskDependencyUtil {

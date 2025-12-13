@@ -43,8 +43,8 @@ import org.gradle.operations.dependencies.transforms.ExecutePlannedTransformStep
 import org.gradle.operations.dependencies.transforms.PlannedTransformStepIdentity;
 import org.gradle.operations.dependencies.variants.Capability;
 import org.gradle.operations.dependencies.variants.ComponentIdentifier;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Collections;
 import java.util.List;
@@ -100,8 +100,8 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
 
     private PlannedTransformStepIdentity createIdentity() {
         ProjectIdentity projectId = transformStep.getOwningProject().getProjectIdentity();
-        String consumerBuildPath = projectId.getBuildIdentifier().getBuildPath();
-        String consumerProjectPath = projectId.getProjectPath().getPath();
+        String consumerBuildPath = projectId.getBuildPath().asString();
+        String consumerProjectPath = projectId.getProjectPath().asString();
         ComponentIdentifier componentId = ComponentToOperationConverter.convertComponentIdentifier(targetComponentVariant.getComponentId());
         Map<String, String> sourceAttributes = AttributesToMapConverter.convertToMap(this.sourceAttributes);
         Map<String, String> targetAttributes = AttributesToMapConverter.convertToMap(targetComponentVariant.getAttributes());

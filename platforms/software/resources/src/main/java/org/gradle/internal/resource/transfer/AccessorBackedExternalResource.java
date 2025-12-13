@@ -27,8 +27,8 @@ import org.gradle.internal.resource.ExternalResourceWriteResult;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;

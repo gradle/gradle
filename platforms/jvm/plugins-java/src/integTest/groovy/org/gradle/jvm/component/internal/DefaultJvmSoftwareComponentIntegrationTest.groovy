@@ -70,7 +70,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
                 id('java-library')
             }
 
-            ${factoryRegistrationGroovy()}
+            ${importStatements()}
 
             components {
                 comp(JvmSoftwareComponentInternal)
@@ -93,7 +93,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
                 id("java-library")
             }
 
-            ${factoryRegistrationKotlin()}
+            ${importStatements()}
 
             components {
                 create<JvmSoftwareComponentInternal>("comp")
@@ -208,7 +208,7 @@ class DefaultJvmSoftwareComponentIntegrationTest extends AbstractIntegrationSpec
             ${importStatements()}
 
             components {
-                registerBinding(JvmSoftwareComponentInternal::class.java, DefaultJvmSoftwareComponent::class.java)
+                registerBinding(JvmSoftwareComponentInternal::class, DefaultJvmSoftwareComponent::class)
             }
         """
     }

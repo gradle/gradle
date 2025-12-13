@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
@@ -25,6 +24,7 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
+import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +37,7 @@ import java.util.concurrent.ExecutionException;
  * Unblocks the client to receive the build finished event while the cleanup is happening.
  * However, the next build is not allowed to start until the cleanup is finished.
  */
-@NonNullApi
+@NullMarked
 public class CleanUpVirtualFileSystemAfterBuild extends BuildCommandOnly implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(CleanUpVirtualFileSystemAfterBuild.class);
 

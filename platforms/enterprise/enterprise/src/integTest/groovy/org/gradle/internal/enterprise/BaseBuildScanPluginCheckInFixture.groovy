@@ -31,6 +31,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 import javax.annotation.Nullable
+import java.util.regex.Pattern
 
 @SuppressWarnings("GrMethodMayBeStatic")
 abstract class BaseBuildScanPluginCheckInFixture {
@@ -164,6 +165,12 @@ abstract class BaseBuildScanPluginCheckInFixture {
                             $GradleEnterprisePluginEndOfBuildListener.name getEndOfBuildListener() {
                                 return { $GradleEnterprisePluginEndOfBuildListener.BuildResult.name buildResult ->
                                     println "${propertyPrefix}.endOfBuild.buildResult.failure = \$buildResult.failure"
+                                    println "${propertyPrefix}.endOfBuild.buildResult.buildFailure.failureMessages = \${buildResult.buildFailure?.failures*.message}"
+                                    if (buildResult.buildFailure != null) {
+                                        buildResult.buildFailure.failures.eachWithIndex { failure, index ->
+                                            println "${propertyPrefix}.endOfBuild.buildResult.buildFailure.\${index}.message = \${failure.message}"
+                                        }
+                                    }
                                     if (System.getProperty("build-listener-failure") != null) {
                                         throw new RuntimeException("broken")
                                     }
@@ -206,6 +213,12 @@ abstract class BaseBuildScanPluginCheckInFixture {
     void assertEndOfBuildWithFailure(String output, @Nullable String failure) {
         assert output.count("${propertyPrefix}.endOfBuild.buildResult.failure = ") == 1
         assert output.contains("${propertyPrefix}.endOfBuild.buildResult.failure = $failure")
+        assert output.count("${propertyPrefix}.endOfBuild.buildResult.buildFailure.failureMessages = ") == 1
+        if (failure == null) {
+            assert output.contains("${propertyPrefix}.endOfBuild.buildResult.buildFailure.failureMessages = null")
+        } else {
+            assert Pattern.compile(".*${propertyPrefix}\\.endOfBuild\\.buildResult\\.buildFailure\\.failureMessages = \\[.*${Pattern.quote(failure)}.*").matcher(output).find()
+        }
     }
 
     void receivedBuildOperationNotifications(String output) {

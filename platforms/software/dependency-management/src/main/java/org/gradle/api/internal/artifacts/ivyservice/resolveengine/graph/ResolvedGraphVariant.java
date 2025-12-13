@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface ResolvedGraphVariant {
     /**
@@ -27,6 +27,11 @@ public interface ResolvedGraphVariant {
      * This id cannot be used across graphs.
      */
     long getNodeId();
+
+    /**
+     * Get the ID of this variant.
+     */
+    VariantIdentifier getId();
 
     /**
      * Get the resolve state of the owning component.

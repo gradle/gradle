@@ -5,11 +5,16 @@ plugins {
 
 description = "Develocity plugin dependencies that also need to be exposed to workers"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
-    api(libs.jsr305)
+    api(libs.jspecify)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
+
+errorprone {
+    nullawayEnabled = true
 }

@@ -17,9 +17,7 @@
 package org.gradle.api.internal.artifacts.resolver;
 
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal;
-import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.provider.Provider;
 
@@ -28,12 +26,6 @@ import org.gradle.api.provider.Provider;
  * their internal types, as well as the raw results before conversion to user-facing types.
  */
 public interface ResolutionOutputsInternal extends ResolutionOutputs {
-
-    /**
-     * Get the raw results of the resolution. The returned results are lazy. Calling
-     * this method will not perform resolution.
-     */
-    ResolutionResultProvider<ResolverResults> getRawResults();
 
     /**
      * Returns the resolved dependency graph as a reference to the root component.
@@ -51,4 +43,5 @@ public interface ResolutionOutputsInternal extends ResolutionOutputs {
 
     @Override
     ArtifactCollectionInternal getArtifacts();
+
 }

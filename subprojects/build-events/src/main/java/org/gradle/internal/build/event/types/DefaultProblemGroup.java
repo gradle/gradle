@@ -16,14 +16,14 @@
 
 package org.gradle.internal.build.event.types;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.InternalProblemGroup;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Objects;
 
-@NonNullApi
+@NullMarked
 public class DefaultProblemGroup implements InternalProblemGroup, Serializable {
 
     private final String name;

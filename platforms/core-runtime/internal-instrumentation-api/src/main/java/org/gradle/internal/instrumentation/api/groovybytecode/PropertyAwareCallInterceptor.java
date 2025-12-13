@@ -16,14 +16,13 @@
 
 package org.gradle.internal.instrumentation.api.groovybytecode;
 
-import org.gradle.api.NonNullApi;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A call interceptor that can also tell about the type of the property that it intercepts access to.
  */
-@NonNullApi
+@NullMarked
 public interface PropertyAwareCallInterceptor {
     /**
      * Checks if the interceptor handles property access on instances of the specified receiver type.

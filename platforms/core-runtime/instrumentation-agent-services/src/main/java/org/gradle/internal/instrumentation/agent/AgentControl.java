@@ -17,9 +17,9 @@
 package org.gradle.internal.instrumentation.agent;
 
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

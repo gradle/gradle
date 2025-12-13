@@ -16,7 +16,7 @@
 
 package org.gradle.internal.buildoption;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Configuration for a boolean command line option.

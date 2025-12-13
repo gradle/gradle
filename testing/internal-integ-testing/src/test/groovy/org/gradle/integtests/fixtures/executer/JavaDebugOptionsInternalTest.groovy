@@ -25,6 +25,6 @@ class JavaDebugOptionsInternalTest extends Specification {
         def opts = new JavaDebugOptionsInternal();
 
         then:
-        opts.toDebugArgument() == "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
+        opts.toDebugArgument() == "-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=localhost:5005"
     }
 }

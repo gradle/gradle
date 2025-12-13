@@ -34,8 +34,8 @@ class CompositeDeduplicationCrossVersionSpec extends ToolingApiSpecification {
         """
         settingsFile << """
         rootProject.name = 'root'
-        include ':a', ':b'
         """
+        includeProjects("a", "b")
     }
 
     def "Included builds are deduplicated"() {

@@ -21,7 +21,7 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.api.logging.StandardOutputListener
-import org.gradle.internal.logging.LoggingManagerInternal
+import org.gradle.internal.logging.LoggingManagerFactory
 import org.gradle.internal.logging.services.LoggingServiceRegistry
 
 class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest implements VersionCatalogErrorMessages {
@@ -162,7 +162,7 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest implem
     def "warns if multiple entries use the same alias"() {
         StandardOutputListener listener = Mock()
         def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.start()
@@ -182,7 +182,7 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest implem
     def "warns if multiple entries use the same bundle name"() {
         StandardOutputListener listener = Mock()
         def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.start()

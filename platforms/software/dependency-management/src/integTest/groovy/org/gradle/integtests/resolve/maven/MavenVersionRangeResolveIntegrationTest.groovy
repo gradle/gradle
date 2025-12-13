@@ -22,34 +22,42 @@ import spock.lang.Issue
 
 class MavenVersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
+    def resolve = new ResolveTestFixture(testDirectory)
+
     def setup() {
-        new ResolveTestFixture(buildFile, "compile").addDefaultVariantDerivationStrategy()
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+        buildFile << """
+            plugins {
+                id("jvm-ecosystem")
+            }
+
+            repositories {
+                maven {
+                    url = "${mavenRepo.uri}"
+                }
+            }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+        """
     }
 
     @Issue("GRADLE-3334")
     def "can resolve version range with single value specified"() {
         given:
-        settingsFile << "rootProject.name = 'test' "
         buildFile << """
-repositories {
-    maven {
-        url = "${mavenRepo.uri}"
-    }
-}
-
-configurations { compile }
-
-dependencies {
-    compile group: "org.test", name: "projectA", version: "[1.1]"
-}
-"""
+            dependencies {
+                compile("org.test:projectA:[1.1]")
+            }
+        """
         and:
         mavenRepo.module('org.test', 'projectB', '2.0').publish()
         mavenRepo.module('org.test', 'projectA', '1.1').dependsOn('org.test', 'projectB', '[2.0]').publish()
-
-        def resolve = new ResolveTestFixture(buildFile, "compile")
-        resolve.prepare()
-        resolve.expectDefaultConfiguration("runtime")
 
         when:
         succeeds 'checkDeps'
@@ -67,20 +75,11 @@ dependencies {
     @Issue("https://github.com/gradle/gradle/issues/1898")
     def "can resolve parent pom with version range"() {
         given:
-        settingsFile << "rootProject.name = 'test' "
         buildFile << """
-repositories {
-    maven {
-        url = "${mavenRepo.uri}"
-    }
-}
-
-configurations { compile }
-
-dependencies {
-    compile group: "org.test", name: "child", version: "1.0"
-}
-"""
+            dependencies {
+                compile("org.test:child:1.0")
+            }
+        """
         and:
         mavenRepo.module('org.test', 'child', '1.0').parent('org.test', 'parent', '[2.0,3.0)').publish()
         mavenRepo.module('org.test', 'parent', '1.0').dependsOn('org.test', 'dep', '1.0').publishPom()
@@ -89,14 +88,10 @@ dependencies {
         mavenRepo.module('org.test', 'parent', '3.0').dependsOn('org.test', 'dep', '3.0').publishPom()
         mavenRepo.module('org.test', 'dep', '2.1').publish()
 
-        def resolve = new ResolveTestFixture(buildFile, "compile")
-        resolve.prepare()
-
         when:
         succeeds 'checkDeps'
 
         then:
-        resolve.expectDefaultConfiguration("runtime")
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.test:child:1.0", "org.test:child:1.0") {
@@ -109,20 +104,11 @@ dependencies {
     @Issue("https://github.com/gradle/gradle/issues/1898")
     def "can resolve pom importing version range"() {
         given:
-        settingsFile << "rootProject.name = 'test' "
         buildFile << """
-repositories {
-    maven {
-        url = "${mavenRepo.uri}"
-    }
-}
-
-configurations { compile }
-
-dependencies {
-    compile group: "org.test", name: "child", version: "1.0"
-}
-"""
+            dependencies {
+                compile("org.test:child:1.0")
+            }
+        """
         and:
         mavenRepo.module('org.test', 'child', '1.0').dependsOn('org.test', 'imported', '[2.0,3.0)', 'pom', 'import').publish()
         mavenRepo.module('org.test', 'imported', '1.0').dependsOn('org.test', 'dep', '2.0').publishPom()
@@ -130,10 +116,6 @@ dependencies {
         mavenRepo.module('org.test', 'imported', '2.1').dependsOn('org.test', 'dep', '2.1').publishPom()
         mavenRepo.module('org.test', 'imported', '3.0').dependsOn('org.test', 'dep', '3.0').publishPom()
         mavenRepo.module('org.test', 'dep', '2.1').publish()
-
-        def resolve = new ResolveTestFixture(buildFile, "compile")
-        resolve.prepare()
-        resolve.expectDefaultConfiguration("runtime")
 
         when:
         succeeds 'checkDeps'
@@ -156,27 +138,16 @@ dependencies {
     @Issue("https://github.com/gradle/gradle/issues/1898")
     def "error when parent pom with specified version range cannot be found"() {
         given:
-        settingsFile << "rootProject.name = 'test' "
         buildFile << """
-repositories {
-    maven {
-        url = "${mavenRepo.uri}"
-    }
-}
+            dependencies {
+                compile("org.test:child:1.0")
+            }
+        """
 
-configurations { compile }
-
-dependencies {
-    compile group: "org.test", name: "child", version: "1.0"
-}
-"""
         and:
         mavenRepo.module('org.test', 'child', '1.0').parent('org.test', 'parent', '[2.0,3.0)').publish()
         mavenRepo.module('org.test', 'parent', '1.0').dependsOn('org.test', 'dep', '2.0').publishPom()
         mavenRepo.module('org.test', 'parent', '3.0').dependsOn('org.test', 'dep', '3.0').publishPom()
-
-        def resolve = new ResolveTestFixture(buildFile, "compile")
-        resolve.prepare()
 
         when:
         fails 'checkDeps'
@@ -187,22 +158,12 @@ dependencies {
 
     def "updated behaviour on upper bound exclusion"() {
         given:
-        settingsFile << """
-rootProject.name = "testrange"
-"""
         buildFile << """
-repositories {
-    maven {
-        url = "${mavenRepo.uri}"
-    }
-}
+            dependencies {
+                compile "org.test:dep:[1.0, 2.0["
+            }
+        """
 
-configurations { conf }
-
-dependencies {
-    conf "org.test:dep:[1.0, 2.0["
-}
-"""
         and:
         mavenRepo.module("org.test", "dep", "1.0").publish()
         mavenRepo.module("org.test", "dep", "1.5").publish()
@@ -212,16 +173,12 @@ dependencies {
         mavenRepo.module("org.test", "dep", "2.1").publish()
         mavenRepo.module("org.test", "dep", "3.0").publish()
 
-        def resolve = new ResolveTestFixture(buildFile, "conf")
-        resolve.prepare()
-        resolve.expectDefaultConfiguration("runtime")
-
         when:
         succeeds "checkDeps"
 
         then:
         resolve.expectGraph {
-            root(":", ":testrange:") {
+            root(":", ":test:") {
                 edge("org.test:dep:[1.0, 2.0[", "org.test:dep:1.5") {
                     notRequested()
                     byReason("didn't match versions 3.0, 2.1, 2.0, 2.0-final, 2.0-dev1")

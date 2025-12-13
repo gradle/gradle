@@ -17,8 +17,8 @@
 package org.gradle.nativeplatform.test.xctest
 
 import org.gradle.api.file.FileSystemOperations
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -32,13 +32,17 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.VersionNumber
 
-import static org.gradle.integtests.fixtures.TestExecutionResult.EXECUTION_FAILURE
 import static org.gradle.util.Matchers.containsText
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 @Requires(UnitTestPreconditions.HasXCTest)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
-class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements VerifiesGenericTestReportResults {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.XC_TEST
+    }
+
     def "fails when working directory is invalid"() {
         buildWithApplicationAndDependencies()
         buildFile << """
@@ -55,9 +59,8 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         fails(':app:test')
 
         and:
-        failure.assertHasCause("There were failing tests.")
-        def testFailure = testExecutionResult.testClass("Gradle Test Run :app:xcTest")
-        testFailure.assertTestFailed(EXECUTION_FAILURE, containsText("A problem occurred starting process"))
+        failure.assertHasCause("Test process encountered an unexpected problem.")
+        failure.assertHasCause("Working directory '${file('app/does-not-exist')}' does not exist.")
     }
 
     def "fails when application cannot load shared library at runtime"() {
@@ -80,9 +83,9 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         fails(':app:test')
 
         and:
-        failure.assertHasCause("There were failing tests.")
-        def testFailure = testExecutionResult.testClass("Gradle Test Run :app:xcTest")
-        testFailure.assertTestFailed(EXECUTION_FAILURE, containsText("finished with non-zero exit value"))
+        failure.assertHasCause("Test process encountered an unexpected problem.")
+        def testFailure = resultsFor(testDirectory.file("app"), "tests/xcTest").testPath(":").onlyRoot()
+        testFailure.assertFailureMessages(containsText("finished with non-zero exit value"))
         if (OperatingSystem.current().isMacOsX()) {
             if (toolChain.version < VersionNumber.version(5, 9)) {
                 testFailure.assertStderr(containsText("The bundle “AppTest.xctest” couldn’t be loaded because it is damaged or missing necessary resources"))
@@ -102,7 +105,8 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
 
         and:
         failure.assertHasCause("There were failing tests.")
-        testExecutionResult.testClass("ForceUnwrapTestSuite").assertTestFailed("testForceUnwrapOptional", containsText("finished with non-zero exit value"))
+        resultsFor(testDirectory.file("app"), "tests/xcTest").testPath(":ForceUnwrapTestSuite:testForceUnwrapOptional").onlyRoot()
+            .assertFailureMessages(containsText("finished with non-zero exit value"))
     }
 
     void buildWithApplicationAndDependencies() {
@@ -156,9 +160,5 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
             }
         }
         sourceElement.writeToProject(file('app'))
-    }
-
-    TestExecutionResult getTestExecutionResult() {
-        return new DefaultTestExecutionResult(testDirectory.file('app'), 'build', '', '', 'xcTest')
     }
 }

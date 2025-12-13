@@ -17,8 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.internal.classpath.ClassPath;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface ClassPathProvider {
     /**

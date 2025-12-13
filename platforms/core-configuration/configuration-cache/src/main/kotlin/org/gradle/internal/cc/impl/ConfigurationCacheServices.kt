@@ -24,13 +24,15 @@ import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.execution.ExecutionAccessListener
+import org.gradle.internal.build.BuildToolingModelControllerFactory
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.buildtree.BuildTreeModelControllerServices
+import org.gradle.internal.buildtree.BuildModelParametersFactory
+import org.gradle.internal.buildtree.control.DefaultBuildModelParametersFactory
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.problems.BuildNameProvider
-import org.gradle.internal.cc.impl.services.DefaultIsolatedProjectEvaluationListenerProvider
-import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
+import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
+import org.gradle.internal.cc.impl.serialize.DefaultConfigurationCacheCodecs
 import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.configuration.problems.CommonReport
@@ -44,16 +46,19 @@ import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
-import org.gradle.invocation.GradleLifecycleActionExecutor
-import org.gradle.invocation.IsolatedProjectEvaluationListenerProvider
 import java.io.File
 
 
 class ConfigurationCacheServices : AbstractGradleModuleServices() {
 
+    override fun registerGlobalServices(registration: ServiceRegistration) {
+        registration.run {
+            add(BuildModelParametersFactory::class.java, DefaultBuildModelParametersFactory::class.java)
+        }
+    }
+
     override fun registerBuildSessionServices(registration: ServiceRegistration) {
         registration.run {
-            add(BuildTreeModelControllerServices::class.java, DefaultBuildTreeModelControllerServices::class.java)
             add(ConfigurationCacheRepository::class.java)
             add(ConfigurationCacheEntryCollector::class.java)
         }
@@ -61,15 +66,14 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
 
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
         registration.run {
+            addProvider(BuildTreeModelControllerServices)
             add(BuildNameProvider::class.java)
             add(ConfigurationCacheKey::class.java)
-            add(DefaultBuildModelControllerServices::class.java)
-            add(DefaultBuildToolingModelControllerFactory::class.java)
+            add(BuildToolingModelControllerFactory::class.java, DefaultBuildToolingModelControllerFactory::class.java)
             add(DeprecatedFeaturesListener::class.java)
             add(InputTrackingState::class.java)
             add(InstrumentedExecutionAccessListener::class.java)
-            add(InstrumentedInputAccessListener::class.java)
-            add(IsolatedActionCodecsFactory::class.java)
+            add(DefaultConfigurationCacheDegradationController::class.java)
             addProvider(IgnoredConfigurationInputsProvider)
             addProvider(RemoteScriptUpToDateCheckerProvider)
             addProvider(ExecutionAccessCheckerProvider)
@@ -79,14 +83,15 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
 
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.run {
+            addProvider(BuildModelControllerServices)
             add(RelevantProjectsRegistry::class.java)
             addProvider(TaskExecutionAccessCheckerProvider)
             add(ConfigurationCacheHost::class.java, DefaultConfigurationCacheHost::class.java)
-            add(ConfigurationCacheBuildTreeIO::class.java, ConfigurationCacheIncludedBuildIO::class.java, DefaultConfigurationCacheIO::class.java)
+            add(ConfigurationCacheCodecs::class.java, DefaultConfigurationCacheCodecs::class.java)
             add(
-                IsolatedProjectEvaluationListenerProvider::class.java,
-                GradleLifecycleActionExecutor::class.java,
-                DefaultIsolatedProjectEvaluationListenerProvider::class.java
+                ConfigurationCacheBuildTreeIO::class.java,
+                ConfigurationCacheIncludedBuildIO::class.java,
+                DefaultConfigurationCacheIO::class.java
             )
         }
     }

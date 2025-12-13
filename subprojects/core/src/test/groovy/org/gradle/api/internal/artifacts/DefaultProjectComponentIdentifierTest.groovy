@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts
 
-import org.gradle.api.artifacts.component.BuildIdentifier
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.util.Path
 import spock.lang.Specification
 
@@ -24,20 +24,21 @@ import static org.gradle.util.Matchers.strictlyEquals
 class DefaultProjectComponentIdentifierTest extends Specification {
     def "is instantiated with non-null constructor parameter values"() {
         when:
-        def id = new DefaultProjectComponentIdentifier(Stub(BuildIdentifier), Path.path(":id:path"), Path.path(":project:path"), "projectName")
+        def id = new DefaultProjectComponentIdentifier(ProjectIdentity.forSubproject(Path.path(":build"), Path.path(":subproject")))
 
         then:
-        id.projectPath == ':project:path'
-        id.projectName == 'projectName'
-        id.displayName == 'project :id:path'
-        id.buildTreePath == ':id:path'
-        id.toString() == 'project :id:path'
+        id.projectPath == ':subproject'
+        id.projectName == 'subproject'
+        id.displayName == 'project :build:subproject'
+        id.buildTreePath == ':build:subproject'
+        id.toString() == 'project :build:subproject'
     }
 
     def "can compare with other instance (#projectPath)"() {
         expect:
-        def id1 = newProjectId(':myProjectPath1')
-        def id2 = newProjectId(projectPath)
+        def id1 = new DefaultProjectComponentIdentifier(ProjectIdentity.forSubproject(Path.ROOT, Path.path(":myProjectPath1")))
+        def id2 = new DefaultProjectComponentIdentifier(ProjectIdentity.forSubproject(Path.ROOT, Path.path(projectPath)))
+
         strictlyEquals(id1, id2) == equality
         (id1.hashCode() == id2.hashCode()) == hashCode
         (id1.toString() == id2.toString()) == stringRepresentation
@@ -46,14 +47,6 @@ class DefaultProjectComponentIdentifierTest extends Specification {
         projectPath       | equality | hashCode | stringRepresentation
         ':myProjectPath1' | true     | true     | true
         ':myProjectPath2' | false    | false    | false
-    }
-
-    private static newProjectId(String path) {
-        newProjectId(DefaultBuildIdentifier.ROOT, path)
-    }
-
-    private static newProjectId(BuildIdentifier build, String path) {
-        new DefaultProjectComponentIdentifier(build, Path.path(path), Path.path(path), "name")
     }
 
 }

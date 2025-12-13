@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.gradle.internal.declarativedsl.language
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.gradle.declarative.dsl.schema.DataType
-
+import org.gradle.declarative.dsl.schema.FqName
 
 object DataTypeInternal {
 
@@ -86,6 +86,41 @@ object DataTypeInternal {
         private
         fun readResolve(): Any = DefaultUnitType
     }
+
+    @Serializable
+    @SerialName("parameterizedOpaqueTypeSignature")
+    data class DefaultParameterizedTypeSignature(
+        override val name: FqName,
+        override val typeParameters: List<TypeParameter>,
+        override val javaTypeName: String
+    ) : DataType.ParameterizedTypeSignature {
+        @Serializable
+        @SerialName("typeParameter")
+        data class TypeParameter(override val name: String, override val isOutVariant: Boolean) : DataType.ParameterizedTypeSignature.TypeParameter
+
+        init {
+            check(typeParameters.isNotEmpty()) { "A parameterized opaque type must have at least one type parameter" }
+        }
+    }
+
+    @Serializable
+    @SerialName("parameterizedTypeInstance")
+    data class DefaultParameterizedTypeInstance(
+        override val typeSignature: DataType.ParameterizedTypeSignature,
+        override val typeArguments: List<DataType.ParameterizedTypeInstance.TypeArgument>
+    ) : DataType.ParameterizedTypeInstance {
+        init {
+            check(typeArguments.size == typeSignature.typeParameters.size) { "Mismatching type arguments and type parameter counts" }
+        }
+
+        override fun toString() = "${typeSignature.name.simpleName}<${typeArguments.joinToString()}>"
+    }
+
+    @Serializable
+    @SerialName("typeVariableUsage")
+    data class DefaultTypeVariableUsage(
+        override val variableId: Long,
+    ) : DataType.TypeVariableUsage
 
 // TODO: `Any` type?
 // TODO: Support subtyping of some sort in the schema rather than via reflection?

@@ -17,5 +17,7 @@
 /**
  * Build operations around configuration settings and features.
  */
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.operations.configuration;
+
+import org.jspecify.annotations.NullMarked;

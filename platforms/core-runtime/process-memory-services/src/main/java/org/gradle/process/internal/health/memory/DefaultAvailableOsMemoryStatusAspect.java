@@ -16,11 +16,11 @@
 
 package org.gradle.process.internal.health.memory;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Arrays;
 
-@NonNullApi
+@NullMarked
 public class DefaultAvailableOsMemoryStatusAspect implements OsMemoryStatusAspect.Available {
     private final String name;
     private final long total;

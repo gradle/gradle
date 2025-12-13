@@ -24,8 +24,8 @@ import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.configuration.ScriptTarget;
 import org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataCompiler;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 

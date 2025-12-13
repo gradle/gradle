@@ -16,6 +16,7 @@
 
 package org.gradle.play.integtest.external
 
+
 import org.gradle.play.integtest.fixtures.external.AbstractMultiVersionPlayExternalContinuousBuildIntegrationTest
 import org.gradle.play.integtest.fixtures.external.RunningPlayApp
 

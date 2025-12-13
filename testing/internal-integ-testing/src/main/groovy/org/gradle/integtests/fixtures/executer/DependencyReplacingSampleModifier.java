@@ -49,7 +49,7 @@ public class DependencyReplacingSampleModifier implements SampleModifier {
         try {
             return walk(projectDir.toPath())
                 .map(f -> f.toFile())
-                .filter(f -> f.getName().endsWith(".gradle") || f.getName().endsWith(".gradle.kts"));
+                .filter(f -> f.isFile() && (f.getName().endsWith(".gradle") || f.getName().endsWith(".gradle.kts")));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

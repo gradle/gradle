@@ -21,10 +21,11 @@ import gradlebuild.testcleanup.extension.TestFilesCleanupProjectState
 import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
@@ -41,10 +42,6 @@ import java.util.stream.Collectors
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.collections.set
-import kotlin.streams.toList
 
 
 typealias LeftoverFiles = Map<File, List<String>>
@@ -136,7 +133,7 @@ abstract class TestFilesCleanupService @Inject constructor(
         }
 
         // Second run: collect and archive leftover files
-        parameters.projectStates.get().forEach { (projectPath: String, projectExtension: TestFileCleanUpExtension) ->
+        parameters.projectStates.get().forEach { (projectPath: String, projectExtension: TestFilesCleanupProjectState) ->
             val tmpTestFiles = projectExtension.tmpTestFiles()
 
             projectExtension.prepareReportsForCiPublishing(
@@ -151,7 +148,7 @@ abstract class TestFilesCleanupService @Inject constructor(
         val exceptions = mutableListOf<Exception>()
         parameters.projectStates.get()
             .filter { projectPathToLeftoverFiles.containsKey(it.key) }
-            .forEach { (projectPath: String, projectExtension: TestFileCleanUpExtension) ->
+            .forEach { (projectPath: String, projectExtension: TestFilesCleanupProjectState) ->
                 try {
                     projectExtension.verifyTestFilesCleanup(projectPath, projectPathToLeftoverFiles.getValue(projectPath))
                 } catch (e: Exception) {
@@ -239,10 +236,10 @@ abstract class TestFilesCleanupService @Inject constructor(
     fun containsFailedTest(testBinaryResultsDir: File): Boolean {
         var containingFailures = false
 
-        val serializer = TestResultSerializer(testBinaryResultsDir)
-        if (serializer.isHasResults) {
-            serializer.read {
-                if (failuresCount > 0) {
+        val store = SerializableTestResultStore(testBinaryResultsDir.toPath())
+        if (store.hasResults()) {
+            store.forEachResult { result ->
+                if (result.innerResult.resultType == TestResult.ResultType.FAILURE) {
                     containingFailures = true
                 }
             }
@@ -320,7 +317,8 @@ abstract class TestFilesCleanupService @Inject constructor(
     fun zip(destZip: File, srcDir: File) {
         val srcPath = srcDir.toPath()
         Files.walk(srcPath).use { paths ->
-            zip(destZip,
+            zip(
+                destZip,
                 paths.filter { Files.isRegularFile(it, LinkOption.NOFOLLOW_LINKS) }
                     .map { srcPath.relativize(it).toString() to it.toFile() }
                     .toList()

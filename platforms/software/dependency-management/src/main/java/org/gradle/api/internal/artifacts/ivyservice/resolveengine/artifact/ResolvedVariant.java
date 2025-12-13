@@ -17,32 +17,34 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
-import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.matching.AttributeMatchingCandidate;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A set of artifacts that may be selected from a variant. This would be better named
  * {@code ResolvedVariantArtifactCollection}.
  */
-public interface ResolvedVariant extends HasAttributes {
+public interface ResolvedVariant extends AttributeMatchingCandidate {
+
     DisplayName asDescribable();
 
     /**
      * An identifier for this variant, if available. A variant may not have an identifier when it represents some ad hoc set of artifacts, for example artifacts declared on a dependency
      * using {@link org.gradle.api.artifacts.ModuleDependency#artifact(Action)} or where individual artifacts have been excluded from the variant.
      */
-    @Nullable
-    VariantResolveMetadata.Identifier getIdentifier();
+    VariantResolveMetadata.@Nullable Identifier getIdentifier();
 
-    @Override
-    ImmutableAttributes getAttributes();
+    /**
+     * Get the ID of the variant in the graph that produces this artifact collection.
+     */
+    VariantIdentifier getSourceVariantId();
 
     ResolvedArtifactSet getArtifacts();
 
     ImmutableCapabilities getCapabilities();
+
 }

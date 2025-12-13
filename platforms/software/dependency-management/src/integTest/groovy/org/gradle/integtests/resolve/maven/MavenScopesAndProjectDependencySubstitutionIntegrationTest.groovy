@@ -21,16 +21,15 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends AbstractDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile, "conf")
+    def resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
-        resolve.prepare()
-        resolve.addDefaultVariantDerivationStrategy()
-        resolve.expectDefaultConfiguration("runtime")
         settingsFile << """
             rootProject.name = 'testproject'
+
             include 'child1'
             include 'child2'
+
             dependencyResolutionManagement {
                 repositories {
                     maven { url = '${mavenRepo.uri}' }
@@ -40,9 +39,13 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
         """
 
         file("child1/build.gradle") << """
+            plugins {
+                id("jvm-ecosystem")
+            }
             configurations {
                 conf
             }
+            ${resolve.configureProject("conf")}
         """
     }
 
@@ -82,8 +85,8 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
         """
 
         expect:
-        succeeds 'child1:checkDep'
-        resolve.expectGraph {
+        succeeds 'child1:checkDeps'
+        resolve.expectGraph(":child1") {
             root(':child1', 'testproject:child1:') {
                 module('org.test:maven:1.0') {
                     edge('org.test:replaced:1.0', ':child2', 'testproject:child2:') {
@@ -128,8 +131,8 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
         """
 
         expect:
-        succeeds 'child1:checkDep'
-        resolve.expectGraph {
+        succeeds 'child1:checkDeps'
+        resolve.expectGraph(":child1") {
             root(':child1', 'testproject:child1:') {
                 module('org.test:maven:1.0') {
                     edge('org.test:replaced:1.0', ':child2', 'testproject:child2:') {
@@ -152,7 +155,7 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
 
         file("child1/build.gradle") << """
             dependencies {
-                conf group: 'org.test', name: 'maven', version: '1.0'
+                conf("org.test:maven:1.0")
             }
             configurations.conf.resolutionStrategy.dependencySubstitution {
                 substitute module('org.test:replaced:1.0') using project(':child2')
@@ -177,8 +180,8 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
         """
 
         expect:
-        succeeds 'child1:checkDep'
-        resolve.expectGraph {
+        succeeds 'child1:checkDeps'
+        resolve.expectGraph(":child1") {
             root(':child1', 'testproject:child1:') {
                 module('org.test:maven:1.0') {
                     configuration = 'compile'
@@ -202,7 +205,7 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
 
         file("child1/build.gradle") << """
             dependencies {
-                conf group: 'org.test', name: 'maven', version: '1.0'
+                conf("org.test:maven:1.0")
             }
             configurations.conf.resolutionStrategy.dependencySubstitution {
                 substitute module('org.test:replaced:1.0') using project(':child2')
@@ -224,8 +227,8 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
         """
 
         expect:
-        succeeds 'child1:checkDep'
-        resolve.expectGraph {
+        succeeds 'child1:checkDeps'
+        resolve.expectGraph(":child1") {
             root(':child1', 'testproject:child1:') {
                 module('org.test:maven:1.0') {
                     configuration = 'compile'

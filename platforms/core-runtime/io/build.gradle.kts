@@ -21,13 +21,18 @@ plugins {
 
 description = "I/O utilities"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.stdlibJavaExtensions)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
+
+errorprone {
+    nullawayEnabled = true
 }

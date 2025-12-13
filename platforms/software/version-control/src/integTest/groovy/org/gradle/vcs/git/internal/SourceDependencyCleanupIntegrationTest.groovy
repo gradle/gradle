@@ -18,7 +18,6 @@ package org.gradle.vcs.git.internal
 
 import org.eclipse.jgit.revwalk.RevCommit
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.gradle.vcs.internal.SourceDependencies
@@ -91,7 +90,6 @@ class SourceDependencyCleanupIntegrationTest extends AbstractIntegrationSpec imp
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not remove vcs checkout on every build"() {
         succeeds("assertVersion", "-PrepoVersion=1.0")
         def checkout = checkoutDir("dep", commits.initial.id.name, repo.id)
@@ -114,7 +112,6 @@ class SourceDependencyCleanupIntegrationTest extends AbstractIntegrationSpec imp
         trashFile.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "removes vcs checkout after 7 days"() {
         // checkout all versions
         versions.each { version ->
@@ -133,7 +130,6 @@ class SourceDependencyCleanupIntegrationTest extends AbstractIntegrationSpec imp
         checkoutDir("dep", commits["3.0"].id.name, repo.id).assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not remove vcs checkout that is older than 7 days but recently used"() {
         // checkout all versions
         versions.each { version ->
@@ -153,7 +149,6 @@ class SourceDependencyCleanupIntegrationTest extends AbstractIntegrationSpec imp
         checkoutDir("dep", commits["3.0"].id.name, repo.id).assertDoesNotExist()
     }
 
-    @ToBeFixedForConfigurationCache
     def "removes all checkouts when VCS mappings are removed"() {
         // checkout all versions
         versions.each { version ->

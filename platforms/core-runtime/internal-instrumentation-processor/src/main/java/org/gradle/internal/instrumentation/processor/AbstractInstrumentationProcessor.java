@@ -31,12 +31,11 @@ import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterce
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader.ReadRequestContext;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
@@ -66,7 +65,6 @@ import java.util.stream.Stream;
 
 import static org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils.getExecutableElementsFromElements;
 
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public abstract class AbstractInstrumentationProcessor extends AbstractProcessor {
 
     public static final String PROJECT_NAME_OPTIONS = "org.gradle.annotation.processing.instrumented.project";
@@ -81,6 +79,11 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         return getSupportedAnnotations().stream().map(Class::getName).collect(Collectors.toSet());
+    }
+
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latest();
     }
 
     private Set<Class<? extends Annotation>> getSupportedAnnotations() {
@@ -155,7 +158,7 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
         }
     }
 
-    @Nonnull
+    @NonNull
     private List<CallInterceptionRequest> postProcessRequests(List<CallInterceptionRequestReader.Result.Success> successResults) {
         List<CallInterceptionRequest> requests = successResults.stream().map(CallInterceptionRequestReader.Result.Success::getRequest).collect(Collectors.toList());
         for (RequestPostProcessorExtension postProcessor : getExtensionsByType(RequestPostProcessorExtension.class)) {

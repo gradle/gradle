@@ -10,7 +10,7 @@ tasks.withType(JavaCompile).configureEach {
     }
 }
 
-task('testsOn17', type: Test) {
+tasks.register('testsOn17', Test) {
     javaLauncher = javaToolchains.launcherFor {
         languageVersion = JavaLanguageVersion.of(17)
     }

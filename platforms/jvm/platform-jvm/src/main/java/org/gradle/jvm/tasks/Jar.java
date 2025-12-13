@@ -23,10 +23,11 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.ConfigurationCacheDegradation;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.CustomManifestInternalWrapper;
 import org.gradle.api.java.archives.internal.DefaultManifest;
@@ -64,6 +65,14 @@ public abstract class Jar extends Zip {
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
         metaInf.addChild().from(manifestFileTree());
         getMainSpec().appendCachingSafeCopyAction(new ExcludeManifestAction());
+        ConfigurationCacheDegradation.requireDegradation(this, new DefaultProvider<>(this::evaluateDegradationReason));
+    }
+
+    private String evaluateDegradationReason() {
+        if (!manifestContentCharset.equals(DefaultManifest.DEFAULT_CONTENT_CHARSET)) {
+            return String.format("Custom charset '%s' was used. Only '%s' is supported with the configuration cache", manifestContentCharset, DefaultManifest.DEFAULT_CONTENT_CHARSET);
+        }
+        return null;
     }
 
     private FileTreeInternal manifestFileTree() {
@@ -207,7 +216,7 @@ public abstract class Jar extends Zip {
 
     private Manifest forceManifest() {
         if (manifest == null) {
-            manifest = new DefaultManifest(((ProjectInternal) getProject()).getFileResolver());
+            manifest = new DefaultManifest(getFileResolver());
         }
         return manifest;
     }

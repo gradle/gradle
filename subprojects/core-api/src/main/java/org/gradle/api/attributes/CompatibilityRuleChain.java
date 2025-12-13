@@ -58,22 +58,22 @@ public interface CompatibilityRuleChain<T> {
      * Compatibility doesn't mean equality. Typically two different Java platforms can be
      * compatible, without being equal.</p>
      *
-     * <p>A rule <i>can</i> express an opinion by calling the @{link {@link CompatibilityCheckDetails#compatible()}}
+     * <p>A rule <i>can</i> express an opinion by calling the {@link CompatibilityCheckDetails#compatible()}
      * method to tell that two attributes are compatible, or it <i>can</i> call {@link CompatibilityCheckDetails#incompatible()}
      * to say that they are not compatible. It is not mandatory for a rule to express an opinion.</p>
      *
-     * @param rule the rule to add to the chain
+     * @param ruleClass the rule to add to the chain
      * @since 4.0
      */
-    void add(Class<? extends AttributeCompatibilityRule<T>> rule);
+    void add(Class<? extends AttributeCompatibilityRule<T>> ruleClass);
 
     /**
      * <p>Adds an arbitrary compatibility rule to the chain, possibly configuring the rule as well.</p>
      *
-     * @param rule the rule to add to the chain
+     * @param ruleClass the rule to add to the chain
      * @param configureAction the action to use to configure the rule
      * @since 4.0
      */
-    void add(Class<? extends AttributeCompatibilityRule<T>> rule, Action<? super ActionConfiguration> configureAction);
+    void add(Class<? extends AttributeCompatibilityRule<T>> ruleClass, Action<? super ActionConfiguration> configureAction);
 
 }

@@ -17,17 +17,18 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.NonNullApi;
+import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.util.Set;
@@ -35,20 +36,18 @@ import java.util.Set;
 /**
  * A {@code SourceTask} performs some operation on source files.
  */
-@NonNullApi
+@NullMarked
 @DisableCachingByDefault(because = "Super-class, not to be instantiated directly")
 public abstract class SourceTask extends ConventionTask implements PatternFilterable {
     private ConfigurableFileCollection sourceFiles = getProject().getObjects().fileCollection();
     private final PatternFilterable patternSet;
 
     public SourceTask() {
-        patternSet = getPatternSetFactory().create();
+        patternSet = getPatternSetFactory().createPatternSet();
     }
 
     @Inject
-    protected Factory<PatternSet> getPatternSetFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PatternSetFactory getPatternSetFactory();
 
     @Internal
     protected PatternFilterable getPatternSet() {
@@ -85,7 +84,7 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
     }
 
     /**
-     * Sets the source for this task. The given source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * Sets the source for this task. The given source object is evaluated as per {@link Project#files(Object...)}.
      *
      * @param source The source.
      */
@@ -94,12 +93,12 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
     }
 
     /**
-     * Adds some source to this task. The given source objects will be evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * Adds some source to this task. The given source objects will be evaluated as per {@link Project#files(Object...)}.
      *
      * @param sources The source to add
      * @return this
      */
-    public SourceTask source(Object... sources) {
+    public SourceTask source(@Nullable Object... sources) {
         sourceFiles.from(sources);
         return this;
     }

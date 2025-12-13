@@ -15,35 +15,25 @@
  */
 package org.gradle.api.tasks.diagnostics.internal
 
-import org.gradle.api.Task
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.util.Path
 import spock.lang.Specification
 
 abstract class AbstractTaskModelSpec extends Specification {
+
     def taskDetails(String path) {
-        return taskDetails([:], path)
+        return TaskDetails.of(
+            Path.path(path),
+            "TYPE_NAME",
+            null
+        )
     }
 
     def taskDetails(Map properties, String path) {
-        TaskDetails task = Mock()
-        _ * task.path >> Path.path(path)
-        _ * task.toString() >> path
-        _ * task.description >> properties.description
-        _ * task.dependencies >> ((properties.dependencies ?: []) as Set)
-        return task
+        return TaskDetails.of(
+            Path.path(path),
+            "TYPE_NAME",
+            properties.description as String
+        )
     }
 
-    def task(String name, String group = null, Task... dependencies) {
-        Task task = Mock()
-        _ * task.toString() >> name
-        _ * task.name >> name
-        _ * task.path >> ":$name"
-        _ * task.group >> group
-        _ * task.compareTo(!null) >> { args -> name.compareTo(args[0].name) }
-        TaskDependency dep = Mock()
-        _ * dep.getDependencies(task) >> {dependencies as Set}
-        _ * task.taskDependencies >> dep
-        return task
-    }
 }

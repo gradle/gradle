@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.resolve.result;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface ErroringResolveResult<E extends Throwable> extends ResolveResult {
     /**

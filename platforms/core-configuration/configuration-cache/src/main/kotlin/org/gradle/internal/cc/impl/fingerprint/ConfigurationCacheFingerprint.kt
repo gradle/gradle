@@ -17,21 +17,22 @@
 package org.gradle.internal.cc.impl.fingerprint
 
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.properties.GradlePropertyScope
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.serialize.graph.codecs.ValueObject
 import java.io.File
 import java.net.URI
 
 
 internal
-sealed class ConfigurationCacheFingerprint {
+sealed class ConfigurationCacheFingerprint : ValueObject {
 
     data class GradleEnvironment(
         val gradleUserHomeDir: File,
         val jvm: String,
-        val startParameterProperties: Map<String, Any?>,
         /**
          * Whether to exclude from input tracking the undeclared inputs accessed
          * while resolving and storing work graph or while building the model result of the build action.
@@ -44,6 +45,7 @@ sealed class ConfigurationCacheFingerprint {
          * With the agent, the class paths may be stored differently, making the caches incompatible with one another.
          */
         val instrumentationAgentUsed: Boolean,
+
         /**
          * The file system paths that will be ignored during file system checks tracking for the cache fingerprint.
          * @see org.gradle.internal.cc.impl.DefaultIgnoredConfigurationInputs
@@ -53,6 +55,10 @@ sealed class ConfigurationCacheFingerprint {
 
     data class InitScripts(
         val fingerprints: List<InputFile>
+    ) : ConfigurationCacheFingerprint()
+
+    data class StartParameterProjectProperties(
+        val snapshot: Map<String, Any?>
     ) : ConfigurationCacheFingerprint()
 
     data class MissingBuildSrcDir(
@@ -83,6 +89,18 @@ sealed class ConfigurationCacheFingerprint {
     data class ValueSource(
         val obtainedValue: ObtainedValue
     ) : ConfigurationCacheFingerprint()
+
+    data class SystemPropertyChanged(
+        val key: Any,
+        val value: Any?
+    ) : ConfigurationCacheFingerprint()
+
+    data class SystemPropertyRemoved(
+        val key: Any,
+    ) : ConfigurationCacheFingerprint()
+
+    object SystemPropertiesCleared
+        : ConfigurationCacheFingerprint()
 
     data class UndeclaredSystemProperty(
         val key: String,
@@ -141,6 +159,23 @@ sealed class ConfigurationCacheFingerprint {
     }
 
     data class EnvironmentVariablesPrefixedBy(
+        val prefix: String,
+        val snapshot: Map<String, String?>
+    ) : ConfigurationCacheFingerprint()
+
+    data class GradlePropertiesLoaded(
+        val propertyScope: GradlePropertyScope,
+        val propertiesDir: File
+    ) : ConfigurationCacheFingerprint()
+
+    data class GradleProperty(
+        val propertyScope: GradlePropertyScope,
+        val propertyName: String,
+        val propertyValue: Any?
+    ) : ConfigurationCacheFingerprint()
+
+    data class GradlePropertiesPrefixedBy(
+        val propertyScope: GradlePropertyScope,
         val prefix: String,
         val snapshot: Map<String, String?>
     ) : ConfigurationCacheFingerprint()

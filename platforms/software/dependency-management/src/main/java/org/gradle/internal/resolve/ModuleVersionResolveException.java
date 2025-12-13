@@ -15,9 +15,8 @@
  */
 package org.gradle.internal.resolve;
 
+import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
@@ -36,7 +35,7 @@ import java.util.List;
 
 @Contextual
 public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoStackTrace {
-    private final List<List<? extends ComponentIdentifier>> paths = new ArrayList<>();
+    private final List<List<Describable>> paths = new ArrayList<>();
     private final ComponentSelector selector;
 
     public ModuleVersionResolveException(ComponentSelector selector, Factory<String> message, Throwable cause) {
@@ -59,10 +58,6 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
         initCauses(causes);
     }
 
-    public ModuleVersionResolveException(ModuleVersionSelector selector, Factory<String> message) {
-        this(DefaultModuleComponentSelector.newSelector(selector), message);
-    }
-
     public ModuleVersionResolveException(ModuleVersionIdentifier id, Factory<String> message) {
         this(DefaultModuleComponentSelector.newSelector(id.getModule(), DefaultImmutableVersionConstraint.of(id.getVersion())), message);
     }
@@ -83,14 +78,6 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
         this(DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(id.getGroup(), id.getModule()), DefaultImmutableVersionConstraint.of(id.getVersion())), causes);
     }
 
-    public ModuleVersionResolveException(ModuleVersionSelector selector, Throwable cause) {
-        this(DefaultModuleComponentSelector.newSelector(selector), cause);
-    }
-
-    public ModuleVersionResolveException(ModuleVersionSelector selector, Iterable<? extends Throwable> causes) {
-        this(DefaultModuleComponentSelector.newSelector(selector), causes);
-    }
-
     /**
      * Returns the selector that could not be resolved.
      */
@@ -105,7 +92,7 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
     /**
      * Creates a copy of this exception, with the given incoming paths.
      */
-    public ModuleVersionResolveException withIncomingPaths(Collection<? extends List<? extends ComponentIdentifier>> paths) {
+    public ModuleVersionResolveException withIncomingPaths(Collection<? extends List<Describable>> paths) {
         ModuleVersionResolveException copy = createCopy();
         copy.paths.addAll(paths);
         copy.initCauses(getCauses());
@@ -120,7 +107,7 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
         }
         Formatter formatter = new Formatter();
         formatter.format("%s%nRequired by:", super.getMessage());
-        for (List<? extends ComponentIdentifier> path : paths) {
+        for (List<Describable> path : paths) {
             formatter.format("%n    %s", toString(path.get(0)));
             for (int i = 1; i < path.size(); i++) {
                 formatter.format(" > %s", toString(path.get(i)));
@@ -129,7 +116,7 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
         return formatter.toString();
     }
 
-    private String toString(ComponentIdentifier identifier) {
+    private String toString(Describable identifier) {
         return identifier.getDisplayName();
     }
 

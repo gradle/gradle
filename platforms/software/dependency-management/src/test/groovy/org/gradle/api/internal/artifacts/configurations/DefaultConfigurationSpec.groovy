@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.configurations
 
 import org.gradle.api.Action
 import org.gradle.api.GradleException
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Named
 import org.gradle.api.Project
@@ -29,16 +30,17 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.UnresolvedDependency
+import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.ConfigurationServicesBundle
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
@@ -47,16 +49,15 @@ import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
-import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
@@ -70,14 +71,12 @@ import org.gradle.internal.Describables
 import org.gradle.internal.Factories
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.component.external.model.ImmutableCapabilities
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.TestBuildOperationRunner
-import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.work.WorkerThreadRegistry
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
@@ -86,8 +85,6 @@ import org.spockframework.util.ExceptionUtil
 import spock.lang.Issue
 import spock.lang.Specification
 
-import java.util.function.Supplier
-
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED_WITH_FAILURES
 import static org.gradle.api.artifacts.Configuration.State.UNRESOLVED
@@ -95,27 +92,21 @@ import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 
 class DefaultConfigurationSpec extends Specification {
-    Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
-
-    def configurationsProvider = Mock(ConfigurationsProvider)
     def resolver = Mock(ConfigurationResolver)
     def listenerManager = Mock(ListenerManager)
     def metaDataProvider = Mock(DependencyMetaDataProvider)
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
     def projectStateRegistry = Mock(ProjectStateRegistry)
     def domainObjectCollectionCallbackActionDecorator = Mock(CollectionCallbackActionDecorator)
     def userCodeApplicationContext = Mock(UserCodeApplicationContext)
-    def calculatedValueContainerFactory = Mock(CalculatedValueContainerFactory)
+    def calculatedValueContainerFactory = TestUtil.calculatedValueContainerFactory()
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener, Stub(Dispatch)) }
         _ * resolver.getAllRepositories() >> []
         _ * domainObjectCollectionCallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
-        _ * rootComponentMetadataBuilder.getValidator() >> Mock(MutationValidator)
-        _ * rootComponentMetadataBuilder.newBuilder(_, _) >> rootComponentMetadataBuilder
     }
 
     void defaultValues() {
@@ -124,7 +115,6 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         configuration.name == "name"
-        configuration.visible
         configuration.extendsFrom.empty
         configuration.transitive
         configuration.description == null
@@ -151,12 +141,10 @@ class DefaultConfigurationSpec extends Specification {
 
         when:
         configuration.setDescription("description")
-        configuration.setVisible(false)
         configuration.setTransitive(false)
 
         then:
         configuration.description == "description"
-        !configuration.visible
         !configuration.transitive
     }
 
@@ -375,88 +363,6 @@ class DefaultConfigurationSpec extends Specification {
         def t = thrown(TypedResolveException)
         t == failure
         configuration.getState() == RESOLVED_WITH_FAILURES
-    }
-
-    def fileCollectionWithDependencies() {
-        def dependency1 = dependency("group1", "name", "version")
-        def configuration = conf()
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def fileCollection = configuration.fileCollection(dependency1)
-
-        then:
-        fileCollection.files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def fileCollectionWithSpec() {
-        def configuration = conf()
-        Spec<Dependency> spec = Mock(Spec)
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def fileCollection = configuration.fileCollection(spec)
-
-        then:
-        fileCollection.files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def fileCollectionWithClosureSpec() {
-        def closure = { dep -> dep.group == 'group1' }
-        def configuration = conf()
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def fileCollection = configuration.fileCollection(closure)
-
-        then:
-        fileCollection.files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def filesWithDependencies() {
-        def configuration = conf()
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def files = configuration.files(Mock(Dependency))
-
-        then:
-        files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def filesWithSpec() {
-        def configuration = conf()
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def files = configuration.files(Mock(Spec))
-
-        then:
-        files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def filesWithClosureSpec() {
-        def configuration = conf()
-        def closure = { dep -> dep.group == 'group1' }
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def files = configuration.files(closure)
-
-        then:
-        files == fileSet
-        configuration.state == RESOLVED
     }
 
     def "multiple resolves use cached result"() {
@@ -712,58 +618,77 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     void "deprecations are passed to copies when corresponding role is #baseRole"() {
-        ConfigurationRole role = new DefaultConfigurationRole("test", baseRole.consumable, baseRole.resolvable, baseRole.declarable, true, true, true)
+        expect:
+        deprecationsArePassedToCopies(baseRole)
+
+        where:
+        baseRole << [
+            ConfigurationRoles.ALL,
+            ConfigurationRoles.RESOLVABLE,
+            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
+        ] + ConfigurationRolesForMigration.ALL - ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED - deprecatedRoles
+    }
+
+    @ExpectDeprecation("The conf configuration has been deprecated for dependency declaration")
+    void "deprecations are passed to copies when corresponding role is #baseRole (deprecated)"() {
+        expect:
+        deprecationsArePassedToCopies(baseRole)
+
+        where:
+        baseRole << deprecatedRoles
+    }
+
+    private static deprecatedRoles = [
+        ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
+        ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
+        ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE
+    ]
+
+    private void deprecationsArePassedToCopies(ConfigurationRole baseRole) {
+        // given:
+        ConfigurationRole role = new DefaultConfigurationRole("test", baseRole.consumable, baseRole.resolvable, baseRole.declarable, baseRole.consumptionDeprecated, baseRole.resolutionDeprecated, baseRole.declarationAgainstDeprecated)
         def configuration = prepareConfigurationForCopyTest(conf("conf", ":", ":", role))
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
         1 * resolutionStrategy.copy() >> resolutionStrategyCopy
         configuration.addDeclarationAlternatives("declaration")
         configuration.addResolutionAlternatives("resolution")
 
-        when:
+        // when:
         def copy = configuration.copy()
 
-        then:
-        // This is not desired behavior. Role should be same as detached configuration.
-        copy.canBeDeclared
-        copy.canBeResolved
-        copy.canBeConsumed
-        copy.declarationAlternatives == ["declaration"]
-        copy.resolutionAlternatives == ["resolution"]
-        copy.deprecatedForConsumption
-        !copy.deprecatedForResolution
-        !copy.deprecatedForDeclarationAgainst
-
-        where:
-        baseRole << [
-            ConfigurationRoles.LEGACY,
-            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE,
-            ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE
-        ] + ConfigurationRolesForMigration.ALL
+        // then:
+        // This is not desired behavior. Ideally the copy method should copy the role of the original.
+        // Instead, the role of copies are currently always set to RESOLVABLE_DEPENDENCY_SCOPE, as
+        // currently copies are detached configurations, and this is the role of all detached configurations.
+        assert copy.canBeDeclared
+        assert copy.canBeResolved
+        assert !copy.canBeConsumed
+        assert copy.declarationAlternatives == ["declaration"]
+        assert copy.resolutionAlternatives == ["resolution"]
+        assert !copy.deprecatedForConsumption
+        assert !copy.deprecatedForResolution
+        assert !copy.deprecatedForDeclarationAgainst
     }
 
-    void "copies disabled configuration role as a deprecation"() {
-        def configuration = prepareConfigurationForCopyTest()
-        def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
-        1 * resolutionStrategy.copy() >> resolutionStrategyCopy
+    void "fails to copy non-resolvable configuration (#role)"() {
+        given:
+        def configuration = prepareConfigurationForCopyTest(conf("conf", ":", ":", role))
 
         when:
-        configuration.canBeConsumed = false
-        configuration.canBeResolved = false
-        configuration.canBeDeclared = false
-
-
-        def copy = configuration.copy()
+        configuration.copy()
 
         then:
-        // This is not desired behavior. Role should be same as detached configuration.
-        copy.canBeDeclared
-        copy.canBeResolved
-        copy.canBeConsumed
-        copy.declarationAlternatives == []
-        copy.resolutionAlternatives == []
-        copy.roleAtCreation.consumptionDeprecated
-        !copy.roleAtCreation.resolutionDeprecated
-        !copy.roleAtCreation.declarationAgainstDeprecated
+        def e = thrown(GradleException)
+        def expected = """Calling configuration method 'copy()' is not allowed for configuration 'conf', which has permitted usage(s):
+${role.describeUsage()}
+This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'."""
+        e.message == expected
+
+        where:
+        role << [
+            ConfigurationRoles.CONSUMABLE,
+            ConfigurationRoles.DEPENDENCY_SCOPE
+        ]
     }
 
     def "can copy with spec"() {
@@ -849,7 +774,7 @@ class DefaultConfigurationSpec extends Specification {
         copy.dependencyResolutionListeners.size() == 1
     }
 
-    private prepareConfigurationForCopyTest(configuration = conf()) {
+    private Configuration prepareConfigurationForCopyTest(configuration = conf()) {
         configuration.visible = false
         configuration.transitive = false
         configuration.description = "descript"
@@ -874,7 +799,6 @@ class DefaultConfigurationSpec extends Specification {
 
     private void checkCopiedConfiguration(Configuration original, Configuration copy, def resolutionStrategyInCopy, int copyCount = 1) {
         assert copy.name == original.name + "Copy${copyCount > 1 ? copyCount : ''}"
-        assert copy.visible == original.visible
         assert copy.transitive == original.transitive
         assert copy.description == original.description
         assert copy.allArtifacts as Set == original.allArtifacts as Set
@@ -884,9 +808,11 @@ class DefaultConfigurationSpec extends Specification {
         original.attributes.keySet().each {
             assert copy.attributes.getAttribute(it) == original.attributes.getAttribute(it)
         }
-        assert copy.canBeResolved == original.canBeResolved
-        assert copy.canBeConsumed == original.canBeConsumed
-        true
+
+        // Copies are now always made as RESOLVABLE_DEPENDENCY_SCOPE, regardless of the usage of the original
+        assert copy.canBeDeclared
+        assert copy.canBeResolved
+        assert !copy.canBeConsumed
     }
 
     def "incoming dependencies set has same name and path as owner configuration"() {
@@ -1041,10 +967,11 @@ class DefaultConfigurationSpec extends Specification {
 
     def "provides resolution result"() {
         def config = conf("conf")
-        def resolvedComponentResult = Mock(ResolvedComponentResultInternal)
-        Supplier<ResolvedComponentResultInternal> rootSource = () -> resolvedComponentResult
-        def result = new MinimalResolutionResult(0, rootSource, ImmutableAttributes.EMPTY)
-        def graphResults = new DefaultVisitedGraphResults(result, [] as Set, null)
+        def graph = Mock(ResolvedDependencyGraph) {
+            getRootComponent() >> Mock(ResolvedComponentResult)
+        }
+        def result = new MinimalResolutionResult(() -> graph, ImmutableAttributes.EMPTY)
+        def graphResults = new DefaultVisitedGraphResults(result, [] as Set)
 
         resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
 
@@ -1052,20 +979,7 @@ class DefaultConfigurationSpec extends Specification {
         def out = config.incoming.resolutionResult
 
         then:
-        out.root == result.rootSource.get()
-    }
-
-    def "resolving configuration marks parent configuration as observed"() {
-        def parent = conf("parent", ":parent")
-        def config = conf("conf")
-        config.extendsFrom parent
-        resolver.resolveGraph(config) >> graphResolved()
-
-        when:
-        config.resolve()
-
-        then:
-        parent.observedState == ConfigurationInternal.InternalState.GRAPH_RESOLVED
+        out.root == result.graphSource.get().rootComponent
     }
 
     def "resolving configuration puts it into the right state and broadcasts events"() {
@@ -1260,26 +1174,6 @@ class DefaultConfigurationSpec extends Specification {
         dep.configurationName == "conf"
     }
 
-    def "mutations are prohibited after resolution"() {
-        def conf = conf("conf")
-        resolver.resolveGraph(conf) >> graphResolved()
-
-        given:
-        conf.incoming.getResolutionResult().root
-
-        when:
-        conf.dependencies.add(Mock(Dependency))
-        then:
-        def exDependency = thrown(InvalidUserDataException)
-        exDependency.message == "Cannot change dependencies of dependency configuration ':conf' after it has been resolved."
-
-        when:
-        conf.artifacts.add(Mock(PublishArtifact))
-        then:
-        def exArtifact = thrown(InvalidUserDataException)
-        exArtifact.message == "Cannot change artifacts of dependency configuration ':conf' after it has been resolved."
-    }
-
     def "defaultDependencies action does not trigger when config has dependencies"() {
         def conf = conf("conf")
         def defaultDependencyAction = Mock(Action)
@@ -1353,52 +1247,62 @@ class DefaultConfigurationSpec extends Specification {
         0 * _
     }
 
-    def propertyChangeWithNonUnresolvedStateShouldThrowEx() {
+    def "observation forbids further mutation of basic state"() {
         def configuration = conf()
-        resolver.resolveGraph(configuration) >> graphResolved()
 
         given:
-        configuration.resolve()
+        configuration.markAsObserved("observed")
 
         when:
         configuration.setTransitive(true)
         then:
-        thrown(InvalidUserDataException)
-
-        when:
-        configuration.setVisible(false)
-        then:
-        thrown(InvalidUserDataException)
-
-        when:
-        configuration.exclude([:])
-        then:
-        thrown(InvalidUserDataException)
+        thrown(InvalidUserCodeException)
 
         when:
         configuration.extendsFrom(conf("other"))
         then:
-        thrown(InvalidUserDataException)
-
-        when:
-        configuration.dependencies.add(Mock(Dependency))
-        then:
-        thrown(InvalidUserDataException)
-
-        when:
-        configuration.dependencies.remove(Mock(Dependency))
-        then:
-        thrown(InvalidUserDataException)
+        thrown(InvalidUserCodeException)
 
         when:
         configuration.artifacts.add(artifact())
         then:
-        thrown(InvalidUserDataException)
+        thrown(InvalidUserCodeException)
 
         when:
         configuration.artifacts.remove(artifact())
         then:
-        thrown(InvalidUserDataException)
+        thrown(InvalidUserCodeException)
+
+        when:
+        configuration.exclude([:])
+        configuration.dependencies.add(Mock(Dependency))
+        configuration.dependencies.remove(Mock(Dependency))
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "observation of dependencies forbids further mutation of dependency state"() {
+        def configuration = conf()
+
+        given:
+        configuration.markAsObserved("observed")
+        configuration.markDependenciesObserved()
+
+        when:
+        configuration.exclude([:])
+        then:
+        thrown(InvalidUserCodeException)
+
+        when:
+        configuration.dependencies.add(Mock(Dependency))
+        then:
+        thrown(InvalidUserCodeException)
+
+        when:
+        configuration.dependencies.remove(Mock(Dependency))
+        then:
+        thrown(InvalidUserCodeException)
     }
 
     def "can define typed attributes"() {
@@ -1414,19 +1318,6 @@ class DefaultConfigurationSpec extends Specification {
         !conf.attributes.isEmpty()
         conf.attributes.getAttribute(flavor).name == 'free'
         conf.attributes.getAttribute(buildType).name == 'release'
-    }
-
-    def "cannot define two attributes with the same name but different types"() {
-        def conf = conf()
-        def flavor = Attribute.of('flavor', Flavor)
-
-        when:
-        conf.getAttributes().attribute(flavor, new FlavorImpl(name: 'free'))
-        conf.getAttributes().attribute(Attribute.of('flavor', String.class), 'paid')
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == 'Cannot have two attributes with the same name but different types. This container already has an attribute named \'flavor\' of type \'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationSpec$Flavor\' and you are trying to store another one of type \'java.lang.String\''
     }
 
     def "can overwrite a configuration attribute"() {
@@ -1536,7 +1427,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         UnsupportedOperationException t = thrown()
-        t.message == "Mutation of attributes is not allowed"
+        t.message == "This container is immutable and cannot be mutated."
     }
 
     def "copied configuration has independent listeners"() {
@@ -1650,7 +1541,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         GradleException t = thrown()
-        t.message == "Cannot change the allowed usage of configuration ':conf', as it has been locked."
+        t.message == "Cannot mutate the usage of configuration ':conf' after the configuration was reason. After a configuration has been observed, it should not be modified."
 
         where:
         usageName               | changeUsage
@@ -1660,21 +1551,24 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     private ResolverResults buildDependenciesResolved() {
-        def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
+        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedDependencyGraph), ImmutableAttributes.EMPTY)
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
         DefaultResolverResults.buildDependenciesResolved(visitedGraphResults, visitedArtifacts([] as Set), Mock(ResolverResults.LegacyResolverResults))
     }
 
     private ResolverResults graphResolved(ResolveException failure) {
-        def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, failure)
+        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedDependencyGraph), ImmutableAttributes.EMPTY)
+        def unresolved = Mock(UnresolvedDependency) {
+            getProblem() >> failure
+        }
+
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [unresolved] as Set)
 
         def visitedArtifactSet = Stub(VisitedArtifactSet) {
             select(_) >> selectedArtifacts(failure)
         }
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
-            depSpec -> selectedArtifacts(failure),
             Mock(ResolvedConfiguration) {
                 hasError() >> true
             }
@@ -1684,11 +1578,10 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     private ResolverResults graphResolved(Set<File> files = []) {
-        def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
+        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedDependencyGraph), ImmutableAttributes.EMPTY)
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
-            depSpec -> selectedArtifacts(files),
             Mock(ResolvedConfiguration)
         )
 
@@ -1702,11 +1595,12 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     private SelectedArtifactSet selectedArtifacts(Set<File> files = []) {
+        VariantIdentifier sourceVariantId = Mock()
         return new SelectedArtifactSet() {
             @Override
             void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
                 files.each { file ->
-                    visitor.visitArtifact(Describables.of(file.getName()), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, resolvableArtifact(file))
+                    visitor.visitArtifact(Describables.of(file.getName()), sourceVariantId, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, resolvableArtifact(file))
                 }
                 visitor.endVisitCollection(null)
             }
@@ -1741,50 +1635,52 @@ class DefaultConfigurationSpec extends Specification {
         new DefaultExternalModuleDependency(group, name, version)
     }
 
-    private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":", ConfigurationRole role = ConfigurationRoles.LEGACY) {
-        return confFactory(projectPath, buildPath).create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder, role)
+    private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":", ConfigurationRole role = ConfigurationRoles.ALL) {
+        return confFactory(projectPath, buildPath).create(confName, false, resolver, Factories.constant(resolutionStrategy), role)
     }
 
     private DefaultConfigurationFactory confFactory(String projectPath, String buildPath) {
-        def domainObjectContext = Stub(DomainObjectContext)
         def build = Path.path(buildPath)
         def project = Path.path(projectPath)
         def buildTreePath = build.append(Path.path(projectPath))
+        def identity = project.name != null ? ProjectIdentity.forSubproject(build, project) : ProjectIdentity.forRootProject(build, "foo")
+
+        def domainObjectContext = Stub(DomainObjectContext)
         _ * domainObjectContext.identityPath(_) >> { String p -> buildTreePath.child(p) }
         _ * domainObjectContext.projectPath(_) >> { String p -> project.child(p) }
         _ * domainObjectContext.buildPath >> build
-        _ * domainObjectContext.projectIdentity >> new ProjectIdentity(
-            new DefaultBuildIdentifier(build),
-            buildTreePath,
-            project,
-            project.name ?: "foo"
-        )
+        _ * domainObjectContext.projectIdentity >> identity
         _ * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
+        _ * domainObjectContext.equals(_) >> true // In these tests, we assume we're in the same context
 
-        def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
-            instantiator,
+        def publishArtifactNotationParserFactory = new PublishArtifactNotationParserFactory(
+            TestUtil.objectFactory(),
             metaDataProvider,
             TestFiles.resolver(),
             TestFiles.taskDependencyFactory(),
         )
+
+        ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
+            new TestBuildOperationRunner(),
+            projectStateRegistry,
+            calculatedValueContainerFactory,
+            TestUtil.objectFactory(),
+            TestFiles.fileCollectionFactory(),
+            TestFiles.taskDependencyFactory(),
+            attributesFactory,
+            TestUtil.domainObjectCollectionFactory(),
+            CollectionCallbackActionDecorator.NOOP,
+            TestUtil.problemsService(),
+            new AttributeDesugaring(attributesFactory),
+            new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry())
+        )
+
         new DefaultConfigurationFactory(
-            DirectInstantiator.INSTANCE,
-            resolver,
+            configurationServices,
             listenerManager,
             domainObjectContext,
-            TestFiles.fileCollectionFactory(),
-            new TestBuildOperationRunner(),
-            publishArtifactNotationParser,
-            attributesFactory,
-            new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
-            new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
-            userCodeApplicationContext,
-            projectStateRegistry,
-            Stub(WorkerThreadRegistry),
-            TestUtil.domainObjectCollectionFactory(),
-            calculatedValueContainerFactory,
-            TestFiles.taskDependencyFactory(),
-            TestUtil.problemsService()
+            publishArtifactNotationParserFactory,
+            userCodeApplicationContext
         )
     }
 

@@ -17,19 +17,28 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import spock.lang.Issue
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
+import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.not
 
 @LeaksFileHandles
 class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "org/example/Library.kt"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "org/example/LibraryTest.kt"
+
+    @Override
+    def setup() {
+        resultsTestFramework(GenericTestExecutionResult.TestFramework.KOTLIN_TEST)
+    }
 
     def "defaults to kotlin build scripts"() {
         when:
@@ -178,6 +187,32 @@ class KotlinLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegration
 
         and:
         subprojectDir.file("build.gradle.kts").assertContents(containsString("junit.jupiter"))
+
+        when:
+        run("build")
+
+        then:
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
+    }
+
+    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+    @Issue("https://github.com/gradle/gradle/issues/17137")
+    def "does not contain junit specific kotlin test dependencies"() {
+        when:
+        run ('init', '--type', 'kotlin-library', '--java-version', JavaVersion.current().majorVersion)
+
+        then:
+        def dslFixture = dslFixtureFor(KOTLIN)
+        dslFixture.assertGradleFilesGenerated()
+
+        dslFixture.buildFile.assertContents(
+            allOf(
+                not(dslFixture.containsConfigurationDependencyNotation('testImplementation', '"org.jetbrains.kotlin:kotlin-test-junit5"')),
+                not(dslFixture.containsConfigurationDependencyNotation('testImplementation', '"org.jetbrains.kotlin:kotlin-test-junit"')),
+                dslFixture.containsConfigurationDependencyNotation('testImplementation', '"org.jetbrains.kotlin:kotlin-test"')
+            )
+        )
+
 
         when:
         run("build")

@@ -17,10 +17,10 @@
 package org.gradle.api.internal.tasks.testing.detection;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.file.RelativeFile;
-import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
@@ -31,8 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +47,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     private List<File> testClassDirectories;
     private final ClassFileExtractionManager classFileExtractionManager;
     private final Map<File, Boolean> superClasses;
-    private TestClassProcessor testClassProcessor;
+    private TestDefinitionProcessor<? super ClassTestDefinition> testDefinitionProcessor;
 
     private List<File> testClassesDirectories;
     private List<File> testClasspath;
@@ -55,7 +55,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
     protected AbstractTestFrameworkDetector(ClassFileExtractionManager classFileExtractionManager) {
         assert classFileExtractionManager != null;
         this.classFileExtractionManager = classFileExtractionManager;
-        this.superClasses = new HashMap<File, Boolean>();
+        this.superClasses = new HashMap<>();
     }
 
     protected abstract T createClassVisitor();
@@ -90,7 +90,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
             return;
         }
 
-        testClassDirectories = new ArrayList<File>();
+        testClassDirectories = new ArrayList<>();
 
         if (testClassesDirectories != null) {
             testClassDirectories.addAll(testClassesDirectories);
@@ -121,7 +121,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
         InputStream classStream = null;
         try {
-            classStream = new BufferedInputStream(new FileInputStream(testClassFile));
+            classStream = new BufferedInputStream(Files.newInputStream(testClassFile.toPath()));
             final ClassReader classReader = new ClassReader(IOUtils.toByteArray(classStream));
             classReader.accept(classVisitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
             return TestClass.forParseableFile(classVisitor);
@@ -135,12 +135,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
     @Override
     public boolean processTestClass(final RelativeFile testClassFile) {
-        return processTestClass(testClassFile.getFile(), false, new Factory<String>() {
-            @Override
-            public String create() {
-                return testClassFile.getRelativePath().getPathString().replace(".class", "");
-            }
-        });
+        return processTestClass(testClassFile.getFile(), false, () -> testClassFile.getRelativePath().getPathString().replace(".class", ""));
     }
 
     /**
@@ -173,7 +168,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
             }
         }
 
-        publishTestClass(isTest, testClass, superClass);
+        maybePublishTestClass(isTest, testClass, superClass);
 
         return isTest;
     }
@@ -200,16 +195,16 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
      * In none super class mode a test class is published when the class is a test and it is not abstract. In super class mode it must not publish the class otherwise it will get published multiple
      * times (for each extending class).
      */
-    private void publishTestClass(boolean isTest, TestClass testClass, boolean superClass) {
+    private void maybePublishTestClass(boolean isTest, TestClass testClass, boolean superClass) {
         if (isTest && !testClass.isAbstract() && !superClass) {
             String className = Type.getObjectType(testClass.getClassName()).getClassName();
-            testClassProcessor.processTestClass(new DefaultTestClassRunInfo(className));
+            testDefinitionProcessor.processTestDefinition(new ClassTestDefinition(className));
         }
     }
 
     @Override
-    public void startDetection(TestClassProcessor testClassProcessor) {
-        this.testClassProcessor = testClassProcessor;
+    public void startDetection(TestDefinitionProcessor<? super ClassTestDefinition> testDefinitionProcessor) {
+        this.testDefinitionProcessor = testDefinitionProcessor;
     }
 
     private static class TestClass {
@@ -218,7 +213,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         private final String className;
         private final String superClassName;
 
-        static TestClass forParseableFile(TestClassVisitor testClassVisitor) {
+        public static TestClass forParseableFile(TestClassVisitor testClassVisitor) {
             return new TestClass(testClassVisitor.isTest(), testClassVisitor.isAbstract(), testClassVisitor.getClassName(), testClassVisitor.getSuperClassName());
         }
 
@@ -249,5 +244,4 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
             return superClassName;
         }
     }
-
 }

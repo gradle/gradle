@@ -16,9 +16,9 @@
 package org.gradle.api.internal.catalog;
 
 import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.io.Writer;
 
 public class ProjectAccessorsSourceGenerator extends AbstractProjectAccessorsSourceGenerator {
@@ -36,13 +36,13 @@ public class ProjectAccessorsSourceGenerator extends AbstractProjectAccessorsSou
             generator.generate(packageName, className, current);
             return className;
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
     private void generate(String packageName, String className, ProjectDescriptor current) throws IOException {
         writeHeader(packageName);
-        writeLn("@NonNullApi");
+        writeLn("@NullMarked");
         writeLn("public class " + className + " extends DelegatingProjectDependency {");
         writeLn();
         writeLn("    @Inject");

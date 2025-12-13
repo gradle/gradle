@@ -23,4 +23,6 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface HasDefaultValue {}
+public @interface HasDefaultValue {
+    boolean value() default true;
+}

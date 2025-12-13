@@ -40,6 +40,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegradation;
 import static org.gradle.api.reporting.dependents.internal.DependentComponentsUtils.getAllComponents;
 import static org.gradle.api.reporting.dependents.internal.DependentComponentsUtils.getAllTestSuites;
 
@@ -54,8 +55,9 @@ public abstract class DependentComponentsReport extends DefaultTask {
     private boolean showTestSuites;
     private List<String> components;
 
-    {
-        notCompatibleWithConfigurationCache("Requires access to the component model at execution time.");
+    @Inject
+    public DependentComponentsReport() {
+        requireDegradation(this, "Task is not compatible with the Configuration Cache");
     }
 
     /**
@@ -123,19 +125,13 @@ public abstract class DependentComponentsReport extends DefaultTask {
     }
 
     @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
 
     @Inject
-    protected ModelRegistry getModelRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ModelRegistry getModelRegistry();
 
     @Inject
-    protected WorkerLeaseService getWorkerLeaseService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract WorkerLeaseService getWorkerLeaseService();
 
     @TaskAction
     public void report() {

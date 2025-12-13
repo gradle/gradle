@@ -9,44 +9,12 @@ description = """This project contains most of the dependency management logic o
     |
     |DSL facing APIs are to be found in 'core-api'""".trimMargin()
 
-errorprone {
-    disabledChecks.addAll(
-        "AmbiguousMethodReference", // 1 occurrences
-        "ClassCanBeStatic",
-        "DefaultCharset", // 3 occurrences
-        "Finally", // 4 occurrences
-        "HidingField", // 1 occurrences
-        "IdentityHashMapUsage", // 2 occurrences
-        "ImmutableEnumChecker", // 2 occurrences
-        "InconsistentCapitalization", // 2 occurrences
-        "InlineFormatString", // 5 occurrences
-        "InlineMeSuggester", // 2 occurrences
-        "InvalidParam", // 1 occurrences
-        "LoopOverCharArray", // 1 occurrences
-        "MathAbsoluteNegative",
-        "MissingCasesInEnumSwitch", // 7 occurrences
-        "MixedMutabilityReturnType", // 5 occurrences
-        "ModifiedButNotUsed", // 1 occurrences
-        "MutablePublicArray", // 1 occurrences
-        "NonApiType", // 3 occurrences
-        "NonCanonicalType", // 3 occurrences
-        "ObjectEqualsForPrimitives", // 3 occurrences
-        "ReferenceEquality", // 10 occurrences
-        "SameNameButDifferent", // 4 occurrences
-        "StringCharset", // 1 occurrences
-        "TypeParameterShadowing", // 4 occurrences
-        "TypeParameterUnusedInFormals", // 2 occurrences
-        "UndefinedEquals", // 1 occurrences
-        "UnusedMethod", // 34 occurrences
-    )
-}
-
-
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.buildProcessServices)
+    api(projects.classloaders)
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
@@ -59,11 +27,14 @@ dependencies {
     api(projects.functional)
     api(projects.hashing)
     api(projects.logging)
+    api(projects.loggingApi)
     api(projects.messaging)
     api(projects.modelCore)
+    api(projects.modelReflect)
     api(projects.persistentCache)
     api(projects.problemsApi)
     api(projects.resources)
+    api(projects.scopedPersistentCache)
     api(projects.security)
     api(projects.serialization)
     api(projects.serviceLookup)
@@ -77,20 +48,20 @@ dependencies {
     api(libs.guava)
     api(libs.inject)
     api(libs.ivy)
+    api(libs.jspecify)
     api(libs.jsr305)
     api(libs.maven3Settings)
     api(libs.maven3SettingsBuilder)
     api(libs.slf4jApi)
 
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.fileOperations)
     implementation(projects.time)
     implementation(projects.baseAsm)
     implementation(projects.baseServicesGroovy)
-    implementation(projects.loggingApi)
     implementation(projects.resourcesHttp)
     implementation(projects.serviceRegistryBuilder)
 
-    implementation(libs.ant)
     implementation(libs.asm)
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)
@@ -128,7 +99,7 @@ dependencies {
     }
     integTestImplementation(testFixtures(projects.core))
     integTestImplementation(testFixtures(projects.signing))
-    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(projects.modelReflect))
 
     testFixturesApi(projects.baseServices) {
         because("Test fixtures export the Action class")

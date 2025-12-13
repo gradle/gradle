@@ -36,7 +36,7 @@ import org.gradle.api.internal.provider.ProviderResolutionStrategy;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -56,7 +56,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     private final PathToFileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
-    private final Factory<PatternSet> patternSetFactory;
+    private final PatternSetFactory patternSetFactory;
     private final PropertyHost propertyHost;
     private final FileSystem fileSystem;
     private final FileCollectionObservationListener listener;
@@ -65,7 +65,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         PathToFileResolver fileResolver,
         TaskDependencyFactory taskDependencyFactory,
         DirectoryFileTreeFactory directoryFileTreeFactory,
-        Factory<PatternSet> patternSetFactory,
+        PatternSetFactory patternSetFactory,
         PropertyHost propertyHost,
         FileSystem fileSystem
     ) {
@@ -76,7 +76,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         PathToFileResolver fileResolver,
         TaskDependencyFactory taskDependencyFactory,
         DirectoryFileTreeFactory directoryFileTreeFactory,
-        Factory<PatternSet> patternSetFactory,
+        PatternSetFactory patternSetFactory,
         PropertyHost propertyHost,
         FileSystem fileSystem,
         FileCollectionObservationListener listener
@@ -96,6 +96,11 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
             return this;
         }
         return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory, propertyHost, fileSystem, listener);
+    }
+
+    @Override
+    public PathToFileResolver getResolver() {
+        return fileResolver;
     }
 
     @Override
@@ -244,7 +249,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         private final String displayName;
         private final ImmutableSet<File> files;
 
-        public FixedFileCollection(String displayName, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, ImmutableSet<File> files) {
+        public FixedFileCollection(String displayName, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory, ImmutableSet<File> files) {
             super(taskDependencyFactory, patternSetFactory);
             this.displayName = displayName;
             this.files = files;
@@ -287,7 +292,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         private final Object source;
         private final ProviderResolutionStrategy providerResolutionStrategy;
 
-        public ResolvingFileCollection(String displayName, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, ProviderResolutionStrategy providerResolutionStrategy, Object source) {
+        public ResolvingFileCollection(String displayName, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory, ProviderResolutionStrategy providerResolutionStrategy, Object source) {
             super(taskDependencyFactory, patternSetFactory);
             this.displayName = displayName;
             this.resolver = resolver;

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.watch
 
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testdistribution.LocalOnly
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.daemon.DaemonFixture
@@ -23,6 +25,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.test.fixtures.ConcurrentTestUtil
 
 @LocalOnly
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
     def setup() {

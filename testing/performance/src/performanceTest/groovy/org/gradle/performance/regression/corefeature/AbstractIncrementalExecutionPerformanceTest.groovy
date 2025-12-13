@@ -19,6 +19,8 @@ package org.gradle.performance.regression.corefeature
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.ScenarioContext
 
 class AbstractIncrementalExecutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -39,7 +41,63 @@ class AbstractIncrementalExecutionPerformanceTest extends AbstractCrossVersionPe
         runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME}=${configurationCachingEnabled}")
     }
 
+    protected boolean configureBuildArchives(boolean useFileSystemSensitiveArchives) {
+        if (useFileSystemSensitiveArchives) {
+            runner.addBuildMutator { invocationSettings ->
+                new EnableFileSystemSensitiveArchivesMutator(invocationSettings.projectDir)
+            }
+        }
+    }
+
     protected static configurationCachingMessage(boolean configurationCachingEnabled) {
         return configurationCachingEnabled ? " with configuration caching" : ""
+    }
+
+    protected static withFileSystemSensitiveArchives(boolean reproducibleArchivesDisabled) {
+        return reproducibleArchivesDisabled ? " with file system sensitive archives" : ""
+    }
+
+    class EnableFileSystemSensitiveArchivesMutator implements BuildMutator {
+
+        private final File projectDir
+
+        EnableFileSystemSensitiveArchivesMutator(File projectDir) {
+            this.projectDir = projectDir
+        }
+
+        @Override
+        void beforeScenario(ScenarioContext context) {
+            def groovySettingsFile = new File(projectDir, "settings.gradle")
+            def kotlinSettingsFile = new File(projectDir, "settings.gradle.kts")
+            if (groovySettingsFile.exists()) {
+                enableFileSystemSensitiveArchives(
+                    groovySettingsFile,
+                    "tasks.withType(AbstractArchiveTask)",
+                    "preserveFileTimestamps",
+                    "reproducibleFileOrder"
+                )
+            } else if (kotlinSettingsFile.exists()) {
+                enableFileSystemSensitiveArchives(
+                    kotlinSettingsFile,
+                    "tasks.withType<AbstractArchiveTask>()",
+                    "isPreserveFileTimestamps",
+                    "isReproducibleFileOrder"
+                )
+            } else {
+                throw new IllegalStateException("No settings file found in project directory: $projectDir")
+            }
+        }
+
+        private void enableFileSystemSensitiveArchives(File settingsFile, String withType, String preserveFileTimestamps, String reproducibleFileOrder) {
+            settingsFile << """
+                |settings.gradle.lifecycle.beforeProject {
+                |    ${withType}.configureEach {
+                |        $preserveFileTimestamps = true
+                |        $reproducibleFileOrder = false
+                |        useFileSystemPermissions()
+                |    }
+                |}
+            """.stripMargin()
+        }
     }
 }

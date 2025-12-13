@@ -26,11 +26,10 @@ import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.cache.internal.TestDecompressionCoordinators;
 import org.gradle.initialization.DefaultBuildCancellationToken;
-import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.file.Deleter;
@@ -66,6 +65,7 @@ import java.util.Collection;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 import static org.gradle.util.TestUtil.objectFactory;
+import static org.gradle.util.TestUtil.propertyFactory;
 import static org.gradle.util.TestUtil.providerFactory;
 
 public class TestFiles {
@@ -169,7 +169,7 @@ public class TestFiles {
             fileHasher(),
             resourceHandlerFactory,
             fileCollectionFactory(basedDir),
-            objectFactory(),
+            propertyFactory(),
             fileSystem,
             getPatternSetFactory(),
             deleter(),
@@ -242,8 +242,7 @@ public class TestFiles {
             new DefaultExecutorFactory(),
             NativeServicesTestFixture.getInstance().get(TemporaryFileProvider.class),
             new DefaultBuildCancellationToken(),
-            objectFactory(),
-            execHandleFactory()
+            objectFactory()
         );
     }
 
@@ -252,7 +251,6 @@ public class TestFiles {
             .withFileResolver(resolver(baseDir))
             .withFileCollectionFactory(fileCollectionFactory(baseDir))
             .withInstantiator(TestUtil.instantiatorFactory().inject())
-            .withExecHandleFactory(execHandleFactory(baseDir))
             .withObjectFactory(objectFactory())
             .build();
     }
@@ -274,7 +272,7 @@ public class TestFiles {
     }
 
     @SuppressWarnings("deprecation")
-    public static Factory<PatternSet> getPatternSetFactory() {
+    public static PatternSetFactory getPatternSetFactory() {
         return PatternSets.getNonCachingPatternSetFactory();
     }
 

@@ -17,12 +17,14 @@
 package gradlebuild.incubation.action
 
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.workers.WorkParameters
 
 
 interface IncubatingApiReportParameter : WorkParameters {
+    val repositoryRoot: DirectoryProperty
     val srcDirs: ConfigurableFileCollection
     val htmlReportFile: RegularFileProperty
     val textReportFile: RegularFileProperty

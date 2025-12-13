@@ -15,7 +15,7 @@
  */
 package org.gradle.nativeplatform.plugins;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
@@ -97,7 +97,6 @@ import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask;
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry;
-import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinaryTasks;
@@ -119,22 +118,18 @@ import java.io.File;
  */
 @Incubating
 public abstract class NativeComponentModelPlugin implements Plugin<Project> {
-    private final Instantiator instantiator;
-    private CollectionCallbackActionDecorator collectionCallbackActionDecorator;
-
     @Inject
+    @SuppressWarnings("unused")
     public NativeComponentModelPlugin(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        this.instantiator = instantiator;
-        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
+
     }
 
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
-
-        project.getExtensions().create(BuildTypeContainer.class, "buildTypes", DefaultBuildTypeContainer.class, instantiator, collectionCallbackActionDecorator);
-        project.getExtensions().create(FlavorContainer.class, "flavors", DefaultFlavorContainer.class, instantiator, collectionCallbackActionDecorator);
-        project.getExtensions().create(NativeToolChainRegistry.class, "toolChains", DefaultNativeToolChainRegistry.class, instantiator, collectionCallbackActionDecorator);
+        project.getPluginManager().apply(NativeComponentPlugin.class);
+        project.getExtensions().create(BuildTypeContainer.class, "buildTypes", DefaultBuildTypeContainer.class);
+        project.getExtensions().create(FlavorContainer.class, "flavors", DefaultFlavorContainer.class);
     }
 
     static class Rules extends RuleSource {
@@ -159,11 +154,13 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
         }
 
         @Model
-        Repositories repositories(ServiceRegistry serviceRegistry,
-                                  FlavorContainer flavors,
-                                  PlatformContainer platforms,
-                                  BuildTypeContainer buildTypes,
-                                  CollectionCallbackActionDecorator callbackActionDecorator) {
+        Repositories repositories(
+            ServiceRegistry serviceRegistry,
+            FlavorContainer flavors,
+            PlatformContainer platforms,
+            BuildTypeContainer buildTypes,
+            CollectionCallbackActionDecorator callbackActionDecorator
+        ) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             ObjectFactory sourceDirectorySetFactory = serviceRegistry.get(ObjectFactory.class);
             NativePlatforms nativePlatforms = serviceRegistry.get(NativePlatforms.class);
@@ -223,13 +220,6 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
         void registerNativeExecutableBinaryType(TypeBuilder<NativeExecutableBinarySpec> builder) {
             builder.defaultImplementation(DefaultNativeExecutableBinarySpec.class);
             builder.internalView(NativeExecutableBinarySpecInternal.class);
-        }
-
-        @Finalize
-        public void createDefaultToolChain(NativeToolChainRegistryInternal toolChains) {
-            if (toolChains.isEmpty()) {
-                toolChains.addDefaultToolChains();
-            }
         }
 
         @Finalize
@@ -408,11 +398,12 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
         }
 
         @Finalize
-        void createBinaries(@Each TargetedNativeComponentInternal nativeComponent,
-                            PlatformResolvers platforms,
-                            BuildTypeContainer buildTypes,
-                            FlavorContainer flavors,
-                            ServiceRegistry serviceRegistry
+        void createBinaries(
+            @Each TargetedNativeComponentInternal nativeComponent,
+            PlatformResolvers platforms,
+            BuildTypeContainer buildTypes,
+            FlavorContainer flavors,
+            ServiceRegistry serviceRegistry
         ) {
             NativePlatforms nativePlatforms = serviceRegistry.get(NativePlatforms.class);
             NativeDependencyResolver nativeDependencyResolver = serviceRegistry.get(NativeDependencyResolver.class);
@@ -429,11 +420,13 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
     }
 
     private static class DefaultRepositories extends DefaultPolymorphicDomainObjectContainer<ArtifactRepository> implements Repositories {
-        private DefaultRepositories(Instantiator instantiator,
-                                    ObjectFactory objectFactory,
-                                    Action<PrebuiltLibrary> binaryFactory,
-                                    CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-                                    DomainObjectCollectionFactory domainObjectCollectionFactory) {
+        private DefaultRepositories(
+            Instantiator instantiator,
+            ObjectFactory objectFactory,
+            Action<PrebuiltLibrary> binaryFactory,
+            CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+            DomainObjectCollectionFactory domainObjectCollectionFactory
+        ) {
             super(ArtifactRepository.class, instantiator, new ArtifactRepositoryNamer(), collectionCallbackActionDecorator);
             registerFactory(PrebuiltLibraries.class, new NamedDomainObjectFactory<PrebuiltLibraries>() {
                 @Override

@@ -28,14 +28,14 @@ object ModelDefaultsDocumentTransformation {
     fun extractDefaults(
         document: DeclarativeDocument,
         resolutionContainer: DocumentResolutionContainer,
-        usedSoftwareTypes: Set<String>
+        usedProjectTypes: Set<String>
     ): DeclarativeDocument = object : DeclarativeDocument {
         override val content: List<DeclarativeDocument.DocumentNode>
             get() = document.content
                 .filter { node -> isTopLevelDefaultsCall(node, resolutionContainer) }
                 .flatMap { (it as? ElementNode)?.content.orEmpty() }
                 .filterIsInstance<ElementNode>()
-                .filter { it.name in usedSoftwareTypes }
+                .filter { it.name in usedProjectTypes }
 
         override val sourceData: SourceData
             get() = document.sourceData
@@ -45,7 +45,7 @@ object ModelDefaultsDocumentTransformation {
     fun isTopLevelDefaultsCall(
         node: DeclarativeDocument.DocumentNode,
         resolutionContainer: DocumentResolutionContainer
-    ) = (node as? ElementNode)?.name == DefaultsTopLevelReceiver::defaults.name &&
+    ) = (node as? ElementNode)?.name == DEFAULTS_BLOCK_NAME &&
         resolutionContainer.data(node).let { resolution ->
             resolution is ConfiguringElementResolved &&
                 resolution.elementType.name.qualifiedName == DefaultsConfiguringBlock::class.qualifiedName

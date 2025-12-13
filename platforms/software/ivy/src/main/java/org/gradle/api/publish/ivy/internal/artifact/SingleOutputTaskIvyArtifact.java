@@ -23,8 +23,8 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {

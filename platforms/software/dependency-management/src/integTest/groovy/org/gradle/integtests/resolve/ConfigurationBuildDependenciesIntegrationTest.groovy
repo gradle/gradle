@@ -40,10 +40,11 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
             task lib
             dependencies {
                 compile project(':child')
-                compile files('main-lib.jar') { builtBy lib }
+                compile files('main-lib.jar') { builtBy tasks.lib }
             }
             task direct { inputs.files configurations.compile }
-            task fileCollection { inputs.files configurations.compile.fileCollection { true } }
+            task artifactView { inputs.files configurations.compile.incoming.artifactView { }.files }
+            task artifactViewWithFilter { inputs.files configurations.compile.incoming.artifactView { componentFilter { true } }.files }
             task ownDependencies { dependsOn configurations.compile.dependencies }
             task allDependencies { dependsOn configurations.compile.allDependencies }
             task incomingFiles { inputs.files configurations.compile.incoming.files }
@@ -60,30 +61,30 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                 create('default').extendsFrom compile
             }
             artifacts {
-                compile file: file('child.jar'), builtBy: jar
+                compile file: file('child.jar'), builtBy: tasks.jar
             }
             dependencies {
-                compile files('child-lib.jar') { builtBy lib }
+                compile files('child-lib.jar') { builtBy tasks.lib }
             }
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
         succeeds(taskName)
 
         then:
         executed ":lib", ":child:jar", ":child:lib", ":$taskName"
 
         where:
-        taskName               | _
-        "direct"               | _
-        "fileCollection"       | _
-        "ownDependencies"      | _
-        "allDependencies"      | _
-        "incomingFiles"        | _
-        "incomingDependencies" | _
-        "copy"                 | _
-        "filteredTree"         | _
+        taskName                 | _
+        "direct"                 | _
+        "artifactView"           | _
+        "artifactViewWithFilter" | _
+        "ownDependencies"        | _
+        "allDependencies"        | _
+        "incomingFiles"          | _
+        "incomingDependencies"   | _
+        "copy"                   | _
+        "filteredTree"           | _
     }
 
     def "builds correct artifacts when there is a project cycle in dependency graph - fluid: #fluid"() {
@@ -95,10 +96,10 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
             task jar
             task lib
             artifacts {
-                compile file: file("\${project.name}.jar"), builtBy: jar
+                compile file: file("\${project.name}.jar"), builtBy: tasks.jar
             }
             dependencies {
-                compile files("\${project.name}-lib.jar") { builtBy lib }
+                compile files("\${project.name}-lib.jar") { builtBy tasks.lib }
             }
         """
 
@@ -142,10 +143,10 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                 conf
             }
             artifacts {
-                conf file: file("\${project.name}.jar"), builtBy: jar
+                conf file: file("\${project.name}.jar"), builtBy: tasks.jar
             }
             dependencies {
-                conf files("\${project.name}-lib.jar") { builtBy lib }
+                conf files("\${project.name}-lib.jar") { builtBy tasks.lib }
             }
         """
 
@@ -383,7 +384,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                 create('default').extendsFrom compile
             }
             artifacts {
-                compile file: jar.outputs.files.singleFile, builtBy: jar
+                compile file: tasks.jar.outputs.files.singleFile, builtBy: tasks.jar
             }
             dependencies {
                 compile 'test:test:1.0'
@@ -434,7 +435,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                 create('default').extendsFrom compile
             }
             artifacts {
-                compile file: jar.outputs.files.singleFile, builtBy: jar
+                compile file: tasks.jar.outputs.files.singleFile, builtBy: tasks.jar
             }
             dependencies {
                 compile 'test:test:1.0'

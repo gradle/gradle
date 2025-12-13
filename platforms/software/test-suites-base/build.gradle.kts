@@ -16,9 +16,9 @@ dependencies {
     api(projects.modelCore)
     api(projects.platformBase)
 
-    api(libs.inject)
+    implementation(libs.commonsLang)
 
-    implementation(libs.commonsLang3)
+    compileOnly(libs.jspecify)
 
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.core))
@@ -29,7 +29,4 @@ dependencies {
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

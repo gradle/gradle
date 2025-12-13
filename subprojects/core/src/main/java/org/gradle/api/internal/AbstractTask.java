@@ -54,6 +54,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
@@ -66,12 +67,12 @@ import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
@@ -85,14 +86,15 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -102,7 +104,7 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.UncheckedException.uncheckedCall;
 
 /**
- * @deprecated This class will be removed in Gradle 9.0. Please use {@link org.gradle.api.DefaultTask} instead.
+ * @deprecated This class will be removed in Gradle 10. Please use {@link org.gradle.api.DefaultTask} instead.
  */
 @Deprecated
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
@@ -133,15 +135,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private ExtensibleDynamicObject extensibleDynamicObject;
 
+    @Nullable
     private String description;
 
+    @Nullable
     private String group;
 
     private final Property<Duration> timeout;
 
     private DescribingAndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
 
-    private String reasonNotToTrackState;
+    private SetProperty<String> reasonsNotToTrackState;
 
     private String reasonIncompatibleWithConfigurationCache;
 
@@ -181,7 +185,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.project = taskInfo.project;
 
         assert project != null;
-        assert identity.name != null;
+        assert identity.getName() != null;
         this.state = new TaskStateInternal();
         final TaskDependencyFactory taskDependencyFactory = project.getTaskDependencyFactory();
         this.mustRunAfter = taskDependencyFactory.configurableDependency();
@@ -203,11 +207,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskExecutionAccessChecker = services.get(TaskExecutionAccessChecker.class);
 
         this.timeout = project.getObjects().property(Duration.class);
+        this.reasonsNotToTrackState = project.getObjects().setProperty(String.class);
     }
 
     private void assertDynamicObject() {
         if (extensibleDynamicObject == null) {
-            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.type, services.get(InstantiatorFactory.class).decorateLenient(services));
+            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.getTaskType(), services.get(InstantiatorFactory.class).decorateLenient(services));
         }
     }
 
@@ -242,7 +247,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public String getName() {
-        return identity.name;
+        return identity.getName();
     }
 
     @Override
@@ -401,13 +406,30 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             throw new InvalidUserDataException("notTrackingReason must not be null!");
         }
         taskMutator.mutate("Task.doNotTrackState(String)",
-            () -> this.reasonNotToTrackState = reasonNotToTrackState
+            () -> this.reasonsNotToTrackState.add(reasonNotToTrackState)
         );
     }
 
     @Override
     public Optional<String> getReasonNotToTrackState() {
-        return Optional.ofNullable(reasonNotToTrackState);
+        return reasonsNotToTrackState.<Optional<String>>map(strings ->
+            strings.isEmpty() ? Optional.empty() : Optional.of(String.join("; ", strings))
+        ).getOrElse(Optional.empty());
+    }
+
+    @Override
+    public Set<String> getReasonsNotToTrackState() {
+        return reasonsNotToTrackState.getOrElse(Collections.emptySet());
+    }
+
+    @Override
+    public void doNotTrackStateIf(String reason, Spec<? super TaskInternal> spec) {
+        taskMutator.mutate("Task.doNotTrackStateIf(String, Spec)", () -> reasonsNotToTrackState.add(project.provider(() -> {
+            if (spec.isSatisfiedBy(AbstractTask.this)) {
+                return reason;
+            }
+            return null;
+        })));
     }
 
     @Override
@@ -472,12 +494,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public String getPath() {
-        return identity.projectPath.toString();
+        return identity.getPath().asString();
     }
 
     @Override
     public Path getIdentityPath() {
-        return identity.identityPath;
+        return identity.getBuildTreePath();
     }
 
     @Override
@@ -560,7 +582,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private LoggingManagerInternal loggingManager() {
         if (loggingManager == null) {
-            loggingManager = services.getFactory(org.gradle.internal.logging.LoggingManagerInternal.class).create();
+            loggingManager = services.get(LoggingManagerFactory.class).createLoggingManager();
         }
         return loggingManager;
     }
@@ -585,24 +607,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Internal
     @Override
-    @Deprecated
-    public org.gradle.api.plugins.Convention getConvention() {
-        return getConventionVia("Task.convention", false);
-    }
-
-    @Internal
-    @Override
     public ExtensionContainer getExtensions() {
-        return getConventionVia("Task.extensions", true);
-    }
-
-    private org.gradle.api.plugins.Convention getConventionVia(String invocationDescription, boolean disableDeprecationForConventionAccess) {
-        notifyConventionAccess(invocationDescription);
+        notifyConventionAccess("Task.extensions");
         assertDynamicObject();
-        if (disableDeprecationForConventionAccess) {
-            return DeprecationLogger.whileDisabled(() -> extensibleDynamicObject.getConvention());
-        }
-        return extensibleDynamicObject.getConvention();
+        return extensibleDynamicObject.getExtensions();
     }
 
     @Internal
@@ -614,23 +622,25 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Internal
     @Override
+    @Nullable
     public String getDescription() {
         return description;
     }
 
     @Override
-    public void setDescription(String description) {
+    public void setDescription(@Nullable String description) {
         this.description = description;
     }
 
     @Internal
     @Override
+    @Nullable
     public String getGroup() {
         return group;
     }
 
     @Override
-    public void setGroup(String group) {
+    public void setGroup(@Nullable String group) {
         this.group = group;
     }
 
@@ -742,10 +752,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static class ClosureTaskAction implements InputChangesAwareTaskAction {
         private final Closure<?> closure;
         private final String actionName;
-        @Nullable
-        private final UserCodeApplicationContext.Application application;
+        private final UserCodeApplicationContext.@Nullable Application application;
 
-        private ClosureTaskAction(Closure<?> closure, String actionName, @Nullable UserCodeApplicationContext.Application application) {
+        private ClosureTaskAction(Closure<?> closure, String actionName, UserCodeApplicationContext.@Nullable Application application) {
             this.closure = closure;
             this.actionName = actionName;
             this.application = application;
@@ -896,6 +905,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public TaskDependency getMustRunAfter() {
+        taskExecutionAccessChecker.notifyTaskDependenciesAccess(this, "Task.mustRunAfter");
         return mustRunAfter;
     }
 
@@ -923,6 +933,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public TaskDependency getFinalizedBy() {
+        taskExecutionAccessChecker.notifyTaskDependenciesAccess(this, "Task.finalizedBy");
         return finalizedBy;
     }
 
@@ -950,6 +961,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public TaskDependency getShouldRunAfter() {
+        taskExecutionAccessChecker.notifyTaskDependenciesAccess(this, "Task.shouldRunAfter");
         return shouldRunAfter;
     }
 

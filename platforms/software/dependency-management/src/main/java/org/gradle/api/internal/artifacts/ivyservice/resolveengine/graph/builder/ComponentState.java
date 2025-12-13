@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
-import org.gradle.api.internal.capabilities.CapabilityInternal;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -40,14 +40,16 @@ import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
@@ -136,10 +138,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return module;
     }
 
-    public void selectAndRestartModule() {
-        module.replaceWith(this);
-    }
-
     @Override
     @Nullable
     public ComponentGraphResolveMetadata getMetadataOrNull() {
@@ -207,13 +205,11 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
         ComponentOverrideMetadata componentOverrideMetadata;
         if (selectors != null && selectors.size() > 0) {
-            // Taking the first selector here to determine the 'changing' status and 'client module' is our best bet to get the selector that will most likely be chosen in the end.
+            // Taking the first selector here to determine the 'changing' status is our best bet to get the selector that will most likely be chosen in the end.
             // As selectors are sorted accordingly (see ModuleSelectors.SELECTOR_COMPARATOR).
             SelectorState firstSelector = selectors.first();
 
-            @SuppressWarnings("deprecation")
-            ComponentOverrideMetadata md = DefaultComponentOverrideMetadata.forDependency(firstSelector.isChanging(), selectors.getFirstDependencyArtifact(), firstSelector.getClientModule());
-            componentOverrideMetadata = md;
+            componentOverrideMetadata = DefaultComponentOverrideMetadata.forDependency(firstSelector.isChanging(), selectors.getFirstDependencyArtifact());
         } else {
             componentOverrideMetadata = DefaultComponentOverrideMetadata.EMPTY;
         }
@@ -231,6 +227,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         graphResolveState = result.getGraphState();
     }
 
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private boolean tryResolveVirtualPlatform() {
         if (module.isVirtualPlatform()) {
             for (ComponentState version : module.getAllVersions()) {
@@ -296,6 +293,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         this.root = true;
     }
 
+    public boolean isRoot() {
+        return root;
+    }
+
     @Override
     public List<ResolvedGraphVariant> getSelectedVariants() {
         ImmutableList.Builder<ResolvedGraphVariant> builder = ImmutableList.builder();
@@ -320,16 +321,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             }
         }
         return incoming;
-    }
-
-    @Override
-    public Collection<? extends ModuleVersionIdentifier> getAllVersions() {
-        Collection<ComponentState> moduleVersions = module.getAllVersions();
-        List<ModuleVersionIdentifier> out = new ArrayList<>(moduleVersions.size());
-        for (ComponentState moduleVersion : moduleVersions) {
-            out.add(moduleVersion.id);
-        }
-        return out;
     }
 
     public boolean isSelected() {
@@ -360,7 +351,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     public void rejectForCapabilityConflict(Capability capability, Collection<NodeState> conflictedNodes) {
         this.rejected = true;
         if (this.capabilityReject == null) {
-            this.capabilityReject = Pair.of(capability, conflictedNodes);
+            this.capabilityReject = Pair.of(capability, new HashSet<>(conflictedNodes));
         } else {
             mergeCapabilityRejects(capability, conflictedNodes);
         }
@@ -371,7 +362,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         if (this.capabilityReject.getLeft().equals(capability)) {
             this.capabilityReject.getRight().addAll(conflictedNodes);
         } else {
-            this.capabilityReject = Pair.of(capability, conflictedNodes);
+            this.capabilityReject = Pair.of(capability, new HashSet<>(conflictedNodes));
         }
     }
 
@@ -384,19 +375,18 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         if (capabilityReject != null) {
             return formatCapabilityRejectMessage(module.getId(), capabilityReject);
         } else {
-            return new RejectedModuleMessageBuilder().buildFailureMessage(module);
+            return new ComponentRejectedMessageBuilder().buildFailureMessage(module);
         }
-
     }
 
-    private String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
-        StringBuilder sb = new StringBuilder("Module '");
-        sb.append(id).append("' has been rejected:\n");
-        sb.append("   Cannot select module with conflict on ");
-        Capability capability = capabilityConflict.left;
-        sb.append("capability '").append(capability.getGroup()).append(":").append(capability.getName()).append(":").append(capability.getVersion()).append("' also provided by ");
-        sb.append(capabilityConflict.getRight());
-        return sb.toString();
+    private static String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
+        return "Module '" + id + "' has been rejected:\n" +
+            "   Cannot select module with conflict on capability '" + formatCapability(capabilityConflict.left) + "' also provided by " +
+            capabilityConflict.getRight().stream().map(NodeState::getDisplayName).sorted().collect(Collectors.toList());
+    }
+
+    private static String formatCapability(Capability capability) {
+        return capability.getGroup() + ":" + capability.getName() + ":" + capability.getVersion();
     }
 
     @Override
@@ -410,8 +400,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     public void removeOutgoingEdges() {
-        for (NodeState configuration : getNodes()) {
-            configuration.deselect();
+        for (NodeState node : getNodes()) {
+            node.deselect();
         }
     }
 
@@ -449,19 +439,11 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
     }
 
-    CapabilityInternal getImplicitCapability() {
+    public ImmutableCapability getImplicitCapability() {
         return resolveState.getDefaultCapability();
     }
 
-    @Nullable
-    Capability findCapability(String group, String name) {
-        if (id.getGroup().equals(group) && id.getName().equals(name)) {
-            return getImplicitCapability();
-        }
-        return null;
-    }
-
-    boolean hasMoreThanOneSelectedNodeUsingVariantAwareResolution() {
+    public boolean hasMoreThanOneSelectedNodeUsingVariantAwareResolution() {
         int count = 0;
         for (NodeState node : nodes) {
             if (node.isSelectedByVariantAwareResolution()) {

@@ -20,14 +20,12 @@ import groovy.transform.stc.SimpleType
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiConnector
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.TestLauncher
 
 import java.util.regex.Pattern
 
 @TargetGradleVersion(">=7.6")
-@ToolingApiVersion(">=7.6")
 class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -107,14 +105,13 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         setup:
         settingsFile << '''
             rootProject.name = 'root'
-            include 'a'
         '''
+        includeProjects("a")
         buildFile << '''
             allprojects {
                 tasks.register('foo')
             }
         '''
-        file('a').mkdirs()
 
         when:
         launchTestWithTestFilter { tl ->
@@ -159,15 +156,14 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         setup:
         settingsFile << '''
             rootProject.name = 'root'
-            include 'sub1'
-            include 'sub1:sub2'
         '''
+
+        includeProjects("sub1", "sub1:sub2")
         buildFile << '''
             allprojects {
                 tasks.register('foo')
             }
         '''
-        file('sub1/sub2').mkdirs()
 
         when:
         launchTestWithTestFilter(toolingApi.connector().forProjectDirectory(projectDir.file('sub1'))) {
@@ -184,8 +180,8 @@ class TestLauncherTaskExecutionCrossVersionSpec extends ToolingApiSpecification 
         setup:
         settingsFile << '''
             rootProject.name = 'root'
-            includeBuild 'included'
         '''
+        includeProjects("included")
         file('included/settings.gradle') << '''
             rootProject.name = 'included'
         '''

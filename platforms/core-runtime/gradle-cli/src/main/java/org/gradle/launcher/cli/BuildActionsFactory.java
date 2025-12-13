@@ -32,6 +32,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
+import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.Jvm;
@@ -53,6 +54,7 @@ import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
+import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecutor;
@@ -62,6 +64,7 @@ import org.gradle.tooling.internal.provider.ForwardStdInToThisProcess;
 import org.gradle.tooling.internal.provider.RunInProcess;
 
 import java.lang.management.ManagementFactory;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -99,6 +102,10 @@ class BuildActionsFactory implements CommandLineActionCreator {
         }
 
         DaemonRequestContext requestContext = daemonParameters.toRequestContext();
+        if (daemonParameters.getRequestedJvmCriteria() instanceof DaemonJvmCriteria.Spec) {
+            startParameter.setDaemonJvmCriteriaConfigured(true);
+        }
+
         if (daemonParameters.isEnabled()) {
             return Actions.toAction(runBuildWithDaemon(startParameter, daemonParameters, requestContext));
         }
@@ -126,7 +133,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
     private Runnable runBuildWithDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters, DaemonRequestContext requestContext) {
         // Create a client that will match based on the daemon startup parameters.
         ServiceRegistry clientSharedServices = createGlobalClientServices();
-        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices, daemonParameters, requestContext, System.in);
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices, daemonParameters, requestContext, System.in, Optional.empty());
         DaemonClient client = clientServices.get(DaemonClient.class);
         return runBuildAndCloseServices(startParameter, daemonParameters, client, clientSharedServices, clientServices);
     }
@@ -169,6 +176,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         BuildProcessState buildProcessState = new BuildProcessState(startParameter.isContinuous(),
             AgentStatus.of(daemonParameters.shouldApplyInstrumentationAgent()),
             ClassPath.EMPTY,
+            CurrentGradleInstallation.locate(),
             loggingServices,
             NativeServices.getInstance());
 

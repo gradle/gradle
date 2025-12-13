@@ -16,15 +16,12 @@
 
 package org.gradle.integtests.tooling.m9
 
-import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
-import org.junit.Assume
 
-@TargetGradleVersion(">=3.0")
 class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -54,8 +51,7 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "customized java home is reflected in the java.home and the build model"() {
-        def jdk = AvailableJavaHomes.getAvailableJdk { targetDist.isToolingApiTargetJvmSupported(it.languageVersion) }
-        Assume.assumeNotNull(jdk)
+        def jdk = requireDifferentVersionJvmCompatibleWithTargetDist()
 
         given:
         file('build.gradle') << "project.description = new File(System.getProperty('java.home')).canonicalPath"
@@ -75,8 +71,8 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
 
     def "tooling api provided java home takes precedence over gradle.properties"() {
         File currentJavaHome = new File(System.getProperty("java.home")).canonicalFile
-        def jdk = AvailableJavaHomes.getAvailableJdk { targetDist.isToolingApiTargetJvmSupported(it.languageVersion) && it.javaHome.toFile() != currentJavaHome }
-        Assume.assumeNotNull(jdk)
+        def jdk = requireDifferentVersionJvmCompatibleWithTargetDist()
+
         File javaHome = jdk.javaHome
         String javaHomePath = TextUtil.escapeString(javaHome.canonicalPath)
         String otherJavaPath = TextUtil.escapeString(currentJavaHome.canonicalPath)

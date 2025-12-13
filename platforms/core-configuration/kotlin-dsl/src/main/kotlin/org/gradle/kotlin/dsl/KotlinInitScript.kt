@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DEPRECATION")
+
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
@@ -39,22 +41,21 @@ import kotlin.script.templates.ScriptTemplateDefinition
 )
 @ScriptTemplateAdditionalCompilerArguments(
     [
-        "-language-version", "1.8",
-        "-api-version", "1.8",
+        "-language-version", "2.2",
+        "-api-version", "2.2",
         "-Xjvm-default=all",
         "-Xjsr305=strict",
+        "-Xjspecify-annotations=strict",
         "-Xskip-prerelease-check",
         "-Xallow-unstable-dependencies",
-        "-XXLanguage:+DisableCompatibilityModeForNewInference",
-        "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
         "-P=plugin:org.jetbrains.kotlin.assignment:annotation=org.gradle.api.SupportsKotlinAssignmentOverloading",
     ]
 )
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
-@Deprecated("Will be removed in Gradle 9.0")
+@Deprecated("Will be removed in Gradle 10")
 abstract class KotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
-) : @Suppress("DEPRECATION") InitScriptApi(host.target) {
+) : InitScriptApi(host.target) {
 
     /**
      * The [ScriptHandler] for this script.
@@ -76,6 +77,4 @@ abstract class KotlinInitScript(
     override val fileOperations
         get() = host.fileOperations
 
-    override val processOperations
-        get() = host.processOperations
 }

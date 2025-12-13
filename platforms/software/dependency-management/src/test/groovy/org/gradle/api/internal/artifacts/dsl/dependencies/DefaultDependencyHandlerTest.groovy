@@ -19,7 +19,6 @@ import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.UnknownDomainObjectException
-import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
@@ -39,7 +38,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDepen
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.reflect.TypeOf
 import org.gradle.util.AttributeTestUtil
@@ -255,33 +253,6 @@ class DefaultDependencyHandlerTest extends Specification {
         t.message.contains("Adding a Configuration as a dependency is no longer allowed as of Gradle 8.0.")
     }
 
-    void "creates client module dependency"() {
-        ClientModule clientModule = Mock()
-
-        when:
-        def result = dependencyHandler.module("someNotation")
-
-        then:
-        result == clientModule
-
-        and:
-        1 * dependencyFactory.createModule("someNotation", null) >> clientModule
-    }
-
-    void "creates and configures client module dependency"() {
-        ClientModule clientModule = Mock()
-        Closure cl = {}
-
-        when:
-        def result = dependencyHandler.module("someNotation", cl)
-
-        then:
-        result == clientModule
-
-        and:
-        1 * dependencyFactory.createModule("someNotation", cl) >> clientModule
-    }
-
     void "creates gradle api dependency"() {
         Dependency dependency = Mock()
 
@@ -363,9 +334,9 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "local platform dependencies are endorsing"() {
-        ModuleDependency dep1 = new DefaultProjectDependency(null, false, TestFiles.taskDependencyFactory())
+        ModuleDependency dep1 = new DefaultProjectDependency(null)
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
-        ModuleDependency dep2 = new DefaultProjectDependency(null, false, TestFiles.taskDependencyFactory())
+        ModuleDependency dep2 = new DefaultProjectDependency(null)
         dep2.attributesFactory = AttributeTestUtil.attributesFactory()
 
         when:
@@ -399,7 +370,7 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "local platform dependency can be made non-endorsing"() {
-        ModuleDependency dep1 = new DefaultProjectDependency(null, false, TestFiles.taskDependencyFactory())
+        ModuleDependency dep1 = new DefaultProjectDependency(null)
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
 
         when:

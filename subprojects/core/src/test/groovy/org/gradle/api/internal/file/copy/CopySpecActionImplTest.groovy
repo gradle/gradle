@@ -18,7 +18,7 @@ package org.gradle.api.internal.file.copy
 import org.gradle.api.Action
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
-import org.gradle.api.model.ObjectFactory
+import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
@@ -26,14 +26,14 @@ import spock.lang.Specification
 class CopySpecActionImplTest extends Specification {
     CopyActionProcessingStreamAction action = Mock()
     Instantiator instantiator = Mock()
-    ObjectFactory objectFactory = Mock()
+    PropertyFactory propertyFactory = Mock()
     FileSystem fileSystem = Mock()
     CopySpecResolver copySpecResolver = Mock()
     FileTree source = Mock()
     Action<CopySpecInternal> copySpecInternalAction
 
     def setup() {
-        copySpecInternalAction = new CopySpecActionImpl(action, instantiator, objectFactory, fileSystem, false)
+        copySpecInternalAction = new CopySpecActionImpl(action, instantiator, propertyFactory, fileSystem, false)
     }
 
     def "can visit spec source"() {

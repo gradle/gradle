@@ -26,8 +26,8 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshottingException;
 import org.gradle.internal.state.Managed;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -71,7 +71,7 @@ public class DefaultValueSnapshotter extends AbstractValueProcessor implements V
 
         @Override
         public ValueSnapshot booleanValue(Boolean value) {
-            return value.equals(Boolean.TRUE) ? BooleanValueSnapshot.TRUE : BooleanValueSnapshot.FALSE;
+            return value ? BooleanValueSnapshot.TRUE : BooleanValueSnapshot.FALSE;
         }
 
         @Override

@@ -16,22 +16,25 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.gradle.api.UncheckedIOException;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.maven.InvalidMavenPublicationException;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.HashSet;
 import java.util.Set;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.newBufferedReader;
 
 public class ValidatingMavenPublisher implements MavenPublisher {
     private static final java.lang.String ID_REGEX = "[A-Za-z0-9_\\-.]+";
@@ -81,12 +84,12 @@ public class ValidatingMavenPublisher implements MavenPublisher {
                     "POM file is invalid. Check any modifications you have made to the POM file.",
                     parseException);
         } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+            throw UncheckedException.throwAsUncheckedException(ex);
         }
     }
 
     private Model readModelFromPom(File pomFile) throws IOException, XmlPullParserException {
-        try (FileReader reader = new FileReader(pomFile)) {
+        try (Reader reader = newBufferedReader(pomFile.toPath(), UTF_8)) {
             return new MavenXpp3Reader().read(reader);
         }
     }

@@ -4,8 +4,18 @@ plugins {
 
 description = "A Java agent implementation that instruments loaded classes"
 
-// Agent's premain is invoked before main(), so it should not cause the startup to fail because of the too new class file format.
-gradlebuildJava.usedForStartup()
+gradleModule {
+    targetRuntimes {
+        // Agent's premain is invoked before main(), so it should not cause the startup to fail because of the too new class file format.
+        usedInClient = true
+        usedInDaemon = true
+        usedInWorkers = true
+    }
+}
+
+dependencies {
+    compileOnly(libs.jspecify)
+}
 
 tasks.named<Jar>("jar") {
     manifest {
@@ -14,6 +24,7 @@ tasks.named<Jar>("jar") {
         ))
     }
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
+
+errorprone {
+    nullawayEnabled = true
 }

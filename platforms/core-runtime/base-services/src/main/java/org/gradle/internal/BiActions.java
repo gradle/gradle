@@ -34,6 +34,7 @@ public abstract class BiActions {
         return NOOP;
     }
 
+    @SuppressWarnings("unchecked")
     public static <A, B> BiAction<A, B> composite(final BiAction<? super A, ? super B>... actions) {
         return new BiAction<A, B>() {
             @Override

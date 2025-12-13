@@ -17,8 +17,8 @@ package org.gradle.api.initialization;
 
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 
@@ -56,8 +56,11 @@ public interface ProjectDescriptor {
 
     /**
      * Sets the project directory of this project.
+     * <p>
+     * Gradle expects project directories to exist and be writable.
+     * </p>
      *
-     * @param dir The new project directory. Should not be null.
+     * @param dir The new project directory. Should not be null, and it is expected to exist and be writable.
      */
     void setProjectDir(File dir);
 

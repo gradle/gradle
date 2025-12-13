@@ -22,8 +22,8 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.launcher.daemon.protocol.BuildStarted;
 import org.gradle.launcher.daemon.protocol.DaemonUnavailable;
 import org.gradle.launcher.daemon.protocol.Result;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
 
 public interface DaemonConnection extends Stoppable {

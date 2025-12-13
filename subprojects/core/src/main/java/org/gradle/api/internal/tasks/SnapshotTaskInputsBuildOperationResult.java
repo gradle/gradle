@@ -22,8 +22,8 @@ import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep;
 import org.gradle.internal.hash.HashCode;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 
@@ -83,6 +83,7 @@ public class SnapshotTaskInputsBuildOperationResult extends BaseSnapshotInputsBu
                 this.normalization = normalization;
             }
 
+            @SuppressWarnings("unused")
             public String getNormalization() {
                 return normalization;
             }

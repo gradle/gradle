@@ -16,9 +16,7 @@
 package org.gradle.api.plugins.scala
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.scala.ScalaCompile
@@ -32,24 +30,24 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         project.pluginManager.apply(ScalaBasePlugin)
+        project.version = "1.0"
     }
 
-    def appliesTheJavaPluginToTheProject() {
+    def "applies the java plugin to the project"() {
         expect:
         project.getPlugins().hasPlugin(JavaBasePlugin)
     }
 
-    def addsZincConfigurationToTheProject() {
+    def "adds zinc configuration to the project"() {
         when:
         def configuration = project.configurations.getByName(ScalaBasePlugin.ZINC_CONFIGURATION_NAME)
 
         then:
-        Configurations.getNames(configuration.extendsFrom).empty
-        !configuration.visible
+        configuration.extendsFrom.empty
         configuration.transitive
     }
 
-    def preconfiguresZincClasspathForCompileTasksThatUseZinc() {
+    def "preconfigures zinc classpath for compile tasks that use zinc"() {
         when:
         project.sourceSets.create('custom')
         def task = project.tasks.compileCustomScala
@@ -59,7 +57,7 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
         task.zincClasspath.incoming.dependencies.find { it.name.contains('zinc') }
     }
 
-    def addsScalaConventionToNewSourceSet() {
+    def "adds scala convention to new source set"() {
         when:
         def sourceSet = project.sourceSets.create('custom')
 
@@ -68,7 +66,7 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
         sourceSet.scala.srcDirs == [project.file("src/custom/scala")] as Set
     }
 
-    def addsCompileTaskForNewSourceSet() {
+    def "adds compile task for new source set"() {
         when:
         project.sourceSets.create('custom')
         SourceSet customSourceSet = project.sourceSets.custom
@@ -84,7 +82,7 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
         task dependsOn('compileCustomJava')
     }
 
-    def preconfiguresIncrementalCompileOptions() {
+    def "preconfigures incremental compile options"() {
         when:
         project.sourceSets.create('custom')
         project.tasks.create('customJar', Jar)
@@ -98,7 +96,7 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
         task.analysisMappingFile.get().asFile == new File("$project.buildDir/tmp/scala/compilerAnalysis/compileCustomScala.mapping")
     }
 
-    def incrementalCompileOptionsCanBeOverridden() {
+    def "incremental compile options can be overridden"() {
         when:
         project.sourceSets.create('custom')
         project.tasks.create('customJar', Jar)
@@ -114,7 +112,7 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
         task.scalaCompileOptions.incrementalOptions.publishedCode.get().asFile == project.file("my/published/code.jar")
     }
 
-    def dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
+    def "dependencies of java plugin tasks include scala compile tasks"() {
         when:
         project.sourceSets.create('custom')
         def task = project.tasks['customClasses']
@@ -123,7 +121,7 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
         task dependsOn(hasItem('compileCustomScala'))
     }
 
-    def configuresCompileTasksDefinedByTheBuildScript() {
+    def "configures compile tasks defined by the build script"() {
         when:
         def task = project.task('otherCompile', type: ScalaCompile)
 
@@ -132,13 +130,13 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
         task dependsOn()
     }
 
-    def configuresScalaDocTasksDefinedByTheBuildScript() {
+    def "configures scala doc tasks defined by the build script"() {
         when:
         def task = project.task('otherScaladoc', type: ScalaDoc)
 
         then:
-        task.destinationDir == project.file("$project.docsDir/scaladoc")
-        task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
+        task.destinationDir == project.java.docsDir.file("scaladoc").get().asFile
+        task.title == "test-project 1.0 API"
         task dependsOn()
     }
 }

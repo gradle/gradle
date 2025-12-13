@@ -16,12 +16,12 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalLocation;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.List;
 
-@NonNullApi
+@NullMarked
 public interface InternalProblemContextDetailsV2 extends InternalProblemContextDetails {
     List<InternalLocation> getOriginLocations();
 

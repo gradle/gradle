@@ -15,7 +15,7 @@
  */
 package org.gradle.api.artifacts;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Details about an artifact selection in the context of a dependency substitution.

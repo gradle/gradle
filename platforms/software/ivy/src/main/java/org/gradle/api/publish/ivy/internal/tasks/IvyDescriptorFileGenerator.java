@@ -18,7 +18,6 @@ package org.gradle.api.publish.ivy.internal.tasks;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Streams;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -35,18 +34,18 @@ import org.gradle.api.publish.ivy.internal.dependency.IvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -309,11 +308,11 @@ public final class IvyDescriptorFileGenerator {
     public static void insertGradleMetadataMarker(XmlProvider xmlProvider) {
         String comment = Joiner.on("").join(
             Streams.concat(
-                Arrays.stream(MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES),
-                Stream.of(MetaDataParser.GRADLE_6_METADATA_MARKER)
-            )
-            .map(content -> "<!-- " + content + " -->\n  ")
-            .iterator()
+                    MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES.stream(),
+                    Stream.of(MetaDataParser.GRADLE_6_METADATA_MARKER)
+                )
+                .map(content -> "<!-- " + content + " -->\n  ")
+                .iterator()
         );
 
         StringBuilder builder = xmlProvider.asString();
@@ -336,7 +335,7 @@ public final class IvyDescriptorFileGenerator {
                 try {
                     new ModelWriter(model).writeDescriptor(writer);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             });
         }

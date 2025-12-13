@@ -19,7 +19,7 @@ import java.util.zip.ZipInputStream
 tasks.register("buildshipEclipseProject", CreateBuildshipEclipseProjectTask) {
     description = "Creates an Eclipse plug-in project from the Tooling API fat jar"
     toolingApiShadedJar = tasks.named('toolingApiShadedJar').flatMap { it.jarFile }
-    projectVersion = project.version
+    projectVersion = project.version.toString()
     projectDirectory = layout.buildDirectory.dir("buildshipProject").get().asFile
 }
 
@@ -78,7 +78,7 @@ Bundle-Version: ${bundleVersion}.v${qualifier}
 Bundle-ClassPath: .
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: ${packageExports}
-Require-Bundle: org.slf4j.api;bundle-version="1.7.2"
+Require-Bundle: org.slf4j.api;bundle-version="2.0.17"
 """
 }
 

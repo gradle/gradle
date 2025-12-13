@@ -16,11 +16,11 @@
 
 package org.gradle.nativeplatform.test.xctest.internal.execution;
 
-import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
+import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.detection.TestDetector;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.SystemProperties;
@@ -32,9 +32,9 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.internal.ClientExecHandleBuilder;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
-import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandle;
 
 import javax.inject.Inject;
@@ -44,6 +44,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Takes an XCTestTestExecutionSpec and executes the given test binary.
@@ -58,30 +60,22 @@ import java.util.List;
  * - Smarter/fancier test filtering
  * - Test probing (so we know which tests exist without executing them)
  */
-public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
+public abstract class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
     @Inject
-    public ClientExecHandleBuilderFactory getExecHandleFactory() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract ClientExecHandleBuilderFactory getExecHandleFactory();
 
     @Inject
-    public WorkerLeaseService getWorkerLeaseService() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract WorkerLeaseService getWorkerLeaseService();
 
     public IdGenerator<?> getIdGenerator() {
         return new LongIdGenerator();
     }
 
     @Inject
-    public Clock getClock() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract Clock getClock();
 
     @Inject
-    public Clock getTimeProvider() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract Clock getTimeProvider();
 
     @Override
     public void execute(XCTestTestExecutionSpec testExecutionSpec, TestResultProcessor testResultProcessor) {
@@ -90,9 +84,9 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
 
         String rootTestSuiteId = testExecutionSpec.getPath();
 
-        TestClassProcessor processor = new XCTestProcessor(getClock(), executable, workingDir, getExecHandleFactory().newExecHandleBuilder(), getIdGenerator(), rootTestSuiteId);
+        XCTestProcessor processor = new XCTestProcessor(getClock(), executable, workingDir, getExecHandleFactory().newExecHandleBuilder(), getIdGenerator(), rootTestSuiteId);
 
-        Runnable detector = new XCTestDetector(processor, testExecutionSpec.getTestSelection());
+        TestDetector detector = new XCTestDetector(processor, testExecutionSpec.getTestSelection());
 
         new TestMainAction(detector, processor, testResultProcessor, getWorkerLeaseService(), getTimeProvider(), rootTestSuiteId, "Gradle Test Run " + testExecutionSpec.getPath()).run();
     }
@@ -102,25 +96,25 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         throw new UnsupportedOperationException("XCTest does not support failing fast on first test failure.");
     }
 
-    private static class XCTestDetector implements Runnable {
-        private final TestClassProcessor testClassProcessor;
+    private static class XCTestDetector implements TestDetector {
+        private final XCTestProcessor testClassProcessor;
         private final XCTestSelection testSelection;
 
-        XCTestDetector(TestClassProcessor testClassProcessor, XCTestSelection testSelection) {
+        XCTestDetector(XCTestProcessor testClassProcessor, XCTestSelection testSelection) {
             this.testClassProcessor = testClassProcessor;
             this.testSelection = testSelection;
         }
 
         @Override
-        public void run() {
+        public void detect() {
             for (String includedTests : testSelection.getIncludedTests()) {
-                TestClassRunInfo testClass = new DefaultTestClassRunInfo(includedTests);
-                testClassProcessor.processTestClass(testClass);
+                ClassTestDefinition testDefinition = new ClassTestDefinition(includedTests);
+                testClassProcessor.processTestDefinition(testDefinition);
             }
         }
     }
 
-    static class XCTestProcessor implements TestClassProcessor {
+    static class XCTestProcessor implements TestDefinitionProcessor<ClassTestDefinition> {
         private TestResultProcessor resultProcessor;
         private ExecHandle execHandle;
         private final ClientExecHandleBuilder execHandleBuilder;
@@ -144,13 +138,15 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
         }
 
         @Override
-        public void processTestClass(TestClassRunInfo testClass) {
+        public void processTestDefinition(ClassTestDefinition testDefinition) {
+            Map<String, Object> testSuiteIds = new ConcurrentHashMap<>();
             Deque<XCTestDescriptor> testDescriptors = new ArrayDeque<XCTestDescriptor>();
-            TextStream stdOut = new XCTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);
-            TextStream stdErr = new XCTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors);
+            TextStream stdOut = new XCTestScraper(TestOutputEvent.Destination.StdOut, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors, testSuiteIds);
+            TextStream stdErr = new XCTestScraper(TestOutputEvent.Destination.StdErr, resultProcessor, idGenerator, clock, rootTestSuiteId, testDescriptors, testSuiteIds);
 
             String lineSeparator = SystemProperties.getInstance().getLineSeparator();
-            execHandle = executeTest(testClass.getTestClassName(), new LineBufferingOutputStream(stdOut, lineSeparator), new LineBufferingOutputStream(stdErr, lineSeparator));
+            execHandle = executeTest(testDefinition.getTestClassName(), new LineBufferingOutputStream(stdOut, lineSeparator), new LineBufferingOutputStream(stdErr, lineSeparator));
+
             try {
                 execHandle.start();
                 ExecResult result = execHandle.waitForFinish();
@@ -160,7 +156,7 @@ public class XCTestExecuter implements TestExecuter<XCTestTestExecutionSpec> {
                 if (result.getExitValue() != 0 && result.getExitValue() != 1) {
                     result.rethrowFailure().assertNormalExitValue();
                 }
-            } catch (ExecException e) {
+            } catch (ProcessExecutionException e) {
                 stdOut.endOfStream(e);
                 stdErr.endOfStream(null);
             } finally {

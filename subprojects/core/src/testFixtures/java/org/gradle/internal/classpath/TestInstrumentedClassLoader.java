@@ -20,16 +20,18 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classpath.transforms.ClassTransform;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.function.Predicate;
 
+@NullMarked
 public class TestInstrumentedClassLoader extends TransformingClassLoader {
     private final ClassTransform transform;
     private final Predicate<String> shouldLoadTransformedClass;
@@ -62,12 +64,13 @@ public class TestInstrumentedClassLoader extends TransformingClassLoader {
     }
 
     @Override
+    @Nullable
     public URL findResource(String name) {
         return source.getResource(name);
     }
 
     @Override
-    protected @Nonnull byte[] transform(String className, @Nonnull byte[] bytes) {
+    protected byte[] transform(String className, byte[] bytes) {
         String path = className.replace(".", "/") + ".class";
         ClasspathEntryVisitor.Entry classEntry = new ClasspathEntryVisitor.Entry() {
             @Override

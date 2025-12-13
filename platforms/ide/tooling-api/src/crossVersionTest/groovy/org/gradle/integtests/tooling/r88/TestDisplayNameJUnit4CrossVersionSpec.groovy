@@ -19,15 +19,13 @@ package org.gradle.integtests.tooling.r88
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.TestLauncher
+import org.gradle.util.GradleVersion
 import spock.lang.Timeout
 
 @Timeout(120)
 @ToolingApiVersion('>=8.8')
 @TargetGradleVersion(">=8.8")
-@Requires(UnitTestPreconditions.Jdk17OrEarlier)
 /**
  * @see org.gradle.integtests.tooling.r70.TestDisplayNameJUnit5CrossVersionSpec and
  * @see TestDisplayNameSpockCrossVersionSpec
@@ -132,11 +130,25 @@ public class ParameterizedTests {
                     suite("Gradle Test Executor") {
                         testClass("org.example.ParameterizedTests") {
                             testDisplayName "ParameterizedTests"
-                            test("parametrized_test[0]") {
-                                testDisplayName "parametrized_test[0]" // JUnit4 does not provide detailed information for parameterized tests
-                            }
-                            test("parametrized_test[1]") {
-                                testDisplayName "parametrized_test[1]"
+                            if (targetVersion >= GradleVersion.version("9.3.0-SNAPSHOT")) {
+                                // JUnit4 parameterized test support was improved in Gradle 9.3
+                                suite("[0]") {
+                                    test("parametrized_test[0]", "org.example.ParameterizedTests") {
+                                        testDisplayName "parametrized_test[0]"
+                                    }
+                                }
+                                suite("[1]") {
+                                    test("parametrized_test[1]", "org.example.ParameterizedTests") {
+                                        testDisplayName "parametrized_test[1]"
+                                    }
+                                }
+                            } else {
+                                test("parametrized_test[0]") {
+                                    testDisplayName "parametrized_test[0]"
+                                }
+                                test("parametrized_test[1]") {
+                                    testDisplayName "parametrized_test[1]"
+                                }
                             }
                         }
                     }

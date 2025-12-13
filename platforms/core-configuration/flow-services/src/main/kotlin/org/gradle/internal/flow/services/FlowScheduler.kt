@@ -19,6 +19,7 @@ package org.gradle.internal.flow.services
 import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.flow.FlowParameters
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
@@ -32,6 +33,7 @@ internal
 class FlowScheduler(
     instantiatorFactory: InstantiatorFactory,
     serviceRegistry: ServiceRegistry,
+    private val buildState: BuildState,
 ) {
     private
     val instantiator by lazy {
@@ -42,6 +44,22 @@ class FlowScheduler(
     }
 
     fun schedule(scheduled: List<RegisteredFlowAction>) {
+        if (buildState.isProjectsLoaded) {
+            // Grab the allprojects lock to run the flow actions.
+            // This is a workaround for parameters that may require dependency resolution under the hood.
+            // TODO(mlopatkin) replace this with proper isolation
+            buildState.projects.withMutableStateOfAllProjects {
+                runActions(scheduled)
+            }
+        } else {
+            // Projects are not registered yet, but actions may be already scheduled in the settings context.
+            // Let's run them without locks.
+            runActions(scheduled)
+        }
+    }
+
+    private
+    fun runActions(scheduled: List<RegisteredFlowAction>) {
         scheduled.forEach { flowAction ->
             instantiator
                 .newInstance(flowAction.type)

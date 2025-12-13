@@ -45,7 +45,7 @@ class JavadocFileEncodingIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("build/docs/javadoc/index.html").text.contains("<title>? ? ? ?</title>")
         file("build/tmp/javadoc/javadoc.options").text.contains("-windowtitle '? ? ? ?'")
-        result.assertTaskNotSkipped(":javadoc")
+        result.assertTaskExecuted(":javadoc")
 
         when:
         executer.withBuildJvmOpts("-Dfile.encoding=UTF-8")
@@ -53,7 +53,7 @@ class JavadocFileEncodingIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("build/docs/javadoc/index.html").text.contains("<title>💩 💩 💩 💩</title>")
         file("build/tmp/javadoc/javadoc.options").text.contains("-windowtitle '💩 💩 💩 💩'")
-        result.assertTaskNotSkipped(":javadoc")
+        result.assertTaskExecuted(":javadoc")
     }
 
     // Simplified version of the above.

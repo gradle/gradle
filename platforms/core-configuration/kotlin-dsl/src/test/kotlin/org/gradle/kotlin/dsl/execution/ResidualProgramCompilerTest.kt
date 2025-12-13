@@ -16,14 +16,6 @@
 
 package org.gradle.kotlin.dsl.execution
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.argThat
-import com.nhaarman.mockito_kotlin.doAnswer
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.inOrder
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.same
-import com.nhaarman.mockito_kotlin.verify
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.Settings
@@ -46,6 +38,14 @@ import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import org.mockito.InOrder
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.same
+import org.mockito.kotlin.verify
 import java.util.Arrays.fill
 
 
@@ -144,7 +144,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
         val programHost = safeMockProgramHost {
             on { accessorsClassPathFor(scriptHost) } doReturn ClassPath.EMPTY
         }
-        val stage2ProgramId = ProgramId(stage2SettingsTemplateId, sourceHash, mock())
+        val stage2ProgramId = ProgramId(stage2SettingsTemplateId, scriptHost.scriptSource.fileName, scriptHost.scriptSource.className, sourceHash, mock())
 
         withExecutableProgramFor(
             Dynamic(Static(CloseTargetScope), source),
@@ -628,7 +628,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
         }
 
         val scriptTemplateId = "Project/TopLevel/stage2"
-        val programId = ProgramId(scriptTemplateId, sourceHash, mock())
+        val programId = ProgramId(scriptTemplateId, scriptHost.scriptSource.fileName, scriptHost.scriptSource.className, sourceHash, mock())
 
         private
         fun verifyStandardOutput(program: ExecutableProgram) {

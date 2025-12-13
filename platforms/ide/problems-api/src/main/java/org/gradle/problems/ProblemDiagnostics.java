@@ -18,8 +18,8 @@ package org.gradle.problems;
 
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.problems.failure.Failure;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**

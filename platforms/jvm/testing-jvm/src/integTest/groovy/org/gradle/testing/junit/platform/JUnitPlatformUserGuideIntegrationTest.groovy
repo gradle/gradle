@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.platform
 
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
@@ -62,11 +63,11 @@ class DisplayNameDemo2 {
             .assertTestClassesExecutedJudgementByXml('A special test case', 'A special test case2')
         result.testClassByHtml('org.gradle.DisplayNameDemo')
             .assertDisplayName('A special test case')
-            .assertTestCount(1, 0, 0)
+            .assertTestCount(1, 0)
             .assertTestPassed('testWithDisplayNameContainingSpaces', 'Custom test name containing spaces')
         result.testClassByHtml('org.gradle.DisplayNameDemo2')
             .assertDisplayName('A special test case2')
-            .assertTestCount(1, 0, 0)
+            .assertTestCount(1, 0)
             .assertTestPassed('testWithDisplayNameContainingSpecialCharacters', '╯°□°）╯')
     }
 
@@ -189,14 +190,17 @@ class TestingAStackDemo {
         succeeds('test')
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClassByHtml('org.gradle.TestingAStackDemo').assertTestCount(1, 0, 0)
-            .assertTestPassed('isInstantiatedWithNew', 'is instantiated with new Stack')
-        result.testClassByHtml('org.gradle.TestingAStackDemo$WhenNew').assertTestCount(2, 0, 0)
-            .assertTestPassed('isEmpty', 'is empty')
-            .assertTestPassed('throwsExceptionWhenPopped', 'throws EmptyStackException when popped')
-        result.testClassByHtml('org.gradle.TestingAStackDemo$WhenNew$AfterPushing').assertTestCount(1, 0, 0)
-            .assertTestPassed('isNotEmpty', 'it is no longer empty')
+        def result = resultsFor(testDirectory)
+        result.testPath('org.gradle.TestingAStackDemo').onlyRoot()
+            .assertChildCount(2, 0)
+            .assertChildrenExecuted('isInstantiatedWithNew()')
+        result.testPathPreNormalized(':org.gradle.TestingAStackDemo:org.gradle.TestingAStackDemo$WhenNew').onlyRoot()
+            .assertChildCount(3, 0)
+            .assertChildrenExecuted('isEmpty()', 'throwsExceptionWhenPopped()')
+        result.testPathPreNormalized(':org.gradle.TestingAStackDemo:org.gradle.TestingAStackDemo$WhenNew:org.gradle.TestingAStackDemo$WhenNew$AfterPushing').onlyRoot()
+            .assertChildCount(1, 0)
+        result.testPathPreNormalized(':org.gradle.TestingAStackDemo:org.gradle.TestingAStackDemo$WhenNew:org.gradle.TestingAStackDemo$WhenNew$AfterPushing:isNotEmpty()').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
 
         where:
         maxParallelForks << [1, 3]
@@ -214,7 +218,8 @@ import org.junit.jupiter.api.*;
 @DisplayName("TestInfo Demo")
 class TestInfoDemo {
 
-    TestInfoDemo(TestInfo testInfo) {
+    @BeforeAll
+    static void initClass(TestInfo testInfo) {
         assertEquals("TestInfo Demo", testInfo.getDisplayName());
     }
 
@@ -241,11 +246,13 @@ class TestInfoDemo {
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClassByHtml('org.gradle.TestInfoDemo').assertTestCount(2, 0, 0)
-            .assertTestPassed('test2', 'test2')
-            .assertTestPassed('test1(TestInfo)', 'TEST 1')
-
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.TestInfoDemo').onlyRoot()
+            .assertChildCount(2, 0)
+        results.testPathPreNormalized(':org.gradle.TestInfoDemo:test2()').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPathPreNormalized(':org.gradle.TestInfoDemo:test1(TestInfo)').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def 'can use custom Extension'() {
@@ -277,7 +284,8 @@ public class ExtensionTest {
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass('org.gradle.ExtensionTest').assertTestCount(2, 0, 0)
+        result.testClass('org.gradle.ExtensionTest')
+            .assertTestCount(2, 0)
             .assertStdout(containsString('Created!'))
     }
 
@@ -314,11 +322,16 @@ public class Test implements TestInterfaceDynamicTestsDemo {
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClassByHtml('org.gradle.Test').assertTestCount(2, 0, 0)
-            .assertTestPassed('dynamicTestsFromCollection()[1]', '1st dynamic test in test interface')
-            .assertTestPassed('dynamicTestsFromCollection()[2]', '2nd dynamic test in test interface')
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.Test').onlyRoot()
+            .assertChildCount(1, 0)
+        results.testPathPreNormalized(':org.gradle.Test:dynamicTestsFromCollection()').onlyRoot()
+            .assertChildCount(2, 0)
             .assertStdout(containsString('Invoked!'))
+        results.testPathPreNormalized(':org.gradle.Test:dynamicTestsFromCollection():dynamicTestsFromCollection()[1]').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPathPreNormalized(':org.gradle.Test:dynamicTestsFromCollection():dynamicTestsFromCollection()[2]').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def 'can support parameterized tests'() {
@@ -348,11 +361,17 @@ public class Test {
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClassByHtml('org.gradle.Test').assertTestCount(3, 0, 0)
-            .assertTestPassed('ok(String)[1]', '[1] a')
-            .assertTestPassed('ok(String)[2]', '[2] b')
-            .assertTestPassed('ok(String)[3]', '[3] c')
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.Test').onlyRoot()
+            .assertChildCount(1, 0)
+        results.testPathPreNormalized(':org.gradle.Test:ok(String)').onlyRoot()
+            .assertChildCount(3, 0)
+        results.testPathPreNormalized(':org.gradle.Test:ok(String):ok(String)[1]').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPathPreNormalized(':org.gradle.Test:ok(String):ok(String)[2]').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPathPreNormalized(':org.gradle.Test:ok(String):ok(String)[3]').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def 'can use test template'() {
@@ -416,9 +435,14 @@ public class TestTemplateTest {
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .testClassByHtml('org.gradle.TestTemplateTest').assertTestCount(2, 0, 0)
-            .assertTestPassed('testTemplate(String)[1]', 'foo')
-            .assertTestPassed('testTemplate(String)[2]', 'bar')
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.TestTemplateTest').onlyRoot()
+            .assertChildCount(1, 0)
+        results.testPathPreNormalized(':org.gradle.TestTemplateTest:testTemplate(String)').onlyRoot()
+            .assertChildCount(2, 0)
+        results.testPathPreNormalized(':org.gradle.TestTemplateTest:testTemplate(String):testTemplate(String)[1]').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPathPreNormalized(':org.gradle.TestTemplateTest:testTemplate(String):testTemplate(String)[2]').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.dom.resolution
 
-import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.dom.DocumentResolution
 
@@ -29,7 +28,7 @@ internal fun resolutionPrettyString(resolution: DocumentResolution): String =
             " -> configure ${resolution.elementType}"
 
         is DocumentResolution.PropertyResolution.PropertyAssignmentResolved ->
-            " -> ${resolution.receiverType}.${resolution.property.name}: ${typeString(resolution.property.valueType)}"
+            " -> ${resolution.receiverType}.${resolution.property.name}: ${resolution.property.valueType}"
 
         is DocumentResolution.ValueNodeResolution.ValueFactoryResolution.ValueFactoryResolved ->
             " -> ${functionSignatureString(resolution.function)}"
@@ -40,9 +39,5 @@ internal fun resolutionPrettyString(resolution: DocumentResolution): String =
     }
 
 private fun functionSignatureString(function: SchemaFunction) =
-    "${function.simpleName}(${function.parameters.joinToString { typeString(it.type) }}): ${typeString(function.returnValueType)}"
+    "${function.simpleName}(${function.parameters.joinToString { it.type.toString() }}): ${function.returnValueType}"
 
-private fun typeString(typeRef: DataTypeRef) = when (typeRef) {
-    is DataTypeRef.Type -> typeRef.dataType.toString()
-    is DataTypeRef.Name -> typeRef.fqName.simpleName
-}

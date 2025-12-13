@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.provider.plugins.precompiled
 
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.plugins.ExtensionAware
@@ -27,14 +25,16 @@ import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.internal.extensibility.DefaultExtensionsSchema
 import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
-import org.gradle.kotlin.dsl.accessors.SoftwareTypeEntry
+import org.gradle.kotlin.dsl.accessors.ProjectFeatureEntry
 import org.gradle.kotlin.dsl.provider.plugins.DefaultProjectSchemaProvider
 import org.gradle.kotlin.dsl.provider.plugins.KotlinDslDclSchemaCollector
 import org.gradle.kotlin.dsl.provider.plugins.typeOf
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 
 class DefaultProjectSchemaProviderTest {
@@ -63,7 +63,7 @@ class DefaultProjectSchemaProviderTest {
         assertThat(
             DefaultProjectSchemaProvider(object : KotlinDslDclSchemaCollector {
                 override fun collectContainerFactories(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): List<ContainerElementFactoryEntry<TypeOf<*>>> = emptyList()
-                override fun collectSoftwareTypes(softwareTypeRegistry: SoftwareTypeRegistry): List<SoftwareTypeEntry<TypeOf<*>>> = emptyList()
+                override fun collectProjectTypes(projectFeatureDeclarations: ProjectFeatureDeclarations): List<ProjectFeatureEntry<TypeOf<*>>> = emptyList()
             }).targetSchemaFor(
                 androidExtension,
                 typeOf<AndroidExtension>(),

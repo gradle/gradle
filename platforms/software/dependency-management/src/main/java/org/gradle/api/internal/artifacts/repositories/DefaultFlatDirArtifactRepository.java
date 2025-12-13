@@ -47,8 +47,8 @@ import org.gradle.internal.resolve.caching.ImplicitInputsProvidingService;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
@@ -147,7 +147,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
     }
 
     @Override
-    protected RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, URI rootUri, FileStore<String> externalResourcesFileStore) {
+    protected RepositoryResourceAccessor createRepositoryAccessor(RepositoryTransport transport, @Nullable URI rootUri, FileStore<String> externalResourcesFileStore) {
         return new NoOpRepositoryResourceAccessor();
     }
 

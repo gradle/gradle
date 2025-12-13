@@ -16,7 +16,7 @@
 
 package org.gradle.internal.problems.failure;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Classifies stack frames by their {@link StackTraceRelevance relevance}.

@@ -18,7 +18,7 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.tasks.TaskDependencyFactory
-import org.gradle.internal.Factory
+import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -38,7 +38,7 @@ class DefaultProjectLayoutTest extends Specification {
     def setup() {
         projectDir = tmpDir.createDir("project")
         settingsDir = tmpDir.testDirectory
-        layout = new DefaultProjectLayout(settingsDir, projectDir, TestFiles.resolver(projectDir), Stub(TaskDependencyFactory), Stub(Factory), Stub(PropertyHost), TestFiles.fileCollectionFactory(projectDir), TestFiles.filePropertyFactory(projectDir), TestFiles.fileFactory())
+        layout = new DefaultProjectLayout(settingsDir, projectDir, TestFiles.resolver(projectDir), Stub(TaskDependencyFactory), Stub(PatternSetFactory), Stub(PropertyHost), TestFiles.fileCollectionFactory(projectDir), TestFiles.filePropertyFactory(projectDir), TestFiles.fileFactory())
     }
 
     def "can query the settings directory"() {
@@ -209,7 +209,7 @@ class DefaultProjectLayoutTest extends Specification {
         def dir1 = buildDirectory.get()
         dir1.getAsFile() == projectDir.file("build")
 
-        layout.setBuildDirectory("other")
+        layout.buildDirectory.set(projectDir.file("other"))
         buildDirectory.present
         fileProvider.present
         fileProvider.get() == projectDir.file("other")
@@ -217,7 +217,7 @@ class DefaultProjectLayoutTest extends Specification {
         def dir2 = buildDirectory.get()
         dir2.getAsFile() == projectDir.file("other")
 
-        layout.setBuildDirectory("../target")
+        layout.buildDirectory.set(projectDir.file("../target"))
         buildDirectory.present
         fileProvider.present
         fileProvider.get() == tmpDir.file("target")

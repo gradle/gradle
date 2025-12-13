@@ -19,8 +19,8 @@ import org.apache.tools.ant.Main
 import org.gradle.api.Action
 import org.gradle.cli.CommandLineArgumentException
 import org.gradle.cli.CommandLineParser
-import org.gradle.internal.Factory
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.logging.LoggingManagerFactory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -34,6 +34,7 @@ import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.DefaultGradleVersion
+import org.gradle.util.internal.KotlinDslVersion
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
@@ -73,9 +74,9 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         ProgressLoggerFactory progressLoggerFactory = Mock()
         _ * loggingServices.get(ProgressLoggerFactory) >> progressLoggerFactory
         _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)
-        Factory<LoggingManagerInternal> loggingManagerFactory = Mock()
-        _ * loggingServices.getFactory(LoggingManagerInternal) >> loggingManagerFactory
-        _ * loggingManagerFactory.create() >> loggingManager
+        LoggingManagerFactory loggingManagerFactory = Mock()
+        _ * loggingServices.get(LoggingManagerFactory) >> loggingManagerFactory
+        _ * loggingManagerFactory.createLoggingManager() >> loggingManager
         StyledTextOutputFactory textOutputFactory = Mock()
         _ * loggingServices.get(StyledTextOutputFactory) >> textOutputFactory
         StyledTextOutput textOutput = new StreamingStyledTextOutput(outputs.stdErrPrintStream)
@@ -136,8 +137,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         outputs.stdErr.contains('--some-option')
 
         and:
-        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
-        1 * executionListener.onFailure({it instanceof CommandLineArgumentException})
+        1 * actionFactory1.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option('some-option') }
+        1 * executionListener.onFailure({ it instanceof CommandLineArgumentException })
         0 * executionListener._
 
         where:
@@ -162,7 +163,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         outputs.stdErr.contains('--some-option')
 
         and:
-        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
+        1 * actionFactory1.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option('some-option') }
         1 * actionFactory1.createAction(!null, !null, !null) >> { throw failure }
         1 * executionListener.onFailure(failure)
         0 * executionListener._
@@ -180,8 +181,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         outputs.stdErr.contains('--some-option')
 
         and:
-        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
-        1 * executionListener.onFailure({it instanceof CommandLineArgumentException})
+        1 * actionFactory1.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option('some-option') }
+        1 * executionListener.onFailure({ it instanceof CommandLineArgumentException })
         0 * executionListener._
     }
 
@@ -216,7 +217,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         outputs.stdOut.contains('--some-option')
 
         and:
-        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
+        1 * actionFactory1.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option('some-option') }
         0 * executionListener._
 
         where:
@@ -273,7 +274,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
             "Groovy:        $GroovySystem.version",
             "Ant:           $Main.antVersion",
             "Launcher JVM:  ${Jvm.current()}",
-            "Daemon JVM:    ${Jvm.current().javaHome.absolutePath} (no JDK specified, using current Java home)",
+            "Daemon JVM:    ${Jvm.current().javaHome.absolutePath} (no Daemon JVM specified, using current Java home)",
             "OS:            ${OperatingSystem.current()}",
             ""
         ].join(System.lineSeparator())
@@ -288,7 +289,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         outputs.stdOut.contains(EXPECTED_VERSION_TEXT)
 
         and:
-        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
+        1 * actionFactory1.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option('some-option') }
         0 * actionFactory1.createAction(_, _)
         1 * loggingManager.start()
         0 * executionListener._

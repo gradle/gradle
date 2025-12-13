@@ -16,8 +16,8 @@
 package org.gradle.vcs.internal;
 
 import org.gradle.vcs.VersionControlSpec;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 

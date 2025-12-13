@@ -16,14 +16,67 @@
 
 package org.gradle.api.problems.internal;
 
-public class DefaultProblemProgressDetails implements ProblemProgressDetails {
+import org.gradle.operations.problems.ProblemDefinition;
+import org.gradle.operations.problems.ProblemLocation;
+import org.gradle.operations.problems.ProblemSeverity;
+import org.gradle.operations.problems.ProblemUsageProgressDetails;
+import org.jspecify.annotations.Nullable;
+
+import java.util.List;
+
+public class DefaultProblemProgressDetails implements ProblemProgressDetails, ProblemUsageProgressDetails {
     private final InternalProblem problem;
+    private final BuildOperationProblem buildOperationProblem;
 
     public DefaultProblemProgressDetails(InternalProblem problem) {
         this.problem = problem;
+        this.buildOperationProblem = new BuildOperationProblem(problem);
     }
 
     public InternalProblem getProblem() {
         return problem;
+    }
+
+    @Override
+    public ProblemDefinition getDefinition() {
+        return buildOperationProblem.getDefinition();
+    }
+
+    @Override
+    public ProblemSeverity getSeverity() {
+        return buildOperationProblem.getSeverity();
+    }
+
+    @Nullable
+    @Override
+    public String getContextualLabel() {
+        return buildOperationProblem.getContextualLabel();
+    }
+
+    @Override
+    public List<String> getSolutions() {
+        return buildOperationProblem.getSolutions();
+    }
+
+    @Nullable
+    @Override
+    public String getDetails() {
+        return buildOperationProblem.getDetails();
+    }
+
+    @Override
+    public List<ProblemLocation> getOriginLocations() {
+        return buildOperationProblem.getOriginLocations();
+    }
+
+    @Override
+    public List<ProblemLocation> getContextualLocations() {
+        return buildOperationProblem.getContextualLocations();
+    }
+
+    @Nullable
+    @Override
+    public Throwable getFailure() {
+        return problem.getException() == null ? null : problem.getException();
     }
 }

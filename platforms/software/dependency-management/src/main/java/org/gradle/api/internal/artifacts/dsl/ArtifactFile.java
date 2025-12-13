@@ -16,9 +16,10 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.apache.commons.lang3.StringUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -40,7 +41,7 @@ public class ArtifactFile {
         boolean done = false;
 
         if (version != null) {
-            int startVersion = StringUtils.lastIndexOf(name, "-" + version);
+            int startVersion = Strings.CS.lastIndexOf(name, "-" + version);
             if (startVersion >= 0) {
                 int endVersion = startVersion + version.length() + 1;
                 if (endVersion == name.length()) {
@@ -52,7 +53,7 @@ public class ArtifactFile {
                     classifier = StringUtils.substringBeforeLast(tail, ".");
                     extension = StringUtils.substringAfterLast(tail, ".");
                     done = true;
-                } else if (endVersion < name.length() && StringUtils.lastIndexOf(name, ".") == endVersion) {
+                } else if (endVersion < name.length() && Strings.CS.lastIndexOf(name, ".") == endVersion) {
                     extension = name.substring(endVersion + 1);
                     name = name.substring(0, startVersion);
                     done = true;

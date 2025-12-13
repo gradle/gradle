@@ -18,7 +18,7 @@ package gradlebuild.docs;
 
 import com.google.common.io.CharStreams;
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.DocumentType;
@@ -178,7 +178,7 @@ public class ReleaseNotesTransformer extends FilterReader {
         try (FileReader reader = new FileReader(file)) {
             element.append(open + CharStreams.toString(reader) + close);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

@@ -119,7 +119,6 @@ class ConfigurationCacheBuildTreeStructureIntegrationTest extends AbstractConfig
         assert rootProject.name == 'thing'
         assert rootProject.path == ':'
         assert rootProject.projectDir == testDirectory.absolutePath
-        assert rootProject.buildFile == buildFile.absolutePath
         assert rootProject.children.size() == 3 // All projects are created when storing
         with(rootProject.children.first() as Map<String, Object>) {
             assert name == 'a'

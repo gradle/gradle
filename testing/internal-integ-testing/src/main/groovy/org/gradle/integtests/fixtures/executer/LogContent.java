@@ -25,8 +25,8 @@ import net.rubygrapefruit.ansi.console.DiagnosticConsole;
 import net.rubygrapefruit.ansi.token.NewLine;
 import net.rubygrapefruit.ansi.token.Text;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Pair;
+import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -214,7 +214,7 @@ public class LogContent {
             });
             return new LogContent(toLines(result.toString()), definitelyNoDebugPrefix, true);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -237,7 +237,7 @@ public class LogContent {
             }
             return new LogContent(toLines(diagnosticConsole.toString()), definitelyNoDebugPrefix, true);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

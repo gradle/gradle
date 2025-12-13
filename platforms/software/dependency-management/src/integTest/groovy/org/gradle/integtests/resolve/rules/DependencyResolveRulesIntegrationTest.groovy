@@ -25,7 +25,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 
 @FluidDependenciesResolveTest
 class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
-    ResolveTestFixture resolve = new ResolveTestFixture(buildFile)
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile << """
@@ -66,11 +66,10 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
 
         """
 
-        resolve.prepare("conf")
 
         expect:
         succeeds(":b:checkDeps")
-        resolve.expectGraph {
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 edge("project :a", "org.gradle.test:a:1.3") {
                     selectedByRule()
@@ -79,8 +78,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "forces multiple modules by rule"()
-    {
+    void "forces multiple modules by rule"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -108,8 +106,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                 }
                 failOnVersionConflict()
             }
-"""
-        resolve.prepare("conf")
+        """
 
         expect:
         succeeds("checkDeps")
@@ -129,8 +126,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "module forced by rule has correct selection reason"()
-    {
+    void "module forced by rule has correct selection reason"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -153,8 +149,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-"""
-        resolve.prepare("conf")
+        """
 
         expect:
         succeeds("checkDeps")
@@ -172,8 +167,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "all rules are executed orderly and last one wins"()
-    {
+    void "all rules are executed orderly and last one wins"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -203,8 +197,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     //don't change the version
                 }
             }
-"""
-        resolve.prepare("conf")
+        """
 
         expect:
         succeeds("checkDeps")
@@ -220,8 +213,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "can override forced version with rule"()
-    {
+    void "can override forced version with rule"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -242,8 +234,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     it.useVersion it.requested.version
                 }
             }
-"""
-        resolve.prepare("conf")
+        """
 
         expect:
         succeeds("checkDeps")
@@ -261,8 +252,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "rule are applied after forced modules"()
-    {
+    void "rule are applied after forced modules"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -284,8 +274,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     it.useVersion '1.3'
                 }
             }
-"""
-        resolve.prepare("conf")
+        """
 
         expect:
         succeeds("checkDeps")
@@ -303,8 +292,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "forced modules and rules coexist"()
-    {
+    void "forced modules and rules coexist"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -328,8 +316,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-"""
-        resolve.prepare("conf")
+        """
 
         expect:
         succeeds("checkDeps")
@@ -345,8 +332,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "rule selects a dynamic version"()
-    {
+    void "rule selects a dynamic version"() {
         mavenRepo.module("org.utils", "api", '1.3').publish()
         mavenRepo.module("org.utils", "api", '1.4').publish()
         mavenRepo.module("org.utils", "api", '1.5').publish()
@@ -361,8 +347,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
             configurations.conf.resolutionStrategy.eachDependency {
                 it.useVersion '1.+'
             }
-"""
-        resolve.prepare("conf")
+        """
 
         expect:
         succeeds("checkDeps")
@@ -375,8 +360,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "can deny a version"()
-    {
+    void "can deny a version"() {
         mavenRepo.module("org.utils", "a",  '1.4').publish()
         mavenRepo.module("org.utils", "a",  '1.3').publish()
         mavenRepo.module("org.utils", "a",  '1.2').publish()
@@ -395,8 +379,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     it.useVersion '1.4'
                 }
             }
-"""
-        resolve.prepare("conf")
+        """
 
         expect:
         succeeds("checkDeps")
@@ -413,8 +396,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "can deny a version that is not used"()
-    {
+    void "can deny a version that is not used"() {
         mavenRepo.module("org.utils", "a",  '1.3').publish()
         mavenRepo.module("org.utils", "a",  '1.2').publish()
         mavenRepo.module("org.utils", "b", '1.3').dependsOn("org.utils", "a", "1.3").publish()
@@ -432,8 +414,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     it.useVersion '1.2.1'
                 }
             }
-"""
-        resolve.prepare("conf")
+        """
 
         expect:
         succeeds("checkDeps")
@@ -450,8 +431,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "can use custom versioning scheme"()
-    {
+    def "can use custom versioning scheme"() {
         mavenRepo.module("org.utils", "api",  '1.3').publish()
 
         buildFile << """
@@ -466,8 +446,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     it.useVersion '1.3'
                 }
             }
-"""
-        resolve.prepare("conf")
+        """
 
         expect:
         succeeds("checkDeps")
@@ -480,8 +459,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "can use custom versioning scheme for transitive dependencies"()
-    {
+    def "can use custom versioning scheme for transitive dependencies"() {
         mavenRepo.module("org.utils", "api",  '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', 'default').publish()
 
@@ -497,8 +475,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     it.useVersion '1.3'
                 }
             }
-"""
-        resolve.prepare("conf")
+        """
 
         expect:
         succeeds("checkDeps")
@@ -513,8 +490,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "rule selects unavailable version"()
-    {
+    void "rule selects unavailable version"() {
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
         buildFile << """
@@ -540,7 +516,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert deps[0].requested.version == '1.3'
                 }
             }
-"""
+        """
 
         when:
         def failure = runAndFail("check", "resolveConf")
@@ -550,8 +526,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not find org.utils:api:1.123.15")
     }
 
-    void "rules triggered exactly once per the same dependency"()
-    {
+    void "rules triggered exactly once per the same dependency"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
@@ -594,7 +569,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     assert requested == ['api:1.3', 'api:1.5', 'bar:2.0', 'foo:2.0', 'impl:1.3']
                 }
             }
-"""
+        """
 
         when:
         run("check")
@@ -603,8 +578,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    void "runtime exception when evaluating rule yields decent exception"()
-    {
+    void "runtime exception when evaluating rule yields decent exception"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
@@ -626,7 +600,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
                     throw new RuntimeException("Unhappy :(")
                 }
             }
-"""
+        """
 
         when:
         def failure = runAndFail("resolveConf")
@@ -635,12 +609,11 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
         failure.assertHasCause("""Could not resolve org.utils:impl:1.3.
 Required by:
-    root project :""")
+    root project 'root'""")
         failure.assertHasCause("Unhappy :(")
     }
 
-    void "can substitute module name and resolve conflict"()
-    {
+    void "can substitute module name and resolve conflict"() {
         mavenRepo.module("org.utils", "a",  '1.2').publish()
         mavenRepo.module("org.utils", "b",  '2.0').publish()
         mavenRepo.module("org.utils", "b",  '2.1').publish()
@@ -657,8 +630,7 @@ Required by:
                     it.useTarget(it.requested.group + ':b:2.1')
                 }
             }
-"""
-        resolve.prepare("conf")
+        """
 
         expect:
         succeeds("checkDeps")
@@ -673,8 +645,7 @@ Required by:
         }
     }
 
-    def "can substitute module group"()
-    {
+    def "can substitute module group"() {
         mavenRepo.module("org", "a", "1.0").publish()
         mavenRepo.module("org", "b").dependsOn("org", "a", "2.0").publish()
         mavenRepo.module("org", "a", "2.0").dependsOn("org", "c", "1.0").publish()
@@ -694,8 +665,7 @@ Required by:
                     it.useTarget('org:' + it.requested.name + ':' + it.requested.version)
                 }
             }
-"""
-        resolve.prepare("conf")
+        """
 
         expect:
         succeeds("checkDeps")
@@ -713,8 +683,7 @@ Required by:
         }
     }
 
-    def "can substitute module group, name and version"()
-    {
+    def "can substitute module group, name and version"() {
         mavenRepo.module("org", "a", "1.0").publish()
         mavenRepo.module("org", "b").dependsOn("org", "a", "2.0").publish()
         mavenRepo.module("org", "a", "2.0").dependsOn("org", "c", "1.0").publish()
@@ -734,8 +703,7 @@ Required by:
                     it.useTarget group: 'org', name: 'b', version: '1.0'
                 }
             }
-"""
-        resolve.prepare("conf")
+        """
 
         expect:
         succeeds("checkDeps")
@@ -753,8 +721,7 @@ Required by:
         }
     }
 
-    def "provides decent feedback when target module incorrectly specified"()
-    {
+    def "provides decent feedback when target module incorrectly specified"() {
         buildFile << """
             $common
 
@@ -765,7 +732,7 @@ Required by:
             configurations.conf.resolutionStrategy.eachDependency {
                 it.useTarget "foobar"
             }
-"""
+        """
 
         when:
         runAndFail("dependencies", "resolveConf")
@@ -776,8 +743,7 @@ Required by:
         failure.assertHasCause("Invalid format: 'foobar'")
     }
 
-    def "substituted module version participates in conflict resolution"()
-    {
+    def "substituted module version participates in conflict resolution"() {
         mavenRepo.module("org", "a", "2.0").dependsOn("org", "b", "2.0").publish()
         mavenRepo.module("org", "b", "2.0").dependsOn("org", "c", "2.0").publish()
         mavenRepo.module("org", "c", "2.0").publish()
@@ -794,8 +760,7 @@ Required by:
                     it.useTarget group: 'org', name: 'c', version: '1.1'
                 }
             }
-"""
-        resolve.prepare("conf")
+        """
 
         expect:
         succeeds("checkDeps")
@@ -814,8 +779,7 @@ Required by:
         }
     }
 
-    def "module selected by conflict resolution can be selected again in a another pass of conflict resolution"()
-    {
+    def "module selected by conflict resolution can be selected again in a another pass of conflict resolution"() {
         mavenRepo.module("org", "a", "1.0").publish()
         mavenRepo.module("org", "a", "2.0").dependsOn("org", "b", "2.5").publish()
         mavenRepo.module("org", "b", "3.0").publish()
@@ -839,8 +803,7 @@ Required by:
             dependencies {
                 conf 'org:b:3.0', 'org:b:4.0', 'org:a:1.0', 'org:a:2.0'
             }
-"""
-        resolve.prepare("conf")
+        """
 
         expect:
         succeeds("checkDeps")
@@ -867,7 +830,7 @@ Required by:
         mavenRepo.module("org.test", "bar", "2.0").publish()
         mavenRepo.module("org", "baz", "1.0").publish()
 
-        file("build.gradle") << """
+        buildFile << """
             repositories {
                 maven { url = "${mavenRepo.uri}" }
             }
@@ -887,13 +850,15 @@ Required by:
                     }
                 }
             }
+
+            ${resolve.configureProject("conf")}
+
             dependencies {
                 conf 'org:foo:1.0'
                 conf 'org:bar:1.0'
                 conf 'org:baz:1.0'
             }
         """
-        resolve.prepare("conf")
 
         expect:
         succeeds("checkDeps")
@@ -919,14 +884,25 @@ Required by:
     }
 
     String getCommon() {
-        """configurations { conf }
-        repositories {
-            maven { url = "${mavenRepo.uri}" }
-        }
-        task resolveConf {
-            def files = configurations.conf
-            doLast { files.files }
-        }
+        """
+            configurations {
+                conf
+            }
+
+            ${resolve.configureProject("conf")}
+
+            repositories {
+                maven {
+                    url = "${mavenRepo.uri}"
+                }
+            }
+
+            task resolveConf {
+                def files = configurations.conf
+                doLast {
+                    files.files
+                }
+            }
         """
     }
 }

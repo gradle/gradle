@@ -26,7 +26,6 @@ import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.hamcrest.CoreMatchers
@@ -376,7 +375,7 @@ project(':common') {
                     additional {
                         attributes {
                             attribute(color, 'purple')
-                            artifact(producer.output)
+                            artifact(tasks.producer.output)
                         }
                     }
                 }
@@ -558,7 +557,7 @@ project(':common') {
         setupBuildWithTransformOfExternalDependencyThatUsesDifferentTransformForUpstreamDependencies()
 
         buildFile << """
-            resolveArtifacts.collection = view
+            tasks.resolveArtifacts.collection = view
         """
 
         when:
@@ -584,8 +583,8 @@ project(':common') {
         setupBuildWithTransformOfExternalDependencyThatUsesDifferentTransformForUpstreamDependencies()
 
         buildFile << """
-            resolveArtifacts.collection = view
-            resolveArtifacts.dependsOn {
+            tasks.resolveArtifacts.collection = view
+            tasks.resolveArtifacts.dependsOn {
                 view.forEach { println("artifact = " + it) }
                 []
             }
@@ -677,16 +676,19 @@ project(':common') {
 
         buildFile << """
             def flavor = Attribute.of('flavor', String)
+            def selectable = Attribute.of('selectable', String)
 
             allprojects {
                 configurations {
                     outgoing.outgoing.variants {
                         one {
                             attributes.attribute(flavor, 'bland')
-                            artifact(producer.output)
+                            attributes.attribute(selectable, 'yes')
+                            artifact(tasks.producer.output)
                         }
                         two {
                             attributes.attribute(flavor, 'cloying')
+                            attributes.attribute(selectable, 'no')
                         }
                     }
                 }
@@ -706,6 +708,7 @@ project(':common') {
                     attributes {
                         it.attribute(color, 'green')
                         it.attribute(flavor, 'tasty')
+                        it.attribute(selectable, 'yes')
                     }
                 }.files
 
@@ -740,7 +743,6 @@ project(':common') {
         failure.assertHasCause("The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of project :lib:")
 
         when:
-        2.times { executer.expectDeprecationWarning("There are multiple distinct artifact transformation chains of the same length that would satisfy this request. This behavior has been deprecated. This will fail with an error in Gradle 9.0. ") }
         run("app:resolveView")
 
         then:
@@ -750,10 +752,8 @@ project(':common') {
         )
         outputContains("result = [app.txt, lib.jar.txt, common.jar.txt]")
 
+
         when:
-        if (!GradleContextualExecuter.isConfigCache()) {
-            2.times { executer.expectDeprecationWarning("There are multiple distinct artifact transformation chains of the same length that would satisfy this request. This behavior has been deprecated. This will fail with an error in Gradle 9.0. ") }
-        }
         run("app:resolveView")
 
         then:
@@ -819,14 +819,14 @@ project(':common') {
         run ":app:resolveGreen"
 
         then: // no changes, should be up-to-date
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // new path, should re-run
-        result.assertTasksNotSkipped(":common:producer")
+        result.assertTasksExecuted(":common:producer")
         assertTransformationsExecuted(
             singleStep('common.jar'),
             singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common.jar'),
@@ -836,14 +836,14 @@ project(':common') {
         run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // no changes, should be up-to-date
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // new name, should re-run
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
             singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common-blue.jar'),
@@ -853,14 +853,14 @@ project(':common') {
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar", "-DcommonContent=new"
 
         then: // new content, should re-run
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
             singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common-blue.jar'),
@@ -870,7 +870,7 @@ project(':common') {
         run ":app:resolveGreen"
 
         then: // have seen these inputs before
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted()
     }
 
@@ -922,14 +922,14 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         run ":app:resolveGreen"
 
         then: // no changes, should be up-to-date
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // new path, should skip consumer
-        result.assertTasksNotSkipped(":common:producer")
+        result.assertTasksExecuted(":common:producer")
         assertTransformationsExecuted(
             singleStep('common.jar'),
         )
@@ -938,7 +938,7 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // new name, should skip consumer
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
         )
@@ -947,14 +947,14 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar", "-DcommonContent=new"
 
         then: // new content, should re-run
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
             singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common-blue.jar'),
@@ -964,7 +964,7 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         run ":app:resolveGreen"
 
         then: // have seen these inputs before
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted()
     }
 
@@ -1018,14 +1018,14 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         run ":app:resolveGreen"
 
         then: // no changes, should be up-to-date
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out"
 
         then: // new path, should skip consumer
-        result.assertTasksNotSkipped(":common:producer")
+        result.assertTasksExecuted(":common:producer")
         assertTransformationsExecuted(
             singleStep('common.jar'),
         )
@@ -1034,7 +1034,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // new name, should skip consumer
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
         )
@@ -1043,14 +1043,14 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar"
 
         then: // no changes, should be up-to-date
-        result.assertTasksNotSkipped()
+        result.assertAllTasksSkipped()
         assertTransformationsExecuted()
 
         when:
         run ":app:resolveGreen", "-DcommonOutputDir=out", "-DcommonFileName=common-blue.jar", "-DcommonContent=new"
 
         then: // new content, should re-run
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted(
             singleStep('common-blue.jar'),
             singleStep('lib.jar', 'slf4j-api-1.7.25.jar', 'common-blue.jar')
@@ -1060,7 +1060,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         run ":app:resolveGreen"
 
         then: // have seen these inputs before
-        result.assertTasksNotSkipped(":common:producer", ":app:resolveGreen")
+        result.assertTasksExecuted(":common:producer", ":app:resolveGreen")
         assertTransformationsExecuted()
 
         where:
@@ -1405,7 +1405,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         setupBuildWithTwoSteps()
         buildFile << """
             project(':common') {
-                producer.doLast {
+                tasks.producer.doLast {
                     throw new RuntimeException("broken")
                 }
             }

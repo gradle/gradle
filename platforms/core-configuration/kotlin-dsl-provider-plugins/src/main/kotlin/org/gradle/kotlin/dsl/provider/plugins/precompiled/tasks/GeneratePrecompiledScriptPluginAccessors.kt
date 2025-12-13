@@ -41,7 +41,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.IgnoreEmptyDirectories
-import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -52,7 +51,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.initialization.ClassLoaderScopeRegistry
-import org.gradle.initialization.DefaultProjectDescriptor
+import org.gradle.initialization.ProjectDescriptorInternal
 import org.gradle.internal.Try
 import org.gradle.internal.build.NestedRootBuildRunner.createNestedBuildTree
 import org.gradle.internal.classpath.ClassPath
@@ -70,7 +69,6 @@ import org.gradle.kotlin.dsl.accessors.hashCodeFor
 import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.writeFile
-import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptException
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.scriptPluginFilesOf
@@ -90,10 +88,6 @@ import java.io.PrintStream
 import java.net.URLClassLoader
 import java.nio.file.Files
 import javax.inject.Inject
-
-
-internal
-const val STRICT_MODE_SYSTEM_PROPERTY_NAME = "org.gradle.kotlin.dsl.precompiled.accessors.strict"
 
 
 @CacheableTask
@@ -118,15 +112,15 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     @get:InputFiles
     @get:Classpath
-    val runtimeClassPathFiles: FileCollection
-        get() = runtimeClassPathArtifactCollection.get().artifactFiles
+    val accessorsGenerationClassPathFiles: FileCollection
+        get() = accessorsGenerationClassPathArtifactCollection.get().artifactFiles
 
     /**
-     * Tracked via [runtimeClassPathFiles].
+     * Tracked via [accessorsGenerationClassPathFiles].
      */
     @get:Internal
     internal
-    abstract val runtimeClassPathArtifactCollection: Property<ArtifactCollection>
+    abstract val accessorsGenerationClassPathArtifactCollection: Property<ArtifactCollection>
 
     @get:OutputDirectory
     abstract val metadataOutputDir: DirectoryProperty
@@ -148,19 +142,6 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     val scriptFiles: Provider<Set<File>>
         get() = scriptPluginFilesOf(plugins)
 
-    @get:Input
-    @Deprecated("Will be removed in Gradle 9.0")
-    abstract val strict: Property<Boolean>
-
-    init {
-        outputs.doNotCacheIf(
-            "Generated accessors can only be cached in strict mode."
-        ) {
-            @Suppress("DEPRECATION")
-            !strict.get()
-        }
-    }
-
     /**
      *  ## Computation and sharing of type-safe accessors
      * 1. Group precompiled script plugins by the list of plugins applied in their `plugins` block.
@@ -170,7 +151,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
      * hash code.
      * 5. For each group, for each script plugin in the group, write the generated package name to a file named
      * after the contents of the script plugin file. This is so the file can be easily found by
-     * [PrecompiledScriptDependenciesResolver].
+     * [org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment].
      */
     @TaskAction
     fun generate() {
@@ -377,7 +358,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     }
                     val rootProjectScope = baseScope.createChild("accessors-root-project", null)
                     settings.rootProject.name = "gradle-kotlin-dsl-accessors"
-                    val projectState = gradle.serviceOf<ProjectStateRegistry>().registerProject(gradle.owner, settings.rootProject as DefaultProjectDescriptor)
+                    val projectState = gradle.serviceOf<ProjectStateRegistry>().registerProject(gradle.owner, settings.rootProject as ProjectDescriptorInternal)
                     projectState.createMutableModel(rootProjectScope, baseScope)
                     val rootProject = projectState.mutableModel
                     gradle.rootProject = rootProject
@@ -400,9 +381,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     startParameter.gradleHomeDir,
                     startParameter.gradleUserHomeDir,
                     projectDir,
-                    projectDir,
-                    null,
-                    null
+                    projectDir
                 ),
                 startParameter.isOffline,
             )
@@ -457,7 +436,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         configurations: ConfigurationContainer,
         fileCollectionFactory: FileCollectionFactory
     ): Configuration {
-        val dependencies = runtimeClassPathArtifactCollection.get().artifacts.map {
+        val dependencies = accessorsGenerationClassPathArtifactCollection.get().artifacts.map {
             when (val componentIdentifier = it.id.componentIdentifier) {
                 is OpaqueComponentIdentifier -> DefaultFileCollectionDependency(
                     componentIdentifier,
@@ -493,9 +472,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     private
     fun reportProjectSchemaError(plugins: List<PrecompiledScriptPlugin>, stdout: String, stderr: String, error: Throwable) {
-        @Suppress("DEPRECATION")
-        if (strict.get()) throw PrecompiledScriptException(failedToGenerateAccessorsFor(plugins, stdout, stderr), error)
-        else logger.warn(failedToGenerateAccessorsFor(plugins, stdout, stderr), error)
+        throw PrecompiledScriptException(failedToGenerateAccessorsFor(plugins, stdout, stderr), error)
     }
 
     private

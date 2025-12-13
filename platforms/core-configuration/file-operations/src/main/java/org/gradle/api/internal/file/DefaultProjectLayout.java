@@ -31,8 +31,7 @@ import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 
 import java.io.File;
 
@@ -43,7 +42,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     private final DirectoryProperty buildDir;
     private final FileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
-    private final Factory<PatternSet> patternSetFactory;
+    private final PatternSetFactory patternSetFactory;
     private final PropertyHost propertyHost;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileFactory fileFactory;
@@ -53,7 +52,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         File projectDir,
         FileResolver fileResolver,
         TaskDependencyFactory taskDependencyFactory,
-        Factory<PatternSet> patternSetFactory,
+        PatternSetFactory patternSetFactory,
         PropertyHost propertyHost,
         FileCollectionFactory fileCollectionFactory,
         FilePropertyFactory filePropertyFactory,
@@ -120,9 +119,9 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         return fileCollectionFactory.resolving(paths);
     }
 
-    /**
-     * A temporary home. Should be on the public API somewhere
-     */
+    // TODO: this "unused" method should be removed
+    // However, currently, expressions like 'layout.buildDirectory = file(...)' resolve to this method,
+    // and removing it makes those expressions fail the build
     public void setBuildDirectory(Object value) {
         buildDir.set(fileResolver.resolve(value));
     }

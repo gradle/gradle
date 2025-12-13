@@ -6,8 +6,9 @@ plugins {
 description = "Annotation classes used by the Declarative DSL"
 
 dependencies {
-    implementation(projects.stdlibJavaExtensions)
+    compileOnly(libs.jspecify)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
+
+errorprone {
+    nullawayEnabled = true
 }

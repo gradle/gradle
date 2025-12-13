@@ -80,6 +80,7 @@ class AlphabeticalAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiCha
             """.trimIndent()
         )
 
+        //language=JSON
         secondAcceptedApiChangesFile.writeText(
             """
                 {
@@ -153,6 +154,7 @@ class AlphabeticalAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiCha
             """.trimIndent()
         )
 
+        //language=JSON
         secondAcceptedApiChangesFile.writeText(
             """
                 {

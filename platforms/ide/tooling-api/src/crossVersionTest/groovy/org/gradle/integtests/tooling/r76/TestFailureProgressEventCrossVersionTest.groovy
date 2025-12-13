@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.Failure
 import org.gradle.tooling.TestAssertionFailure
@@ -31,7 +30,6 @@ import org.gradle.tooling.events.test.TestFailureResult
 import org.gradle.tooling.events.test.TestFinishEvent
 import org.gradle.tooling.events.test.TestOperationResult
 
-@ToolingApiVersion(">=7.6")
 @TargetGradleVersion(">=7.6")
 class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
 
@@ -193,9 +191,9 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation 'junit:junit:4.13.2'
-                testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
-                testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
+                testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             }
 
             test {
@@ -280,9 +278,10 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
-                testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
+                testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
                 testImplementation 'org.assertj:assertj-core:3.22.0'
+
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             }
 
             test {

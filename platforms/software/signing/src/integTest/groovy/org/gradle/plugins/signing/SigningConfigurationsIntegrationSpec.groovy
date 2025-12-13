@@ -50,29 +50,6 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0-sources.jar.asc").text
     }
 
-    def "configurations are signed when executing assemble task"() {
-        given:
-        buildFile << """
-            configurations {
-                meta
-            }
-
-            signing {
-                ${signingConfiguration()}
-                sign configurations.archives, configurations.meta
-            }
-
-            ${keyInfo.addAsPropertiesScript()}
-            ${getJavadocAndSourceJarsScript("meta")}
-        """
-
-        when:
-        run "assemble"
-
-        then:
-        executedAndNotSkipped ":signArchives", ":signMeta"
-    }
-
     @Issue([
         "https://github.com/gradle/gradle/issues/21857",
         "https://github.com/gradle/gradle/issues/22375"
@@ -137,30 +114,32 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
     def "duplicated inputs are handled"() {
         given:
         buildFile << """
+            configurations {
+                consumable("jars") {
+                    // Add the jar file as an artifact using both the task as well as a mapped file provider
+                    outgoing.artifact(tasks.named("jar"))
+                    outgoing.artifact(tasks.named("jar").map { it.archiveFile })
+                }
+            }
             signing {
                 ${signingConfiguration()}
-                sign configurations.archives
+                sign configurations.jars
             }
 
             ${keyInfo.addAsPropertiesScript()}
-
-            artifacts {
-                // depend directly on 'jar' task in addition to dependency through 'archives'
-                archives jar
-            }
         """
 
         when:
         run "buildSignatures"
 
         then:
-        executedAndNotSkipped ":signArchives"
+        executedAndNotSkipped ":signJars"
 
         and:
         file("build", "libs", "sign-1.0.jar.asc").text
     }
 
-    def "signatures configuration is deprecated for resolution and will warn if resolved, but not fail"() {
+    def "signatures configuration cannot be #description"() {
         buildFile.text = """
             plugins {
                 id 'signing'
@@ -168,17 +147,22 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
 
             ${mavenCentralRepository()}
 
-            dependencies {
-                signatures 'org.apache.commons:commons-lang3:3.9'
-            }
+            assert !configurations.signatures.canBeResolved
+            assert !configurations.signatures.canBeDeclared
 
-            assert configurations.signatures.isDeprecatedForResolution()
-            configurations.signatures.files
+            $action
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("The signatures configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 9.0. Please use another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-        executer.expectDocumentedDeprecationWarning("The signatures configuration has been deprecated for resolution. This will fail with an error in Gradle 9.0. Please resolve another configuration instead. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-        succeeds("help")
+        when:
+        fails("help")
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
+        failure.assertHasCause(failureCause)
+
+        where:
+        description         | action                                                                | failureCause
+        "resolved"          | "configurations.signatures.files "                                    | "Resolving dependency configuration 'signatures' is not allowed as it is defined as 'canBeResolved=false'."
+        "declared against"  | "dependencies { signatures 'org.apache.commons:commons-lang3:3.9' }"  | "Dependencies can not be declared against the `signatures` configuration."
     }
 }

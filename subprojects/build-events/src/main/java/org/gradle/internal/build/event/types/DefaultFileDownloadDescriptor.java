@@ -21,6 +21,9 @@ import org.gradle.tooling.internal.protocol.events.InternalFileDownloadDescripto
 
 import java.net.URI;
 
+/**
+ * Descriptor for launcher/daemon side events
+ */
 public class DefaultFileDownloadDescriptor extends DefaultOperationDescriptor implements InternalFileDownloadDescriptor {
     private final URI uri;
 

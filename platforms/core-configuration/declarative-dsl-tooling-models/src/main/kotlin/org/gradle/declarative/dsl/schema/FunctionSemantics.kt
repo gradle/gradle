@@ -16,14 +16,29 @@
 
 package org.gradle.declarative.dsl.schema
 
+import org.gradle.declarative.dsl.schema.FunctionSemantics.AccessAndConfigure
+import org.gradle.declarative.dsl.schema.FunctionSemantics.AccessAndConfigure.ReturnType.ConfiguredObject
+import org.gradle.declarative.dsl.schema.FunctionSemantics.AccessAndConfigure.ReturnType.Unit
+import org.gradle.declarative.dsl.schema.FunctionSemantics.AddAndConfigure
+import org.gradle.declarative.dsl.schema.FunctionSemantics.Builder
+import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureSemantics
+import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.NotAllowed
+import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.Optional
+import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement.Required
+import org.gradle.declarative.dsl.schema.FunctionSemantics.NewObjectFunctionSemantics
+import org.gradle.declarative.dsl.schema.FunctionSemantics.Pure
 import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
 
 @ToolingModelContract(subTypes = [
-    FunctionSemantics.ConfigureSemantics::class,
-    FunctionSemantics.NewObjectFunctionSemantics::class,
-    FunctionSemantics.Builder::class
+    ConfigureSemantics::class,
+        AccessAndConfigure::class,
+        AddAndConfigure::class,
+    NewObjectFunctionSemantics::class,
+        // AddAndConfigure::class, // duplicate, added above
+        Pure::class,
+    Builder::class
 ])
 sealed interface FunctionSemantics : Serializable {
 
@@ -38,9 +53,9 @@ sealed interface FunctionSemantics : Serializable {
         val configureBlockRequirement: ConfigureBlockRequirement
 
         @ToolingModelContract(subTypes = [
-            ConfigureBlockRequirement.NotAllowed::class,
-            ConfigureBlockRequirement.Optional::class,
-            ConfigureBlockRequirement.Required::class
+            NotAllowed::class,
+            Optional::class,
+            Required::class
         ])
         sealed interface ConfigureBlockRequirement : Serializable {
             interface NotAllowed : ConfigureBlockRequirement
@@ -73,8 +88,8 @@ sealed interface FunctionSemantics : Serializable {
         val returnType: ReturnType
 
         @ToolingModelContract(subTypes = [
-            ReturnType.Unit::class,
-            ReturnType.ConfiguredObject::class
+            Unit::class,
+            ConfiguredObject::class
         ])
         sealed interface ReturnType : Serializable {
             interface Unit : ReturnType
@@ -82,7 +97,7 @@ sealed interface FunctionSemantics : Serializable {
         }
 
         override val configuredType: DataTypeRef
-            get() = if (returnType is ReturnType.ConfiguredObject) returnValueType else accessor.objectType
+            get() = if (returnType is ConfiguredObject) returnValueType else accessor.objectType
 
         override val configureBlockRequirement: ConfigureSemantics.ConfigureBlockRequirement
     }

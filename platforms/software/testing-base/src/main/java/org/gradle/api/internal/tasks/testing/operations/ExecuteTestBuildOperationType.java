@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.operations;
 
+import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestDescriptor;
-import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.operations.BuildOperationType;

@@ -25,8 +25,8 @@ import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.xml.XmlTransformer;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;

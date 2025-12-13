@@ -38,6 +38,7 @@ import java.util.Optional;
  * This is determined by assessing the incompatibility of the {@link GradlePluginApiVersion#GRADLE_PLUGIN_API_VERSION_ATTRIBUTE} attribute.
  */
 public abstract class NewerGradleNeededByPluginFailureDescriber extends AbstractResolutionFailureDescriber<NoCompatibleVariantsFailure> {
+    @SuppressWarnings("InlineFormatString")
     private static final String GRADLE_VERSION_TOO_OLD_TEMPLATE = "Plugin %s requires at least Gradle %s. This build uses %s.";
     private static final String NEEDS_NEWER_GRADLE_SECTION = "sub:updating-gradle";
 
@@ -45,7 +46,7 @@ public abstract class NewerGradleNeededByPluginFailureDescriber extends Abstract
 
     @Override
     public boolean canDescribeFailure(NoCompatibleVariantsFailure failure) {
-        return allCandidatesIncompatibleDueToGradleVersionTooLow(failure);
+        return !failure.getCandidates().isEmpty() && allCandidatesIncompatibleDueToGradleVersionTooLow(failure);
     }
 
     @Override

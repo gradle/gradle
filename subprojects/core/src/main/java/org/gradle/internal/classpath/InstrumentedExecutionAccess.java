@@ -16,7 +16,7 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * As {@link Instrumented} is using to augment calls at configuration time, this class is using
  * to augment calls at execution time.
  */
-@NonNullApi
+@NullMarked
 public class InstrumentedExecutionAccess {
 
     private static final Listener NO_OP = new Listener() {
@@ -64,7 +64,7 @@ public class InstrumentedExecutionAccess {
         listener().disallowedAtExecutionInjectedServiceAccessed(injectedServiceType, getterName, consumer);
     }
 
-    @NonNullApi
+    @NullMarked
     public interface Listener {
         void disallowedAtExecutionInjectedServiceAccessed(Class<?> injectedServiceType, String propertyName, String consumer);
     }

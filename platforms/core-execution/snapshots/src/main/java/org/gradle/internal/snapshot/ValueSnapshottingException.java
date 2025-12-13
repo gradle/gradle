@@ -16,7 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class ValueSnapshottingException extends RuntimeException {
     public ValueSnapshottingException(String message) {

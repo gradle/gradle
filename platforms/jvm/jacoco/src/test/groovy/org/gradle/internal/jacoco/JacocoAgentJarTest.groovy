@@ -34,20 +34,12 @@ class JacocoAgentJarTest extends Specification {
         jacocoAgentJar.supportsJmx() == jmxSupport
 
         where:
+        // Keep one of each minor version
         version               | jmxSupport
         '0.5.10.201208310627' | false
-        '0.6.0.201210061924'  | false
         '0.6.2.201302030002'  | true
-        '0.7.1.201405082137'  | true
-        '0.7.6.201602180812'  | true
         '0.7.8'               | true
-        '0.8.5'               | true
-        '0.8.6'               | true
-        '0.8.7'               | true
-        '0.8.8'               | true
-        '0.8.9'               | true
-        '0.8.10'              | true
-        '0.8.11'              | true
+        '0.8.13'              | true
     }
 
     def "versions >= 0.7.6 support include no location classes #version -> #incNoLocationClassesSupport"() {
@@ -59,19 +51,11 @@ class JacocoAgentJarTest extends Specification {
         jacocoAgentJar.supportsInclNoLocationClasses() == incNoLocationClassesSupport
 
         where:
+        // Keep one of each minor version
         version               | incNoLocationClassesSupport
         '0.5.10.201208310627' | false
-        '0.6.0.201210061924'  | false
         '0.6.2.201302030002'  | false
-        '0.7.1.201405082137'  | false
-        '0.7.6.201602180812'  | true
         '0.7.8'               | true
-        '0.8.5'               | true
-        '0.8.6'               | true
-        '0.8.7'               | true
-        '0.8.8'               | true
-        '0.8.9'               | true
-        '0.8.10'              | true
-        '0.8.11'              | true
+        '0.8.13'              | true
     }
 }

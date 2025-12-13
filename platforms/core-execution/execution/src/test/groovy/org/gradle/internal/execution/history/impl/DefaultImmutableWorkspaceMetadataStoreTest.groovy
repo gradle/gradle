@@ -54,6 +54,6 @@ class DefaultImmutableWorkspaceMetadataStoreTest extends Specification {
         def loadedMetadata = store.loadWorkspaceMetadata(workspace)
 
         then:
-        loadedMetadata == metadata
+        loadedMetadata == Optional.of(metadata)
     }
 }

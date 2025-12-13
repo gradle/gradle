@@ -16,8 +16,7 @@
 
 package org.gradle.kotlin.dsl.fixtures
 
-import com.nhaarman.mockito_kotlin.doReturn
-import com.nhaarman.mockito_kotlin.mock
+import org.gradle.api.internal.classpath.RuntimeApiInfo
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
@@ -32,8 +31,8 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.resource.StringTextResource
-import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.kotlin.dsl.execution.CompiledScript
 import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
@@ -42,6 +41,8 @@ import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.plugin.management.internal.PluginRequests
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 import java.io.File
 import java.net.URLClassLoader
 
@@ -73,14 +74,16 @@ fun eval(
  * A simplified Service Registry, suitable for cheaper testing of the DSL outside of Gradle.
  */
 private
-class SimplifiedKotlinDefaultServiceRegistry(
-    private val baseTempDir: File,
-) : DefaultServiceRegistry() {
-    init {
-        register {
-            add(GradleUserHomeTemporaryFileProvider::class.java, GradleUserHomeTemporaryFileProvider { baseTempDir })
+fun simplifiedKotlinDefaultServiceRegistry(
+    baseTempDir: File,
+): ServiceRegistry {
+
+    return ServiceRegistryBuilder.builder()
+        .displayName("test registry")
+        .provider {
+            it.add(GradleUserHomeTemporaryFileProvider::class.java, GradleUserHomeTemporaryFileProvider { baseTempDir })
         }
-    }
+        .build()
 }
 
 
@@ -92,7 +95,7 @@ class SimplifiedKotlinScriptEvaluator(
     private val baseCacheDir: File,
     private val baseTempDir: File,
     private val scriptCompilationClassPath: ClassPath,
-    private val serviceRegistry: ServiceRegistry = SimplifiedKotlinDefaultServiceRegistry(baseTempDir),
+    private val serviceRegistry: ServiceRegistry = simplifiedKotlinDefaultServiceRegistry(baseTempDir),
     private val scriptRuntimeClassPath: ClassPath = ClassPath.EMPTY
 ) : AutoCloseable {
 
@@ -135,6 +138,7 @@ class SimplifiedKotlinScriptEvaluator(
     private
     fun scriptSourceFor(script: String): ScriptSource = mock {
         on { fileName } doReturn "script.gradle.kts"
+        on { className } doReturn "Script_gradle"
         on { shortDisplayName } doReturn Describables.of("<test script>")
         on { resource } doReturn StringTextResource("<test script>", script)
     }
@@ -204,7 +208,7 @@ class SimplifiedKotlinScriptEvaluator(
         override fun onScriptClassLoaded(scriptSource: ScriptSource, specializedProgram: Class<*>) = Unit
 
         override val implicitImports: List<String>
-            get() = ImplicitImports(DefaultImportsReader()).list
+            get() = ImplicitImports(DefaultImportsReader(RuntimeApiInfo(InterpreterHost::class.java.classLoader))).list
 
         override val compilerOptions: KotlinCompilerOptions
             get() = KotlinCompilerOptions()

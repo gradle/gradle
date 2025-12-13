@@ -4,16 +4,10 @@ plugins {
 
 description = "Adds support for assembling web application EAR files"
 
-errorprone {
-    disabledChecks.addAll(
-        "DefaultCharset", // 2 occurrences
-    )
-}
-
 dependencies {
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     api(projects.baseServices)
     api(projects.coreApi)

@@ -28,8 +28,8 @@ class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
             }
             ${mavenCentralRepository()}
             dependencies {
-                compileOnly 'org.projectlombok:lombok:1.18.30'
-                annotationProcessor 'org.projectlombok:lombok:1.18.30'
+                compileOnly 'org.projectlombok:lombok:1.18.42'
+                annotationProcessor 'org.projectlombok:lombok:1.18.42'
             }
             compileJava.options.fork = $fork
         """
@@ -59,7 +59,8 @@ class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
         GradleRunner gradleRunner = runner("compileJava")
 
         expect:
-        gradleRunner.build()
+        // Disable JDK warning checks as Lombok itself is responsible: https://github.com/projectlombok/lombok/issues/3852
+        gradleRunner.withJdkWarningChecksDisabled().build()
 
         where:
         fork << [true, false]

@@ -16,80 +16,103 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.tasks.testing.results.HtmlTestReportGenerator;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
+import org.gradle.api.internal.exceptions.MarkedVerificationException;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
-import org.gradle.api.tasks.VerificationException;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.function.LongFunction;
 
-@NonNullApi
+@NullMarked
 class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
 
-    private final Path testReportDirectory;
     private final Path binaryResultsDir;
     private final SerializableTestResultStore.Writer testResultWriter;
-    private final HtmlTestReportGenerator htmlTestReportGenerator;
+    @Nullable
+    private final TestReportGenerator testReportGenerator;
     private final TestExecutionResultsListener executionResultsListener;
+    private final boolean closeThrowsOnTestFailures;
+    private final boolean addToAggregateReports;
 
     // Mutable state
+    @Nullable
     private String failureMessage;
 
     DefaultRootTestEventReporter(
-        String rootName,
+        LongFunction<TestDescriptorInternal> rootDescriptorFactory,
         TestListenerInternal listener,
-        IdGenerator<?> idGenerator,
-        Path testReportDirectory,
+        IdGenerator<Long> idGenerator,
         Path binaryResultsDir,
         SerializableTestResultStore.Writer testResultWriter,
-        HtmlTestReportGenerator htmlTestReportGenerator,
-        TestExecutionResultsListener executionResultsListener
+        @Nullable TestReportGenerator testReportGenerator,
+        TestExecutionResultsListener executionResultsListener,
+        boolean closeThrowsOnTestFailures,
+        boolean addToAggregateReports
     ) {
         super(
             listener,
             idGenerator,
-            new DefaultTestSuiteDescriptor(idGenerator.generateId(), rootName),
+            rootDescriptorFactory.apply(idGenerator.generateId()),
             new TestResultState(null)
         );
 
-        this.testReportDirectory = testReportDirectory;
         this.binaryResultsDir = binaryResultsDir;
         this.testResultWriter = testResultWriter;
-        this.htmlTestReportGenerator = htmlTestReportGenerator;
+        this.testReportGenerator = testReportGenerator;
         this.executionResultsListener = executionResultsListener;
+        this.closeThrowsOnTestFailures = closeThrowsOnTestFailures;
+        this.addToAggregateReports = addToAggregateReports;
     }
 
     @Override
     public void close() {
-        super.close();
+        try {
+            super.close();
+        } catch (Throwable t) {
+            // Ensure binary results are written to disk.
+            try {
+                testResultWriter.close();
+            } catch (IOException e) {
+                t.addSuppressed(e);
+            }
+            throw t;
+        }
 
-        // Ensure binary results are written to disk.
         try {
             testResultWriter.close();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
-        boolean rootTestFailed = failureMessage != null;
+        // Generate HTML report
+        Path reportIndexFile = testReportGenerator == null
+            ? null
+            : testReportGenerator.generate(Collections.singletonList(binaryResultsDir));
 
         // Notify aggregate listener of final results
-        executionResultsListener.executionResultsAvailable(testDescriptor, binaryResultsDir, rootTestFailed);
-
-        // Generate HTML report
-        Path reportIndexFile = htmlTestReportGenerator.generateHtmlReport(testReportDirectory, binaryResultsDir);
+        boolean hasTestFailures = failureMessage != null;
+        if (addToAggregateReports) {
+            executionResultsListener.executionResultsAvailable(testDescriptor, binaryResultsDir, hasTestFailures);
+        }
 
         // Throw an exception with rendered test results, if necessary
-        if (rootTestFailed) {
+        if (hasTestFailures && closeThrowsOnTestFailures) {
+            if (reportIndexFile == null) {
+                // No report was requested, just fail with the message we have
+                throw new MarkedVerificationException(failureMessage);
+            }
             String testResultsUrl = new ConsoleRenderer().asClickableFileUrl(reportIndexFile.toFile());
-            throw new VerificationException(failureMessage + " See the test results for more details: " + testResultsUrl);
+            throw new MarkedVerificationException(failureMessage + " See the report at: " + testResultsUrl);
         }
     }
 

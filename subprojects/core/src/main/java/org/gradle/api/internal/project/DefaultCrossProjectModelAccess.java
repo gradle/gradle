@@ -21,6 +21,10 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.invocation.GradleLifecycleActionExecutor;
+import org.jspecify.annotations.Nullable;
+import org.gradle.util.Path;
 
 import java.util.Map;
 import java.util.Set;
@@ -28,40 +32,59 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
 
-    public DefaultCrossProjectModelAccess(ProjectRegistry<ProjectInternal> projectRegistry) {
+    private final ProjectRegistry projectRegistry;
+    private final Instantiator instantiator;
+    private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
+
+    public DefaultCrossProjectModelAccess(
+        ProjectRegistry projectRegistry,
+        Instantiator instantiator,
+        GradleLifecycleActionExecutor gradleLifecycleActionExecutor
+    ) {
         this.projectRegistry = projectRegistry;
+        this.instantiator = instantiator;
+        this.gradleLifecycleActionExecutor = gradleLifecycleActionExecutor;
     }
 
     @Override
     public ProjectInternal access(ProjectInternal referrer, ProjectInternal project) {
-        return project;
+        return LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor);
     }
 
     @Override
-    public ProjectInternal findProject(ProjectInternal referrer, ProjectInternal relativeTo, String path) {
-        return projectRegistry.getProject(relativeTo.absoluteProjectPath(path));
+    @Nullable
+    public ProjectInternal findProject(ProjectInternal referrer, Path path) {
+        if (!path.isAbsolute()) {
+            throw new IllegalArgumentException("Project path must be absolute");
+        }
+
+        ProjectInternal project = projectRegistry.getProjectInternal(path.asString());
+        return project != null ? LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor) : null;
     }
 
     @Override
-    public Map<String, Project> getChildProjects(ProjectInternal referrer, ProjectInternal relativeTo) {
-        return relativeTo.getChildProjectsUnchecked().entrySet().stream().collect(
+    public Map<String, Project> getChildProjects(ProjectInternal referrer, ProjectInternal target) {
+        return target.getOwner().getChildProjects().stream().collect(
             Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> access(referrer, (ProjectInternal) entry.getValue())
+                ProjectState::getName,
+                projectState -> LifecycleAwareProject.wrap(projectState.getMutableModel(), referrer, instantiator, gradleLifecycleActionExecutor)
             )
         );
     }
 
     @Override
-    public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
-        return new TreeSet<>(projectRegistry.getSubProjects(relativeTo.getPath()));
+    public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal target) {
+        return projectRegistry.getSubProjects(target.getPath()).stream()
+            .map(project -> LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor))
+            .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
-    public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal relativeTo) {
-        return new TreeSet<>(projectRegistry.getAllProjects(relativeTo.getPath()));
+    public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal target) {
+        return projectRegistry.getAllProjects(target.getPath()).stream()
+            .map(project -> LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor))
+            .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
@@ -70,6 +93,7 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     }
 
     @Override
+    @Nullable
     public TaskDependencyUsageTracker taskDependencyUsageTracker(ProjectInternal referrerProject) {
         return null;
     }
@@ -80,8 +104,10 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     }
 
     @Override
+    @Nullable
     public DynamicObject parentProjectDynamicInheritedScope(ProjectInternal referrerProject) {
         ProjectInternal parent = referrerProject.getParent();
         return parent != null ? parent.getInheritedScope() : null;
     }
+
 }

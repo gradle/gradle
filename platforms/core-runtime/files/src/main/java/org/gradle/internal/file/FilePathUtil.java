@@ -18,6 +18,7 @@ package org.gradle.internal.file;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -72,5 +73,29 @@ public class FilePathUtil {
             }
         }
         return lastSeparator;
+    }
+
+    /**
+     * Removes the trailing segments from the given path if it ends with the specified path to remove.
+     */
+    public static String maybeRemoveTrailingSegments(String path, String pathToRemove) {
+        String[] removalSegments = getPathSegments(pathToRemove);
+        String[] pathSegments = getPathSegments(path);
+        int potentialRemovalIndex = pathSegments.length - removalSegments.length;
+        // Check if the path ends with the removal path.
+        if (potentialRemovalIndex > 0) {
+            String[] lastSegments = Arrays.stream(pathSegments)
+                .skip(potentialRemovalIndex)
+                .toArray(String[]::new);
+
+            if (Arrays.equals(lastSegments, removalSegments)) {
+                // If it does, we remove the segments from the path
+                // i.e: <rootPath>/<removalPath> becomes just <rootPath>
+                String maybeLeadingSeparator = FILE_PATH_SEPARATORS.contains(path.substring(0, 1)) ? "/" : "";
+                return maybeLeadingSeparator + String.join("/", Arrays.copyOf(pathSegments, potentialRemovalIndex));
+            }
+        }
+        // Otherwise, we return the original path.
+        return path;
     }
 }

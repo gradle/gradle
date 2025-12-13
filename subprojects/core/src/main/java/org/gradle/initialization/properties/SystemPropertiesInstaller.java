@@ -20,7 +20,7 @@ import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scope.Build.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface SystemPropertiesInstaller {
 
     void setSystemPropertiesFrom(GradleProperties gradleProperties);

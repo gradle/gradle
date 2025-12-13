@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@NonNullApi
+@NullMarked
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

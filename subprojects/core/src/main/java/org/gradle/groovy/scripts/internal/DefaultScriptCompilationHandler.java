@@ -64,16 +64,15 @@ import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.security.CodeSource;
@@ -83,21 +82,25 @@ import java.util.Map;
 
 @SuppressWarnings("deprecation")
 @ServiceScope(Scope.Build.class)
-public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
+public abstract class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private final Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
     private static final NoOpGroovyResourceLoader NO_OP_GROOVY_RESOURCE_LOADER = new NoOpGroovyResourceLoader();
     private static final String METADATA_FILE_NAME = "metadata.bin";
     private static final int EMPTY_FLAG = 1;
     private static final int HAS_METHODS_FLAG = 2;
 
-    private final Deleter deleter;
     private final Map<String, List<String>> simpleNameToFQN;
 
     @Inject
-    public DefaultScriptCompilationHandler(Deleter deleter, ImportsReader importsReader) {
-        this.deleter = deleter;
+    public DefaultScriptCompilationHandler(ImportsReader importsReader) {
         this.simpleNameToFQN = importsReader.getSimpleNameToFullClassNamesMapping();
     }
+
+    @Inject
+    protected abstract Deleter getDeleter();
+
+    @Inject
+    protected abstract Problems getProblemsService();
 
     @Override
     public void compileToDir(
@@ -106,9 +109,9 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     ) {
         Timer clock = Time.startTimer();
         try {
-            deleter.ensureEmptyDirectory(classesDir);
+            getDeleter().ensureEmptyDirectory(classesDir);
         } catch (IOException ioex) {
-            throw new UncheckedIOException(ioex);
+            throw UncheckedException.throwAsUncheckedException(ioex);
         }
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         configuration.setTargetDirectory(classesDir);
@@ -116,10 +119,10 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             compileScript(source, classLoader, configuration, metadataDir, extractingTransformer, verifier);
         } catch (Exception e) {
             try {
-                deleter.deleteRecursively(classesDir);
-                deleter.deleteRecursively(metadataDir);
+                getDeleter().deleteRecursively(classesDir);
+                getDeleter().deleteRecursively(metadataDir);
             } catch (IOException ioex) {
-                throw new UncheckedIOException(ioex);
+                throw UncheckedException.throwAsUncheckedException(ioex);
             }
             throw e;
         }
@@ -175,11 +178,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         } finally {
             ClassLoaderUtils.tryClose(groovyClassLoader);
         }
-    }
-
-    @Inject
-    protected Problems getProblemsService() {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     private <M> void serializeMetadata(ScriptSource scriptSource, CompileOperation<M> extractingTransformer, File metadataDir, boolean emptyScript, boolean hasMethods) {
@@ -435,7 +433,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
 
         @Override
-        public byte[] instrumentClass(@Nullable String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+        public byte @Nullable [] instrumentClass(@Nullable String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
             return replacer.getInstrumentedClass(className, protectionDomain);
         }
 

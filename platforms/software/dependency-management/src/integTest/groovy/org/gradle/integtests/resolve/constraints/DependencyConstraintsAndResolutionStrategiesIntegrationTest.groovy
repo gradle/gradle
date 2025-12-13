@@ -30,19 +30,21 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESS
  * should not be required.
  */
 class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends AbstractIntegrationSpec {
-    private final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
+    private final ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
-        resolve.prepare()
-        resolve.addDefaultVariantDerivationStrategy()
         buildFile << """
+            plugins {
+                id("jvm-ecosystem")
+            }
             repositories {
                 maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
             }
+            ${resolve.configureProject("conf")}
         """
         def foo11 = mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
@@ -98,8 +100,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause """Conflict found for the following module:
-  - org:foo between versions 1.1 and 1.0"""
+        failure.assertHasCause """Conflict found for module 'org:foo': between versions 1.1 and 1.0"""
         failure.assertHasResolutions("Run with :dependencyInsight --configuration conf " +
             "--dependency org:foo to get more insight on how to solve the conflict.",
             STACKTRACE_MESSAGE,

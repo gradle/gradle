@@ -35,25 +35,6 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         operation().details.buildPath == ":"
     }
 
-    def "settings set via cmdline flag are exposed"() {
-        createDirs("custom", "custom/a")
-        def customSettingsDir = file("custom")
-        def customSettingsFile = new File(customSettingsDir, "settings.gradle")
-        customSettingsFile << """
-
-        include "a"
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
-        executer.withArguments("--settings-file", customSettingsFile.absolutePath)
-        succeeds('help')
-
-        then:
-        verifySettings(operation(), customSettingsFile)
-        operation().details.buildPath == ":"
-    }
-
     def "composite participants expose their settings details"() {
         createDirs("a", "nested")
         settingsFile << """

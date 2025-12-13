@@ -22,8 +22,8 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.util.GradleVersion;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -223,7 +223,7 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         });
     }
 
-    private void writeVersionConstraint(@Nullable ModuleMetadataSpec.Version version) throws IOException {
+    private void writeVersionConstraint(ModuleMetadataSpec.@Nullable Version version) throws IOException {
         if (version == null) {
             return;
         }

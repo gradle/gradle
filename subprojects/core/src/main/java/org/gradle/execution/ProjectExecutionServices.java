@@ -77,11 +77,6 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    org.gradle.api.execution.TaskActionListener createTaskActionListener(ListenerManager listenerManager) {
-        return listenerManager.getBroadcaster(org.gradle.api.execution.TaskActionListener.class);
-    }
-
-    @Provides
     TaskCacheabilityResolver createTaskCacheabilityResolver(RelativeFilePathResolver relativeFilePathResolver) {
         return new DefaultTaskCacheabilityResolver(relativeFilePathResolver);
     }
@@ -107,20 +102,18 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
         FileOperations fileOperations,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-        org.gradle.api.execution.TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
         TaskExecutionGraphInternal taskExecutionGraph,
-        org.gradle.api.execution.TaskExecutionListener taskExecutionListener,
         TaskExecutionModeResolver repository,
-        TaskListenerInternal taskListenerInternal,
         ExecutionEngine executionEngine,
-        InputFingerprinter inputFingerprinter
+        InputFingerprinter inputFingerprinter,
+        MissingTaskDependencyDetector missingTaskDependencyDetector
     ) {
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             executionHistoryStore,
             buildOperationRunner,
             asyncWorkTracker,
-            actionListener,
+            listenerManager.getBroadcaster(org.gradle.api.execution.TaskActionListener.class),
             taskCacheabilityResolver,
             classLoaderHierarchyHasher,
             executionEngine,
@@ -130,28 +123,28 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
             fileCollectionFactory,
             taskDependencyFactory,
             // TODO Can we inject a PathToFileResolver here directly?
-            fileOperations.getFileResolver()
+            fileOperations.getFileResolver(),
+            missingTaskDependencyDetector
         );
         executer = new ProblemsTaskPathTrackingTaskExecuter(executer);
-        executer = new FinalizePropertiesTaskExecuter(executer);
         executer = new ResolveTaskExecutionModeExecuter(repository, executer);
+        executer = new FinalizePropertiesTaskExecuter(executer);
         executer = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, executer);
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new CatchExceptionTaskExecuter(executer);
-        executer = new EventFiringTaskExecuter(buildOperationRunner, taskExecutionListener, taskListenerInternal, executer);
+        executer = new EventFiringTaskExecuter(
+            buildOperationRunner, taskExecutionGraph.getLegacyTaskListenerBroadcast(), listenerManager.getBroadcaster(TaskListenerInternal.class), executer);
         return executer;
     }
 
     @Provides
     FileCollectionFingerprinterRegistrations createFileCollectionFingerprinterRegistrations(
         StringInterner stringInterner,
-        FileCollectionSnapshotter fileCollectionSnapshotter,
         ResourceSnapshotterCacheService resourceSnapshotterCacheService,
         InputNormalizationHandlerInternal inputNormalizationHandler
     ) {
         return new FileCollectionFingerprinterRegistrations(
             stringInterner,
-            fileCollectionSnapshotter,
             resourceSnapshotterCacheService,
             inputNormalizationHandler.getRuntimeClasspath().getClasspathResourceFilter(),
             inputNormalizationHandler.getRuntimeClasspath().getManifestAttributeResourceEntryFilter(),

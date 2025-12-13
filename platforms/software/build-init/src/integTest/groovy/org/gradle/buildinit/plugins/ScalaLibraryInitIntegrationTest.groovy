@@ -17,15 +17,21 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 
-@Requires(value = UnitTestPreconditions.Jdk22OrEarlier, reason = "Scala cannot compile on Java 23 yet")
+@Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
 class ScalaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "org/example/Library.scala"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "org/example/LibrarySuite.scala"
+
+    @Override
+    def setup() {
+        resultsTestFramework(GenericTestExecutionResult.TestFramework.SCALA_TEST)
+    }
 
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:

@@ -17,8 +17,8 @@
 package org.gradle.language.base.compile;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.Input;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Version of a compiler.
@@ -26,7 +26,7 @@ import org.gradle.api.tasks.Input;
  * @since 4.4
  */
 @Incubating
-@NonNullApi
+@NullMarked
 public interface CompilerVersion {
 
     /**

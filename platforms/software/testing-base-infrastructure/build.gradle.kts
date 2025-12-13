@@ -2,9 +2,13 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-gradlebuildJava.usedInWorkers()
-
 description = """Generalized test infrastructure to support executing tests in test workers."""
+
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
     api(projects.baseServices)
@@ -15,7 +19,7 @@ dependencies {
     api(projects.time)
     api(projects.workerMain)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.io)
     implementation(projects.serviceLookup)
@@ -23,6 +27,7 @@ dependencies {
     implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.commonsLang)
+    implementation(libs.guava)
     implementation(libs.slf4jApi)
 
     testImplementation(projects.serviceRegistryImpl)
@@ -32,13 +37,13 @@ dependencies {
     testImplementation(testFixtures(projects.time))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+    integTestImplementation(testFixtures(projects.testingBase))
 }
 
 packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/testing/**")
 }
 
-integTest.usesJavadocCodeSnippets = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

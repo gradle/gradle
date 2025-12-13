@@ -20,8 +20,10 @@ import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Map;
-
+// TODO: We should consider renaming every concat method here to "merge" or something,
+//       as these are not concatenation operations, and it is confusing to expect them
+//       to behave as such.  They REPLACE duplicate keys, and sometimes result in adding
+//       MULTIPLE values to the result for a single key.
 @ServiceScope(Scope.BuildSession.class)
 public interface AttributesFactory {
     /**
@@ -53,25 +55,31 @@ public interface AttributesFactory {
     <T> ImmutableAttributes of(Attribute<T> key, T value);
 
     /**
-     * Returns an attribute container that contains the values in the given map
-     * of attribute to attribute value.
-     * <p>
-     * This method is meant to be the inverse of {@link AttributeContainerInternal#asMap()}.
-     *
-     * @param attributes the attribute values the result should contain
-     * @return immutable instance containing only the specified attributes
-     */
-    ImmutableAttributes fromMap(Map<Attribute<?>, ?> attributes);
-
-    /**
-     * Adds the given attribute to the given container. Note: the container _should not_ contain the given attribute.
+     * Merges the given attribute to the given container. Note: the container _should not_ contain the given attribute.
      */
     <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, T value);
 
     /**
-     * Adds the given attribute to the given container. Note: the container _should not_ contain the given attribute.
+     * Merges the given attribute to the given container. Note: the container _should not_ contain the given attribute.
      */
     <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value);
+
+    /**
+     * Same as {@link #concat(ImmutableAttributes, Attribute, Isolatable)} but with special handling for legacy Usage values.
+     * <p>
+     * This method implements legacy behavior where we would automatically convert legacy values of
+     * the {@link org.gradle.api.attributes.Usage} attribute to corresponding modern values of the Usage and
+     * {@link org.gradle.api.attributes.LibraryElements} attributes.
+     * <p>
+     * In practice, the attribute containers should be agnostic of the actual attribute keys and values they contain.
+     * Therefore, this method should be avoided and the standard transparent
+     * {@link #concat(ImmutableAttributes, Attribute, Isolatable)} should be used instead.
+     *
+     * @deprecated In Gradle 10, we should no longer handle legacy Usage values specially,
+     * and calls to this method should be replaced with the standard concat method.
+     */
+    @Deprecated
+    <T> ImmutableAttributes concatUsageAttribute(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value);
 
     /**
      * Merges the primary container into the fallback container and returns the result. Values in the primary container win.

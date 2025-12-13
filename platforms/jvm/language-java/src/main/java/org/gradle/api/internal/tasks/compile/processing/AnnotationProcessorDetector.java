@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Enums;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -30,12 +29,15 @@ import org.gradle.cache.internal.FileContentCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.serialize.ListSerializer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,6 +50,7 @@ import java.util.Map;
  * Inspects a classpath to find annotation processors contained in it. If several versions of the same annotation processor are found,
  * the first one is returned, mimicking the behavior of {@link java.util.ServiceLoader}.
  */
+@ServiceScope(Scope.BuildTree.class)
 public class AnnotationProcessorDetector {
 
     public static final String PROCESSOR_DECLARATION = "META-INF/services/javax.annotation.processing.Processor";
@@ -126,7 +129,7 @@ public class AnnotationProcessorDetector {
         }
 
         private List<String> readLines(File file) throws IOException {
-            return Files.asCharSource(file, Charsets.UTF_8).readLines(new MetadataLineProcessor());
+            return Files.asCharSource(file, StandardCharsets.UTF_8).readLines(new MetadataLineProcessor());
         }
 
         private List<AnnotationProcessorDeclaration> detectProcessorsInJar(File jar) {
@@ -170,7 +173,7 @@ public class AnnotationProcessorDetector {
         private List<String> readLines(ZipFile zipFile, ZipArchiveEntry zipEntry) throws IOException {
             InputStream in = zipFile.getInputStream(zipEntry);
             try {
-                return CharStreams.readLines(new InputStreamReader(in, Charsets.UTF_8), new MetadataLineProcessor());
+                return CharStreams.readLines(new InputStreamReader(in, StandardCharsets.UTF_8), new MetadataLineProcessor());
             } finally {
                 in.close();
             }

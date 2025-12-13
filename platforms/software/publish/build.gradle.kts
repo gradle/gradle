@@ -4,13 +4,6 @@ plugins {
 
 description = "Base plugin for the maven and ivy publish plugins. Defines the publishing extension."
 
-errorprone {
-    disabledChecks.addAll(
-        "InlineMeSuggester", // 7 occurrences
-        "MixedMutabilityReturnType", // 5 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.core)
@@ -24,9 +17,8 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.serviceLookup)
     implementation(projects.baseServicesGroovy) {
@@ -37,6 +29,7 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.gson)
     implementation(libs.guava)
+    implementation(libs.jsr305)
 
     testImplementation(testFixtures(projects.core))
 
@@ -46,7 +39,6 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
-integTest.usesJavadocCodeSnippets = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

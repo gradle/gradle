@@ -29,8 +29,8 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -232,8 +232,16 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     private void addExplicitCollector(MapCollector<K, V> collector) {
         assertCanMutate();
-        MapSupplier<K, V> explicitValue = getExplicitValue(defaultValue);
-        setSupplier(explicitValue.plus(collector));
+        setSupplier(withAppendedValue(collector));
+    }
+
+    private MapSupplier<K, V> withAppendedValue(MapCollector<K, V> value) {
+        MapSupplier<K, V> currentValue = getExplicitValue(defaultValue);
+        try {
+            return currentValue.plus(value);
+        } catch (IllegalStateException e) {
+            throw failWithCorruptedStateException(e);
+        }
     }
 
     protected void withActualValue(Runnable action) {
@@ -321,7 +329,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         return new KeySetProvider();
     }
 
-    public void replace(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<Map<K, V>>> transformation) {
+    public void replace(Transformer<? extends @Nullable Provider<? extends Map<? extends K, ? extends V>>, ? super Provider<Map<K, V>>> transformation) {
         Provider<? extends Map<? extends K, ? extends V>> newValue = transformation.transform(shallowCopy());
         if (newValue != null) {
             set(newValue);
@@ -371,6 +379,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
+        public ValueProducer getProducer() {
+            return DefaultMapProperty.this.getProducer();
+        }
+
+        @Override
         protected Value<? extends V> calculateOwnValue(ValueConsumer consumer) {
             Value<? extends Map<K, V>> result = DefaultMapProperty.this.calculateOwnValue(consumer);
             if (result.isMissing()) {
@@ -387,6 +400,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @SuppressWarnings("unchecked")
         public Class<Set<K>> getType() {
             return (Class) Set.class;
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return DefaultMapProperty.this.getProducer();
         }
 
         @Override

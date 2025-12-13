@@ -39,7 +39,7 @@ $(function() {
 
   injectIssues(
     "https://services.gradle.org/fixed-issues/@baseVersion@",
-    $("#fixed-issues"),
+    $("#fixed-issues").parent(),
     "fixed-issues",
     "Retrieving the fixed issue information for @baseVersion@",
     function(i) {
@@ -49,7 +49,7 @@ $(function() {
 
   injectIssues(
     "https://services.gradle.org/known-issues/@baseVersion@",
-    $("#known-issues").next("p"),
+    $("#known-issues").parent().next("p"),
     "known-issues",
     "Retrieving the known issue information for @baseVersion@",
     function(i) {

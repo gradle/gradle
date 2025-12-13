@@ -14,6 +14,7 @@
 
 [[feature_lifecycle]]
 = The Feature Lifecycle
+:keywords: incubating
 
 Gradle is under constant development. New versions are delivered on a regular and frequent basis (approximately every six weeks) as described in <<#eol_support,the section on end-of-life support>>.
 
@@ -99,7 +100,7 @@ The use of _deprecated_ features should be avoided.
 The release notes for each release indicate any features being _deprecated_ by the release.
 
 [[backwards_compatibility]]
-== Backward compatibility policy
+== Backward compatibility Policy
 
 Gradle provides backward compatibility across major versions (e.g., `1.x`, `2.x`, etc.).
 Once a public feature is introduced in a Gradle release, it will remain indefinitely unless deprecated.

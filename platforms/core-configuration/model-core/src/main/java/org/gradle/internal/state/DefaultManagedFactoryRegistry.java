@@ -18,8 +18,7 @@ package org.gradle.internal.state;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultManagedFactoryRegistry implements ManagedFactoryRegistry {
     private final ManagedFactoryRegistry parent;

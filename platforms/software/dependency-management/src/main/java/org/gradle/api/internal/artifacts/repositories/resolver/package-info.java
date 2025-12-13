@@ -17,5 +17,7 @@
 /**
  * Implementation classes of API declaring and using artifacts and artifact dependencies.
  */
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.api.internal.artifacts.repositories.resolver;
+
+import org.jspecify.annotations.NullMarked;

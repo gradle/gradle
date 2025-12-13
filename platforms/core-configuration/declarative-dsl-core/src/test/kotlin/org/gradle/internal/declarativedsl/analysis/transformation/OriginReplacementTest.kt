@@ -57,7 +57,7 @@ class OriginReplacementTest {
         with(resolution("configuring { property = value(value()) }")) {
             val result = replaceInnerReceiverWithTopLevel(assignments.single().rhs)
             val argResult = (result as ObjectOrigin.NewObjectFromMemberFunction).parameterBindings.bindingMap.values.single()
-            assertEquals(topLevelReceiver, ((argResult as ObjectOrigin.NewObjectFromMemberFunction).receiver as ObjectOrigin.ImplicitThisReceiver).resolvedTo)
+            assertEquals(topLevelReceiver, ((argResult.objectOrigin as ObjectOrigin.NewObjectFromMemberFunction).receiver as ObjectOrigin.ImplicitThisReceiver).resolvedTo)
         }
     }
 
@@ -66,7 +66,7 @@ class OriginReplacementTest {
         with(resolution("configuring { addingValue(utils.value()) }")) {
             val result = replaceInnerReceiverWithTopLevel(additions.single().dataObject)
             val singleArg = (result as ObjectOrigin.NewObjectFromMemberFunction).parameterBindings.bindingMap.values.single()
-            val propertyReference = (singleArg as ObjectOrigin.NewObjectFromMemberFunction).receiver as ObjectOrigin.PropertyReference
+            val propertyReference = (singleArg.objectOrigin as ObjectOrigin.NewObjectFromMemberFunction).receiver as ObjectOrigin.PropertyReference
             assertEquals(topLevelReceiver, (propertyReference.receiver as ObjectOrigin.ImplicitThisReceiver).resolvedTo)
         }
     }
@@ -88,7 +88,7 @@ class OriginReplacementTest {
         with(resolution("configuring { addingValue(value().anotherValue()) }")) {
             val result = replaceInnerReceiverWithTopLevel(additions.single().dataObject)
             val singleArg = (result as ObjectOrigin.NewObjectFromMemberFunction).parameterBindings.bindingMap.values.single()
-            val propertyReference = (singleArg as ObjectOrigin.NewObjectFromMemberFunction).receiver as ObjectOrigin.NewObjectFromMemberFunction
+            val propertyReference = (singleArg.objectOrigin as ObjectOrigin.NewObjectFromMemberFunction).receiver as ObjectOrigin.NewObjectFromMemberFunction
             assertEquals(topLevelReceiver, (propertyReference.receiver as ObjectOrigin.ImplicitThisReceiver).resolvedTo)
         }
     }

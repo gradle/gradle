@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.ivy.IvyDescriptorArtifact
 
 class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTest {
@@ -53,7 +52,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         then:
         module.assertPublished()
         module.assertArtifactsPublished("ivy-2.4.xml", "ivyPublish-2.4.txt",  "ivyPublish-2.4.foo", "ivyPublish-2.4.bar", "ivyPublish-2.4.html", "ivyPublish-2.4.reg", "ivyPublish-2.4.jar")
-        result.assertTasksExecuted(":customDocsTask", ":customJar", ":regularFileTask", ":generateDescriptorFileForIvyPublication", ":publishIvyPublicationToIvyRepository", ":publish")
+        result.assertTasksScheduled(":customDocsTask", ":customJar", ":regularFileTask", ":generateDescriptorFileForIvyPublication", ":publishIvyPublicationToIvyRepository", ":publish")
 
         and:
         def ivy = module.parsedIvy
@@ -488,7 +487,6 @@ The following types/formats are supported:
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "dependencies with multiple dependency artifacts are mapped to multiple dependency declarations in GMM"() {
         def repoModule = javaLibrary(ivyRepo.module('group', 'root', '1.0'))
 
@@ -523,6 +521,10 @@ The following types/formats are supported:
                         from components.java
                     }
                 }
+            }
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
             }
         """
 

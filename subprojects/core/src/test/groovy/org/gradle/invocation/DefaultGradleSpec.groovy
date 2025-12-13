@@ -40,6 +40,7 @@ import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.SettingsState
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.DefaultPublicBuildPath
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
@@ -54,7 +55,6 @@ import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.GradleVersion
 import org.gradle.util.Path
@@ -62,9 +62,9 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultGradleSpec extends Specification {
-    ServiceRegistryFactory serviceRegistryFactory = Stub(ServiceRegistryFactory)
     ListenerManager listenerManager = Spy(TestListenerManager)
 
+    BuildState build = Mock(BuildState)
     StartParameterInternal parameter = new StartParameterInternal()
     CurrentGradleInstallation currentGradleInstallation = Mock(CurrentGradleInstallation)
     BuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
@@ -78,7 +78,6 @@ class DefaultGradleSpec extends Specification {
 
     def setup() {
         def serviceRegistry = Stub(ServiceRegistry)
-        _ * serviceRegistryFactory.createFor(_) >> serviceRegistry
         _ * serviceRegistry.get(ClassLoaderScopeRegistry) >> Mock(ClassLoaderScopeRegistry)
         _ * serviceRegistry.get(FileResolver) >> Mock(FileResolver)
         _ * serviceRegistry.get(ScriptHandler) >> Mock(ScriptHandler)
@@ -104,7 +103,7 @@ class DefaultGradleSpec extends Specification {
             }
         }
 
-        gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
+        gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, build, parameter, serviceRegistry)
     }
 
     def "uses gradle version"() {

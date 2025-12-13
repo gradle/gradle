@@ -411,7 +411,7 @@ class RejectedLanguageFeaturesParsingTest {
     @Test
     fun `rejects augmenting assignments`() {
         val code = """
-            a += b
+            a *= b
             a.x -= b""".trimIndent()
         val expected = """
             ErroneousStatement (

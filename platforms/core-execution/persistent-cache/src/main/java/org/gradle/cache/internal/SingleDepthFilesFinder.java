@@ -19,8 +19,8 @@ package org.gradle.cache.internal;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayDeque;
@@ -40,7 +40,7 @@ public class SingleDepthFilesFinder implements FilesFinder {
     public Iterable<File> find(final File baseDir, final FileFilter filter) {
         return new Iterable<File>() {
             @Override
-            @Nonnull
+            @NonNull
             public Iterator<File> iterator() {
                 return new SingleDepthFileIterator(baseDir, filter);
             }

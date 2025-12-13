@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.provider.model.internal;
 
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.code.UserCodeApplicationContext;
@@ -23,8 +24,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.UnknownModelException;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Build.class)
 public interface ToolingModelBuilderLookup {
@@ -34,7 +34,7 @@ public interface ToolingModelBuilderLookup {
     /**
      * Locates a builder for a project-scoped model.
      */
-    Builder locateForClientOperation(String modelName, boolean parameter, ProjectState target) throws UnknownModelException;
+    Builder locateForClientOperation(String modelName, boolean parameter, ProjectState target, ProjectInternal project) throws UnknownModelException;
 
     /**
      * Locates a builder for a build-scoped model.
@@ -45,8 +45,7 @@ public interface ToolingModelBuilderLookup {
     interface Registration {
         ToolingModelBuilder getBuilder();
 
-        @Nullable
-        UserCodeApplicationContext.Application getRegisteredBy();
+        UserCodeApplicationContext.@Nullable Application getRegisteredBy();
     }
 
     interface Builder {

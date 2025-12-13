@@ -21,8 +21,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 
 import static org.gradle.plugin.management.internal.PluginRequestInternal.Origin.AUTO_APPLIED;
@@ -38,7 +38,7 @@ public class GradleEnterprisePluginAutoApplicationListener implements PluginRequ
     }
 
     @Override
-    public void pluginApplied(@Nonnull PluginRequestInternal pluginRequest) {
+    public void pluginApplied(@NonNull PluginRequestInternal pluginRequest) {
         if (pluginRequest.getOrigin() == AUTO_APPLIED && AutoAppliedDevelocityPlugin.ID.equals(pluginRequest.getId())) {
             status.markAsAutoApplied();
         }

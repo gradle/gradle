@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.repositories;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.attributes.Attribute;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 

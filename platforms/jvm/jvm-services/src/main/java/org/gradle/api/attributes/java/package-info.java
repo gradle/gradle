@@ -17,5 +17,7 @@
 /**
  * Attributes specific to the Java ecosystem.
  */
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.api.attributes.java;
+
+import org.jspecify.annotations.NullMarked;

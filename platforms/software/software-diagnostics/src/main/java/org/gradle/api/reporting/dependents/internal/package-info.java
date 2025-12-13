@@ -17,5 +17,5 @@
 /**
  * Types responsible for generating dependents components reports.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.api.reporting.dependents.internal;

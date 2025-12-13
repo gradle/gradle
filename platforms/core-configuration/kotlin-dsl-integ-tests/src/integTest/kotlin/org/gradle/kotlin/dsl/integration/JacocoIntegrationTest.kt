@@ -4,6 +4,7 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.junit.Test
 
 
@@ -12,6 +13,7 @@ class JacocoIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `jacoco ignore codegen`() {
+        JacocoCoverage.assumeDefaultJacocoWorksOnCurrentJdk()
         withBuildScript(
             """
             plugins {

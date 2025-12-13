@@ -28,8 +28,7 @@ import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask;
 import org.gradle.api.tasks.diagnostics.ResolvableConfigurationsReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
-
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Adds various reporting tasks that provide information about a software project, such as information about
@@ -38,7 +37,7 @@ import javax.annotation.Nonnull;
  * @since 8.13
  */
 @Incubating
-@Nonnull
+@NullMarked
 public abstract class SoftwareReportingTasksPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
@@ -50,7 +49,7 @@ public abstract class SoftwareReportingTasksPlugin implements Plugin<Project> {
         tasks.register(HelpTasksPlugin.DEPENDENCY_INSIGHT_TASK, DependencyInsightReportTask.class, new DependencyInsightReportTaskAction(projectName));
         tasks.register(HelpTasksPlugin.DEPENDENCIES_TASK, DependencyReportTask.class, new DependencyReportTaskAction(projectName));
         tasks.register(BuildEnvironmentReportTask.TASK_NAME, BuildEnvironmentReportTask.class, new BuildEnvironmentReportTaskAction(projectName));
-        registerDeprecatedSoftwareModelTasks(tasks, projectName);
+
         tasks.register(HelpTasksPlugin.OUTGOING_VARIANTS_TASK, OutgoingVariantsReportTask.class, task -> {
             task.setDescription("Displays the outgoing variants of " + projectName + ".");
             task.setGroup(HelpTasksPlugin.HELP_GROUP);
@@ -72,17 +71,6 @@ public abstract class SoftwareReportingTasksPlugin implements Plugin<Project> {
         tasks.withType(TaskReportTask.class).configureEach(task -> {
             task.getShowTypes().convention(false);
         });
-    }
-
-    /**
-     * Registers the deprecated tasks used by the Software Model.
-     * <p>
-     * Note that these tasks <strong>are</strong> deprecated, even though they do not emit a deprecation warning when run.
-     */
-    @SuppressWarnings("deprecation")
-    private void registerDeprecatedSoftwareModelTasks(TaskContainer tasks, String projectName) {
-        tasks.register(HelpTasksPlugin.COMPONENTS_TASK, org.gradle.api.reporting.components.ComponentReport.class, new ComponentReportAction(projectName));
-        tasks.register(HelpTasksPlugin.DEPENDENT_COMPONENTS_TASK, org.gradle.api.reporting.dependents.DependentComponentsReport.class, new DependentComponentsReportAction(projectName));
     }
 
     private static class DependencyInsightReportTaskAction implements Action<DependencyInsightReportTask> {
@@ -127,36 +115,6 @@ public abstract class SoftwareReportingTasksPlugin implements Plugin<Project> {
         public void execute(BuildEnvironmentReportTask task) {
             task.setDescription("Displays all buildscript dependencies declared in " + projectName + ".");
             task.setGroup(HelpTasksPlugin.HELP_GROUP);
-            task.setImpliesSubProjects(true);
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    private static class ComponentReportAction implements Action<org.gradle.api.reporting.components.ComponentReport> {
-        private final String projectName;
-
-        public ComponentReportAction(String projectName) {
-            this.projectName = projectName;
-        }
-
-        @Override
-        public void execute(org.gradle.api.reporting.components.ComponentReport task) {
-            task.setDescription("Displays the components produced by " + projectName + ". [deprecated]");
-            task.setImpliesSubProjects(true);
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    private static class DependentComponentsReportAction implements Action<org.gradle.api.reporting.dependents.DependentComponentsReport> {
-        private final String projectName;
-
-        public DependentComponentsReportAction(String projectName) {
-            this.projectName = projectName;
-        }
-
-        @Override
-        public void execute(org.gradle.api.reporting.dependents.DependentComponentsReport task) {
-            task.setDescription("Displays the dependent components of components in " + projectName + ". [deprecated]");
             task.setImpliesSubProjects(true);
         }
     }

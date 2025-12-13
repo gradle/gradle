@@ -19,8 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The final representation of a dependency in the resolved dependency graph.
@@ -28,6 +27,9 @@ import javax.annotation.Nullable;
  */
 public interface ResolvedGraphDependency {
 
+    /**
+     * The component selector that the user requested, before substitutions are applied.
+     */
     ComponentSelector getRequested();
 
     @Nullable
@@ -46,11 +48,6 @@ public interface ResolvedGraphDependency {
     ComponentSelectionReason getReason();
 
     boolean isConstraint();
-
-    /**
-     * Returns the simple id of the source variant, as per {@link ResolvedGraphVariant#getNodeId()}.
-     */
-    long getFromVariant();
 
     /**
      * Returns the simple id of the selected variant, as per {@link ResolvedGraphVariant#getNodeId()}.

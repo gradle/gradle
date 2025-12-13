@@ -17,20 +17,22 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
+import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.Closeable;
-import java.util.Collections;
-import java.util.List;
 
 @UsedByScanPlugin("test-retry")
-public interface TestFramework extends Closeable {
+public interface TestFramework extends Closeable, Describable {
 
     /**
      * Returns a copy of the test framework but with the specified test filters.
@@ -52,13 +54,13 @@ public interface TestFramework extends Closeable {
     TestFrameworkOptions getOptions();
 
     /**
-     * Returns a factory which is used to create a {@link org.gradle.api.internal.tasks.testing.TestClassProcessor} in
+     * Returns a factory which is used to create a {@link TestDefinitionProcessor} in
      * each worker process. This factory is serialized across to the worker process, and then its {@link
-     * org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory#create(org.gradle.internal.service.ServiceRegistry)}
+     * WorkerTestDefinitionProcessorFactory#create(IdGenerator, ActorFactory, Clock)}
      * method is called to create the test processor.
      */
     @Internal
-    WorkerTestClassProcessorFactory getProcessorFactory();
+    WorkerTestDefinitionProcessorFactory<?> getProcessorFactory();
 
     /**
      * Returns an action which is used to perform some framework specific worker process configuration. This action is
@@ -68,66 +70,24 @@ public interface TestFramework extends Closeable {
     Action<WorkerProcessBuilder> getWorkerConfigurationAction();
 
     /**
-     * Returns a list of distribution modules that the test worker requires on the application classpath.
-     * These dependencies are loaded from the Gradle distribution.
-     *
-     * Application classes specified by {@link WorkerProcessBuilder#sharedPackages} are
-     * also included in the implementation classpath.
-     *
-     * @see #getUseDistributionDependencies()
+     * Returns additional levels to skip for {@code AbstractTestTask.getReportEntrySkipLevels()}.
+     * Default implementation returns 0.
      */
     @Internal
-    default List<TestFrameworkDistributionModule> getWorkerApplicationClasspathModules() {
-        return Collections.emptyList();
+    default int getAdditionalReportEntrySkipLevels() {
+        return 0;
     }
 
     /**
-     * Returns a list of distribution modules that the test worker requires on the application modulepath if it runs as a module.
-     * These dependencies are loaded from the Gradle distribution.
+     * Whether or not this test framework supports resource-based (non-class-based) test definitions.
      *
-     * Application classes specified by {@link WorkerProcessBuilder#sharedPackages} are
-     * also included in the implementation classpath.
-     *
-     * @see #getUseDistributionDependencies()
+     * @return {@code true} if resource-based test definitions are supported; otherwise {@code false}
      */
-    @Internal
-    default List<TestFrameworkDistributionModule> getWorkerApplicationModulepathModules() {
-        return Collections.emptyList();
+    default boolean supportsNonClassBasedTesting() {
+        return false;
     }
 
-    /**
-     * Returns a list of distribution modules that the test worker requires on implementation the classpath.
-     * These dependencies are loaded from the Gradle distribution.
-     *
-     * @see #getUseDistributionDependencies()
-     */
+    @Override
     @Internal
-    default List<TestFrameworkDistributionModule> getWorkerImplementationClasspathModules() {
-        return Collections.emptyList();
-    }
-
-    /**
-     * Returns a list of distribution modules that the test worker requires on the implementation modulepath if it runs as a module.
-     * These dependencies are loaded from the Gradle distribution.
-     *
-     * @see #getUseDistributionDependencies()
-     */
-    @Internal
-    default List<TestFrameworkDistributionModule> getWorkerImplementationModulepathModules() {
-        return Collections.emptyList();
-    }
-
-    /**
-     * Whether the legacy behavior of loading test framework dependencies from the Gradle distribution
-     * is enabled. If true, jars specified by this framework are loaded from the Gradle distribution
-     * and placed on the test worker implementation/application classpath/modulepath.
-     * <p>
-     * This functionality is legacy and will eventually be deprecated and removed. Test framework dependencies
-     * should be managed externally from the Gradle distribution, as is done by test suites.
-     *
-     * @return Whether test framework dependencies should be loaded from the Gradle distribution.
-     */
-    @Internal
-    boolean getUseDistributionDependencies();
-
+    String getDisplayName();
 }

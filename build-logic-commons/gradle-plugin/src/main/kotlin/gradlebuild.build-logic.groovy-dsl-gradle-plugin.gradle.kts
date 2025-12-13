@@ -1,5 +1,3 @@
-import gradlebuild.commons.configureJavaToolChain
-
 /*
  * Copyright 2020 the original author or authors.
  *
@@ -25,8 +23,6 @@ plugins {
     id("gradlebuild.private-javadoc")
 }
 
-java.configureJavaToolChain()
-
 dependencies {
     api(platform("gradlebuild:build-platform"))
     implementation("gradlebuild:gradle-plugin")
@@ -35,6 +31,8 @@ dependencies {
     testImplementation("org.spockframework:spock-core")
     testImplementation("net.bytebuddy:byte-buddy")
     testImplementation("org.objenesis:objenesis")
+
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<GroovyCompile>().configureEach {

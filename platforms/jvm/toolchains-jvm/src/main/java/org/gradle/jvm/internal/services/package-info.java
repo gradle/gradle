@@ -17,7 +17,7 @@
 /**
  * Services used by JVM toolchain plugins.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.jvm.internal.services;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

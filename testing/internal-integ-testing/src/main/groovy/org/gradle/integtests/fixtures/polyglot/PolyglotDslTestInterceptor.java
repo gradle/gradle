@@ -15,33 +15,42 @@
  */
 package org.gradle.integtests.fixtures.polyglot;
 
+import org.apache.commons.lang3.stream.Streams;
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor;
 import org.gradle.test.fixtures.dsl.GradleDsl;
 import org.spockframework.runtime.extension.IMethodInvocation;
 
+import javax.annotation.Nonnull;
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class PolyglotDslTestInterceptor extends AbstractMultiTestInterceptor {
     private final static String DSL_LANGUAGE = "org.gradle.internal.runner.dsl";
 
+    private final Set<GradleDsl> classSpecificSkippedDSLs;
+
     public PolyglotDslTestInterceptor(Class<?> target) {
         super(target);
+        classSpecificSkippedDSLs = skippedDSLs(target.getAnnotations());
     }
 
     public static GradleDsl getCurrentDsl() {
         String property = System.getProperty(DSL_LANGUAGE);
-        if (property == null) {
-            return null;
-        }
+        Objects.requireNonNull(property, "Should be used from tests marked with @" + PolyglotDslTest.class.getSimpleName());
         return GradleDsl.valueOf(property);
     }
 
     @Override
     protected void createExecutions() {
         for (GradleDsl dsl : GradleDsl.values()) {
-            if (GradleDsl.DECLARATIVE == dsl) {
-                // TODO: Declarative DSL needs more feature in order to run these tests
-                continue;
+            if (!classSpecificSkippedDSLs.contains(dsl)) {
+                add(new DslExecution(dsl));
             }
-            add(new DslExecution(dsl));
         }
     }
 
@@ -71,5 +80,28 @@ public class PolyglotDslTestInterceptor extends AbstractMultiTestInterceptor {
         protected void after() {
             System.clearProperty(DSL_LANGUAGE);
         }
+
+        @Override
+        public boolean isTestEnabled(TestDetails testDetails) {
+            Set<GradleDsl> methodSpecificSkippedDSLs = skippedDSLs(testDetails.getAnnotations());
+            return !methodSpecificSkippedDSLs.contains(dsl);
+        }
+    }
+
+    @Nonnull
+    private static Set<GradleDsl> skippedDSLs(Annotation[] annotations) {
+        return Arrays.stream(annotations)
+            .flatMap((Function<Annotation, Stream<SkipDsl>>) a -> {
+                if (a instanceof SkipDsl) {
+                    return Streams.of((SkipDsl) a);
+                } else if (a instanceof SkipDsl.List) {
+                    SkipDsl.List al = (SkipDsl.List) a;
+                    return Arrays.stream(al.value());
+                } else {
+                    return null;
+                }
+            })
+            .map(SkipDsl::dsl)
+            .collect(Collectors.toSet());
     }
 }

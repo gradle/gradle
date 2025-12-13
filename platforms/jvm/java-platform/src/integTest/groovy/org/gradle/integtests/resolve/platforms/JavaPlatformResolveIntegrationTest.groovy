@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.platforms
 
-
 import org.gradle.api.attributes.Category
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -24,20 +23,21 @@ import org.hamcrest.Matchers
 
 class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    ResolveTestFixture resolve
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
-        settingsFile << "rootProject.name = 'test'"
-        buildFile << """
-            apply plugin: 'java-library'
-
-            allprojects {
+        settingsFile << """
+            rootProject.name = 'test'
+            gradle.lifecycle.beforeProject {
                 repositories {
                     maven { url = "${mavenHttpRepo.uri}" }
                 }
                 group = 'org.test'
                 version = '1.9'
             }
+        """
+        buildFile << """
+            apply plugin: 'java-library'
         """
     }
 
@@ -56,8 +56,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 api platform(project(":platform"))
                 api "org:foo"
             }
+
+            ${resolve.configureProject("compileClasspath")}
         """
-        checkConfiguration("compileClasspath")
 
         when:
         module.pom.expectGet()
@@ -98,8 +99,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 api "org:foo"
                 runtimeOnly "org:bar"
             }
+
+            ${resolve.configureProject("runtimeClasspath")}
         """
-        checkConfiguration("runtimeClasspath")
 
         when:
         module1.pom.expectGet()
@@ -149,8 +151,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 api project(":platform")
                 api "org:foo"
             }
+
+            ${resolve.configureProject("compileClasspath")}
         """
-        checkConfiguration("compileClasspath")
 
         when:
         fails ":checkDeps"
@@ -175,8 +178,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 api enforcedPlatform(project(":platform"))
                 api "org:foo:1.2"
             }
+
+            ${resolve.configureProject("compileClasspath")}
         """
-        checkConfiguration("compileClasspath")
 
         when:
         module1.pom.expectGet()
@@ -201,7 +205,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         }
     }
 
-    def "Can handle a published platform dependency that is resolved to a local platform project"() {
+    def "can handle a published platform dependency that is resolved to a local platform project"() {
         given:
         file("src/main/java/SomeClass.java") << "public class SomeClass {}"
         platformModule('')
@@ -261,8 +265,10 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 implementation platform($platform)
                 implementation 'org:bar:1.0'
             }
-"""
-        checkConfiguration("runtimeClasspath")
+
+            ${resolve.configureProject("runtimeClasspath")}
+        """
+
         platformGMM.allowAll()
         bar.allowAll()
         foo.allowAll()
@@ -308,12 +314,6 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
         where:
         platform << ["project(':platform')", "'org:other-platform:1.0'", "'org:bom-platform:1.0'"]
-    }
-
-    private void checkConfiguration(String configuration) {
-        resolve = new ResolveTestFixture(buildFile, configuration)
-        resolve.expectDefaultConfiguration("compile")
-        resolve.prepare()
     }
 
     private void platformModule(String dependencies) {

@@ -16,17 +16,19 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.gradle.integtests.fixtures.ProjectDirectoryCreator
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.cc.impl.fixtures.ToolingApiBackedGradleExecuter
 import org.gradle.internal.cc.impl.fixtures.ToolingApiSpec
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 
-class AbstractIsolatedProjectsToolingApiIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements ToolingApiSpec {
+class AbstractIsolatedProjectsToolingApiIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements ToolingApiSpec, ProjectDirectoryCreator {
 
-    static final String CONFIGURE_ON_DEMAND_FOR_TOOLING = "-Dorg.gradle.internal.isolated-projects.configure-on-demand.tooling=true"
+    static final String CONFIGURE_ON_DEMAND_FOR_TOOLING = "-Dorg.gradle.internal.isolated-projects.configure-on-demand=tooling"
+    static final String CACHING_FOR_TOOLING = "-Dorg.gradle.internal.isolated-projects.caching=tooling"
 
     @Override
     void withIsolatedProjects(String... moreExecuterArgs) {
-        executer.withArguments(ENABLE_CLI, CONFIGURE_ON_DEMAND_FOR_TOOLING, *moreExecuterArgs)
+        executer.withArguments(ENABLE_CLI, CONFIGURE_ON_DEMAND_FOR_TOOLING, CACHING_FOR_TOOLING, *moreExecuterArgs)
     }
 
     @Override

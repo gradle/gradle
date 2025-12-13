@@ -18,10 +18,10 @@ package org.gradle.internal.resource;
 
 import com.google.common.base.Objects;
 import org.gradle.api.Describable;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ import static java.lang.String.format;
 /**
  * An immutable resource name. Resources are arranged in a hierarchy. Names may be relative, or absolute with some opaque root resource.
  */
-@NonNullApi
+@NullMarked
 public class ExternalResourceName implements Describable {
     @Nullable
     private final String encodedRoot;

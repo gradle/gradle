@@ -16,11 +16,12 @@
 
 package org.gradle.api.tasks.diagnostics.internal
 
+import org.gradle.initialization.BuildClientMetaData
 import org.gradle.internal.logging.text.TestStyledTextOutput
 
 class TaskReportRendererTest extends AbstractTaskModelSpec {
     private final TestStyledTextOutput writer = new TestStyledTextOutput().ignoreStyle()
-    private final TaskReportRenderer renderer = new TaskReportRenderer()
+    private final TaskReportRenderer renderer = new TaskReportRenderer(Mock(BuildClientMetaData))
 
     def setup() {
         renderer.output = writer

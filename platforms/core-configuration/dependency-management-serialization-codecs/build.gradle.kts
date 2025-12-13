@@ -49,6 +49,3 @@ dependencies {
 
     implementation(libs.guava)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

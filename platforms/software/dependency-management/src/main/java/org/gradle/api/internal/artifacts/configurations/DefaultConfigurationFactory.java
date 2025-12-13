@@ -19,28 +19,18 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
-import org.gradle.api.internal.attributes.AttributesFactory;
-import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
-import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.model.CalculatedValueFactory;
-import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.work.WorkerThreadRegistry;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
@@ -48,109 +38,59 @@ import javax.inject.Inject;
 /**
  * Factory for creating {@link org.gradle.api.artifacts.Configuration} instances.
  */
+@ServiceScope(Scope.Project.class)
 @ThreadSafe
 public class DefaultConfigurationFactory {
-
-    private final Instantiator instantiator;
-    private final ConfigurationResolver resolver;
+    private final ConfigurationServicesBundle configurationServices;
     private final ListenerManager listenerManager;
     private final DomainObjectContext domainObjectContext;
-    private final FileCollectionFactory fileCollectionFactory;
-    private final BuildOperationRunner buildOperationRunner;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
-    private final AttributesFactory attributesFactory;
-    private final ResolveExceptionMapper exceptionContextualizer;
-    private final AttributeDesugaring attributeDesugaring;
     private final UserCodeApplicationContext userCodeApplicationContext;
-    private final ProjectStateRegistry projectStateRegistry;
-    private final WorkerThreadRegistry workerThreadRegistry;
-    private final DomainObjectCollectionFactory domainObjectCollectionFactory;
-    private final CalculatedValueFactory calculatedValueFactory;
-    private final TaskDependencyFactory taskDependencyFactory;
-    private final InternalProblems problemsService;
 
     @Inject
     public DefaultConfigurationFactory(
-        Instantiator instantiator,
-        ConfigurationResolver resolver,
+        ConfigurationServicesBundle configurationServices,
         ListenerManager listenerManager,
         DomainObjectContext domainObjectContext,
-        FileCollectionFactory fileCollectionFactory,
-        BuildOperationRunner buildOperationRunner,
         PublishArtifactNotationParserFactory artifactNotationParserFactory,
-        AttributesFactory attributesFactory,
-        ResolveExceptionMapper exceptionMapper,
-        AttributeDesugaring attributeDesugaring,
-        UserCodeApplicationContext userCodeApplicationContext,
-        ProjectStateRegistry projectStateRegistry,
-        WorkerThreadRegistry workerThreadRegistry,
-        DomainObjectCollectionFactory domainObjectCollectionFactory,
-        CalculatedValueFactory calculatedValueFactory,
-        TaskDependencyFactory taskDependencyFactory,
-        InternalProblems problemsService
+        UserCodeApplicationContext userCodeApplicationContext
     ) {
-        this.instantiator = instantiator;
-        this.resolver = resolver;
+        this.configurationServices = configurationServices;
         this.listenerManager = listenerManager;
         this.domainObjectContext = domainObjectContext;
-        this.fileCollectionFactory = fileCollectionFactory;
-        this.buildOperationRunner = buildOperationRunner;
         this.artifactNotationParser = artifactNotationParserFactory.create();
         this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
-        this.attributesFactory = attributesFactory;
-        this.exceptionContextualizer = exceptionMapper;
-        this.attributeDesugaring = attributeDesugaring;
         this.userCodeApplicationContext = userCodeApplicationContext;
-        this.projectStateRegistry = projectStateRegistry;
-        this.workerThreadRegistry = workerThreadRegistry;
-        this.domainObjectCollectionFactory = domainObjectCollectionFactory;
-        this.calculatedValueFactory = calculatedValueFactory;
-        this.taskDependencyFactory = taskDependencyFactory;
-        this.problemsService = problemsService;
     }
 
     /**
      * Creates a new unlocked configuration instance.
      */
-    DefaultUnlockedConfiguration create(
+    DefaultLegacyConfiguration create(
         String name,
-        ConfigurationsProvider configurationsProvider,
+        boolean isDetached,
+        ConfigurationResolver resolver,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder,
         ConfigurationRole role
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        DefaultUnlockedConfiguration instance = instantiator.newInstance(
-            DefaultUnlockedConfiguration.class,
+        return configurationServices.getObjectFactory().newInstance(
+            DefaultLegacyConfiguration.class,
+            configurationServices,
             domainObjectContext,
             name,
-            configurationsProvider,
+            isDetached,
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
-            fileCollectionFactory,
-            buildOperationRunner,
-            instantiator,
             artifactNotationParser,
             capabilityNotationParser,
-            attributesFactory,
-            rootComponentMetadataBuilder,
-            exceptionContextualizer,
-            attributeDesugaring,
             userCodeApplicationContext,
-            projectStateRegistry,
-            workerThreadRegistry,
-            domainObjectCollectionFactory,
-            calculatedValueFactory,
             this,
-            taskDependencyFactory,
-            role,
-            problemsService
+            role
         );
-        instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
-        return instance;
     }
 
     /**
@@ -158,40 +98,24 @@ public class DefaultConfigurationFactory {
      */
     DefaultResolvableConfiguration createResolvable(
         String name,
-        ConfigurationsProvider configurationsProvider,
-        Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder
+        ConfigurationResolver resolver,
+        Factory<ResolutionStrategyInternal> resolutionStrategyFactory
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        DefaultResolvableConfiguration instance = instantiator.newInstance(
+        return configurationServices.getObjectFactory().newInstance(
             DefaultResolvableConfiguration.class,
+            configurationServices,
             domainObjectContext,
             name,
-            configurationsProvider,
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
-            fileCollectionFactory,
-            buildOperationRunner,
-            instantiator,
             artifactNotationParser,
             capabilityNotationParser,
-            attributesFactory,
-            rootComponentMetadataBuilder,
-            exceptionContextualizer,
-            attributeDesugaring,
             userCodeApplicationContext,
-            projectStateRegistry,
-            workerThreadRegistry,
-            domainObjectCollectionFactory,
-            calculatedValueFactory,
-            this,
-            taskDependencyFactory,
-            problemsService
+            this
         );
-        instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
-        return instance;
     }
 
     /**
@@ -199,40 +123,24 @@ public class DefaultConfigurationFactory {
      */
     DefaultConsumableConfiguration createConsumable(
         String name,
-        ConfigurationsProvider configurationsProvider,
-        Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder
+        ConfigurationResolver resolver,
+        Factory<ResolutionStrategyInternal> resolutionStrategyFactory
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        DefaultConsumableConfiguration instance = instantiator.newInstance(
+        return configurationServices.getObjectFactory().newInstance(
             DefaultConsumableConfiguration.class,
+            configurationServices,
             domainObjectContext,
             name,
-            configurationsProvider,
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
-            fileCollectionFactory,
-            buildOperationRunner,
-            instantiator,
             artifactNotationParser,
             capabilityNotationParser,
-            attributesFactory,
-            rootComponentMetadataBuilder,
-            exceptionContextualizer,
-            attributeDesugaring,
             userCodeApplicationContext,
-            projectStateRegistry,
-            workerThreadRegistry,
-            domainObjectCollectionFactory,
-            calculatedValueFactory,
-            this,
-            taskDependencyFactory,
-            problemsService
+            this
         );
-        instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
-        return instance;
     }
 
     /**
@@ -240,43 +148,23 @@ public class DefaultConfigurationFactory {
      */
     DefaultDependencyScopeConfiguration createDependencyScope(
         String name,
-        ConfigurationsProvider configurationsProvider,
-        Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder
+        ConfigurationResolver resolver,
+        Factory<ResolutionStrategyInternal> resolutionStrategyFactory
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        DefaultDependencyScopeConfiguration instance = instantiator.newInstance(
+        return configurationServices.getObjectFactory().newInstance(
             DefaultDependencyScopeConfiguration.class,
+            configurationServices,
             domainObjectContext,
             name,
-            configurationsProvider,
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
-            fileCollectionFactory,
-            buildOperationRunner,
-            instantiator,
             artifactNotationParser,
             capabilityNotationParser,
-            attributesFactory,
-            rootComponentMetadataBuilder,
-            exceptionContextualizer,
-            attributeDesugaring,
             userCodeApplicationContext,
-            projectStateRegistry,
-            workerThreadRegistry,
-            domainObjectCollectionFactory,
-            calculatedValueFactory,
-            this,
-            taskDependencyFactory,
-            problemsService
+            this
         );
-        instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
-        return instance;
-    }
-
-    public InternalProblems getProblems() {
-        return problemsService;
     }
 }

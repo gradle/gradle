@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.classloader
 
+
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Before
@@ -344,7 +345,7 @@ class FilteringClassLoaderTest extends Specification {
     void "spec is copied correctly"() {
         given:
         def parent = Mock(ClassLoader, useObjenesis: false)
-        def spec = new FilteringClassLoader.Spec([ 'allow.ClassName' ], [ 'allowPackage' ], [ 'allowPackagePrefix' ], [ 'allowPackageResource' ], [ 'allowResource' ], [ 'disallow.ClassName' ], [ 'disallowPackage' ])
+        def spec = new FilteringClassLoader.Spec(['allow.ClassName' ], ['allowPackage' ], ['allowPackagePrefix' ], ['allowPackageResource' ], ['allowResource' ], ['disallow.ClassName' ], ['disallowPackage' ])
         def filteringClassLoader = new FilteringClassLoader(parent, spec)
         def visitor = Mock(ClassLoaderVisitor)
 

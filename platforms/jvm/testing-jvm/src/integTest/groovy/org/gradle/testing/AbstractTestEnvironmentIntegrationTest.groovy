@@ -16,9 +16,11 @@
 
 package org.gradle.testing
 
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.util.Matchers
@@ -72,9 +74,9 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
         run 'test'
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.JUnitTest')
-        result.testClass('org.gradle.JUnitTest').assertTestPassed('mySystemClassLoaderIsUsed')
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.JUnitTest', 'mySystemClassLoaderIsUsed').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def "can run tests referencing slf4j with custom system classloader"() {
@@ -116,14 +118,12 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
         run 'test'
 
         then:
-        def testResults = new DefaultTestExecutionResult(testDirectory)
-        testResults.assertTestClassesExecuted('org.gradle.TestUsingSlf4j')
-        with(testResults.testClass('org.gradle.TestUsingSlf4j')) {
-            assertTestPassed('mySystemClassLoaderIsUsed')
-            assertStderr(Matchers.containsText("ERROR via slf4j"))
-            assertStderr(Matchers.containsText("WARN via slf4j"))
-            assertStderr(Matchers.containsText("INFO via slf4j"))
-        }
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.TestUsingSlf4j', 'mySystemClassLoaderIsUsed').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertStderr(Matchers.containsText("ERROR via slf4j"))
+            .assertStderr(Matchers.containsText("WARN via slf4j"))
+            .assertStderr(Matchers.containsText("INFO via slf4j"))
     }
 
     @Requires(UnitTestPreconditions.Jdk9OrLater)
@@ -167,14 +167,12 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
         run 'test'
 
         then:
-        def testResults = new DefaultTestExecutionResult(testDirectory)
-        testResults.assertTestClassesExecuted('org.gradle.example.TestUsingSlf4j')
-        with(testResults.testClass('org.gradle.example.TestUsingSlf4j')) {
-            assertTestPassed('testModular')
-            assertStderr(Matchers.containsText("ERROR via slf4j"))
-            assertStderr(Matchers.containsText("WARN via slf4j"))
-            assertStderr(Matchers.containsText("INFO via slf4j"))
-        }
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.example.TestUsingSlf4j', 'testModular').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertStderr(Matchers.containsText("ERROR via slf4j"))
+            .assertStderr(Matchers.containsText("WARN via slf4j"))
+            .assertStderr(Matchers.containsText("INFO via slf4j"))
     }
 
     @Requires(
@@ -233,14 +231,15 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
         run 'test'
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
+        def result = new DefaultTestExecutionResult(testDirectory, testFramework)
         result.assertTestClassesExecuted('org.gradle.JUnitTest')
         result.testClass('org.gradle.JUnitTest').assertTestPassed('mySystemClassLoaderIsUsed')
     }
 
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "can run tests with custom security manager"() {
         executer
-                .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
+                .withArgument("-Dorg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
                 .withToolchainDetectionEnabled()
 
         given:
@@ -287,9 +286,9 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
         run 'test'
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.JUnitTest')
-        result.testClass('org.gradle.JUnitTest').assertTestPassed('mySecurityManagerIsUsed')
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.JUnitTest', 'mySecurityManagerIsUsed').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     String getCustomSystemClassLoaderClass() {

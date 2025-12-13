@@ -75,7 +75,7 @@ class ResolutionTracerTest {
         )
 
         val call = result.errors.first { it.errorReason is ErrorReason.UnresolvedFunctionCallSignature }.element as FunctionCall
-        val arg = (call.args[0] as FunctionArgument.ValueArgument).expr
+        val arg = (call.args[0] as FunctionArgument.SingleValueArgument).expr
 
         val outerErrors = resolver.trace.expressionResolution(call).errors
         assertNotNull(outerErrors)

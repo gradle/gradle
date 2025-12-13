@@ -261,9 +261,9 @@ class DefaultVersionedComponentChooserTest extends Specification {
     }
 
     def assertMatchingDescription(List<AttributeMatcher.MatchingDescription> descriptions, String expectedRequestedValue, String expectedFound) {
-        descriptions.find { it.requestedAttribute.name == 'color' }.with(true) {
-            assert requestedValue.get() == expectedRequestedValue
-            assert found.get() == expectedFound
+        descriptions.find { it.requested.key.name == 'color' }.with(true) {
+            assert requested.getIsolatedValue() == expectedRequestedValue
+            assert found.getIsolatedValue() == expectedFound
         }
     }
 

@@ -25,8 +25,8 @@ import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.groovy.scripts.internal.AbstractScriptTransformer;
 import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.ScriptBlock;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;

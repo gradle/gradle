@@ -17,22 +17,28 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.jspecify.annotations.NullMarked;
 
-import java.util.Collections;
 import java.util.Set;
 
+@NullMarked
+@SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
 public class StrictVersionConstraints {
 
-    public static final StrictVersionConstraints EMPTY = new StrictVersionConstraints() {
+    public static final StrictVersionConstraints EMPTY = new StrictVersionConstraints(ImmutableSet.of()) {
         @Override
-        public final StrictVersionConstraints union(StrictVersionConstraints other) {
+        public StrictVersionConstraints union(StrictVersionConstraints other) {
             return other;
         }
 
         @Override
-        public final StrictVersionConstraints intersect(StrictVersionConstraints other) {
+        public StrictVersionConstraints intersect(StrictVersionConstraints other) {
+            return EMPTY;
+        }
+
+        @Override
+        public StrictVersionConstraints minus(StrictVersionConstraints other) {
             return EMPTY;
         }
 
@@ -52,24 +58,20 @@ public class StrictVersionConstraints {
         }
     };
 
-    private final Set<ModuleIdentifier> modules;
+    private final ImmutableSet<ModuleIdentifier> modules;
 
-    private StrictVersionConstraints() {
-        modules = Collections.emptySet();
-    }
-
-    private StrictVersionConstraints(Set<ModuleIdentifier> modules) {
+    private StrictVersionConstraints(ImmutableSet<ModuleIdentifier> modules) {
         this.modules = modules;
     }
 
-    public static StrictVersionConstraints of(Set<ModuleIdentifier> modules) {
+    public static StrictVersionConstraints of(ImmutableSet<ModuleIdentifier> modules) {
         if (modules.isEmpty()) {
             return EMPTY;
         }
         return new StrictVersionConstraints(modules);
     }
 
-    public Set<ModuleIdentifier> getModules() {
+    public ImmutableSet<ModuleIdentifier> getModules() {
         return modules;
     }
 
@@ -105,11 +107,57 @@ public class StrictVersionConstraints {
         if (other == EMPTY) {
             return EMPTY;
         }
-        return of(ImmutableSet.copyOf(Sets.intersection(modules, other.modules)));
+
+        Set<ModuleIdentifier> smaller = (modules.size() < other.modules.size()) ? modules : other.modules;
+        Set<ModuleIdentifier> larger = (smaller == modules) ? other.modules : modules;
+        ImmutableSet.Builder<ModuleIdentifier> builder = ImmutableSet.builderWithExpectedSize(smaller.size());
+
+        // Iterating over the smaller set to minimize the number of contains() checks
+        for (ModuleIdentifier module : smaller) {
+            if (larger.contains(module)) {
+                builder.add(module);
+            }
+        }
+
+        return of(builder.build());
     }
 
     @Override
     public String toString() {
         return "modules=" + modules;
     }
+
+    public StrictVersionConstraints minus(StrictVersionConstraints other) {
+        if (other == EMPTY) {
+            return this;
+        }
+
+        if (this == other || this == EMPTY) {
+            return EMPTY;
+        }
+
+        ImmutableSet.Builder<ModuleIdentifier> builder = ImmutableSet.builderWithExpectedSize(modules.size());
+        for (ModuleIdentifier module : modules) {
+            if (!other.modules.contains(module)) {
+                builder.add(module);
+            }
+        }
+        return of(builder.build());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        StrictVersionConstraints that = (StrictVersionConstraints) o;
+        return modules.equals(that.modules);
+    }
+
+    @Override
+    public int hashCode() {
+        return modules.hashCode();
+    }
+
 }

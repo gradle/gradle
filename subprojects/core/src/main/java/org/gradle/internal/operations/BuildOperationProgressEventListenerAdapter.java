@@ -19,8 +19,7 @@ package org.gradle.internal.operations;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.time.Clock;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Adapts the {@link DefaultBuildOperationRunner.BuildOperationExecutionListener} to the {@link BuildOperationListener} and the {@link ProgressLogger} interfaces.

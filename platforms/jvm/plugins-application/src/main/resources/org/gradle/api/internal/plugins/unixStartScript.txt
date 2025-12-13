@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-# Copyright © 2015-2021 the original authors.
+# Copyright © 2015 the original authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -147,7 +147,9 @@ case "\$( uname )" in                #(
   NONSTOP* )        nonstop=true ;;
 esac
 
+<% if ( classpath ) {%>\
 CLASSPATH=$classpath
+<% } %>\
 <% if ( mainClassName.startsWith('--module ') ) { %>
 MODULE_PATH=$modulePath
 <% } %>
@@ -207,7 +209,9 @@ fi
 # For Cygwin or MSYS, switch paths to Windows format before running java
 if "\$cygwin" || "\$msys" ; then
     APP_HOME=\$( cygpath --path --mixed "\$APP_HOME" )
+<% if ( classpath ) {%>\
     CLASSPATH=\$( cygpath --path --mixed "\$CLASSPATH" )
+<% } %>\
 <% if ( mainClassName.startsWith('--module ') ) { %>    MODULE_PATH=\$( cygpath --path --mixed "\$MODULE_PATH" )<% } %>
     JAVACMD=\$( cygpath --unix "\$JAVACMD" )
 
@@ -251,10 +255,13 @@ DEFAULT_JVM_OPTS=${defaultJvmOpts}
 set -- \\
 <% if ( appNameSystemProperty ) {
      %>        "-D${appNameSystemProperty}=\$APP_BASE_NAME" \\
-<% } %>        -classpath "\$CLASSPATH" \\
+<% } %>\
+<% if ( classpath ) {%>\
+        -classpath "\$CLASSPATH" \\
+<% } %>\
 <% if ( mainClassName.startsWith('--module ') ) {
      %>        --module-path "\$MODULE_PATH" \\
-<% } %>        ${mainClassName} \\
+<% } %>        ${mainClassName ?: entryPointArgs} \\
         "\$@"
 
 # Stop when "xargs" is not available.

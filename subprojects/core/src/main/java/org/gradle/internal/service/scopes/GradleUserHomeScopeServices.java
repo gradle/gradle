@@ -30,6 +30,9 @@ import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
+import org.gradle.api.internal.plugins.CorePluginRegistryProvider;
+import org.gradle.api.internal.plugins.DefaultPluginRegistry;
+import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.GlobalCacheLocations;
@@ -41,7 +44,6 @@ import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.GradleUserHomeCleanupServices;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.LegacyCacheCleanupEnablement;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
@@ -199,6 +201,12 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     }
 
     @Provides
+    CorePluginRegistryProvider createCorePluginRegistryProvider(ClassLoaderScopeRegistry scopeRegistry, PluginInspector pluginInspector) {
+        DefaultPluginRegistry corePluginRegistry = new DefaultPluginRegistry(pluginInspector, scopeRegistry.getCoreAndPluginsScope());
+        return () -> corePluginRegistry;
+    }
+
+    @Provides
     GlobalCacheLocations createGlobalCacheLocations(List<GlobalCache> globalCaches) {
         return new DefaultGlobalCacheLocations(globalCaches);
     }
@@ -280,12 +288,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     }
 
     @Provides
-    LegacyCacheCleanupEnablement createLegacyCacheCleanupEnablement(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
-        return new LegacyCacheCleanupEnablement(gradleUserHomeDirProvider);
-    }
-
-    @Provides
-    CacheConfigurationsInternal createCachesConfiguration(ObjectFactory objectFactory, LegacyCacheCleanupEnablement legacyCacheCleanupEnablement) {
-        return objectFactory.newInstance(DefaultCacheConfigurations.class, legacyCacheCleanupEnablement);
+    CacheConfigurationsInternal createCachesConfiguration(ObjectFactory objectFactory) {
+        return objectFactory.newInstance(DefaultCacheConfigurations.class);
     }
 }

@@ -14,7 +14,7 @@ dependencies {
 
     api(libs.commonsHttpclient)
     api(libs.httpcore)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.baseServices)
     implementation(projects.hashing)

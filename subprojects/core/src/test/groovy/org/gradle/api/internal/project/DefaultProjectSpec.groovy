@@ -41,8 +41,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator
-import org.gradle.internal.Factory
-import org.gradle.internal.build.BuildState
+import org.gradle.internal.Describables
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.resource.DefaultTextFileResourceLoader
@@ -53,9 +52,9 @@ import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
-import org.gradle.plugin.software.internal.SoftwareFeaturesDynamicObject
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureApplicator
+import org.gradle.plugin.software.internal.ProjectFeaturesDynamicObject
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -153,43 +152,43 @@ class DefaultProjectSpec extends Specification {
         def nestedChild2 = project("child2", nestedChild1, nestedBuild)
 
         expect:
-        rootProject.toString() == "root project 'root'"
-        rootProject.displayName == "root project 'root'"
+        rootProject.toString() == rootProject.owner.displayName.toString()
+        rootProject.displayName == rootProject.owner.displayName.toString()
         rootProject.path == ":"
         rootProject.buildTreePath == ':'
         rootProject.identityPath == Path.ROOT
         rootProject.projectIdentity == rootProject.owner.identity
 
-        child1.toString() == "project ':child1'"
-        child1.displayName == "project ':child1'"
+        child1.toString() == child1.owner.displayName.toString()
+        child1.displayName == child1.owner.displayName.toString()
         child1.path == ":child1"
         child1.buildTreePath == ":child1"
         child1.identityPath == Path.path(":child1")
         child1.projectIdentity == child1.owner.identity
 
-        child2.toString() == "project ':child1:child2'"
-        child2.displayName == "project ':child1:child2'"
+        child2.toString() == child2.owner.displayName.toString()
+        child2.displayName == child2.owner.displayName.toString()
         child2.path == ":child1:child2"
         child2.buildTreePath == ":child1:child2"
         child2.identityPath == Path.path(":child1:child2")
         child2.projectIdentity == child2.owner.identity
 
-        nestedRootProject.toString() == "project ':nested'"
-        nestedRootProject.displayName == "project ':nested'"
+        nestedRootProject.toString() == nestedRootProject.owner.displayName.toString()
+        nestedRootProject.displayName == nestedRootProject.owner.displayName.toString()
         nestedRootProject.path == ":"
         nestedRootProject.buildTreePath == ":nested"
         nestedRootProject.identityPath == Path.path(":nested")
         nestedRootProject.projectIdentity == nestedRootProject.owner.identity
 
-        nestedChild1.toString() == "project ':nested:child1'"
-        nestedChild1.displayName == "project ':nested:child1'"
+        nestedChild1.toString() == nestedChild1.owner.displayName.toString()
+        nestedChild1.displayName == nestedChild1.owner.displayName.toString()
         nestedChild1.path == ":child1"
         nestedChild1.buildTreePath == ":nested:child1"
         nestedChild1.identityPath == Path.path(":nested:child1")
         nestedChild1.projectIdentity == nestedChild1.owner.identity
 
-        nestedChild2.toString() == "project ':nested:child1:child2'"
-        nestedChild2.displayName == "project ':nested:child1:child2'"
+        nestedChild2.toString() == nestedChild2.owner.displayName.toString()
+        nestedChild2.displayName == nestedChild2.owner.displayName.toString()
         nestedChild2.path == ":child1:child2"
         nestedChild2.buildTreePath == ":nested:child1:child2"
         nestedChild2.identityPath == Path.path(":nested:child1:child2")
@@ -243,7 +242,7 @@ class DefaultProjectSpec extends Specification {
         def objectFactory = Stub(ObjectFactory) {
             fileCollection() >> TestFiles.fileCollectionFactory().configurableFiles()
             property(Object) >> propertyFactory.property(Object)
-            newInstance(SoftwareFeaturesDynamicObject, _) >> Stub(SoftwareFeaturesDynamicObject)
+            newInstance(ProjectFeaturesDynamicObject, _) >> Stub(ProjectFeaturesDynamicObject)
         }
 
         def serviceRegistry = new DefaultServiceRegistry()
@@ -266,15 +265,12 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(FileResolver, Stub(FileResolver))
         serviceRegistry.add(FileCollectionFactory, Stub(FileCollectionFactory))
         serviceRegistry.add(GradleLifecycleActionExecutor, Stub(GradleLifecycleActionExecutor))
-        serviceRegistry.add(SoftwareTypeRegistry, Stub(SoftwareTypeRegistry))
-        serviceRegistry.add(SoftwareFeatureApplicator, Stub(SoftwareFeatureApplicator))
+        serviceRegistry.add(ProjectFeatureDeclarations, Stub(ProjectFeatureDeclarations))
+        serviceRegistry.add(ProjectFeatureApplicator, Stub(ProjectFeatureApplicator))
 
         def antBuilder = Mock(AntBuilder)
-        serviceRegistry.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            Factory<AntBuilder> createAntBuilder() {
-                return () -> antBuilder
-            }
+        serviceRegistry.add(AntBuilderFactory, Mock(AntBuilderFactory) {
+            createAntBuilder() >> antBuilder
         })
 
         serviceRegistry.addProvider(new ServiceRegistrationProvider() {
@@ -300,10 +296,28 @@ class DefaultProjectSpec extends Specification {
 
         build.services >> serviceRegistry
 
+        def projectPath = parent == null ? Path.ROOT : parent.projectPath.child(name)
+        def buildPath
+        if (build.identityPath.asString().isEmpty()) {
+            // No identity path was configured
+            buildPath = Path.ROOT
+        } else {
+            buildPath = build.identityPath
+        }
+
+        ProjectIdentity identity
+        if (projectPath == Path.ROOT) {
+            identity = ProjectIdentity.forRootProject(buildPath, name)
+        } else {
+            identity = ProjectIdentity.forSubproject(buildPath, projectPath)
+        }
+
         def container = Mock(ProjectState)
-        _ * container.projectPath >> (parent == null ? Path.ROOT : parent.projectPath.child(name))
-        _ * container.identityPath >> (parent == null ? build.identityPath : build.identityPath.append(parent.projectPath).child(name))
-        _ * container.owner >> Mock(BuildState)
+        _ * container.projectPath >> identity.projectPath
+        _ * container.identityPath >> identity.buildTreePath
+        _ * container.owner >> build.owner
+        _ * container.displayName >> Describables.of(name)
+        _ * container.identity >> identity
 
         def descriptor = Mock(ProjectDescriptor) {
             getName() >> name

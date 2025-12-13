@@ -15,12 +15,13 @@ class FunctionalTestProject(
     val model: CIBuildModel,
     functionalTestBucketProvider: FunctionalTestBucketProvider,
     val testCoverage: TestCoverage,
-    val stage: Stage
+    val stage: Stage,
 ) : Project({
-    this.id(testCoverage.asId(model))
-    this.name = testCoverage.asName()
-}) {
+        this.id(testCoverage.asId(model))
+        this.name = testCoverage.asName()
+    }) {
     val functionalTests: List<BaseGradleBuildType> = functionalTestBucketProvider.createFunctionalTestsFor(stage, testCoverage)
+
     init {
         functionalTests.forEach(this::buildType)
     }

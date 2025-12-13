@@ -1,4 +1,3 @@
-
 .summary {
     margin-top: 30px;
     margin-bottom: 40px;
@@ -10,6 +9,15 @@
 
 .summary td {
     vertical-align: top;
+}
+
+div.tab table.test-results td {
+    padding-left: 1em;
+}
+
+div.tab table.test-results th {
+    padding-top: 0.5em;
+    padding-left: 1em;
 }
 
 .breadcrumbs, .breadcrumbs a {
@@ -83,6 +91,14 @@ ul.linkList li {
     margin-bottom: 5px;
 }
 
+div.metadata td:first-child {
+    padding-left: 5px;
+}
+
+div.metadata td {
+    padding-left: 5px;
+}
+
 .metadata tr.odd {
     background-color: #f7f7f7;
     border: solid 1px #d0d0d0;
@@ -93,7 +109,7 @@ ul.linkList li {
 }
 
 .metadata th, .metadata td {
-    padding: 10px;
+    padding: 5px;
     text-align: left;
 }
 
@@ -103,4 +119,17 @@ ul.linkList li {
 
 .metadata .unrenderable {
     color: darkred;
+}
+
+.code {
+    position: relative;
+}
+
+.clipboard-copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    font-size: 0.9em;
+    cursor: pointer;
 }

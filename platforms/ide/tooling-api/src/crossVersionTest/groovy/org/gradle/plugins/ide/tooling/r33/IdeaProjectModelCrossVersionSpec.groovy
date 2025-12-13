@@ -16,20 +16,16 @@
 
 package org.gradle.plugins.ide.tooling.r33
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.idea.IdeaProject
 
-@TargetGradleVersion('>=3.3')
 class IdeaProjectModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "Idea modules are returned in order"() {
         given:
-        createDirs("a", "b")
+        includeProjects("a", "b")
         settingsFile << """
             rootProject.name = 'root'
-            include 'a'
-            include 'b'
         """
 
         when:

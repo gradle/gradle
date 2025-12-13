@@ -29,8 +29,10 @@ import gradlebuild.basics.BuildParams.BUILD_RC_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_TIMESTAMP
 import gradlebuild.basics.BuildParams.BUILD_VCS_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_VERSION_QUALIFIER
-import gradlebuild.basics.BuildParams.BUNDLE_GROOVY_4
+import gradlebuild.basics.BuildParams.BUNDLE_GROOVY_MAJOR
 import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
+import gradlebuild.basics.BuildParams.DEBUG_DAEMON
+import gradlebuild.basics.BuildParams.DEBUG_LAUNCHER
 import gradlebuild.basics.BuildParams.DEFAULT_PERFORMANCE_BASELINES
 import gradlebuild.basics.BuildParams.ENABLE_CONFIGURATION_CACHE_FOR_DOCS_TESTS
 import gradlebuild.basics.BuildParams.FLAKY_TEST
@@ -50,7 +52,6 @@ import gradlebuild.basics.BuildParams.PERFORMANCE_MAX_PROJECTS
 import gradlebuild.basics.BuildParams.PERFORMANCE_TEST_VERBOSE
 import gradlebuild.basics.BuildParams.PREDICTIVE_TEST_SELECTION_ENABLED
 import gradlebuild.basics.BuildParams.RERUN_ALL_TESTS
-import gradlebuild.basics.BuildParams.RETRY_BUILD
 import gradlebuild.basics.BuildParams.RUN_ANDROID_STUDIO_IN_HEADLESS_MODE
 import gradlebuild.basics.BuildParams.RUN_BROKEN_CONFIGURATION_CACHE_DOCS_TESTS
 import gradlebuild.basics.BuildParams.STUDIO_HOME
@@ -120,7 +121,6 @@ object BuildParams {
     const val PERFORMANCE_DEPENDENCY_BUILD_IDS = "org.gradle.performance.dependencyBuildIds"
     const val PERFORMANCE_MAX_PROJECTS = "maxProjects"
     const val RERUN_ALL_TESTS = "rerunAllTests"
-    const val RETRY_BUILD = "retryBuild"
     const val PREDICTIVE_TEST_SELECTION_ENABLED = "enablePredictiveTestSelection"
     const val TEST_DISTRIBUTION_DOGFOODING_TAG = "testDistributionDogfoodingTag"
     const val TEST_DISTRIBUTION_ENABLED = "enableTestDistribution"
@@ -134,7 +134,9 @@ object BuildParams {
     const val AUTO_DOWNLOAD_ANDROID_STUDIO = "autoDownloadAndroidStudio"
     const val RUN_ANDROID_STUDIO_IN_HEADLESS_MODE = "runAndroidStudioInHeadlessMode"
     const val STUDIO_HOME = "studioHome"
-    const val BUNDLE_GROOVY_4 = "bundleGroovy4"
+    const val BUNDLE_GROOVY_MAJOR = "bundleGroovyMajor"
+    const val DEBUG_DAEMON = "debugDaemon"
+    const val DEBUG_LAUNCHER = "debugLauncher"
 
     /**
      * Run docs tests with the configuration cache enabled.
@@ -170,14 +172,13 @@ fun Project.selectStringProperties(vararg propertyNames: String): Map<String, St
         }
     }.toMap()
 
-
 /**
  * Creates a [Provider] that returns `true` when this [Provider] has a value
  * and `false` otherwise. The returned [Provider] always has a value.
  * @see Provider.isPresent
  */
 private
-fun <T> Provider<T>.presence(): Provider<Boolean> =
+fun <T : Any> Provider<T>.presence(): Provider<Boolean> =
     map { true }.orElse(false)
 
 
@@ -241,10 +242,6 @@ val Project.buildMilestoneNumber: Provider<String>
     get() = gradleProperty(BUILD_MILESTONE_NUMBER)
 
 
-val Project.isRetryBuild: Boolean
-    get() = gradleProperty(RETRY_BUILD).isPresent
-
-
 val Project.buildTimestamp: Provider<String>
     get() = gradleProperty(BUILD_TIMESTAMP)
 
@@ -279,7 +276,6 @@ val Project.flakyTestStrategy: FlakyTestStrategy
 
 val Project.ignoreIncomingBuildReceipt: Provider<Boolean>
     get() = gradleProperty(BUILD_IGNORE_INCOMING_BUILD_RECEIPT).presence()
-
 
 val Project.performanceDependencyBuildIds: Provider<String>
     get() = gradleProperty(PERFORMANCE_DEPENDENCY_BUILD_IDS).orElse("")
@@ -423,13 +419,18 @@ val Project.isPromotionBuild: Boolean
     get() {
         val taskNames = gradle.startParameter.taskNames
         return taskNames.contains("promotionBuild") ||
-            // :updateReleasedVersionsToLatestNightly and :updateReleasedVersions
             taskNames.any { it.contains("updateReleasedVersions") }
     }
 
 
 /**
- * If `-DbundleGroovy4=true` is specified, create a distribution using Groovy 4 libs.  Otherwise use Groovy 3 classic libs.
+ * Override the version of Groovy bundled by Gradle. Must be greater than or equal to the major version of Groovy used by Gradle.
  */
-val Project.isBundleGroovy4: Boolean
-    get() = systemProperty(BUNDLE_GROOVY_4).orNull.toBoolean()
+val Project.bundleGroovyMajor: Int
+    get() = systemProperty(BUNDLE_GROOVY_MAJOR).orNull?.toInt() ?: 4
+
+val Project.daemonDebuggingIsEnabled: Boolean
+    get() = propertyFromAnySource(DEBUG_DAEMON).isPresent
+
+val Project.launcherDebuggingIsEnabled: Boolean
+    get() = propertyFromAnySource(DEBUG_LAUNCHER).isPresent

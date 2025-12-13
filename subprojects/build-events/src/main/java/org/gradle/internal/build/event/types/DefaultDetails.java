@@ -16,13 +16,13 @@
 
 package org.gradle.internal.build.event.types;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalDetails;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 
-@NonNullApi
+@NullMarked
 public class DefaultDetails implements InternalDetails, Serializable {
 
     private final String details;

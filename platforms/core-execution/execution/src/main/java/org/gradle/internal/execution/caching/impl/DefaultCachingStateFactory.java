@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.caching.impl;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.caching.internal.SimpleBuildCacheKey;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.caching.CachingStateFactory;
@@ -36,11 +37,11 @@ public class DefaultCachingStateFactory implements CachingStateFactory {
     @Override
     public final CachingState createCachingState(BeforeExecutionState beforeExecutionState, HashCode cacheKey, ImmutableList<CachingDisabledReason> cachingDisabledReasons) {
         if (cachingDisabledReasons.isEmpty()) {
-            return CachingState.enabled(new DefaultBuildCacheKey(cacheKey), beforeExecutionState);
+            return CachingState.enabled(new SimpleBuildCacheKey(cacheKey), beforeExecutionState);
         } else {
             cachingDisabledReasons.forEach(reason ->
                 logger.warn("Non-cacheable because {} [{}]", reason.getMessage(), reason.getCategory()));
-            return CachingState.disabled(cachingDisabledReasons, new DefaultBuildCacheKey(cacheKey), beforeExecutionState);
+            return CachingState.disabled(cachingDisabledReasons, new SimpleBuildCacheKey(cacheKey), beforeExecutionState);
         }
     }
 

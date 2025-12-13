@@ -16,26 +16,25 @@
 
 package org.gradle.plugin.management.internal;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.use.PluginId;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-@NonNullApi
+@NullMarked
 public final class PluginCoordinates {
 
     private final PluginId id;
-    private final ModuleVersionSelector module;
+    private final @Nullable ComponentSelector selector;
 
-    public PluginCoordinates(PluginId id, @Nullable ModuleVersionSelector module) {
+    public PluginCoordinates(PluginId id, @Nullable ComponentSelector selector) {
         this.id = id;
-        this.module = module;
+        this.selector = selector;
     }
 
     public static PluginCoordinates from(PluginRequest pluginRequest) {
-        return new PluginCoordinates(pluginRequest.getId(), pluginRequest.getModule());
+        return new PluginCoordinates(pluginRequest.getId(), pluginRequest.getSelector());
     }
 
     /**
@@ -46,10 +45,11 @@ public final class PluginCoordinates {
     }
 
     /**
-     * {@link PluginRequest#getModule()}
+     * {@link PluginRequest#getSelector()}
      */
     @Nullable
-    public ModuleVersionSelector getModule() {
-        return module;
+    public ComponentSelector getSelector() {
+        return selector;
     }
+
 }

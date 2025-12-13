@@ -25,8 +25,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultCollectionCallbackActionDecorator implements CollectionCallbackActionDecorator {
     private final BuildOperationRunner buildOperationRunner;

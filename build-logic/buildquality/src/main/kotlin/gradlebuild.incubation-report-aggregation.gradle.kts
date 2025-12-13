@@ -1,3 +1,4 @@
+import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.capitalize
 import gradlebuild.incubation.tasks.IncubatingApiAggregateReportTask
 
@@ -6,7 +7,6 @@ plugins {
 }
 
 val reports by configurations.creating {
-    isVisible = false
     isCanBeResolved = false
     isCanBeConsumed = false
     description = "Dependencies to aggregate reports from"
@@ -16,6 +16,8 @@ val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("all
     group = "verification"
     reports.from(resolver("txt"))
     htmlReportFile = project.layout.buildDirectory.file("reports/incubation/all-incubating.html")
+    csvReportFile = project.layout.buildDirectory.file("reports/incubation/all-incubating.csv")
+    currentCommit = project.buildCommitId
 }
 
 tasks.register<Zip>("allIncubationReportsZip") {
@@ -23,11 +25,11 @@ tasks.register<Zip>("allIncubationReportsZip") {
     destinationDirectory = layout.buildDirectory.dir("reports/incubation")
     archiveBaseName = "incubating-apis"
     from(allIncubationReports.get().htmlReportFile)
+    from(allIncubationReports.get().csvReportFile)
     from(resolver("html"))
 }
 
 fun resolver(reportType: String) = configurations.create("incubatingReport${reportType.capitalize()}Path") {
-    isVisible = false
     isCanBeResolved = true
     isCanBeConsumed = false
     attributes {

@@ -18,6 +18,7 @@ package org.gradle.internal.resolve.resolver;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -29,22 +30,25 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
     private final ImmutableArtifactTypeRegistry artifactTypeRegistry;
     private final ArtifactResolver artifactResolver;
     private final ResolvedVariantCache resolvedVariantCache;
 
-    public DefaultVariantArtifactResolver(ArtifactResolver artifactResolver, ImmutableArtifactTypeRegistry artifactTypeRegistry, ResolvedVariantCache resolvedVariantCache) {
+    public DefaultVariantArtifactResolver(
+        ArtifactResolver artifactResolver,
+        ImmutableArtifactTypeRegistry artifactTypeRegistry,
+        ResolvedVariantCache resolvedVariantCache
+    ) {
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.artifactResolver = artifactResolver;
         this.resolvedVariantCache = resolvedVariantCache;
     }
 
     @Override
-    public ResolvedVariant resolveAdhocVariant(ComponentArtifactResolveMetadata component, ImmutableList<? extends ComponentArtifactMetadata> artifacts) {
+    public ResolvedVariant resolveAdhocVariant(ComponentArtifactResolveMetadata component, VariantIdentifier sourceVariantId, ImmutableList<? extends ComponentArtifactMetadata> artifacts) {
         VariantResolveMetadata.Identifier identifier = artifacts.size() == 1
             ? new SingleArtifactVariantIdentifier(artifacts.iterator().next().getId())
             : null;
@@ -58,11 +62,11 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
             ImmutableCapabilities.EMPTY
         );
 
-        return resolveVariantArtifactSet(component, adhoc);
+        return resolveVariantArtifactSet(component, sourceVariantId, adhoc);
     }
 
     @Override
-    public ResolvedVariant resolveVariantArtifactSet(ComponentArtifactResolveMetadata component, VariantResolveMetadata variantArtifacts) {
+    public ResolvedVariant resolveVariantArtifactSet(ComponentArtifactResolveMetadata component, VariantIdentifier sourceVariantId, VariantResolveMetadata variantArtifacts) {
 
         // TODO #31538: In order to apply the artifact type registry, we need to realize the artifacts now, earlier than we should.
         // Since the artifact type registry must be applied before artifact selection, which occurs before task dependencies
@@ -72,7 +76,7 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
 
         VariantResolveMetadata.Identifier artifactSetId = variantArtifacts.getIdentifier();
         if (artifactSetId == null || !variantArtifacts.isEligibleForCaching()) {
-            return createResolvedVariant(artifactSetId, component, variantArtifacts, artifactTypeRegistry, artifacts);
+            return createResolvedVariant(artifactSetId, sourceVariantId, component, variantArtifacts, artifactTypeRegistry, artifacts);
         }
 
         // We use the artifact type registry as a key here, since for each consumer the registry may be different.
@@ -89,19 +93,20 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
 
         // Calculate the value with locking
         return resolvedVariantCache.computeIfAbsent(key, k ->
-            createResolvedVariant(k.variantIdentifier, component, variantArtifacts, k.artifactTypeRegistry, artifacts)
+            createResolvedVariant(k.variantIdentifier, sourceVariantId, component, variantArtifacts, k.artifactTypeRegistry, artifacts)
         );
     }
 
     private ResolvedVariant createResolvedVariant(
-        @Nullable VariantResolveMetadata.Identifier identifier,
+        VariantResolveMetadata.@Nullable Identifier identifier,
+        VariantIdentifier sourceVariantId,
         ComponentArtifactResolveMetadata component,
         VariantResolveMetadata artifactVariant,
         ImmutableArtifactTypeRegistry artifactTypeRegistry,
         ImmutableList<? extends ComponentArtifactMetadata> artifacts
     ) {
-        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(artifactVariant.getAttributes(), artifacts);
 
+        ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(artifactVariant.getAttributes(), artifacts);
         ImmutableCapabilities capabilities = withImplicitCapability(artifactVariant.getCapabilities(), component);
 
         // TODO: This value gets cached in a build-tree-scoped cache. It captures a project-scoped `artifactResolver`, which
@@ -119,6 +124,7 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
         // component metadata rules, metadata sources, etc.). We should probably leverage ComponentArtifactResolveMetadata#getSources() for this.
         return new ArtifactBackedResolvedVariant(
             identifier,
+            sourceVariantId,
             artifactVariant.asDescribable(),
             attributes,
             capabilities,

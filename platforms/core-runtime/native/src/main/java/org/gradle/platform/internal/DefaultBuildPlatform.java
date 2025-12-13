@@ -48,7 +48,7 @@ public class DefaultBuildPlatform implements BuildPlatform, Serializable {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof DefaultBuildPlatform)) {
             return false;
         }
         DefaultBuildPlatform that = (DefaultBuildPlatform) o;
@@ -58,5 +58,13 @@ public class DefaultBuildPlatform implements BuildPlatform, Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(getArchitecture(), getOperatingSystem());
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+            architecture +
+            ", " + operatingSystem +
+            '}';
     }
 }

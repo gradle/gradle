@@ -1,6 +1,6 @@
 plugins {
-    scala
-    idea
+    id("scala")
+    id("idea")
 }
 
 // tag::scala-idea-target-version[]

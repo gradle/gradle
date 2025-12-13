@@ -41,6 +41,7 @@ data object CrossScopeAccess : PropertyNotAssignedReason, ValueFactoryNotResolve
 
 data object UnresolvedValueUsed : ValueNotResolvedReason, PropertyNotAssignedReason
 
+data object IllegalAugmentedAssignment : PropertyNotAssignedReason
 
 data object ValueTypeMismatch : PropertyNotAssignedReason
 

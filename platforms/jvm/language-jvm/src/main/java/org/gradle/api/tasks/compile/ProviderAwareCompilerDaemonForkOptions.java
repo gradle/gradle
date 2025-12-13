@@ -63,7 +63,7 @@ public class ProviderAwareCompilerDaemonForkOptions extends BaseForkOptions {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         builder.addAll(CollectionUtils.stringize(getJvmArgs()));
         for (CommandLineArgumentProvider argumentProvider : getJvmArgumentProviders()) {
-            builder.addAll(argumentProvider.asArguments());
+            builder.addAll(CollectionUtils.toStringList(argumentProvider.asArguments()));
         }
         return builder.build();
     }

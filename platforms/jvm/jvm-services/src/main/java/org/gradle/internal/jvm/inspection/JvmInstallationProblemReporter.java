@@ -17,12 +17,12 @@
 package org.gradle.internal.jvm.inspection;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Objects;
 import java.util.Set;
@@ -35,10 +35,10 @@ import java.util.Set;
  * as e.g. the {@code GradleBuild} task could be used to change the system properties and environment variables that affect the JVM installation.
  * </p>
  */
-@NonNullApi
+@NullMarked
 @ServiceScope(Scope.BuildSession.class)
 public final class JvmInstallationProblemReporter {
-    @NonNullApi
+    @NullMarked
     private static final class ProblemReport {
         // Include auto-detection as it affects visibility of the problem. We do want to report twice if a location was auto-detected and then explicitly configured.
         private final boolean autoDetected;

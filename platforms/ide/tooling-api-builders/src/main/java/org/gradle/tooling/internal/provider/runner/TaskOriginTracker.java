@@ -25,8 +25,8 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.gradle.tooling.internal.provider.runner.PluginApplicationTracker.PluginApplication;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,7 +47,7 @@ class TaskOriginTracker implements BuildOperationTracker {
 
     @Nullable
     InternalPluginIdentifier getOriginPlugin(TaskIdentity<?> taskIdentity) {
-        return origins.get(taskIdentity.uniqueId);
+        return origins.get(taskIdentity.getId());
     }
 
     @Override

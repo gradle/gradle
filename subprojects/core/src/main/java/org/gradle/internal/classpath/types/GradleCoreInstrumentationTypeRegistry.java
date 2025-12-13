@@ -18,6 +18,7 @@ package org.gradle.internal.classpath.types;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.lazy.Lazy;
@@ -26,7 +27,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -89,7 +89,7 @@ public class GradleCoreInstrumentationTypeRegistry implements InstrumentationTyp
             properties.forEach((k, v) -> builder.put((String) k, ImmutableSet.copyOf(v.toString().split(","))));
             return builder.build();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -108,7 +108,7 @@ public class GradleCoreInstrumentationTypeRegistry implements InstrumentationTyp
             }
             return Optional.of(streamHasher.hash(stream));
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

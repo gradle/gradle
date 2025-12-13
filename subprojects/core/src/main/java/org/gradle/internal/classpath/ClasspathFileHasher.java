@@ -16,11 +16,11 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 @FunctionalInterface
 public interface ClasspathFileHasher {
     HashCode hashOf(FileSystemLocationSnapshot sourceSnapshot);

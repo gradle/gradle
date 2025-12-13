@@ -1,9 +1,11 @@
-apply plugin: "scala"
+plugins {
+    id("scala")
+}
 
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation "org.scala-lang:scala-library:2.11.2"
+scala {
+    scalaVersion = "2.11.2"
 }

@@ -18,8 +18,9 @@ package org.gradle.internal.configuration.inputs;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ForwardingMap;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -28,7 +29,7 @@ import java.util.function.BiConsumer;
 /**
  * A wrapper for the {@link System#getenv()} result that notifies a listener about accesses.
  */
-public class AccessTrackingEnvMap extends ForwardingMap<String, String> {
+public class AccessTrackingEnvMap extends ForwardingMap<String, String> implements Serializable {
     private final Map<String, String> delegate;
     private final BiConsumer<? super String, ? super String> onAccess;
 
@@ -43,7 +44,7 @@ public class AccessTrackingEnvMap extends ForwardingMap<String, String> {
     }
 
     @Override
-    public String get(@Nullable Object key) {
+    public @Nullable String get(@Nullable Object key) {
         return getAndReport(key);
     }
 
@@ -65,7 +66,7 @@ public class AccessTrackingEnvMap extends ForwardingMap<String, String> {
 
     @Override
     public Set<String> keySet() {
-        return new AccessTrackingSet<>(super.keySet(), trackingListener());
+        return new AccessTrackingSet<>(super.keySet(), keyTrackingListener());
     }
 
     @Nullable
@@ -130,7 +131,7 @@ public class AccessTrackingEnvMap extends ForwardingMap<String, String> {
         delegate.forEach(onAccess);
     }
 
-    private AccessTrackingSet.Listener trackingListener() {
+    private AccessTrackingSet.Listener keyTrackingListener() {
         return new AccessTrackingSet.Listener() {
             @Override
             public void onAccess(@Nullable Object o) {
@@ -176,5 +177,13 @@ public class AccessTrackingEnvMap extends ForwardingMap<String, String> {
                 // Environment variables are immutable.
             }
         };
+    }
+
+    private Object writeReplace() {
+        // When we serialize the whole map, it is likely used as a task input.
+        // We don't know how it is going to be used afterward, and we cannot affect the fingerprint during execution.
+        // Let's be pessimistic and consider everything an input. On a bright side, we don't need access tracking for the deserialized thing.
+        reportAggregatingAccess();
+        return delegate;
     }
 }

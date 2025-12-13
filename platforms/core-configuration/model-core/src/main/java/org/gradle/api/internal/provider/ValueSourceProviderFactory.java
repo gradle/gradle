@@ -25,8 +25,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Service to create providers from {@link ValueSource}s.
@@ -77,7 +76,7 @@ public interface ValueSourceProviderFactory {
 
         interface ObtainedValue<T, P extends ValueSourceParameters> {
 
-            Try<@org.jetbrains.annotations.Nullable T> getValue();
+            Try<@Nullable T> getValue();
 
             Class<? extends ValueSource<T, P>> getValueSourceType();
 

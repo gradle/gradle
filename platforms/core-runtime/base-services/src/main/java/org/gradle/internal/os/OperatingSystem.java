@@ -16,8 +16,8 @@
 package org.gradle.internal.os;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,7 +37,7 @@ public abstract class OperatingSystem {
     public static final Linux LINUX = new Linux();
     public static final FreeBSD FREE_BSD = new FreeBSD();
     public static final Unix UNIX = new Unix();
-    private static OperatingSystem currentOs;
+    private static @Nullable OperatingSystem currentOs;
     private final String toStringValue;
     private final String osName;
     private final String osVersion;

@@ -20,12 +20,12 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.use.PluginId;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Optional;
 
-@ServiceScope({Scope.Build.class, Scope.Gradle.class, Scope.Settings.class, Scope.Project.class})
+@ServiceScope({Scope.Build.class, Scope.Settings.class, Scope.Project.class})
 @ThreadSafe
 public interface PluginRegistry {
     <T> PluginImplementation<T> inspect(Class<T> clazz);

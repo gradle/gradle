@@ -20,10 +20,9 @@ import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -37,17 +36,18 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
 import static org.gradle.buildinit.plugins.internal.SimpleGlobalFilesBuildSettingsDescriptor.PLUGINS_BUILD_LOCATION;
 
@@ -488,7 +489,7 @@ public class BuildScriptBuilder {
 
             File target = getTargetFile(targetDirectory);
             GFileUtils.mkdirs(target.getParentFile());
-            try (PrintWriter writer = new PrintWriter(new FileWriter(target))) {
+            try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(target.toPath(), UTF_8))) {
                 PrettyPrinter printer = new PrettyPrinter(syntaxFor(dsl), writer, comments);
                 if (!comments.equals(BuildInitComments.OFF)) {
                     printer.printFileHeader(headerCommentLines);
@@ -592,6 +593,7 @@ public class BuildScriptBuilder {
         }
 
         @Override
+        @SuppressWarnings("GetClassOnEnum") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
         public String with(Syntax syntax) {
             return literal.getClass().getSimpleName() + "." + literal.name();
         }
@@ -888,37 +890,6 @@ public class BuildScriptBuilder {
         }
     }
 
-    private static class ConventionSelector implements ConfigSelector {
-
-        final String conventionName;
-
-        private ConventionSelector(String conventionName) {
-            this.conventionName = conventionName;
-        }
-
-        @Override
-        public String codeBlockSelectorFor(Syntax syntax) {
-            return syntax.conventionSelector(this);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            ConventionSelector that = (ConventionSelector) o;
-            return Objects.equal(conventionName, that.conventionName);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(conventionName);
-        }
-    }
-
     /**
      * Represents a statement in a script. Each statement has an optional comment that explains its purpose.
      */
@@ -941,7 +912,7 @@ public class BuildScriptBuilder {
 
     private static abstract class AbstractStatement implements Statement {
 
-        final String comment;
+        private final String comment;
 
         AbstractStatement(@Nullable String comment) {
             this.comment = comment;
@@ -959,7 +930,7 @@ public class BuildScriptBuilder {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class StatementGroup extends AbstractStatement {
         private final List<Statement> statements = new ArrayList<>();
 
@@ -1002,7 +973,7 @@ public class BuildScriptBuilder {
 
     private static class ContainerElement extends AbstractStatement implements ExpressionValue {
 
-        private final String comment;
+        private final String containerComment;
         private final String container;
         private final String elementName;
         @Nullable
@@ -1011,9 +982,9 @@ public class BuildScriptBuilder {
         private final String elementType;
         private final ScriptBlockImpl body = new ScriptBlockImpl();
 
-        public ContainerElement(String comment, String container, String elementName, @Nullable String elementType, @Nullable String varName) {
+        public ContainerElement(String containerComment, String container, String elementName, @Nullable String elementType, @Nullable String varName) {
             super(null);
-            this.comment = comment;
+            this.containerComment = containerComment;
             this.container = container;
             this.elementName = elementName;
             this.elementType = elementType;
@@ -1022,7 +993,7 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            Statement statement = printer.syntax.createContainerElement(comment, container, elementName, elementType, varName, body.statements);
+            Statement statement = printer.syntax.createContainerElement(containerComment, container, elementName, elementType, varName, body.statements);
             printer.printStatement(statement);
         }
 
@@ -1418,6 +1389,7 @@ public class BuildScriptBuilder {
             TEST_NG(new MethodInvocationExpression("useTestNG"), "TestNG");
 
             final String displayName;
+            @SuppressWarnings("ImmutableEnumChecker") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
             final MethodInvocationExpression method;
 
             TestSuiteFramework(MethodInvocationExpression method, String displayName) {
@@ -1617,7 +1589,6 @@ public class BuildScriptBuilder {
         final TestingBlock testing;
         final ConfigurationStatements<TaskTypeSelector> taskTypes = new ConfigurationStatements<>();
         final ConfigurationStatements<TaskSelector> tasks = new ConfigurationStatements<>();
-        final ConfigurationStatements<ConventionSelector> conventions = new ConfigurationStatements<>();
         final BuildScriptBuilder builder;
 
         private TopLevelBlock(BuildScriptBuilder builder) {
@@ -1638,7 +1609,6 @@ public class BuildScriptBuilder {
                 printer.printStatement(testing);
             }
             super.writeBodyTo(printer);
-            printer.printStatement(conventions);
             printer.printStatement(taskTypes);
             for (SuiteSpec suite : testing.suites) {
                 if (!suite.isDefaultTestSuite()) {
@@ -2005,9 +1975,6 @@ public class BuildScriptBuilder {
 
         String propertyAssignment(PropertyAssignment expression);
 
-        @Nullable
-        String conventionSelector(ConventionSelector selector);
-
         String taskSelector(TaskSelector selector);
 
         String taskByTypeSelector(String taskType);
@@ -2133,11 +2100,6 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public String conventionSelector(ConventionSelector selector) {
-            return selector.conventionName;
-        }
-
-        @Override
         public String taskSelector(TaskSelector selector) {
             return "tasks.named<" + selector.taskType + ">(\"" + selector.taskName + "\")";
         }
@@ -2187,7 +2149,7 @@ public class BuildScriptBuilder {
             return blockStatement;
         }
 
-        @Nonnull
+        @NonNull
         private String getLiteral(String container, String elementName, @Nullable String elementType, String varName) {
             if (varName == null) {
                 if (elementType == null) {
@@ -2297,11 +2259,6 @@ public class BuildScriptBuilder {
             String propertyName = expression.propertyName;
             ExpressionValue propertyValue = expression.propertyValue;
             return propertyName + " = " + propertyValue.with(this);
-        }
-
-        @Override
-        public String conventionSelector(ConventionSelector selector) {
-            return null;
         }
 
         @Override

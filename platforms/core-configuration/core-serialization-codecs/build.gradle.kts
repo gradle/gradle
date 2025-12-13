@@ -20,13 +20,16 @@ plugins {
 
 description = "Configuration Cache serialization codecs for :core (and family) types"
 
-gradlebuildJava {
-    usesFutureStdlib = true
+jvmCompile {
+    compilations {
+        named("main") {
+            usesFutureStdlib = true
+        }
+    }
 }
 
 dependencies {
     api(projects.baseServices)
-    api(projects.configurationCacheBase)
     api(projects.core)
     api(projects.coreApi)
     api(projects.dependencyManagement)
@@ -45,25 +48,27 @@ dependencies {
     implementation(projects.baseServicesGroovy)
     implementation(projects.beanSerializationServices)
     implementation(projects.buildOperations)
+    implementation(projects.configurationCacheBase)
     implementation(projects.configurationProblemsBase)
+    implementation(projects.coreFlowServicesApi)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.execution)
     implementation(projects.functional)
+    implementation(projects.guavaSerializationCodecs)
     implementation(projects.hashing)
     implementation(projects.loggingApi)
     implementation(projects.messaging)
+    implementation(projects.modelReflect)
     implementation(projects.platformJvm)
     implementation(projects.publish)
     implementation(projects.serialization)
     implementation(projects.serviceLookup)
+    implementation(projects.stdlibSerializationCodecs)
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.asm)
-    implementation(libs.commonsLang3)
+    implementation(libs.commonsLang)
     implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.guava)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

@@ -20,8 +20,8 @@ import org.gradle.internal.concurrent.ExecutorPolicy;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.ManagedExecutorImpl;
 import org.gradle.internal.enterprise.DevelocityPluginUnsafeConfigurationService;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -83,7 +83,7 @@ public class DefaultGradleEnterprisePluginBackgroundJobExecutors implements Grad
         private final AtomicLong counter = new AtomicLong();
 
         @Override
-        public Thread newThread(@Nonnull Runnable r) {
+        public Thread newThread(@NonNull Runnable r) {
             Thread thread = new BackgroundThread(group, r, NAME + "-" + counter.getAndIncrement());
             thread.setDaemon(true);
             return thread;

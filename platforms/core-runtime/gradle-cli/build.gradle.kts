@@ -21,7 +21,7 @@ plugins {
 description = "Implementation of the `gradle` command"
 
 dependencies {
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(projects.baseServices)
     api(projects.cli)
     api(projects.clientServices)
@@ -38,27 +38,29 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.guava)
     implementation(libs.commonsIo)
-    implementation(libs.ant)
-    implementation(libs.groovy)
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOption)
+    implementation(projects.buildProcessServices)
     implementation(projects.buildState)
+    implementation(projects.classloaders)
     implementation(projects.coreApi)
     implementation(projects.daemonServices)
     implementation(projects.enterpriseLogging)
     implementation(projects.fileCollections)
     implementation(projects.instrumentationAgentServices)
+    implementation(projects.jvmServices)
     implementation(projects.native)
+    implementation(projects.problemsApi)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibJavaExtensions)
-    implementation(projects.jvmServices)
 
+    runtimeOnly(libs.groovy)
+
+    testImplementation(libs.ant)
     testImplementation(projects.kotlinDsl)
     testImplementation(testFixtures(projects.logging))
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

@@ -23,24 +23,24 @@ import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
-import org.gradle.internal.declarativedsl.evaluator.GradleProcessInterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.interpreter.GradleProcessInterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.schema.DefaultEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import org.gradle.tooling.provider.model.internal.BuildScopeModelBuilder
 import java.io.Serializable
 
 
 class DeclarativeSchemaModelBuilder(
-    private val softwareTypeRegistry: SoftwareTypeRegistry
+    private val projectFeatureDeclarations: ProjectFeatureDeclarations
 ) : BuildScopeModelBuilder {
 
     override fun create(target: BuildState): Any {
         // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
         target.ensureProjectsLoaded()
 
-        val schemaBuilder = GradleProcessInterpretationSchemaBuilder({ target.mutableModel.settings }, softwareTypeRegistry)
+        val schemaBuilder = GradleProcessInterpretationSchemaBuilder({ target.mutableModel.settings }, projectFeatureDeclarations)
 
         val settingsSequence = schemaBuilder.getEvaluationSchemaForScript(DeclarativeScriptContext.SettingsScript)
             .sequenceOrError().analysisOnly()

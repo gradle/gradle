@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.tasks.testing.report;
 
-import org.apache.commons.lang.StringUtils;
-import org.gradle.internal.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.gradle.internal.SafeFileLocationUtils;
 
 import java.util.Collection;
 import java.util.Set;
@@ -24,8 +24,14 @@ import java.util.TreeSet;
 
 /**
  * Test results for a given class.
+ *
+ * @deprecated Only present for compatibility with cashapp/paparazzi. No replacement.
  */
+@Deprecated
 public class ClassTestResults extends CompositeTestResults {
+    private static final String HTML_REPORT_DIR = "classes";
+    private static final String HTML_EXTENSION = ".html";
+
     private final long id;
     private final String name;
     private final String displayName;
@@ -43,7 +49,7 @@ public class ClassTestResults extends CompositeTestResults {
         this.name = name;
         this.displayName = displayName;
         this.packageResults = packageResults;
-        baseUrl = "classes/" + FileUtils.toSafeFileName(name) + ".html";
+        baseUrl = HTML_REPORT_DIR + "/" + SafeFileLocationUtils.toSafeFileName(name + HTML_EXTENSION, false);
     }
 
     public long getId() {

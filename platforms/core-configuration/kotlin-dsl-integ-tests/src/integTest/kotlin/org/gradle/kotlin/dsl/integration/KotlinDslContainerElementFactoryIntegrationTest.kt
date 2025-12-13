@@ -16,6 +16,11 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.api.internal.plugins.BindsProjectType
+import org.gradle.api.internal.plugins.BuildModel
+import org.gradle.api.internal.plugins.Definition
+import org.gradle.api.internal.plugins.ProjectTypeBinding
+import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.kotlin.dsl.accessors.DCL_ENABLED_PROPERTY_NAME
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.junit.Test
@@ -28,7 +33,7 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
     }
 
     @Test
-    fun `can use custom software type names for element factories`() {
+    fun `can use custom project type names for element factories`() {
         testKtsDefinitionWithDeclarativePlugin(withPluginsBlock = false, withCustomElementFactoryName = true)
     }
 
@@ -63,10 +68,10 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
         )
 
         buildAndFail("printNames") // no DCL support by default
-            .assertHasErrorOutput("Unresolved reference: $otherElementFactoryName")
+            .assertHasErrorOutput("Unresolved reference '$otherElementFactoryName'")
 
         with(build("printNames", enableDclCliFlag)) {
-            assertTaskExecuted(":printNames")
+            assertTaskScheduled(":printNames")
             assertOutputContains("[one, two, four, three]")
         }
 
@@ -74,7 +79,7 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
         enableDclInGradleProperties()
 
         with(build("printNames")) {
-            assertTaskExecuted(":printNames")
+            assertTaskScheduled(":printNames")
             assertOutputContains("[one, two, four, three]")
         }
     }
@@ -132,29 +137,40 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
                 import org.gradle.api.Project
                 import org.gradle.api.Named
                 import org.gradle.api.NamedDomainObjectContainer
-                import org.gradle.api.internal.plugins.software.SoftwareType
                 import org.gradle.api.model.ObjectFactory
                 import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
                 import javax.inject.Inject
+                import ${BindsProjectType::class.java.name}
+                import ${ProjectTypeBinding::class.java.name}
+                import ${ProjectTypeBindingBuilder::class.java.name}
+                import ${Definition::class.java.name}
+                import ${BuildModel::class.java.name}
+                import org.gradle.api.internal.plugins.features.dsl.bindProjectType
 
+                @${BindsProjectType::class.java.simpleName}(MyPlugin.Binding::class)
                 abstract class MyPlugin @Inject constructor(private val project: Project) : Plugin<Project> {
-                    @get:SoftwareType(name = "mySoftwareType")
-                    abstract val mySoftwareType: MyExtension
-
-                    override fun apply(project: Project) {
-                        project.tasks.register("printNames") {
-                            val names = mySoftwareType.myElements.names + mySoftwareType.myElementsConcreteContainer.names
-                            doFirst {
-                                println(names)
+                    class Binding : ${ProjectTypeBinding::class.java.simpleName} {
+                        override fun bind(builder: ${ProjectTypeBindingBuilder::class.java.simpleName}) {
+                            builder.bindProjectType("mySoftwareType") { definition: MyExtension, model ->
+                                project.tasks.register("printNames") {
+                                    val names = definition.myElements.names + definition.myElementsConcreteContainer.names
+                                    doFirst {
+                                        println(names)
+                                    }
+                                }
                             }
                         }
                     }
+
+                    override fun apply(project: Project) { }
                 }
 
-                abstract class MyExtension @Inject constructor(objectFactory: ObjectFactory) {
+                abstract class MyExtension @Inject constructor(objectFactory: ObjectFactory) : ${Definition::class.java.simpleName}<Model> {
                     abstract val myElements: NamedDomainObjectContainer<MyElement>
                     val myElementsConcreteContainer = MyContainerSubtype(objectFactory.domainObjectContainer(MyOtherElement::class.java))
                 }
+
+                interface Model : ${BuildModel::class.java.simpleName} { }
 
                 class MyContainerSubtype @Inject constructor(backingContainer: NamedDomainObjectContainer<MyOtherElement>)
                     : NamedDomainObjectContainer<MyOtherElement> by backingContainer

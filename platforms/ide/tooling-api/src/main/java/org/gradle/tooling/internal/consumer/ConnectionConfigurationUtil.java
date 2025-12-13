@@ -16,10 +16,10 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.wrapper.GradleUserHomeLookup;
 import org.gradle.wrapper.PropertiesFileHandler;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * Contains convenience methods to read some Gradle configuration without launching a daemon.
  */
-@NonNullApi
+@NullMarked
 public class ConnectionConfigurationUtil {
 
     public static Map<String, String> determineSystemProperties(ConnectionParameters connectionParameters) {

@@ -1,0 +1,187 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[init_scripts]]
+= Initialization Scripts and Init Plugins
+:keywords: init, init.gradle
+
+Initialization scripts (_init scripts_) are Gradle scripts that run during the *initialization phase*, *before* the build’s `settings.gradle(.kts)` and project build scripts are evaluated.
+
+Init scripts are useful for setting up common configuration such as enterprise repositories, plugin resolution rules, build listeners, or applying custom plugins across many builds without modifying each repository.
+
+WARNING: Init scripts affect *every* build they are attached to (local or CI), so treat them like production code.
+
+[[sec:basic_usage]]
+== Using an init script
+
+Init scripts are Groovy/Kotlin scripts whose receiver is the link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[`Gradle`] object.
+
+They can:
+
+* Configure enterprise-wide defaults (e.g., `pluginManagement`, mirrors)
+* Vary configuration by environment (dev vs. CI)
+* Provide user-specific data (e.g., credentials via providers)
+* Define machine-specific details (e.g., JDK/SDK locations)
+* Register build listeners and custom loggers
+
+One important <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,limitation>> is that init scripts cannot access classes from `buildSrc` in the target build.
+
+[[sec:using_an_init_script]]
+== Invoking an init script
+
+Init scripts are discovered and executed in this order:
+
+1. Command line: `-I` / `--init-script path/to/init.gradle(.kts)` (can be repeated)
+2. `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/init.gradle(.kts)`
+3. Any `\*.init.gradle(.kts)` in `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/init.d/` (alphabetical)
+4. Any `\*.init.gradle(.kts)` in `$<<installation.adoc#sec:linux_macos_users_2,GRADLE_HOME>>/init.d/` (alphabetical)
+
+All found scripts run; scripts in the same directory run alphabetically.
+
+[[sec:writing_an_init_script]]
+== Writing an init script
+
+Like any Gradle script, an init script implements link:{groovyDslPath}/org.gradle.api.Script.html[`Script`] and delegates to the link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[`Gradle`] instance.
+
+NOTE: Properties from `gradle.properties` are available on `Settings`/`Project`, *not* on `Gradle`.
+
+Useful `Gradle` callbacks include: `settingsEvaluated {}`, `projectsLoaded {}`, `beforeProject {}`, `afterProject {}`.
+You can see more in the <<build_lifecycle#lifecycle_api,Gradle Lifecycle API>>.
+
+[[sec:configuring_projects_from_an_init_script]]
+=== Configuring projects from an init script
+
+You can use an init script to configure the projects in the build.
+This works similarly to configuring projects in a multi-project build.
+
+The following sample shows how to perform extra configuration from an init script _before_ the projects are evaluated:
+
+====
+include::sample[dir="snippets/initScripts/configurationInjection/groovy",files="build.gradle[];init.gradle[]"]
+include::sample[dir="snippets/initScripts/configurationInjection/kotlin",files="build.gradle.kts[];init.gradle.kts[]"]
+====
+
+This sample uses this feature to configure an additional repository to be used only for specific environments.
+
+[source.multi-language-sample,kotlin]
+----
+> gradle --init-script init.gradle.kts -q showRepos
+include::{snippetsPath}/initScripts/configurationInjection/tests-common/initScriptConfiguration.out[]
+----
+[source.multi-language-sample,groovy]
+----
+> gradle --init-script init.gradle -q showRepos
+include::{snippetsPath}/initScripts/configurationInjection/tests-common/initScriptConfiguration.out[]
+----
+
+[[sec:custom_classpath]]
+== Adding external dependencies
+
+Use `initscript { }` to declare the init script’s classpath (repositories + dependencies):
+
+====
+include::sample[dir="snippets/initScripts/externalDependency/kotlin",files="init.gradle.kts[tags=declare-classpath]"]
+include::sample[dir="snippets/initScripts/externalDependency/groovy",files="init.gradle[tags=declare-classpath]"]
+====
+
+The closure passed to `initscript` configures a link:{javadocPath}/org/gradle/api/initialization/dsl/ScriptHandler.html[`ScriptHandler`] instance.
+You declare the init script classpath by adding dependencies to the `classpath` configuration.
+
+This is the same way you declare, for example, the Java compilation classpath.
+You can use any of the dependency types described in <<declaring_dependencies.adoc#one-declaring-dependencies,Declaring Dependencies>>, except project dependencies.
+
+Having declared the init script classpath, you can use the classes in your init script as you would any other classes on the classpath.
+The following example adds to the previous example and uses classes from the init script classpath:
+
+====
+include::sample[dir="snippets/initScripts/externalDependency/kotlin",files="init.gradle.kts[tags=all];build.gradle.kts[]"]
+include::sample[dir="snippets/initScripts/externalDependency/groovy",files="init.gradle[tags=all];build.gradle[]"]
+====
+
+[source.multi-language-sample,kotlin]
+----
+> gradle --init-script init.gradle.kts -q doNothing
+include::{snippetsPath}/initScripts/externalDependency/tests-common/externalInitDependency.out[]
+----
+[source.multi-language-sample,groovy]
+----
+> gradle --init-script init.gradle -q doNothing
+include::{snippetsPath}/initScripts/externalDependency/tests-common/externalInitDependency.out[]
+----
+
+[[sec:init_plugins]]
+== Init plugins
+
+An init plugin is a Gradle plugin whose target type is `Plugin<Gradle>` and is applied in an init script.
+
+Unlike project (`Plugin<Project>`) or settings (`Plugin<Settings>`) plugins, an init plugin attaches to the Gradle object during the initialization phase, before the settings and projects are configured:
+
+- *Scope*: Runs at init; can access `settingsEvaluated`, `projectsLoaded`, `beforeProject`, `afterProject` <<build_lifecycle#lifecycle_api,callbacks>> to safely interact with settings/projects when they exist.
+- **Distribution**: Applied from an init script (`~/.gradle/init.d/*.init.gradle(.kts)` or `$GRADLE_HOME/init.d`) so it affects every build on that machine/agent. However, this does not include **all** builds: for example, builds run via `TestKit` use an isolated <<directory_layout.adoc#dir:gradle_user_home,Gradle user home>>, and different users or build agents may each have their own init scripts.
+
+The init plugin in the init script ensures that only a specified repository is used when running the build:
+
+====
+include::sample[dir="snippets/initScripts/plugins/kotlin",files="init.gradle.kts[tags=init-script-plugin];build.gradle.kts[tag=show-repos-task]"]
+include::sample[dir="snippets/initScripts/plugins/groovy",files="init.gradle[tags=init-script-plugin];build.gradle[tag=show-repos-task]"]
+====
+
+[source.multi-language-sample,kotlin]
+----
+> gradle --init-script init.gradle.kts -q showRepositories
+include::{snippetsPath}/initScripts/plugins/tests-common/usePluginsInInitScripts.out[]
+----
+[source.multi-language-sample,groovy]
+----
+> gradle --init-script init.gradle -q showRepositories
+include::{snippetsPath}/initScripts/plugins/tests-common/usePluginsInInitScripts.out[]
+----
+
+[[sec:init_script_plugins]]
+== Applying plugins from an init script
+
+You can apply plugins in an init script just like in `build.gradle(.kts)`/`settings.gradle(.kts)`.
+
+When applying plugins within the init script, Gradle instantiates the plugin and calls the plugin instance's link:{javadocPath}/org/gradle/api/Plugin.html#apply-T-[`Plugin.apply(T)`] method.
+
+The `gradle` object is passed as a parameter, which can be used to configure all aspects of a build.
+Of course, the applied plugin can be resolved as an external dependency as described in <<#sec:custom_classpath,External dependencies for the init script>>.
+
+In this example, the init script is its own project called `baseline-init-plugin`:
+
+====
+include::sample[dir="snippets/plugins/init-kotlin/kotlin",files="baseline-init-plugin/src/main/kotlin/com/example/BaselineInitPlugin.kt[]"]
+include::sample[dir="snippets/plugins/init-groovy/groovy",files="baseline-init-plugin/src/main/groovy/com/example/BaselineInitPlugin.groovy[]"]
+====
+
+You can publish it to a local Maven repository by running:
+
+[source,bash]
+----
+$ ./gradlew :baseline-init-plugin:publishPluginMavenPublicationToMavenRepoInLocalBuildRepository
+----
+
+Here it is applied in an init script of the `app` project:
+
+====
+include::sample[dir="snippets/plugins/init-kotlin/kotlin",files="init.gradle.kts[]"]
+include::sample[dir="snippets/plugins/init-groovy/groovy",files="init.gradle[]"]
+====
+
+Then you can run the app with:
+
+[source,bash]
+----
+$ ./gradlew :app:build -I init.gradle(.kts)
+----

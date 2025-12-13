@@ -18,14 +18,14 @@ package org.gradle.api.resource
 import org.gradle.api.resources.TextResourceFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.internal.GUtil
 import org.junit.Rule
 
-@TestReproducibleArchives
+@TestFileSystemSensitiveArchives
 class TextResourceIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     TestResources resource = new TestResources(temporaryFolder)
@@ -38,7 +38,7 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         run("stringText")
 
         then:
-        result.assertTasksExecuted(":stringText")
+        result.assertTasksScheduled(":stringText")
         file("output.txt").text == "my config"
 
         when:
@@ -54,7 +54,7 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         run("fileText")
 
         then:
-        result.assertTasksExecuted(":fileText")
+        result.assertTasksScheduled(":fileText")
         file("output.txt").text == "my config"
 
         when:
@@ -69,7 +69,7 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         run("fileCollectionText")
 
         then:
-        result.assertTasksExecuted(":generateConfigFile", ":fileCollectionText")
+        result.assertTasksScheduled(":generateConfigFile", ":fileCollectionText")
         file("output.txt").text == "my config"
 
         when:
@@ -84,7 +84,7 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         run("fileCollectionTextUsingTaskProvider")
 
         then:
-        result.assertTasksExecuted(":generateConfigFile", ":fileCollectionTextUsingTaskProvider")
+        result.assertTasksScheduled(":generateConfigFile", ":fileCollectionTextUsingTaskProvider")
         file("output.txt").text == "my config"
 
         when:
@@ -99,7 +99,7 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         run("archiveEntryText")
 
         then:
-        result.assertTasksExecuted(":generateConfigFile", ":generateConfigZip", ":archiveEntryText")
+        result.assertTasksScheduled(":generateConfigFile", ":generateConfigZip", ":archiveEntryText")
         file("output.txt").text == "my config"
 
         when:
@@ -151,7 +151,7 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         run("uriText")
 
         then:
-        result.assertTasksExecuted(":uriText")
+        result.assertTasksScheduled(":uriText")
         file("output.txt").text == "my config\n"
 
         when:
@@ -179,7 +179,7 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         run("uriText")
 
         then:
-        result.assertTasksExecuted(":uriText")
+        result.assertTasksScheduled(":uriText")
         file("output.txt").text == "my config\n"
 
         when:

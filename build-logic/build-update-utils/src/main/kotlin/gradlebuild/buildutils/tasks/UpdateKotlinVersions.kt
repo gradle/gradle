@@ -16,32 +16,23 @@
 
 package gradlebuild.buildutils.tasks
 
-import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
+import org.gradle.util.internal.VersionNumber
 import org.jetbrains.annotations.VisibleForTesting
-import java.util.Properties
-import javax.xml.parsers.DocumentBuilderFactory
-
 
 /**
  * Fetch the latest Kotlin versions and write a properties file.
  * Never up-to-date, non-cacheable.
  */
 @UntrackedTask(because = "Not worth tracking")
-abstract class UpdateKotlinVersions : DefaultTask() {
-
-    @get:Internal
-    abstract val comment: Property<String>
+abstract class UpdateKotlinVersions : AbstractVersionsUpdateTask() {
 
     @get:Internal
     abstract val minimumSupported: Property<String>
-
-    @get:Internal
-    abstract val propertiesFile: RegularFileProperty
 
     @get:Internal
     abstract val compatibilityDocFile: RegularFileProperty
@@ -49,49 +40,26 @@ abstract class UpdateKotlinVersions : DefaultTask() {
     @TaskAction
     fun action() =
         fetchLatestKotlinVersions().let { latestKotlinVersions ->
-            updateProperties(latestKotlinVersions)
-            updateCompatibilityDoc(latestKotlinVersions)
+            updateProperties {
+                setProperty("latests", latestKotlinVersions.joinToString(","))
+            }
+            updateCompatibilityDoc(
+                compatibilityDocFile,
+                "Gradle is tested with Kotlin",
+                latestKotlinVersions.first(),
+                latestKotlinVersions.last()
+            )
         }
 
     private
     fun fetchLatestKotlinVersions() =
-        DocumentBuilderFactory.newInstance().fetchFirstAndLatestsOfEachMinor(
+        fetchAndSelectKotlinVersions(
             minimumSupported.get(),
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/maven-metadata.xml"
         )
 
     private
-    fun updateProperties(latestKotlinVersions: List<String>) =
-        Properties().run {
-            setProperty("latests", latestKotlinVersions.joinToString(","))
-            store(
-                propertiesFile.get().asFile,
-                comment.get()
-            )
-        }
-
-    private
-    fun updateCompatibilityDoc(latestKotlinVersions: List<String>) {
-        val docFile = compatibilityDocFile.get().asFile
-        val linePrefix = "Gradle is tested with Kotlin"
-        var lineFound = false
-        docFile.writeText(
-            docFile.readLines().joinToString(separator = "\n", postfix = "\n") { line ->
-                if (line.startsWith(linePrefix)) {
-                    lineFound = true
-                    "$linePrefix ${latestKotlinVersions.first()} through ${latestKotlinVersions.last()}."
-                } else {
-                    line
-                }
-            }
-        )
-        require(lineFound) {
-            "File '$docFile' does not contain the expected Kotlin compatibility line"
-        }
-    }
-
-    private
-    fun DocumentBuilderFactory.fetchFirstAndLatestsOfEachMinor(minimumSupported: String, mavenMetadataUrl: String): List<String> {
+    fun fetchAndSelectKotlinVersions(minimumSupported: String, mavenMetadataUrl: String): List<String> {
         return selectVersionsFrom(minimumSupported, fetchVersionsFromMavenMetadata(mavenMetadataUrl))
     }
 
@@ -99,14 +67,15 @@ abstract class UpdateKotlinVersions : DefaultTask() {
         @VisibleForTesting
         @JvmStatic
         fun selectVersionsFrom(minimumSupported: String, allVersions: List<String>): List<String> {
+            require(minimumSupported in allVersions) {
+                "Minimum supported '$minimumSupported' was not found in available versions: $allVersions"
+            }
             val versionsByMinor = allVersions
                 .groupBy { it.take(3) } // e.g. 1.9
                 .toSortedMap()
             val latests = buildList {
                 versionsByMinor.entries.forEachIndexed { idx, entry ->
-                    // Earliest stable of the minor
-                    val versionsOfMinor = entry.value
-                    add(versionsOfMinor.lastOrNull { !it.contains("-") })
+                    val versionsOfMinor = entry.value.sortedByDescending { VersionNumber.parse(it) }
                     if (idx < versionsByMinor.size - 1) {
                         // Latest of the previous minor
                         add(versionsOfMinor.first())

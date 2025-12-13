@@ -23,14 +23,15 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.IncludedBuildSpec;
+import org.gradle.initialization.ProjectDescriptorInternal;
+import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.FinalizableValue;
+import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -39,18 +40,18 @@ import java.util.List;
 
 public interface SettingsInternal extends Settings, PluginAwareInternal, FinalizableValue {
 
-    String BUILD_SRC = "buildSrc";
+    String BUILD_SRC = BuildLogicFiles.BUILD_SOURCE_DIRECTORY;
 
     @Override
     StartParameter getStartParameter();
 
     ScriptSource getSettingsScript();
 
-    ProjectRegistry<DefaultProjectDescriptor> getProjectRegistry();
+    ProjectDescriptorRegistry getProjectRegistry();
 
-    DefaultProjectDescriptor getDefaultProject();
+    ProjectDescriptorInternal getDefaultProject();
 
-    void setDefaultProject(DefaultProjectDescriptor defaultProject);
+    void setDefaultProject(ProjectDescriptorInternal defaultProject);
 
     @Override
     GradleInternal getGradle();
@@ -89,13 +90,14 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
     @Adding
     @Incubating
     default void include(String projectPath) {
-        include(new String[] {projectPath});
+        include(new String[]{projectPath});
     }
 
     /**
      * A {@link URI} factory function exposed to DCL.
      * Mimics {@code SettingsScriptApi.uri} available in Kotlin DSL.
      * Primarily for use in {@link org.gradle.api.artifacts.repositories.MavenArtifactRepository#setUrl}
+     *
      * @see FileOperations#uri
      */
     @Restricted

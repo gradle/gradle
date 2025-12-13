@@ -33,7 +33,7 @@ Basic formatting rules:
 - The first line contains the begin-comment delimiter ( `/**`).
 - The first sentence is a summary.
 - Notice the inline tag `{@link URL}`, which converts to an HTML hyperlink pointing to the documentation for the URL class.
-- If you have more than one paragraph in the doc comment, separate the paragraphs with a `<p>` paragraph tag, as shown.
+- If you have more than one paragraph in the doc comment, separate the paragraphs with a `<p>` paragraph tag, as shown. `</p>` is not needed.
 - Insert a blank comment line between the description and the list of tags, as shown.
 - The first line that begins with an `@` character ends the description; you cannot continue the description following block tags.
 - Block tags must be added in order.
@@ -74,6 +74,9 @@ Each paragraph is denoted by a `<p>` which is placed on a separate line:
 ```
 
 HTML tags for other block-level elements, such as `<ul>` or `<table>`, are not preceded with `<p>`.
+
+You don’t need to manually close `<p>` tags with `</p>`. 
+The Javadoc tool automatically treats `<p>` as a paragraph break and including `</p>` can sometimes lead to incorrect formatting, especially when combined with other block elements.
 
 ### 1.1.4 Symbols
 
@@ -232,7 +235,17 @@ Your project must have a test class that extends [`AbstractAutoTestedSamplesTest
 At the minimum, Javadoc is present for every public type (including public inner types), and every public or protected member of such a type, with a few exceptions such as overrides and self-explanatory members:
 
 ```java
-public Image getImage(URL url, String name) {}
+/**
+ * Public Method that requires Javadoc
+ */
+public Image getImage(URL url, String name) {
+    // Method implementation
+}
+
+// Private Method that doesn't require Javadoc
+private Image getImage(URL url) {
+    // Method implementation
+}
 ```
 
 ## 1.5 A note on IDEs
@@ -241,19 +254,21 @@ public Image getImage(URL url, String name) {}
 
 IntelliJ IDEA will display `<p>` or an empty `*` as a new line:
 
-```java
+```text
 /**
  * A
  *
  * B
- ```
+ */
+```
 
-```java
+```text
 /**
  * A
  * <p>
  * B
- ```
+ */
+```
 
 Render as:
 
@@ -267,11 +282,12 @@ If you want to stop IntelliJ IDEA from auto closing HTML tags:
 
 ### 1.5.2 Android Studio
 
-Android studio will not display javadoc following a `<p>` so make sure your summary fragment is well detailed:
+Android studio will not display Javadoc following a `<p>` so make sure your summary fragment is well detailed:
 
-```java
+```text
 /**
  * A // Displayed
  * <p>
  * B // Not displayed
- ```
+ */
+```

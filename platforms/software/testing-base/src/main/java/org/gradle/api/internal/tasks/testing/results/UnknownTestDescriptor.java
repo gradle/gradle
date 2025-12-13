@@ -15,12 +15,13 @@
  */
 package org.gradle.api.internal.tasks.testing.results;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.source.DefaultOtherSource;
+import org.gradle.api.tasks.testing.source.TestSource;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-@NonNullApi
+@NullMarked
 public class UnknownTestDescriptor implements TestDescriptorInternal {
 
     @Override
@@ -46,6 +47,11 @@ public class UnknownTestDescriptor implements TestDescriptorInternal {
     @Override
     public TestDescriptorInternal getParent() {
         return null;
+    }
+
+    @Override
+    public TestSource getSource() {
+        return DefaultOtherSource.getInstance();
     }
 
     @Override

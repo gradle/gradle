@@ -19,8 +19,11 @@ package org.gradle.internal.cc.impl.services
 import org.gradle.internal.cc.impl.models.BuildTreeModelSideEffectStore
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
 
+@ServiceScope(Scope.BuildTree::class)
 internal
 class ConfigurationCacheBuildTreeModelSideEffectExecutor : BuildTreeModelSideEffectExecutor {
 

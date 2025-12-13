@@ -29,7 +29,7 @@ class BuildScanAutoApplyKotlinIntegrationTest extends KotlinScriptIntegrationTes
         given:
         file("settings.gradle").delete()
         file("settings.gradle.kts") << """
-            rootProject.buildFileName = "$defaultBuildFileName"
+            rootProject.buildFileName = "${buildFile.name}"
         """
 
         buildFile << """

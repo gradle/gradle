@@ -39,9 +39,9 @@ abstract class Snippets {
 
                     OperationIdentifier testId = new OperationIdentifier(42L)
                     DefaultTestDescriptor testDescr = new DefaultTestDescriptor(testId, "org.my.MyClass", "MyCustomTest", null, "org.my.MyClass descriptor")
-                    testResultProcessor.started(testDescr, new TestStartEvent(System.currentTimeMillis()))
+                    testResultProcessor.started(testDescr, new TestStartEvent(System.currentTimeMillis(), rootId))
                     testResultProcessor.completed(testId, new TestCompleteEvent(System.currentTimeMillis(), TestResult.ResultType.SUCCESS))
-                    testResultProcessor.completed(rootId, new TestCompleteEvent(System.currentTimeMillis()))
+                    testResultProcessor.completed(rootId, new TestCompleteEvent(System.currentTimeMillis(), TestResult.ResultType.SUCCESS))
                 }
 
                 @Override
@@ -59,11 +59,12 @@ abstract class Snippets {
             import org.gradle.api.internal.tasks.testing.TestExecutionSpec
             import org.gradle.api.tasks.testing.AbstractTestTask
 
-            class CustomTestTask extends AbstractTestTask {
+            abstract class CustomTestTask extends AbstractTestTask {
                 CustomTestTask() {
-                    binaryResultsDirectory.set(new File(getProject().buildDir, "CustomTestTask"))
-                    reports.html.required.set(false)
+                    binaryResultsDirectory.set(new File(getProject().buildDir, "binaryResults"))
+                    reports.html.required.set(true)
                     reports.junitXml.required.set(false)
+                    reports.html.outputLocation.set(new File(getProject().buildDir, "htmlReport"))
                 }
 
                 @Override

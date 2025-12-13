@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
+import org.gradle.util.DebugUtil;
 import org.gradle.util.GradleVersion;
 
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
@@ -64,5 +65,16 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
         if (!noExplicitNativeServicesDir) {
             invocation.environmentVars.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
         }
+    }
+
+    @Override
+    public GradleExecuter reset() {
+        super.reset();
+        return this;
+    }
+
+    @Override
+    protected boolean isDebuggerAttached() {
+        return DebugUtil.isDebuggerAttached();
     }
 }

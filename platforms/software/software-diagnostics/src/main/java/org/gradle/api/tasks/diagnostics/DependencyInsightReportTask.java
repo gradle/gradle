@@ -18,7 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
@@ -30,21 +30,14 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.HasAttributes;
-import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
-import org.gradle.api.internal.artifacts.configurations.ResolvableDependenciesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -56,24 +49,24 @@ import org.gradle.api.tasks.diagnostics.internal.dependencies.MatchType;
 import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationConverter;
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphsRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyReportHeader;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
+import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RequestedVersion;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
 import org.gradle.api.tasks.diagnostics.internal.text.StyledTable;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -135,7 +128,6 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     // a value of `configuration.getAttributes()`.
     // TODO:configuration-cache find a way to clean up this #23732
     private Provider<AttributeContainer> zConfigurationAttributes;
-    private ResolutionErrorRenderer errorHandler;
     private String configurationName;
     private String configurationDescription;
 
@@ -156,7 +148,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
                 if (!configurationInternal.isCanBeMutated()) {
                     throw new IllegalStateException(
                         "The configuration '" + configuration.getName() + "' is not mutable. " +
-                        "In order to use the '--all-variants' option, the configuration must not be resolved before this task is executed."
+                            "In order to use the '--all-variants' option, the configuration must not be resolved before this task is executed."
                     );
                 }
                 configurationInternal.getResolutionStrategy().setIncludeAllSelectableVariantResults(true);
@@ -165,36 +157,9 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             configurationDescription = configuration.toString();
             zConfigurationAttributes = getProject().provider(configuration::getAttributes);
 
-            ProviderFactory providerFactory = getProject().getProviders();
-            ResolutionOutputsInternal resolutionOutputs = ((ResolvableDependenciesInternal) configuration.getIncoming()).getResolutionOutputs();
-            ResolutionResultProvider<VisitedGraphResults> graphResultsProvider = resolutionOutputs.getRawResults().map(ResolverResults::getVisitedGraph);
-            errorHandler.addErrorSource(providerFactory.provider(() ->
-                graphResultsProvider.getValue().getResolutionFailure()
-                    .map(Collections::singletonList)
-                    .orElse(Collections.emptyList()))
-            );
-            rootComponentProperty.set(providerFactory.provider(() -> {
-                // We do not use the public resolution result API to avoid throwing exceptions that we visit above
-                return graphResultsProvider.getValue().getResolutionResult().getRootSource().get();
-            }));
+            rootComponentProperty.set(configuration.getIncoming().getResolutionResult().getRootComponent());
         }
         return rootComponentProperty;
-    }
-
-    /**
-     * Selects the dependency (or dependencies if multiple matches found) to show the report for.
-     * @deprecated Not intended for public use.
-     */
-    @Internal
-    @Deprecated
-    public @Nullable Spec<DependencyResult> getDependencySpec() {
-        DeprecationLogger
-            .deprecateMethod(DependencyInsightReportTask.class, "getDependencySpec()")
-            .withContext("This method is not intended for public use.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "dependency-insight-report-task-get-dependency-spec")
-            .nagUser();
-        return dependencySpec;
     }
 
     /**
@@ -203,7 +168,6 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      */
     public void setDependencySpec(@Nullable Spec<DependencyResult> dependencySpec) {
         this.dependencySpec = dependencySpec;
-        this.errorHandler = new ResolutionErrorRenderer(dependencySpec);
     }
 
     /**
@@ -303,24 +267,16 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     }
 
     @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
 
     @Inject
-    protected VersionSelectorScheme getVersionSelectorScheme() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract VersionSelectorScheme getVersionSelectorScheme();
 
     @Inject
-    protected VersionComparator getVersionComparator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract VersionComparator getVersionComparator();
 
     @Inject
-    protected VersionParser getVersionParser() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract VersionParser getVersionParser();
 
     /**
      * An injected {@link AttributesFactory}.
@@ -330,9 +286,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed")
     @Inject
-    protected AttributesFactory getImmutableAttributesFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract AttributesFactory getImmutableAttributesFactory();
 
     /**
      * An injected {@link AttributesFactory}.
@@ -359,7 +313,6 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             output.println("No dependencies matching given input were found in " + configurationDescription);
             return;
         }
-        errorHandler.renderErrors(output);
         renderSelectedDependencies(output, selectedDependencies);
         renderBuildScanHint(output);
     }
@@ -531,7 +484,12 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
                 out.text("---------------------");
                 out.println();
                 out.style(Normal);
-                for (ResolvedVariantResult variant : dependency.getAllVariants()) {
+
+                List<ResolvedVariantResult> sortedVariants = dependency.getAllVariants().stream()
+                    .sorted(Comparator.comparing(ResolvedVariantResult::getDisplayName))
+                    .collect(Collectors.toList());
+
+                for (ResolvedVariantResult variant : sortedVariants) {
                     if (selectedVariantNames.contains(variant.getDisplayName())) {
                         continue;
                     }
@@ -559,9 +517,11 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
         }
 
         private AttributeContainer getRequestedAttributes(RenderableDependency dependency) {
-            if (dependency instanceof HasAttributes) {
-                AttributeContainer dependencyAttributes = ((HasAttributes) dependency).getAttributes();
+            if (dependency instanceof DependencyReportHeader) {
+                AttributeContainer dependencyAttributes = ((DependencyReportHeader) dependency).getAttributes();
                 return concat(configurationAttributes, dependencyAttributes);
+            } else if (dependency instanceof RequestedVersion) {
+                return ((RequestedVersion) dependency).getAttributes();
             }
             return configurationAttributes;
         }
@@ -592,6 +552,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             Set<Attribute<?>> requestedAttributes = new TreeSet<>(sortedByAttributeName);
         }
 
+        @SuppressWarnings("InlineMeInliner") //Strings.repeat is from guava not Java 11+
         private StyledTable createAttributeTable(
             AttributeContainer attributes, AttributeContainer requested, AttributeBuckets buckets, boolean selected
         ) {

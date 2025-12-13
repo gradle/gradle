@@ -52,15 +52,15 @@ class VerificationFailureHandlingIntegrationTest extends AbstractIntegrationSpec
         fails('consumerTask', '--continue')
 
         then:
-        result.assertTaskExecuted(':producerTask')
-        result.assertTaskExecuted(':consumerTask')
+        result.assertTaskScheduled(':producerTask')
+        result.assertTaskScheduled(':consumerTask')
 
         when:
         fails('consumerTask', '--continue')
 
         then:
-        result.assertTaskExecuted(':producerTask')
-        result.assertTaskExecuted(':consumerTask')
+        result.assertTaskScheduled(':producerTask')
+        result.assertTaskScheduled(':consumerTask')
     }
 
     def 'producer task doLast action does not execute after verification failure is thrown; consumer task does not execute even with --continue'() {
@@ -75,8 +75,8 @@ class VerificationFailureHandlingIntegrationTest extends AbstractIntegrationSpec
 
         expect:
         fails('consumerTask', '--continue')
-        result.assertTaskExecuted(':producerTask')
-        result.assertTaskNotExecuted(':customTask')
+        result.assertTaskScheduled(':producerTask')
+        result.assertTasksNotScheduled(':customTask')
         failure.assertHasCause('ProducerTask threw VerificationException')
         outputDoesNotContain('intentional failure in doLast action')
 

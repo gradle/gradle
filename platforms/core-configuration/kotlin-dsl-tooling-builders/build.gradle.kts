@@ -5,23 +5,27 @@ plugins {
 description = "Kotlin DSL Tooling Builders for IDEs"
 
 dependencies {
+    api(projects.baseServices)
     api(projects.coreApi)
     api(projects.core)
+    api(projects.serviceProvider)
     api(libs.kotlinStdlib)
 
+    implementation(projects.classloaders)
     implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.time)
     implementation(projects.kotlinDsl)
-    implementation(projects.baseServices)
+    implementation(projects.logging)
     implementation(projects.resources)
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
     implementation(projects.pluginsJavaBase)
     implementation(projects.toolingApi)
-    implementation(projects.logging)
     implementation(projects.kotlinDslToolingModels)
     implementation(projects.buildProcessServices)
+
+    compileOnly(libs.jspecify)
 
     testImplementation(testFixtures(projects.kotlinDsl))
     integTestImplementation(testFixtures(projects.toolingApi))
@@ -43,6 +47,7 @@ dependencies {
 }
 
 testFilesCleanup.reportOnly = true
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+
+// Kotlin DSL tooling builders should not be part of the public API
+// TODO Find a way to not register this and the task instead
+configurations.remove(configurations.apiStubElements.get())

@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.cacheentry
 
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.serialize.graph.codecs.ValueObject
 import org.gradle.util.Path
 
 
@@ -24,5 +25,6 @@ internal
 data class ModelKey(
     val identityPath: Path?,
     val modelName: String,
-    val parameterHash: HashCode?
-)
+    val parameterHash: HashCode?,
+    val isResilient: Boolean,
+) : ValueObject

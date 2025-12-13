@@ -20,9 +20,11 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.internal.artifacts.TransformRegistration;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
+@ServiceScope(Scope.Project.class)
 public interface TransformRegistrationFactory {
     TransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject);
 }

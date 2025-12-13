@@ -17,8 +17,8 @@
 package org.gradle.operations.execution;
 
 import org.gradle.internal.operations.BuildOperationType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -94,8 +94,7 @@ public final class ExecuteWorkBuildOperationType implements BuildOperationType<E
          *
          * @since 8.7
          */
-        @Nullable
-        byte[] getOriginBuildCacheKeyBytes();
+        byte @Nullable [] getOriginBuildCacheKeyBytes();
 
         /**
          * If the work was UP_TO_DATE or FROM_CACHE, this will convey the execution time of the work in the build that produced the outputs being reused.

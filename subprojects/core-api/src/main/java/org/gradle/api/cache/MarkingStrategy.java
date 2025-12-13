@@ -17,8 +17,7 @@
 package org.gradle.api.cache;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.cache.CacheDirTagMarkingStrategy;
-import org.gradle.api.internal.cache.NoMarkingStrategy;
+import org.gradle.api.internal.cache.MarkingStrategyImpl;
 
 import java.io.File;
 
@@ -38,12 +37,12 @@ public interface MarkingStrategy {
      *
      * @see <a href="https://bford.info/cachedir/">Cache Directory Tagging Specification</a>
      */
-    MarkingStrategy CACHEDIR_TAG = new CacheDirTagMarkingStrategy();
+    MarkingStrategy CACHEDIR_TAG = MarkingStrategyImpl.CACHEDIR_TAG;
 
     /**
      * Marking strategy that does not mark the cache directory.
      */
-    MarkingStrategy NONE = new NoMarkingStrategy();
+    MarkingStrategy NONE = MarkingStrategyImpl.NONE;
 
     /**
      * Try to mark the given cache directory. If an I/O error occurs, this method should not throw an error,

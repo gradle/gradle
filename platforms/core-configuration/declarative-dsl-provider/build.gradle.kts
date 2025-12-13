@@ -26,21 +26,28 @@ dependencies {
     api(projects.declarativeDslEvaluator)
     api(projects.declarativeDslToolingModels)
     api(projects.serviceProvider)
+    api(projects.projectFeatures)
     api(projects.stdlibJavaExtensions)
 
     api(libs.kotlinStdlib)
     api(libs.inject)
 
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.concurrent)
     implementation(projects.declarativeDslInternalUtils)
     implementation(projects.baseServices)
+    implementation(projects.modelCore)
     implementation(projects.messaging)
+    implementation(projects.projectFeaturesApi)
     implementation(projects.resources)
     implementation(projects.serviceLookup)
     implementation(libs.guava)
     implementation(libs.kotlinReflect)
+    implementation(libs.jspecify)
 
-    testImplementation(libs.mockitoKotlin2)
+    testImplementation(libs.mockitoKotlin)
+    testImplementation(testFixtures(projects.declarativeDslCore))
+    testImplementation(testFixtures(projects.declarativeDslEvaluator))
 
     integTestImplementation(projects.internalTesting)
     integTestImplementation(projects.logging)
@@ -49,6 +56,7 @@ dependencies {
 
     testFixturesImplementation(projects.internalTesting)
     testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(testFixtures(projects.declarativeDslCore))
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

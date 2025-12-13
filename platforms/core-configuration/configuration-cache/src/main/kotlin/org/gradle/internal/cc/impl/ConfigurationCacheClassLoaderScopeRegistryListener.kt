@@ -24,6 +24,7 @@ import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager
 import org.gradle.internal.buildtree.BuildTreeLifecycleListener
+import org.gradle.internal.cc.impl.serialize.ClassLoaderRole
 import org.gradle.internal.cc.impl.serialize.ClassLoaderScopeSpec
 import org.gradle.internal.cc.impl.serialize.ScopeLookup
 import org.gradle.internal.cc.impl.serialize.describeClassLoader
@@ -31,7 +32,6 @@ import org.gradle.internal.cc.impl.serialize.describeKnownClassLoaders
 import org.gradle.internal.classloader.DelegatingClassLoader
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.serialize.graph.ClassLoaderRole
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
@@ -90,6 +90,7 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     override fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>? {
         synchronized(lock) {
             assertNotDisposed("scopeFor")
+            // TODO:configuration-cache assert the spec can no longer change after it has been observed
             return loaders[classLoader]
         }
     }

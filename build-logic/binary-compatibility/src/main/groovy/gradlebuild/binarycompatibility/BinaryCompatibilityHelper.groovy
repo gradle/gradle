@@ -18,6 +18,7 @@ package gradlebuild.binarycompatibility
 
 import gradlebuild.binarycompatibility.filters.AnonymousClassesFilter
 import gradlebuild.binarycompatibility.filters.BridgeForBytecodeUpgradeAdapterClassFilter
+import gradlebuild.binarycompatibility.filters.KotlinInvokeDefaultBridgeFilter
 import gradlebuild.binarycompatibility.filters.KotlinInternalFilter
 import gradlebuild.binarycompatibility.rules.AcceptedRegressionsRulePostProcess
 import gradlebuild.binarycompatibility.rules.AcceptedRegressionsRuleSetup
@@ -29,8 +30,8 @@ import gradlebuild.binarycompatibility.rules.KotlinModifiersBreakingChangeRule
 import gradlebuild.binarycompatibility.rules.MethodsRemovedInInternalSuperClassRule
 import gradlebuild.binarycompatibility.rules.NewIncubatingAPIRule
 import gradlebuild.binarycompatibility.rules.NullabilityBreakingChangesRule
-import gradlebuild.binarycompatibility.rules.SinceAnnotationMissingRule
-import gradlebuild.binarycompatibility.rules.SinceAnnotationMissingRuleCurrentGradleVersionSetup
+import gradlebuild.binarycompatibility.rules.SinceAnnotationRule
+import gradlebuild.binarycompatibility.rules.SinceAnnotationRuleCurrentGradleVersionSetup
 import gradlebuild.binarycompatibility.rules.UpgradePropertiesRulePostProcess
 import gradlebuild.binarycompatibility.rules.UpgradePropertiesRuleSetup
 import japicmp.model.JApiChangeStatus
@@ -51,6 +52,7 @@ class BinaryCompatibilityHelper {
         japicmpTask.tap {
             addExcludeFilter(AnonymousClassesFilter)
             addExcludeFilter(KotlinInternalFilter)
+            addExcludeFilter(KotlinInvokeDefaultBridgeFilter)
             addExcludeFilter(BridgeForBytecodeUpgradeAdapterClassFilter)
 
             def acceptedChangesMap = acceptedViolations.toAcceptedChangesMap()
@@ -97,7 +99,7 @@ class BinaryCompatibilityHelper {
                         mainApiChangesJsonFile: mainApiChangesJsonFilePath,
                         projectRootDir: projectRootDirPath
                 ])
-                addRule(JApiChangeStatus.NEW, SinceAnnotationMissingRule, [
+                addRule(JApiChangeStatus.NEW, SinceAnnotationRule, [
                         acceptedApiChanges: acceptedChangesMap,
                         mainApiChangesJsonFile: mainApiChangesJsonFilePath,
                         projectRootDir: projectRootDirPath
@@ -109,7 +111,7 @@ class BinaryCompatibilityHelper {
                 ])
 
                 addSetupRule(AcceptedRegressionsRuleSetup, acceptedChangesMap)
-                addSetupRule(SinceAnnotationMissingRuleCurrentGradleVersionSetup, [currentVersion: currentVersion])
+                addSetupRule(SinceAnnotationRuleCurrentGradleVersionSetup, [currentVersion: currentVersion])
                 addSetupRule(BinaryCompatibilityRepositorySetupRule, [
                     (BinaryCompatibilityRepositorySetupRule.Params.sourceRoots): sourceRoots.collect { it.absolutePath } as Set,
                     (BinaryCompatibilityRepositorySetupRule.Params.sourceCompilationClasspath): newClasspath.collect { it.absolutePath } as Set

@@ -17,8 +17,8 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;

@@ -26,8 +26,7 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESS
 import static org.hamcrest.CoreMatchers.containsString
 
 class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
-    public static final String CONFLICT_FOUND_HEADER_MESSAGE = 'Conflict found for the following module:'
-    private ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
+    private ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile << """
@@ -74,13 +73,30 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.runtimeClasspath.resolutionStrategy.failOnVersionConflict()
+
+            task resolve {
+                def files = configurations.runtimeClasspath.incoming.files
+                doLast {
+                    println files*.name
+                }
+            }
         """
 
         when:
-        fails("tool:dependencies")
+        succeeds("tool:dependencies")
 
         then:
-        failure.assertThatCause(containsString(CONFLICT_FOUND_HEADER_MESSAGE))
+        outputContains("""runtimeClasspath - Runtime classpath of source set 'main'.
++--- project :api
+|    \\--- org:foo:1.3.3 FAILED
+\\--- project :impl
+     \\--- org:foo:1.4.4 FAILED""")
+
+        when:
+        fails(":tool:resolve")
+
+        then:
+        failure.assertHasCause("Conflict found for module 'org:foo': between versions 1.4.4 and 1.3.3")
         failure.assertHasResolutions("Run with :tool:dependencyInsight --configuration runtimeClasspath " +
             "--dependency org:foo to get more insight on how to solve the conflict.",
             STACKTRACE_MESSAGE,
@@ -167,19 +183,20 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id("java-library")
             }
+
+            ${resolve.configureProject("runtimeClasspath")}
+
             dependencies {
                 implementation project(':api')
                 implementation project(':impl')
             }
         """
 
-        resolve.prepare("runtimeClasspath")
-
         when:
         succeeds("tool:checkDeps")
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":tool") {
             root(":tool", "test:tool:") {
                 project(":api", "test:api:") {
                     configuration = "runtimeElements"
@@ -204,6 +221,8 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
                 id("java-library")
             }
 
+            ${resolve.configureProject("runtimeClasspath")}
+
             group = 'org'
             version = '1.0'
 
@@ -214,8 +233,6 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
                 implementation("org:baz:1.0")
             }
         """
-
-        resolve.prepare("runtimeClasspath")
 
         when:
         succeeds(":checkDeps")
@@ -254,13 +271,13 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
                 compile
             }
 
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:one:1.0")
                 compile("org:two:1.0")
             }
         """
-
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -299,12 +316,13 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
                 compile
             }
 
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:external:1.2")
                 compile("org:dep:2.2")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -335,13 +353,14 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
                 compile
             }
 
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:parent:1")
                 compile("org:child:2")
                 compile("org:dep:2")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -376,12 +395,13 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
                 compile
             }
 
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:external:1.2")
                 compile("org:dep:2.2")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -415,7 +435,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
                 compile("org:dep:2.2")
             }
 
-            task checkDeps {
+            task resolve {
                 def files = configurations.compile
                 doLast {
                     files.files
@@ -424,7 +444,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails("checkDeps")
+        fails("resolve")
 
         then:
         failure.assertHasCause("Could not find org:external:1.4.")
@@ -441,12 +461,13 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
                 compile
             }
 
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:external:1.2")
                 compile("org:dep:2.2")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -503,6 +524,8 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
                 id("java-library")
             }
 
+            ${resolve.configureProject("runtimeClasspath")}
+
             dependencies {
                 implementation(project(":api"))
                 implementation(project(":impl"))
@@ -517,14 +540,11 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-
-        resolve.prepare("runtimeClasspath")
-
         when:
         succeeds("tool:checkDeps")
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":tool") {
             root(":tool", "test:tool:") {
                 project(":api", "test:api:") {
                     edge("org:foo:1.4.4", "org:foo:1.4.9") {
@@ -562,6 +582,9 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id("java-library")
             }
+
+            ${resolve.configureProject("runtimeClasspath")}
+
             ${mavenTestRepository()}
 
             dependencies {
@@ -575,8 +598,6 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-
-        resolve.prepare("runtimeClasspath")
 
         when:
         succeeds("checkDeps")
@@ -618,12 +639,13 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
                 compile
             }
 
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:a:2.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -679,12 +701,13 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
                 compile
             }
 
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:b:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -798,6 +821,8 @@ parentFirst
                 id("java-library")
             }
 
+            ${resolve.configureProject("runtimeClasspath")}
+
             group = "org"
             version = "1.3"
 
@@ -807,8 +832,6 @@ parentFirst
                 implementation("org:other:1.7")
             }
         """
-
-        resolve.prepare("runtimeClasspath")
 
         when:
         succeeds("checkDeps")
@@ -833,6 +856,8 @@ parentFirst
                 id("java-library")
             }
 
+            ${resolve.configureProject("runtimeClasspath")}
+
             group = "org"
             version = "1.3"
 
@@ -842,8 +867,6 @@ parentFirst
                 implementation("org:other:1.7")
             }
         """
-
-        resolve.prepare("runtimeClasspath")
 
         when:
         succeeds("checkDeps")
@@ -877,13 +900,14 @@ parentFirst
                 compile
             }
 
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:2")
                 compile("org:a:1")
                 compile("org:c:2")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -981,7 +1005,7 @@ parentFirst
         fails "resolve"
 
         then:
-        failure.assertResolutionFailure(":conf").assertFailedDependencyRequiredBy("root project : > org:d:1.0")
+        failure.assertResolutionFailure(":conf").assertFailedDependencyRequiredBy("root project 'test' > org:d:1.0")
     }
 
     def "chooses highest version that is included in both ranges"() {
@@ -997,12 +1021,14 @@ parentFirst
             configurations {
                 compile
             }
+
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:b:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1038,12 +1064,14 @@ parentFirst
             configurations {
                 compile
             }
+
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:b:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1080,12 +1108,14 @@ parentFirst
                     }
                 }
             }
+
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:b:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1121,13 +1151,14 @@ parentFirst
                 compile
             }
 
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:b:1.0")
                 compile("org:c:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1173,13 +1204,15 @@ parentFirst
             configurations {
                 compile
             }
+
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:b:1.0")
                 compile("org:c:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1225,12 +1258,13 @@ parentFirst
                 compile
             }
 
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:b:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1272,7 +1306,7 @@ parentFirst
                 conf("org:b:1.0")
             }
 
-            task checkDeps {
+            task resolve {
                 def files = configurations.conf
                 doLast {
                     files.files
@@ -1281,7 +1315,7 @@ parentFirst
         """
 
         when:
-        fails 'checkDeps'
+        fails 'resolve'
 
         then:
         failure.assertThatCause(containsString("Could not find any version that matches org:leaf:[11,15]."))
@@ -1309,7 +1343,7 @@ parentFirst
                 conf("org:b:1.0")
             }
 
-            task checkDeps {
+            task resolve {
                 def files = configurations.conf
                 doLast {
                     files.files
@@ -1318,10 +1352,10 @@ parentFirst
         """
 
         when:
-        fails 'checkDeps'
+        fails 'resolve'
 
         then:
-        failure.assertThatCause(containsString(CONFLICT_FOUND_HEADER_MESSAGE))
+        failure.assertHasCause("Conflict found for module 'org:leaf': between versions 3 and 8")
     }
 
     def "upgrades version when one of the ranges is disjoint"() {
@@ -1338,13 +1372,15 @@ parentFirst
             configurations {
                 compile
             }
+
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:b:1.0")
                 compile("org:c:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1397,7 +1433,7 @@ parentFirst
                 conf("org:c:1.0")
             }
 
-            task checkDeps {
+            task resolve {
                 def files = configurations.conf
                 doLast {
                     files.files
@@ -1406,10 +1442,10 @@ parentFirst
         """
 
         when:
-        fails 'checkDeps'
+        fails 'resolve'
 
         then:
-        failure.assertThatCause(containsString(CONFLICT_FOUND_HEADER_MESSAGE))
+        failure.assertHasCause("Conflict found for module 'org:leaf': between versions 8 and 4")
     }
 
     def "chooses highest version of all versions fully included within range"() {
@@ -1430,6 +1466,8 @@ parentFirst
                 compile
             }
 
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:b:1.0")
@@ -1438,7 +1476,6 @@ parentFirst
                 compile("org:e:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1482,12 +1519,14 @@ parentFirst
             configurations {
                 compile
             }
+
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:b:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1522,12 +1561,13 @@ parentFirst
                 compile
             }
 
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:b:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1580,7 +1620,7 @@ parentFirst
                 conf4("org:d:1.0")
             }
 
-            task checkDeps {
+            task resolve {
                 def files1 = configurations.conf
                 def files2 = configurations.conf2
                 def files3 = configurations.conf3
@@ -1599,7 +1639,7 @@ parentFirst
         """
 
         expect:
-        succeeds("checkDeps")
+        succeeds("resolve")
     }
 
     def "conflict resolution on different dependencies are handled separately"() {
@@ -1620,6 +1660,8 @@ parentFirst
                 compile
             }
 
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:b:1.0")
@@ -1627,7 +1669,6 @@ parentFirst
                 compile("org:d:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1676,12 +1717,13 @@ parentFirst
                 compile
             }
 
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:b:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1724,13 +1766,15 @@ parentFirst
             configurations {
                 compile
             }
+
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:b:1.0")
                 compile("org:c:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1771,13 +1815,15 @@ parentFirst
             configurations {
                 compile
             }
+
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:b:1.0")
                 compile("org:c:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1818,13 +1864,14 @@ parentFirst
                 compile
             }
 
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:c:1.0")
                 compile("org:d:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1862,13 +1909,15 @@ parentFirst
             configurations {
                 compile
             }
+
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1.0")
                 compile("org:c:1.0")
                 compile("org:d:1.0")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1903,13 +1952,15 @@ parentFirst
             configurations {
                 compile
             }
+
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:[1,3]")
                 compile("org:b:1")
                 compile("org:c:1")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1950,13 +2001,14 @@ parentFirst
                 compile
             }
 
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1")
                 compile("org:b:1")
                 compile("org:c:1")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -1990,13 +2042,15 @@ parentFirst
             configurations {
                 compile
             }
+
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile("org:a:1")
                 compile("org:b:1")
                 compile("org:c:1")
             }
         """
-        resolve.prepare()
 
         when:
         succeeds("checkDeps")
@@ -2028,6 +2082,9 @@ parentFirst
             configurations {
                 conf
             }
+
+            ${resolve.configureProject("conf")}
+
             dependencies {
                 if ($barFirst) {
                     conf("org:bar:1.1") // WORKS IF THIS DEPENDENCY IS FIRST
@@ -2039,7 +2096,6 @@ parentFirst
                 conf("org:foo:[1.0,2.0)")
             }
         """
-        resolve.prepare("conf")
 
         when:
         succeeds("dependencies", "checkDeps")
@@ -2501,6 +2557,8 @@ parentFirst
                 id("java-library")
             }
 
+            ${resolve.configureProject("runtimeClasspath")}
+
             ${mavenTestRepository()}
 
             dependencies {
@@ -2508,7 +2566,6 @@ parentFirst
                 implementation(project(":indirect"))
             }
         """
-        resolve.prepare("runtimeClasspath")
 
         when:
         succeeds(":checkDeps")
@@ -2517,9 +2574,7 @@ parentFirst
         resolve.expectGraph {
             root(":", ":test:") {
                 module("com.netflix.eureka:eureka-client:2.0.1") {
-                    module("com.netflix.netflix-commons:netflix-eventbus:0.3.0") {
-                        module("com.netflix.archaius:archaius-core:0.3.3")
-                    }
+                    module("com.netflix.netflix-commons:netflix-eventbus:0.3.0")
                 }
                 project(":indirect", "test:indirect:1.0") {
                     module("org.springframework.cloud:spring-cloud-netflix-dependencies:4.1.0") {

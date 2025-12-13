@@ -4,30 +4,27 @@ plugins {
 
 description = "Adds support for generating parsers from Antlr grammars."
 
-errorprone {
-    disabledChecks.addAll(
-        "DefaultCharset", // 1 occurrences
-        "Finally", // 1 occurrences
-    )
-}
-
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.core)
     api(projects.coreApi)
     api(projects.fileOperations)
     api(projects.files)
     api(projects.modelCore)
+    api(projects.requestHandlerWorker)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.inject)
+    api(libs.jspecify)
 
     implementation(projects.baseServices)
+    implementation(projects.languageJava)
+    implementation(projects.logging)
     implementation(projects.platformJvm)
+    implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
     implementation(projects.pluginsJavaLibrary)
 
     implementation(libs.guava)
-    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     compileOnly("antlr:antlr:2.7.7") {

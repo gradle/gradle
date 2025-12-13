@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.execution
 
 
+@ConsistentCopyVisibility
 data class ProgramSource internal constructor(val path: String, val contents: ProgramText) {
 
     constructor(path: String, contents: String) : this(path, text(contents))
@@ -32,6 +33,7 @@ data class ProgramSource internal constructor(val path: String, val contents: Pr
 /**
  * Normalised program text guaranteed to use `\n` as the only line terminator character.
  */
+@ConsistentCopyVisibility
 data class ProgramText private constructor(val text: String) {
 
     companion object {
@@ -99,6 +101,7 @@ fun ProgramSource.fragment(section: ScriptSection) =
     ProgramSourceFragment(this, section)
 
 
+@ConsistentCopyVisibility
 data class ProgramSourceFragment internal constructor(
     val source: ProgramSource,
     internal val section: ScriptSection

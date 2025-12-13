@@ -16,6 +16,9 @@
 
 package org.gradle.declarative.dsl.schema
 
+import org.gradle.declarative.dsl.schema.DataProperty.PropertyMode.ReadOnly
+import org.gradle.declarative.dsl.schema.DataProperty.PropertyMode.ReadWrite
+import org.gradle.declarative.dsl.schema.DataProperty.PropertyMode.WriteOnly
 import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
@@ -29,9 +32,9 @@ interface DataProperty : Serializable {
     val isDirectAccessOnly: Boolean
 
     @ToolingModelContract(subTypes = [
-        PropertyMode.ReadWrite::class,
-        PropertyMode.ReadOnly::class,
-        PropertyMode.WriteOnly::class
+        ReadWrite::class,
+        ReadOnly::class,
+        WriteOnly::class
     ])
     sealed interface PropertyMode : Serializable {
         interface ReadWrite : PropertyMode

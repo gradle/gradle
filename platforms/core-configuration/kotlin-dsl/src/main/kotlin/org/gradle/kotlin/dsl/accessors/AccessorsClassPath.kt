@@ -23,18 +23,21 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.classloader.ClassLoaderUtils
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.execution.ExecutionContext
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.Identity
 import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.InputFingerprinter
-import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
-import org.gradle.internal.execution.UnitOfWork.InputVisitor
-import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
+import org.gradle.internal.execution.InputVisitor
+import org.gradle.internal.execution.InputVisitor.InputFileValueSupplier
+import org.gradle.internal.execution.OutputVisitor
+import org.gradle.internal.execution.OutputVisitor.OutputFileValueSupplier
+import org.gradle.internal.execution.WorkOutput
 import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -54,6 +57,7 @@ import org.gradle.kotlin.dsl.concurrent.runBlocking
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.KOTLIN_DSL_PACKAGE_NAME
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.primitiveKotlinTypeNames
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.typeProjectionStrings
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.internal.sharedruntime.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.getBooleanKotlinDslOption
@@ -73,6 +77,7 @@ import org.jetbrains.org.objectweb.asm.signature.SignatureReader
 import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 import java.io.Closeable
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 
@@ -86,19 +91,28 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     private val asyncIO: AsyncIOScopeFactory,
 ) {
 
-    fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath =
-        scriptTarget.getOrCreateProperty("gradleKotlinDsl.accessorsClassPath") {
-            buildAccessorsClassPathFor(scriptTarget, classPath)
+    private
+    val classPathCache = ConcurrentHashMap<ClassLoaderScope, AccessorsClassPath>()
+
+    fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath {
+        val classLoaderScope = classLoaderScopeOf(scriptTarget)
+        if (classLoaderScope == null) {
+            return AccessorsClassPath.empty
+        }
+        return classPathCache.computeIfAbsent(classLoaderScope) {
+            buildAccessorsClassPathFor(classLoaderScope, scriptTarget, classPath)
                 ?: AccessorsClassPath.empty
         }
-
+    }
 
     private
-    fun buildAccessorsClassPathFor(scriptTarget: Any, classPath: ClassPath): AccessorsClassPath? =
-        classLoaderScopeOf(scriptTarget)
-            ?.let { classLoaderScope ->
-                configuredProjectSchemaOf(scriptTarget, classLoaderScope)
-            }?.let { scriptTargetSchema ->
+    fun buildAccessorsClassPathFor(
+        classLoaderScope: ClassLoaderScope,
+        scriptTarget: Any,
+        classPath: ClassPath
+    ): AccessorsClassPath? =
+        configuredProjectSchemaOf(scriptTarget, classLoaderScope)
+            ?.let { scriptTargetSchema ->
                 val work = GenerateProjectAccessors(
                     scriptTarget,
                     scriptTargetSchema,
@@ -127,8 +141,8 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
 
 fun isDclEnabledForScriptTarget(target: Any): Boolean {
     val gradleProperties = when (target) {
-        is Project -> target.serviceOf<GradlePropertiesController>()
-        is Settings -> target.serviceOf<GradlePropertiesController>()
+        is Project -> target.serviceOf<GradleProperties>()
+        is Settings -> target.serviceOf<GradleProperties>()
         else -> null
     }
     return gradleProperties?.let { getBooleanKotlinDslOption(it, DCL_ENABLED_PROPERTY_NAME, false) } ?: false
@@ -156,8 +170,8 @@ class GenerateProjectAccessors(
         const val CLASSES_OUTPUT_PROPERTY = "classes"
     }
 
-    override fun execute(executionRequest: UnitOfWork.ExecutionRequest): UnitOfWork.WorkOutput {
-        val workspace = executionRequest.workspace
+    override fun execute(executionContext: ExecutionContext): WorkOutput {
+        val workspace = executionContext.workspace
         asyncIO.runBlocking {
             buildAccessorsFor(
                 scriptTargetSchema,
@@ -166,8 +180,8 @@ class GenerateProjectAccessors(
                 binDir = getClassesOutputDir(workspace)
             )
         }
-        return object : UnitOfWork.WorkOutput {
-            override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
+        return object : WorkOutput {
+            override fun getDidWork() = WorkOutput.WorkResult.DID_WORK
 
             override fun getOutput(workspace: File) = loadAlreadyProducedOutput(workspace)
         }
@@ -178,13 +192,13 @@ class GenerateProjectAccessors(
         DefaultClassPath.of(getSourcesOutputDir(workspace))
     )
 
-    override fun identify(identityInputs: Map<String, ValueSnapshot>, identityFileInputs: Map<String, CurrentFileCollectionFingerprint>): UnitOfWork.Identity {
+    override fun identify(scalarInputs: Map<String, ValueSnapshot>, fileInputs: Map<String, CurrentFileCollectionFingerprint>): Identity {
         val hasher = Hashing.newHasher()
-        requireNotNull(identityInputs[TARGET_SCHEMA_INPUT_PROPERTY]).appendToHasher(hasher)
-        requireNotNull(identityInputs[DCL_ENABLED_INPUT_PROPERTY]).appendToHasher(hasher)
-        hasher.putHash(requireNotNull(identityFileInputs[CLASSPATH_INPUT_PROPERTY]).hash)
+        requireNotNull(scalarInputs[TARGET_SCHEMA_INPUT_PROPERTY]).appendToHasher(hasher)
+        requireNotNull(scalarInputs[DCL_ENABLED_INPUT_PROPERTY]).appendToHasher(hasher)
+        hasher.putHash(requireNotNull(fileInputs[CLASSPATH_INPUT_PROPERTY]).hash)
         val identityHash = hasher.hash().toString()
-        return UnitOfWork.Identity { identityHash }
+        return Identity { identityHash }
     }
 
     override fun getWorkspaceProvider() = workspaceProvider.accessors
@@ -193,7 +207,7 @@ class GenerateProjectAccessors(
 
     override fun getDisplayName(): String = "Kotlin DSL accessors for $scriptTarget"
 
-    override fun visitIdentityInputs(visitor: InputVisitor) {
+    override fun visitImmutableInputs(visitor: InputVisitor) {
         visitor.visitInputProperty(TARGET_SCHEMA_INPUT_PROPERTY) { hashCodeFor(scriptTargetSchema) }
         visitor.visitInputProperty(DCL_ENABLED_INPUT_PROPERTY) { isDclEnabled }
         visitor.visitInputFileProperty(
@@ -208,7 +222,7 @@ class GenerateProjectAccessors(
         )
     }
 
-    override fun visitOutputs(workspace: File, visitor: UnitOfWork.OutputVisitor) {
+    override fun visitOutputs(workspace: File, visitor: OutputVisitor) {
         val sourcesOutputDir = getSourcesOutputDir(workspace)
         val classesOutputDir = getClassesOutputDir(workspace)
         visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir)))
@@ -283,10 +297,47 @@ internal
 fun importsRequiredBy(candidateTypes: List<TypeAccessibility>): List<String> =
     defaultPackageTypesIn(
         candidateTypes
-            .filterIsInstance<TypeAccessibility.Accessible>()
-            .map { it.type.kotlinString }
+            .filterIsInstance<TypeAccessibility.Accessible>().let { accessibleTypes ->
+                val ownImports = accessibleTypes.map { it.type.kotlinString }
+                val importsRequiredByOptInAnnotations = importsRequiredByOptInAnnotations(accessibleTypes)
+                if (importsRequiredByOptInAnnotations != null) importsRequiredByOptInAnnotations.toList() + ownImports else ownImports
+            }
     )
 
+private fun importsRequiredByOptInAnnotations(accessibleTypes: List<TypeAccessibility.Accessible>): MutableSet<String>? {
+    val annotations = object {
+        var typeNames: MutableSet<String>? = null
+
+        fun addTypeName(typeName: String) {
+            if (typeNames == null) {
+                typeNames = mutableSetOf()
+            }
+            typeNames!!.add(typeName)
+        }
+
+        fun visitAnnotationValue(annotationValueRepresentation: AnnotationValueRepresentation) {
+            when (annotationValueRepresentation) {
+                is AnnotationValueRepresentation.PrimitiveValue,
+                is AnnotationValueRepresentation.ValueArray -> Unit
+
+                is AnnotationValueRepresentation.AnnotationValue -> visitAnnotation(annotationValueRepresentation.representation)
+                is AnnotationValueRepresentation.EnumValue -> addTypeName(annotationValueRepresentation.type.kotlinString)
+                is AnnotationValueRepresentation.ClassValue -> addTypeName(annotationValueRepresentation.type.kotlinString)
+            }
+        }
+
+        fun visitAnnotation(annotation: AnnotationRepresentation) {
+            addTypeName(annotation.type.kotlinString)
+            annotation.values.values.forEach { annotationValue -> visitAnnotationValue(annotationValue) }
+        }
+    }
+
+    accessibleTypes.forEach { accessibleType ->
+        accessibleType.optInRequirements.forEach { annotations.visitAnnotation(it) }
+    }
+
+    return annotations.typeNames
+}
 
 internal
 fun defaultPackageTypesIn(typeStrings: List<String>): List<String> =
@@ -306,10 +357,23 @@ fun availableProjectSchemaFor(projectSchema: TypedProjectSchema, classPath: Clas
 sealed class TypeAccessibility {
     abstract val type: SchemaType
 
-    data class Accessible(override val type: SchemaType) : TypeAccessibility()
+    data class Accessible(override val type: SchemaType, val optInRequirements: List<AnnotationRepresentation>) : TypeAccessibility()
     data class Inaccessible(override val type: SchemaType, val reasons: List<InaccessibilityReason>) : TypeAccessibility()
 }
 
+
+data class AnnotationRepresentation(
+    val type: SchemaType,
+    val values: Map<String, AnnotationValueRepresentation>
+)
+
+sealed interface AnnotationValueRepresentation {
+    data class PrimitiveValue(val value: Any?) : AnnotationValueRepresentation
+    data class ClassValue(val type: SchemaType) : AnnotationValueRepresentation
+    data class ValueArray(val elements: List<AnnotationValueRepresentation>) : AnnotationValueRepresentation
+    data class EnumValue(val type: SchemaType, val entryName: String) : AnnotationValueRepresentation
+    data class AnnotationValue(val representation: AnnotationRepresentation) : AnnotationValueRepresentation
+}
 
 sealed class InaccessibilityReason {
 
@@ -317,6 +381,8 @@ sealed class InaccessibilityReason {
     data class NonAvailable(val type: String) : InaccessibilityReason()
     data class Synthetic(val type: String) : InaccessibilityReason()
     data class TypeErasure(val type: String) : InaccessibilityReason()
+    data class DeprecatedAsHidden(val type: String) : InaccessibilityReason()
+    data class RequiresUnsatisfiableOptIns(val type: String) : InaccessibilityReason()
 
     val explanation
         get() = when (this) {
@@ -324,6 +390,8 @@ sealed class InaccessibilityReason {
             is NonAvailable -> "`$type` is not available"
             is Synthetic -> "`$type` is synthetic"
             is TypeErasure -> "`$type` parameter types are missing"
+            is DeprecatedAsHidden -> "`$type` is deprecated as hidden"
+            is RequiresUnsatisfiableOptIns -> "`$type` required for the opt-in is inaccessible"
         }
 }
 
@@ -338,28 +406,40 @@ data class TypeAccessibilityInfo(
 internal
 class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
 
-    private
-    val classBytesRepository = ClassBytesRepository(
+    private val classBytesRepository = ClassBytesRepository(
         ClassLoaderUtils.getPlatformClassLoader(),
         classPath.asFiles
     )
 
-    private
-    val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()
+
+    private val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()
+
+    private val optInRequirementsPerClass = mutableMapOf<String, OptInRequirements>()
+
+    private val optInCollector = OptInAnnotationsCollector(classBytesRepository, ::inaccessibilityReasonsFor, optInRequirementsPerClass::getOrPut)
 
     fun accessibilityForType(type: SchemaType): TypeAccessibility =
         // TODO:accessors cache per SchemaType
-        inaccessibilityReasonsFor(classNamesFromTypeString(type)).let { inaccessibilityReasons ->
+        inaccessibilityReasonsFor(type).let { inaccessibilityReasons ->
             if (inaccessibilityReasons.isNotEmpty()) inaccessible(type, inaccessibilityReasons)
-            else accessible(type)
+            else {
+                when (val optIns = optInRequirementsPerClass.getOrPut(type.kotlinString) { optInCollector.collectOptInRequirementAnnotationsForType(type) }) {
+                    is OptInRequirements.Annotations -> accessible(type, optIns.annotations)
+                    is OptInRequirements.Unsatisfiable -> inaccessible(type, optIns.becauseOfTypes.map { InaccessibilityReason.RequiresUnsatisfiableOptIns(it) })
+                    OptInRequirements.None -> accessible(type)
+                }
+
+            }
         }
 
-    private
-    fun inaccessibilityReasonsFor(classNames: ClassNamesFromTypeString): List<InaccessibilityReason> =
+    private fun inaccessibilityReasonsFor(type: SchemaType): List<InaccessibilityReason> =
+        inaccessibilityReasonsFor(classNamesFromTypeString(type))
+
+    private fun inaccessibilityReasonsFor(classNames: ClassNamesFromTypeString): List<InaccessibilityReason> =
         classNames.all.flatMap { inaccessibilityReasonsFor(it) }.let { inaccessibilityReasons ->
-            if (inaccessibilityReasons.isNotEmpty()) inaccessibilityReasons
-            else classNames.leaves.filter(::hasTypeParameter).map(::typeErasure)
+            inaccessibilityReasons.ifEmpty { classNames.leaves.filter(::hasTypeParameter).map(::typeErasure) }
         }
+
 
     private
     fun inaccessibilityReasonsFor(className: String): List<InaccessibilityReason> =
@@ -381,12 +461,18 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
             ?: return TypeAccessibilityInfo(listOf(nonAvailable(className)))
         val classReader = ClassReader(classBytes)
         val access = classReader.access
+
+        val visibilityAndDeprecation by lazy(LazyThreadSafetyMode.NONE) {
+            kotlinVisibilityAndDeprecationFor(classReader)
+        }
+
         return TypeAccessibilityInfo(
             listOfNotNull(
                 when {
                     ACC_PUBLIC !in access -> nonPublic(className)
                     ACC_SYNTHETIC in access -> synthetic(className)
-                    isNonPublicKotlinType(classReader) -> nonPublic(className)
+                    visibilityAndDeprecation.isNonPublicType -> nonPublic(className)
+                    visibilityAndDeprecation.isDeprecatedAsHidden -> deprecatedAsHidden(className)
                     else -> null
                 }
             ),
@@ -394,13 +480,19 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
         )
     }
 
-    private
-    fun isNonPublicKotlinType(classReader: ClassReader) =
-        kotlinVisibilityFor(classReader)?.let { it != Visibility.PUBLIC } ?: false
+    private data class VisibilityAndDeprecation(
+        val isNonPublicType: Boolean,
+        val isDeprecatedAsHidden: Boolean
+    )
 
     private
-    fun kotlinVisibilityFor(classReader: ClassReader) =
-        classReader(KotlinVisibilityClassVisitor()).visibility
+    fun kotlinVisibilityAndDeprecationFor(classReader: ClassReader): VisibilityAndDeprecation =
+        classReader(KotlinVisibilityClassVisitor()).run {
+            VisibilityAndDeprecation(
+                isNonPublicType = visibility != null && visibility != Visibility.PUBLIC,
+                isDeprecatedAsHidden = isDeprecatedAsHidden
+            )
+        }
 
     private
     fun hasTypeParameters(classReader: ClassReader): Boolean =
@@ -438,7 +530,7 @@ fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
 
     fun nonPrimitiveKotlinType(): String? =
         buffer.takeIf(StringBuilder::isNotEmpty)?.toString()?.let {
-            if (it in primitiveKotlinTypeNames) null
+            if (it in primitiveKotlinTypeNames || it in typeProjectionStrings) null
             else it
         }
 
@@ -489,12 +581,22 @@ private
 class KotlinVisibilityClassVisitor : ClassVisitor(ASM_LEVEL) {
 
     var visibility: Visibility? = null
+    var isDeprecatedAsHidden: Boolean = false
 
     override fun visitAnnotation(desc: String?, visible: Boolean): AnnotationVisitor? =
         when (desc) {
             "Lkotlin/Metadata;" -> ClassDataFromKotlinMetadataAnnotationVisitor { classData ->
                 visibility = Flags.VISIBILITY[classData.flags]
             }
+
+            "Lkotlin/Deprecated;" ->
+                object : AnnotationVisitor(ASM_LEVEL) {
+                    override fun visitEnum(name: String, descriptor: String, value: String) {
+                        if (name == "level" && value == "HIDDEN") {
+                            isDeprecatedAsHidden = true
+                        }
+                    }
+                }
 
             else -> null
         }
@@ -561,6 +663,11 @@ fun nonPublic(type: String): InaccessibilityReason =
 
 
 internal
+fun deprecatedAsHidden(type: String): InaccessibilityReason =
+    InaccessibilityReason.DeprecatedAsHidden(type)
+
+
+internal
 fun synthetic(type: String): InaccessibilityReason =
     InaccessibilityReason.Synthetic(type)
 
@@ -571,8 +678,8 @@ fun typeErasure(type: String): InaccessibilityReason =
 
 
 internal
-fun accessible(type: SchemaType): TypeAccessibility =
-    TypeAccessibility.Accessible(type)
+fun accessible(type: SchemaType, optInRequirements: List<AnnotationRepresentation> = emptyList()): TypeAccessibility =
+    TypeAccessibility.Accessible(type, optInRequirements)
 
 
 internal
@@ -596,11 +703,10 @@ fun classLoaderScopeOf(scriptTarget: Any) = when (scriptTarget) {
 
 fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run {
     putAll(schema.extensions)
-    putAll(schema.conventions)
     putAll(schema.tasks)
     putAll(schema.containerElements)
     putContainerElementFactoryEntries(schema.containerElementFactories)
-    putSoftwareTypeEntries(schema.softwareTypeEntries)
+    putProjectFeatureEntries(schema.projectFeatureEntries)
     putAllSorted(schema.configurations.map { it.target })
     hash()
 }
@@ -632,11 +738,12 @@ private fun Hasher.putContainerElementFactoryEntries(entries: List<ContainerElem
     }
 }
 
-private fun Hasher.putSoftwareTypeEntries(entries: List<SoftwareTypeEntry<SchemaType>>) {
+private fun Hasher.putProjectFeatureEntries(entries: List<ProjectFeatureEntry<SchemaType>>) {
     putInt(entries.size)
     entries.forEach { entry ->
-        putString(entry.softwareTypeName)
-        putString(entry.modelType.kotlinString)
+        putString(entry.featureName)
+        putString(entry.ownDefinitionType.kotlinString)
+        putString(entry.targetDefinitionType.kotlinString)
     }
 }
 
@@ -694,23 +801,3 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.accessors.runtime.*
 
 """
-
-
-/**
- * Location of the discontinued project schema snapshot, relative to the root project.
- */
-internal
-const val PROJECT_SCHEMA_RESOURCE_PATH =
-    "gradle/project-schema.json"
-
-
-internal
-const val PROJECT_SCHEMA_RESOURCE_DISCONTINUED_WARNING =
-    "Support for $PROJECT_SCHEMA_RESOURCE_PATH was removed in Gradle 5.0. The file is no longer used and it can be safely deleted."
-
-
-fun Project.warnAboutDiscontinuedJsonProjectSchema() {
-    if (file(PROJECT_SCHEMA_RESOURCE_PATH).isFile) {
-        logger.warn(PROJECT_SCHEMA_RESOURCE_DISCONTINUED_WARNING)
-    }
-}

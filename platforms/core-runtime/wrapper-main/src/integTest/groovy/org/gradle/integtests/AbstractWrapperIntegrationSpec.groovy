@@ -40,20 +40,15 @@ class AbstractWrapperIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     void prepareWrapper(URI distributionUri = distribution.binDistribution.toURI(), TestKeyStore keyStore) {
-        def executer = new InProcessGradleExecuter(distribution, temporaryFolder)
-        executer.withArguments(
-            "wrapper",
-            "--gradle-distribution-url",
-            distributionUri.toString(),
-        )
-        keyStore.trustStoreArguments.each {
-            executer.withArgument(it)
+        prepareWrapper(distributionUri) { executer ->
+            keyStore.trustStoreArguments.each {
+                executer.withArgument(it)
+            }
         }
-        executer.run()
     }
 
     GradleExecuter getWrapperExecuter() {
-        executer.requireOwnGradleUserHomeDir()
+        executer.requireOwnGradleUserHomeDir("isolating downloads")
         executer.requireIsolatedDaemons()
         executer.beforeExecute {
             executer.usingExecutable("gradlew")

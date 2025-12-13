@@ -19,6 +19,8 @@ package org.gradle.initialization;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.initialization.CacheConfigurationsHandlingSettingsLoader;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.properties.GradlePropertiesController;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.BuildIncluder;
@@ -39,6 +41,8 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final InitScriptHandler initScriptHandler;
     private final List<BuiltInCommand> builtInCommands;
     private final CacheConfigurationsInternal cacheConfigurations;
+    private final InternalProblems problems;
+    private final JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator;
 
     public DefaultSettingsLoaderFactory(
         SettingsProcessor settingsProcessor,
@@ -49,7 +53,9 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
         BuildIncluder buildIncluder,
         InitScriptHandler initScriptHandler,
         List<BuiltInCommand> builtInCommands,
-        CacheConfigurationsInternal cacheConfigurations
+        CacheConfigurationsInternal cacheConfigurations,
+        InternalProblems problems,
+        JvmToolchainsConfigurationValidator jvmToolchainsConfigurationValidator
     ) {
         this.settingsProcessor = settingsProcessor;
         this.buildRegistry = buildRegistry;
@@ -60,25 +66,30 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
         this.initScriptHandler = initScriptHandler;
         this.builtInCommands = builtInCommands;
         this.cacheConfigurations = cacheConfigurations;
+        this.problems = problems;
+        this.jvmToolchainsConfigurationValidator = jvmToolchainsConfigurationValidator;
     }
 
     @Override
     public SettingsLoader forTopLevelBuild() {
         return new GradlePropertiesHandlingSettingsLoader(
-            new CacheConfigurationsHandlingSettingsLoader(
-                new InitScriptHandlingSettingsLoader(
-                    new CompositeBuildSettingsLoader(
-                        new ChildBuildRegisteringSettingsLoader(
-                            new CommandLineIncludedBuildSettingsLoader(
-                                defaultSettingsLoader()
+            new DaemonJvmToolchainsValidatingSettingsLoader(
+                new CacheConfigurationsHandlingSettingsLoader(
+                    new InitScriptHandlingSettingsLoader(
+                        new CompositeBuildSettingsLoader(
+                            new ChildBuildRegisteringSettingsLoader(
+                                new CommandLineIncludedBuildSettingsLoader(
+                                    defaultSettingsLoader()
+                                ),
+                                buildIncluder
                             ),
-                            buildIncluder
+                            buildRegistry
                         ),
-                        buildRegistry
+                        initScriptHandler
                     ),
-                    initScriptHandler
+                    cacheConfigurations
                 ),
-                cacheConfigurations
+                jvmToolchainsConfigurationValidator
             ),
             buildLayoutFactory,
             gradlePropertiesController
@@ -103,7 +114,8 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
             new DefaultSettingsLoader(
                 settingsProcessor,
                 buildLayoutFactory,
-                builtInCommands
+                builtInCommands,
+                problems
             ),
             projectRegistry
         );

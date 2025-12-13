@@ -17,7 +17,13 @@
 package org.gradle.internal.operations;
 
 import org.gradle.internal.concurrent.ManagedExecutor;
+import org.jspecify.annotations.Nullable;
 
 public interface BuildOperationQueueFactory {
-    <T extends BuildOperation> BuildOperationQueue<T> create(ManagedExecutor executor, boolean allowAccessToProjectState, BuildOperationQueue.QueueWorker<T> worker);
+    <T extends BuildOperation> BuildOperationQueue<T> create(
+        ManagedExecutor executor,
+        boolean allowAccessToProjectState,
+        BuildOperationQueue.QueueWorker<T> worker,
+        @Nullable BuildOperationState parent
+    );
 }

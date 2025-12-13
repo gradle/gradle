@@ -20,11 +20,14 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.internal.Actions;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.CollectionUtils;
 
 import javax.inject.Inject;
 import java.util.List;
 
+@ServiceScope(Scope.Project.class)
 public class GlobalDependencyResolutionRules {
     private final DependencySubstitutionRules compositeRule;
 

@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.io.CharSource;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -38,7 +38,6 @@ import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionRes
  * TODO: This class could probably use a better name, maybe something like GradleDeprecationVerifier
  */
 public class ResultAssertion implements Action<ExecutionResult> {
-    private int expectedGenericDeprecationWarnings;
     private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings;
     private final List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings;
     private final boolean expectStackTraces;
@@ -54,7 +53,6 @@ public class ResultAssertion implements Action<ExecutionResult> {
     private ExpectedDeprecationWarning lastMatchedDeprecationWarning = null;
 
     public ResultAssertion(
-        int expectedGenericDeprecationWarnings,
         List<ExpectedDeprecationWarning> expectedDeprecationWarnings,
         List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings,
         boolean expectStackTraces,
@@ -63,7 +61,6 @@ public class ResultAssertion implements Action<ExecutionResult> {
     ) {
         assert checkDeprecations || expectedDeprecationWarnings.isEmpty() : "Should not expect deprecations when deprecations are not checked";
 
-        this.expectedGenericDeprecationWarnings = expectedGenericDeprecationWarnings;
         this.expectedDeprecationWarnings = new ArrayList<>(expectedDeprecationWarnings);
         this.maybeExpectedDeprecationWarnings = new ArrayList<>(maybeExpectedDeprecationWarnings);
         this.expectStackTraces = expectStackTraces;
@@ -95,9 +92,6 @@ public class ResultAssertion implements Action<ExecutionResult> {
                 expectedDeprecationWarnings.stream()
                     .map(warning -> " - " + warning)
                     .collect(joining("\n"))));
-        }
-        if (expectedGenericDeprecationWarnings > 0) {
-            throw new AssertionError(String.format("Expected %d more deprecation warnings", expectedGenericDeprecationWarnings));
         }
     }
 
@@ -171,8 +165,14 @@ public class ResultAssertion implements Action<ExecutionResult> {
             } else if (removeFirstExpectedDeprecationWarning(lines, i)) {
                 i += lastMatchedDeprecationWarning.getNumLines();
                 i = skipStackTrace(lines, i);
+            } else if (line.matches("\\s*WARNING:.*")) {
+                // A JDK warning, ignore unless checkJdkWarnings is enabled
+                if (checkJdkWarnings) {
+                    throw new AssertionError(String.format("%s line %d contains unexpected JDK warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
+                }
+                i++;
             } else if (line.matches(".*\\s+deprecated.*")) {
-                if (checkDeprecations && expectedGenericDeprecationWarnings <= 0) {
+                if (checkDeprecations) {
                     StringBuilder message = new StringBuilder(String.format("%s line %d contains an unexpected deprecation warning:%n - %s", displayName, i + 1, line));
                     if (expectedDeprecationWarnings.isEmpty() && maybeExpectedDeprecationWarnings.isEmpty()) {
                         message.append(String.format("%nNo deprecation warnings were expected at this point."));
@@ -184,15 +184,12 @@ public class ResultAssertion implements Action<ExecutionResult> {
                     message.append(String.format("%n=====%n%s%n=====%n", output));
                     throw new AssertionError(message.toString());
                 }
-                expectedGenericDeprecationWarnings--;
                 // skip over stack trace
                 i++;
                 i = skipStackTrace(lines, i);
             } else if (!expectStackTraces && !insideVariantDescriptionBlock && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
                 // 2 or more lines that look like stack trace elements
                 throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
-            } else if (checkJdkWarnings && line.matches("\\s*WARNING:.*")) {
-                throw new AssertionError(String.format("%s line %d contains unexpected JDK warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
             } else {
                 i++;
             }
@@ -222,7 +219,7 @@ public class ResultAssertion implements Action<ExecutionResult> {
         try {
             return CharSource.wrap(output).readLines();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

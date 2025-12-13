@@ -63,7 +63,7 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
         result.assertTaskSkipped(":createEmpty")
 
         succeeds("clean", "checkCreated")
-        result.assertTaskNotSkipped(":createEmpty")
+        result.assertTaskExecuted(":createEmpty")
 
         succeeds("checkCreated")
         result.assertTaskSkipped(":createEmpty")

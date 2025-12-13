@@ -22,8 +22,11 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.process.internal.worker.RequestHandler;
 
+@ServiceScope(Scope.Project.class)
 public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     private final BuildOperationRunner buildOperationRunner;
     private final ServiceRegistry internalServices;

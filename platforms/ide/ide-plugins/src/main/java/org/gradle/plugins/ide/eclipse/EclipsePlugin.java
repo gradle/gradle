@@ -64,6 +64,7 @@ import org.gradle.plugins.ide.eclipse.model.Link;
 import org.gradle.plugins.ide.eclipse.model.internal.EclipseJavaVersionMapper;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.IdePlugin;
+import org.gradle.plugins.ide.internal.IdePluginHelper;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 import org.gradle.testing.base.TestSuite;
 import org.gradle.testing.base.TestingExtension;
@@ -117,6 +118,7 @@ public abstract class EclipsePlugin extends IdePlugin {
     @Override
     protected void onApply(Project project) {
         getLifecycleTask().configure(withDescription("Generates all Eclipse files."));
+        getLifecycleTask().configure(IdePluginHelper.withGracefulDegradation());
         getCleanTask().configure(withDescription("Cleans all Eclipse files."));
 
         EclipseModel model = project.getExtensions().create("eclipse", EclipseModel.class, project);
@@ -145,7 +147,7 @@ public abstract class EclipsePlugin extends IdePlugin {
     private void configureEclipseProject(final ProjectInternal project, final EclipseModel model) {
         final EclipseProject projectModel = model.getProject();
 
-        projectModel.setName(uniqueProjectNameProvider.getUniqueName(project));
+        projectModel.setName(uniqueProjectNameProvider.getUniqueName(project.getProjectIdentity()));
 
         final ConventionMapping convention = ((IConventionAware) projectModel).getConventionMapping();
         convention.map("comment", new Callable<String>() {
@@ -213,7 +215,11 @@ public abstract class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseClasspath(final Project project, final EclipseModel model) {
-        model.setClasspath(project.getObjects().newInstance(EclipseClasspath.class, project));
+        EclipseClasspath classpath = project.getObjects().newInstance(EclipseClasspath.class, project);
+        classpath.getBaseSourceOutputDir().convention(project.getLayout().getProjectDirectory().dir("bin"));
+
+        model.setClasspath(classpath);
+
         ((IConventionAware) model.getClasspath()).getConventionMapping().map("defaultOutputDir", new Callable<File>() {
             @Override
             public File call() {
@@ -236,6 +242,7 @@ public abstract class EclipsePlugin extends IdePlugin {
                         task.setOutputFile(project.file(".classpath"));
                     }
                 });
+                task.configure(IdePluginHelper.withGracefulDegradation());
                 addWorker(task, ECLIPSE_CP_TASK_NAME);
 
                 XmlTransformer xmlTransformer = new XmlTransformer();

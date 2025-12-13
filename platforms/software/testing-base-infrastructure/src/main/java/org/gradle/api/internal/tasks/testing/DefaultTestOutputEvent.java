@@ -35,7 +35,6 @@ public class DefaultTestOutputEvent implements TestOutputEvent {
      */
     @UsedByScanPlugin("test-distribution")
     @Deprecated
-    @SuppressWarnings("InlineMeSuggester")
     public DefaultTestOutputEvent(Destination destination, String message) {
         this(System.currentTimeMillis(), destination, message);
     }

@@ -2,13 +2,12 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.artifacts.Configuration
 
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.whenever
-
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 
 
 class ConfigurationExtensionsTest {

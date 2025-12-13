@@ -16,7 +16,7 @@
 
 package org.gradle.internal.service
 
-import org.gradle.internal.Factory
+
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DefaultServiceRegistryConcurrencyTest extends ConcurrentSpec {
@@ -49,39 +49,6 @@ class DefaultServiceRegistryConcurrencyTest extends ConcurrentSpec {
             start {
                 assert registry.get(String) == "12"
                 assert registry.get(Long) == 123
-            }
-        }
-    }
-
-    def "multiple threads can locate factories"() {
-        def registry = new DefaultServiceRegistry()
-        registry.addProvider(new ServiceRegistrationProvider() {
-            @Provides
-            Factory<String> createString(BigDecimal value) {
-                return { value.toString() } as Factory
-            }
-
-            @Provides
-            Factory<Integer> createInteger(Long value) {
-                return { 12 } as Factory
-            }
-
-            @Provides
-            Long createLong() {
-                return 2L
-            }
-
-            @Provides
-            BigDecimal createBigDecimal() {
-                return 123
-            }
-        })
-
-        expect:
-        10.times {
-            start {
-                assert registry.getFactory(Integer).create() == 12
-                assert registry.getFactory(String).create() == "123"
             }
         }
     }

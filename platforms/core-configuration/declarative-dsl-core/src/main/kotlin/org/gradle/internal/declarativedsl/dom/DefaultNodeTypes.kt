@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.dom
 
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode.PropertyAugmentation.Plus
 import org.gradle.internal.declarativedsl.language.SourceData
 
 
@@ -23,9 +24,10 @@ internal
 data class DefaultPropertyNode(
     override val name: String,
     override val sourceData: SourceData,
-    override val value: DeclarativeDocument.ValueNode
+    override val value: DeclarativeDocument.ValueNode,
+    override val augmentation: DeclarativeDocument.DocumentNode.PropertyNode.PropertyAugmentation
 ) : DeclarativeDocument.DocumentNode.PropertyNode {
-    override fun toString() = "property($name, $value)"
+    override fun toString() = "property($name, ${if (augmentation == Plus) "+= " else ""}$value)"
 }
 
 
@@ -71,7 +73,8 @@ internal
 data class DefaultValueFactoryNode(
     override val factoryName: String,
     override val sourceData: SourceData,
-    override val values: List<DeclarativeDocument.ValueNode>
+    override val isInfix: Boolean,
+    override val values: List<DeclarativeDocument.ValueNode>,
 ) : DeclarativeDocument.ValueNode.ValueFactoryNode {
-    override fun toString() = "valueFactory($factoryName, [${values.joinToString()}])"
+    override fun toString() = "valueFactory($factoryName, ${if (isInfix) "<infix>," else ""}[${values.joinToString()}])"
 }

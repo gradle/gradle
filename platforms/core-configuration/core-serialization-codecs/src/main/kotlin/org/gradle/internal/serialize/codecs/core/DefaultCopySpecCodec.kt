@@ -25,9 +25,11 @@ import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
-import org.gradle.api.model.ObjectFactory
+import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -36,15 +38,13 @@ import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.writeCollection
-import org.gradle.internal.Factory
 import org.gradle.internal.serialize.graph.writeEnum
-import org.gradle.internal.reflect.Instantiator
 
 
 class DefaultCopySpecCodec(
-    private val patternSetFactory: Factory<PatternSet>,
+    private val patternSetFactory: PatternSetFactory,
     private val fileCollectionFactory: FileCollectionFactory,
-    private val objectFactory: ObjectFactory,
+    private val propertyFactory: PropertyFactory,
     private val instantiator: Instantiator,
     private val fileSystemOperations: FileSystemOperations
 ) : Codec<DefaultCopySpec> {
@@ -78,7 +78,7 @@ class DefaultCopySpecCodec(
             val fileMode = readNullableSmallInt()
             val actions = readList().uncheckedCast<List<Action<FileCopyDetails>>>()
             val children = readList().uncheckedCast<List<CopySpecInternal>>()
-            val copySpec = DefaultCopySpec(fileCollectionFactory, objectFactory, instantiator, patternSetFactory, destPath, sourceFiles, patterns, actions, children)
+            val copySpec = DefaultCopySpec(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, destPath, sourceFiles, patterns, actions, children)
             copySpec.duplicatesStrategy = duplicatesStrategy
             copySpec.includeEmptyDirs = includeEmptyDirs
             copySpec.isCaseSensitive = isCaseSensitive

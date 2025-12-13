@@ -29,6 +29,3 @@ dependencies {
     implementation(projects.serialization)
     implementation(projects.stdlibKotlinExtensions)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

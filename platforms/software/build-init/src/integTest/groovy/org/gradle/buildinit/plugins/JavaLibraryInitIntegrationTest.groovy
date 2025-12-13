@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
@@ -126,7 +127,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         run("build")
 
         then:
-        assertTestPassed("org.example.LibraryTest", "someLibraryMethod returns true")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethod returns true", GenericTestExecutionResult.TestFramework.SPOCK)
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -149,7 +150,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         run("build")
 
         then:
-        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue")
+        assertTestPassed("org.example.LibraryTest", "someLibraryMethodReturnsTrue", GenericTestExecutionResult.TestFramework.TEST_NG)
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -180,6 +181,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
 
     def "creates sample source with package and #testFramework and #scriptDsl build scripts"() {
         when:
+        resultsTestFramework(testFramework as BuildInitTestFramework)
         run('init', '--type', 'java-library', '--test-framework', testFramework.id, '--package', 'my.lib', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
 
         then:
@@ -203,9 +205,10 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
     }
 
     def "creates sample source with package and #testFramework and #scriptDsl build scripts with --incubating"() {
-        def dslFixture = dslFixtureFor(scriptDsl)
+        def dslFixture = dslFixtureFor(scriptDsl as BuildInitDsl)
 
         when:
+        resultsTestFramework(testFramework as BuildInitTestFramework)
         run('init', '--type', 'java-library', '--test-framework', testFramework.id, '--package', 'my.lib', '--dsl', scriptDsl.id, '--incubating', '--java-version', JavaVersion.current().majorVersion)
 
         then:
@@ -229,8 +232,6 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         ].combinations()
     }
 
-    // Spock pulls an old version of Groovy that doesn't work with Java 18
-    @Requires(UnitTestPreconditions.Jdk17OrEarlier)
     def "creates sample source with package and spock and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id, '--java-version', JavaVersion.current().majorVersion)
@@ -246,13 +247,14 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         run("build")
 
         then:
-        assertTestPassed("my.lib.LibraryTest", "someLibraryMethod returns true")
+        assertTestPassed("my.lib.LibraryTest", "someLibraryMethod returns true", GenericTestExecutionResult.TestFramework.SPOCK)
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Requires(value = UnitTestPreconditions.Jdk17OrEarlier, reason = "Spock pulls an old version of Groovy that doesn't work with Java 18")
+    // TODO: We should also generate a dependency on the latest groovy version, like the above test does.
+    @Requires(value = UnitTestPreconditions.Jdk19OrEarlier, reason = "Spock pulls an old version of Groovy that doesn't work with Java 20")
     def "creates sample source with package and spock and #scriptDsl build scripts with --incubating"() {
         def dslFixture = dslFixtureFor(scriptDsl)
 
@@ -271,7 +273,7 @@ class JavaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSp
         run("build")
 
         then:
-        assertTestPassed("my.lib.LibraryTest", "someLibraryMethod returns true")
+        assertTestPassed("my.lib.LibraryTest", "someLibraryMethod returns true", GenericTestExecutionResult.TestFramework.SPOCK)
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

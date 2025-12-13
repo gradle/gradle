@@ -16,11 +16,12 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace.ResolutionOrErrors.Errors
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace.ResolutionOrErrors.NoResolution
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace.ResolutionOrErrors.Resolution
 import org.gradle.internal.declarativedsl.language.Assignment
+import org.gradle.internal.declarativedsl.language.AssignmentLikeStatement
+import org.gradle.internal.declarativedsl.language.AugmentingAssignment
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
@@ -34,7 +35,7 @@ interface ResolutionTrace {
         data object NoResolution : ResolutionOrErrors<Nothing>
     }
 
-    fun assignmentResolution(assignment: Assignment): ResolutionOrErrors<AssignmentRecord>
+    fun assignmentResolution(assignment: AssignmentLikeStatement): ResolutionOrErrors<AssignmentRecord>
     fun expressionResolution(expr: Expr): ResolutionOrErrors<ObjectOrigin>
 }
 
@@ -50,15 +51,17 @@ class ResolutionTracer(
 ) : ExpressionResolver, StatementResolver, ErrorCollector, ResolutionTrace {
 
     private
-    val assignmentResolutions = IdentityHashMap<Assignment, AssignmentRecord>()
+    val assignmentResolutions = IdentityHashMap<AssignmentLikeStatement, AssignmentRecord>()
     private
-    val expressionResolution = IdentityHashMap<Expr, ObjectOrigin>()
+    val expressionResolution = IdentityHashMap<Expr, TypedOrigin>()
     private
     val elementErrors = IdentityHashMap<LanguageTreeElement, MutableList<ResolutionError>>()
 
-    override fun assignmentResolution(assignment: Assignment): ResolutionTrace.ResolutionOrErrors<AssignmentRecord> =
+    override fun assignmentResolution(assignment: AssignmentLikeStatement): ResolutionTrace.ResolutionOrErrors<AssignmentRecord> =
         assignmentResolutions[assignment]?.let { resolution ->
-            check(assignment !in elementErrors)
+            check(assignment !in elementErrors) {
+                "Assignment is both resolved and erroneous: $assignment at ${assignment.sourceData.sourceIdentifier.fileIdentifier}:${assignment.sourceData.lineRange.start}"
+            }
             Resolution(resolution)
         } ?: elementErrors[assignment]?.let { errors ->
             Errors(errors)
@@ -66,14 +69,15 @@ class ResolutionTracer(
 
     override fun expressionResolution(expr: Expr): ResolutionTrace.ResolutionOrErrors<ObjectOrigin> =
         expressionResolution[expr]?.let { resolution ->
-            check(expr !in elementErrors)
-            Resolution(resolution)
+            check(expr !in elementErrors) {
+                "Expression is both resolved and erroneous: $expr at ${expr.sourceData.sourceIdentifier.fileIdentifier}:${expr.sourceData.lineRange.start}"
+            }
+            Resolution(resolution.objectOrigin)
         } ?: elementErrors[expr]?.let { errors ->
             Errors(errors)
-        } ?:
-        NoResolution
+        } ?: NoResolution
 
-    override fun doResolveExpression(context: AnalysisContext, expr: Expr, expectedType: DataTypeRef?): ObjectOrigin? {
+    override fun doResolveExpression(context: AnalysisContext, expr: Expr, expectedType: ExpectedTypeData): TypedOrigin? {
         val result = expressionResolver.doResolveExpression(context, expr, expectedType)
         if (result != null) {
             expressionResolution[expr] = result
@@ -83,6 +87,17 @@ class ResolutionTracer(
 
     override fun doResolveAssignment(context: AnalysisContext, assignment: Assignment): AssignmentRecord? {
         val result = statementResolver.doResolveAssignment(context, assignment)
+        if (result != null) {
+            assignmentResolutions[assignment] = result
+        }
+        return result
+    }
+
+    override fun doResolveAugmentingAssignment(
+        context: AnalysisContext,
+        assignment: AugmentingAssignment
+    ): AssignmentRecord? {
+        val result = statementResolver.doResolveAugmentingAssignment(context, assignment)
         if (result != null) {
             assignmentResolutions[assignment] = result
         }

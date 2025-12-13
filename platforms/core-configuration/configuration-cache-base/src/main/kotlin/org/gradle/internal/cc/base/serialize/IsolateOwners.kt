@@ -24,7 +24,7 @@ import org.gradle.internal.serialize.graph.IsolateOwner
 
 
 interface HostServiceProvider {
-    fun <T> service(serviceType: Class<T>): T
+    fun <T : Any> service(serviceType: Class<T>): T
 }
 
 
@@ -39,22 +39,22 @@ sealed class IsolateOwners : IsolateOwner {
         // TODO:configuration-cache - consider immutability
         var allowTaskReferences: Boolean = false
     ) : IsolateOwners() {
-        override fun <T> service(type: Class<T>): T = (delegate.project as ProjectInternal).services.get(type)
+        override fun <T : Any> service(type: Class<T>): T = (delegate.project as ProjectInternal).services.get(type)
     }
 
     class OwnerGradle(override val delegate: Gradle) : IsolateOwners() {
-        override fun <T> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
+        override fun <T : Any> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
     }
 
     class OwnerHost(override val delegate: HostServiceProvider) : IsolateOwners() {
-        override fun <T> service(type: Class<T>): T = delegate.service(type)
+        override fun <T : Any> service(type: Class<T>): T = delegate.service(type)
     }
 
     class OwnerFlowScope(override val delegate: Gradle) : IsolateOwners() {
-        override fun <T> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
+        override fun <T : Any> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
     }
 
     class OwnerFlowAction(override val delegate: OwnerFlowScope) : IsolateOwners() {
-        override fun <T> service(type: Class<T>): T = delegate.service(type)
+        override fun <T : Any> service(type: Class<T>): T = delegate.service(type)
     }
 }

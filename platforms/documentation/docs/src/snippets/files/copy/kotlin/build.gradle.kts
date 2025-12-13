@@ -204,7 +204,7 @@ tasks.register<Copy>("rename") {
     rename("(.+)-staging(.+)".toRegex().pattern, "$1$2")
     // Use a closure to convert all file names to upper case
     rename { fileName: String ->
-        fileName.toUpperCase()
+        fileName.uppercase()
     }
 }
 // end::rename-files[]
@@ -246,6 +246,22 @@ tasks.register<Copy>("permissions") {
     }
 }
 // end::file-permissions[]
+
+// tag::file-specific-permissions[]
+tasks.register<Copy>("specificPermissions") {
+    from("src/main/webapp")
+    into(layout.buildDirectory.dir("explodedWarWithScript"))
+    eachFile {
+        if (name == "script.sh") {
+            permissions {
+                user {
+                    execute = true
+                }
+            }
+        }
+    }
+}
+// end::file-specific-permissions[]
 
 tasks.register("test") {
     dependsOn(tasks.withType<Copy>())

@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Iterables;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
@@ -34,9 +35,9 @@ import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.SnapshottingFilter;
+import org.jspecify.annotations.Nullable;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -115,7 +116,7 @@ public class DirectorySnapshotter {
      */
     public FileSystemLocationSnapshot snapshot(
         String absolutePath,
-        @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate,
+        SnapshottingFilter.@Nullable DirectoryWalkerPredicate predicate,
         Map<String, ? extends FileSystemLocationSnapshot> previouslyKnownSnapshots,
         Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder
     ) {
@@ -268,7 +269,7 @@ public class DirectorySnapshotter {
         private final Consumer<FileSystemLocationSnapshot> unfilteredSnapshotRecorder;
 
         public PathVisitor(
-            @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate,
+            SnapshottingFilter.@Nullable DirectoryWalkerPredicate predicate,
             AtomicBoolean hasBeenFiltered,
             FileHasher hasher,
             Interner<String> stringInterner,
@@ -447,7 +448,7 @@ public class DirectorySnapshotter {
             if (attrs.isSymbolicLink()) {
                 return new MissingFileSnapshot(internedRemappedAbsoluteFilePath, internedName, accessType);
             } else if (!attrs.isRegularFile()) {
-                throw new UncheckedIOException(new IOException(String.format("Cannot snapshot %s: not a regular file", internedRemappedAbsoluteFilePath)));
+                throw UncheckedException.throwAsUncheckedException(new IOException(String.format("Cannot snapshot %s: not a regular file", internedRemappedAbsoluteFilePath)));
             }
             long lastModified = attrs.lastModifiedTime().toMillis();
             long fileLength = attrs.size();
@@ -470,7 +471,7 @@ public class DirectorySnapshotter {
                 if (isNotFileSystemLoopException(exc)) {
                     boolean isDirectory = Files.isDirectory(file);
                     if (shouldVisit(file, internedFileName, isDirectory)) {
-                        throw new UncheckedIOException(exc);
+                        throw UncheckedException.throwAsUncheckedException(exc);
                     }
                 }
                 return FileVisitResult.CONTINUE;

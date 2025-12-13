@@ -23,23 +23,22 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.ConfigurationCacheDegradation;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.internal.BuildDashboardGenerator;
 import org.gradle.api.reporting.internal.DefaultBuildDashboardReports;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -57,30 +56,9 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
     private final BuildDashboardReports reports;
 
     public GenerateBuildDashboard() {
-        reports = getProject().getObjects().newInstance(DefaultBuildDashboardReports.class, Describables.quoted("Task", getIdentityPath()));
+        ConfigurationCacheDegradation.requireDegradation(this, "Task is not compatible with the Configuration Cache");
+        reports = getObjectFactory().newInstance(DefaultBuildDashboardReports.class, Describables.quoted("Task", getIdentityPath()));
         reports.getHtml().getRequired().set(true);
-    }
-
-    @Internal
-    @Deprecated
-    protected Instantiator getInstantiator() {
-        DeprecationLogger.deprecateMethod(GenerateBuildDashboard.class, "getInstantiator()")
-            .willBeRemovedInGradle9()
-            .undocumented()
-            .nagUser();
-
-        return ((ProjectInternal) getProject()).getServices().get(Instantiator.class);
-    }
-
-    @Internal
-    @Deprecated
-    protected CollectionCallbackActionDecorator getCollectionCallbackActionDecorator() {
-        DeprecationLogger.deprecateMethod(GenerateBuildDashboard.class, "getCollectionCallbackActionDecorator()")
-            .willBeRemovedInGradle9()
-            .undocumented()
-            .nagUser();
-
-        return ((ProjectInternal) getProject()).getServices().get(CollectionCallbackActionDecorator.class);
     }
 
     @Input
@@ -110,7 +88,7 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
 
     private Set<Reporting<? extends ReportContainer<?>>> getAggregatedTasks() {
         final Set<Reporting<? extends ReportContainer<?>>> reports = new HashSet<>();
-        getProject().allprojects(new Action<Project>() {
+        DeprecationLogger.whileDisabled(this::getProject).allprojects(new Action<Project>() {
             @Override
             public void execute(Project project) {
                 project.getTasks().all(new Action<Task>() {
@@ -138,9 +116,9 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
      *
      * @param reportings an array of {@link Reporting} instances that are to be aggregated
      */
-    @SuppressWarnings("unchecked")
-    // TODO Use @SafeVarargs and make method final
-    public void aggregate(Reporting<? extends ReportContainer<?>>... reportings) {
+    @SafeVarargs
+    @SuppressWarnings("varargs")
+    public final void aggregate(Reporting<? extends ReportContainer<?>>... reportings) {
         aggregated.addAll(Arrays.asList(reportings));
     }
 
@@ -212,6 +190,9 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
         }
     }
 
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
     private static class ReportState implements Serializable {
         private final String name;
         private final File destination;
@@ -225,6 +206,9 @@ public abstract class GenerateBuildDashboard extends DefaultTask implements Repo
 
         @Override
         public boolean equals(Object obj) {
+            if (!(obj instanceof ReportState)) {
+                return false;
+            }
             ReportState other = (ReportState) obj;
             return name.equals(other.name) && destination.equals(other.destination) && available == other.available;
         }

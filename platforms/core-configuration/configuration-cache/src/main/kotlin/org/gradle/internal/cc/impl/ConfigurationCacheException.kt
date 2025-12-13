@@ -25,7 +25,7 @@ open class ConfigurationCacheProblemsException : ConfigurationCacheException {
     object Documentation {
 
         val maxProblems: String
-            get() = DocumentationRegistry().getDocumentationRecommendationFor("on this", "configuration_cache", "config_cache:usage:max_problems")
+            get() = DocumentationRegistry().getDocumentationRecommendationFor("on this", "configuration_cache_enabling", "config_cache:usage:max_problems")
     }
 
     protected

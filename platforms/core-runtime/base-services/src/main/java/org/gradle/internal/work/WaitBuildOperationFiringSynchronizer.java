@@ -21,8 +21,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class WaitBuildOperationFiringSynchronizer implements Synchronizer {
@@ -59,13 +59,12 @@ public class WaitBuildOperationFiringSynchronizer implements Synchronizer {
     }
 
     @Override
-    public <T> T withLock(final Factory<T> action) {
+    public <T extends @Nullable Object> T withLock(final Factory<T> action) {
         final AtomicBoolean successfulWait = new AtomicBoolean(false);
         final BuildOperationContext buildOperationContext = startWaitingOperation();
 
         try {
             return delegate.withLock(new Factory<T>() {
-                @Nullable
                 @Override
                 public T create() {
                     successfulWait.set(true);

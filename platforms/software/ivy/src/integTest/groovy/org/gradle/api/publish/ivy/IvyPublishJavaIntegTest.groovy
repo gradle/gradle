@@ -104,11 +104,21 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         """
 
         file('b/build.gradle') << """
-            apply plugin: 'java'
+            plugins {
+                id("$plugin")
+                id("ivy-publish")
+            }
 
             group = 'org.gradle.test'
             version = '1.2'
 
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
         """
 
         when:
@@ -146,7 +156,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
             artifacts {
                 implementation extraJar
-                archives extraJar
                 it."default" extraJar
             }
 
@@ -1088,8 +1097,15 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         given:
         settingsFile << "include 'utils'\n"
         file("utils/build.gradle") << '''
-            def attr1 = Attribute.of('custom', String)
+            plugins {
+                id("ivy-publish")
+            }
+
+            group = 'org.gradle.test'
             version = '1.0'
+
+            def attr1 = Attribute.of('custom', String)
+
             configurations {
                 one {
                     attributes.attribute(attr1, 'magnificent')
@@ -1098,7 +1114,20 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                     attributes.attribute(attr1, 'bazinga')
                 }
             }
+
+            def component = publishing.softwareComponentFactory.adhoc("foo")
+            component.addVariantsFromConfiguration(configurations.one) {}
+            component.addVariantsFromConfiguration(configurations.two) {}
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from component
+                    }
+                }
+            }
         '''
+
         createBuildScripts("""
             def attr1 = Attribute.of('custom', String)
             def attr2 = Attribute.of('nice', Boolean)
@@ -1135,7 +1164,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                     }
                 }
             }
-""")
+        """)
 
         when:
         run "publish"
@@ -1150,7 +1179,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             dependency('org.test:bar:1.0') {
                 hasAttribute('custom', 'hello')
             }
-            dependency('publishTest:utils:1.0') {
+            dependency('org.gradle.test:utils:1.0') {
                 hasAttribute('custom', 'bazinga')
             }
             noMoreDependencies()
@@ -1160,7 +1189,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             dependency('org.test:bar:1.0') {
                 hasAttribute('custom', 'hello')
             }
-            dependency('publishTest:utils:1.0') {
+            dependency('org.gradle.test:utils:1.0') {
                 hasAttribute('custom', 'bazinga')
             }
             constraint('org.test:bar:1.1') {

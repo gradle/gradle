@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.jvm;
 
-import org.gradle.util.internal.GUtil;
-
-import javax.annotation.Nullable;
+import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 
 public class ClassDirectoryBinaryNamingScheme {
     private final String baseName;
@@ -54,7 +53,7 @@ public class ClassDirectoryBinaryNamingScheme {
         if (target != null) {
             name = collapsedName;
         }
-        return GUtil.toLowerCamelCase(nullToEmpty(verb) + " " + name + " " + nullToEmpty(target));
+        return TextUtil.toLowerCamelCase(nullToEmpty(verb) + " " + name + " " + nullToEmpty(target));
     }
 
     private String nullToEmpty(String input) {

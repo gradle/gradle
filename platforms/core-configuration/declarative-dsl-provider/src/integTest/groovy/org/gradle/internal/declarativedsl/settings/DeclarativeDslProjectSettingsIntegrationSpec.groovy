@@ -217,8 +217,8 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
         def failure = fails(":projects")
 
         then:
-        failure.assertHasErrorOutput('2:1: Value reassigned in (this:(top-level-object)).rootProject.name := "bar"')
-        failure.assertHasErrorOutput('3:1: Value reassigned in (this:(top-level-object)).rootProject.name := "baz"')
+        failure.assertHasErrorOutput('2:1: reassigned value in \'rootProject.name = "bar"\'')
+        failure.assertHasErrorOutput('3:1: reassigned value in \'rootProject.name = "baz"\'')
     }
 
     def "resolution failures are reported nicely"() {

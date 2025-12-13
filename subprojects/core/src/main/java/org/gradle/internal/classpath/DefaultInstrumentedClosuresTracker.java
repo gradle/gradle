@@ -18,9 +18,9 @@ package org.gradle.internal.classpath;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class DefaultInstrumentedClosuresTracker implements InstrumentedClosuresTracker {
     /**
      * A multiset counting the entries in a closure, which is needed to correctly track reentrant recursive calls;

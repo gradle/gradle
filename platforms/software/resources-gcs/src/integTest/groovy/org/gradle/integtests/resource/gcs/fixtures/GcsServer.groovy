@@ -24,25 +24,21 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.HttpServer
-import org.joda.time.DateTimeZone
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.format.DateTimeFormatter
-import org.joda.time.tz.FixedDateTimeZone
 
 import javax.servlet.ServletException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import java.nio.file.Files
 import java.security.MessageDigest
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 import static org.apache.commons.codec.binary.Base64.encodeBase64String
 
 class GcsServer extends HttpServer implements RepositoryServer {
 
     private static final String BUCKET_NAME = "testgcsbucket"
-    private static final DateTimeZone GMT = new FixedDateTimeZone("GMT", "GMT", 0, 0)
-    private static final DateTimeFormatter RCF_3339_DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-        .withLocale(Locale.US)
-        .withZone(GMT)
+    private static final DateTimeFormatter RCF_3339_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneId.of("GMT"))
 
     private static final String DATE_HEADER = 'Mon, 29 Sep 2014 11:04:27 GMT'
     private static final String SERVER_GCS = 'GCS'
@@ -181,7 +177,7 @@ class GcsServer extends HttpServer implements RepositoryServer {
                     {
                         "etag": "${calculateEtag(file)}",
                         "size": "0",
-                        "updated": "${RCF_3339_DATE_FORMAT.print(file.lastModified())}",
+                        "updated": "${RCF_3339_DATE_FORMAT.format(Files.getLastModifiedTime(file.toPath()).toInstant())}",
                         "md5Hash": "${encodeBase64String(Hashing.md5().hashFile(file).toByteArray())}"
                     }
                     """
@@ -255,7 +251,7 @@ class GcsServer extends HttpServer implements RepositoryServer {
                         "size": "${file.length()}",
                         "bucket": "${bucketName}",
                         "name": "${objectName}",
-                        "updated": "${RCF_3339_DATE_FORMAT.print(file.lastModified())}"
+                        "updated": "${RCF_3339_DATE_FORMAT.format(Files.getLastModifiedTime(file.toPath()).toInstant())}"
                     }
                     """
                 }

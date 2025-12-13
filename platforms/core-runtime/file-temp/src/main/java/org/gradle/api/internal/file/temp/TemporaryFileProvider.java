@@ -18,8 +18,8 @@ package org.gradle.api.internal.file.temp;
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 @ServiceScope(Scope.Project.class)

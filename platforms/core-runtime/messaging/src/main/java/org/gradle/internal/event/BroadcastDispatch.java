@@ -57,11 +57,13 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         return add(listener, new ReflectionDispatch(listener));
     }
 
+    @SuppressWarnings("overloads")
     public BroadcastDispatch<T> add(String methodName, Action<?> action) {
         assertIsMethod(methodName);
         return add(action, new ActionInvocationHandler(methodName, Cast.<Action<Object>>uncheckedNonnullCast(action)));
     }
 
+    @SuppressWarnings("overloads")
     abstract BroadcastDispatch<T> add(Object handler, Dispatch<MethodInvocation> dispatch);
 
     private void assertIsMethod(String methodName) {

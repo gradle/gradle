@@ -200,7 +200,7 @@ afterEvaluate {
         """
 
         expect:
-        executer.expectDeprecationWarningWithPattern("Changing property value of task ':thing' property 'prop' at execution time. This behavior has been deprecated.*")
+        executer.expectDocumentedDeprecationWarning("Changing property value of task ':thing' property 'prop' at execution time. This behavior has been deprecated. Starting with Gradle 11, changing property value of task ':thing' property 'prop' at execution time will become an error.")
         succeeds("thing")
         outputContains("value: value 1, value 2, value 3")
     }
@@ -549,5 +549,83 @@ task wrongPropertyElementTypeApi(type: MyTask) {
         collection | initializer
         "list" | "listProperty"
         "set" | "setProperty"
+    }
+
+    /**
+     * These tests are to verify that when a property is marked as disallowChanges during configuration time,
+     * this setting is properly restored by the CC and honored at task execution time.
+     */
+    static class DisallowChangesIntegrationTests extends AbstractIntegrationSpec {
+        def "cannot update list property marked disallowChanges"() {
+            given:
+            buildFile """
+                class Setter extends DefaultTask {
+                    @Internal
+                    final ListProperty<String> prop = project.objects.listProperty(String)
+
+                    @TaskAction
+                    def run() {
+                        prop.add("new content")
+                    }
+                }
+
+                tasks.register("setter", Setter) {
+                    prop.add("original content")
+                    prop.disallowChanges()
+                }
+            """
+
+            expect:
+            fails("setter")
+            failure.assertHasCause("The value for task ':setter' property 'prop' cannot be changed any further.")
+        }
+
+        def "cannot update set property marked disallowChanges"() {
+            given:
+            buildFile """
+                class Setter extends DefaultTask {
+                    @Internal
+                    final SetProperty<String> prop = project.objects.setProperty(String)
+
+                    @TaskAction
+                    def run() {
+                        prop.add("new content")
+                    }
+                }
+
+                tasks.register("setter", Setter) {
+                    prop.add("original content")
+                    prop.disallowChanges()
+                }
+            """
+
+            expect:
+            fails("setter")
+            failure.assertHasCause("The value for task ':setter' property 'prop' cannot be changed any further.")
+        }
+
+        def "cannot update map property marked disallowChanges"() {
+            given:
+            buildFile """
+                class Setter extends DefaultTask {
+                    @Internal
+                    final MapProperty<String, String> prop = project.objects.mapProperty(String, String)
+
+                    @TaskAction
+                    def run() {
+                        prop.set(["key": "new value"])
+                    }
+                }
+
+                tasks.register("setter", Setter) {
+                    prop.set(["key": "value"])
+                    prop.disallowChanges()
+                }
+            """
+
+            expect:
+            fails("setter")
+            failure.assertHasCause("The value for task ':setter' property 'prop' cannot be changed any further.")
+        }
     }
 }

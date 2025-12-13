@@ -17,6 +17,8 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -677,6 +679,48 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains('Test')
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/33528")
+    def "can use inner classes that reference external plugin types"() {
+        given:
+        settingsFile("""
+            include("parent")
+        """)
+        buildFile("""
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+
+            dependencies {
+                implementation(project(":parent"))
+            }
+        """)
+        file("src/main/groovy/test.gradle") << """
+            plugins {
+                id("parent")
+            }
+
+            new ParentThing() {
+            }
+        """
+
+        buildFile(getBuildFile(GradleDsl.GROOVY, "parent"), """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+        """)
+        file("src/main/groovy/parent.gradle") << """
+        """
+        file("src/main/groovy/ParentThing.groovy") << """
+            abstract class ParentThing {}
+        """
+
+        when:
+        succeeds("build")
+
+        then:
+        file("build/groovy-dsl-plugins/output/plugin-classes/precompiled_Test\$1.class").assertExists()
+    }
+
     def "can apply configuration in a precompiled script plugin to the current project"() {
         given:
         enablePrecompiledPluginsInBuildSrc()
@@ -883,7 +927,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains('my-plugin applied')
         cachedTasks.forEach {
-            result.assertTaskExecuted(it)
+            result.assertTaskScheduled(it)
         }
 
         when:
@@ -988,6 +1032,40 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         pluginName << ["org.gradle.my-plugin", "org.gradle"]
+    }
+
+    @Requires(IntegTestPreconditions.NotConfigCached)
+    @Issue("https://github.com/gradle/gradle/issues/23267")
+    def "hits configuration cache when no changes are present"() {
+        given:
+        enablePrecompiledPluginsInBuildSrc()
+
+        buildFile("buildSrc/src/main/groovy/plugins/foo.gradle", """
+            plugins {
+                id("java")
+            }
+        """)
+
+        buildFile """
+            plugins {
+                id("foo")
+            }
+        """
+        def configurationCacheFixture = new ConfigurationCacheFixture(this)
+
+        when:
+        executer.withConfigurationCacheEnabled()
+        run("help")
+
+        then:
+        configurationCacheFixture.assertStateStored()
+
+        when:
+        executer.withConfigurationCacheEnabled()
+        run("help")
+
+        then:
+        configurationCacheFixture.assertStateLoaded()
     }
 
     private String packagePrecompiledPlugin(String pluginFile, String pluginContent = REGISTER_SAMPLE_TASK) {

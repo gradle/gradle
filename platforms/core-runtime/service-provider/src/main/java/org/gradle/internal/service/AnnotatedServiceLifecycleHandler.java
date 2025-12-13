@@ -16,7 +16,8 @@
 
 package org.gradle.internal.service;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.lang.annotation.Annotation;
 import java.util.List;
 

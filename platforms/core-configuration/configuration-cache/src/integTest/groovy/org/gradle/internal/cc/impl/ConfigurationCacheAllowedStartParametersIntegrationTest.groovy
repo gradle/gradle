@@ -16,12 +16,17 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
+
 class ConfigurationCacheAllowedStartParametersIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def "changing of kotlin dsl cid property doesn't invalidates cache entry"() {
+    def "kotlin dsl cid property change doesn't invalidate cache entry"() {
         given:
-        def kotlinDslCidProp = "org.gradle.kotlin.dsl.provider.cid"
+        def kotlinDslCidProp = KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME
         def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            findProperty("$kotlinDslCidProp")
+        """
 
         when:
         configurationCacheRun "tasks", "-P$kotlinDslCidProp=24"

@@ -34,7 +34,11 @@ class ImportTest {
                 emptyMap(),
                 emptyMap(),
                 emptyMap(),
-                emptySet()
+                emptyMap(),
+                emptyMap(),
+                emptyMap(),
+                emptySet(),
+                emptyMap()
             ),
             emptyMap(),
             errorCollector,
@@ -119,5 +123,5 @@ class ImportTest {
     val sourceIdentifier = SourceIdentifier("test")
 
     private
-    val mockSourceData = mockNode.sourceData(sourceIdentifier, "", 0)
+    val mockSourceData = mockNode.sourceData(sourceIdentifier, "")
 }

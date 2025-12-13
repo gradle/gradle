@@ -16,11 +16,8 @@
 package org.gradle.api.internal.project.antbuilder;
 
 import com.google.common.collect.Lists;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.classloading.GroovySystemLoader;
-import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.logging.LogLevel;
@@ -36,9 +33,11 @@ import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.groovyloader.GroovySystemLoader;
+import org.gradle.internal.groovyloader.GroovySystemLoaderFactory;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.util.internal.ClosureBackedAction;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -59,6 +58,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
     private final GroovySystemLoader gradleApiGroovyLoader;
     private final GroovySystemLoader antAdapterGroovyLoader;
 
+    @Inject
     public DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory, ModuleRegistry moduleRegistry) {
         this.classPathRegistry = classPathRegistry;
         this.classLoaderFactory = classLoaderFactory;
@@ -129,11 +129,6 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             LOG.debug("Forking a new isolated ant builder for classpath : {}", classpath);
         }
         return new DefaultIsolatedAntBuilder(this, classpath);
-    }
-
-    @Override
-    public void execute(Closure antClosure) {
-        execute(delegate -> ClosureBackedAction.execute(delegate, antClosure));
     }
 
     @Override

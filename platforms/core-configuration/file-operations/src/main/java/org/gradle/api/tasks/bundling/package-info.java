@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-
 /**
- * Classes related to archiving that ended up
- * being used more broadly in the implementation.
+ * The archive bundling {@link org.gradle.api.Task} implementations.
  */
+@NullMarked
 package org.gradle.api.tasks.bundling;
+
+import org.jspecify.annotations.NullMarked;

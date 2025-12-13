@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -25,10 +24,9 @@ import spock.lang.Issue
 
 @FluidDependenciesResolveTest
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
-    private ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
+    private ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
-        resolve.addDefaultVariantDerivationStrategy()
         settingsFile << """
             rootProject.name = 'test'
         """
@@ -62,13 +60,14 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 archiveBaseName = 'a'
                 destinationDirectory = buildDir
             }
-            artifacts { api jar }
+            artifacts { api tasks.jar }
         """
 
         file("b/build.gradle") << """
             group = 'org.gradle'
             version = '1.0'
 
+            ${resolve.configureProject("compile")}
             configurations {
                 compile
             }
@@ -77,12 +76,10 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             }
         """
 
-        resolve.prepare()
-
         expect:
         succeeds ":b:checkDeps"
         executedAndNotSkipped ":a:jar"
-        resolve.expectGraph {
+        resolve.expectGraph(":b") {
             root(":b", "org.gradle:b:1.0") {
                 project(":a", "test:a:") {
                     module("org.other:externalA:1.2")
@@ -119,10 +116,14 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 }
             }
             task jar(type: Jar) { archiveBaseName = 'a' }
-            artifacts { api jar }
+            artifacts { api tasks.jar }
         """
 
         file("b/build.gradle") << """
+            plugins {
+                id("jvm-ecosystem")
+            }
+            ${resolve.configureProject("compile")}
             configurations {
                 compile
             }
@@ -133,15 +134,12 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             }
         """
 
-
-        resolve.prepare()
-
         when:
         succeeds ':b:checkDeps'
 
         then:
         executedAndNotSkipped ":a:jar"
-        resolve.expectGraph {
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", 'test:a:') {
                     notRequested()
@@ -178,12 +176,13 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 archiveBaseName = 'A2'
             }
             artifacts {
-                configA1 A1jar
-                configA2 A2jar
+                configA1 tasks.A1jar
+                configA2 tasks.A2jar
             }
         """
 
         file("b/build.gradle") << """
+            ${resolve.configureProject("configB1", "configB2")}
             configurations {
                 configB1
                 configB2
@@ -194,17 +193,12 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             }
         """
 
-        resolve.prepare {
-            config("configB1")
-            config("configB2")
-        }
-
         when:
         run ":b:checkConfigB1"
 
         then:
         executedAndNotSkipped ":a:A1jar"
-        resolve.expectGraph {
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                     configuration("configA1")
@@ -218,7 +212,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
 
         then:
         executedAndNotSkipped ":a:A2jar"
-        resolve.expectGraph {
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                     configuration("configA2")
@@ -241,7 +235,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             dependencies { compile project(path: ':b', configuration: 'compile') }
             task aJar(type: Jar) { }
             gradle.taskGraph.whenReady { project.version = 'late' }
-            artifacts { compile aJar }
+            artifacts { compile tasks.aJar }
         '''
 
         file('b/build.gradle') << '''
@@ -252,25 +246,23 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             configurations { compile }
             task bJar(type: Jar) { }
             gradle.taskGraph.whenReady { project.version = 'transitive-late' }
-            artifacts { compile bJar }
+            artifacts { compile tasks.bJar }
         '''
 
-        file('build.gradle') << '''
+        file('build.gradle') << """
+            ${resolve.configureProject("testCompile")}
             configurations {
                 compile
                 testCompile { extendsFrom compile }
             }
             dependencies { compile project(path: ':a', configuration: 'compile') }
-        '''
-
-        resolve.prepare("testCompile")
+        """
 
         when:
         run ":checkDeps"
 
         then:
         executedAndNotSkipped ":a:aJar", ":b:bJar"
-        resolve.expectDefaultConfiguration("compile")
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":a", "test:a:") {
@@ -301,9 +293,9 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 }
             }
             task aJar(type: Jar) {
-                dependsOn configureJar
+                dependsOn tasks.configureJar
             }
-            artifacts { compile aJar }
+            artifacts { compile tasks.aJar }
         '''
 
         file('build.gradle') << '''
@@ -350,26 +342,24 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             dependencies { deps 'group:externalA:1.5' }
             task xJar(type: Jar) { archiveBaseName='x' }
             task yJar(type: Jar) { archiveBaseName='y' }
-            artifacts { 'default' xJar, yJar }
+            artifacts { 'default' tasks.xJar, tasks.yJar }
         """
 
         file("b/build.gradle") << """
             plugins {
                 id("base")
             }
-
+            ${resolve.configureProject("compile")}
             configurations { compile }
             dependencies { compile(project(':a')) { artifact { name = 'y'; type = 'jar' } } }
         """
-
-        resolve.prepare("compile")
 
         when:
         run 'b:checkDeps'
 
         then:
         executedAndNotSkipped ":a:yJar"
-        resolve.expectGraph {
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                     artifact(name: "y", type: "jar")
@@ -441,20 +431,18 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             plugins {
                 id("java-library")
             }
-
+            ${resolve.configureProject("runtimeClasspath")}
             dependencies {
                 implementation project(':a'), { transitive = false }
             }
         """
-
-        resolve.prepare("runtimeClasspath")
 
         when:
         run ":b:checkDeps"
 
         then:
         executedAndNotSkipped ":a:jar"
-        resolve.expectGraph {
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                     configuration("runtimeElements")
@@ -481,12 +469,13 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             }
             task jar(type: Jar)
             artifacts {
-                'default' jar
+                'default' tasks.jar
             }
         """
 
         file("a/build.gradle") << """
             $common
+            ${resolve.configureProject("first")}
             dependencies {
                 first project(':b')
                 other project(':b')
@@ -506,12 +495,11 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         """
 
         when:
-        resolve.prepare("first")
         run ":a:checkDeps"
 
         then:
         executedAndNotSkipped ":b:jar", ":c:jar"
-        resolve.expectGraph {
+        resolve.expectGraph(":a") {
             root(":a", "test:a:") {
                 project(":b", "test:b:") {
                     project(":c", "test:c:") {
@@ -536,15 +524,15 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 resolvable("res") {
                     extendsFrom(implementation)
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "foo"))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "foo"))
                     }
                 }
                 consumable("cons") {
                     extendsFrom(implementation)
                     attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "foo"))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "foo"))
                     }
-                    outgoing.artifact(jar)
+                    outgoing.artifact(tasks.jar)
                 }
             }
         """
@@ -583,12 +571,10 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         """
 
         expect:
-        succeeds ':a:assertCanResolve'
+        succeeds(":a:assertCanResolve")
 
         and:
-        executer.expectDocumentedDeprecationWarning("The resCopy configuration has been deprecated for consumption. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/declaring_dependencies.html#sec:deprecated-configurations in the Gradle documentation.")
-        executer.expectDocumentedDeprecationWarning("While resolving configuration 'resCopy', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration")
-        succeeds ':a:assertCanResolveRecursiveCopy'
+        succeeds(":a:assertCanResolveRecursiveCopy")
     }
 
     // this test is largely covered by other tests, but does ensure that there is nothing special about
@@ -607,7 +593,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             }
 
             artifacts {
-                delegate.default zip
+                delegate.default tasks.zip
             }
         """
         file("b/build.gradle") << """
@@ -632,7 +618,6 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         file("b/build/copied/a-1.0.zip").exists()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "resolving configuration with project dependency marks dependency's configuration as observed"() {
         settingsFile << """
             include 'api'
@@ -656,29 +641,23 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 conf project(":api")
             }
 
-            task check {
-                doLast {
-                    assert configurations.conf.state == Configuration.State.UNRESOLVED
-                    assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
+            assert configurations.conf.state == Configuration.State.UNRESOLVED
+            assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
 
-                    configurations.conf.resolve()
+            configurations.conf.resolve()
 
-                    assert configurations.conf.state == Configuration.State.RESOLVED
-                    assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
+            assert configurations.conf.state == Configuration.State.RESOLVED
+            assert project(":api").configurations.conf.state == Configuration.State.UNRESOLVED
 
-                    // Attempt to change the configuration, to demonstrate that is has been observed
-                    project(":api").configurations.conf.dependencies.add(null)
-                }
-            }
-
+            // Attempt to change the configuration, to demonstrate that is has been observed
+            project(":api").configurations.conf.dependencies.add(null)
         """
 
         when:
-        expectTaskGetProjectDeprecations(3)
-        fails("impl:check")
+        fails("help")
 
         then:
-        failure.assertHasCause "Cannot change dependencies of dependency configuration ':api:conf' after it has been included in dependency resolution"
+        failure.assertHasCause("Cannot mutate the dependencies of configuration ':api:conf' after the configuration was consumed as a variant. After a configuration has been observed, it should not be modified.")
     }
 
     @Issue(["GRADLE-3330", "GRADLE-3362"])
@@ -705,13 +684,14 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                 archiveFileName = 'A3.jar'
             }
             artifacts {
-                configOne A1jar
-                configTwo A2jar
-                configTwo A3jar
+                configOne tasks.A1jar
+                configTwo tasks.A2jar
+                configTwo tasks.A3jar
             }
         """
 
         file("b/build.gradle") << """
+            ${resolve.configureProject("configB")}
             configurations {
                 configB
             }
@@ -721,14 +701,12 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             }
         """
 
-        resolve.prepare("configB")
-
         when:
         succeeds ":b:checkDeps"
 
         then:
         executedAndNotSkipped ":a:A1jar", ":a:A2jar", ":a:A3jar"
-        resolve.expectGraph {
+        resolve.expectGraph(":b") {
             root(":b", "test:b:") {
                 project(":a", "test:a:") {
                     configuration("configOne")
@@ -861,21 +839,43 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         "'org:included:1.0'" | "project :included" | ":included:outgoingVariants"
     }
 
-    def "getDependencyProject is deprecated"() {
+    def "can resolve a variant of a child project during configuration from a parent project when the child project resolves a configuration during configuration time"() {
+        mavenRepo.module("org", "foo").publish()
+
+        settingsFile << """
+            include 'a'
+        """
+
         buildFile << """
-            configurations {
-                dependencyScope("foo")
+            plugins {
+                id("java-library")
             }
 
             dependencies {
-                foo(project)
+                implementation(project(':a'))
             }
 
-            configurations.foo.dependencies.iterator().next().getDependencyProject()
+            // Execute resolution at configuration time, causing
+            // project :a to be resolved on-demand at configuration time.
+            assert configurations.compileClasspath.incoming.files*.name == ["main"]
+        """
+
+        file("a/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org:foo:1.0")
+            }
+
+            // Execute resolution at configuration time
+            assert configurations.compileClasspath.incoming.files*.name == ["foo-1.0.jar"]
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("The ProjectDependency.getDependencyProject() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_get_dependency_project")
         succeeds("help")
     }
 }

@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants;
 
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 

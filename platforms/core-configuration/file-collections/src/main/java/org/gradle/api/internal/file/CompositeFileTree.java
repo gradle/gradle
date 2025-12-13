@@ -23,8 +23,8 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -37,7 +37,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * A {@link FileTree} that contains the union of zero or more file trees.
  */
 public abstract class CompositeFileTree extends CompositeFileCollection implements FileTreeInternal {
-    public CompositeFileTree(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+    public CompositeFileTree(TaskDependencyFactory taskDependencyFactory, PatternSetFactory patternSetFactory) {
         super(taskDependencyFactory, patternSetFactory);
     }
 
@@ -63,7 +63,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
     public FileTree matching(final Closure filterConfigClosure) {
         return newFilteredFileTree(() -> {
             // For backwards compatibility, run the closure each time the file tree contents are queried
-            return configure(filterConfigClosure, patternSetFactory.create());
+            return configure(filterConfigClosure, patternSetFactory.createPatternSet());
         });
     }
 
@@ -71,7 +71,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
     public FileTree matching(final Action<? super PatternFilterable> filterConfigAction) {
         return newFilteredFileTree(() -> {
             // For backwards compatibility, run the action each time the file tree contents are queried
-            PatternSet patternSet = patternSetFactory.create();
+            PatternSet patternSet = patternSetFactory.createPatternSet();
             filterConfigAction.execute(patternSet);
             return patternSet;
         });
@@ -83,7 +83,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
             if (patterns instanceof PatternSet) {
                 return (PatternSet) patterns;
             }
-            PatternSet patternSet = patternSetFactory.create();
+            PatternSet patternSet = patternSetFactory.createPatternSet();
             patternSet.copyFrom(patterns);
             return patternSet;
         });

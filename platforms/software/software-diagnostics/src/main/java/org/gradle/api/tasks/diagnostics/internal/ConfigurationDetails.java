@@ -21,8 +21,7 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class ConfigurationDetails {
 

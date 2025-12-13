@@ -43,6 +43,7 @@ import org.gradle.internal.Actions
 import org.gradle.internal.Describables
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.file.Deleter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.reflect.JavaReflectionUtil
@@ -98,9 +99,13 @@ class DefaultScriptCompilationHandlerTest extends Specification {
         File testProjectDir = tmpDir.createDir("projectDir")
         importsReader = Stub(ImportsReader.class)
         scriptCompilationHandler = new DefaultScriptCompilationHandler(
-            TestFiles.deleter(),
             importsReader
         ) {
+            @Override
+            protected Deleter getDeleter() {
+                return TestFiles.deleter()
+            }
+
             @Override
             protected Problems getProblemsService() {
                 return TestUtil.problemsService()

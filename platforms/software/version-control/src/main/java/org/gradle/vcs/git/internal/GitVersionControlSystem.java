@@ -25,11 +25,14 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryCache;
+import org.eclipse.jgit.storage.file.WindowCacheConfig;
 import org.eclipse.jgit.submodule.SubmoduleWalk;
 import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.sshd.SshdSessionFactory;
+import org.eclipse.jgit.transport.sshd.agent.ConnectorFactory;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -37,14 +40,15 @@ import org.gradle.vcs.VersionControlSpec;
 import org.gradle.vcs.git.GitVersionControlSpec;
 import org.gradle.vcs.internal.VersionControlSystem;
 import org.gradle.vcs.internal.VersionRef;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.ServiceLoader;
 import java.util.Set;
 
 /**
@@ -129,9 +133,7 @@ public class GitVersionControlSystem implements VersionControlSystem {
         } catch (GitAPIException | URISyntaxException | JGitInternalException e) {
             throw wrapGitCommandException("clone", gitSpec.getUrl(), workingDir, e);
         } finally {
-            if (git != null) {
-                git.close();
-            }
+            closeGit(git);
         }
     }
 
@@ -144,10 +146,17 @@ public class GitVersionControlSystem implements VersionControlSystem {
         } catch (IOException | JGitInternalException | GitAPIException e) {
             throw wrapGitCommandException("reset", gitSpec.getUrl(), workingDir, e);
         } finally {
-            if (git != null) {
-                git.close();
-            }
+            closeGit(git);
         }
+    }
+
+    public static void closeGit(@Nullable Git git) {
+        if (git != null) {
+            git.close();
+        }
+        // https://github.com/eclipse-jgit/jgit/issues/155
+        RepositoryCache.clear();
+        new WindowCacheConfig().install();
     }
 
     private static void updateSubModules(Git git) throws IOException, GitAPIException {
@@ -196,7 +205,24 @@ public class GitVersionControlSystem implements VersionControlSystem {
         public void configure(Transport transport) {
             if (transport instanceof SshTransport) {
                 SshTransport sshTransport = (SshTransport) transport;
-                sshTransport.setSshSessionFactory(new SshdSessionFactory());
+                sshTransport.setSshSessionFactory(new GradleSshdSessionFactory());
+            }
+        }
+
+        private static class GradleSshdSessionFactory extends SshdSessionFactory {
+            @Override
+            protected ConnectorFactory getConnectorFactory() {
+                ConnectorFactory cf = super.getConnectorFactory();
+                if (cf == null) {
+                    ServiceLoader<ConnectorFactory> loader = ServiceLoader.load(ConnectorFactory.class, ConnectorFactory.class.getClassLoader());
+                    for (ConnectorFactory candidate : loader) {
+                        if (candidate.isSupported()) {
+                            cf = candidate;
+                            break;
+                        }
+                    }
+                }
+                return cf;
             }
         }
     }

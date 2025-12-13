@@ -37,9 +37,8 @@ import org.gradle.cache.internal.DefaultFileLockManager;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.ProcessMetaDataProvider;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
-import org.gradle.cache.internal.locklistener.InetAddressProvider;
+import org.gradle.cache.internal.locklistener.RejectingFileLockContentionHandler;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.DefaultBuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
@@ -52,6 +51,7 @@ import org.gradle.caching.internal.packaging.impl.TarPackerFileSystemSupport;
 import org.gradle.caching.local.internal.DirectoryBuildCacheService;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
 import org.gradle.caching.local.internal.TemporaryFileFactory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.file.FileAccessTimeJournal;
@@ -92,20 +92,16 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultFileSystemAccess;
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.util.function.Supplier;
 
-import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
+import static org.gradle.cache.FileLockManager.LockMode.OnDemandEagerRelease;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
 @SuppressWarnings("CloseableProvides")
@@ -162,22 +158,8 @@ class BuildCacheClientModule extends AbstractModule {
     }
 
     @Provides
-    FileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory) {
-        return new DefaultFileLockContentionHandler(executorFactory, new InetAddressProvider() {
-            @Override
-            public InetAddress getWildcardBindingAddress() {
-                return new InetSocketAddress(0).getAddress();
-            }
-
-            @Override
-            public InetAddress getCommunicationAddress() {
-                try {
-                    return InetAddress.getByName(null);
-                } catch (UnknownHostException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
+    FileLockContentionHandler createFileLockContentionHandler() {
+        return new RejectingFileLockContentionHandler();
     }
 
     @Provides
@@ -222,7 +204,7 @@ class BuildCacheClientModule extends AbstractModule {
             return new DefaultCacheBuilder(cacheFactory, buildCacheDir)
                 .withCleanupStrategy(cacheCleanupStrategy)
                 .withDisplayName("Build cache")
-                .withInitialLockMode(OnDemand)
+                .withInitialLockMode(OnDemandEagerRelease)
                 .open();
         }
 
@@ -370,7 +352,7 @@ class BuildCacheClientModule extends AbstractModule {
                 try {
                     return permissionHandler.getUnixMode(f);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
 
@@ -379,7 +361,7 @@ class BuildCacheClientModule extends AbstractModule {
                 try {
                     permissionHandler.chmod(file, mode);
                 } catch (IOException e) {
-                    throw new UncheckedIOException(e);
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         };
@@ -405,18 +387,17 @@ class BuildCacheClientModule extends AbstractModule {
             @Override
             public void ensureDirectoryForTree(TreeType type, File root) throws IOException {
                 switch (type) {
-                    case DIRECTORY:
+                    case DIRECTORY -> {
                         FileUtils.forceMkdir(root.getParentFile());
                         FileUtils.cleanDirectory(root);
-                        break;
-                    case FILE:
+                    }
+                    case FILE -> {
                         FileUtils.forceMkdir(root.getParentFile());
                         if (root.exists()) {
                             FileUtils.forceDelete(root);
                         }
-                        break;
-                    default:
-                        throw new AssertionError();
+                    }
+                    default -> throw new AssertionError();
                 }
             }
         };

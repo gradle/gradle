@@ -26,8 +26,8 @@ import org.gradle.internal.ImmutableActionSet;
 import org.gradle.language.BinaryCollection;
 import org.gradle.language.BinaryProvider;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -194,6 +194,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
         }
 
         // Mix in some Groovy DSL support. Should decorate instead
+        @SuppressWarnings("unused") // public API
         public void configure(Closure<?> closure) {
             configure(ConfigureUtil.configureUsing(closure));
         }

@@ -16,11 +16,12 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
+
 import java.util.List;
 
 public interface VisualStudioVersionLocator {
-    @Nonnull
+    @NonNull
     List<VisualStudioInstallCandidate> getVisualStudioInstalls();
 
     String getSource();

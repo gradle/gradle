@@ -18,7 +18,6 @@ package org.gradle.integtests.samples.antmigration
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 
@@ -28,7 +27,6 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
     Sample sample = new Sample(testDirectoryProvider)
 
     @UsesSample("antMigration/importBuild")
-    @ToBeFixedForConfigurationCache
     def "can import an Ant build and reconfigure its tasks (#dsl)"() {
         given: "A sample project with an Ant build"
         def dslDir = sample.dir.file(dsl)
@@ -41,8 +39,8 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
         dslDir.file('target/lib/hello-app.jar').isFile()
 
         and: "The compilejava task is executed in place of the original 'build' task"
-        result.assertTaskExecuted(':compileJava')
-        result.assertTaskNotExecuted(':build')
+        result.assertTaskScheduled(':compileJava')
+        result.assertTasksNotScheduled(':build')
 
         where:
         dsl << ['groovy', 'kotlin']
@@ -83,7 +81,6 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("antMigration/multiProject")
-    @ToBeFixedForConfigurationCache
     def "can link projects in a multi-project build via task dependencies (#dsl)"() {
         given: "A sample multi-project build"
         def dslDir = sample.dir.file(dsl)
@@ -93,8 +90,8 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
         def result = succeeds(':web:build')
 
         then: "The compile tasks are run in both 'util' and 'web' projects"
-        result.assertTaskExecuted(':util:compile')
-        result.assertTaskExecuted(':web:compile')
+        result.assertTaskScheduled(':util:compile')
+        result.assertTaskScheduled(':web:compile')
 
         where:
         dsl << ['groovy', 'kotlin']

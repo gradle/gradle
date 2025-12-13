@@ -25,8 +25,7 @@ import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.artifacts.configurations.DetachedConfigurationsProvider
-import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.internal.component.model.ComponentIdGenerator
 import org.gradle.internal.component.model.Exclude
@@ -52,7 +51,6 @@ class DefaultLocalVariantGraphResolveMetadataBuilderTest extends Specification {
     def dependencyConstraintSet = Mock(DependencyConstraintSet)
 
     def cache = new LocalVariantGraphResolveStateBuilder.DependencyCache();
-    def configurationsProvider = new DetachedConfigurationsProvider()
     def componentId = Mock(ComponentIdentifier)
 
     def setup() {
@@ -66,12 +64,10 @@ class DefaultLocalVariantGraphResolveMetadataBuilderTest extends Specification {
         configuration.outgoing >> outgoing
         configuration.dependencies >> dependencySet
         configuration.dependencyConstraints >> dependencyConstraintSet
-        configuration.attributes >> Stub(AttributeContainerInternal)
+        configuration.attributes >> ImmutableAttributes.EMPTY
         configuration.excludeRules >> ([] as Set)
         dependencySet.iterator() >> [].iterator()
         dependencyConstraintSet.iterator() >> [].iterator()
-
-        configurationsProvider.setTheOnlyConfiguration(configuration)
     }
 
     def "builds configuration with no dependencies or exclude rules"() {
@@ -168,6 +164,6 @@ class DefaultLocalVariantGraphResolveMetadataBuilderTest extends Specification {
     }
 
     def create() {
-        return converter.createConsumableVariantState(configuration, configurationsProvider, componentId, cache, StandaloneDomainObjectContext.ANONYMOUS, TestUtil.calculatedValueContainerFactory())
+        return converter.createConsumableVariantState(configuration, componentId, cache, StandaloneDomainObjectContext.ANONYMOUS, TestUtil.calculatedValueContainerFactory())
     }
 }

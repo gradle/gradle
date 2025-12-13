@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

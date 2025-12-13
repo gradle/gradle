@@ -18,8 +18,8 @@ package org.gradle.util.internal;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Ordering;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Locale;
 
 /**
@@ -43,7 +43,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
     private final int minor;
     private final int micro;
     private final int patch;
-    private final String qualifier;
+    private final @Nullable String qualifier;
     private final AbstractScheme scheme;
 
     public VersionNumber(int major, int minor, int micro, @Nullable String qualifier) {
@@ -102,7 +102,9 @@ public class VersionNumber implements Comparable<VersionNumber> {
         if (patch != other.patch) {
             return patch - other.patch;
         }
-        return Ordering.natural().nullsLast().compare(toLowerCase(qualifier), toLowerCase(other.qualifier));
+        @SuppressWarnings("NullAway") // NullAway cannot infer nullability of the comparator type.
+        int result = Ordering.natural().nullsLast().compare(toLowerCase(qualifier), toLowerCase(other.qualifier));
+        return result;
     }
 
     @Override
@@ -171,7 +173,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
         @Override
         public VersionNumber parse(@Nullable String versionString) {
-            if (versionString == null || versionString.length() == 0) {
+            if (versionString == null || versionString.isEmpty()) {
                 return UNKNOWN;
             }
             Scanner scanner = new Scanner(versionString);

@@ -16,8 +16,6 @@
 
 package org.gradle.util.internal;
 
-import org.gradle.api.NonNullApi;
-
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,7 +23,6 @@ import java.net.URISyntaxException;
 /**
  * Converts a wrapper distribution url to a URI.
  */
-@NonNullApi
 public class WrapperDistributionUrlConverter {
     /**
      * Converts the given distribution url to a URI.

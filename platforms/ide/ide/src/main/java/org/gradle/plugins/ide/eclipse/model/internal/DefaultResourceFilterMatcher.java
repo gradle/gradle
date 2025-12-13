@@ -22,8 +22,8 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.plugins.ide.eclipse.model.ResourceFilterMatcher;
 import org.gradle.util.internal.ClosureBackedAction;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 

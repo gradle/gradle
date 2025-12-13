@@ -30,7 +30,7 @@ import org.gradle.test.fixtures.file.TestFile
  * Tests for composite build.
  */
 abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
-    BuildTestFile buildA
+    protected BuildTestFile buildA
     List<File> includedBuilds = []
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
@@ -131,7 +131,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
 
     protected void executed(String... tasks) {
         for (String task : tasks) {
-            result.assertTaskExecuted(task)
+            result.assertTaskScheduled(task)
         }
     }
 
@@ -197,14 +197,18 @@ gradlePlugin {
             it.file("src/main/java/org/test/${className}.java") << """
 package org.test;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 
 public class ${className} implements Plugin<Project> {
     public void apply(Project project) {
-        Task task = project.task("taskFrom${baseName}");
-        task.setGroup("Plugin");
+        project.getTasks().register("taskFrom${baseName}", new Action<Task>() {
+            public void execute(Task task) {
+                task.setGroup("Plugin");
+            }
+        });
     }
 }
 """

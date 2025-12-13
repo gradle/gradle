@@ -16,8 +16,7 @@
 package org.gradle.tooling.model;
 
 import org.gradle.api.Incubating;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a task which is executable by Gradle.

@@ -16,45 +16,15 @@
 
 package org.gradle.internal
 
-import org.apache.commons.lang.RandomStringUtils
-import org.gradle.api.GradleException
+
 import spock.lang.Specification
 
-import static FileUtils.assertInWindowsPathLengthLimitation
-import static FileUtils.toSafeFileName
 import static org.gradle.internal.FileUtils.calculateRoots
 import static org.gradle.internal.FileUtils.withExtension
 
 class FileUtilsTest extends Specification {
 
     private static final String SEP = File.separator
-
-    def "toSafeFileName encodes unsupported characters"() {
-        expect:
-        toSafeFileName(input) == output
-        where:
-        input         | output
-        'Test_$1-2.3' | 'Test_$1-2.3'
-        'with space'  | 'with#20space'
-        'with #'      | 'with#20#23'
-        'with /'      | 'with#20#2f'
-        'with \\'     | 'with#20#5c'
-        'with / \\ #' | 'with#20#2f#20#5c#20#23'
-    }
-
-    def "assertInWindowsPathLengthLimitation throws exception when path limit exceeded"() {
-        when:
-        File inputFile = new File(RandomStringUtils.randomAlphanumeric(10))
-        then:
-        inputFile == assertInWindowsPathLengthLimitation(inputFile);
-
-        when:
-        inputFile = new File(RandomStringUtils.randomAlphanumeric(261))
-        assertInWindowsPathLengthLimitation(inputFile);
-        then:
-        def e = thrown(GradleException);
-        e.message.contains("exceeds windows path limitation of 260 character.")
-    }
 
     List<File> toRoots(Iterable<? extends File> files) {
         calculateRoots(files)
@@ -100,5 +70,19 @@ class FileUtilsTest extends Specification {
         "a${SEP}a"        | "a${SEP}a"     || true
         "a${SEP}a${SEP}a" | "a${SEP}a"     || true
         "a${SEP}ab"       | "a${SEP}a"     || false
+    }
+
+    def "can add suffix to filename"() {
+        expect:
+        FileUtils.addSuffixToName(original, suffix) == result
+
+        where:
+        original            | suffix     | result
+        "file.zip"          | "-1"       | "file-1.zip"
+        "file.tar.gz"       | "-bla-bla" | "file-bla-bla.tar.gz"
+        "file.with.dots.gz" | "-2"       | "file-2.with.dots.gz"
+        "file"              | "-1"       | "file-1"
+        "file"              | ""         | "file"
+        "file."             | "-2"       | "file-2."
     }
 }

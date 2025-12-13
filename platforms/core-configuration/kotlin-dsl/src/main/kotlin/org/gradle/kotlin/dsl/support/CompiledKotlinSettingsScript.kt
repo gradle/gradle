@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -42,6 +41,5 @@ open class CompiledKotlinSettingsScript(
         override fun getLogger(): Logger = Logging.getLogger(Settings::class.java)
         override fun getLogging(): LoggingManager = host.target.serviceOf()
         override fun getFileOperations(): FileOperations = host.fileOperations
-        override fun getProcessOperations(): ProcessOperations = host.processOperations
     }
 }

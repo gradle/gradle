@@ -9,28 +9,30 @@ dependencies {
     implementation("gradlebuild:basics")
     implementation("gradlebuild:module-identity")
 
-    implementation(projects.integrationTesting)
     implementation(projects.cleanup)
     implementation(projects.buildUpdateUtils)
+    implementation(projects.integrationTesting)
+    implementation(projects.jvm)
 
-    implementation("org.openmbee.junit:junit-xml-parser") {
-        exclude(module = "lombok") // don't need it at runtime
-    }
     implementation("com.google.guava:guava")
     implementation("com.google.code.gson:gson")
     implementation("commons-io:commons-io")
-    implementation("javax.activation:activation")
-    implementation("javax.xml.bind:jaxb-api")
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api")
     implementation("com.gradle:develocity-gradle-plugin")
+
+    // https://eclipse-ee4j.github.io/jaxb-ri/
+    runtimeOnly("com.sun.xml.bind:jaxb-impl")
 
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("junit:junit")
+
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 gradlePlugin {
     plugins {
         register("performanceTest") {
-            id = "gradlebuild.performance-test"
+            id = "gradlebuild.performance-testing"
             implementationClass = "gradlebuild.performance.PerformanceTestPlugin"
         }
     }
@@ -39,6 +41,11 @@ gradlePlugin {
 tasks.compileGroovy.configure {
     classpath = sourceSets.main.get().compileClasspath
 }
+
 tasks.compileKotlin.configure {
     libraries.from(files(tasks.compileGroovy))
+}
+
+tasks.codenarcMain.configure {
+    exclude("gradlebuild/performance/junit4/**")
 }

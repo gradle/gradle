@@ -25,8 +25,8 @@ import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ManagedFactoryRegistry;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 
@@ -73,7 +73,7 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
 
         @Override
         public Isolatable<?> booleanValue(Boolean value) {
-            return value.equals(Boolean.TRUE) ? BooleanValueSnapshot.TRUE : BooleanValueSnapshot.FALSE;
+            return value ? BooleanValueSnapshot.TRUE : BooleanValueSnapshot.FALSE;
         }
 
         @Override

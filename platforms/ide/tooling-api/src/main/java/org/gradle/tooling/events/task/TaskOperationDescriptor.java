@@ -18,8 +18,8 @@ package org.gradle.tooling.events.task;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.PluginIdentifier;
 import org.gradle.tooling.model.UnsupportedMethodException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 /**

@@ -7,21 +7,14 @@ plugins {
 
 description = "API extraction for Java"
 
-errorprone {
-    disabledChecks.addAll(
-        "NonApiType", // 1 occurrences
-        "ProtectedMembersInFinalClass", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.hashing)
     api(projects.files)
+    api(projects.javaApiExtractor)
     api(projects.snapshots)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.guava)
-    api("org.gradle:java-api-extractor")
 
     implementation(projects.functional)
 
@@ -43,6 +36,3 @@ listOf(configurations["apiElements"], configurations["runtimeElements"]).forEach
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

@@ -645,7 +645,7 @@ Searched in the following locations:
         given:
         buildFile << """
 dependencies {
-    conf group: "org.test", name: "projectA", version: "[1.1]"
+    conf("org.test:projectA:[1.1]")
 }
 """
         and:

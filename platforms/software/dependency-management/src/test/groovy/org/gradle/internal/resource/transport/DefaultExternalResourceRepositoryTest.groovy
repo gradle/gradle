@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transport
 
-
+import org.gradle.internal.resource.transfer.DefaultExternalResourceRepository
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor
 import org.gradle.internal.resource.transfer.ExternalResourceLister

@@ -16,8 +16,10 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
+import org.gradle.testing.fixture.TestNGCoverage
 
 trait TestNGMultiVersionTest {
     AbstractTestingMultiVersionIntegrationTest.BuildScriptConfiguration getBuildScriptConfiguration() {
@@ -52,9 +54,19 @@ trait TestNGMultiVersionTest {
             // TODO implement this if needed
             throw new UnsupportedOperationException()
         }
+
+        @Override
+        boolean supportsJavaVersion(int javaVersion) {
+            return TestNGCoverage.supportsJavaVersion(MultiVersionIntegrationSpec.version as String, javaVersion)
+        }
     }
 
     static class TestNGTestSourceConfiguration implements AbstractTestingMultiVersionIntegrationTest.TestSourceConfiguration {
+        @Override
+        GenericTestExecutionResult.TestFramework getTestFramework() {
+            return GenericTestExecutionResult.TestFramework.TEST_NG
+        }
+
         @Override
         String getTestFrameworkImports() {
             return """

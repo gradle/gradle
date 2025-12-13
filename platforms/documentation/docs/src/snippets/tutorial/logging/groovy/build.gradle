@@ -36,3 +36,15 @@ import org.slf4j.LoggerFactory
 def slf4jLogger = LoggerFactory.getLogger('some-logger')
 slf4jLogger.info('An info log message logged using SLF4j')
 // end::use-slf4j[]
+
+/*
+// tag::task-log-stdout[]
+tasks.register('logtask') {
+    doLast {
+        logger.lifecycle('Lifecycle: Build progress info.')
+        logger.info('Info: Additional insights.')
+        logger.debug('Debug: Detailed troubleshooting info.')
+    }
+}
+// end::task-log-stdout[]
+*/

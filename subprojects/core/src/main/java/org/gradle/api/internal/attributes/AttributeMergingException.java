@@ -17,12 +17,13 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
 
-public class AttributeMergingException extends Exception {
+public class AttributeMergingException extends RuntimeException {
     private final Attribute<?> attribute;
     private final Object leftValue;
     private final Object rightValue;
 
-    public AttributeMergingException(Attribute<?> attribute, Object leftValue, Object rightValue) {
+    public AttributeMergingException(Attribute<?> attribute, Object leftValue, Object rightValue, String message) {
+        super(message);
         this.attribute = attribute;
         this.leftValue = leftValue;
         this.rightValue = rightValue;

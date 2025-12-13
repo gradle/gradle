@@ -4,5 +4,5 @@ contact_links:
     url: http://help.gradle.org/
     about: If you need help with Gradle or have a usage question, please reach our community instead of creating an issue.
   - name: Create an issue without template
-    url: https://github.com/gradle/gradle/issues/new
+    url: https://github.com/gradle/gradle/issues/new?template=blank
     about: This option is only available for repository maintainers.

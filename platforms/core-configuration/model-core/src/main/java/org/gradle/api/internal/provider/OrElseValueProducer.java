@@ -21,8 +21,8 @@ import org.gradle.api.Task;
 import org.gradle.internal.evaluation.EvaluationContext;
 import org.gradle.internal.evaluation.EvaluationOwner;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 
 class OrElseValueProducer implements ValueSupplier.ValueProducer {

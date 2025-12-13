@@ -18,8 +18,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * <p>A {@code PluginContainer} is used to manage a set of {@link org.gradle.api.Plugin} instances applied to a

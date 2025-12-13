@@ -20,6 +20,7 @@ import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -33,7 +34,7 @@ import java.util.function.Predicate;
  */
 @ThreadSafe
 @ServiceScope(Global.class)
-public interface CrossBuildInMemoryCacheFactory {
+public interface CrossBuildInMemoryCacheFactory extends ClassCacheFactory {
     /**
      * Creates a new cache instance. Keys are always referenced using strong references, values by strong or soft references depending on their usage.
      *
@@ -43,6 +44,13 @@ public interface CrossBuildInMemoryCacheFactory {
      * <p>Note: this should be used to create _only_ global scoped instances.
      */
     <K, V> CrossBuildInMemoryCache<K, V> newCache();
+
+    /**
+     * See {@link #newCache()}.
+     *
+     * @param onReuse callback triggered when a cached value is reused in a new session after being retained. The callback will be invoked under the cache lock so make it swift.
+     */
+    <K, V> CrossBuildInMemoryCache<K, V> newCache(Consumer<V> onReuse);
 
     /**
      * Creates a new cache instance. Keys and values are always referenced using strong references.
@@ -56,24 +64,20 @@ public interface CrossBuildInMemoryCacheFactory {
     <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild(Predicate<V> retentionFilter);
 
     /**
-     * Creates a new cache instance whose keys are Class instances. Keys are referenced using strong or weak references, values by strong or soft references depending on their usage.
-     * This allows the classes to be collected.
-     *
-     * <p>Clients should assume that entries may be removed at any time, based on current memory pressure and the likelihood that the entry will be required again soon.
+     * {@inheritDoc}
+     * <p>
      * The current implementation does not remove an entry during a build session that the entry has been used in, but this is not part of the contract.
-     *
-     * <p>Note: this should be used to create _only_ global scoped instances.
+     * <p>
+     * Note: this should be used to create _only_ global scoped instances.
      */
+    @Override
     <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache();
 
     /**
-     * Creates a new map instance whose keys are Class instances. Keys are referenced using strong or weak references, values by strong or other references depending on their usage.
-     * This allows the classes to be collected.
-     *
-     * <p>A map differs from a cache in that entries are not discarded based on memory pressure, but are discarded only when the key is collected.
-     * You should prefer using a cache instead of a map where possible, and use a map only when generating other classes based on the key.
-     *
-     * <p>Note: this should be used to create _only_ global scoped instances.
+     * {@inheritDoc}
+     * <p>
+     * Note: this should be used to create _only_ global scoped instances.
      */
+    @Override
     <V> CrossBuildInMemoryCache<Class<?>, V> newClassMap();
 }

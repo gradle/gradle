@@ -16,20 +16,20 @@
 
 package org.gradle.api.tasks.internal;
 
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.internal.SpecificInstallationToolchainSpec;
-
-import javax.annotation.Nullable;
+import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
+import org.gradle.jvm.toolchain.internal.SpecificExecutableToolchainSpec;
+import org.jspecify.annotations.Nullable;
 
 public class JavaExecExecutableUtils {
 
     @Nullable
-    public static JavaToolchainSpec getExecutableOverrideToolchainSpec(JavaExec task, ObjectFactory objectFactory) {
+    public static JavaToolchainSpec getExecutableOverrideToolchainSpec(JavaExec task, PropertyFactory propertyFactory) {
         String customExecutable = task.getExecutable();
         if (customExecutable != null) {
-            return SpecificInstallationToolchainSpec.fromJavaExecutable(objectFactory, customExecutable);
+            return new SpecificExecutableToolchainSpec(propertyFactory, JavaExecutableUtils.resolveExecutable(customExecutable));
         }
 
         return null;

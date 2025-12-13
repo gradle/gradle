@@ -15,6 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+@ServiceScope(Scope.BuildTree.class)
 public class ModuleRepositoryCacheProvider {
     private final ModuleRepositoryCaches caches;
     private final ModuleRepositoryCaches inMemoryCaches;

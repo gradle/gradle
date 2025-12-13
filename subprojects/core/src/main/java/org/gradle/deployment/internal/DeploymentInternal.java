@@ -16,7 +16,7 @@
 
 package org.gradle.deployment.internal;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface DeploymentInternal extends Deployment {
     void outOfDate();

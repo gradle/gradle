@@ -21,8 +21,12 @@ plugins {
 
 description = "Configuration Cache services supporting bean serialization"
 
-gradlebuildJava {
-    usesJdkInternals = true
+jvmCompile {
+    compilations {
+        named("main") {
+            usesJdkInternals = true
+        }
+    }
 }
 
 dependencies {
@@ -39,12 +43,14 @@ dependencies {
     implementation(projects.core)
     implementation(projects.coreApi)
     implementation(projects.coreKotlinExtensions)
+    implementation(projects.logging)
+    implementation(projects.modelReflect)
     implementation(projects.serviceLookup)
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.groovy)
     implementation(libs.guava)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
+
+    testFixturesImplementation(testFixtures(projects.core))
+    testFixturesImplementation(testFixtures(projects.persistentCache))
 }

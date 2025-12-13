@@ -21,8 +21,7 @@ import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface ResolvableSelectorState {
     /**
@@ -65,9 +64,6 @@ public interface ResolvableSelectorState {
 
     @Nullable
     IvyArtifactName getFirstDependencyArtifact();
-
-    @Deprecated
-    org.gradle.api.artifacts.ClientModule getClientModule();
 
     boolean isChanging();
 

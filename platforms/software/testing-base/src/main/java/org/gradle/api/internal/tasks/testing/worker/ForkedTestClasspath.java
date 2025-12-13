@@ -31,24 +31,21 @@ import java.net.URL;
  * <p>In some cases, classes from the application classpath may be accessed by the implementation classpath. These
  * are specified by {@link WorkerProcessBuilder#sharedPackages}, but should likely be tracked in this class as well.</p>
  *
- * <p>This classpath is intended to be consumed by the {@link ForkingTestClassProcessor}.</p>
+ * <p>This classpath is intended to be consumed by the {@link ForkingTestDefinitionProcessor}.</p>
  */
 public class ForkedTestClasspath {
     private final ImmutableList<File> applicationClasspath;
     private final ImmutableList<File> applicationModulepath;
     private final ImmutableList<URL> implementationClasspath;
-    public final ImmutableList<URL> implementationModulepath;
 
     public ForkedTestClasspath(
         ImmutableList<File> applicationClasspath,
         ImmutableList<File> applicationModulepath,
-        ImmutableList<URL> implementationClasspath,
-        ImmutableList<URL> implementationModulepath
+        ImmutableList<URL> implementationClasspath
     ) {
         this.applicationClasspath = applicationClasspath;
         this.applicationModulepath = applicationModulepath;
         this.implementationClasspath = implementationClasspath;
-        this.implementationModulepath = implementationModulepath;
     }
 
     public ImmutableList<File> getApplicationClasspath() {
@@ -61,9 +58,5 @@ public class ForkedTestClasspath {
 
     public ImmutableList<URL> getImplementationClasspath() {
         return implementationClasspath;
-    }
-
-    public ImmutableList<URL> getImplementationModulepath() {
-        return implementationModulepath;
     }
 }

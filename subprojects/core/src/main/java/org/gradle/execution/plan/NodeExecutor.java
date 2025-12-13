@@ -19,5 +19,9 @@ package org.gradle.execution.plan;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 
 public interface NodeExecutor {
+
+    /**
+     * Returns true if the node was executed.
+     */
     boolean execute(Node node, NodeExecutionContext context);
 }

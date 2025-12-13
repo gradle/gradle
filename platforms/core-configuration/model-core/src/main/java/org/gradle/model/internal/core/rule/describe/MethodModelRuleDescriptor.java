@@ -20,11 +20,11 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.Iterables;
-import javax.annotation.concurrent.ThreadSafe;
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -57,7 +57,7 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
         try {
             appendable.append(getDescription());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

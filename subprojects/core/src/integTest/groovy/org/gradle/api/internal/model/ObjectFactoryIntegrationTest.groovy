@@ -563,7 +563,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause('Could not create an instance of type Thing.')
-        failure.assertHasCause('The constructor for type Thing should be annotated with @Inject.')
+        failure.assertHasCause('The constructor for type Thing should be annotated with @Inject (javax.inject.Inject) for dependency injection.')
     }
 
     def "object creation fails with ObjectInstantiationException when type has multiple constructors not annotated"() {
@@ -587,7 +587,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasCause('Could not create an instance of type Thing.')
-        failure.assertHasCause('Class Thing has no constructor that is annotated with @Inject.')
+        failure.assertHasCause('Class Thing has no constructor that is annotated with @Inject (javax.inject.Inject) for dependency injection.')
     }
 
     def "plugin can create SourceDirectorySet instances"() {

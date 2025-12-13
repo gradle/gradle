@@ -28,7 +28,12 @@ import java.security.Permission;
 
 /**
  * Used to bootstrap the system classpath.
+ *
+ * <p>
+ * This class is only used on Java 8, so the removal of the {@link SecurityManager} in the future is not an issue.
+ * </p>
  */
+// Moving this class affects the package in ApplicationClassesInSystemClassLoaderWorkerImplementationFactory
 public class BootstrapSecurityManager extends SecurityManager {
     private boolean initialised;
     private final URLClassLoader target;

@@ -16,7 +16,7 @@
 
 package org.gradle.api.reporting.components.internal;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;

@@ -23,8 +23,7 @@ import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.internal.state.ModelObject;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link PropertyValue} backed by a fixed value.

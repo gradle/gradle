@@ -18,8 +18,7 @@ package org.gradle.internal.installation;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides access to the current Gradle installation associated with the runtime.

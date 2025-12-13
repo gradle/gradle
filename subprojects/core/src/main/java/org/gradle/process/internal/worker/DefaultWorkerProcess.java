@@ -24,13 +24,13 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.ObjectConnection;
+import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.ExecResult;
-import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleListener;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -199,7 +199,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
             while (connection == null && running) {
                 try {
                     if (!condition.awaitUntil(connectExpiry)) {
-                        throw new ExecException(format("Unable to connect to the child process '%s'.\n"
+                        throw new ProcessExecutionException(format("Unable to connect to the child process '%s'.\n"
                                 + "It is likely that the child process have crashed - please find the stack trace in the build log.\n"
                                 + "This exception might occur when the build machine is extremely loaded.\n"
                                 + "The connection attempt hit a timeout after %.1f seconds (last known process state: %s, running: %s).", execHandle, ((double) connectTimeout) / 1000, execHandle.getState(), running));
@@ -212,7 +212,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
                 if (processFailure != null) {
                     throw UncheckedException.throwAsUncheckedException(processFailure);
                 } else {
-                    throw new ExecException(format("Never received a connection from %s.", execHandle));
+                    throw new ProcessExecutionException(format("Never received a connection from %s.", execHandle));
                 }
             }
         } finally {

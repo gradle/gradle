@@ -19,8 +19,7 @@ package org.gradle.api.internal.tasks.userinput;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @UsedByScanPlugin
 @ServiceScope(Scope.BuildSession.class)

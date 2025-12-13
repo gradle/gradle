@@ -32,8 +32,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
@@ -43,7 +43,7 @@ import java.util.function.Supplier;
  * consumption.
  */
 @UsedByScanPlugin
-@ServiceScope({Scope.Build.class, Scope.Settings.class})
+@ServiceScope(Scope.Build.class)
 public interface GradleInternal extends Gradle, PluginAwareInternal {
     /**
      * {@inheritDoc}
@@ -128,6 +128,8 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     /**
      * Returns a unique path for this build within the current Gradle invocation.
+     * <p>
+     * Prefer {@link BuildState#getIdentityPath()}.
      */
     Path getIdentityPath();
 
@@ -159,7 +161,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     @Override
     StartParameterInternal getStartParameter();
 
-    ProjectRegistry<ProjectInternal> getProjectRegistry();
+    ProjectRegistry getProjectRegistry();
 
     // A separate property, as the public getter does not use a wildcard type and cannot be overridden
     List<? extends IncludedBuildInternal> includedBuilds();

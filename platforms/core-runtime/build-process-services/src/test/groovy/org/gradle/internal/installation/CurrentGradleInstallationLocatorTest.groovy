@@ -99,8 +99,7 @@ class CurrentGradleInstallationLocatorTest extends Specification {
 
     private Class loadClassFromJar(TestFile jar) {
         // This is to prevent the jar file being held open
-        URL url = new URL("jar:file://valid_jar_url_syntax.jar!/")
-        URLConnection urlConnection = url.openConnection()
+        URLConnection urlConnection = jar.toURI().toURL().openConnection()
         def original = urlConnection.getDefaultUseCaches()
         urlConnection.setDefaultUseCaches(false)
 

@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.logging.Logger;
@@ -24,16 +24,16 @@ import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.versionedcache.UsedGradleVersions;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.versionedcache.UsedGradleVersions;
 import org.gradle.util.internal.IncubationLogger;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.util.List;

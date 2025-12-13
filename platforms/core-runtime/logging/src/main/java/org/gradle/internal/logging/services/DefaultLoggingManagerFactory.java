@@ -16,12 +16,12 @@
 
 package org.gradle.internal.logging.services;
 
-import org.gradle.internal.Factory;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.config.LoggingRouter;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
 
-public class DefaultLoggingManagerFactory implements Factory<LoggingManagerInternal> {
+public class DefaultLoggingManagerFactory implements LoggingManagerFactory {
     private final LoggingSourceSystem slfLoggingSystem;
     private final LoggingSourceSystem javaUtilLoggingSystem;
     private final LoggingSourceSystem stdOutLoggingSystem;
@@ -39,12 +39,13 @@ public class DefaultLoggingManagerFactory implements Factory<LoggingManagerInter
         rootManager = newManager();
     }
 
+    @Override
     public LoggingManagerInternal getRoot() {
         return rootManager;
     }
 
     @Override
-    public LoggingManagerInternal create() {
+    public LoggingManagerInternal createLoggingManager() {
         if (!created) {
             created = true;
             return getRoot();

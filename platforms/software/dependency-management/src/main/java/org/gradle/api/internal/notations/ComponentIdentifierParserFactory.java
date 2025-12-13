@@ -27,13 +27,10 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypedNotationConverter;
 
-import javax.annotation.Nullable;
-
 import static org.gradle.api.internal.notations.ModuleNotationValidation.validate;
 
 public class ComponentIdentifierParserFactory implements Factory<NotationParser<Object, ComponentIdentifier>> {
 
-    @Nullable
     @Override
     public NotationParser<Object, ComponentIdentifier> create() {
         return NotationParserBuilder.toType(ComponentIdentifier.class)

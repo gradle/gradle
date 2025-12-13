@@ -30,6 +30,7 @@ import java.nio.charset.Charset
 class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll("default locale for gradle build switched to #locale")
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicit locale")
     def "builds can be executed with different default locales"() {
         given:
         executer.withDefaultLocale(locale)
@@ -109,6 +110,30 @@ task check {
         succeeds 'check'
     }
 
+    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    def "default keystore type can be set via custom security properties to #keystoreType"() {
+        def customPropertiesFile = file("custom-security.properties") << """
+        keystore.type=${keystoreType}
+        """
+
+        buildFile """
+        assert \$/${customPropertiesFile.absolutePath}/\$ == System.getProperty("java.security.properties")
+        // The "keystore.type" security property defines the base value for this
+        println "default keystore type = " + java.security.KeyStore.getDefaultType()
+        """
+
+        when:
+        executer.withArguments("-Djava.security.properties=${customPropertiesFile}")
+        succeeds("help")
+
+        then:
+        outputContains("default keystore type = ${keystoreType}")
+
+        where:
+        // we need two at least to prove we can change it away from the default
+        keystoreType << ["jks", "pkcs12"]
+    }
+
     @Issue("https://issues.gradle.org/browse/GRADLE-3145")
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "default file encoding set on command line is respected"() {
@@ -145,6 +170,7 @@ task check {
     }
 
     @Unroll("build default encoding matches specified - input = #inputEncoding, expectedEncoding: #expectedEncoding")
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requests explicit encoding")
     def "build default encoding matches specified"(String inputEncoding, String expectedEncoding) {
         given:
         executerEncoding inputEncoding

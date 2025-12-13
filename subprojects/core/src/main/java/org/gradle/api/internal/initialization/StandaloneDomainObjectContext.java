@@ -23,10 +23,11 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Domain object context implementation intended for identifying contexts that wrap no mutable state.
@@ -155,6 +156,11 @@ public abstract class StandaloneDomainObjectContext implements DomainObjectConte
     @Override
     public boolean hasMutableState() {
         return true;
+    }
+
+    @Override
+    public <S> S runWithModelLock(Supplier<S> action) {
+        return action.get();
     }
 
     @Override

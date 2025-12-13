@@ -48,17 +48,13 @@ class AbstractSwiftMixedLanguageIntegrationTest extends AbstractIntegrationSpec 
         File initScript = file("init.gradle") << """
         allprojects { p ->
             p.plugins.withType(${swiftToolChain.pluginClass}) {
-                model {
-                    toolChains {
-                        ${swiftToolChain.buildScriptConfig}
-                    }
+                toolChains {
+                    ${swiftToolChain.buildScriptConfig}
                 }
             }
             p.plugins.withType(${cppToolChain.pluginClass}) {
-                model {
-                    toolChains {
-                        ${cppToolChain.buildScriptConfig}
-                    }
+                toolChains {
+                    ${cppToolChain.buildScriptConfig}
                 }
             }
         }

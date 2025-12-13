@@ -21,8 +21,8 @@ import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTy
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -90,6 +90,7 @@ public class ResolvedVariantCache  {
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
         public boolean equals(Object obj) {
             if (obj == this) {
                 return true;

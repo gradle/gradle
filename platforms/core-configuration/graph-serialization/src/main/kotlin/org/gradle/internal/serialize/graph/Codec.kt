@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize.graph
 
 import org.gradle.api.logging.Logger
+import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -40,6 +41,9 @@ interface EncodingProvider<T> {
 
 interface DecodingProvider<T> {
     suspend fun ReadContext.decode(): T?
+
+    val displayName: String
+        get() = this::class.simpleName ?: "Unknown"
 }
 
 
@@ -57,7 +61,7 @@ interface WriteContext : MutableIsolateContext, Encoder {
 
     suspend fun write(value: Any?)
 
-    suspend fun <T: Any> writeSharedObject(value: T, encode: suspend WriteContext.(T) -> Unit)
+    suspend fun <T : Any> writeSharedObject(value: T, encode: suspend WriteContext.(T) -> Unit)
 
     fun writeClass(type: Class<*>)
 
@@ -106,7 +110,7 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 
     suspend fun read(): Any?
 
-    suspend fun <T: Any> readSharedObject(decode: suspend ReadContext.() -> T): T
+    suspend fun <T : Any> readSharedObject(decode: suspend ReadContext.() -> T): T
 
     fun readClass(): Class<*>
 
@@ -157,12 +161,15 @@ suspend fun <T : Any> ReadContext.readNonNull() = read()!!.uncheckedCast<T>()
 
 
 interface IsolateContext {
+    val isIntegrityCheckEnabled: Boolean
 
     val logger: Logger
 
     val isolate: Isolate
 
     val trace: PropertyTrace
+
+    val problemsListener: ProblemsListener
 
     fun onProblem(problem: PropertyProblem)
 
@@ -175,11 +182,11 @@ interface IsolateContext {
 
 interface IsolateOwner {
     val delegate: Any
-    fun <T> service(type: Class<T>): T
+    fun <T : Any> service(type: Class<T>): T
 }
 
 
-inline fun <reified T> IsolateOwner.serviceOf() = service(T::class.java)
+inline fun <reified T : Any> IsolateOwner.serviceOf() = service(T::class.java)
 
 
 interface Isolate {
@@ -293,7 +300,7 @@ inline fun <T : Any> WriteContext.encodePreservingSharedIdentityOf(reference: T,
 
 inline fun <T : Any> WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, reference: T, encode: WriteContext.(T) -> Unit) {
     val id = identities.getId(reference)
-    if (id != null) {
+    if (id >= 0) {
         writeSmallInt(id)
     } else {
         val newId = identities.putInstance(reference)
@@ -320,7 +327,7 @@ inline fun <T : Any> ReadContext.decodePreservingSharedIdentity(decode: ReadCont
     }
 
 
-inline fun <T> ReadContext.decodePreservingIdentity(identities: ReadIdentities, decode: ReadContext.(Int) -> T): T {
+inline fun <T, C : Decoder> C.decodePreservingIdentity(identities: ReadIdentities, decode: C.(Int) -> T): T {
     val id = readSmallInt()
     val previousValue = identities.getInstance(id)
     return when {

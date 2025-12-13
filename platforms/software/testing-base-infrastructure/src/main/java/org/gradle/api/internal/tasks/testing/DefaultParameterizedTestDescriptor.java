@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.id.CompositeIdGenerator;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-@NonNullApi
+@NullMarked
 public class DefaultParameterizedTestDescriptor extends DefaultTestSuiteDescriptor {
 
     private final CompositeIdGenerator.CompositeId parentId;

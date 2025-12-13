@@ -5,13 +5,10 @@ plugins {
 
 description = "This project contains various native operating system integration utilities"
 
-gradlebuildJava.usedInWorkers()
-
-/**
- * Use Java 8 compatibility for JMH benchmarks
- */
-tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
-    options.release = 8
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
 }
 
 dependencies {
@@ -20,14 +17,13 @@ dependencies {
     api(projects.fileTemp)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
+    api(projects.serviceRegistryBuilder)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
+    api(libs.inject)
+    api(libs.jspecify)
     api(libs.nativePlatform)
 
-    implementation(projects.serviceRegistryBuilder)
-
-    implementation(libs.inject)
     implementation(libs.gradleFileEvents)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
@@ -47,9 +43,6 @@ jmh {
     threads = 2
     warmupIterations = 10
     synchronizeIterations = false
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }
 
 packageCycles {

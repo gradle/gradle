@@ -17,21 +17,21 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.os.OperatingSystem;
+import org.gradle.process.ProcessExecutionException;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.process.internal.ExecException;
 import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.Locale;
 
-@NonNullApi
+@NullMarked
 public class DefaultCommandLineToolInvocationWorker implements CommandLineToolInvocationWorker {
     private final String name;
     private final File executable;
@@ -86,7 +86,7 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
         try {
             toolExec.execute();
             invocation.getLogger().operationSuccess(description.getDisplayName(), combineOutput(stdOutput, errOutput));
-        } catch (ExecException e) {
+        } catch (ProcessExecutionException e) {
             invocation.getLogger().operationFailed(description.getDisplayName(), combineOutput(stdOutput, errOutput));
             throw new CommandLineToolInvocationFailure(invocation, String.format("%s failed while %s.", name, description.getDisplayName()));
         }

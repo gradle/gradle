@@ -24,8 +24,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
-import javax.annotation.Nullable;
-
 @ServiceScope(Scope.BuildSession.class)
 public class AttributeValueIsolator {
 
@@ -37,7 +35,7 @@ public class AttributeValueIsolator {
         this.instantiator = instantiator;
     }
 
-    public <T> Isolatable<T> isolate(@Nullable T value) {
+    public <T> Isolatable<T> isolate(T value) {
         if (value instanceof String) {
             return Cast.uncheckedNonnullCast(new CoercingStringValueSnapshot((String) value, instantiator));
         } else {

@@ -20,17 +20,17 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.integtests.fixtures.ZincScalaCompileFixture
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
 import static org.hamcrest.CoreMatchers.containsString
 
+@Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala does not work with Java 24 without warnings yet")
 class SamplesScalaQuickstartIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider)
-    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
 
     @UsesSample('scala/quickstart')
     def "can build jar with #dsl dsl"() {
@@ -57,11 +57,6 @@ class SamplesScalaQuickstartIntegrationTest extends AbstractSampleIntegrationTes
 
     @UsesSample('scala/quickstart')
     def "can build scalaDoc with #dsl dsl"() {
-        if (GradleContextualExecuter.isDaemon()) {
-            // don't load scala into the daemon as it exhausts permgen
-            return
-        }
-
         TestFile projectDir = sample.dir.file(dsl)
         executer.inDirectory(projectDir).withTasks('clean', 'scaladoc').run()
 

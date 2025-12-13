@@ -16,19 +16,16 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 
 import com.google.common.collect.ImmutableSet
-import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectIdentity
-import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
-import org.gradle.util.TestUtil
 import org.junit.Rule
 
 class ProjectDependencyMetadataConverterTest extends AbstractDependencyDescriptorFactoryInternalSpec {
@@ -45,33 +42,30 @@ class ProjectDependencyMetadataConverterTest extends AbstractDependencyDescripto
     }
 
     def "test create from project dependency"() {
-        when:
-        def configuration = withArtifacts ? null : TEST_DEP_CONF
-        ProjectDependency projectDependency = createProjectDependency(configuration)
+        given:
+        def projectId = ProjectIdentity.forRootProject(Path.ROOT, "foo")
+        def projectState = Stub(ProjectState) {
+            getIdentity() >> projectId
+        }
+
+        def projectDependency = new DefaultProjectDependency(projectState)
+        if (!withArtifacts) {
+            projectDependency.setTargetConfiguration(TEST_DEP_CONF)
+        }
+
         setUpDependency(projectDependency, withArtifacts)
+
+        when:
         LocalOriginDependencyMetadata dependencyMetaData = converter.createDependencyMetadata(projectDependency)
 
         then:
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData, withArtifacts)
         !dependencyMetaData.changing
         !dependencyMetaData.force
-        dependencyMetaData.selector == new DefaultProjectComponentSelector(new ProjectIdentity(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root"), ImmutableAttributes.EMPTY, ImmutableSet.of())
-        projectDependency == dependencyMetaData.source
+        dependencyMetaData.selector == new DefaultProjectComponentSelector(projectId, ImmutableAttributes.EMPTY, ImmutableSet.of())
 
         where:
         withArtifacts << [true, false]
     }
 
-    private ProjectDependency createProjectDependency(String dependencyConfiguration) {
-        Project dependencyProject = TestUtil.create(temporaryFolder).rootProject()
-        dependencyProject.setGroup("someGroup")
-        dependencyProject.setVersion("someVersion")
-        if (dependencyConfiguration != null) {
-            dependencyProject.configurations.create(dependencyConfiguration)
-        }
-
-        def dependency = new DefaultProjectDependency(dependencyProject, true, DefaultTaskDependencyFactory.withNoAssociatedProject())
-        dependency.setTargetConfiguration(dependencyConfiguration)
-        return dependency
-    }
 }

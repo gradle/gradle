@@ -158,19 +158,14 @@ class BaseDirFileResolverTest {
 
     @Test public void testResolveRelativeFileURI() {
         // Relative URIs were never supported when passed as a URI. They were only supported when passed as a String.
-        def ex = assertThrows(InvalidUserDataException, {
-            baseDirConverter.resolve(URI.create('file:relative'))
-        })
-        assertThat(ex.message, equalTo('Cannot convert URI \'file:relative\' to a file.'))
-        ex = assertThrows(InvalidUserDataException, {
-            baseDirConverter.resolve(URI.create('file:../relative'))
-        })
-        assertThat(ex.message, equalTo('Cannot convert URI \'file:../relative\' to a file.'))
+        assertInvalidURI(URI.create('file:relative'))
+        assertInvalidURI(URI.create('file:../relative'))
     }
 
     @Test public void testResolveRelativeFileURIString() {
-        assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve('file:relative'))
-        assertEquals(new File(baseDir.parentFile, 'relative'), baseDirConverter.resolve('file:../relative'))
+        // since 9.0 we don't support relative URIs
+        assertInvalidURI('file:relative')
+        assertInvalidURI('file:../relative')
     }
 
     @Test public void testResolveAbsoluteFileURIString() {
@@ -196,10 +191,11 @@ class BaseDirFileResolverTest {
     }
 
     @Test public void testResolveURIStringWithEncodedAndReservedCharacters() {
-        assertEquals(new File(baseDir, 'white space'), baseDirConverter.resolve('file:white%20space'))
-        assertEquals(new File(baseDir, 'not%encoded'), baseDirConverter.resolve('file:not%encoded'))
-        assertEquals(new File(baseDir, 'bad%1'), baseDirConverter.resolve('file:bad%1'))
-        assertEquals(new File(baseDir, 'white space'), baseDirConverter.resolve('file:white space'))
+        // since Gradle 9.0 we don't support encoded URIs in strings
+        assertInvalidURI('file:white%20space')
+        assertInvalidURI('file:not%encoded')
+        assertInvalidURI('file:bad%1')
+        assertInvalidURI('file:white space')
     }
 
     @Test public void testResolveURIWithReservedCharacters() {
@@ -344,5 +340,12 @@ class BaseDirFileResolverTest {
     @Test public void testCreateFileResolver() {
         File newBaseDir = new File(baseDir, 'subdir')
         assertEquals(new File(newBaseDir, 'file'), baseDirConverter.withBaseDir('subdir').resolve('file'))
+    }
+
+    private def assertInvalidURI(Object input, String representation = input.toString()) {
+        def ex = assertThrows(InvalidUserDataException, {
+            baseDirConverter.resolve(input)
+        })
+        assertThat(ex.message, equalTo("Cannot convert URI '$representation' to a file.".toString()))
     }
 }

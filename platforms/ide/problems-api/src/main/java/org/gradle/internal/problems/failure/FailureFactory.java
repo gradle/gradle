@@ -16,6 +16,7 @@
 
 package org.gradle.internal.problems.failure;
 
+import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -28,5 +29,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface FailureFactory {
 
     Failure create(Throwable failure);
+
+    Failure create(Throwable failure, ProblemLocator problemLocator);
 
 }

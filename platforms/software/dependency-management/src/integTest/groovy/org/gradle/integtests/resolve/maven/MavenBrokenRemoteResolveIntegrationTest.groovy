@@ -28,6 +28,12 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 class MavenBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     public static final REPOSITORY_HINT = repositoryHint("Maven POM")
 
+    def setup() {
+        settingsFile << """
+            rootProject.name = "root"
+        """
+    }
+
     void "reports and recovers from missing module"() {
         given:
         def repo = mavenHttpRepo("repo1")
@@ -57,7 +63,7 @@ task showMissing {
 Searched in the following locations:
   - ${module.pom.uri}
 Required by:
-    root project :""")
+    root project 'root'""")
 
         when:
         module.pom.expectGetMissing()
@@ -69,7 +75,7 @@ Required by:
 Searched in the following locations:
   - ${module.pom.uri}
 Required by:
-    root project :""")
+    root project 'root'""")
         failure.assertHasResolutions(REPOSITORY_HINT,
             STACKTRACE_MESSAGE,
             INFO_DEBUG,
@@ -123,12 +129,12 @@ task showMissing {
 Searched in the following locations:
   - ${moduleA.pom.uri}
 Required by:
-    root project :""")
+    root project 'root'""")
             .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.pom.uri}
 Required by:
-    root project :""")
+    root project 'root'""")
         failure.assertHasResolutions(REPOSITORY_HINT,
             STACKTRACE_MESSAGE,
             INFO_DEBUG,
@@ -218,13 +224,13 @@ Required by:
 Searched in the following locations:
   - ${moduleA.pom.uri}
 Required by:
-    root project : > group:projectC:0.99
-    root project : > project :child1 > group:projectD:1.0GA""")
+    root project 'root' > group:projectC:0.99
+    root project 'root' > project :child1 > group:projectD:1.0GA""")
             .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.pom.uri}
 Required by:
-    root project : > project :child1 > group:projectD:1.0GA""")
+    root project 'root' > project :child1 > group:projectD:1.0GA""")
         failure.assertHasResolutions(REPOSITORY_HINT,
             STACKTRACE_MESSAGE,
             INFO_DEBUG,

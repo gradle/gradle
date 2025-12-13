@@ -16,11 +16,15 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.nio.file.Path;
 
 /**
  * Snapshotting service which is used by test distribution.
  */
+@ServiceScope(Scope.Project.class)
 public interface SnapshottingService {
 
     /**

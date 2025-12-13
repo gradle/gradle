@@ -16,18 +16,20 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.api.tasks.testing.TestEventReporter;
+import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
-@NonNullApi
-class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements TestEventReporter {
+@NullMarked
+class LifecycleTrackingTestEventReporter<T extends TestEventReporterInternal> implements TestEventReporterInternal {
     protected final T delegate;
 
-    @NonNullApi
+    @NullMarked
     private enum State {
         CREATED, STARTED, COMPLETED, CLOSED;
     }
@@ -53,15 +55,21 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements
     }
 
     @Override
-    public void metadata(Instant logTime, String key, Object value) {
+    public void metadata(Instant logTime, String key, String value) {
         requireRunning();
         delegate.metadata(logTime, key, value);
     }
 
     @Override
-    public void metadata(Instant logTime, Map<String, Object> values) {
+    public void metadata(Instant logTime, Map<String, String> values) {
         requireRunning();
         delegate.metadata(logTime, values);
+    }
+
+    @Override
+    public void metadata(TestMetadataEvent metadataEvent) {
+        requireRunning();
+        delegate.metadata(metadataEvent);
     }
 
     @Override
@@ -77,9 +85,21 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements
     }
 
     @Override
+    public void skipped(Instant endTime, @Nullable TestFailure assumptionFailure) {
+        markCompleted();
+        delegate.skipped(endTime, assumptionFailure);
+    }
+
+    @Override
     public void failed(Instant endTime, String message, String additionalContent) {
         markCompleted();
         delegate.failed(endTime, message, additionalContent);
+    }
+
+    @Override
+    public void failed(Instant endTime, List<TestFailure> failures) {
+        markCompleted();
+        delegate.failed(endTime, failures);
     }
 
     @Override
@@ -91,7 +111,7 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements
         delegate.close();
 
         if (state == State.STARTED) {
-            throw new IllegalStateException("completed(...) must be called before close() if started(...) was called");
+            throw new IllegalStateException("succeeded(...)/skipped(...)/failed(...) must be called before close() if started(...) was called");
         }
         state = State.CLOSED;
     }
@@ -105,9 +125,11 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements
             case CREATED:
                 throw new IllegalStateException("started(...) must be called before any other method");
             case COMPLETED:
-                throw new IllegalStateException("completed(...) has already been called");
+                throw new IllegalStateException("succeeded(...)/skipped(...)/failed(...) has already been called");
             case CLOSED:
                 throw new IllegalStateException("close() has already been called");
+            case STARTED:
+                break;
         }
     }
 

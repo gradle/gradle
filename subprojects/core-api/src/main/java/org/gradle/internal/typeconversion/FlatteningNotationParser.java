@@ -44,6 +44,7 @@ public class FlatteningNotationParser<N, T> implements NotationParser<N, Set<T>>
     }
 
     @Override
+    @SuppressWarnings("MixedMutabilityReturnType")
     public Set<T> parseNotation(N notation) {
         Collection<N> notations = Cast.uncheckedNonnullCast(GUtil.collectionize(notation));
         if (notations.isEmpty()) {

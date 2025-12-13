@@ -16,11 +16,10 @@
 
 package org.gradle.integtests.tooling.r32
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 
-@TargetGradleVersion(">=3.2")
 class BuildFinishedCrossVersionSpec extends ToolingApiSpecification {
 
     def "model builders are executed before buildFinished hook"() {

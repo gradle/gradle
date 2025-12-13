@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public enum TaskExecutionOutcome {
     FROM_CACHE(true, true, "FROM-CACHE"),

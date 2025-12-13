@@ -35,10 +35,10 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
         buildFile << """
 apply plugin: 'c'
 
-model {
     toolChains {
         ${toolChain.buildScriptConfig}
     }
+model {
     components {
         main(NativeExecutableSpec) {
             binaries.all {
@@ -58,7 +58,6 @@ model {
     def "can configure platform specific args"() {
         when:
         buildFile << """
-model {
     toolChains {
         ${toolChain.id} {
             target("arm"){
@@ -73,6 +72,7 @@ model {
             target("sparc")
         }
     }
+model {
     platforms {
         arm {
             architecture "arm"
@@ -116,7 +116,6 @@ model {
 
         when:
         buildFile << """
-model {
     toolChains {
         ${toolChain.id} {
             path file('${binDir.toURI()}')
@@ -127,7 +126,6 @@ model {
             }
         }
     }
-}
 """
         succeeds "mainExecutable"
 
@@ -157,7 +155,6 @@ model {
         """
         and:
         buildFile << """
-model {
     toolChains {
         ${toolChain.id} {
             target("alwaysFrench"){
@@ -175,7 +172,7 @@ model {
             }
         }
     }
-
+model {
     platforms {
         alwaysFrench
         alwaysCPlusPlus
@@ -213,19 +210,7 @@ model {
 
         when:
         buildFile << """
-model {
-    platforms {
-        x86 {
-            architecture 'x86'
-        }
-        x86_64 {
-            architecture 'x64'
-        }
-        custom {
-            architecture 'foo'
-        }
-    }
-    toolChains {
+toolChains {
         ${toolChain.id} {
             target('x86')
             target('x86_64')
@@ -237,6 +222,18 @@ model {
                 staticLibArchiver.executable = '${binDir.absolutePath}/static-lib'
                 linker.executable = '${binDir.absolutePath}/linker'
             }
+        }
+    }
+model {
+    platforms {
+        x86 {
+            architecture 'x86'
+        }
+        x86_64 {
+            architecture 'x64'
+        }
+        custom {
+            architecture 'foo'
         }
     }
     components {

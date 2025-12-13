@@ -17,8 +17,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.attributes.AttributeContainer;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface DependencyVariant {
     void mutateAttributes(AttributeContainer attributes);

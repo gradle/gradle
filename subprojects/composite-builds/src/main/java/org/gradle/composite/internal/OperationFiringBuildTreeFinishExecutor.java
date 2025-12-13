@@ -22,8 +22,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.operations.lifecycle.FinishRootBuildTreeBuildOperationType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class OperationFiringBuildTreeFinishExecutor implements BuildTreeFinishExecutor {

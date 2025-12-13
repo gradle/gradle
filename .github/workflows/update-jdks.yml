@@ -2,8 +2,8 @@ name: Update jdks.yaml
 
 on:
   workflow_dispatch: # Allows manual triggering of the action
-  schedule: # Runs the action on the first day of every month at 3:42 UTC
-    - cron: '42 3 1 * *'
+  schedule: # Runs the action weekly on Monday at 3:42 UTC
+    - cron: '42 3 * * 1'
 
 permissions:
   contents: write
@@ -11,13 +11,14 @@ permissions:
 
 jobs:
   update-jdks:
+    if: github.repository == 'gradle/gradle'
     permissions:
       contents: write
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -33,11 +34,12 @@ jobs:
           # stopGradleDaemons=true
           # ```
           EOF
-          cat .teamcity/jdks.yaml >> .teamcity/jdks.yaml.tmp
+          # Append everything from "version:" onwards
+          sed -n '/^version:/,$p' .teamcity/jdks.yaml >> .teamcity/jdks.yaml.tmp
           mv .teamcity/jdks.yaml.tmp .teamcity/jdks.yaml
       - name: Create Pull Request
         id: create-pull-request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           signoff: true
           sign-commits: true
@@ -46,12 +48,13 @@ jobs:
           title: "Update jdks.yaml"
           body: "This PR updates JDK to the latest versions available in `.teamcity/jdks.yaml`."
           delete-branch: true
+          branch: "devprod/update-jdks"
           branch-suffix: timestamp
           labels: |
             in:building-gradle
             @dev-productivity
       - name: Trigger a build
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         if: ${{ steps.create-pull-request.outputs.pull-request-number }}
         with:
           issue-number: ${{ steps.create-pull-request.outputs.pull-request-number }}

@@ -32,7 +32,8 @@ import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTes
 import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestVararg
 import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestVarargWithArray
 import static org.gradle.internal.classpath.JavaCallerForBasicCallInterceptorTest.doTestVarargWithNullItem
-import static org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider.*
+import static org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider.ClassLoaderSourceJvmBytecodeInterceptorFactoryProvider
+import static org.gradle.internal.classpath.intercept.JvmBytecodeInterceptorFactoryProvider.DEFAULT
 
 class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
     @Override
@@ -68,7 +69,14 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
         boolean shouldDelegate,
         @ClosureParams(value = SimpleType, options = "InterceptorTestReceiver") Closure<?> call
     ) {
-        def receiver = new InterceptorTestReceiver()
+        interceptedWhen(new InterceptorTestReceiver(), shouldDelegate, call)
+    }
+
+    String interceptedWhen(
+        InterceptorTestReceiver receiver,
+        boolean shouldDelegate,
+        @ClosureParams(value = SimpleType, options = "InterceptorTestReceiver") Closure<?> call
+    ) {
         def closure = instrumentedClasses.instrumentedClosure(call)
         if (shouldDelegate) {
             closure.delegate = receiver

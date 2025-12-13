@@ -162,6 +162,7 @@ model {
         when:
         settingsFile << "rootProject.name = 'bad-build-type'"
         buildFile << """
+apply plugin: 'org.gradle.native-component-model'
 model {
     buildTypes {
         debug

@@ -5,7 +5,11 @@ plugins {
 
 description = "Base tools to work with files"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
     api(projects.stdlibJavaExtensions)
@@ -15,12 +19,15 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
+    compileOnly(libs.jspecify)
+
     testImplementation(projects.native)
     testImplementation(projects.baseServices) {
         because("TextUtil is needed")
     }
     testImplementation(testFixtures(projects.native))
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
+
+errorprone {
+    nullawayEnabled = true
 }

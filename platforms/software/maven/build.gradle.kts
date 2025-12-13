@@ -4,13 +4,6 @@ plugins {
 
 description = "Implementation of the Maven Publish Plugin that provides the ability to publish build artifacts to Maven repositories."
 
-errorprone {
-    disabledChecks.addAll(
-        "DefaultCharset", // 1 occurrences
-        "EqualsUnsafeCast", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
@@ -27,7 +20,7 @@ dependencies {
 
     api(libs.guava)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.maven3Model) {
         because("We use the metadata model classes to create POM metadata files for components")
     }
@@ -82,7 +75,6 @@ packageCycles {
     excludePatterns.add("org/gradle/api/artifacts/maven/**")
 }
 
-integTest.usesJavadocCodeSnippets = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

@@ -26,7 +26,9 @@ import org.gradle.internal.build.event.types.DefaultTaskFailureResult
 import org.gradle.internal.build.event.types.DefaultTaskFinishedProgressEvent
 import org.gradle.internal.build.event.types.DefaultTaskSkippedResult
 import org.gradle.internal.build.event.types.DefaultTaskSuccessResult
+import org.gradle.internal.code.DefaultUserCodeApplicationContext
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.event.ListenerNotificationException
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager
@@ -42,6 +44,8 @@ import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.events.task.TaskSuccessResult
 
+import java.lang.reflect.UndeclaredThrowableException
+
 class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
     def factory = new MockBuildEventListenerFactory()
     def listenerManager = new DefaultListenerManager(Scope.Build)
@@ -50,7 +54,7 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         isRootBuild() >> true
     }
     def buildResult = new BuildResult(gradle, null)
-    def registry = new DefaultBuildEventsListenerRegistry(factory, listenerManager, buildOperationListenerManager, executorFactory)
+    def registry = new DefaultBuildEventsListenerRegistry(new DefaultUserCodeApplicationContext(), factory, listenerManager, buildOperationListenerManager, executorFactory)
 
     def cleanup() {
         // Signal the end of the build, to stop everything
@@ -151,8 +155,7 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         instant.received < instant.handled
     }
 
-    def "broken listener is quarantined and failure rethrown at completion of build"() {
-        def failure = new RuntimeException()
+    def "broken listener is quarantined and #failure propagated at completion of build"() {
         def brokenListener = Mock(OperationCompletionListener)
         def okListener = Mock(OperationCompletionListener)
 
@@ -176,8 +179,14 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         0 * okListener._
 
         and:
-        def e = thrown(RuntimeException)
-        e.is(failure)
+        def e = thrown(exceptionType)
+        exceptionCheck.call(e)
+
+        where:
+        failure                 | exceptionType                     | exceptionCheck
+        new RuntimeException()  | RuntimeException                  | { t -> t.is(failure) }
+        new Error()             | ListenerNotificationException     | { t -> t.getCauses().get(0).is(failure) }
+        new Throwable()         | UndeclaredThrowableException      | { t -> t.getCause().is(failure) }
     }
 
     private signalBuildFinished() {

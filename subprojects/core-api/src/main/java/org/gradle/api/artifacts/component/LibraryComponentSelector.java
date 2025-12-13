@@ -16,7 +16,7 @@
 
 package org.gradle.api.artifacts.component;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Criteria for selecting a library instance that is built as part of the current build.

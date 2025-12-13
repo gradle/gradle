@@ -17,6 +17,9 @@
 package org.gradle.internal.declarativedsl.dom.operations.overlay
 
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
 
 
 /**
@@ -30,29 +33,60 @@ sealed interface OverlayNodeOrigin {
     sealed interface CopiedOrigin : OverlayPropertyOrigin, OverlayElementOrigin, OverlayErrorOrigin, OverlayValueOrigin
 
     /**
-     * The node is copied as-is from the underlay. The [documentNode] is the node itself.
+     * The node is copied as-is from the underlay and represents the actual data. The [documentNode] is the node itself.
      */
-    data class FromUnderlay(val documentNode: DeclarativeDocument.DocumentNode) : CopiedOrigin
+    data class FromUnderlay(val documentNode: DocumentNode) : CopiedOrigin
 
     /**
      * The node is copied as-is from the overlay. The [documentNode] is the node itself.
      */
-    data class FromOverlay(val documentNode: DeclarativeDocument.DocumentNode) : CopiedOrigin
+    data class FromOverlay(val documentNode: DocumentNode) : CopiedOrigin
 
     /**
      * The node is an element that is a combination of [underlayElement] and [overlayElement] with
      * their [DeclarativeDocument.DocumentNode.ElementNode.content]s merged together.
      */
     data class MergedElements(
-        val underlayElement: DeclarativeDocument.DocumentNode.ElementNode,
-        val overlayElement: DeclarativeDocument.DocumentNode.ElementNode
+        val underlayElement: ElementNode,
+        val overlayElement: ElementNode
     ) : OverlayElementOrigin
 
     /**
-     * The node is an [overlayProperty] that overrides ("shadows") an [underlayProperty].
+     * The node is one of the set of property nodes assigning or augmenting the same property.
+     *
+     * The [shadowedPropertiesFromUnderlay] and [shadowedPropertiesFromOverlay] are property nodes shadowed by some reassignment.
+     * The [effectivePropertiesFromUnderlay] and [effectivePropertiesFromOverlay] are property nodes that effectively contribute to the property value.
+     *
+     * If [shadowedPropertiesFromOverlay] set is not empty, then all underlay property must be in [shadowedPropertiesFromUnderlay], too.
+     * If there are [effectivePropertiesFromUnderlay], then no nodes are in [shadowedPropertiesFromOverlay].
+     *
+     * For example:
+     *
+     * ```
+     * // underlay:
+     * foo += bar() // shadowed
+     * foo = baz()  // effective
+     *
+     * // overlay:
+     * foo += baq() // effective
+     * ```
+     *
+     * or:
+     *
+     * ```
+     * // underlay:
+     * foo = foo()  // shadowed
+     * foo += bar() // shadowed
+     *
+     * // overlay:
+     * foo += baq() // shadowed
+     * foo = qux()  // effective
+     * ```
      */
-    data class ShadowedProperty(
-        val underlayProperty: DeclarativeDocument.DocumentNode.PropertyNode,
-        val overlayProperty: DeclarativeDocument.DocumentNode.PropertyNode
+    data class MergedProperties(
+        val shadowedPropertiesFromUnderlay: Set<PropertyNode>,
+        val effectivePropertiesFromUnderlay: Set<PropertyNode>,
+        val shadowedPropertiesFromOverlay: Set<PropertyNode>,
+        val effectivePropertiesFromOverlay: Set<PropertyNode>
     ) : OverlayPropertyOrigin
 }

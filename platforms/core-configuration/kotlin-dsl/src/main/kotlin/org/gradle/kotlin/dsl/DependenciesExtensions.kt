@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-@file:Incubating
 @file:Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 
 package org.gradle.kotlin.dsl
@@ -73,9 +72,6 @@ class DependenciesExtensions {
             // Add a dependency by String
             implementation("org:foo:1.0") // is getImplementation().add("org:foo:1.0")
 
-            // Add a dependency with explicit coordinate parameters
-            implementation(module(group = "org", name = "foo", version = "1.0")) // is getImplementation().add(module("org", "foo", "1.0"))
-
             // Add dependencies on projects
             implementation(project(":path")) // is getImplementation().add(project(":path"))
             implementation(project()) // is getImplementation().add(project())
@@ -97,14 +93,13 @@ class DependenciesExtensions {
 }
 
 
-// The #module and #constraint methods here allow the usage of named arguments in Kotlin, even though the signature is overall the same as the Java method.
-
-
 /**
  * Creates a dependency based on the group, name and version (GAV) coordinates.
  *
  * @since 8.0
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use single-string notation instead")
 fun Dependencies.module(group: String?, name: String, version: String?): ExternalModuleDependency = module(group, name, version)
 
 

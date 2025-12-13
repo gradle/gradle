@@ -16,7 +16,7 @@
 
 package org.gradle.operations.dependencies.variants;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A capability provided by a component.

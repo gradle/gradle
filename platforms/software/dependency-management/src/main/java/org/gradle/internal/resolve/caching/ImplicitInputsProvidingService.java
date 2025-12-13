@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.resolve.caching;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Interface for services which support recording the "implicit inputs" they generate.

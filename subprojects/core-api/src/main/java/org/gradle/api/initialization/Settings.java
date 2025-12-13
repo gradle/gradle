@@ -37,8 +37,8 @@ import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.vcs.SourceControl;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Arrays;
 
@@ -84,6 +84,8 @@ import java.util.Arrays;
 public interface Settings extends PluginAware, ExtensionAware {
     /**
      * <p>The default name for the settings file.</p>
+     *
+     * @implNote For internal purposes, prefer constants from {@code BuildLogicFiles}.
      */
     String DEFAULT_SETTINGS_FILE = "settings.gradle";
 

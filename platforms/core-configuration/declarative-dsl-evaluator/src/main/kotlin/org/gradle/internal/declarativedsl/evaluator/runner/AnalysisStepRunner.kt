@@ -25,16 +25,18 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.toDocument
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
+import org.gradle.internal.declarativedsl.evaluator.checks.DocumentLowLevelResolutionCheck
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated
-import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.AssignmentErrors
+import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.PropertyLinkErrors
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.DocumentCheckFailures
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.FailuresInLanguageTree
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentTracer
+import org.gradle.internal.declarativedsl.objectGraph.PropertyLinksResolver
+import org.gradle.internal.declarativedsl.objectGraph.PropertyLinkTraceElement
+import org.gradle.internal.declarativedsl.objectGraph.PropertyLinkTracer
 import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.parse
 
@@ -75,19 +77,24 @@ abstract class AbstractAnalysisStepRunner : InterpretationSequenceStepRunner<Ana
         val checkFeatures = step.features.filterIsInstance<DocumentChecks>()
         val isAnalyzedNodeContainer = produceIsAnalyzedNodeContainer(document.languageTreeMappingContainer, parseAndResolveResult.languageModel.topLevelBlock, evaluationSchema.analysisStatementFilter)
         val checkResults = stepContext.supportedDocumentChecks.filter { checkFeatures.any(it::shouldHandleFeature) }
-            .flatMap { it.detectFailures(document, documentResolutionContainer, isAnalyzedNodeContainer) }
+            .flatMap {
+                it.detectFailures(DocumentWithResolution(document, documentResolutionContainer), isAnalyzedNodeContainer) +
+                    if (it is DocumentLowLevelResolutionCheck)
+                        it.detectFailuresInLowLevelResolution(document, document.languageTreeMappingContainer, parseAndResolveResult.resolutionTrace)
+                    else emptyList()
+            }
 
         if (checkResults.isNotEmpty()) {
             failureReasons += DocumentCheckFailures(checkResults)
         }
 
-        val assignmentTrace = assignmentTrace(resolution)
-        val assignmentErrors = assignmentTrace.elements.filterIsInstance<AssignmentTraceElement.FailedToRecordAssignment>()
-        if (assignmentErrors.isNotEmpty()) {
-            failureReasons += AssignmentErrors(assignmentErrors)
+        val propertyLinkTrace = propertyLinkTrace(resolution)
+        val propertyLinkIssues = propertyLinkTrace.trace.filterIsInstance<PropertyLinkTraceElement.FailedToResolveLinks>()
+        if (propertyLinkIssues.isNotEmpty()) {
+            failureReasons += PropertyLinkErrors(propertyLinkIssues)
         }
 
-        val analysisResult = AnalysisStepResult(evaluationSchema, parseAndResolveResult.languageModel, resolution, parseAndResolveResult.resolutionTrace, assignmentTrace)
+        val analysisResult = AnalysisStepResult(evaluationSchema, parseAndResolveResult.languageModel, resolution, parseAndResolveResult.resolutionTrace, propertyLinkTrace)
 
         return when {
             failureReasons.isNotEmpty() -> NotEvaluated(failureReasons, partialStepResult = analysisResult)
@@ -96,8 +103,8 @@ abstract class AbstractAnalysisStepRunner : InterpretationSequenceStepRunner<Ana
     }
 
     private
-    fun assignmentTrace(result: ResolutionResult) =
-        AssignmentTracer { AssignmentResolver() }.produceAssignmentTrace(result)
+    fun propertyLinkTrace(result: ResolutionResult) =
+        PropertyLinkTracer { PropertyLinksResolver() }.producePropertyLinkResolutionTrace(result)
 }
 
 

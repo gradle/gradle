@@ -185,7 +185,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 task tool(type: FileProducer) {
                     output = file("build/tool-\${project.name}.jar")
                 }
-                ext.inputFiles = files(tool.output)
+                ext.inputFiles = files(tasks.tool.output)
             }
 
             project(':a') {
@@ -200,7 +200,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":a:tool", ":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksScheduled(":a:tool", ":b:producer", ":c:producer", ":a:resolve")
         outputContains("processing b.jar using [tool-a.jar]")
         outputContains("processing c.jar using [tool-a.jar]")
         outputContains("result = [b.jar.green, c.jar.green]")
@@ -263,7 +263,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":b:producer", ":c:producer", ":d:producer", ":e:producer", ":a:resolve")
+        result.assertTasksScheduled(":b:producer", ":c:producer", ":d:producer", ":e:producer", ":a:resolve")
         outputContains("processing b.jar using [d.jar.red, e.jar.red]")
         outputContains("processing c.jar using [d.jar.red, e.jar.red]")
         outputContains("result = [b.jar.green, c.jar.green]")
@@ -281,7 +281,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 task producer(type: Producer) {
                     outputFile = file("build/\${project.name}.jar")
                 }
-                artifacts."default" producer.outputFile
+                artifacts."default" tasks.producer.outputFile
             }
 
             class Producer extends DefaultTask {
@@ -321,7 +321,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":tools:tool-a:producer", ":tools:tool-b:producer", ":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksScheduled(":tools:tool-a:producer", ":tools:tool-b:producer", ":b:producer", ":c:producer", ":a:resolve")
         outputContains("processing b.jar using [tool-a.jar, tool-b.jar]")
         outputContains("processing c.jar using [tool-a.jar, tool-b.jar]")
         outputContains("result = [b.jar.green, c.jar.green]")
@@ -337,7 +337,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 task tool(type: FileProducer) {
                     output = file("build/tool-\${project.name}.jar")
                 }
-                ext.inputFile = tool.output
+                ext.inputFile = tasks.tool.output
             }
         """
         setupBuildWithColorTransform {
@@ -375,7 +375,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":a:tool", ":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksScheduled(":a:tool", ":b:producer", ":c:producer", ":a:resolve")
         outputContains("processing b.jar using tool-a.jar")
         outputContains("processing c.jar using tool-a.jar")
     }
@@ -390,7 +390,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 task tool(type: DirProducer) {
                     output = file("build/tool-\${project.name}-dir")
                 }
-                ext.inputDir = tool.output
+                ext.inputDir = tasks.tool.output
             }
         """
         setupBuildWithColorTransform {
@@ -428,7 +428,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         run(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":a:tool", ":b:producer", ":c:producer", ":a:resolve")
+        result.assertTasksScheduled(":a:tool", ":b:producer", ":c:producer", ":a:resolve")
         outputContains("processing b.jar using tool-a-dir")
         outputContains("processing c.jar using tool-a-dir")
     }
@@ -445,7 +445,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     output = file("build/tool-\${project.name}.jar")
                     doLast { throw new RuntimeException('broken') }
                 }
-                ext.inputFiles = files(tool.output)
+                ext.inputFiles = files(tasks.tool.output)
             }
 
             project(':a') {
@@ -461,7 +461,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         fails(":a:resolve")
 
         then:
-        result.assertTasksExecuted(":a:tool", ":b:producer", ":c:producer")
+        result.assertTasksScheduled(":a:tool", ":b:producer", ":c:producer")
         outputDoesNotContain("processing")
         failure.assertHasDescription("Execution failed for task ':a:tool'.")
         failure.assertHasFailures(1)

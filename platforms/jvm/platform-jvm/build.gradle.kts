@@ -4,12 +4,6 @@ plugins {
 
 description = """Extends platform-base with base types and interfaces specific to the Java Virtual Machine, including tasks for obtaining a JDK via toolchains, and for compiling and launching Java applications."""
 
-errorprone {
-    disabledChecks.addAll(
-        "StringCharset", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
@@ -23,7 +17,7 @@ dependencies {
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.dependencyManagement)
     implementation(projects.execution)
@@ -58,7 +52,6 @@ strictCompile {
     ignoreDeprecations() // most of this project has been deprecated
 }
 
-integTest.usesJavadocCodeSnippets = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

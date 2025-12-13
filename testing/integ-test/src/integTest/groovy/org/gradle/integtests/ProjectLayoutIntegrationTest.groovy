@@ -15,9 +15,10 @@
  */
 package org.gradle.integtests
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ZincScalaCompileFixture
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
@@ -26,10 +27,6 @@ import org.junit.Rule
 import org.junit.Test
 
 class ProjectLayoutIntegrationTest extends AbstractIntegrationTest {
-
-    @Rule
-    public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
-
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider)
 
@@ -49,7 +46,7 @@ apply plugin: 'scala'
 ${mavenCentralRepository()}
 dependencies {
     implementation 'org.codehaus.groovy:groovy-all:2.4.10'
-    implementation 'org.scala-lang:scala-library:2.11.12'
+    implementation 'org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}'
 }
 
 testing.suites.test.useJUnitJupiter()
@@ -84,9 +81,9 @@ sourceSets.each {
         file('src/groovy/org/gradle/main/GroovyClass2.groovy') << 'package org.gradle; class GroovyClass2 { }'
         file('src/groovy/org/gradle/test/GroovyClassTest2.groovy') << 'package org.gradle; class GroovyClassTest2 { GroovyClass c = new GroovyClass(); @org.junit.jupiter.api.Test public void test() { } }'
         file('src/org/gradle/main/ScalaClass.scala') << 'package org.gradle; class ScalaClass { }'
-        file('src/org/gradle/test/ScalaClassTest.scala') << 'package org.gradle; class ScalaClassTest { val c: ScalaClass = new ScalaClass(); @org.junit.jupiter.api.Test def test { } }'
+        file('src/org/gradle/test/ScalaClassTest.scala') << 'package org.gradle; class ScalaClassTest { val c: ScalaClass = new ScalaClass(); @org.junit.jupiter.api.Test def test: Unit = { } }'
         file('src/scala/org/gradle/main/ScalaClass2.scala') << 'package org.gradle; class ScalaClass2 { }'
-        file('src/scala/org/gradle/test/ScalaClassTest2.scala') << 'package org.gradle; class ScalaClassTest2 { val c: ScalaClass = new ScalaClass(); @org.junit.jupiter.api.Test def test { } }'
+        file('src/scala/org/gradle/test/ScalaClassTest2.scala') << 'package org.gradle; class ScalaClassTest2 { val c: ScalaClass = new ScalaClass(); @org.junit.jupiter.api.Test def test: Unit = { } }'
 
         executer.withTasks('build').run()
 
@@ -196,7 +193,7 @@ sourceSets.main.java {
 
         file('build').assertDoesNotExist()
 
-        def results = new DefaultTestExecutionResult(file(), 'target')
+        def results = new DefaultTestExecutionResult(file(), 'target', '', '', 'test', GenericTestExecutionResult.TestFramework.SPOCK)
         results.assertTestClassesExecuted('PersonTest')
         results.testClass('PersonTest').assertTestsExecuted('ok')
     }

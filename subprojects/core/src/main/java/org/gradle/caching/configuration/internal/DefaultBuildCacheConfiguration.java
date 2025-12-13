@@ -26,10 +26,10 @@ import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
@@ -57,15 +57,6 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     @Override
     public void setLocal(DirectoryBuildCache local) {
         this.local = local;
-    }
-
-    private <T extends DirectoryBuildCache> T localInternal(Class<T> type, Action<? super T> configuration) {
-        if (!type.equals(DirectoryBuildCache.class)) {
-            throw new IllegalArgumentException("Using a local build cache type other than " + DirectoryBuildCache.class.getSimpleName() + " is not allowed");
-        }
-        T configurationObject = Cast.uncheckedNonnullCast(local);
-        configuration.execute(configurationObject);
-        return configurationObject;
     }
 
     @Override

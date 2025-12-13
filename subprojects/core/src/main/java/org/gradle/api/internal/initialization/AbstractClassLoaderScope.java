@@ -22,8 +22,8 @@ import org.gradle.initialization.ClassLoaderScopeOrigin;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.function.Function;
 
 /**
@@ -92,10 +92,5 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
     @Override
     public ClassLoaderScope createLockedChild(String name, @Nullable ClassLoaderScopeOrigin origin, ClassPath localClasspath, @Nullable HashCode classpathImplementationHash, @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory) {
         return new ImmutableClassLoaderScope(id.child(name), this, origin, localClasspath, classpathImplementationHash, localClassLoaderFactory, classLoaderCache, listener);
-    }
-
-    @Override
-    public ClassLoaderScope getOriginalScope() {
-        return this;
     }
 }

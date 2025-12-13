@@ -106,7 +106,7 @@ project(':consumer') {
             "{artifactType=jar, org.gradle.status=release}"
 
         then:
-        result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
+        result.assertTasksScheduled(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
         assertResolveOutput("""
             files: [java.jar, file-dep.jar, other-java.jar, implementation-1.0.jar, runtime-only-1.0.jar]
             java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
@@ -128,7 +128,7 @@ project(':consumer') {
         resolve()
 
         then:
-        result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
+        result.assertTasksScheduled(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
         assertResolveOutput("""
             files: [java.jar, file-dep.jar, other-java.jar, implementation-1.0.jar, runtime-only-1.0.jar]
             java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
@@ -152,7 +152,7 @@ project(':consumer') {
         resolve()
 
         then:
-        result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
+        result.assertTasksScheduled(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
         assertResolveOutput("""
             files: [java.jar]
             java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
@@ -174,7 +174,7 @@ project(':consumer') {
         resolve()
 
         then:
-        result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
+        result.assertTasksScheduled(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
         assertResolveOutput("""
             files: [java.jar, file-dep.jar, other-java.jar, implementation-1.0.jar, runtime-only-1.0.jar]
             java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
@@ -201,7 +201,7 @@ project(':consumer') {
         resolve()
 
         then:
-        result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
+        result.assertTasksScheduled(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:jar", ":consumer:resolve")
         assertResolveOutput("""
             files: [java.jar, file-dep.jar, other-java.jar, implementation-1.0.jar, runtime-only-1.0.jar]
             java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
@@ -225,7 +225,7 @@ project(':consumer') {
         resolve()
 
         then:
-        result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":consumer:resolve")
+        result.assertTasksScheduled(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":consumer:resolve")
         assertResolveOutput("""
             files: [main, file-dep.jar, main, implementation-1.0.jar, runtime-only-1.0.jar]
             main (project :java) {artifactType=java-classes-directory, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes, org.gradle.usage=java-runtime}
@@ -249,7 +249,7 @@ project(':consumer') {
         resolve()
 
         then:
-        result.assertTasksExecuted(":other-java:processResources", ":java:processResources", ":consumer:resolve")
+        result.assertTasksScheduled(":other-java:processResources", ":java:processResources", ":consumer:resolve")
         assertResolveOutput("""
             files: [main, file-dep.jar, main, implementation-1.0.jar, runtime-only-1.0.jar]
             main (project :java) {artifactType=java-resources-directory, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=resources, org.gradle.usage=java-runtime}
@@ -274,7 +274,7 @@ project(':consumer') {
         resolve()
 
         then:
-        result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:javadoc", ":java:javadocJar", ":consumer:resolve")
+        result.assertTasksScheduled(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:javadoc", ":java:javadocJar", ":consumer:resolve")
         assertResolveOutput("""
             files: [java-javadoc.jar]
             java-javadoc.jar (project :java) {artifactType=jar, org.gradle.category=documentation, org.gradle.dependency.bundling=external, org.gradle.docstype=javadoc, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
@@ -295,7 +295,7 @@ project(':consumer') {
         resolve()
 
         then:
-        result.assertTasksExecuted(":java:sourcesJar", ":consumer:resolve")
+        result.assertTasksScheduled(":java:sourcesJar", ":consumer:resolve")
         assertResolveOutput("""
             files: [java-sources.jar]
             java-sources.jar (project :java) {artifactType=jar, org.gradle.category=documentation, org.gradle.dependency.bundling=external, org.gradle.docstype=sources, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}

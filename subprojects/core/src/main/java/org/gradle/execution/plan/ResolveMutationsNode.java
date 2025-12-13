@@ -29,8 +29,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ResourceLock;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class ResolveMutationsNode extends Node implements SelfExecutingNode {
@@ -47,7 +47,7 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
         this.accessHierarchies = accessHierarchies;
     }
 
-    public Node getNode() {
+    public LocalTaskNode getNode() {
         return node;
     }
 
@@ -90,8 +90,8 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
             public void run(BuildOperationContext context) {
                 try {
                     MutationInfo mutations = resolveAndValidateMutations();
-                    accessHierarchies.getOutputHierarchy().recordNodeAccessingLocations(node, mutations.getOutputPaths());
-                    accessHierarchies.getDestroyableHierarchy().recordNodeAccessingLocations(node, mutations.getDestroyablePaths());
+                    mutations.getOutputPaths().forEach(outputPath -> accessHierarchies.getOutputHierarchy().recordNodeAccessingLocation(node, outputPath));
+                    mutations.getDestroyablePaths().forEach(destroyablePath -> accessHierarchies.getDestroyableHierarchy().recordNodeAccessingLocation(node, destroyablePath));
                     node.mutationsResolved(mutations);
                     context.setResult(RESOLVE_TASK_MUTATIONS_RESULT);
                 } catch (Exception e) {
@@ -103,7 +103,7 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
             @Override
             public BuildOperationDescriptor.Builder description() {
                 TaskIdentity<?> taskIdentity = node.getTask().getTaskIdentity();
-                return BuildOperationDescriptor.displayName("Resolve mutations for task " + taskIdentity.getIdentityPath())
+                return BuildOperationDescriptor.displayName("Resolve mutations for task " + taskIdentity.getBuildTreePath().asString())
                     .details(new ResolveTaskMutationsDetails(taskIdentity));
             }
         });
@@ -118,12 +118,12 @@ public class ResolveMutationsNode extends Node implements SelfExecutingNode {
 
         @Override
         public String getBuildPath() {
-            return taskIdentity.getBuildPath();
+            return taskIdentity.getProjectIdentity().getBuildPath().asString();
         }
 
         @Override
         public String getTaskPath() {
-            return taskIdentity.getTaskPath();
+            return taskIdentity.getPath().asString();
         }
 
         @Override

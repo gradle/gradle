@@ -4,12 +4,13 @@ plugins {
 
 description = "Utility code shared between the wrapper and the Gradle distribution"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInClient = true
+    }
+}
 
 dependencies {
-
-    api(projects.stdlibJavaExtensions)
-
     implementation(projects.files) {
         because("We need org.gradle.internal.file.PathTraversalChecker")
     }

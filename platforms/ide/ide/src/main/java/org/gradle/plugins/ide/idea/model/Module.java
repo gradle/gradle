@@ -21,8 +21,8 @@ import groovy.util.Node;
 import org.gradle.internal.Cast;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;

@@ -18,12 +18,16 @@ package org.gradle.caching.http;
 
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
- * Password credentials for a HTTP build cache backend.
+ * Credentials for authenticating with an HTTP build cache.
  *
+ * <p>When configured on {@link HttpBuildCache}, these credentials are sent using
+ * <a href="https://datatracker.ietf.org/doc/html/rfc7617">HTTP Basic authentication</a>
+ * (i.e. via the {@code Authorization: Basic} header).</p>
+ *
+ * @see HttpBuildCache
  * @since 3.5
  */
 public class HttpBuildCacheCredentials implements PasswordCredentials {

@@ -19,11 +19,9 @@ package org.gradle.integtests.tooling.r76
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.events.OperationType
 
-@ToolingApiVersion('>=7.6')
-@TargetGradleVersion('>=3.0 <7.6')
+@TargetGradleVersion('>=4.0 <7.6')
 class BuildPhaseOperationEventLegacyCrossVersionTest extends ToolingApiSpecification {
 
     def "doesn't generate build phase events for gradle versions that don't support them"() {
@@ -44,8 +42,8 @@ class BuildPhaseOperationEventLegacyCrossVersionTest extends ToolingApiSpecifica
     def setupProject() {
         settingsFile << """
             rootProject.name = 'root'
-            include 'a'
         """
+        includeProjects("a")
         file("a/build.gradle") << """
             task taskA {}
             task taskB {

@@ -15,8 +15,8 @@
  */
 package org.gradle.testing.junit
 
-import org.apache.commons.lang.RandomStringUtils
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.apache.commons.lang3.RandomStringUtils
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -68,9 +68,8 @@ abstract class AbstractJUnitIntegrationTest extends AbstractTestingMultiVersionI
         executer.withTasks('a:test').run()
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory.file('a'))
-        result.assertTestClassesExecuted('org.gradle.SomeTest')
-        result.testClass('org.gradle.SomeTest').assertTestPassed('ok')
+        def results = resultsFor(testDirectory.file('a'))
+        results.testPath('org.gradle.SomeTest', 'ok').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def "can exclude super classes from execution"() {
@@ -103,9 +102,8 @@ abstract class AbstractJUnitIntegrationTest extends AbstractTestingMultiVersionI
         executer.withTasks('test').run()
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.SomeTest')
-        result.testClass('org.gradle.SomeTest').assertTestPassed('ok')
+        def results = resultsFor(testDirectory)
+        results.testPath('org.gradle.SomeTest', 'ok').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     @Requires(IntegTestPreconditions.NotParallelExecutor)

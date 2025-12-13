@@ -58,18 +58,19 @@ public class DependencyVerificationReportWriter {
         File verificationFile,
         List<String> writeFlags,
         File htmlReportOutputDirectory,
-        Factory<GradleProperties> gradlePropertiesProvider
+        Factory<GradleProperties> gradlePropertiesProvider,
+        boolean useKeyServers
     ) {
         this.gradleUserHome = gradleUserHome;
         this.rendererInitializer = () -> {
             this.summaryRenderer = createConsoleRenderer(gradleUserHome, documentationRegistry, gradlePropertiesProvider.create());
-            this.htmlRenderer = new HtmlDependencyVerificationReportRenderer(documentationRegistry, verificationFile, writeFlags, htmlReportOutputDirectory);
+            this.htmlRenderer = new HtmlDependencyVerificationReportRenderer(documentationRegistry, verificationFile, writeFlags, htmlReportOutputDirectory, useKeyServers);
         };
     }
 
     private static boolean isVerboseConsoleReport(GradleProperties gradleProperties) {
         try {
-            String param = (String) gradleProperties.find(VERBOSE_CONSOLE);
+            String param = gradleProperties.find(VERBOSE_CONSOLE);
             return VERBOSE_VALUE.equals(param);
         } catch (IllegalStateException e) {
             // Gradle properties are not loaded yet, which can happen in init scripts

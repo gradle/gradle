@@ -69,11 +69,7 @@ import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.model.RuleBasedPluginListener
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.model.internal.registry.ModelRegistry
-import org.gradle.process.ExecResult
-import org.gradle.process.ExecSpec
-import org.gradle.process.JavaExecSpec
 import org.gradle.util.Path
 import java.io.File
 import java.net.URI
@@ -90,8 +86,8 @@ class ProblemReportingCrossProjectModelAccess(
     private val buildModelParameters: BuildModelParameters,
     private val instantiator: Instantiator
 ) : CrossProjectModelAccess {
-    override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
-        return delegate.findProject(referrer, relativeTo, path)?.let {
+    override fun findProject(referrer: ProjectInternal, path: Path): ProjectInternal? {
+        return delegate.findProject(referrer, path)?.let {
             it.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, it), instantiator)
         }
     }
@@ -100,21 +96,21 @@ class ProblemReportingCrossProjectModelAccess(
         return project.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, project), instantiator)
     }
 
-    override fun getChildProjects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableMap<String, Project> {
-        return delegate.getChildProjects(referrer, relativeTo).mapValuesTo(LinkedHashMap()) {
-            (it.value as ProjectInternal).wrap(referrer, CrossProjectModelAccessInstance(CHILD, relativeTo), instantiator)
+    override fun getChildProjects(referrer: ProjectInternal, target: ProjectInternal): MutableMap<String, Project> {
+        return delegate.getChildProjects(referrer, target).mapValuesTo(LinkedHashMap()) {
+            (it.value as ProjectInternal).wrap(referrer, CrossProjectModelAccessInstance(CHILD, target), instantiator)
         }
     }
 
-    override fun getSubprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
-        return delegate.getSubprojects(referrer, relativeTo).mapTo(LinkedHashSet()) {
-            it.wrap(referrer, CrossProjectModelAccessInstance(SUBPROJECT, relativeTo), instantiator)
+    override fun getSubprojects(referrer: ProjectInternal, target: ProjectInternal): MutableSet<out ProjectInternal> {
+        return delegate.getSubprojects(referrer, target).mapTo(LinkedHashSet()) {
+            it.wrap(referrer, CrossProjectModelAccessInstance(SUBPROJECT, target), instantiator)
         }
     }
 
-    override fun getAllprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
-        return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) {
-            it.wrap(referrer, CrossProjectModelAccessInstance(ALLPROJECTS, relativeTo), instantiator)
+    override fun getAllprojects(referrer: ProjectInternal, target: ProjectInternal): MutableSet<out ProjectInternal> {
+        return delegate.getAllprojects(referrer, target).mapTo(LinkedHashSet()) {
+            it.wrap(referrer, CrossProjectModelAccessInstance(ALLPROJECTS, target), instantiator)
         }
     }
 
@@ -143,7 +139,17 @@ class ProblemReportingCrossProjectModelAccess(
         access: CrossProjectModelAccessInstance,
         instantiator: Instantiator
     ): ProjectInternal = MutableStateAccessAwareProject.wrap(this, referrer) {
-        instantiator.newInstance(ProblemReportingProject::class.java, this, referrer, access, problems, coupledProjectsListener, problemFactory, buildModelParameters, dynamicCallProblemReporting)
+        instantiator.newInstance(
+            ProblemReportingProject::class.java,
+            this,
+            referrer,
+            access,
+            problems,
+            coupledProjectsListener,
+            problemFactory,
+            buildModelParameters,
+            dynamicCallProblemReporting
+        )
     }
 
     @Suppress("LargeClass")
@@ -202,7 +208,7 @@ class ProblemReportingCrossProjectModelAccess(
             return super.relativePath(path)
         }
 
-        override fun files(vararg paths: Any?): ConfigurableFileCollection {
+        override fun files(vararg paths: Any): ConfigurableFileCollection {
             onIsolationViolation("files")
             return super.files(*paths)
         }
@@ -267,7 +273,7 @@ class ProblemReportingCrossProjectModelAccess(
             return super.mkdir(path)
         }
 
-        override fun delete(vararg paths: Any?): Boolean {
+        override fun delete(vararg paths: Any): Boolean {
             onIsolationViolation("delete")
             return super.delete(*paths)
         }
@@ -275,34 +281,6 @@ class ProblemReportingCrossProjectModelAccess(
         override fun delete(action: Action<in DeleteSpec>): WorkResult {
             onIsolationViolation("delete")
             return super.delete(action)
-        }
-
-        @Deprecated("Deprecated in Java")
-        override fun javaexec(closure: Closure<*>): ExecResult {
-            onIsolationViolation("javaexec")
-            @Suppress("DEPRECATION")
-            return super.javaexec(closure)
-        }
-
-        @Deprecated("Deprecated in Java")
-        override fun javaexec(action: Action<in JavaExecSpec>): ExecResult {
-            onIsolationViolation("javaexec")
-            @Suppress("DEPRECATION")
-            return super.javaexec(action)
-        }
-
-        @Deprecated("Deprecated in Java")
-        override fun exec(closure: Closure<*>): ExecResult {
-            onIsolationViolation("exec")
-            @Suppress("DEPRECATION")
-            return super.exec(closure)
-        }
-
-        @Deprecated("Deprecated in Java")
-        override fun exec(action: Action<in ExecSpec>): ExecResult {
-            onIsolationViolation("exec")
-            @Suppress("DEPRECATION")
-            return super.exec(action)
         }
 
         override fun getResources(): ResourceHandler {
@@ -355,7 +333,7 @@ class ProblemReportingCrossProjectModelAccess(
             return super.configure(objects, configureClosure)
         }
 
-        override fun <T : Any?> configure(objects: MutableIterable<T>, configureAction: Action<in T>): MutableIterable<T> {
+        override fun <T : Any> configure(objects: MutableIterable<T>, configureAction: Action<in T>): MutableIterable<T> {
             onIsolationViolation("configure")
             return super.configure(objects, configureAction)
         }
@@ -452,10 +430,6 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getServices(): ServiceRegistry {
-            shouldNotBeUsed()
-        }
-
-        override fun getServiceRegistryFactory(): ServiceRegistryFactory {
             shouldNotBeUsed()
         }
 

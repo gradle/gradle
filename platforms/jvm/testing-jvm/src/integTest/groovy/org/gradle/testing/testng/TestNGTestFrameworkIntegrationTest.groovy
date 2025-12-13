@@ -16,6 +16,8 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
@@ -26,23 +28,28 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     }
 
     @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
+
+    @Override
     void createPassingFailingTest() {
         file('src/test/java/AppException.java') << 'public class AppException extends Exception {}'
         file('src/test/java/SomeTest.java') << """
             public class SomeTest {
                 @org.testng.annotations.Test
-                public void ${failingTestCaseName}() {
+                public void ${failingTestMethodName}() {
                     System.err.println("some error output");
                     assert false : "test failure message";
                 }
                 @org.testng.annotations.Test
-                public void ${passingTestCaseName}() {}
+                public void ${passingTestMethodName}() {}
             }
         """
         file('src/test/java/SomeOtherTest.java') << """
             public class SomeOtherTest {
                 @org.testng.annotations.Test
-                public void ${passingTestCaseName}() {}
+                public void ${passingTestMethodName}() {}
             }
         """
     }
@@ -67,12 +74,12 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     }
 
     @Override
-    String getPassingTestCaseName() {
+    String getPassingTestMethodName() {
         return "pass"
     }
 
     @Override
-    String getFailingTestCaseName() {
+    String getFailingTestMethodName() {
         return "fail"
     }
 
@@ -88,13 +95,10 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("No test executed. This behavior has been deprecated. " +
-            "This will fail with an error in Gradle 9.0. There are test sources present but no test was executed. Please check your test configuration. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_fail_on_no_test_executed")
         succeeds "test"
 
         then:
-        testResult.assertNoTestClassesExecuted()
+        testResult.assertTestPathsNotExecuted("DisabledTest:testOne", "DisabledTest:testTwo")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3545")
@@ -111,13 +115,10 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("No test executed. This behavior has been deprecated. " +
-            "This will fail with an error in Gradle 9.0. There are test sources present but no test was executed. Please check your test configuration. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_task_fail_on_no_test_executed")
-        succeeds "test"
+        fails "test"
 
         then:
-        testResult.assertNoTestClassesExecuted()
+        failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18566")
@@ -138,9 +139,9 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
         fails'test'
 
         then:
-        testResult.assertTestClassesExecuted("TestNG18566")
-        testResult.testClass('TestNG18566')
-            .assertTestCount(1, 1, 0)
-            .testFailed("testTimeout",  containsNormalizedString("Method TestNG18566.testTimeout() didn't finish within the time-out 10"))
+        testResult.assertAtLeastTestPathsExecuted("TestNG18566")
+        testResult.testPath('TestNG18566:testTimeout').onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsNormalizedString("Method TestNG18566.testTimeout() didn't finish within the time-out 10"))
     }
 }

@@ -9,9 +9,13 @@ dependencies {
             ivyPattern(projectDir.absolutePath + '/[module]-[revision]-ivy.xml')
         }
     }
-    compile group: 'test', name: 'projectA', version: '1.2', configuration: 'api'
-    runtime group: 'test', name: 'projectA', version: '1.2'
-    runtime group: 'test', name: 'projectB', version: '1.5', configuration: 'extraRuntime'
+    compile("test:projectA:1.2") {
+        targetConfiguration = "api"
+    }
+    runtime("test:projectA:1.2")
+    runtime("test:projectB:1.5") {
+        targetConfiguration = "extraRuntime"
+    }
 }
 
 file("projectA-1.2.jar").text = ''

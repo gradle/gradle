@@ -19,8 +19,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.artifacts.transform.TransformNodeDependency;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface TaskDependencyResolveContext extends Action<Task> {
     @Override

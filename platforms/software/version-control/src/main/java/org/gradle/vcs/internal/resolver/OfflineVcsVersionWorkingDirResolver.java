@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.vcs.internal.VersionControlRepositoryConnection;
 import org.gradle.vcs.internal.VersionRef;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class OfflineVcsVersionWorkingDirResolver implements VcsVersionWorkingDirResolver {

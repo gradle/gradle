@@ -16,8 +16,8 @@
 package org.gradle.api.publish.maven.internal.dependencies;
 
 import org.gradle.api.artifacts.ExcludeRule;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 /**

@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -30,21 +29,19 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
     List arguments = []
 
     def setup() {
-        new ResolveTestFixture(buildA.buildFile).prepare()
-
         buildA.buildFile << """
             task resolve(type: Copy) {
                 from configurations.runtimeClasspath
                 into 'libs'
             }
-"""
+        """
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
                     apply plugin: 'java'
                 }
-"""
+            """
         }
         includedBuilds << buildB
     }
@@ -245,7 +242,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         given:
         buildA.buildFile << """
             dependencies {
-                implementation group: 'org.test', name: 'buildB', version: '1.0', configuration: 'other'
+                implementation("org.test:buildB:1.0") {
+                    targetConfiguration = "other"
+                }
             }
 """
 
@@ -303,8 +302,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         given:
         buildA.buildFile << """
             dependencies {
-                implementation group: 'org.test', name: 'buildB', version: '1.0', classifier: 'my'
-                implementation(group: 'org.test', name: 'buildB', version: '1.0') {
+                implementation("org.test:buildB:1.0:my")
+                implementation("org.test:buildB:1.0") {
                     artifact {
                         name = 'another'
                         type = 'jar'
@@ -338,8 +337,10 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         given:
         buildA.buildFile << """
             dependencies {
-                implementation group: 'org.test', name: 'buildB', version: '1.0'
-                implementation group: 'org.test', name: 'buildB', version: '1.0', configuration: 'other'
+                implementation("org.test:buildB:1.0")
+                implementation("org.test:buildB:1.0") {
+                    targetConfiguration = "other"
+                }
             }
 """
 
@@ -423,8 +424,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         given:
         buildA.buildFile << """
             dependencies {
-                implementation group: 'org.test', name: 'buildB', version: '1.0'
-                implementation group: 'org.test', name: 'buildC', version: '1.0'
+                implementation("org.test:buildB:1.0")
+                implementation("org.test:buildC:1.0")
             }
 """
 
@@ -432,7 +433,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
             buildFile << """
                 apply plugin: 'java'
                 dependencies {
-                    implementation group: 'org.test', name: 'buildB', version: '1.0', configuration: 'other'
+                    implementation("org.test:buildB:1.0") {
+                        targetConfiguration = "other"
+                    }
                 }
 """
         }

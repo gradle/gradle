@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.internal.build.event.BuildEventListenerFactory;
+import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
@@ -29,9 +30,9 @@ public class ToolingBuilderServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.add(BuildControllerFactory.class);
-        registration.add(BuildModelActionRunner.class);
-        registration.add(TestExecutionRequestActionRunner.class);
-        registration.add(ClientProvidedBuildActionRunner.class);
-        registration.add(ClientProvidedPhasedActionRunner.class);
+        registration.add(BuildActionRunner.class, BuildModelActionRunner.class);
+        registration.add(BuildActionRunner.class, TestExecutionRequestActionRunner.class);
+        registration.add(BuildActionRunner.class, ClientProvidedBuildActionRunner.class);
+        registration.add(BuildActionRunner.class, ClientProvidedPhasedActionRunner.class);
     }
 }

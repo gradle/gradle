@@ -17,22 +17,23 @@
 package gradlebuild.docs;
 
 import gradlebuild.buildutils.tasks.AbstractCheckOrUpdateContributorsInReleaseNotes;
-import gradlebuild.identity.extension.ModuleIdentityExtension;
 import gradlebuild.buildutils.tasks.CheckContributorsInReleaseNotes;
 import gradlebuild.buildutils.tasks.UpdateContributorsInReleaseNotes;
+import gradlebuild.identity.extension.GradleModuleExtension;
+import gradlebuild.identity.extension.ModuleIdentity;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.util.GradleVersion;
 
+import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-
-import java.nio.charset.Charset;
 
 /**
  * Opinionated plugin that generates the release notes for a Gradle release.
@@ -72,15 +73,15 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             task.getReleaseNotesJavascriptFile().convention(extension.getReleaseNotes().getReleaseNotesJsFile());
             task.getJquery().from(extension.getReleaseNotes().getJquery());
 
-            ModuleIdentityExtension moduleIdentity = project.getExtensions().getByType(ModuleIdentityExtension.class);
+            ModuleIdentity moduleIdentity = project.getExtensions().getByType(GradleModuleExtension.class).getIdentity();
 
             MapProperty<String, String> replacementTokens = task.getReplacementTokens();
-            String timestamp = moduleIdentity.getBuildTimestamp().get();
+            Provider<String> buildTimestamp = moduleIdentity.getBuildTimestamp();
             DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssZ");
-            ZonedDateTime dateTime = ZonedDateTime.parse(timestamp, inputFormatter);
             DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            Provider<String> dateTime = buildTimestamp.map(timestamp -> ZonedDateTime.parse(timestamp, inputFormatter).format(outputFormatter));
 
-            replacementTokens.put("releaseDate", dateTime.format(outputFormatter));
+            replacementTokens.put("releaseDate", dateTime);
             replacementTokens.put("version", moduleIdentity.getVersion().map(GradleVersion::getVersion));
             replacementTokens.put("baseVersion", moduleIdentity.getVersion().map(v -> v.getBaseVersion().getVersion()));
 

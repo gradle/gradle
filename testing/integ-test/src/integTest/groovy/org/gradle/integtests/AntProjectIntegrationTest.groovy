@@ -16,17 +16,16 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 
-import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.*
+import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
+import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 import static org.hamcrest.CoreMatchers.startsWith
 
 class AntProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
-    @ToBeFixedForConfigurationCache(because = "AntTarget task")
     void antTargetsAndGradleTasksCanDependOnEachOther() {
         testFile('build.xml') << """
 <project>
@@ -48,14 +47,13 @@ task ant(dependsOn: target1)
         target1File.assertDoesNotExist()
         target2File.assertDoesNotExist()
 
-        inTestDirectory().withTasks('ant').run().assertTasksExecutedInOrder(':initialize', ':target2', ':target1', ':ant')
+        inTestDirectory().withTasks('ant').run().assertTasksScheduledInOrder(':initialize', ':target2', ':target1', ':ant')
 
         target1File.assertExists()
         target2File.assertExists()
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "AntTarget task")
     void canImportMultipleBuildFilesWithDifferentBaseDirs() {
         testFile('project1/build.xml') << """
 <project>
@@ -83,14 +81,13 @@ task ant(dependsOn: [target1, target2])
         target1File.assertDoesNotExist()
         target2File.assertDoesNotExist()
 
-        inTestDirectory().withTasks('ant').run().assertTasksExecuted(':target1', ':target2', ':ant')
+        inTestDirectory().withTasks('ant').run().assertTasksScheduled(':target1', ':target2', ':ant')
 
         target1File.assertExists()
         target2File.assertExists()
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "AntTarget task")
     void handlesAntImportsOk() {
         testFile('imported.xml') << """
 <project>
@@ -118,7 +115,7 @@ task ant(dependsOn: [target1, target2])
         target1File.assertDoesNotExist()
         target2File.assertDoesNotExist()
 
-        inTestDirectory().withTasks('ant').run().assertTasksExecuted(':target1', ':target2', ':ant')
+        inTestDirectory().withTasks('ant').run().assertTasksScheduled(':target1', ':target2', ':ant')
 
         target1File.assertExists()
         target2File.assertExists()
@@ -145,7 +142,6 @@ ant.importBuild('build.xml')
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "AntTarget task")
     void reportsAntTaskExecutionFailure() {
         testFile('build.xml') << """
 <project>
@@ -164,7 +160,6 @@ ant.importBuild('build.xml')
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "AntTarget task")
     void targetDependenciesAreOrderedBasedOnDeclarationSequence() {
         testFile('build.xml') << """
 <project>
@@ -183,7 +178,7 @@ ant.importBuild('build.xml')
 ant.importBuild('build.xml')
 """
         inTestDirectory().withTasks('a', 'e', 'h').run()
-            .assertTasksExecutedInOrder any(
+            .assertTasksScheduledInOrder any(
                 exact(any(':d', ':c', ':b'), ':a'),
                 exact(any(':g', ':f'), ':e'),
                 exact(':i', ':h')
@@ -191,7 +186,6 @@ ant.importBuild('build.xml')
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "AntTarget task")
     void targetDependenciesOrderDoesNotCreateCycle() {
         testFile('build.xml') << """
 <project>
@@ -203,7 +197,7 @@ ant.importBuild('build.xml')
         testFile('build.gradle') << """
 ant.importBuild('build.xml')
 """
-        inTestDirectory().withTasks('a').run().assertTasksExecutedInOrder(':b', ':c', ':a')
+        inTestDirectory().withTasks('a').run().assertTasksScheduledInOrder(':b', ':c', ':a')
     }
 
     @Test
@@ -234,7 +228,6 @@ ant.importBuild('build.xml')
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "AntTarget task")
     void canApplyJavaPluginWithAntBuild() {
         testFile('build.xml') << """
 <project>
@@ -253,12 +246,11 @@ ant.importBuild(file('build.xml')) { antTaskName ->
 
 task ant(dependsOn: 'ant-target1')
 """
-        inTestDirectory().withTasks('clean', 'ant').run().assertTasksExecutedInOrder(':clean', ':ant-clean', ':ant-target2', ':ant-target1', ':ant')
+        inTestDirectory().withTasks('clean', 'ant').run().assertTasksScheduledInOrder(':clean', ':ant-clean', ':ant-target2', ':ant-target1', ':ant')
 
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "AntTarget task")
     void canRenameAntDelegateTask() {
         testFile('build.xml') << """
 <project>
@@ -275,7 +267,7 @@ ant.importBuild(file('build.xml')) { antTaskName ->
 
 task runAnt(dependsOn: 'a')
 """
-        inTestDirectory().withTasks('runAnt').run().assertTasksExecutedInOrder(':c', ':ant-b', ':a', ':runAnt')
+        inTestDirectory().withTasks('runAnt').run().assertTasksScheduledInOrder(':c', ':ant-b', ':a', ':runAnt')
 
     }
 }

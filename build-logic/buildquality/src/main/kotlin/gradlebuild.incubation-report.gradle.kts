@@ -49,7 +49,6 @@ consumableVariant("txt", reportTask.flatMap { it.textReportFile })
 consumableVariant("html", reportTask.flatMap { it.htmlReportFile })
 
 fun consumableVariant(reportType: String, artifact: Provider<RegularFile>) = configurations.create("incubatingReport${reportType.capitalize()}") {
-    isVisible = false
     isCanBeResolved = false
     isCanBeConsumed = true
     attributes {

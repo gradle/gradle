@@ -16,12 +16,14 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class GitAttributesGenerator implements BuildContentGenerator {
 
@@ -29,7 +31,7 @@ public class GitAttributesGenerator implements BuildContentGenerator {
     public void generate(InitSettings settings, BuildContentGenerationContext buildContentGenerationContext) {
         File file = settings.getTarget().file(".gitattributes").getAsFile();
         try {
-            try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
+            try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(file.toPath(), UTF_8))) {
                 writer.println("#");
                 writer.println("# https://help.github.com/articles/dealing-with-line-endings/");
                 writer.println("#");
@@ -44,7 +46,7 @@ public class GitAttributesGenerator implements BuildContentGenerator {
                 writer.println();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

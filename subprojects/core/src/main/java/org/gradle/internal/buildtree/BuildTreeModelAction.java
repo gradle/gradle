@@ -16,7 +16,7 @@
 
 package org.gradle.internal.buildtree;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface BuildTreeModelAction<T> {
     void beforeTasks(BuildTreeModelController controller);

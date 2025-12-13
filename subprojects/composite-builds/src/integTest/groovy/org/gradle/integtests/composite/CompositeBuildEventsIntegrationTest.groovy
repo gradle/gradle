@@ -40,10 +40,10 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
             }
 
             gradle.buildFinished { result ->
-                println '# gradle.buildFinished failure=' + Util.unpack(result.failure) + ' [' + gradle.identityPath + ']'
+                println '# gradle.buildFinished failure=' + Util.unpack(result.failure) + ' [' + gradle.buildPath + ']'
             }
             gradle.taskGraph.whenReady {
-                println '# gradle.taskGraphReady [' + gradle.identityPath + ']'
+                println '# gradle.taskGraphReady [' + gradle.buildPath + ']'
             }
             gradle.addBuildListener(new LoggingBuildListener())
             class LoggingBuildListener extends BuildAdapter {
@@ -52,13 +52,13 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
                     println '# buildListener.settingsEvaluated [:' + buildName + ']'
                 }
                 void projectsLoaded(Gradle gradle) {
-                    println '# buildListener.projectsLoaded [' + gradle.identityPath + ']'
+                    println '# buildListener.projectsLoaded [' + gradle.buildPath + ']'
                 }
                 void projectsEvaluated(Gradle gradle) {
-                    println '# buildListener.projectsEvaluated [' + gradle.identityPath + ']'
+                    println '# buildListener.projectsEvaluated [' + gradle.buildPath + ']'
                 }
                 void buildFinished(BuildResult result) {
-                    println '# buildListener.buildFinished failure=' + Util.unpack(result.failure) + ' [' + result.gradle.identityPath + ']'
+                    println '# buildListener.buildFinished failure=' + Util.unpack(result.failure) + ' [' + result.gradle.buildPath + ']'
                 }
             }
 """
@@ -245,10 +245,10 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         failure.assertHasFailures(2)
         failure.assertHasDescription("Could not compile settings file")
             .assertHasFileName("Settings file '${buildB.settingsFile}'")
-            .assertHasLineNumber(7)
+            .assertHasLineNumber(19)
         failure.assertHasDescription("build A broken")
             .assertHasFileName("Settings file '${buildA.settingsFile}'")
-            .assertHasLineNumber(6)
+            .assertHasLineNumber(19)
     }
 
     @ToBeFixedForConfigurationCache(because = "build listener")
@@ -298,10 +298,10 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
             .assertHasLineNumber(6)
         failure.assertHasCause("failed in build C")
             .assertHasFileName("Build file '${buildC.buildFile}'")
-            .assertHasLineNumber(12)
+            .assertHasLineNumber(9)
         failure.assertHasDescription("build C broken")
             .assertHasFileName("Build file '${buildC.buildFile}'")
-            .assertHasLineNumber(9)
+            .assertHasLineNumber(6)
     }
 
     @ToBeFixedForConfigurationCache(because = "build listener")
@@ -345,13 +345,13 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         failure.assertHasFailures(3)
         failure.assertHasDescription("build A broken")
             .assertHasFileName("Build file '${buildA.buildFile}'")
-            .assertHasLineNumber(17)
+            .assertHasLineNumber(14)
         failure.assertHasDescription("build B broken")
             .assertHasFileName("Build file '${buildB.buildFile}'")
-            .assertHasLineNumber(13)
+            .assertHasLineNumber(8)
         failure.assertHasDescription("build C broken")
             .assertHasFileName("Build file '${buildC.buildFile}'")
-            .assertHasLineNumber(9)
+            .assertHasLineNumber(6)
     }
 
     @ToBeFixedForConfigurationCache(because = "build listener")
@@ -403,16 +403,16 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         failure.assertHasFailures(4)
         failure.assertHasDescription("Execution failed for task ':buildB:broken'.")
             .assertHasFileName("Build file '${buildB.buildFile}'")
-            .assertHasLineNumber(16)
+            .assertHasLineNumber(11)
         failure.assertHasDescription("build A broken")
             .assertHasFileName("Build file '${buildA.buildFile}'")
-            .assertHasLineNumber(17)
+            .assertHasLineNumber(14)
         failure.assertHasDescription("build B broken")
             .assertHasFileName("Build file '${buildB.buildFile}'")
-            .assertHasLineNumber(13)
+            .assertHasLineNumber(8)
         failure.assertHasDescription("build C broken")
             .assertHasFileName("Build file '${buildC.buildFile}'")
-            .assertHasLineNumber(9)
+            .assertHasLineNumber(6)
     }
 
     void verifyBuildEvents() {

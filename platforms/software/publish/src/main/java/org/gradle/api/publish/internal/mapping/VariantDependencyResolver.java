@@ -19,8 +19,7 @@ package org.gradle.api.publish.internal.mapping;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.publish.internal.validation.VariantWarningCollector;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Given a declared dependency to be published, determines the coordinates

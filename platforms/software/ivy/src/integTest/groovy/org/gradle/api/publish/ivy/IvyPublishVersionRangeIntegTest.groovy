@@ -90,8 +90,7 @@ class IvyPublishVersionRangeIntegTest extends AbstractIvyPublishIntegTest {
             }
 
             dependencies {
-                api "group:projectA"
-                api group:"group", name:"projectB", version:null
+                api("group:projectA")
             }
         """
 
@@ -100,7 +99,7 @@ class IvyPublishVersionRangeIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         ivyModule.assertPublishedAsJavaModule()
-        ivyModule.parsedIvy.assertDependsOn("group:projectA:", "group:projectB:")
+        ivyModule.parsedIvy.assertDependsOn("group:projectA:")
     }
 
 }

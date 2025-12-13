@@ -32,7 +32,7 @@ dependencyResolutionManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention").version("0.9.0")
+    id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }
 
 includeBuild("../build-logic-settings")
@@ -56,15 +56,3 @@ include("gradle-plugin")
 include("publishing")
 
 rootProject.name = "build-logic-commons"
-
-// Make sure all the build-logic is compiled for the right Java version
-gradle.lifecycle.beforeProject {
-    pluginManager.withPlugin("java-base") {
-        the<JavaPluginExtension>().toolchain {
-            // if you change this java version please also consider changing .idea/misc.xml#project/component(@project-jdk-name}
-            // Also, there are a lot of other places this should be changed.
-            languageVersion = JavaLanguageVersion.of(17)
-            vendor = JvmVendorSpec.ADOPTIUM
-        }
-    }
-}

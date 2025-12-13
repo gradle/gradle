@@ -20,7 +20,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.ConfigureLogging
-import org.gradle.internal.logging.LoggingManagerInternal
+import org.gradle.internal.logging.LoggingManagerFactory
 import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.util.internal.RedirectStdOutAndErr
@@ -44,7 +44,7 @@ class LoggingServiceRegistryTest extends Specification {
         def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
 
         expect:
-        def factory = registry.getFactory(LoggingManagerInternal.class)
+        def factory = registry.get(LoggingManagerFactory)
         factory instanceof DefaultLoggingManagerFactory
     }
 
@@ -63,7 +63,7 @@ class LoggingServiceRegistryTest extends Specification {
         def logger = LoggerFactory.getLogger("category")
 
         when:
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         logger.warn("before")
 
         then:
@@ -85,7 +85,7 @@ class LoggingServiceRegistryTest extends Specification {
         given:
         def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
         def logger = LoggerFactory.getLogger("category")
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
 
@@ -120,7 +120,7 @@ class LoggingServiceRegistryTest extends Specification {
         given:
         def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
         def logger = Logger.getLogger("category")
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
 
@@ -154,7 +154,7 @@ class LoggingServiceRegistryTest extends Specification {
         def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
         def rootLogger = Logger.getLogger("")
         def logger = Logger.getLogger("category")
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
 
         when:
         rootLogger.level = Level.OFF
@@ -184,7 +184,7 @@ class LoggingServiceRegistryTest extends Specification {
 
         when:
         def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
 
         then:
         System.out == outputs.stdOutPrintStream
@@ -226,7 +226,7 @@ class LoggingServiceRegistryTest extends Specification {
 
         given:
         def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         loggingManager.captureStandardError(LogLevel.WARN)
         loggingManager.captureStandardOutput(LogLevel.INFO)
         loggingManager.levelInternal = LogLevel.INFO
@@ -236,7 +236,7 @@ class LoggingServiceRegistryTest extends Specification {
         loggingManager.start()
 
         when:
-        def nestedManager = registry.newInstance(LoggingManagerInternal)
+        def nestedManager = registry.get(LoggingManagerFactory).createLoggingManager()
         nestedManager.captureStandardError(LogLevel.INFO)
         nestedManager.captureStandardOutput(LogLevel.DEBUG)
         nestedManager.start()
@@ -268,7 +268,7 @@ class LoggingServiceRegistryTest extends Specification {
 
         given:
         def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
@@ -310,7 +310,7 @@ class LoggingServiceRegistryTest extends Specification {
 
         when:
         def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
 
         then:
         System.out == outputs.stdOutPrintStream
@@ -336,7 +336,7 @@ class LoggingServiceRegistryTest extends Specification {
 
         given:
         def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
 
         loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
@@ -364,7 +364,7 @@ class LoggingServiceRegistryTest extends Specification {
         given:
         def logger = LoggerFactory.getLogger("category")
         def registry = LoggingServiceRegistry.newCommandLineProcessLogging()
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
 
         when:
         logger.warn("before")
@@ -389,7 +389,7 @@ class LoggingServiceRegistryTest extends Specification {
         given:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def logger = LoggerFactory.getLogger("category")
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         def listener = Mock(StandardOutputListener)
 
         when:
@@ -414,7 +414,7 @@ class LoggingServiceRegistryTest extends Specification {
 
         given:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
@@ -443,7 +443,7 @@ class LoggingServiceRegistryTest extends Specification {
 
         given:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
@@ -470,7 +470,7 @@ class LoggingServiceRegistryTest extends Specification {
         given:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def logger = Logger.getLogger("category")
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
@@ -513,7 +513,7 @@ class LoggingServiceRegistryTest extends Specification {
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def rootLogger = Logger.getLogger("")
         def logger = Logger.getLogger("category")
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
 
         when:
         rootLogger.level = Level.OFF
@@ -542,7 +542,7 @@ class LoggingServiceRegistryTest extends Specification {
     def doesNotConsumeFromSystemOutAndErrWhenEmbedded() {
         when:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         loggingManager.levelInternal = LogLevel.INFO
         loggingManager.start()
 
@@ -556,7 +556,7 @@ class LoggingServiceRegistryTest extends Specification {
 
         when:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
@@ -598,7 +598,7 @@ class LoggingServiceRegistryTest extends Specification {
         given:
         def registry = LoggingServiceRegistry.newNestedLogging()
         def logger = LoggerFactory.getLogger("category")
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         def listener = Mock(StandardOutputListener)
 
         when:
@@ -617,7 +617,7 @@ class LoggingServiceRegistryTest extends Specification {
     def doesNotConsumeJavaUtilLoggingWhenNested() {
         given:
         def registry = LoggingServiceRegistry.newNestedLogging()
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         loggingManager.levelInternal = LogLevel.WARN
         loggingManager.start()
         def logger = Logger.getLogger("category")
@@ -634,7 +634,7 @@ class LoggingServiceRegistryTest extends Specification {
     def doesNotConsumeFromSystemOutputAndErrorWhenNested() {
         when:
         def registry = LoggingServiceRegistry.newNestedLogging()
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         loggingManager.levelInternal = LogLevel.WARN
         loggingManager.start()
 
@@ -648,7 +648,7 @@ class LoggingServiceRegistryTest extends Specification {
 
         when:
         def registry = LoggingServiceRegistry.newNestedLogging()
-        def loggingManager = registry.newInstance(LoggingManagerInternal)
+        def loggingManager = registry.get(LoggingManagerFactory).createLoggingManager()
         loggingManager.enableUserStandardOutputListeners()
         loggingManager.addStandardOutputListener(listener)
         loggingManager.start()

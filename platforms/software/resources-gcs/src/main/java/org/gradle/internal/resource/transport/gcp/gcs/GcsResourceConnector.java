@@ -24,10 +24,10 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.AbstractExternalResourceAccessor;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;

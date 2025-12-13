@@ -4,13 +4,6 @@ plugins {
 
 description = "Plugin and integration with JaCoCo code coverage"
 
-errorprone {
-    disabledChecks.addAll(
-        "ReferenceEquality", // 3 occurrences
-        "UnusedMethod", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
@@ -19,11 +12,13 @@ dependencies {
     api(projects.fileOperations)
     api(projects.platformJvm)
     api(projects.reporting)
+    api(projects.workers)
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
+    implementation(projects.daemonServerWorker)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
     implementation(projects.platformBase)

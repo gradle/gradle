@@ -23,7 +23,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyConstraintFactoryInternal;
@@ -68,15 +67,12 @@ import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
@@ -100,7 +96,6 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
-import org.gradle.internal.model.BuildTreeObjectFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
@@ -138,6 +133,8 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         registration.add(ResolvedArtifactSetResolver.class);
         registration.add(ExternalModuleComponentResolverFactory.class);
         registration.add(ResolverProviderFactories.class);
+        registration.add(DefaultProjectDependencyFactory.class);
+        registration.add(DependencyManagementManagedTypesFactory.class);
     }
 
     @Provides
@@ -162,18 +159,6 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     }
 
     @Provides
-    protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
-        return new DependencyMetaDataProviderImpl();
-    }
-
-    private static class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-        @Override
-        public Module getModule() {
-            return new AnonymousModule();
-        }
-    }
-
-    @Provides
     VersionComparator createVersionComparator() {
         return new DefaultVersionComparator();
     }
@@ -181,19 +166,6 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     @Provides
     CapabilityNotationParser createCapabilityNotationParser() {
         return new CapabilityNotationParserFactory(false).create();
-    }
-
-    @Provides
-    DefaultProjectDependencyFactory createProjectDependencyFactory(
-        Instantiator instantiator,
-        StartParameter startParameter,
-        AttributesFactory attributesFactory,
-        TaskDependencyFactory taskDependencyFactory,
-        CapabilityNotationParser capabilityNotationParser,
-        ObjectFactory objectFactory,
-        ProjectStateRegistry projectStateRegistry
-    ) {
-        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, objectFactory, attributesFactory, taskDependencyFactory, projectStateRegistry);
     }
 
     @Provides
@@ -210,12 +182,23 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     ) {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
+        DependencyNotationParser dependencyNotationParser = DependencyNotationParser.create(
+            instantiator,
+            factory,
+            classPathRegistry,
+            fileCollectionFactory,
+            runtimeShadedJarFactory,
+            stringInterner
+        );
+
         return new DefaultDependencyFactory(
             instantiator,
-            DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, stringInterner),
-            new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
-            capabilityNotationParser, objectFactory, projectDependencyFactory,
-            attributesFactory);
+            dependencyNotationParser,
+            capabilityNotationParser,
+            objectFactory,
+            projectDependencyFactory,
+            attributesFactory
+        );
     }
 
     @Provides
@@ -401,7 +384,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
 
     @Provides
     DependenciesAccessors createDependenciesAccessorGenerator(
-        BuildTreeObjectFactory objectFactory,
+        ObjectFactory objectFactory,
         ClassPathRegistry registry,
         DependenciesAccessorsWorkspaceProvider workspace,
         DefaultProjectDependencyFactory factory,

@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.plugins;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.CharSource;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
 import org.gradle.api.Transformer;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.resources.CharSourceBackedTextResource;
 import org.gradle.api.resources.TextResource;
+import org.gradle.internal.UncheckedException;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator;
 import org.gradle.util.internal.TextUtil;
@@ -34,6 +33,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedScriptGenerator {
@@ -56,7 +56,7 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
             String scriptContent = generateStartScriptContentFromTemplate(binding);
             destination.write(scriptContent);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -77,7 +77,7 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
             String output = template.make(binding).toString();
             return TextUtil.convertLineSeparators(output, lineSeparator);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -89,7 +89,7 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
                 if (stream == null) {
                     throw new IllegalStateException("Could not find class path resource " + filename + " relative to " + clazz.getName());
                 }
-                return new BufferedReader(new InputStreamReader(stream, Charsets.UTF_8));
+                return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
             }
         });
     }

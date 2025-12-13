@@ -22,7 +22,9 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.extensions.core.getInternalFlag
-import org.gradle.internal.extensions.core.getInternalString
+import org.gradle.internal.extensions.core.getString
+import org.gradle.internal.extensions.core.getStringOrNull
+import org.gradle.internal.file.FileSystem
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.util.internal.EncryptionAlgorithm
@@ -38,16 +40,17 @@ internal
 class DefaultEncryptionService(
     options: InternalOptions,
     private val cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
+    private val fileSystem: FileSystem
 ) : EncryptionService {
 
     private
     val encryptionRequestedOption: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.encryption", true)
 
     private
-    val keystoreDirOption: String? = options.getInternalString("org.gradle.configuration-cache.internal.key-store-dir", null)
+    val keystoreDirOption: String? = options.getStringOrNull("org.gradle.configuration-cache.internal.key-store-dir")
 
     private
-    val encryptionAlgorithmOption: String = options.getInternalString("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.getDefault().transformation)
+    val encryptionAlgorithmOption: String = options.getString("org.gradle.configuration-cache.internal.encryption-alg", SupportedEncryptionAlgorithm.getDefault().transformation)
 
     private
     val secretKey: SecretKey? by lazy {
@@ -119,7 +122,8 @@ class DefaultEncryptionService(
                     encryptionAlgorithm = encryptionAlgorithm.algorithm,
                     customKeyStoreDir = keystoreDirOption?.let { File(it) },
                     keyAlias = "gradle-secret",
-                    cacheBuilderFactory = cacheBuilderFactory
+                    cacheBuilderFactory = cacheBuilderFactory,
+                    fileSystem = fileSystem
                 )
 
             EncryptionKind.ENV_VAR ->
@@ -129,5 +133,7 @@ class DefaultEncryptionService(
 
             EncryptionKind.NONE ->
                 NoEncryptionKeySource()
+        }.apply {
+            logger.info("Encryption key source: $sourceDescription")
         }
 }

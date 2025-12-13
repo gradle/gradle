@@ -21,7 +21,7 @@ gradlePlugin {
 }
 
 dependencies {
-    "functionalTestImplementation"("org.spockframework:spock-core:2.2-groovy-3.0") {
+    "functionalTestImplementation"("org.spockframework:spock-core:2.3-groovy-4.0") {
         exclude(group = "org.codehaus.groovy")
     }
     "functionalTestRuntimeOnly"("org.junit.platform:junit-platform-launcher")

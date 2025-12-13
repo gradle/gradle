@@ -122,6 +122,8 @@ public interface JavaPluginExtension {
     void disableAutoTargetJvm();
 
     /**
+     * Enables generating a Javadoc artifact for the main feature of this project. If no components with a main feature are defined for this project, this has no effect.
+     * <P>
      * Adds a task {@code javadocJar} that will package the output of the {@code javadoc} task in a JAR with classifier {@code javadoc}.
      * <P>
      * The produced artifact is registered as a documentation variant on the {@code java} component and added as a dependency on the {@code assemble} task.
@@ -138,6 +140,8 @@ public interface JavaPluginExtension {
     void withJavadocJar();
 
     /**
+     * Enables generating a sources artifact for the main feature of this project. If no components with a main feature are defined for this project, this has no effect.
+     * <P>
      * Adds a task {@code sourcesJar} that will package the Java sources of the main {@link org.gradle.api.tasks.SourceSet SourceSet} in a JAR with classifier {@code sources}.
      * <P>
      * The produced artifact is registered as a documentation variant on the {@code java} component and added as a dependency on the {@code assemble} task.
@@ -184,7 +188,9 @@ public interface JavaPluginExtension {
     JavaToolchainSpec toolchain(Action<? super JavaToolchainSpec> action);
 
     /**
-     * Configure the dependency resolution consistency for this Java project.
+     * Configure the dependency resolution consistency for this Java project. If no components, features or source sets are added to this project, this has no effect.
+     * <p>
+     * The given {@link JavaResolutionConsistency} is used to configure consistent resolution for this project.
      *
      * @param action the configuration action
      *
@@ -196,8 +202,17 @@ public interface JavaPluginExtension {
     /**
      * Configures the source sets of this project.
      *
-     * <p>The given closure is executed to configure the {@link SourceSetContainer}. The {@link SourceSetContainer}
-     * is passed to the closure as its delegate.
+     * @param closure The closure to execute.
+     * @return NamedDomainObjectContainer&lt;org.gradle.api.tasks.SourceSet&gt;
+     * @since 7.1
+     * @see #sourceSets(Action)
+     */
+    Object sourceSets(@SuppressWarnings("rawtypes") Closure closure);
+
+    /**
+     Configures the source sets of this project.
+     *
+     * <p>The given action is executed to configure the {@link SourceSetContainer}.
      * <p>
      * See the example below how {@link org.gradle.api.tasks.SourceSet} 'main' is accessed and how the {@link org.gradle.api.file.SourceDirectorySet} 'java'
      * is configured to exclude some package from compilation.
@@ -216,11 +231,11 @@ public interface JavaPluginExtension {
      * }
      * </pre>
      *
-     * @param closure The closure to execute.
-     * @return NamedDomainObjectContainer&lt;org.gradle.api.tasks.SourceSet&gt;
-     * @since 7.1
+     * @param action the configuration action
+     * @since 9.3.0
      */
-    Object sourceSets(@SuppressWarnings("rawtypes") Closure closure);
+    @Incubating
+    void sourceSets(Action<? super SourceSetContainer> action);
 
     /**
      * Returns a file pointing to the root directory supposed to be used for all docs.

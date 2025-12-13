@@ -30,11 +30,10 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.internal.Cast;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -46,21 +45,19 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.internal.UncheckedException.uncheckedCall;
 
-@SuppressWarnings({"deprecation", "FieldNamingConvention"})
-public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.internal.HasConvention {
+@SuppressWarnings("FieldNamingConvention")
+public class ConventionAwareHelper implements ConventionMapping {
     //prefix internal fields with _ so that they don't get into the way of propertyMissing()
-    private final org.gradle.api.plugins.Convention _convention;
     private final IConventionAware _source;
     // These are properties that could have convention mapping applied to them
     private final Set<String> _propertyNames;
     // These are properties that should not be allowed to use convention mapping
     private final Set<String> _ineligiblePropertyNames;
 
-    private final Map<String, MappedPropertyImpl> _mappings = new HashMap<String, MappedPropertyImpl>();
+    private final Map<String, MappedPropertyImpl> _mappings = new HashMap<>();
 
-    public ConventionAwareHelper(IConventionAware source, org.gradle.api.plugins.Convention convention) {
+    public ConventionAwareHelper(IConventionAware source) {
         this._source = source;
-        this._convention = convention;
         this._propertyNames = JavaPropertyReflectionUtil.propertyNames(source);
         this._ineligiblePropertyNames = new HashSet<>();
     }
@@ -103,20 +100,20 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
     private boolean mapConventionOn(SupportsConvention target, MappedPropertyImpl mapping) {
         if (target instanceof FileSystemLocationProperty) {
             FileSystemLocationPropertyInternal<?> asFileSystemLocationProperty = Cast.uncheckedNonnullCast(target);
-            asFileSystemLocationProperty.conventionFromAnyFile(new DefaultProvider<>(() -> mapping.getValue(_convention, _source)));
+            asFileSystemLocationProperty.conventionFromAnyFile(new DefaultProvider<>(() -> mapping.getValue()));
         } else if (target instanceof Property) {
             Property<Object> asProperty = Cast.uncheckedNonnullCast(target);
-            asProperty.convention(new DefaultProvider<>(() -> mapping.getValue(_convention, _source)));
+            asProperty.convention(new DefaultProvider<>(() -> mapping.getValue()));
         } else if (target instanceof MapProperty) {
             MapProperty<Object, Object> asMapProperty = Cast.uncheckedNonnullCast(target);
-            DefaultProvider<Map<Object, Object>> convention = new DefaultProvider<>(() -> Cast.uncheckedNonnullCast(mapping.getValue(_convention, _source)));
+            DefaultProvider<Map<Object, Object>> convention = new DefaultProvider<>(() -> Cast.uncheckedNonnullCast(mapping.getValue()));
             asMapProperty.convention(convention);
         } else if (target instanceof HasMultipleValues) {
             HasMultipleValues<Object> asCollectionProperty = Cast.uncheckedNonnullCast(target);
-            asCollectionProperty.convention(new DefaultProvider<>(() -> Cast.uncheckedNonnullCast(mapping.getValue(_convention, _source))));
+            asCollectionProperty.convention(new DefaultProvider<>(() -> Cast.uncheckedNonnullCast(mapping.getValue())));
         } else if (target instanceof ConfigurableFileCollection) {
             ConfigurableFileCollection asFileCollection = Cast.uncheckedNonnullCast(target);
-            asFileCollection.convention((Callable) () -> mapping.getValue(_convention, _source));
+            asFileCollection.convention((Callable) () -> mapping.getValue());
         } else {
             return false;
         }
@@ -127,15 +124,8 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
     public MappedProperty map(String propertyName, final Closure<?> value) {
         return map(propertyName, new MappedPropertyImpl() {
             @Override
-            public Object doGetValue(org.gradle.api.plugins.Convention convention, IConventionAware conventionAwareObject) {
-                switch (value.getMaximumNumberOfParameters()) {
-                    case 0:
-                        return value.call();
-                    case 1:
-                        return value.call(convention);
-                    default:
-                        return value.call(convention, conventionAwareObject);
-                }
+            public Object doGetValue() {
+                return value.call();
             }
         });
     }
@@ -144,7 +134,7 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
     public MappedProperty map(String propertyName, final Callable<?> value) {
         return map(propertyName, new MappedPropertyImpl() {
             @Override
-            public Object doGetValue(org.gradle.api.plugins.Convention convention, IConventionAware conventionAwareObject) {
+            public Object doGetValue() {
                 return uncheckedCall(value);
             }
         });
@@ -178,20 +168,10 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
                 useMapping = false;
             }
             if (useMapping) {
-                returnValue = Cast.uncheckedNonnullCast(_mappings.get(propertyName).getValue(_convention, _source));
+                returnValue = Cast.uncheckedNonnullCast(_mappings.get(propertyName).getValue());
             }
         }
         return returnValue;
-    }
-
-    @Deprecated
-    @Override
-    public org.gradle.api.plugins.Convention getConvention() {
-        DeprecationLogger.deprecateType(org.gradle.api.internal.HasConvention.class)
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "deprecated_access_to_conventions")
-            .nagUser();
-        return _convention;
     }
 
     private static abstract class MappedPropertyImpl implements MappedProperty {
@@ -200,12 +180,12 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
         private Object cachedValue;
 
         @Nullable
-        public Object getValue(org.gradle.api.plugins.Convention convention, IConventionAware conventionAwareObject) {
+        public Object getValue() {
             if (!cache) {
-                return doGetValue(convention, conventionAwareObject);
+                return doGetValue();
             }
             if (!haveValue) {
-                cachedValue = doGetValue(convention, conventionAwareObject);
+                cachedValue = doGetValue();
                 haveValue = true;
             }
             return cachedValue;
@@ -218,6 +198,6 @@ public class ConventionAwareHelper implements ConventionMapping, org.gradle.api.
         }
 
         @Nullable
-        abstract Object doGetValue(org.gradle.api.plugins.Convention convention, IConventionAware conventionAwareObject);
+        abstract Object doGetValue();
     }
 }

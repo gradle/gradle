@@ -17,10 +17,15 @@
 package org.gradle.architecture.test;
 
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import kotlin.Pair;
 import kotlin.jvm.functions.Function1;
 import kotlin.reflect.KClass;
@@ -45,18 +50,20 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.codeUnits;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
-import static org.gradle.architecture.test.ArchUnitFixture.beAbstract;
+import static org.gradle.architecture.test.ArchUnitFixture.beAbstractClass;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.gradleInternalApi;
 import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
 import static org.gradle.architecture.test.ArchUnitFixture.haveDirectSuperclassOrInterfaceThatAre;
 import static org.gradle.architecture.test.ArchUnitFixture.haveOnlyArgumentsOrReturnTypesThatAre;
+import static org.gradle.architecture.test.ArchUnitFixture.not_from_fileevents;
 import static org.gradle.architecture.test.ArchUnitFixture.not_written_in_kotlin;
 import static org.gradle.architecture.test.ArchUnitFixture.overrideMethod;
 import static org.gradle.architecture.test.ArchUnitFixture.primitive;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
-import static org.gradle.architecture.test.ArchUnitFixture.useJavaxAnnotationNullable;
+import static org.gradle.architecture.test.ArchUnitFixture.useJSpecifyNullable;
 
 @AnalyzeClasses(packages = "org.gradle")
 public class PublicApiCorrectnessTest {
@@ -93,9 +100,15 @@ public class PublicApiCorrectnessTest {
     );
 
     @ArchTest
+    public static final ArchRule public_api_methods_with_closures = freeze(methods()
+        .that(are(public_api_methods))
+        .should(new ArchUnitFixture.HaveGradleTypeEquivalent())
+    );
+
+    @ArchTest
     public static final ArchRule public_api_tasks_and_plugins_are_abstract = classes()
             .that(are(public_api_tasks_or_plugins))
-            .should(beAbstract());
+            .should(beAbstractClass());
 
 
     @ArchTest
@@ -110,12 +123,37 @@ public class PublicApiCorrectnessTest {
      */
     @ArchTest
     public static final ArchRule all_methods_use_proper_Nullable = methods()
-            .that(are(not_written_in_kotlin))
-            .should(useJavaxAnnotationNullable()
+            .that(are(not_written_in_kotlin).and(are(not_from_fileevents)))
+            .should(useJSpecifyNullable()
     );
 
     @ArchTest
     public static final ArchRule named_domain_object_collection_implementations_override_named_method = classes()
         .that(implement(NamedDomainObjectCollection.class))
         .should(overrideMethod("named", new Class<?>[] {Spec.class}, NamedDomainObjectCollection.class));
+
+    @ArchTest
+    public static final ArchRule contract_annotations_not_used_in_public_api = codeUnits()
+        .that(are(public_api_methods))
+        .should(notBeAnnotatedWith(jetbrainsContractAnnotation()));
+
+    private static ArchCondition<JavaCodeUnit> notBeAnnotatedWith(DescribedPredicate<JavaAnnotation<?>> annotations) {
+        return new ArchCondition<>("not be annotated with " + annotations.getDescription()) {
+            @Override
+            public void check(JavaCodeUnit item, ConditionEvents events) {
+                if (item.getAnnotations().stream().anyMatch(annotations)) {
+                    events.add(new SimpleConditionEvent(item, false, item.getFullName() + " is annotated with " + annotations.getDescription()));
+                }
+            }
+        };
+    }
+
+    private static DescribedPredicate<JavaAnnotation<?>> jetbrainsContractAnnotation() {
+        return new DescribedPredicate<>("JetBrains @Contract annotation") {
+            @Override
+            public boolean test(JavaAnnotation<?> javaAnnotation) {
+                return "org.jetbrains.annotations.Contract".equals(javaAnnotation.getRawType().getName());
+            }
+        };
+    }
 }

@@ -42,12 +42,12 @@ import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
@@ -76,6 +76,11 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
     }
 
     @Provides
+    ManagedObjectRegistry decorateManagedObjectRegistry(ManagedObjectRegistry parent) {
+        return parent.createChild();
+    }
+
+    @Provides
     protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost) {
         return parent.forChildScope(fileResolver, taskDependencyFactory, propertyHost);
     }
@@ -87,44 +92,44 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
 
     @Provides
     protected FileOperations createFileOperations(
-            FileResolver fileResolver,
-            Instantiator instantiator,
-            DirectoryFileTreeFactory directoryFileTreeFactory,
-            FileHasher fileHasher,
-            DefaultResourceHandler.Factory resourceHandlerFactory,
-            FileCollectionFactory fileCollectionFactory,
-            ObjectFactory objectFactory,
-            FileSystem fileSystem,
-            Factory<PatternSet> patternSetFactory,
-            Deleter deleter,
-            DocumentationRegistry documentationRegistry,
-            ProviderFactory providers,
-            TaskDependencyFactory taskDependencyFactory,
-            DecompressionCoordinator decompressionCoordinator,
-            TemporaryFileProvider temporaryFileProvider
+        FileResolver fileResolver,
+        Instantiator instantiator,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        FileHasher fileHasher,
+        DefaultResourceHandler.Factory resourceHandlerFactory,
+        FileCollectionFactory fileCollectionFactory,
+        PropertyFactory propertyFactory,
+        FileSystem fileSystem,
+        PatternSetFactory patternSetFactory,
+        Deleter deleter,
+        DocumentationRegistry documentationRegistry,
+        ProviderFactory providers,
+        TaskDependencyFactory taskDependencyFactory,
+        DecompressionCoordinator decompressionCoordinator,
+        TemporaryFileProvider temporaryFileProvider
     ) {
         return new DefaultFileOperations(
-                fileResolver,
-                instantiator,
-                directoryFileTreeFactory,
-                fileHasher,
-                resourceHandlerFactory,
-                fileCollectionFactory,
-                objectFactory,
-                fileSystem,
-                patternSetFactory,
-                deleter,
-                documentationRegistry,
-                taskDependencyFactory,
-                providers,
+            fileResolver,
+            instantiator,
+            directoryFileTreeFactory,
+            fileHasher,
+            resourceHandlerFactory,
+            fileCollectionFactory,
+            propertyFactory,
+            fileSystem,
+            patternSetFactory,
+            deleter,
+            documentationRegistry,
+            taskDependencyFactory,
+            providers,
             decompressionCoordinator,
-                temporaryFileProvider
+            temporaryFileProvider
         );
     }
 
     @Provides
-    protected FileSystemOperations createFileSystemOperations(ObjectFactory objectFactory, Instantiator instantiator, FileOperations fileOperations) {
-        return instantiator.newInstance(DefaultFileSystemOperations.class, objectFactory, fileOperations);
+    protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
+        return instantiator.newInstance(DefaultFileSystemOperations.class, instantiator, fileOperations);
     }
 
     @Provides
@@ -138,18 +143,20 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
     }
 
     @Provides
-    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory,
-                                      PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
-                                      DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator) {
+    ObjectFactory createObjectFactory(
+        InstantiatorFactory instantiatorFactory, ServiceRegistry services, PatternSetFactory patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory,
+        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
+        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator
+    ) {
         return new DefaultObjectFactory(
-                instantiatorFactory.decorate(services),
-                namedObjectInstantiator,
-                directoryFileTreeFactory,
-                patternSetFactory,
-                propertyFactory,
-                filePropertyFactory,
-                taskDependencyFactory,
-                fileCollectionFactory,
-                domainObjectCollectionFactory);
+            instantiatorFactory.decorate(services),
+            namedObjectInstantiator,
+            directoryFileTreeFactory,
+            patternSetFactory,
+            propertyFactory,
+            filePropertyFactory,
+            taskDependencyFactory,
+            fileCollectionFactory,
+            domainObjectCollectionFactory);
     }
 }

@@ -20,7 +20,6 @@ import groovy.namespace.QName;
 import groovy.util.Node;
 import groovy.xml.XmlParser;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.DomNode;
 import org.gradle.api.model.ObjectFactory;
@@ -47,11 +46,15 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
     private static final String ACCESS_EXTERNAL_DTD = "http://javax.xml.XMLConstants/property/accessExternalDTD";
     private static final String ALLOW_ANY_EXTERNAL_DTD = "all";
+
+    // Pattern to match plausible Jakarta EE Versions "9", "10", "11" ... "99"
+    private static final Pattern JAKARTA_VERSION_PATTERN = Pattern.compile("9|[1-9][0-9]");
 
     private final XmlTransformer transformer = new XmlTransformer();
     private final PathToFileResolver fileResolver;
@@ -228,6 +231,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     }
 
     @Override
+    @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public boolean readFrom(Object path) {
         if (fileResolver == null) {
             return false;
@@ -241,7 +245,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
             readFrom(reader);
             return true;
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -333,9 +337,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
                         break;
                 }
             }
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
-        } catch (SAXException ex) {
+        } catch (IOException | SAXException ex) {
             throw UncheckedException.throwAsUncheckedException(ex);
         } finally {
             IoActions.closeQuietly(reader);
@@ -371,7 +373,9 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     private DomNode toXmlNode() {
         DomNode root = new DomNode(nodeNameFor("application"));
         Map<String, String> rootAttributes = Cast.uncheckedCast(root.attributes());
-        rootAttributes.put("version", version);
+        if (version != null) {
+            rootAttributes.put("version", version);
+        }
         if (!"1.3".equals(version)) {
             rootAttributes.put("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
         }
@@ -384,7 +388,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
             rootAttributes.put("xsi:schemaLocation", "http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_" + version + ".xsd");
         } else if ("7".equals(version) || "8".equals(version)) {
             rootAttributes.put("xsi:schemaLocation", "http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/application_" + version + ".xsd");
-        } else if ("9".equals(version) || "10".equals(version)) {
+        } else if (version != null && JAKARTA_VERSION_PATTERN.matcher(version).matches()) {
             rootAttributes.put("xsi:schemaLocation", "https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/application_" + version + ".xsd");
         }
         if (applicationName != null) {
@@ -440,7 +444,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
             return new QName("http://java.sun.com/xml/ns/javaee", name);
         } else if ("7".equals(version) || "8".equals(version)) {
             return new QName("http://xmlns.jcp.org/xml/ns/javaee", name);
-        } else if ("9".equals(version) || "10".equals(version)) {
+        } else if (version != null && JAKARTA_VERSION_PATTERN.matcher(version).matches()) {
             return new QName("https://jakarta.ee/xml/ns/jakartaee", name);
         } else {
             return new QName(name);

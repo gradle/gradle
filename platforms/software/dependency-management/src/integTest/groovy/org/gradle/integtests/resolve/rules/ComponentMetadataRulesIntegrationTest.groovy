@@ -303,7 +303,7 @@ dependencies {
             }
 
             def rules1 = provider { rulesInvoked }
-            resolve.doLast {
+            tasks.resolve.doLast {
                 assert rules1.get() == [ '1.0', '1.0', '1.0', '1.0', '1.0' ]
                 assert VerifyingRule.ruleInvoked
             }
@@ -317,6 +317,7 @@ dependencies {
         }
 
         then:
+        executer.expectDocumentedDeprecationWarning("The ComponentMetadataHandler.all(Object) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_management_rules")
         succeeds 'resolve'
     }
 
@@ -384,7 +385,7 @@ dependencies {
 
             def rules1 = provider { rulesInvoked }
             def rules2 = provider { rulesUninvoked }
-            resolve.doLast {
+            tasks.resolve.doLast {
                 assert rules1.get().sort() == [ 1, 2, 3 ]
                 assert rules2.get().empty
                 assert InvokedRule.ruleInvoked
@@ -400,6 +401,9 @@ dependencies {
         }
 
         then:
+        executer.expectDocumentedDeprecationWarning("The ComponentMetadataHandler.withModule(Object,Object) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_management_rules")
+        executer.expectDocumentedDeprecationWarning("The ComponentMetadataHandler.withModule(Object,Object) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_management_rules")
+
         succeeds 'resolve'
     }
 
@@ -418,9 +422,11 @@ dependencies {
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The ComponentMetadataHandler.all(Object) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_management_rules")
         fails "resolve"
 
         then:
+        executer.expectDocumentedDeprecationWarning("The ComponentMetadataHandler.all(Object) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_management_rules")
         fails 'resolveConf'
         failureDescriptionStartsWith("A problem occurred evaluating root project")
         failure.assertHasCause("""Type BadRuleSource is not a valid rule source:
@@ -454,7 +460,7 @@ dependencies {
     }
 }
 
-resolve.doLast {
+tasks.resolve.doLast {
     assert plainRuleInvoked
     assert mavenRuleInvoked
     assert !ivyRuleInvoked
@@ -684,7 +690,7 @@ task downloadRules {
     }
 }
 
-resolve.dependsOn(downloadRules)
+tasks.resolve.dependsOn(tasks.downloadRules)
 
 """
 

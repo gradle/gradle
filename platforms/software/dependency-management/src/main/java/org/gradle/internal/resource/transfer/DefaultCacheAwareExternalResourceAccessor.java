@@ -18,12 +18,12 @@ package org.gradle.internal.resource.transfer;
 
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.UncheckedIOException;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
@@ -40,10 +40,10 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -134,7 +134,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                         try {
                             resource = copyCandidateToCache(location, fileStore, remoteMetaData, remoteChecksum, local);
                         } catch (IOException e) {
-                            throw new UncheckedIOException(e);
+                            throw UncheckedException.throwAsUncheckedException(e);
                         }
                         if (resource != null) {
                             return resource;

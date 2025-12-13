@@ -35,16 +35,20 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.snapshot.impl.IsolatableSerializerRegistry;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
+import org.gradle.launcher.cli.internal.HelpRenderer;
+import org.gradle.launcher.cli.internal.VersionInfoRenderer;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
@@ -62,6 +66,7 @@ import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
+import org.gradle.tooling.internal.build.DefaultHelp;
 import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter;
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
@@ -86,6 +91,7 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.build.BuildEnvironment;
+import org.gradle.tooling.model.build.Help;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
@@ -98,6 +104,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
@@ -115,6 +122,7 @@ public class ProviderConnection {
     private final UserInputReader userInputReader;
     private final ShutdownCoordinator shutdownCoordinator;
     private final NotifyDaemonClientExecuter notifyDaemonClientExecuter;
+    private final IsolatableSerializerRegistry isolatableSerializerRegistry;
 
     private GradleVersion consumerVersion;
 
@@ -128,7 +136,8 @@ public class ProviderConnection {
         GlobalUserInputReceiver userInputReceiver,
         UserInputReader userInputReader,
         ShutdownCoordinator shutdownCoordinator,
-        NotifyDaemonClientExecuter notifyDaemonClientExecuter
+        NotifyDaemonClientExecuter notifyDaemonClientExecuter,
+        IsolatableSerializerRegistry isolatableSerializerRegistry
     ) {
         this.buildLayoutFactory = buildLayoutFactory;
         this.daemonClientFactory = daemonClientFactory;
@@ -140,13 +149,14 @@ public class ProviderConnection {
         this.userInputReader = userInputReader;
         this.shutdownCoordinator = shutdownCoordinator;
         this.notifyDaemonClientExecuter = notifyDaemonClientExecuter;
+        this.isolatableSerializerRegistry = isolatableSerializerRegistry;
     }
 
     public void configure(ProviderConnectionParameters parameters, GradleVersion consumerVersion) {
         this.consumerVersion = consumerVersion;
         LogLevel providerLogLevel = parameters.getVerboseLogging() ? LogLevel.DEBUG : LogLevel.INFO;
         LOGGER.debug("Configuring logging to level: {}", providerLogLevel);
-        LoggingManagerInternal loggingManager = sharedServices.newInstance(LoggingManagerInternal.class);
+        LoggingManagerInternal loggingManager = sharedServices.get(LoggingManagerFactory.class).createLoggingManager();
         loggingManager.setLevelInternal(providerLogLevel);
         loggingManager.start();
     }
@@ -162,15 +172,26 @@ public class ProviderConnection {
             if (tasks != null) {
                 throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
             }
+            File javaHome = reportableJavaHomeForBuild(params);
             return new DefaultBuildEnvironment(
                 new DefaultBuildIdentifier(providerParameters.getProjectDir()),
                 params.buildLayout.getGradleUserHomeDir(),
                 GradleVersion.current().getVersion(),
-                reportableJavaHomeForBuild(params),
-                params.daemonParams.getEffectiveJvmArgs());
+                javaHome,
+                params.daemonParams.getEffectiveJvmArgs(),
+                VersionInfoRenderer.renderWithLauncherJvm(Jvm.forHome(javaHome).toString())
+            );
         }
 
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer);
+        if (Help.class.getName().equals(modelName)) {
+            if (tasks != null) {
+                throw new IllegalArgumentException("Cannot run tasks and fetch the Help model.");
+            }
+            String help = HelpRenderer.render(null, true);
+            return new DefaultHelp(help);
+        }
+
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
         BuildAction action = new BuildModelAction(params.startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
     }
@@ -207,7 +228,7 @@ public class ProviderConnection {
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
         BuildAction action = new ClientProvidedBuildAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
     }
@@ -223,7 +244,7 @@ public class ProviderConnection {
         Parameters params = initParams(providerParameters);
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
         FailsafePhasedActionResultListener failsafePhasedActionResultListener = new FailsafePhasedActionResultListener(resultListener);
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
         BuildAction action = new ClientProvidedPhasedAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
         try {
             return run(action, cancellationToken, listenerConfig, new PhasedActionEventConsumer(failsafePhasedActionResultListener, payloadSerializer, listenerConfig.buildEventConsumer),
@@ -236,7 +257,7 @@ public class ProviderConnection {
     public Object runTests(ProviderInternalTestExecutionRequest testExecutionRequest, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         Parameters params = initParams(providerParameters);
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties);
-        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
         TestExecutionRequestAction action = TestExecutionRequestAction.create(listenerConfig.clientSubscriptions, startParameter, testExecutionRequest);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
     }
@@ -305,13 +326,13 @@ public class ProviderConnection {
         }
         CompositeStoppable stoppable = new CompositeStoppable();
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
-            loggingManager = sharedServices.getFactory(LoggingManagerInternal.class).create();
+            loggingManager = sharedServices.get(LoggingManagerFactory.class).createLoggingManager();
             loggingManager.captureSystemSources();
             executor = new RunInProcess(new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(userInputReceiver, userInputReader, standardInput, embeddedExecutor)));
         } else {
             ServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();
-            loggingManager = requestSpecificLogging.getFactory(LoggingManagerInternal.class).create();
-            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, params.requestContext, standardInput);
+            loggingManager = requestSpecificLogging.get(LoggingManagerFactory.class).createLoggingManager();
+            ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(requestSpecificLogging, params.daemonParams, params.requestContext, standardInput, Optional.ofNullable(operationParameters.getBuildProgressListener()));
             stoppable.add(clientServices);
             stoppable.add(requestSpecificLogging);
             executor = clientServices.get(DaemonClient.class);
@@ -341,7 +362,7 @@ public class ProviderConnection {
 
         AllProperties properties = new LayoutToPropertiesConverter(buildLayoutFactory).convert(initialProperties, buildLayoutResult);
 
-        DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult.getGradleUserHomeDir(), fileCollectionFactory);
+        DaemonParameters daemonParams = new DaemonParameters(buildLayoutResult.getGradleUserHomeDir(), fileCollectionFactory, Collections.emptyMap(), operationParameters.getEnvironmentVariables(null));
         new DaemonBuildOptions().propertiesConverter().convert(properties.getProperties(), daemonParams);
         if (operationParameters.getDaemonBaseDir() != null) {
             daemonParams.setBaseDir(operationParameters.getDaemonBaseDir());
@@ -373,11 +394,6 @@ public class ProviderConnection {
         // Include the system properties that are defined in the daemon JVM args
         properties = properties.merge(daemonParams.getSystemProperties());
 
-        Map<String, String> envVariables = operationParameters.getEnvironmentVariables(null);
-        if (envVariables != null) {
-            daemonParams.setEnvironmentVariables(envVariables);
-        }
-
         File javaHome = operationParameters.getJavaHome();
         if (javaHome != null) {
             daemonParams.setRequestedJvmCriteria(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.TOOLING_API_CLIENT, javaHome));
@@ -400,11 +416,14 @@ public class ProviderConnection {
             effectiveSystemProperties.putAll(daemonParams.getMutableAndImmutableSystemProperties());
         }
         StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(operationParameters, buildLayoutResult, properties);
+        if (requestContext.getJvmCriteria() instanceof DaemonJvmCriteria.Spec) {
+            startParameter.setDaemonJvmCriteriaConfigured(true);
+        }
 
         Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
         gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
         gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
-        new BuildOptionBackedConverter<>(new ToolchainBuildOptions()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, daemonParams.getToolchainConfiguration());
+        new BuildOptionBackedConverter<>(ToolchainBuildOptions.forToolChainConfiguration()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, daemonParams.getToolchainConfiguration());
 
         return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, startParameter, requestContext);
     }
@@ -479,7 +498,8 @@ public class ProviderConnection {
         static ProgressListenerConfiguration from(
             ProviderOperationParameters providerParameters,
             GradleVersion consumerVersion,
-            PayloadSerializer payloadSerializer
+            PayloadSerializer payloadSerializer,
+            IsolatableSerializerRegistry isolatableSerializerRegistry
         ) {
             InternalBuildProgressListener buildProgressListener = providerParameters.getBuildProgressListener();
             Set<OperationType> operationTypes = toOperationTypes(buildProgressListener, consumerVersion);
@@ -487,7 +507,7 @@ public class ProviderConnection {
             FailsafeBuildProgressListenerAdapter progressListenerAdapter = new FailsafeBuildProgressListenerAdapter(buildProgressListener);
             BuildEventConsumer
                 buildEventConsumer = clientSubscriptions.isAnyOperationTypeRequested() ? new BuildProgressListenerInvokingBuildEventConsumer(progressListenerAdapter) : new NoOpBuildEventConsumer();
-            buildEventConsumer = new ProblemAdditionalDataRemapper(payloadSerializer, buildEventConsumer);
+            buildEventConsumer = new ProblemAdditionalDataRemapper(payloadSerializer, buildEventConsumer, isolatableSerializerRegistry);
             buildEventConsumer = new StreamedValueConsumer(providerParameters, payloadSerializer, buildEventConsumer);
             if (Boolean.TRUE.equals(providerParameters.isEmbedded())) {
                 // Contract requires build events are delivered by a single thread. This is taken care of by the daemon client when not in embedded mode

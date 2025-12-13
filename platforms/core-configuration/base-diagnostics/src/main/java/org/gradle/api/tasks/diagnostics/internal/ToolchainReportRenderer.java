@@ -36,8 +36,7 @@ public class ToolchainReportRenderer extends TextReportRenderer {
     public void printDetectedToolchain(JvmToolchainMetadata toolchain) {
         StyledTextOutput output = getTextOutput();
         JvmInstallationMetadata metadata = toolchain.metadata;
-        String displayName = metadata.getDisplayName();
-        output.withStyle(Identifier).println(" + " + displayName + " " + metadata.getRuntimeVersion());
+        output.withStyle(Identifier).println(" + " + metadata.getDisplayName());
         printMetadata(DETECTED_TOOLCHAIN_INDENT, metadata);
         printAttribute(DETECTED_TOOLCHAIN_INDENT, "Detected by", toolchain.location.getSource());
         output.println();
@@ -45,8 +44,7 @@ public class ToolchainReportRenderer extends TextReportRenderer {
 
     public void printToolchainMetadata(JvmInstallationMetadata metadata) {
         StyledTextOutput output = getTextOutput();
-        String displayName = metadata.getDisplayName();
-        output.withStyle(Identifier).println(displayName + " " + metadata.getRuntimeVersion());
+        output.withStyle(Identifier).println(metadata.getDisplayName());
         printMetadata(TOOLCHAIN_METADATA_INDENT, metadata);
         output.println();
     }

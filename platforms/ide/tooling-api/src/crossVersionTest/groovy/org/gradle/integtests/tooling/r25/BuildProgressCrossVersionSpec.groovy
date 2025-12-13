@@ -28,7 +28,7 @@ import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.model.gradle.BuildInvocations
 
-@ToolingApiVersion("<8.12")
+@ToolingApiVersion(">=8.0 <8.12")
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
     def "receive build progress events when requesting a model"() {

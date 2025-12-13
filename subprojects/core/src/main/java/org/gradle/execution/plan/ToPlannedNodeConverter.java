@@ -16,10 +16,10 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.taskgraph.NodeIdentity;
+import org.jspecify.annotations.NullMarked;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
@@ -32,7 +32,7 @@ import java.util.List;
  * <p>
  * Instances of this class are expected to be thread-safe.
  */
-@NonNullApi
+@NullMarked
 @ThreadSafe
 @ServiceScope(Scope.UserHome.class)
 public interface ToPlannedNodeConverter {

@@ -20,8 +20,8 @@ import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.util.GradleVersion;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 

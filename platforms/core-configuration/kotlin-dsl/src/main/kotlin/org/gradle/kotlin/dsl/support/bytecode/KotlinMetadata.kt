@@ -16,46 +16,53 @@
 
 package org.gradle.kotlin.dsl.support.bytecode
 
-import kotlinx.metadata.Flag
-import kotlinx.metadata.Flags
-import kotlinx.metadata.KmClassifier
-import kotlinx.metadata.KmFunction
-import kotlinx.metadata.KmPackage
-import kotlinx.metadata.KmProperty
-import kotlinx.metadata.KmType
-import kotlinx.metadata.KmTypeParameter
-import kotlinx.metadata.KmTypeProjection
-import kotlinx.metadata.KmValueParameter
-import kotlinx.metadata.KmVariance
-import kotlinx.metadata.flagsOf
-import kotlinx.metadata.jvm.JvmMethodSignature
-import kotlinx.metadata.jvm.KmModule
-import kotlinx.metadata.jvm.KmPackageParts
-import kotlinx.metadata.jvm.KotlinClassHeader
-import kotlinx.metadata.jvm.KotlinClassMetadata
-import kotlinx.metadata.jvm.KotlinModuleMetadata
-import kotlinx.metadata.jvm.getterSignature
-import kotlinx.metadata.jvm.moduleName
-import kotlinx.metadata.jvm.signature
-import kotlinx.metadata.jvm.syntheticMethodForAnnotations
 import org.gradle.kotlin.dsl.accessors.ExtensionSpec
 import org.gradle.kotlin.dsl.accessors.accessorDescriptorFor
-import org.gradle.kotlin.dsl.accessors.nonInlineGetterFlags
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 import java.io.File
+import kotlin.metadata.KmClassifier
+import kotlin.metadata.KmFunction
+import kotlin.metadata.KmPackage
+import kotlin.metadata.KmProperty
+import kotlin.metadata.KmPropertyAccessorAttributes
+import kotlin.metadata.KmType
+import kotlin.metadata.KmTypeParameter
+import kotlin.metadata.KmTypeProjection
+import kotlin.metadata.KmValueParameter
+import kotlin.metadata.KmVariance
+import kotlin.metadata.MemberKind
+import kotlin.metadata.Visibility
+import kotlin.metadata.declaresDefaultValue
+import kotlin.metadata.isInline
+import kotlin.metadata.isNotDefault
+import kotlin.metadata.isNullable
+import kotlin.metadata.jvm.JvmMetadataVersion
+import kotlin.metadata.jvm.JvmMethodSignature
+import kotlin.metadata.jvm.KmModule
+import kotlin.metadata.jvm.KmPackageParts
+import kotlin.metadata.jvm.KotlinClassMetadata
+import kotlin.metadata.jvm.KotlinModuleMetadata
+import kotlin.metadata.jvm.UnstableMetadataApi
+import kotlin.metadata.jvm.getterSignature
+import kotlin.metadata.jvm.hasAnnotationsInBytecode
+import kotlin.metadata.jvm.moduleName
+import kotlin.metadata.jvm.signature
+import kotlin.metadata.jvm.syntheticMethodForAnnotations
+import kotlin.metadata.kind
+import kotlin.metadata.visibility
 
 
 internal
 fun publicKotlinClass(
     internalClassName: InternalName,
-    header: KotlinClassHeader,
+    metadata: Metadata,
     classBody: ClassWriter.() -> Unit
 ): ByteArray = publicClass(internalClassName) {
-    visitKotlinMetadataAnnotation(header)
+    visitKotlinMetadataAnnotation(metadata)
     classBody()
 }
 
@@ -75,12 +82,13 @@ fun beginFileFacadeClassHeader() = KmPackage()
 
 
 internal
-fun KmPackage.closeHeader(moduleName: String): KotlinClassHeader {
+fun KmPackage.closeHeader(moduleName: String): Metadata {
     this.moduleName = moduleName
-    return KotlinClassMetadata.FileFacade.Writer().also { this.accept(it) }.write().header
+    return KotlinClassMetadata.FileFacade(this, JvmMetadataVersion.LATEST_STABLE_SUPPORTED, 0).write()
 }
 
 
+@OptIn(UnstableMetadataApi::class)
 internal
 fun moduleMetadataBytesFor(fileFacades: List<InternalName>): ByteArray {
     val kmModule = KmModule()
@@ -88,7 +96,7 @@ fun moduleMetadataBytesFor(fileFacades: List<InternalName>): ByteArray {
         fileFacades.map { it.value }.toMutableList(),
         emptyMap<String, String>().toMutableMap()
     )
-    return KotlinModuleMetadata.Writer().also { kmModule.accept(it) }.write().bytes
+    return KotlinModuleMetadata(kmModule, JvmMetadataVersion.LATEST_STABLE_SUPPORTED).write()
 }
 
 
@@ -106,7 +114,7 @@ fun ClassVisitor.publicStaticMethod(
     annotations: MethodVisitor.() -> Unit = {},
     methodBody: MethodVisitor.() -> Unit
 ) = jvmMethodSignature.run {
-    publicStaticMethod(name, desc, signature, exceptions, deprecated, annotations, methodBody)
+    publicStaticMethod(name, descriptor, signature, exceptions, deprecated, annotations, methodBody)
 }
 
 
@@ -117,32 +125,32 @@ fun ClassVisitor.publicStaticSyntheticMethod(
 ) = method(
     Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + Opcodes.ACC_SYNTHETIC,
     signature.name,
-    signature.desc,
+    signature.descriptor,
     methodBody = methodBody
 )
 
 
 internal
-fun ClassWriter.endKotlinClass(classHeader: KotlinClassHeader): ByteArray {
-    visitKotlinMetadataAnnotation(classHeader)
+fun ClassWriter.endKotlinClass(metadata: Metadata): ByteArray {
+    visitKotlinMetadataAnnotation(metadata)
     return endClass()
 }
 
 
 /**
- * Writes the given [header] to the class file as a [kotlin.Metadata] annotation.
+ * Writes the given [metadata] to the class file as a [kotlin.Metadata] annotation.
  **/
 private
-fun ClassWriter.visitKotlinMetadataAnnotation(header: KotlinClassHeader) {
+fun ClassWriter.visitKotlinMetadataAnnotation(metadata: Metadata) {
     visitAnnotation("Lkotlin/Metadata;", true).run {
-        visit("mv", header.metadataVersion)
-        visit("k", header.kind)
+        visit("mv", metadata.metadataVersion)
+        visit("k", metadata.kind)
         visitArray("d1").run {
-            header.data1.forEach { visit(null, it) }
+            metadata.data1.forEach { visit(null, it) }
             visitEnd()
         }
         visitArray("d2").run {
-            header.data2.forEach { visit(null, it) }
+            metadata.data2.forEach { visit(null, it) }
             visitEnd()
         }
         visitEnd()
@@ -154,9 +162,10 @@ internal
 fun newValueParameterOf(
     name: String,
     type: KmType,
-    flags: Flags = 0
+    declaresDefaultValue: Boolean = false
 ): KmValueParameter {
-    val kmValueParameter = KmValueParameter(flags, name)
+    val kmValueParameter = KmValueParameter(name)
+    kmValueParameter.declaresDefaultValue = declaresDefaultValue
     kmValueParameter.type = type
     return kmValueParameter
 }
@@ -167,25 +176,24 @@ fun newOptionalValueParameterOf(
     name: String,
     type: KmType
 ): KmValueParameter =
-    newValueParameterOf(name, nullable(type), flagsOf(Flag.ValueParameter.DECLARES_DEFAULT_VALUE))
+    newValueParameterOf(name, nullable(type), declaresDefaultValue = true)
 
 
 internal
 fun newTypeParameterOf(
-    flags: Flags = 0,
     name: String,
     id: Int = 0,
     variance: KmVariance,
     upperBound: KmType,
 ): KmTypeParameter {
-    val kmTypeParameter = KmTypeParameter(flags, name, id, variance)
+    val kmTypeParameter = KmTypeParameter(name, id, variance)
     kmTypeParameter.upperBounds += upperBound
     return kmTypeParameter
 }
 
 
 internal
-fun nullable(kmType: KmType): KmType = kmType.also { it.flags = flagsOf(Flag.Type.IS_NULLABLE) }
+fun nullable(kmType: KmType): KmType = kmType.also { it.isNullable = true }
 
 
 internal
@@ -193,7 +201,7 @@ fun newClassTypeOf(
     name: String,
     vararg arguments: KmTypeProjection
 ): KmType {
-    val kmType = KmType(0)
+    val kmType = KmType()
     kmType.classifier = KmClassifier.Class(name)
     kmType.arguments.addAll(arguments)
     return kmType
@@ -202,7 +210,7 @@ fun newClassTypeOf(
 
 internal
 fun newTypeParameterTypeOf(id: Int): KmType {
-    val kmType = KmType(0)
+    val kmType = KmType()
     kmType.classifier = KmClassifier.TypeParameter(id)
     return kmType
 }
@@ -212,7 +220,10 @@ internal
 fun KmPackage.addKmProperty(extensionSpec: ExtensionSpec, getterSignature: JvmMethodSignature) {
     properties += newPropertyOf(
         name = extensionSpec.name,
-        getterFlags = nonInlineGetterFlags,
+        getterAttributes = {
+            visibility = Visibility.PUBLIC
+            isNotDefault = true
+        },
         receiverType = extensionSpec.receiverType.kmType,
         returnType = extensionSpec.returnType.kmType,
         getterSignature = getterSignature
@@ -222,7 +233,7 @@ fun KmPackage.addKmProperty(extensionSpec: ExtensionSpec, getterSignature: JvmMe
 
 internal
 fun newFunctionOf(
-    flags: Flags = publicFunctionFlags,
+    functionAttributes: KmFunction.() -> Unit = publicFunctionAttributes,
     receiverType: KmType,
     returnType: KmType,
     name: String,
@@ -230,7 +241,8 @@ fun newFunctionOf(
     typeParameters: Iterable<KmTypeParameter> = listOf(),
     signature: JvmMethodSignature
 ): KmFunction {
-    val kmFunction = KmFunction(flags, name)
+    val kmFunction = KmFunction(name)
+    functionAttributes(kmFunction)
     kmFunction.receiverParameterType = receiverType
     kmFunction.valueParameters.addAll(valueParameters)
     kmFunction.typeParameters.addAll(typeParameters)
@@ -243,13 +255,16 @@ fun newFunctionOf(
 internal
 fun newPropertyOf(
     name: String,
-    getterFlags: Flags = inlineGetterFlags,
+    getterAttributes: KmPropertyAccessorAttributes.() -> Unit = inlineGetterAttributes,
     receiverType: KmType,
     returnType: KmType,
     getterSignature: JvmMethodSignature,
-    flags: Flags = readOnlyPropertyFlags,
+    propertyAttributes: KmProperty.() -> Unit = readOnlyPropertyAttributes,
 ): KmProperty {
-    val kmProperty = KmProperty(flags, name, getterFlags, 6)
+    val kmProperty = KmProperty(name)
+    // TODO setterFlags = 6 ... WTF
+    propertyAttributes(kmProperty)
+    getterAttributes(kmProperty.getter)
     kmProperty.receiverParameterType = receiverType
     kmProperty.returnType = returnType
     kmProperty.getterSignature = getterSignature
@@ -266,8 +281,8 @@ fun genericTypeOf(type: KmType, argument: KmType): KmType {
 
 
 internal
-fun genericTypeOf(type: KmType, arguments: Iterable<KmType>): KmType {
-    arguments.forEach { genericTypeOf(type, it) }
+fun genericTypeOf(type: KmType, arguments: Iterable<KmTypeProjection>): KmType {
+    type.arguments += arguments
     return type
 }
 
@@ -296,33 +311,37 @@ fun jvmGetterSignatureFor(pluginsExtension: ExtensionSpec): JvmMethodSignature =
 
 internal
 fun jvmGetterSignatureFor(propertyName: String, desc: String): JvmMethodSignature =
-    // Accessors honor the kotlin property jvm interop convention.
-    // The only difference with JavaBean 1.01 is to prefer `get` over `is` for boolean properties.
-    // The following code also complies with Section 8.8 of the spec, "Capitalization of inferred names.".
-    // Sun: "However to support the occasional use of all upper-case names,
+// Accessors honor the kotlin property jvm interop convention.
+// The only difference with JavaBean 1.01 is to prefer `get` over `is` for boolean properties.
+// The following code also complies with Section 8.8 of the spec, "Capitalization of inferred names.".
+// Sun: "However to support the occasional use of all upper-case names,
     //       we check if the first two characters of the name are both upper case and if so leave it alone."
     JvmMethodSignature("get${propertyName.uppercaseFirstChar()}", desc)
 
 
 internal
-val readOnlyPropertyFlags = flagsOf(
-    Flag.IS_PUBLIC,
-    Flag.Property.HAS_GETTER,
-    Flag.Property.IS_DECLARATION
-)
-
-
-private
-val inlineGetterFlags = flagsOf(
-    Flag.IS_PUBLIC,
-    Flag.PropertyAccessor.IS_NOT_DEFAULT,
-    Flag.PropertyAccessor.IS_INLINE
-)
+val readOnlyPropertyAttributes: KmProperty.() -> Unit = {
+    visibility = Visibility.PUBLIC
+    kind = MemberKind.DECLARATION
+}
 
 
 internal
-val publicFunctionFlags = flagsOf(Flag.IS_PUBLIC)
+val inlineGetterAttributes: KmPropertyAccessorAttributes.() -> Unit = {
+    visibility = Visibility.PUBLIC
+    isNotDefault = true
+    isInline = true
+}
 
 
 internal
-val publicFunctionWithAnnotationsFlags = publicFunctionFlags + flagsOf(Flag.HAS_ANNOTATIONS)
+val publicFunctionAttributes: KmFunction.() -> Unit = {
+    visibility = Visibility.PUBLIC
+}
+
+
+internal
+val publicFunctionWithAnnotationsAttributes: KmFunction.() -> Unit = {
+    publicFunctionAttributes(this)
+    hasAnnotationsInBytecode = true
+}

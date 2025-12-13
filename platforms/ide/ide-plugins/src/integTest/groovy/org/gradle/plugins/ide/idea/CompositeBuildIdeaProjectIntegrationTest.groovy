@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.test.fixtures.file.TestFile
@@ -57,7 +56,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         includeBuild(buildB)
     }
 
-    @ToBeFixedForConfigurationCache
     def "builds IDEA metadata with substituted dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -78,7 +76,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         notExecuted ":buildB:jar", ":buildB:b1:jar", ":buildB:b2:jar"
     }
 
-    @ToBeFixedForConfigurationCache
     def "builds IDEA metadata with substituted subproject dependencies"() {
         given:
         dependency 'org.test:b1:1.0'
@@ -92,7 +89,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         imlHasDependencies "b1", "b2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "builds IDEA metadata with substituted dependency from same build"() {
         given:
         dependency('org.test:buildB:1.0')
@@ -106,7 +102,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         imlHasDependencies(buildB, "b1")
     }
 
-    @ToBeFixedForConfigurationCache
     def "builds IDEA metadata with substituted subproject dependency that has transitive dependencies"() {
         given:
         def transitive1 = mavenRepo.module("org.test", "transitive1").publish()
@@ -123,7 +118,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         imlHasDependencies(["buildB"], ["transitive1-1.0.jar", "transitive2-1.0.jar", ])
     }
 
-    @ToBeFixedForConfigurationCache
     def "builds IDEA metadata with substituted subproject dependency that has transitive project dependency"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -141,7 +135,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         imlHasDependencies "buildB", "b1"
     }
 
-    @ToBeFixedForConfigurationCache
     def "builds IDEA metadata with transitive substitutions"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -163,7 +156,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         imlHasDependencies "buildB", "buildC"
     }
 
-    @ToBeFixedForConfigurationCache
     def "builds IDEA metadata with substituted transitive dependency"() {
         given:
         mavenRepo.module("org.external", "external-dep", '1.0').dependsOn("org.test", "buildB", "1.0").publish()
@@ -177,7 +169,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         imlHasDependencies(["buildB"], ["external-dep-1.0.jar"])
     }
 
-    @ToBeFixedForConfigurationCache
     def "builds IDEA metadata with dependency cycle between substituted projects in a multiproject build"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -208,11 +199,18 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         imlHasDependencies "buildB", "b1", "b2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "builds IDEA metadata with dependency cycle between substituted participants in a composite build"() {
         given:
         dependency(buildA, "org.test:buildB:1.0")
         dependency(buildB, "org.test:buildA:1.0")
+
+        buildA.buildFile << """
+            configurations.configureEach {
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module('org.test:buildA:1.0')).using(project(':'))
+                }
+            }
+        """
 
         when:
         idea()
@@ -222,7 +220,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         imlHasDependencies "buildB"
     }
 
-    @ToBeFixedForConfigurationCache
     def "builds IDEA metadata in composite containing participants with same root directory name"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -249,7 +246,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         imlHasDependencies "buildB", "buildC"
     }
 
-    @ToBeFixedForConfigurationCache
     def "generated IDEA project references modules for all projects in composite"() {
         given:
 
@@ -278,7 +274,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         notExecuted ":buildC:jar"
     }
 
-    @ToBeFixedForConfigurationCache
     def "generated IDEA metadata respects idea plugin configuration"() {
         given:
         dependency 'org.test:b1:1.0'
@@ -298,7 +293,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         imlHasDependencies "b1-renamed", "b2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "builds IDEA when one participant does not have IDEA plugin applied"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -320,7 +314,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         imlHasDependencies "buildB", "buildC"
     }
 
-    @ToBeFixedForConfigurationCache
     def "builds IDEA metadata when not all projects have IDEA plugin applied"() {
         given:
         dependency "org.test:b1:1.0"
@@ -352,7 +345,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         imlHasDependencies "b1", "buildC", "c2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "de-duplicates module names for included builds"() {
         given:
         dependency "org.test:b1:1.0"
@@ -394,7 +386,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         imlHasDependencies "buildB-b1", "buildC-b1", "buildA-b1"
     }
 
-    @ToBeFixedForConfigurationCache
     def "de-duplicates module names between including and included builds"() {
         given:
         buildA.buildFile << """
@@ -447,7 +438,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeImplemented
     @Issue("https://github.com/gradle/gradle/issues/2526")
-    @ToBeFixedForConfigurationCache
     def "de-duplicates module names when not all projects have IDEA plugin applied"() {
         given:
         dependency "org.test:b1:1.0"

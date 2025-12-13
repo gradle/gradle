@@ -17,7 +17,7 @@
 package org.gradle.performance.results.report;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.performance.results.CrossBuildPerformanceTestHistory;
 import org.gradle.performance.results.PerformanceReportScenario;
 import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;

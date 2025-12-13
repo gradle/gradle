@@ -4,15 +4,20 @@ plugins {
 
 description = "Logging API consumed by the Develocity plugin"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
     api(projects.buildOperations)
     api(projects.loggingApi)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
+
+errorprone {
+    nullawayEnabled = true
 }

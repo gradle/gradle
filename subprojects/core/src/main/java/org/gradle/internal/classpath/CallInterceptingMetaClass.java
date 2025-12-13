@@ -28,19 +28,21 @@ import groovy.lang.Tuple;
 import org.codehaus.groovy.reflection.CachedClass;
 import org.codehaus.groovy.reflection.ClassInfo;
 import org.codehaus.groovy.runtime.MetaClassHelper;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
-import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorResolver;
+import org.gradle.internal.instrumentation.api.groovybytecode.CallInterceptor;
 import org.gradle.internal.instrumentation.api.groovybytecode.InterceptScope;
 import org.gradle.internal.instrumentation.api.groovybytecode.Invocation;
 import org.gradle.internal.instrumentation.api.groovybytecode.InvocationImpl;
 import org.gradle.internal.instrumentation.api.groovybytecode.PropertyAwareCallInterceptor;
 import org.gradle.internal.instrumentation.api.groovybytecode.SignatureAwareCallInterceptor;
+import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.internal.metaobject.InstrumentedMetaClass;
+import org.gradle.internal.metaobject.InterceptedMetaProperty;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -58,7 +60,7 @@ import static org.gradle.internal.classpath.InstrumentedGroovyCallsTracker.CallK
  *
  * It implements {@link AdaptingMetaClass} in order to tell the Groovy runtime that it cannot cache the metamethod instances, as it does with the default {@link MetaClassImpl}.
  */
-@NonNullApi
+@NullMarked
 public class CallInterceptingMetaClass extends MetaClassImpl implements AdaptingMetaClass, InstrumentedMetaClass {
 
     private MetaClass adaptee;
@@ -133,7 +135,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
                 Optional.ofNullable(setterCallerAndInterceptor).map(Pair::right).orElse(null)
             );
             if (propertyType != null) {
-                return new InterceptedMetaProperty(name,
+                return new DefaultInterceptedMetaProperty(name,
                     propertyType, original,
                     theClass, callsTracker, getterCallerAndInterceptor != null ? getterCallerAndInterceptor.right : null,
                     setterCallerAndInterceptor != null ? setterCallerAndInterceptor.right : null,
@@ -335,7 +337,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         });
     }
 
-    @NonNullApi
+    @NullMarked
     static class InvokedFlag implements Runnable {
         public boolean invoked = false;
 
@@ -376,8 +378,8 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         return Pair.of(caller, interceptor);
     }
 
-    @NonNullApi
-    public static class InterceptedMetaProperty extends MetaProperty {
+    @NullMarked
+    public static class DefaultInterceptedMetaProperty extends InterceptedMetaProperty {
         @Nullable
         private final MetaProperty original;
         private final Class<?> ownerClass;
@@ -386,7 +388,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         private final CallInterceptor setterInterceptor;
         private final String consumerClass;
 
-        public InterceptedMetaProperty(
+        public DefaultInterceptedMetaProperty(
             String name,
             Class type,
             @Nullable MetaProperty original,
@@ -401,6 +403,12 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
             this.getterInterceptor = getterInterceptor;
             this.setterInterceptor = setterInterceptor;
             this.consumerClass = getConsumerClass;
+        }
+
+        @Nullable
+        @Override
+        public MetaProperty getOriginal() {
+            return original;
         }
 
         @Override
@@ -426,21 +434,29 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
             if (setterInterceptor != null) {
                 invokeWithInterceptor(callsTracker, setterInterceptor, name, SET_PROPERTY, object, new Object[]{newValue}, consumerClass, () -> {
                     if (original != null) {
-                        original.setProperty(object, newValue);
+                        setOriginalProperty(object, newValue);
                         return null;
                     } else {
                         throw new MissingPropertyException(name);
                     }
                 });
             } else if (original != null) {
-                original.setProperty(object, newValue);
+                setOriginalProperty(object, newValue);
             } else {
                 throw new MissingPropertyException(name, ownerClass);
             }
         }
+
+        private void setOriginalProperty(Object object, Object newValue) {
+            if (DynamicObjectUtil.isDynamicObject(object)) {
+                DynamicObjectUtil.asDynamicObject(object).trySetPropertyWithoutInstrumentation(name, newValue);
+            } else {
+                original.setProperty(object, newValue);
+            }
+        }
     }
 
-    @NonNullApi
+    @NullMarked
     public static class InterceptedMetaMethod extends MetaMethod {
         private final @Nullable MetaMethod original;
         private final InstrumentedGroovyCallsTracker callsTracker;
@@ -524,7 +540,7 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
     }
 }
 
-@NonNullApi
+@NullMarked
 class ThrowAsUnchecked {
     /**
      * Provides a way to throw an arbitrary {@link Throwable} as an unchecked exception, working around the Java compiler check for signature declaration

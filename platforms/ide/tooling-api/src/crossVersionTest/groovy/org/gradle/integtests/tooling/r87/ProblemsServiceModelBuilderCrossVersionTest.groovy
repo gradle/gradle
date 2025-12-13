@@ -24,7 +24,6 @@ import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
-import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 
 @TargetGradleVersion(">=8.7")
@@ -56,7 +55,6 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
 
         where:
         javaHome << [
-            jdk8,
             jdk17,
             jdk21
         ]

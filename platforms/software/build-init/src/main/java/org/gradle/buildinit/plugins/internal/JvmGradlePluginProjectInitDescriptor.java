@@ -16,10 +16,10 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
-import org.gradle.util.internal.GUtil;
+import org.gradle.util.internal.TextUtil;
 
 import java.util.Optional;
 
@@ -47,7 +47,7 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
         buildScriptBuilder.repositories().mavenCentral("Use Maven Central for resolving dependencies.");
 
         String pluginId = settings.getPackageName() + ".greeting";
-        String pluginClassName = StringUtils.capitalize(GUtil.toCamelCase(settings.getProjectName())) + "Plugin";
+        String pluginClassName = StringUtils.capitalize(TextUtil.toCamelCase(settings.getProjectName())) + "Plugin";
 
         buildScriptBuilder
             .fileComment("This generated file contains a sample Gradle plugin project to get you started.")
@@ -95,7 +95,7 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
     @Override
     public void generateSources(InitSettings settings, TemplateFactory templateFactory) {
         String pluginId = settings.getPackageName() + ".greeting";
-        String pluginClassName = StringUtils.capitalize(GUtil.toCamelCase(settings.getProjectName())) + "Plugin";
+        String pluginClassName = StringUtils.capitalize(TextUtil.toCamelCase(settings.getProjectName())) + "Plugin";
         String testClassName = pluginClassName + "Test";
         String functionalTestClassName = pluginClassName + "FunctionalTest";
 

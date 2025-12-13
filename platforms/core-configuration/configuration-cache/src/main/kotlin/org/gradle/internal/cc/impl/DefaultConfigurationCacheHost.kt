@@ -25,17 +25,15 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.execution.plan.ScheduledWork
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
+import org.gradle.initialization.ProjectDescriptorInternal
 import org.gradle.initialization.SettingsState
 import org.gradle.initialization.layout.BuildLayout
-import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.reflect.Instantiator
@@ -53,42 +51,18 @@ class DefaultConfigurationCacheHost internal constructor(
     private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
 ) : ConfigurationCacheHost {
 
-    override val currentBuild: VintageGradleBuild =
-        DefaultVintageGradleBuild(gradle.owner)
+    override val currentBuild: BuildState
+        get() = gradle.owner
 
-    override fun visitBuilds(visitor: (VintageGradleBuild) -> Unit) {
-        service<BuildStateRegistry>().visitBuilds { build ->
-            visitor(DefaultVintageGradleBuild(build))
-        }
+    override fun visitBuilds(visitor: (BuildState) -> Unit) {
+        service<BuildStateRegistry>().visitBuilds(visitor)
     }
 
     override fun createBuild(settingsFile: File?): ConfigurationCacheBuild =
         DefaultConfigurationCacheBuild(gradle.owner, service(), service(), settingsFile)
 
-    override fun <T> service(serviceType: Class<T>): T =
+    override fun <T : Any> service(serviceType: Class<T>): T =
         gradle.services.get(serviceType)
-
-    override fun <T> factory(serviceType: Class<T>): Factory<T> =
-        gradle.services.getFactory(serviceType)
-
-    private
-    class DefaultVintageGradleBuild(override val state: BuildState) : VintageGradleBuild {
-        override val isRootBuild: Boolean
-            get() = state is RootBuildState
-
-        override val gradle: GradleInternal
-            get() = state.mutableModel
-
-        override val hasScheduledWork: Boolean
-            get() = gradle.taskGraph.size() > 0
-
-        override val scheduledWork: ScheduledWork
-            get() {
-                lateinit var work: ScheduledWork
-                gradle.taskGraph.visitScheduledNodes { nodes, entryNodes -> work = ScheduledWork(nodes, entryNodes) }
-                return work
-            }
-    }
 
     private
     inner class DefaultConfigurationCacheBuild(
@@ -151,7 +125,7 @@ class DefaultConfigurationCacheHost internal constructor(
         fun rootProjectDescriptor() = projectDescriptorRegistry.rootProject!!
 
         private
-        fun createProject(descriptor: DefaultProjectDescriptor): ProjectInternal {
+        fun createProject(descriptor: ProjectDescriptorInternal): ProjectInternal {
             val projectState = state.projects.getProject(descriptor.path())
             projectState.createMutableModel(coreAndPluginsScope, coreAndPluginsScope)
             val project = projectState.mutableModel
@@ -204,8 +178,8 @@ class DefaultConfigurationCacheHost internal constructor(
             service<BuildLayout>().settingsDir
 
         private
-        fun getProjectDescriptor(parentPath: Path?): DefaultProjectDescriptor? =
-            parentPath?.let { projectDescriptorRegistry.getProject(it.path) }
+        fun getProjectDescriptor(parentPath: Path?): ProjectDescriptorInternal? =
+            parentPath?.let { projectDescriptorRegistry.getProject(it.asString()) }
 
         private
         val projectDescriptorRegistry

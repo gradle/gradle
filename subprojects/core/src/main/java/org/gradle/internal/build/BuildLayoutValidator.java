@@ -22,7 +22,6 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.service.scopes.Scope;
@@ -54,7 +53,7 @@ public class BuildLayoutValidator {
     }
 
     public void validate(StartParameterInternal startParameter) {
-        BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
+        BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
         if (!buildLayout.isBuildDefinitionMissing()) {
             // All good
             return;
@@ -70,7 +69,7 @@ public class BuildLayoutValidator {
         StringBuilder message = new StringBuilder("Directory '");
         message.append(startParameter.getCurrentDir())
             .append("' does not contain a Gradle build.\n\n")
-            .append("A Gradle build's root directory should contain one of the possible settings files: ").append(String.join(", ", getValidSettingsFileNames())).append(".")
+            .append("A Gradle build's root directory should contain one of the possible settings files: ").append(String.join(", ", getValidSettingsFileNames())).append(". ")
             .append("It may also contain one of the possible build files: ").append(String.join(", ", getValidBuildFileNames())).append(".\n\n")
             .append("To create a new Gradle build in this directory run '");
         clientMetaData.describeCommand(message, "init");

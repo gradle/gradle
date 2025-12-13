@@ -17,16 +17,16 @@
 package org.gradle.internal.classpath.intercept;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.classpath.GroovyCallInterceptorsProvider;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-@NonNullApi
+@NullMarked
 public class CallInterceptorRegistry {
     private static final Map<ClassLoader, Boolean> LOADED_FROM_CLASSLOADERS = Collections.synchronizedMap(new WeakHashMap<>());
     private static volatile Map<BytecodeInterceptorFilter, CallSiteDecorator> groovyDecorators = new ConcurrentHashMap<>();
@@ -70,7 +70,7 @@ public class CallInterceptorRegistry {
      *   so that replacing the call interceptors for tests would instead work by embedding a different location
      *   than this one in the instrumented code. Doing that adds much more complexity in the instrumentation.
      */
-    @NonNullApi
+    @NullMarked
     @VisibleForTesting
     static class GroovyJvmCallInterceptorInternalTesting {
         static CallSiteInterceptorSet getCurrentGroovyCallInterceptorSet() {

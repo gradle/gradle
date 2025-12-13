@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -30,6 +32,7 @@ import java.util.Collection;
  *
  * The information is gathered from multiple sources ({@code publishing.publications} container, etc.).
  */
+@ServiceScope(Scope.BuildTree.class)
 @ThreadSafe
 public interface ProjectPublicationRegistry {
 

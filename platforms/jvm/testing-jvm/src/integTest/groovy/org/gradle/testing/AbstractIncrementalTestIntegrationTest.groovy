@@ -17,6 +17,7 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
+import org.gradle.testing.fixture.TestNGCoverage
 
 abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     def setup() {
@@ -83,8 +84,8 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         """.stripIndent()
 
         then:
-        succeeds('test').assertTasksNotSkipped(':compileJava', ':classes', ':test')
-        succeeds('test').assertTasksNotSkipped()
+        succeeds('test').assertTasksExecuted(':compileJava', ':classes', ':test')
+        succeeds('test').assertAllTasksSkipped()
 
         when:
         // Change a test class
@@ -98,8 +99,8 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         """.stripIndent()
 
         then:
-        succeeds('test').assertTasksNotSkipped(':compileTestJava', ':testClasses', ':test')
-        succeeds('test').assertTasksNotSkipped()
+        succeeds('test').assertTasksExecuted(':compileTestJava', ':testClasses', ':test')
+        succeeds('test').assertAllTasksSkipped()
     }
 
     def executesTestsWhenTestFrameworkChanges() {
@@ -135,7 +136,7 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
 
             dependencies {
                 ${testFrameworkDependencies}
-                testImplementation 'org.testng:testng:6.3.1'
+                testImplementation 'org.testng:testng:${TestNGCoverage.SUPPORTS_ICLASS_LISTENER.first()}'
             }
 
             test {
@@ -143,21 +144,31 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
                 include '**/*Test.*'
             }
         """.stripIndent()
+
+        when:
         succeeds('test')
 
-        def result = new JUnitXmlTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('JUnitTest')
+        then:
+        def xmlResult = new JUnitXmlTestExecutionResult(testDirectory)
+        xmlResult.assertTestClassesExecuted('JUnitTest')
 
         when:
         // Switch test framework
         file('build.gradle').append 'test.useTestNG()\n'
+        succeeds('test')
 
         then:
-        succeeds('test').assertTasksNotSkipped(':test')
+        result.assertTasksExecuted(':test')
 
-        result.assertTestClassesExecuted('TestNGTest') //previous result still present in the dir
+        // When we switch test frameworks and rerun a test task, the old results should NOT still be present in the dir
+        xmlResult.assertTestClassesExecuted('TestNGTest')
+        xmlResult.assertTestClassesNotExecuted('JUnitTest')
 
-        succeeds('test').assertTasksNotSkipped()
+        when:
+        succeeds('test')
+
+        then:
+        result.assertAllTasksSkipped()
     }
 
     def "test up-to-date status respects test name patterns"() {

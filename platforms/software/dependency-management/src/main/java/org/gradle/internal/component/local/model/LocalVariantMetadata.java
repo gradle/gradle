@@ -23,8 +23,7 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValue;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Implementation of {@link VariantResolveMetadata} which allows variant artifacts to be calculated lazily

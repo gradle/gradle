@@ -18,12 +18,12 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
-import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContextHasher;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContextHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 
 /**

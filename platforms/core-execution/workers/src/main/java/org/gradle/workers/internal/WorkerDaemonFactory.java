@@ -19,12 +19,15 @@ package org.gradle.workers.internal;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Controls the lifecycle of the worker daemon and provides access to it.
  */
+@ServiceScope(Scope.Project.class)
 @ThreadSafe
 public class WorkerDaemonFactory implements WorkerFactory {
     private final WorkerDaemonClientsManager clientsManager;
@@ -48,7 +51,7 @@ public class WorkerDaemonFactory implements WorkerFactory {
                 // is never called) the cancellation handler will not stop daemons on a cancellation (as there is no danger of
                 // leaving one in an unsafe state).
                 workerDaemonClientCancellationHandler.start();
-                
+
                 // wrap in build operation for logging startup failures
                 final WorkerDaemonClient client = CurrentBuildOperationRef.instance().with(parentBuildOperation, this::reserveClient);
                 try {

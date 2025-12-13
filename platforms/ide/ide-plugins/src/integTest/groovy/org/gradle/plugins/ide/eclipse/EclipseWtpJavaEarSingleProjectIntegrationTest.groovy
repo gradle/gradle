@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
@@ -32,7 +31,6 @@ class EclipseWtpJavaEarSingleProjectIntegrationTest extends AbstractEclipseInteg
         localMaven = "maven { url = '${mavenRepo.uri}' }"
     }
 
-    @ToBeFixedForConfigurationCache
     def "generates configuration files for an ear project"() {
         file('src/main/java').mkdirs()
 
@@ -81,7 +79,6 @@ class EclipseWtpJavaEarSingleProjectIntegrationTest extends AbstractEclipseInteg
         component.modules.size() == 0
     }
 
-    @ToBeFixedForConfigurationCache
     def "ear deployment location can be configured via libDirName"() {
         settingsFile << "rootProject.name = 'ear'"
 

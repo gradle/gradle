@@ -32,11 +32,8 @@ import java.util.List;
 
 public class MavenLocalPomMetadataSource extends DefaultMavenPomMetadataSource {
 
-    private final MetadataArtifactProvider metadataArtifactProvider;
-
     public MavenLocalPomMetadataSource(MetadataArtifactProvider metadataArtifactProvider, MetaDataParser<MutableMavenModuleResolveMetadata> pomParser, FileResourceRepository fileResourceRepository, MavenMetadataValidator validator, MavenMetadataLoader mavenMetadataLoader, ChecksumService checksumService) {
         super(metadataArtifactProvider, pomParser, fileResourceRepository, validator, mavenMetadataLoader, checksumService);
-        this.metadataArtifactProvider = metadataArtifactProvider;
     }
 
     @Override

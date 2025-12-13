@@ -16,19 +16,34 @@
 
 package org.gradle.internal.declarativedsl
 
+import org.gradle.api.internal.plugins.BindsProjectType
+import org.gradle.api.internal.plugins.BuildModel
+import org.gradle.api.internal.plugins.Definition
+import org.gradle.api.internal.plugins.ProjectTypeBinding
+import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
-import org.gradle.api.internal.plugins.software.SoftwareType
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.junit.Before
+import org.junit.Test
 
-class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
+import static org.hamcrest.Matchers.containsString
 
-    def 'can disambiguate between methods based on parameters'() {
+class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
+
+    @Before
+    void clearDefaultSettings() {
+        if (!file("settings.gradle.kts").delete()) {
+            throw new RuntimeException("Failed to delete default settings script")
+        }
+    }
+
+    @Test
+    void 'can disambiguate between methods based on parameters'() {
         given:
 
-        file("build-logic/build.gradle") << defineBuildLogic([
+        file("build-logic/build.gradle.kts") << defineBuildLogic([
             "id(\"java-gradle-plugin\")",
-            "id(\"org.jetbrains.kotlin.jvm\").version(\"${new KotlinGradlePluginVersions().latest}\")"
+            "`kotlin-dsl`"
         ])
 
         file("build-logic/src/main/kotlin/com/example/restricted/Extension.kt") << """
@@ -36,9 +51,11 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
 
             import org.gradle.api.provider.Property
             import org.gradle.declarative.dsl.model.annotations.Restricted
+            import ${BuildModel.class.name}
+            import ${Definition.class.name}
 
             @Restricted
-            abstract class Extension {
+            abstract class Extension : ${Definition.class.simpleName}<Extension.Model> {
 
                 @get:Restricted
                 abstract val prop: Property<String>
@@ -51,6 +68,9 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
                 @Restricted
                 fun print(data: String): String {
                     throw RuntimeException("Boom String")
+                }
+
+                interface Model : ${BuildModel.class.simpleName} {
                 }
             }
         """
@@ -69,20 +89,19 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        fails(":help")
+        def failure = buildAndFail(":help")
 
         then:
-        failureCauseContains("Boom Int")
+        failure.assertThatCause(containsString("Boom Int"))
     }
 
-
-
-    def 'can disambiguate between annotated and non-annotated methods'() {
+    @Test
+    void 'can disambiguate between annotated and non-annotated methods'() {
         given:
 
-        file("build-logic/build.gradle") << defineBuildLogic([
+        file("build-logic/build.gradle.kts") << defineBuildLogic([
             "id(\"java-gradle-plugin\")",
-            "id(\"org.jetbrains.kotlin.jvm\").version(\"${new KotlinGradlePluginVersions().latest}\")"
+            "`kotlin-dsl`"
         ])
 
         file("build-logic/src/main/kotlin/com/example/restricted/Extension.kt") << """
@@ -94,10 +113,12 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
             import org.gradle.declarative.dsl.model.annotations.Configuring
             import org.gradle.declarative.dsl.model.annotations.Restricted
             import javax.inject.Inject
+            import ${BuildModel.class.name}
+            import ${Definition.class.name};
 
 
             @Restricted
-            abstract class Extension @Inject constructor(private val objects: ObjectFactory) {
+            abstract class Extension @Inject constructor(private val objects: ObjectFactory) : ${Definition.class.simpleName}<Extension.Model> {
                 val access: Access
 
                 init {
@@ -115,7 +136,10 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
 
                 abstract class Access {
                     @get:Restricted
-                    abstract val name: Property<String?>?
+                    abstract val name: Property<String>?
+                }
+
+                interface Model : ${BuildModel.class.simpleName} {
                 }
             }
         """
@@ -136,18 +160,18 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        fails(":help")
+        def failure = buildAndFail(":help")
 
         then:
-        failureCauseContains("Boom Action")
+        failure.assertThatCause(containsString("Boom Action"))
     }
 
-    def 'fails disambiguating between two annotated, semantically equivalent methods'() {
+    @Test
+    void 'fails disambiguating between two annotated, semantically equivalent methods'() {
         given:
-
-        file("build-logic/build.gradle") << defineBuildLogic([
+        file("build-logic/build.gradle.kts") << defineBuildLogic([
             "id(\"java-gradle-plugin\")",
-            "id(\"org.jetbrains.kotlin.jvm\").version(\"${new KotlinGradlePluginVersions().latest}\")"
+            "`kotlin-dsl`"
         ])
 
         file("build-logic/src/main/kotlin/com/example/restricted/Extension.kt") << """
@@ -159,10 +183,12 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
             import org.gradle.declarative.dsl.model.annotations.Configuring
             import org.gradle.declarative.dsl.model.annotations.Restricted
             import javax.inject.Inject
+            import ${BuildModel.class.name}
+            import ${Definition.class.name}
 
 
             @Restricted
-            abstract class Extension @Inject constructor(private val objects: ObjectFactory) {
+            abstract class Extension @Inject constructor(private val objects: ObjectFactory) : ${Definition.class.simpleName}<Extension.Model> {
                 val access: Access
 
                 init {
@@ -181,7 +207,10 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
 
                 abstract class Access {
                     @get:Restricted
-                    abstract val name: Property<String?>?
+                    abstract val name: Property<String>?
+                }
+
+                interface Model : ${BuildModel.class.simpleName} {
                 }
             }
         """
@@ -202,18 +231,18 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        fails(":help")
-
+        def failure = buildAndFail(":help")
 
         then:
-        failureCauseContains("Failed disambiguating between following functions (matches 0):")
-        failureCauseContains("fun com.example.restricted.Extension.access(org.gradle.api.Action<com.example.restricted.Extension.Access>): kotlin.Unit")
-        failureCauseContains("fun com.example.restricted.Extension.access((com.example.restricted.Extension.Access) -> kotlin.Unit): kotlin.Unit")
+        failure.assertThatCause(containsString("Failed disambiguating between following functions (matches 2):"))
+        failure.assertThatCause(containsString("fun com.example.restricted.Extension.access(org.gradle.api.Action<com.example.restricted.Extension.Access>): kotlin.Unit"))
+        failure.assertThatCause(containsString("fun com.example.restricted.Extension.access((com.example.restricted.Extension.Access) -> kotlin.Unit): kotlin.Unit"))
     }
 
-    def 'when reflective invocation fails the cause is identified correctly'() {
+    @Test
+    void 'when reflective invocation fails the cause is identified correctly'() {
         given:
-        file("build-logic/build.gradle") << defineBuildLogic(["id('java-gradle-plugin')"])
+        file("build-logic/build.gradle.kts") << defineBuildLogic(["id(\"java-gradle-plugin\")"])
 
         file("build-logic/src/main/java/com/example/restricted/Extension.java") << """
             package com.example.restricted;
@@ -223,11 +252,13 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.Property;
+            import ${BuildModel.class.name};
+            import ${Definition.class.name};
 
             import javax.inject.Inject;
 
             @Restricted
-            public abstract class Extension {
+            public abstract class Extension implements ${Definition.class.simpleName}<Extension.Model> {
                 private final Access access;
                 private final ObjectFactory objects;
 
@@ -251,6 +282,8 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
                     public abstract Property<String> getName();
                 }
 
+                interface Model extends ${BuildModel.class.simpleName} {
+                }
             }
         """
 
@@ -270,10 +303,10 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        fails(":help")
+        def failure = buildAndFail(":help")
 
         then:
-        failureCauseContains("Boom")
+        failure.assertThatCause(containsString("Boom"))
     }
 
     private static String defineBuildLogic(ArrayList<String> plugins) {
@@ -337,11 +370,17 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
 
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
-            import ${SoftwareType.class.name};
+            import ${BindsProjectType.class.name};
+            import ${ProjectTypeBinding.class.name};
+            import ${ProjectTypeBindingBuilder.class.name};
 
+            @${BindsProjectType.class.simpleName}(RestrictedPlugin.Binding.class)
             public abstract class RestrictedPlugin implements Plugin<Project> {
-                @SoftwareType(name = "restricted", modelPublicType = Extension.class)
-                public abstract Extension getExtension();
+                public static class Binding implements ${ProjectTypeBinding.class.simpleName} {
+                    public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
+                        builder.bindProjectType("restricted",  Extension.class, (context, definition, model) -> { });
+                    }
+                }
 
                 @Override
                 public void apply(Project target) {

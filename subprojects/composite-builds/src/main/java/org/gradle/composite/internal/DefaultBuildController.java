@@ -123,6 +123,7 @@ class DefaultBuildController implements BuildController {
     }
 
     @Override
+    @SuppressWarnings("FutureReturnValueIgnored") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public void startExecution(ExecutorService executorService, Consumer<ExecutionResult<Void>> completionHandler) {
         assertInState(State.ReadyToRun);
         executorService.submit(new BuildOpRunnable(CurrentBuildOperationRef.instance().get(), completionHandler));
@@ -152,7 +153,7 @@ class DefaultBuildController implements BuildController {
             List<Set<TaskInternal>> cycles = graphWalker.findCycles();
             Set<TaskInternal> cycle = cycles.get(0);
 
-            DirectedGraphRenderer<TaskInternal> graphRenderer = new DirectedGraphRenderer<>((node, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(node.getIdentityPath()), (node, values, connectedNodes) -> visitDependenciesOf(node, dep -> {
+            DirectedGraphRenderer<TaskInternal> graphRenderer = new DirectedGraphRenderer<>((node, output, alreadySeen) -> output.withStyle(StyledTextOutput.Style.Identifier).text(node.getIdentityPath()), (node, values, connectedNodes) -> visitDependenciesOf(node, dep -> {
                 if (cycle.contains(dep)) {
                     connectedNodes.add(dep);
                 }

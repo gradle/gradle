@@ -16,7 +16,7 @@
 
 package org.gradle.deployment.internal;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 class OutOfDateTrackingDeployment implements DeploymentInternal {
     private boolean changed;

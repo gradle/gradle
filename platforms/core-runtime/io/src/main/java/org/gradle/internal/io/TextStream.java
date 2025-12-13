@@ -16,7 +16,7 @@
 
 package org.gradle.internal.io;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface TextStream {
     /**

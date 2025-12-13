@@ -3,11 +3,14 @@
     <modelVersion>4.0.0</modelVersion>
     <name>Gradle_Check Config DSL Script</name>
     <properties>
-        <mockk.version>1.13.13</mockk.version>
-        <bytebuddy.version>1.15.7</bytebuddy.version>
-        <junit.version>5.11.3</junit.version>
-        <fastjson.version>1.2.83</fastjson.version>
+        <mockk.version>1.14.6</mockk.version>
+        <bytebuddy.version>1.18.2</bytebuddy.version>
+        <jackson.version>2.20.1</jackson.version>
+        <junit.version>6.0.1</junit.version>
         <dslContextParameter.branch>master</dslContextParameter.branch>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- https://kotlinlang.org/docs/maven.html#enable-incremental-compilation -->
+        <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
     </properties>
     <groupId>Gradle_Check</groupId>
     <artifactId>Gradle_Check_dsl</artifactId>
@@ -83,19 +86,19 @@
                     <format>kotlin</format>
                     <dstDir>target/generated-configs</dstDir>
                     <contextParameters>
-                        <Branch>${dslContextParameter.branch}</Branch>
+                        <branch>${dslContextParameter.branch}</branch>
                     </contextParameters>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.1</version>
+                <version>3.5.4</version>
             </plugin>
             <plugin>
                 <groupId>com.github.gantsign.maven</groupId>
                 <artifactId>ktlint-maven-plugin</artifactId>
-                <version>1.11.1</version>
+                <version>3.5.0</version>
                 <executions>
                     <execution>
                         <id>check</id>
@@ -108,7 +111,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.6.2</version>
                 <executions>
                     <execution>
                         <id>update-test-buckets</id>
@@ -126,11 +129,6 @@
     </build>
 
     <dependencies>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>${fastjson.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.jetbrains.teamcity</groupId>
             <artifactId>server-api</artifactId>
@@ -176,6 +174,27 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-kotlin</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.13.2</version>
         </dependency>
     </dependencies>
 </project>

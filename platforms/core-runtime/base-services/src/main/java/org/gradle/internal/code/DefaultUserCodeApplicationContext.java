@@ -17,8 +17,8 @@
 package org.gradle.internal.code;
 
 import org.gradle.api.Action;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 

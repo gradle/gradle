@@ -41,13 +41,11 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.guava)
     implementation(libs.guice)
-    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
+
+    compileOnly(libs.jspecify)
 }
 
 application {
     mainClass = "org.gradle.caching.example.ExampleBuildCacheClient"
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -63,7 +62,7 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
         try {
             Files.createDirectories(dir.toPath());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -137,7 +136,7 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
             try {
                 sink.close();
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
     }
@@ -225,7 +224,7 @@ public class DefaultValueStore<T> implements ValueStore<T>, Closeable {
             try {
                 outputStream = new FileOutputStream(file, true);
             } catch (FileNotFoundException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
             this.encoder = new KryoBackedEncoder(outputStream);
         }

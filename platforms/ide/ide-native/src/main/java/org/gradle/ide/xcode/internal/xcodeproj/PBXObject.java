@@ -16,7 +16,7 @@
 
 package org.gradle.ide.xcode.internal.xcodeproj;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 
 public abstract class PBXObject {
@@ -40,7 +40,7 @@ public abstract class PBXObject {
     /**
      * Populates the serializer with the fields of this object.
      */
-    public void serializeInto(@SuppressWarnings("unused") XcodeprojSerializer serializer) {
+    public void serializeInto(XcodeprojSerializer ignored) {
     }
 
     /**

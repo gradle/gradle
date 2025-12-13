@@ -17,6 +17,7 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
@@ -40,7 +41,6 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildLayoutValidator;
@@ -49,12 +49,15 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
+import org.gradle.internal.initialization.layout.BuildTreeLocations;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
+import org.gradle.internal.problems.ProblemLocationAnalyzer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
@@ -67,7 +70,6 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
-import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.process.internal.ExecFactory;
 
 import java.io.File;
@@ -75,6 +77,7 @@ import java.io.File;
 public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(CalculatedValueContainerFactory.class);
+        registration.add(ProblemLocationAnalyzer.class, DefaultProblemLocationAnalyzer.class);
         registration.add(InMemoryCacheFactory.class);
         registration.add(StateTransitionControllerFactory.class);
         registration.add(BuildLayoutValidator.class);
@@ -100,24 +103,25 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    BuildLayout createBuildLocations(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
-        return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
+    BuildTreeLocations createBuildTreeLocations(BuildLayoutFactory buildLayoutFactory, StartParameter startParameter) {
+        BuildLayout rootBuildLayout = buildLayoutFactory.getLayoutFor(((StartParameterInternal) startParameter).toBuildLayoutConfiguration());
+        return new BuildTreeLocations(rootBuildLayout);
     }
 
     @Provides
-    FileResolver createFileResolver(FileLookup fileLookup, BuildLayout buildLayout) {
-        return fileLookup.getFileResolver(buildLayout.getRootDirectory());
+    FileResolver createFileResolver(FileLookup fileLookup, BuildTreeLocations buildTreeLocations) {
+        return fileLookup.getFileResolver(buildTreeLocations.getBuildTreeRootDirectory());
     }
 
     @Provides
     ProjectCacheDir createProjectCacheDir(
         GradleUserHomeDirProvider userHomeDirProvider,
-        BuildLayout buildLayout,
+        BuildTreeLocations buildTreeLocations,
         Deleter deleter,
         BuildOperationRunner buildOperationRunner,
         StartParameter startParameter
     ) {
-        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLayout, startParameter);
+        BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildTreeLocations.getRootBuildLayout(), startParameter);
         return new ProjectCacheDir(cacheDir.getDir(), buildOperationRunner, deleter);
     }
 
@@ -161,8 +165,7 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
         Instantiator instantiator,
         BuildCancellationToken buildCancellationToken,
         ObjectFactory objectFactory,
-        JavaModuleDetector javaModuleDetector,
-        ClientExecHandleBuilderFactory clientExecHandleBuilderFactory
+        JavaModuleDetector javaModuleDetector
     ) {
         return execFactory.forContext()
             .withFileResolver(fileResolver)
@@ -171,7 +174,6 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
             .withBuildCancellationToken(buildCancellationToken)
             .withObjectFactory(objectFactory)
             .withJavaModuleDetector(javaModuleDetector)
-            .withExecHandleFactory(clientExecHandleBuilderFactory)
             .build();
     }
 

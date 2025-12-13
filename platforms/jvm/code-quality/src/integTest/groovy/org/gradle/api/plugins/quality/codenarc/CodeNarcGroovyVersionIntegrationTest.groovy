@@ -16,14 +16,18 @@
 
 package org.gradle.api.plugins.quality.codenarc
 
-import org.gradle.api.plugins.quality.CodeNarcPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.VersionNumber
 
+import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.CoreMatchers.startsWith
+import static org.junit.Assume.assumeThat
 
 class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec implements CodeNarcTestFixture {
+    static final String STABLE_VERSION = "3.2.0"
+    static final String STABLE_VERSION_WITH_GROOVY4_SUPPORT = "${STABLE_VERSION}-groovy-4.0"
+
     def setup() {
         writeRuleFile()
     }
@@ -46,7 +50,9 @@ class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec imple
         """.stripIndent()
     }
 
-    def "analyze good code (groovy: #groovyVersion, codenarc: #codenarcVersion)"() {
+    def "analyze good code (groovy: #groovyMajorVersion, codenarc: #codenarcVersion)"() {
+        def groovyVersion = getLatestGroovyVersion(groovyMajorVersion)
+        assumeThat("Groovy $groovyMajorVersion is not supported on this JVM", groovyVersion, not(null))
         goodCode()
         writeBuildFile(groovyVersion, codenarcVersion)
 
@@ -56,12 +62,14 @@ class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec imple
         report("test").exists()
 
         where:
-        groovyVersion        | codenarcVersion
-        latestGroovy3Version | CodeNarcPlugin.STABLE_VERSION
-        latestGroovy4Version | CodeNarcPlugin.STABLE_VERSION_WITH_GROOVY4_SUPPORT
+        groovyMajorVersion | codenarcVersion
+        3                  | STABLE_VERSION
+        4                  | STABLE_VERSION_WITH_GROOVY4_SUPPORT
     }
 
-    def "analyze bad code"() {
+    def "analyze bad code (groovy: #groovyMajorVersion, codenarc: #codenarcVersion)"() {
+        def groovyVersion = getLatestGroovyVersion(groovyMajorVersion)
+        assumeThat("Groovy $groovyMajorVersion is not supported on this JVM", groovyVersion, not(null))
         badCode()
         writeBuildFile(groovyVersion, codenarcVersion)
 
@@ -73,16 +81,15 @@ class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec imple
         report("test").text.contains("testclass2")
 
         where:
-        groovyVersion        | codenarcVersion
-        latestGroovy3Version | CodeNarcPlugin.STABLE_VERSION
-        latestGroovy4Version | CodeNarcPlugin.STABLE_VERSION_WITH_GROOVY4_SUPPORT
+        groovyMajorVersion | codenarcVersion
+        3                  | STABLE_VERSION
+        4                  | STABLE_VERSION_WITH_GROOVY4_SUPPORT
     }
 
-    static String getLatestGroovy4Version() {
-        return GroovyCoverage.SUPPORTED_BY_JDK.collect { VersionNumber.parse(it) }.findAll {it.major == 4 }.max()
-    }
-
-    static String getLatestGroovy3Version() {
-        return GroovyCoverage.SUPPORTED_BY_JDK.collect { VersionNumber.parse(it) }.findAll {it.major == 3 }.max()
+    static String getLatestGroovyVersion(int majorVersion) {
+        return GroovyCoverage.SUPPORTED_BY_JDK
+            .collect { VersionNumber.parse(it) }
+            .findAll { it.major == majorVersion }
+            .max()
     }
 }

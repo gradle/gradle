@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -28,16 +27,13 @@ import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
-import org.gradle.internal.component.model.GraphVariantSelectionResult;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, ForcingDependencyMetadata {
     private final ResolveState resolveState;
@@ -65,29 +61,33 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public ModuleDependencyMetadata withRequestedVersion(VersionConstraint requestedVersion) {
-        return this;
+        throw new UnsupportedOperationException("Applying component metadata rules to lenient platform dependencies is not supported.");
     }
 
     @Override
     public ModuleDependencyMetadata withReason(String reason) {
-        return this;
+        throw new UnsupportedOperationException("Applying component metadata rules to lenient platform dependencies is not supported.");
     }
 
     @Override
     public ModuleDependencyMetadata withEndorseStrictVersions(boolean endorse) {
-        return this;
+        throw new UnsupportedOperationException("Applying component metadata rules to lenient platform dependencies is not supported.");
     }
 
     @Override
-    public GraphVariantSelectionResult selectVariants(GraphVariantSelector variantSelector, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, ImmutableAttributesSchema consumerSchema, Set<CapabilitySelector> explicitRequestedCapabilities) {
+    public @Nullable List<? extends VariantGraphResolveState> overrideVariantSelection(
+        GraphVariantSelector variantSelector,
+        ImmutableAttributes consumerAttributes,
+        ComponentGraphResolveState targetComponentState,
+        ImmutableAttributesSchema consumerSchema
+    ) {
         if (targetComponentState instanceof LenientPlatformGraphResolveState) {
             LenientPlatformGraphResolveState lenientPlatform = (LenientPlatformGraphResolveState) targetComponentState;
             VariantGraphResolveState variant = lenientPlatform.getCandidatesForGraphVariantSelection().getVariantForSourceNode(from, platformId);
-            return new GraphVariantSelectionResult(Collections.singletonList(variant), false);
+            return Collections.singletonList(variant);
         }
 
-        // the target component exists, so we need to fallback to the traditional selection process
-        return new LocalComponentDependencyMetadata(cs, null, Collections.emptyList(), Collections.emptyList(), false, false, true, false, false, null).selectVariants(variantSelector, consumerAttributes, targetComponentState, consumerSchema, explicitRequestedCapabilities);
+        return null;
     }
 
     @Override
@@ -102,11 +102,15 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
+        // TODO: This gets called when performing substitutions.
+        //       We probably shouldn't ignore this.
         return this;
     }
 
     @Override
     public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+        // TODO: This gets called when performing substitutions.
+        //       We probably shouldn't ignore this.
         return this;
     }
 
@@ -137,7 +141,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public String toString() {
-        return "virtual metadata for " + componentId;
+        return componentId.getDisplayName();
     }
 
     @Override

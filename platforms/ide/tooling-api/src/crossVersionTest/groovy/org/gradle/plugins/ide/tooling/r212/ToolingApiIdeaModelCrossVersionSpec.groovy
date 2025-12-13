@@ -17,13 +17,11 @@
 package org.gradle.plugins.ide.tooling.r212
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.idea.IdeaProject
 
 import static org.gradle.plugins.ide.tooling.r210.ConventionsExtensionsCrossVersionFixture.javaSourceCompatibility
 
-@TargetGradleVersion(">=3.0")
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -32,7 +30,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
     def "explicit idea project language level does not overwrite module language level"() {
         given:
-        settingsFile << "\ninclude 'root', 'child1', 'child2', 'child3'"
+        includeProjects("root", "child1", "child2", "child3")
         buildFile << """
             apply plugin: 'idea'
 

@@ -50,7 +50,6 @@ class AbstractReportTaskTest extends Specification {
         task.generate()
 
         then:
-        1 * renderer.setClientMetaData(_)
         1 * renderer.setOutput(_ as StyledTextOutput)
         1 * renderer.startProject(projectDetails)
         1 * generator.run()
@@ -66,7 +65,6 @@ class AbstractReportTaskTest extends Specification {
         task.generate()
 
         then:
-        1 * renderer.setClientMetaData(_)
         1 * renderer.setOutputFile(file)
         1 * renderer.startProject(projectDetails)
         1 * generator.run()
@@ -83,7 +81,6 @@ class AbstractReportTaskTest extends Specification {
         task.generate()
 
         then:
-        1 * renderer.setClientMetaData(_)
         1 * renderer.setOutput(_ as StyledTextOutput)
         [project, child1, child2].each {
             final ProjectDetails p = ProjectDetails.of(it)
@@ -95,7 +92,7 @@ class AbstractReportTaskTest extends Specification {
     }
 
     @SuppressWarnings('GrDeprecatedAPIUsage')
-    static class TestReportTask extends AbstractReportTask {
+    static abstract class TestReportTask extends AbstractReportTask {
         private Runnable generator
         private ReportRenderer renderer
 

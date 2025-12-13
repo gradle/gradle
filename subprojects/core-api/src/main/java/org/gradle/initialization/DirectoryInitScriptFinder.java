@@ -16,8 +16,8 @@
 package org.gradle.initialization;
 
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;

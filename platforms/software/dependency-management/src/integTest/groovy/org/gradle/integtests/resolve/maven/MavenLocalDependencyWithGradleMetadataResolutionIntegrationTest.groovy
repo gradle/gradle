@@ -22,11 +22,12 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser.FORMAT_VERSION
 
 class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends AbstractDependencyResolutionTest {
-    def resolve = new ResolveTestFixture(buildFile, "compile")
+    def resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
-        resolve.prepare()
-        settingsFile << "rootProject.name = 'test'"
+        settingsFile << """
+            rootProject.name = 'test'
+        """
     }
 
     def "uses the module metadata when configured as source and pom is not present"() {
@@ -34,17 +35,25 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenRepo.uri}'
-        metadataSources { gradleMetadata() }
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'test:a:1.2'
-}
-"""
+            repositories {
+                maven {
+                    url = '${mavenRepo.uri}'
+                    metadataSources {
+                        gradleMetadata()
+                    }
+                }
+            }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile 'test:a:1.2'
+            }
+        """
 
         when:
         run("checkDeps")
@@ -102,25 +111,24 @@ dependencies {
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenRepo.uri}'
-    }
-}
-def attr = Attribute.of("buildType", String)
-configurations {
-    debug { attributes.attribute(attr, "debug") }
-    release { attributes.attribute(attr, "release") }
-}
-dependencies {
-    debug 'test:a:1.2'
-    release 'test:a:1.2'
-}
-"""
-        resolve.prepare {
-            config("debug")
-            config("release")
-        }
+            repositories {
+                maven {
+                    url = '${mavenRepo.uri}'
+                }
+            }
+            def attr = Attribute.of("buildType", String)
+            configurations {
+                debug { attributes.attribute(attr, "debug") }
+                release { attributes.attribute(attr, "release") }
+            }
+
+            ${resolve.configureProject("debug", "release")}
+
+            dependencies {
+                debug 'test:a:1.2'
+                release 'test:a:1.2'
+            }
+        """
 
         when:
         run("checkDebug")
@@ -186,25 +194,24 @@ dependencies {
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenRepo.uri}'
-    }
-}
-def attr = Attribute.of("buildType", String)
-configurations {
-    debug { attributes.attribute(attr, "debug") }
-    release { attributes.attribute(attr, "release") }
-}
-dependencies {
-    debug 'test:a:1.2'
-    release 'test:a:1.2'
-}
-"""
-        resolve.prepare {
-            config("debug")
-            config("release")
-        }
+            repositories {
+                maven {
+                    url = '${mavenRepo.uri}'
+                }
+            }
+            def attr = Attribute.of("buildType", String)
+            configurations {
+                debug { attributes.attribute(attr, "debug") }
+                release { attributes.attribute(attr, "release") }
+            }
+
+            ${resolve.configureProject("debug", "release")}
+
+            dependencies {
+                debug 'test:a:1.2'
+                release 'test:a:1.2'
+            }
+        """
 
         when:
         run("checkDebug")
@@ -260,19 +267,22 @@ dependencies {
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenRepo.uri}'
-    }
-}
-configurations {
-    debug
-}
-dependencies {
-    debug 'test:a:1.2'
-}
-"""
-        resolve.prepare("debug")
+            repositories {
+                maven {
+                    url = '${mavenRepo.uri}'
+                }
+            }
+
+            configurations {
+                debug
+            }
+
+            ${resolve.configureProject("debug")}
+
+            dependencies {
+                debug 'test:a:1.2'
+            }
+        """
 
         when:
         run("checkDeps")
@@ -318,19 +328,22 @@ dependencies {
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenRepo.uri}'
-    }
-}
-configurations {
-    debug
-}
-dependencies {
-    debug 'test:a:1.2'
-}
-"""
-        resolve.prepare("debug")
+            repositories {
+                maven {
+                    url = '${mavenRepo.uri}'
+                }
+            }
+
+            configurations {
+                debug
+            }
+
+            ${resolve.configureProject("debug")}
+
+            dependencies {
+                debug 'test:a:1.2'
+            }
+        """
 
         when:
         run("checkDeps")
@@ -409,25 +422,24 @@ dependencies {
 
         given:
         buildFile << """
-repositories {
-    maven {
-        url = '${mavenRepo.uri}'
-    }
-}
-def attr = Attribute.of("buildType", String)
-configurations {
-    debug { attributes.attribute(attr, "debug") }
-    release { attributes.attribute(attr, "release") }
-}
-dependencies {
-    debug 'test:a:1.2'
-    release 'test:a:1.2'
-}
-"""
-        resolve.prepare {
-            config("debug")
-            config("release")
-        }
+            repositories {
+                maven {
+                    url = '${mavenRepo.uri}'
+                }
+            }
+            def attr = Attribute.of("buildType", String)
+            configurations {
+                debug { attributes.attribute(attr, "debug") }
+                release { attributes.attribute(attr, "release") }
+            }
+
+            ${resolve.configureProject("debug", "release")}
+
+            dependencies {
+                debug 'test:a:1.2'
+                release 'test:a:1.2'
+            }
+        """
 
         when:
         run("checkDebug")

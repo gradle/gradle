@@ -17,25 +17,29 @@
 package org.gradle.jvm.toolchain.install.internal
 
 import org.gradle.api.GradleException
-import org.gradle.api.internal.provider.Providers
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.authentication.Authentication
 import org.gradle.cache.FileLock
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainDownload
 import org.gradle.jvm.toolchain.JavaToolchainRequest
 import org.gradle.jvm.toolchain.JavaToolchainResolver
 import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.gradle.jvm.toolchain.internal.CurrentBuildPlatform
+import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository
-import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException
+import org.gradle.jvm.toolchain.internal.ToolchainConfiguration
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException
+import org.gradle.platform.Architecture
+import org.gradle.platform.OperatingSystem
+import org.gradle.platform.internal.CurrentBuildPlatform
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -45,6 +49,7 @@ import java.util.stream.IntStream
 class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
     private static final String ARCHIVE_NAME = 'ibm-11-x64-hotspot-linux.zip'
+    private static final String UPDATED_ARCHIVE_NAME = 'ibm-11-x64-hotspot-linux-Eclipse-Temurin-11.zip'
 
     private static final JavaToolchainDownload DOWNLOAD = JavaToolchainDownload.fromUri(URI.create('https://server/whatever'))
 
@@ -57,6 +62,11 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
     def archiveFileLock = Mock(FileLock)
     def buildPlatform = Mock(CurrentBuildPlatform)
     def buildOperationRunner = new TestBuildOperationRunner()
+    def spec = Mock(JavaToolchainSpec) {
+        getLanguageVersion() >> TestUtil.propertyFactory().property(JavaLanguageVersion).value(JavaLanguageVersion.of(11))
+        getVendor() >> TestUtil.propertyFactory().property(JvmVendorSpec).value(JvmVendorSpec.ADOPTIUM)
+    }
+    def providerFactory = TestUtil.providerFactory()
 
     def setup() {
         ExternalResourceMetaData downloadResourceMetadata = Mock(ExternalResourceMetaData)
@@ -70,18 +80,17 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         cache.acquireWriteLock(_ as File, _ as String) >> archiveFileLock
         cache.getDownloadLocation() >> temporaryFolder
         cache.provisionFromArchive(_ as JavaToolchainSpec, _ as File, _ as URI) >> new File(temporaryFolder, "install_dir")
+
+        buildPlatform.operatingSystem >> OperatingSystem.LINUX
+        buildPlatform.architecture >> Architecture.AARCH64
     }
 
     def "cache is properly locked around provisioning a jdk"() {
-        def spec = Mock(JavaToolchainSpec)
-
-        def providerFactory = createProviderFactory("true")
-
-
         given:
+        def toolchainConfiguration = createToolchainConfiguration(true)
         mockRegistry(mockResolver(Optional.of(DOWNLOAD)))
 
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, buildOperationRunner, buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, toolchainConfiguration, buildOperationRunner, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
@@ -100,17 +109,16 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         List<BuildOperationDescriptor> descriptors = buildOperationRunner.log.getDescriptors()
         descriptors.find { it.name == "Examining toolchain URI " + DOWNLOAD.getUri() }
         descriptors.find { it.name == "Downloading toolchain from URI " + DOWNLOAD.getUri() }
-        descriptors.find { it.name == "Unpacking toolchain archive " + ARCHIVE_NAME }
+        descriptors.find { it.name == "Unpacking toolchain archive " + UPDATED_ARCHIVE_NAME }
     }
 
     def "skips downloading if already downloaded"() {
-        def spec = Mock(JavaToolchainSpec)
-        def providerFactory = createProviderFactory("true")
+        def toolchainConfiguration = createToolchainConfiguration(true)
 
         given:
         mockRegistry(mockResolver(Optional.of(DOWNLOAD)))
-        new File(temporaryFolder, ARCHIVE_NAME).createNewFile()
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, buildOperationRunner, buildPlatform)
+        new File(temporaryFolder, UPDATED_ARCHIVE_NAME).createNewFile()
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, toolchainConfiguration, buildOperationRunner, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
@@ -120,40 +128,37 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
     }
 
     def "skips downloading if cannot satisfy spec"() {
-        def spec = Mock(JavaToolchainSpec)
-        def providerFactory = createProviderFactory("true")
+        def toolchainConfiguration = createToolchainConfiguration(true)
 
         given:
         mockRegistry(mockResolver(Optional.empty()))
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, buildOperationRunner, buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, toolchainConfiguration, buildOperationRunner, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
 
         then:
-        thrown(ToolchainDownloadFailedException.class)
+        thrown(ToolchainProvisioningException.class)
         0 * downloader.download(_, _, _)
     }
 
     def "single resolver fails"() {
-        def spec = Mock(JavaToolchainSpec)
-        def providerFactory = createProviderFactory("true")
+        def toolchainConfiguration = createToolchainConfiguration(true)
 
         given:
         mockRegistry(mockResolver(new GradleException("Something went horribly wrong")))
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, buildOperationRunner, buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, toolchainConfiguration, buildOperationRunner, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
 
         then:
-        thrown(ToolchainDownloadFailedException.class)
+        thrown(ToolchainProvisioningException.class)
         0 * downloader.download(_, _, _)
     }
 
     def "some resolvers fail, but some succeed"() {
-        def spec = Mock(JavaToolchainSpec)
-        def providerFactory = createProviderFactory("true")
+        def toolchainConfiguration = createToolchainConfiguration(true)
 
         given:
         mockRegistry(
@@ -162,48 +167,46 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
             mockResolver(Optional.of(DOWNLOAD)),
             mockResolver(new GradleException("OMG"))
         )
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, buildOperationRunner, buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, toolchainConfiguration, buildOperationRunner, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
 
         then:
-        1 * downloader.download(DOWNLOAD.getUri(), new File(temporaryFolder, ARCHIVE_NAME), _)
+        1 * downloader.download(DOWNLOAD.getUri(), new File(temporaryFolder, UPDATED_ARCHIVE_NAME), _)
     }
 
     def "auto download can be disabled"() {
-        def spec = Mock(JavaToolchainSpec)
-        def providerFactory = createProviderFactory("false")
+        def toolchainConfiguration = createToolchainConfiguration(false)
 
         given:
         mockRegistry(mockResolver(Optional.of(DOWNLOAD)))
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, buildOperationRunner, buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, toolchainConfiguration, buildOperationRunner, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
 
         then:
-        thrown(ToolchainDownloadFailedException.class)
+        thrown(ToolchainProvisioningException.class)
     }
 
     def "downloads from url"() {
-        def spec = Mock(JavaToolchainSpec)
-        def providerFactory = createProviderFactory("true")
+        def toolchainConfiguration = createToolchainConfiguration(true)
 
         given:
         mockRegistry(mockResolver(Optional.of(DOWNLOAD)))
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, buildOperationRunner, buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, toolchainConfiguration, buildOperationRunner, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
 
         then:
-        1 * downloader.download(DOWNLOAD.getUri(), new File(temporaryFolder, ARCHIVE_NAME), _)
+        1 * downloader.download(DOWNLOAD.getUri(), new File(temporaryFolder, UPDATED_ARCHIVE_NAME), _)
     }
 
-    ProviderFactory createProviderFactory(String propertyValue) {
-        return Mock(ProviderFactory) {
-            gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable(propertyValue)
+    ToolchainConfiguration createToolchainConfiguration(boolean autoDownload) {
+        return Mock(ToolchainConfiguration) {
+            isDownloadEnabled() >> autoDownload
         }
     }
 

@@ -25,8 +25,7 @@ import org.gradle.internal.typeconversion.TypedNotationConverter;
 import org.gradle.nativeplatform.NativeLibraryRequirement;
 import org.gradle.nativeplatform.NativeLibrarySpec;
 import org.gradle.nativeplatform.internal.ProjectNativeLibraryRequirement;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 class NativeDependencyNotationParser {
     public static NotationParser<Object, NativeLibraryRequirement> parser() {

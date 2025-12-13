@@ -4,12 +4,6 @@ plugins {
 
 description = "Implementation for interacting with S3 repositories"
 
-errorprone {
-    disabledChecks.addAll(
-        "NotJavadoc", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.serviceProvider)
     api(projects.core)
@@ -22,9 +16,6 @@ dependencies {
     api(libs.awsS3Kms) {
         because("Loaded by the AWS libraries with reflection when present")
     }
-    api(libs.awsS3Sts) {
-        because("Loaded by the AWS libraries with reflection when present: https://github.com/gradle/gradle/issues/15332")
-    }
     api(libs.guava)
 
     implementation(projects.baseServices)
@@ -32,6 +23,10 @@ dependencies {
 
     implementation(libs.commonsLang)
     implementation(libs.slf4jApi)
+
+    runtimeOnly(libs.awsS3Sts) {
+        because("Loaded by the AWS libraries with reflection when present: https://github.com/gradle/gradle/issues/15332")
+    }
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.dependencyManagement))

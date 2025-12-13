@@ -19,7 +19,7 @@ package org.gradle.launcher.cli;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
@@ -30,8 +30,8 @@ import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

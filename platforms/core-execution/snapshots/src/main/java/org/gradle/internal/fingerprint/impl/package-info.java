@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@NonNullApi
+@NullMarked
 package org.gradle.internal.fingerprint.impl;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

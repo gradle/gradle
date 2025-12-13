@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.util.LongCommandLineDetectionUtil
 
@@ -48,20 +47,6 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
                 mainClass = "driver.Driver"
             }
 
-            task runWithJavaExec {
-                dependsOn sourceSets.main.runtimeClasspath
-                doLast {
-                    project.javaexec {
-                        if (run.executable) {
-                            executable run.executable
-                        }
-                        classpath = run.classpath
-                        mainClass = run.mainClass
-                        args run.args
-                    }
-                }
-            }
-
             tasks.register("runWithExecOperations") {
                 dependsOn sourceSets.main.runtimeClasspath
                 def runExecutable = run.executable ? run.executable : null
@@ -83,7 +68,6 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")
     def "still fail when classpath doesn't shorten the command line enough with #method"() {
         def veryLongCommandLineArgs = getLongCommandLine(getMaxArgs() * 16)
         buildFile << """
@@ -93,16 +77,6 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        if (method == 'project.javaexec') {
-            executer.expectDocumentedDeprecationWarning("The Project.javaexec(Closure) method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
-            executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
-                "This will fail with an error in Gradle 10.0. " +
-                "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
-        }
         fails taskName
 
         then:
@@ -111,11 +85,9 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         where:
         method                    | taskName
         'JavaExec task'           | 'run'
-        'project.javaexec'        | 'runWithJavaExec'
         'ExecOperations.javaexec' | 'runWithExecOperations'
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")
     def "does not suggest long command line failures when execution fails with #method"() {
         buildFile << """
             extraClasspath.from('${veryLongFileNames.join("','")}')
@@ -123,16 +95,6 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        if (method == 'project.javaexec') {
-            executer.expectDocumentedDeprecationWarning("The Project.javaexec(Closure) method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
-            executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
-                "This will fail with an error in Gradle 10.0. " +
-                "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
-        }
         fails taskName
 
         then:
@@ -141,30 +103,18 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
         where:
         method                    | taskName
-        'project.javaexec'        | 'runWithJavaExec'
         'ExecOperations.javaexec' | 'runWithExecOperations'
         // The test does not work with the JavaExec task because the task resolves the executable prior to starting the process.
         // At the same time, all the cases test the same functionality of the ExecHandle implementation.
         // 'JavaExec task'           | 'run'
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")
     def "does not suggest long command line failures when execution fails for short command line with #method"() {
         buildFile << """
             run.executable = 'does-not-exist'
         """
 
         when:
-        if (method == 'project.javaexec') {
-            executer.expectDocumentedDeprecationWarning("The Project.javaexec(Closure) method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
-            executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
-                "This will fail with an error in Gradle 10.0. " +
-                "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
-        }
         fails taskName
 
         then:
@@ -173,14 +123,12 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
         where:
         method                    | taskName
-        'project.javaexec'        | 'runWithJavaExec'
         'ExecOperations.javaexec' | 'runWithExecOperations'
         // The test does not work with the JavaExec task because the task resolves the executable prior to starting the process.
         // At the same time, all the cases test the same functionality of the ExecHandle implementation.
         // 'JavaExec task'           | 'run'
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")
     def "succeeds with long classpath with #method"() {
         buildFile << """
             extraClasspath.from('${veryLongFileNames.join("','")}')
@@ -192,16 +140,6 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         """
 
         when:
-        if (method == 'project.javaexec') {
-            executer.expectDocumentedDeprecationWarning("The Project.javaexec(Closure) method has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
-            executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
-                "This will fail with an error in Gradle 10.0. " +
-                "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
-        }
         succeeds taskName, "-i"
 
         then:
@@ -211,7 +149,6 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         where:
         method                    | taskName
         'JavaExec task'           | 'run'
-        'project.javaexec'        | 'runWithJavaExec'
         'ExecOperations.javaexec' | 'runWithExecOperations'
     }
 

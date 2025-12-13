@@ -17,8 +17,7 @@
 package org.gradle.internal.code;
 
 import org.gradle.internal.DisplayName;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Describes the source of code being applied.

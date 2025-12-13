@@ -17,8 +17,8 @@
 package org.gradle.caching.internal;
 
 import org.gradle.internal.operations.BuildOperationType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 /**

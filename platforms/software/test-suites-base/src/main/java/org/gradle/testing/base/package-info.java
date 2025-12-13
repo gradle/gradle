@@ -18,5 +18,5 @@
  * General purpose types for test suite support.
  */
 @org.gradle.api.Incubating
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.testing.base;

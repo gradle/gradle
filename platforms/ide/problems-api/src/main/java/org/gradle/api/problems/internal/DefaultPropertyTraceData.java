@@ -16,7 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
-import javax.annotation.Nullable;
+import com.google.common.base.Objects;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultPropertyTraceData implements PropertyTraceData {
     private final String trace;
@@ -30,6 +31,20 @@ public class DefaultPropertyTraceData implements PropertyTraceData {
             return new DefaultPropertyTraceDataBuilder();
         }
         return new DefaultPropertyTraceDataBuilder(from);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DefaultPropertyTraceData)) {
+            return false;
+        }
+        DefaultPropertyTraceData that = (DefaultPropertyTraceData) o;
+        return Objects.equal(trace, that.trace);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(trace);
     }
 
     public static AdditionalDataBuilder<PropertyTraceData> builder() {

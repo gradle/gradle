@@ -17,9 +17,8 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
-import org.gradle.api.model.ObjectFactory;
-
-import javax.annotation.Nullable;
+import org.gradle.api.model.ManagedType;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A container object that represents a configurable value of a specific type. A {@link Property} is also a
@@ -35,17 +34,24 @@ import javax.annotation.Nullable;
  * </p>
  *
  * <p>
- * You can create a {@link Property} instance using {@link ObjectFactory#property(Class)}. There are
- * also several specialized subtypes of this interface that can be created using various other factory methods.
+ * There are also several specialized subtypes of this interface that can be created using various other factory methods.
  * </p>
  *
+ * <p>
+ * Instances of this interface are not thread-safe for reading and writing.
+ * It is not safe to share the same Property instance between different projects.
+ * </p>
  * <p>
  * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
  * </p>
  *
  * @param <T> Type of value represented by the property
  * @since 4.3
+ *
+ * @see ManagedType Create an instance of this as a managed property (preferred).
+ * @see org.gradle.api.model.ObjectFactory#property(Class) Create an instance of this manually.
  */
+@ManagedType
 @SupportsKotlinAssignmentOverloading
 public interface Property<T> extends Provider<T>, HasConfigurableValue, SupportsConvention {
     /**

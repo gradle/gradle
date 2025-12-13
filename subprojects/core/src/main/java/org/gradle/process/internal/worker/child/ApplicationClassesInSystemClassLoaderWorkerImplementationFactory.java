@@ -17,10 +17,10 @@
 package org.gradle.process.internal.worker.child;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.internal.remote.Address;
@@ -67,6 +67,7 @@ import java.util.stream.Collectors;
  * </pre>
  */
 public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
+    public static final String WORKER_GRADLE_REMAPPING_PREFIX = "worker";
     private final ClassPathRegistry classPathRegistry;
     private final TemporaryFileProvider temporaryFileProvider;
     private final File gradleUserHomeDir;
@@ -83,6 +84,19 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
 
     /**
      * Configures the Java command that will be used to launch the child process.
+     * <p>
+     * Due to Windows command line length limitations, it becomes very easy to exceed the maximum command line length
+     * by supplying large classpaths to the new process. Depending on the Java version, we have two approaches to
+     * avoid this problem:
+     * <ul>
+     *     <li>Java 8 and earlier: We serialize the classpath to stdin. We start Java with a security manager that
+     *     reads the classpath from stdin and hacks it into the system ClassLoader with reflection. Due to changes
+     *     in the classloader structure, this no longer works after Java 8.</li>
+     *     <li>Java 9 and later: We use an options file to pass the classpath to the new process. Options files
+     *     were added to java in Java 9 (they existed for javac in prior versions)</li>
+     * </ul>
+     *
+     * @see <a href="https://issues.gradle.org/browse/GRADLE-3287">Context</a>
      */
     public void prepareJavaCommand(long workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, List<URL> implementationModulePath, Address serverAddress, JavaExecHandleBuilder execSpec, boolean publishProcessInfo, boolean useOptionsFile) {
         Collection<File> applicationClasspath = processBuilder.getApplicationClasspath();
@@ -97,7 +111,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
         if (runAsModule) {
             execSpec.getMainModule().set("gradle.worker");
         }
-        execSpec.getMainClass().set("worker." + GradleWorkerMain.class.getName());
+        execSpec.getMainClass().set(WORKER_GRADLE_REMAPPING_PREFIX + "." + GradleWorkerMain.class.getName());
         if (useOptionsFile) {
             // Use an options file to pass across application classpath
             File optionsFile = temporaryFileProvider.createTemporaryFile("gradle-worker-classpath", "txt");
@@ -105,8 +119,9 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
             execSpec.jvmArgs(jvmArgs);
         } else {
             // Use a dummy security manager, which hacks the application classpath into the system ClassLoader
+            // This branch is only taken on Java 8, so the removal of the SecurityManager in the future is not an issue.
             execSpec.classpath(workerMainClassPath);
-            execSpec.systemProperty("java.security.manager", "worker." + BootstrapSecurityManager.class.getName());
+            execSpec.systemProperty("java.security.manager", WORKER_GRADLE_REMAPPING_PREFIX + "." + "org.gradle.process.internal.worker.child.BootstrapSecurityManager");
         }
 
         // Serialize configuration for the worker process to it stdin
@@ -167,7 +182,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
                 encoder.flush();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         execSpec.setStandardInput(buffer.getInputStream());
     }
@@ -202,6 +217,6 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
         if (!classpath.isEmpty()) {
             argumentList.addAll(Arrays.asList("-cp", Joiner.on(File.pathSeparator).join(classpath)));
         }
-        return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.javaStyleFactory()).transform(argumentList);
+        return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.javaStyleFactory()).apply(argumentList);
     }
 }

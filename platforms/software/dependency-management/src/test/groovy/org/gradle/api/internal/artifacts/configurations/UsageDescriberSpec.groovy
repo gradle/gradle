@@ -21,11 +21,10 @@ import spock.lang.Specification
 class UsageDescriberSpec extends Specification {
     def "can describe usage for role"() {
         given:
-        def role = ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE
+        def role = ConfigurationRoles.RESOLVABLE
 
         expect:
-        UsageDescriber.describeRole(role) == "\tResolvable - this configuration can be resolved by this project to a set of files\n" +
-                "\tDeclarable - this configuration can have dependencies added to it (but this behavior is marked deprecated)"
+        UsageDescriber.describeRole(role) == "\tResolvable - this configuration can be resolved by this project to a set of files"
     }
 
     def "can describe usage for role which allows nothing"() {

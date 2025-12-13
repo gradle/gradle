@@ -40,11 +40,16 @@ class ConfigurationCacheCompositeBuildProblemReportingIntegrationTest extends Ab
         configurationCacheFails ":inc:sub:broken"
 
         then:
+        failure.assertHasFailures(2)
+        failure.assertHasDescription("Execution failed for task ':inc:sub:broken'.")
+        failure.assertHasCause("Invocation of 'Task.project' by task ':inc:sub:broken' at execution time is unsupported with the configuration cache.")
+
         outputContains "Configuration cache entry discarded with 3 problems."
+        failure.assertHasDescription("Configuration cache problems found in this build.")
         problems.assertFailureHasProblems(failure) {
             withProblem("Build file 'inc/sub/build.gradle': line 2: registration of listener on 'Gradle.buildFinished' is unsupported".replace('/', File.separator))
-            withProblem("Build file 'inc/sub/build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported.".replace('/', File.separator))
             withProblem("Task `:inc:sub:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
+            withProblem("Build file 'inc/sub/build.gradle': line 5: invocation of 'Task.project' at execution time is unsupported with the configuration cache.".replace('/', File.separator))
             problemsWithStackTraceCount = 2
         }
     }

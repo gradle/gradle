@@ -19,13 +19,17 @@ package org.gradle.api.internal;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
+import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.configuration.inputs.InstrumentedInputs;
+import org.gradle.internal.deprecation.StartParameterDeprecations;
 import org.gradle.internal.watch.registry.WatchMode;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
+import java.util.Map;
 
 public class StartParameterInternal extends StartParameter {
     private WatchMode watchFileSystemMode = WatchMode.DEFAULT;
@@ -36,17 +40,24 @@ public class StartParameterInternal extends StartParameter {
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
     private boolean configurationCacheDebug;
     private boolean configurationCacheIgnoreInputsDuringStore = false;
+    private boolean configurationCacheIgnoreUnsupportedBuildEventsListeners = false;
     private int configurationCacheMaxProblems = 512;
     private @Nullable String configurationCacheIgnoredFileSystemCheckInputs = null;
     private boolean configurationCacheParallel;
+    private boolean configurationCacheReadOnly;
     private boolean configurationCacheRecreateCache;
     private boolean configurationCacheQuiet;
     private int configurationCacheEntriesPerKey = 1;
+    private boolean configurationCacheIntegrityCheckEnabled;
+    private @Nullable String configurationCacheHeapDumpDir;
+    private boolean configurationCacheFineGrainedPropertyTracking = true;
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
     private boolean propertyUpgradeReportEnabled;
     private boolean enableProblemReportGeneration = true;
+    private boolean daemonJvmCriteriaConfigured = false;
+    private Option.Value<Boolean> parallelToolingModelBuilding = Option.Value.defaultValue(false);
 
     public StartParameterInternal() {
     }
@@ -75,15 +86,39 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheProblems = configurationCacheProblems;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
         p.configurationCacheIgnoredFileSystemCheckInputs = configurationCacheIgnoredFileSystemCheckInputs;
+        p.configurationCacheIgnoreUnsupportedBuildEventsListeners = configurationCacheIgnoreUnsupportedBuildEventsListeners;
         p.configurationCacheDebug = configurationCacheDebug;
         p.configurationCacheParallel = configurationCacheParallel;
+        p.configurationCacheReadOnly = configurationCacheReadOnly;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
         p.configurationCacheEntriesPerKey = configurationCacheEntriesPerKey;
+        p.configurationCacheIntegrityCheckEnabled = configurationCacheIntegrityCheckEnabled;
+        p.configurationCacheHeapDumpDir = configurationCacheHeapDumpDir;
+        p.configurationCacheFineGrainedPropertyTracking = configurationCacheFineGrainedPropertyTracking;
         p.searchUpwards = searchUpwards;
         p.useEmptySettings = useEmptySettings;
         p.enableProblemReportGeneration = enableProblemReportGeneration;
+        p.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
+        p.parallelToolingModelBuilding = parallelToolingModelBuilding;
         return p;
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public Map<String, String> getProjectProperties() {
+        // We avoid using the more usual `Instrumented` directly because a class dependency on it bloats up the Shaded TAPI Jar
+        InstrumentedInputs.listener().startParameterProjectPropertiesObserved();
+        return super.getProjectProperties();
+    }
+
+    /**
+     * Returns the properties without making their snapshot a build input for Configuration Caching purposes.
+     * <p>
+     * This should be used with care because failing to track properties can lead to false-positive cache hits.
+     */
+    public Map<String, String> getProjectPropertiesUntracked() {
+        return super.getProjectProperties();
     }
 
     public File getGradleHomeDir() {
@@ -127,14 +162,6 @@ public class StartParameterInternal extends StartParameter {
     }
 
     /**
-     * Used by the Kotlin plugin, via reflection.
-     */
-    @Deprecated
-    public boolean isConfigurationCache() {
-        return getConfigurationCache().get();
-    }
-
-    /**
      * Is the configuration cache requested? Note: depending on the build action, this may not be the final value for this option.
      *
      * Consider querying {@link BuildModelParameters} instead.
@@ -154,6 +181,7 @@ public class StartParameterInternal extends StartParameter {
     @SuppressWarnings("deprecation")
     @Override
     public boolean isConfigurationCacheRequested() {
+        StartParameterDeprecations.nagOnIsConfigurationCacheRequested();
         return configurationCache.get();
     }
 
@@ -185,12 +213,28 @@ public class StartParameterInternal extends StartParameter {
         configurationCacheIgnoreInputsDuringStore = ignoreInputsDuringStore;
     }
 
+    public void setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(boolean configurationCacheIgnoreUnsupportedBuildEventsListeners) {
+        this.configurationCacheIgnoreUnsupportedBuildEventsListeners = configurationCacheIgnoreUnsupportedBuildEventsListeners;
+    }
+
+    public boolean isConfigurationCacheIgnoreUnsupportedBuildEventsListeners() {
+        return configurationCacheIgnoreUnsupportedBuildEventsListeners;
+    }
+
     public boolean isConfigurationCacheParallel() {
         return configurationCacheParallel;
     }
 
     public void setConfigurationCacheParallel(boolean parallel) {
         this.configurationCacheParallel = parallel;
+    }
+
+    public boolean isConfigurationCacheReadOnly() {
+        return configurationCacheReadOnly;
+    }
+
+    public void setConfigurationCacheReadOnly(boolean readOnly) {
+        this.configurationCacheReadOnly = readOnly;
     }
 
     public int getConfigurationCacheEntriesPerKey() {
@@ -234,6 +278,30 @@ public class StartParameterInternal extends StartParameter {
         this.configurationCacheQuiet = configurationCacheQuiet;
     }
 
+    public void setConfigurationCacheIntegrityCheckEnabled(boolean configurationCacheIntegrityCheck) {
+        this.configurationCacheIntegrityCheckEnabled = configurationCacheIntegrityCheck;
+    }
+
+    public boolean isConfigurationCacheIntegrityCheckEnabled() {
+        return configurationCacheIntegrityCheckEnabled;
+    }
+
+    public void setConfigurationCacheHeapDumpDir(@Nullable String configurationCacheHeapDumpDir) {
+        this.configurationCacheHeapDumpDir = configurationCacheHeapDumpDir;
+    }
+
+    public @Nullable String getConfigurationCacheHeapDumpDir() {
+        return configurationCacheHeapDumpDir;
+    }
+
+    public void setConfigurationCacheFineGrainedPropertyTracking(boolean configurationCacheFineGrainedPropertyTracking) {
+        this.configurationCacheFineGrainedPropertyTracking = configurationCacheFineGrainedPropertyTracking;
+    }
+
+    public boolean isConfigurationCacheFineGrainedPropertyTracking() {
+        return configurationCacheFineGrainedPropertyTracking;
+    }
+
     public void setContinuousBuildQuietPeriod(Duration continuousBuildQuietPeriod) {
         this.continuousBuildQuietPeriod = continuousBuildQuietPeriod;
     }
@@ -256,5 +324,25 @@ public class StartParameterInternal extends StartParameter {
 
     public boolean isProblemReportGenerationEnabled() {
         return this.enableProblemReportGeneration;
+    }
+
+    public boolean isDaemonJvmCriteriaConfigured() {
+        return daemonJvmCriteriaConfigured;
+    }
+
+    public void setDaemonJvmCriteriaConfigured(boolean daemonJvmCriteriaConfigured) {
+        this.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
+    }
+
+    public Option.Value<Boolean> getParallelToolingModelBuilding() {
+        return parallelToolingModelBuilding;
+    }
+
+    public void setParallelToolingModelBuilding(Option.Value<Boolean> parallelToolingModelBuilding) {
+        this.parallelToolingModelBuilding = parallelToolingModelBuilding;
+    }
+
+    public BuildLayoutConfiguration toBuildLayoutConfiguration() {
+        return new BuildLayoutConfiguration(getCurrentDir(), isSearchUpwards(), isUseEmptySettings());
     }
 }

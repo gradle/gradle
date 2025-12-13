@@ -1,16 +1,16 @@
-<meta property="og:image" content="https://gradle.org/images/releases/gradle-@version@.png" />
+<meta property="og:image" content="https://gradle.org/images/releases/gradle-default.png" />
 <meta property="og:type"  content="article" />
 <meta property="og:title" content="Gradle @version@ Release Notes" />
 <meta property="og:site_name" content="Gradle Release Notes">
-<meta property="og:description" content="TO DO">
+<meta property="og:description" content="We are excited to announce Gradle @version@.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@gradle">
 <meta name="twitter:creator" content="@gradle">
 <meta name="twitter:title" content="Gradle @version@ Release Notes">
-<meta name="twitter:description" content="TO DO">
-<meta name="twitter:image" content="https://gradle.org/images/releases/gradle-@version@.png">
+<meta name="twitter:description" content="We are excited to announce Gradle @version@.">
+<meta name="twitter:image" content="https://gradle.org/images/releases/gradle-default.png">
 
-The Gradle team is excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
+We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
 This release features [1](), [2](), ... [n](), and more.
 
@@ -23,15 +23,17 @@ Include only their name, impactful features should be called out separately belo
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 
-Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
+Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
 ## Upgrade instructions
 
-Switch your build to use Gradle @version@ by updating the [Wrapper](userguide/gradle_wrapper.html) in your project:
+Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gradle_wrapper.html) in your project:
 
-`./gradlew wrapper --gradle-version=@version@ && ./gradlew wrapper`
+```text
+./gradlew wrapper --gradle-version=@version@ && ./gradlew wrapper
+```
 
-See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
+See the [Gradle 9.x upgrade guide](userguide/upgrading_version_9.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
 For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
 
@@ -43,7 +45,6 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ================== TEMPLATE ==============================
 
-<a name="FILL-IN-KEY-AREA"></a>
 ### FILL-IN-KEY-AREA improvements
 
 <<<FILL IN CONTEXT FOR KEY AREA>>>

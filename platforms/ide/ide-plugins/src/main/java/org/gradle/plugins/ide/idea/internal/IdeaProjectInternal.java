@@ -17,16 +17,16 @@
 package org.gradle.plugins.ide.idea.internal;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
 import org.gradle.plugins.ide.idea.model.IdeaProject;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-@NonNullApi
+@NullMarked
 public abstract class IdeaProjectInternal extends IdeaProject {
 
     @Inject

@@ -50,8 +50,8 @@ import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.DefaultProcessForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Set;
 import java.util.function.Function;
@@ -163,8 +163,8 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
     }
 
     private <T> Set<T> getOrEmpty(TestFrameworkOptions options, Function<JUnitPlatformOptions, Set<T>> extractor) {
-        return options instanceof JUnitPlatformOptions
-            ? extractor.apply((JUnitPlatformOptions) options)
+        return options instanceof JUnitPlatformOptions junitPlatformOptions
+            ? extractor.apply(junitPlatformOptions)
             : ImmutableSet.of();
     }
 

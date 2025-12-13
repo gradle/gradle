@@ -27,6 +27,7 @@ import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.file.Stat
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
@@ -41,7 +42,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultFinalizedExecutionPlan finalizedPlan
 
     def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
-    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationRunner(), accessHierarchies)
+    def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationRunner(), accessHierarchies, TestUtil.problemsService())
     def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
 
     def setup() {

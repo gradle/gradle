@@ -17,9 +17,9 @@
 package org.gradle.internal.collect;
 
 import com.google.common.collect.AbstractIterator;
+import org.jspecify.annotations.Nullable;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Objects;
@@ -102,8 +102,12 @@ public abstract class PersistentList<T> implements Iterable<T> {
 
         @Override
         public void forEach(Consumer<? super T> consumer) {
-            consumer.accept(head);
-            tail.forEach(consumer);
+            PersistentList<T> cur = this;
+            while (!cur.isEmpty()) {
+                Cons<T> cons = (Cons<T>) cur;
+                consumer.accept(cons.head);
+                cur = cons.tail;
+            }
         }
 
         @Override
@@ -140,20 +144,26 @@ public abstract class PersistentList<T> implements Iterable<T> {
 
         @Override
         public Iterator<T> iterator() {
-            return new AbstractIterator<T>() {
-                PersistentList<T> next = Cons.this;
+            return new PersistentListIterator<>(this);
+        }
 
-                @Nullable
-                @Override
-                protected T computeNext() {
-                    if (next.isEmpty()) {
-                        return endOfData();
-                    }
-                    Cons<T> current = (Cons<T>) next;
-                    next = current.tail;
-                    return current.head;
+        private static class PersistentListIterator<T> extends AbstractIterator<T> {
+            PersistentList<T> next;
+
+            public PersistentListIterator(Cons<T> next) {
+                this.next = next;
+            }
+
+            @Nullable
+            @Override
+            protected T computeNext() {
+                if (next.isEmpty()) {
+                    return endOfData();
                 }
-            };
+                Cons<T> current = (Cons<T>) next;
+                next = current.tail;
+                return current.head;
+            }
         }
     }
 }

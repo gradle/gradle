@@ -67,6 +67,8 @@ Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github
     git config user.name 'First Last'
     git config user.email user@example.com
 
+### IntelliJ IDEA
+
 #### Import Gradle into IntelliJ
 
 To import Gradle into IntelliJ:
@@ -80,23 +82,27 @@ IntelliJ automatically hides stacktrace elements from the `org.gradle` package, 
 
 If you did not have a Adoptium Java 17 SDK installed before importing the project into IntelliJ and after adding Adoptium Java 17 SDK your IntelliJ still uses the wrong SDK version, you might need to invalidate IntelliJ's caches before reloading the project.
 
+#### Install Develocity IntelliJ plugin
+
+Consider installing the [Develocity IntelliJ plugin](https://plugins.jetbrains.com/plugin/27471-develocity) to bring real-time Gradle build analysis directly into your IDE. 
+It helps developers optimize performance and gain deeper insights into their builds.
+
 ## Making your change
 
 ### Code change guidelines
 
-All code contributions should contain the following:
+Code contributions should follow these guidelines to maximize the chance of them being accepted:
 
-* Create unit tests using [Spock](https://spockframework.org/spock/docs/2.0/index.html) for new classes or methods that you introduce.
-* Create integration tests that exercise a Gradle build for the bug/feature. 
-* Annotate tests that correspond to a bug on GitHub (`@Issue("https://github.com/gradle/gradle/issues/2622")`).
+* Cover your code with tests. See the [Testing guide](contributing/Testing.md) for more information.
 * Add documentation to the User Manual and DSL Reference (under [platforms/documentation/docs/src/docs](platforms/documentation/docs/src/docs/)).
 * For error messages related changes, follow the [ErrorMessages Guide](contributing/ErrorMessages.md).
-* For Javadocs, follow the [Javadoc Style Guide](contributing/JavadocStyleGuide.md).
+* Add Javadoc for new methods and classes, following the [Javadoc Style Guide](contributing/JavadocStyleGuide.md). Javadoc is *required* for new public, top-level types.
 * For new features, the feature should be mentioned in the [Release Notes](platforms/documentation/docs/src/docs/release/notes.md).
+* Use American English spelling in code, comments, and documentation (e.g., "color" not "colour", "initialize" not "initialise"). See [ADR-0009](architecture/standards/0009-use-american-english.md) for details.
 
-Your code needs to run on [all versions of Java that Gradle supports](platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc) and across all supported operating systems (macOS, Windows, Linux). The [Gradle CI system](http://builds.gradle.org/) will verify this, but here are some pointers that will avoid surprises:
+Your code needs to run on [all versions of Java that Gradle supports](platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc) and across all supported operating systems (macOS, Windows, Linux). The Gradle CI system will verify this, but here are some pointers that will avoid surprises:
 
-* Be careful when using features introduced in Java 1.7 or later. Some parts of Gradle still need to run on Java 6.
+* Be careful when using features introduced in Java 9 or later. Some parts of Gradle still need to run on Java 8.
 * Normalize file paths in tests. The `org.gradle.util.internal.TextUtil` class has some useful functions for this purpose.
 
 You can consult the [Architecture documentation](architecture) to learn about some of the architecture of Gradle.
@@ -128,10 +134,14 @@ The commit messages that accompany your code changes are an important piece of d
 
 After making changes, you can test your code in 2 ways:
 
-1. Run tests.
+#### Run tests
+
 - Run `./gradlew :<subproject>:quickTest` where `<subproject>` is the name of the subproject you've changed. 
 - For example: `./gradlew :launcher:quickTest`.
-2. Install Gradle locally and try out a change in behavior manually. 
+
+#### Install Gradle locally
+
+and try out a change in behavior manually. 
 - Install: `./gradlew install -Pgradle_installPath=/any/path`
 - Use: `/any/path/bin/gradle taskName`.
 
@@ -143,6 +153,66 @@ It's also a good idea to run `./gradlew sanityCheck` before submitting your chan
 > a local machine without necessary parallelization and caching.
 > The full test suites are executed on the CI instance for multiple configurations,
 > and you can rely on it after doing initial sanity check and targeted local testing.
+
+### Copyright and License
+
+When updating/modifying a file, please do not make changes to the copyright header.
+
+When creating a new file, please make sure to add a header as defined below.
+
+#### Required Files for Copyright Headers:
+
+- Source code files (e.g., `.java`, `.kt`, `.groovy`).
+- Documentation files, where applicable (e.g., `.adoc`, `.md`).
+
+#### Exempt Files for Copyright Headers:
+
+- Scripts critical to builds, CI, or deployment (e.g., `.kts`, `.groovy`).
+- Auto-generated files (e.g., by code generators).
+- Minor configuration files (e.g., `.gitignore`).
+- Documentation samples and code snippets (e.g., `.java`, `.kt`, `.groovy`, `.kts`).
+- Release notes (e.g., `.md`).
+- READMEs (e.g., `.md`).
+
+#### Copyright Header for Source Files:
+
+```
+/*
+ * Copyright [YEAR OF FILE CREATION] Gradle and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+```
+
+#### Copyright Header for Documentation Files:
+
+```
+/*
+ * Copyright [YEAR OF FILE CREATION] Gradle and contributors.
+ *
+ * Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://creativecommons.org/licenses/by-nc-sa/4.0/
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+```
 
 ### Submitting Your Change
 
@@ -159,7 +229,7 @@ This may help you better understand and contribute to Gradle.
 
 ### Debugging Gradle
 
-You can debug Gradle by adding `-Dorg.gradle.debug=true` to the command-line. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
+See the [Debugging Gradle](./contributing/Debugging.md) guide for tips on debugging Gradle.
 
 If you made changes to build logic in the `build-logic` included build, you can run its tests by executing `./gradlew :build-logic:check`.
 
@@ -264,7 +334,7 @@ For more information on the configuration cache, see the [user manual](https://d
 
 Gradle, Inc runs a set of remote build cache nodes to speed up local builds when developing Gradle. By default, the build is [configured](https://github.com/gradle/gradle-org-conventions-plugin#what-it-does) to use the build cache node in the EU region.
 
-The build cache has anonymous read access, so you don't need to authenticate in order to use it. You can use a different build cache node by specifying `-DcacheNode=us` for a build cache node in the US or `-DcacheNode=au` for a build cache node in Australia.
+The build cache has anonymous read access, so you don't need to authenticate in order to use it. You can use a different build cache node by specifying `-Ddevelocity.edge.discovery=false -DcacheNode=us` for a build cache node in the US or `-Ddevelocity.edge.discovery=false -DcacheNode=au` for a build cache node in Australia.
 
 If you are not getting cache hits from the build cache, you may be using the wrong version of Java. A fixed version (Java 11) is required to get remote cache hits.
 
@@ -274,7 +344,7 @@ To create a Gradle distribution from the source tree you can run either of the f
 
     ./gradlew :distributions-full:binDistributionZip
 
-This will create a minimal distribution at `subprojects/distributions-full/build/distributions/gradle-<version>-bin.zip`, just what's needed to run Gradle (i.e. no sources nor docs).
+This will create a minimal distribution at `packaging/distributions-full/build/distributions/gradle-<version>-bin.zip`, just what's needed to run Gradle (i.e. no sources nor docs).
 
 You can then use it as a Gradle Wrapper local distribution in a Gradle based project by using a `file:/` URL pointing to the built distribution:
 
@@ -284,7 +354,7 @@ To create a full distribution (includes sources and docs):
 
     ./gradlew :distributions-full:allDistributionZip
 
-The full distribution will be created at `subprojects/distributions-full/build/distributions/gradle-<version>-all.zip`. You can then use it as a Gradle Wrapper local distribution:
+The full distribution will be created at `packaging/distributions-full/build/distributions/gradle-<version>-all.zip`. You can then use it as a Gradle Wrapper local distribution:
 
     ./gradlew wrapper --gradle-distribution-url=file:/path/to/gradle-<version>-all.zip
 

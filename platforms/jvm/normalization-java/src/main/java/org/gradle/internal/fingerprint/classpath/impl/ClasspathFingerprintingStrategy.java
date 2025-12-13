@@ -50,8 +50,8 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.HashSet;
@@ -119,18 +119,6 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         return new ClasspathFingerprintingStrategy(COMPILE_CLASSPATH_IDENTIFIER, IGNORE, classpathResourceHasher, zipHasher, cacheService, stringInterner);
     }
 
-    public static ClasspathFingerprintingStrategy compileClasspathFallbackToRuntimeClasspath(
-        ResourceHasher classpathResourceHasher,
-        ResourceHasher runtimeClasspathResourceHasher,
-        ResourceSnapshotterCacheService cacheService,
-        Interner<String> stringInterner,
-        ZipHasher.HashingExceptionReporter hashingExceptionReporter
-    ) {
-        ZipHasher fallbackZipHasher = new ZipHasher(runtimeClasspathResourceHasher);
-        ZipHasher zipHasher = new ZipHasher(classpathResourceHasher, fallbackZipHasher, hashingExceptionReporter);
-        return new ClasspathFingerprintingStrategy(COMPILE_CLASSPATH_IDENTIFIER, IGNORE, classpathResourceHasher, zipHasher, cacheService, stringInterner);
-    }
-
     public static ResourceHasher runtimeClasspathResourceHasher(
         RuntimeClasspathResourceHasher runtimeClasspathResourceHasher,
         LineEndingSensitivity lineEndingSensitivity,
@@ -187,7 +175,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         private final HashSet<String> processedEntries;
         private final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder;
 
-
+        @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
         public ClasspathFingerprintingVisitor(HashSet<String> processedEntries, ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder) {
             this.processedEntries = processedEntries;
             this.builder = builder;

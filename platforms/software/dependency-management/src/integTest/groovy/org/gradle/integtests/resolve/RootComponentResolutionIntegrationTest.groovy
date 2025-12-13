@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.util.internal.ToBeImplemented
 
 /**
@@ -103,7 +104,7 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("resolve")
     }
 
-    def "configuration can resolve itself"() {
+    def "configuration cannot resolve itself"() {
         buildFile << """
             configurations {
                 conf {
@@ -128,54 +129,11 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        executer.expectDocumentedDeprecationWarning("While resolving configuration 'conf', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration")
+        when:
+        fails("resolve")
 
-        expect:
-        succeeds("resolve")
-    }
-
-    def "configuration can resolve itself and reselect artifacts"() {
-        buildFile << """
-            configurations {
-                conf {
-                    outgoing {
-                        artifact file("foo.txt")
-                    }
-                    attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "foo"))
-                    }
-                }
-                other {
-                    outgoing {
-                        artifact file("bar.txt")
-                    }
-                    attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "bar"))
-                    }
-                }
-            }
-
-            dependencies {
-                conf project
-            }
-
-            task resolve {
-                def files = configurations.conf.incoming.artifactView {
-                    withVariantReselection()
-                    attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "bar"))
-                    }
-                }.files
-                doLast {
-                    assert files*.name == ["bar.txt"]
-                }
-            }
-        """
-
-        executer.expectDocumentedDeprecationWarning("While resolving configuration 'conf', it was also selected as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Depending on the resolved configuration in this manner has been deprecated. This will fail with an error in Gradle 9.0. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#depending_on_root_configuration")
-
-        expect:
-        succeeds("resolve")
+        then:
+        failure.assertHasCause("Cannot select root node 'conf' as a variant. Configurations should not act as both a resolution root and a variant simultaneously. Be sure to mark configurations meant for resolution as canBeConsumed=false or use the 'resolvable(String)' configuration factory method to create them.")
     }
 
     def "resolvable configuration and consumable configuration from same project live in same resolved component"() {
@@ -249,4 +207,81 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails("resolve")
     }
+
+    def "declaring a dependency on the resolving project's module identity resolves to the root component"() {
+        settingsFile << """
+            rootProject.name = 'my-project'
+        """
+        buildKotlinFile << """
+            group = "com.example"
+            version = "1.0.0"
+
+            val elements = configurations.consumable("elements") {
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+            }
+            val deps = configurations.dependencyScope("deps")
+            val classpath = configurations.resolvable("classpath") {
+                extendsFrom(deps.get())
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+            }
+
+            ${mavenTestRepository(GradleDsl.KOTLIN)}
+
+            dependencies {
+                deps("com.example:my-project:1.0.0")
+            }
+
+            tasks.register("resolve") {
+                val files = classpath.get().incoming.files
+                dependsOn(files)
+                doLast {
+                    println(files.files.map { it.name })
+                }
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Depending on the resolving project's module coordinates has been deprecated. This will fail with an error in Gradle 10. Use a project dependency instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#module_identity_for_root_component")
+        succeeds("resolve")
+    }
+
+    def "declaring a dependency on the resolving project's module identity from another project resolves to the root component"() {
+        settingsFile << """
+            include 'other'
+            rootProject.name = 'root'
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            group = "org.test"
+            version = "1.0"
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation(project(":other"))
+            }
+        """
+
+        file("other/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            group = "org.test"
+            version = "1.0"
+
+            dependencies {
+                implementation("org.test:root:1.0")
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Depending on the resolving project's module coordinates has been deprecated. This will fail with an error in Gradle 10. Use a project dependency instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#module_identity_for_root_component")
+        succeeds(":dependencies", "--configuration", "runtimeClasspath")
+    }
+
 }

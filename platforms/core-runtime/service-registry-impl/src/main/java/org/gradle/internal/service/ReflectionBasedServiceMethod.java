@@ -17,8 +17,8 @@ package org.gradle.internal.service;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaMethod;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 
 class ReflectionBasedServiceMethod extends AbstractServiceMethod {

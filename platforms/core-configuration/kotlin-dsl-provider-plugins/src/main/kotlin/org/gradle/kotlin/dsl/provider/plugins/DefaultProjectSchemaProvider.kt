@@ -27,25 +27,22 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.SharedModelDefaults
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.internal.Factory
 import org.gradle.internal.deprecation.DeprecatableConfiguration
-import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.accessors.ConfigurationEntry
 import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
 import org.gradle.kotlin.dsl.accessors.SchemaType
-import org.gradle.kotlin.dsl.accessors.SoftwareTypeEntry
+import org.gradle.kotlin.dsl.accessors.ProjectFeatureEntry
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.isDclEnabledForScriptTarget
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import java.lang.reflect.Modifier
 import kotlin.reflect.KVisibility
 
@@ -65,7 +62,6 @@ internal class DefaultProjectSchemaProvider(
             }?.let { targetSchema ->
                 ProjectSchema(
                     targetSchema.extensions,
-                    targetSchema.conventions,
                     targetSchema.tasks,
                     targetSchema.containerElements,
                     (scriptTarget as? Project)
@@ -73,7 +69,7 @@ internal class DefaultProjectSchemaProvider(
                         ?: emptyList(),
                     targetSchema.modelDefaults,
                     targetSchema.containerElementFactories,
-                    targetSchema.softwareTypeEntries,
+                    targetSchema.projectFeatureEntries,
                     scriptTarget
                 ).map(::SchemaType)
             }
@@ -100,13 +96,6 @@ internal class DefaultProjectSchemaProvider(
                 }
             }
             if (target is Project) {
-                @Suppress("deprecation")
-                val plugins: Map<String, Any> = DeprecationLogger.whileDisabled(Factory { target.convention.plugins })!!
-                accessibleConventionsSchema(plugins).forEach { (name, type) ->
-                    conventions.add(ProjectSchemaEntry(targetType, name, type))
-                    val plugin = DeprecationLogger.whileDisabled(Factory { plugins[name] })!!
-                    collectSchemaOf(plugin, type)
-                }
                 accessibleContainerSchema(target.tasks.collectionSchema).forEach { schema ->
                     tasks.add(ProjectSchemaEntry(typeOfTaskContainer, schema.name, schema.publicType))
                 }
@@ -118,8 +107,8 @@ internal class DefaultProjectSchemaProvider(
                 }
             }
             if (target is Settings) {
-                val softwareTypeRegistry = target.serviceOf<SoftwareTypeRegistry>()
-                accessibleContainerSchema(softwareTypeRegistry.schema).forEach { schema ->
+                val projectFeatureDeclarations = target.serviceOf<ProjectFeatureDeclarations>()
+                accessibleContainerSchema(projectFeatureDeclarations.schema).forEach { schema ->
                     buildModelDefaults.add(ProjectSchemaEntry(typeOfModelDefaults, schema.name, schema.publicType))
                 }
             }
@@ -142,7 +131,7 @@ internal class DefaultProjectSchemaProvider(
             tasks,
             containerElements,
             buildModelDefaults,
-            dclSchema?.softwareTypes.orEmpty(),
+            dclSchema?.projectFeatures.orEmpty(),
             dclSchema?.containerElementFactories.orEmpty()
         )
     }
@@ -154,17 +143,11 @@ data class TargetTypedSchema(
     val conventions: List<ProjectSchemaEntry<TypeOf<*>>>,
     val tasks: List<ProjectSchemaEntry<TypeOf<*>>>,
     val containerElements: List<ProjectSchemaEntry<TypeOf<*>>>,
+    // DCL:
     val modelDefaults: List<ProjectSchemaEntry<TypeOf<*>>>,
-    val softwareTypeEntries: List<SoftwareTypeEntry<TypeOf<*>>>,
+    val projectFeatureEntries: List<ProjectFeatureEntry<TypeOf<*>>>,
     val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>
 )
-
-
-private
-fun accessibleConventionsSchema(plugins: Map<String, Any>) =
-    DeprecationLogger.whileDisabled(Factory {
-        plugins.filterKeys(::isPublic).mapValues { inferPublicTypeOfConvention(it.value) }
-    })!!
 
 
 private
@@ -273,22 +256,6 @@ class ProjectSchemaNamedDomainObjectSchema(
 private
 fun sourceSetsOf(project: Project) =
     project.extensions.findByName("sourceSets") as? SourceSetContainer
-
-
-private
-fun inferPublicTypeOfConvention(instance: Any) =
-    if (instance is HasPublicType) instance.publicType
-    else TypeOf.typeOf(instance::class.java.firstNonSyntheticOrSelf)
-
-
-private
-val Class<*>.firstNonSyntheticOrSelf
-    get() = firstNonSyntheticOrNull ?: this
-
-
-private
-val Class<*>.firstNonSyntheticOrNull: Class<*>?
-    get() = takeIf { !isSynthetic } ?: superclass?.firstNonSyntheticOrNull
 
 
 private

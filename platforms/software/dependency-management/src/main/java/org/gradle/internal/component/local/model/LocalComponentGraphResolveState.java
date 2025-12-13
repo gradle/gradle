@@ -17,11 +17,11 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.GraphSelectionCandidates;
+import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 
@@ -33,45 +33,10 @@ import java.util.List;
 @ThreadSafe
 public interface LocalComponentGraphResolveState extends ComponentGraphResolveState {
 
-    /**
-     * Get a variant derived from the configuration with the given name, or null if no such
-     * variant exists.
-     *
-     * This method should only be used to fetch the root variant of a resolution. There are plans
-     * to migrate away from this method for that purpose.
-     *
-     * TODO: This is a legacy mechanism, and does not verify that the named configuration is
-     * consumable. Prefer {@link GraphSelectionCandidates#getVariantByConfigurationName(String)}.
-     *
-     * <strong>Do not use this method, as it will be removed in Gradle 9.0.</strong>
-     */
-    @Nullable
-    @Deprecated
-    LocalVariantGraphResolveState getConfigurationLegacy(String configurationName);
-
     ModuleVersionIdentifier getModuleVersionId();
 
     @Override
     LocalComponentGraphResolveMetadata getMetadata();
-
-    /**
-     * Copies this state, but with the new component ID.
-     */
-    LocalComponentGraphResolveState copyWithComponentId(ComponentIdentifier newComponentId);
-
-    /**
-     * We currently allow a configuration that has been partially observed for resolution to be modified
-     * in a beforeResolve callback.
-     *
-     * To reduce the number of instances of root component metadata we create, we mark all configurations
-     * as dirty and in need of re-evaluation when we see certain types of modifications to a configuration.
-     *
-     * In the future, we could narrow the number of configurations that need to be re-evaluated, but it would
-     * be better to get rid of the behavior that allows configurations to be modified once they've been observed.
-     *
-     * @see org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder.MetadataHolder#tryCached(ComponentIdentifier)
-     */
-    void reevaluate();
 
     @Override
     LocalComponentGraphSelectionCandidates getCandidatesForGraphVariantSelection();
@@ -87,5 +52,12 @@ public interface LocalComponentGraphResolveState extends ComponentGraphResolveSt
          */
         List<LocalVariantGraphResolveState> getAllSelectableVariants();
 
+        /**
+         * Returns the variant that is identified by the given configuration name.
+         */
+        @Nullable
+        VariantGraphResolveState getVariantByConfigurationName(String name);
+
     }
+
 }

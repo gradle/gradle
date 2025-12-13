@@ -21,11 +21,12 @@ import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
-import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
+import org.gradle.api.internal.attributes.matching.AttributeMatchingCandidate
+import org.gradle.api.internal.attributes.matching.ImmutableAttributesBackedMatchingCandidate
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -323,10 +324,10 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
      * @throws AssertionError If the first round of attribute matching failed to match a single configuration
      *      or the second round failed to match a single variant.
      */
-    def matchConfigurations(List<List<AttributeContainerInternal>> candidates, ImmutableAttributes requested) {
+    def matchConfigurations(List<List<ImmutableAttributes>> candidates, ImmutableAttributes requested) {
         // The first element in each configuration array is the implicit variant.
         def implicitVariants = candidates.collect { it.first() }
-        def configurationMatches = matcher.matchMultipleCandidates(implicitVariants, requested)
+        def configurationMatches = match(implicitVariants, requested)
 
         // This test is checking only for successful (single) matches. If we matched multiple configurations
         // in the first round, something is wrong here. Fail before attempting the second round of variant matching.
@@ -334,12 +335,17 @@ class JavaEcosystemAttributeMatcherTest extends Specification {
 
         // Get all the variants for the configuration which was selected and apply variant matching on them.
         def configurationVariants = candidates.get(implicitVariants.indexOf(configurationMatches.get(0)))
-        def variantMatches = matcher.matchMultipleCandidates(configurationVariants, requested)
+        def variantMatches = match(configurationVariants, requested)
 
         // Once again, the purpose of this test is for successful results. Something is wrong if we have
         // multiple matched variants.
         assert variantMatches.size() == 1
         return variantMatches[0]
+    }
+
+    private List<ImmutableAttributes> match(List<ImmutableAttributes> candidateAttributeSets, ImmutableAttributes requested) {
+        List<AttributeMatchingCandidate> candidates = candidateAttributeSets.collect { new ImmutableAttributesBackedMatchingCandidate(it) }
+        return matcher.matchMultipleCandidates(candidates, requested).collect { it.attributes }
     }
 
     private static ImmutableAttributes attributes(String usage, String libraryElements, Integer targetJvm) {

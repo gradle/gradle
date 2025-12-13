@@ -17,28 +17,25 @@
 package org.gradle.api.tasks.testing;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.exceptions.MarkedVerificationException;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
+import org.gradle.api.internal.tasks.testing.MultiTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.TestEventReporterFactoryInternal;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
+import org.gradle.api.internal.tasks.testing.TestReportGenerator;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
-import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.JUnitXmlResultOptions;
-import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
-import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
-import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
-import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
+import org.gradle.api.internal.tasks.testing.junit.result.TestEventReporterAsListener;
 import org.gradle.api.internal.tasks.testing.logging.DefaultTestLoggingContainer;
 import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.ShortExceptionFormatter;
@@ -46,14 +43,20 @@ import org.gradle.api.internal.tasks.testing.logging.TestCountLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestEventLogger;
 import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.logging.TestWorkerProgressListener;
-import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
 import org.gradle.api.internal.tasks.testing.report.TestReporter;
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.report.generic.JunitXmlTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.report.generic.TestTreeModelResultsProvider;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
@@ -64,8 +67,7 @@ import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
-import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -83,16 +85,18 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Abstract class for all test tasks.
@@ -172,64 +176,61 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private final BroadcastSubscriptions<TestListener> testListenerSubscriptions;
     private final BroadcastSubscriptions<TestOutputListener> testOutputListenerSubscriptions;
     private final TestLoggingContainer testLogging;
-    private final DirectoryProperty binaryResultsDirectory;
     private TestReporter testReporter;
     private boolean ignoreFailures;
     private boolean failFast;
 
     public AbstractTestTask() {
-        Instantiator instantiator = getInstantiator();
-        testLogging = instantiator.newInstance(DefaultTestLoggingContainer.class, instantiator);
+        ObjectFactory objectFactory = getObjectFactory();
+        testLogging = objectFactory.newInstance(DefaultTestLoggingContainer.class);
         testListenerSubscriptions = new BroadcastSubscriptions<TestListener>(TestListener.class);
         testOutputListenerSubscriptions = new BroadcastSubscriptions<TestOutputListener>(TestOutputListener.class);
-        binaryResultsDirectory = getProject().getObjects().directoryProperty();
 
-        reports = getProject().getObjects().newInstance(DefaultTestTaskReports.class, Describables.quoted("Task", getIdentityPath()));
+        reports = getObjectFactory().newInstance(DefaultTestTaskReports.class, Describables.quoted("Task", getIdentityPath()));
         reports.getJunitXml().getRequired().set(true);
         reports.getHtml().getRequired().set(true);
 
-        filter = instantiator.newInstance(DefaultTestFilter.class);
+        filter = objectFactory.newInstance(DefaultTestFilter.class);
+        getFailOnNoDiscoveredTests().convention(true);
     }
 
     @Inject
-    protected ProgressLoggerFactory getProgressLoggerFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProgressLoggerFactory getProgressLoggerFactory();
 
     @Inject
-    protected StyledTextOutputFactory getTextOutputFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract StyledTextOutputFactory getTextOutputFactory();
+
+    // Method kept for binary compatibility.
+    @SuppressWarnings("unused")
+    @Inject
+    protected abstract HostnameLookup getHostnameLookup();
+
+    // Method kept for binary compatibility.
+    @SuppressWarnings("unused")
+    @Inject
+    protected abstract BuildOperationRunner getBuildOperationRunner();
+
+    // Method kept for binary compatibility.
+    @SuppressWarnings("unused")
+    @Inject
+    protected abstract BuildOperationExecutor getBuildOperationExecutor();
 
     @Inject
-    protected HostnameLookup getHostnameLookup() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
+
+    // Method kept for binary compatibility.
+    @SuppressWarnings("unused")
+    @Inject
+    protected abstract Instantiator getInstantiator();
 
     @Inject
-    protected BuildOperationRunner getBuildOperationRunner() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ListenerManager getListenerManager();
 
     @Inject
-    protected BuildOperationExecutor getBuildOperationExecutor() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileSystemOperations getFileSystemOperations();
 
     @Inject
-    protected Instantiator getInstantiator() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ListenerManager getListenerManager() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected FileSystemOperations getFileSystemOperations() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract TestEventReporterFactory getTestEventReporterFactory();
 
     /**
      * Creates test executer. For internal use only.
@@ -245,6 +246,22 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      */
     protected abstract TestExecutionSpec createTestExecutionSpec();
 
+    /**
+     * Returns the number of top level entries to skip in reports. For internal use only.
+     *
+     * @since 9.3.0
+     */
+    @Internal
+    protected int getReportEntrySkipLevels() {
+        return 0;
+    }
+
+    /**
+     * Sets the test reporter to use for generating reports.
+     *
+     * @deprecated Only present for compatibility with cashapp/paparazzi. No replacement.
+     */
+    @Deprecated
     void setTestReporter(TestReporter testReporter) {
         this.testReporter = testReporter;
     }
@@ -265,14 +282,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @since 4.4
      */
     @OutputDirectory
-    public DirectoryProperty getBinaryResultsDirectory() {
-        return binaryResultsDirectory;
-    }
+    public abstract DirectoryProperty getBinaryResultsDirectory();
 
     /**
-     * Registers a test listener with this task. Consider also the following handy methods for quicker hooking into test execution: {@link #beforeTest(groovy.lang.Closure)}, {@link
-     * #afterTest(groovy.lang.Closure)}, {@link #beforeSuite(groovy.lang.Closure)}, {@link #afterSuite(groovy.lang.Closure)} <p> This listener will NOT be notified of tests executed by other tasks. To
-     * get that behavior, use {@link org.gradle.api.invocation.Gradle#addListener(Object)}.
+     * Registers a test listener with this task. Consider also the following handy methods for quicker hooking into test execution: {@link #beforeTest(Closure)}, {@link
+     * #afterTest(Closure)}, {@link #beforeSuite(Closure)}, {@link #afterSuite(Closure)} <p> This listener will NOT be notified of tests executed by other tasks. To
+     * get that behavior, use {@link Gradle#addListener(Object)}.
      *
      * @param listener The listener to add.
      */
@@ -285,7 +300,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     /**
-     * Registers a output listener with this task. Quicker way of hooking into output events is using the {@link #onOutput(groovy.lang.Closure)} method.
+     * Registers a output listener with this task. Quicker way of hooking into output events is using the {@link #onOutput(Closure)} method.
      *
      * @param listener The listener to add.
      */
@@ -299,8 +314,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     /**
      * Unregisters a test listener with this task.  This method will only remove listeners that were added by calling {@link #addTestListener(TestListener)} on this task. If the listener was
-     * registered with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
-     * org.gradle.api.invocation.Gradle#removeListener(Object)}.
+     * registered with Gradle using {@link Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
+     * Gradle#removeListener(Object)}.
      *
      * @param listener The listener to remove.
      */
@@ -310,8 +325,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     /**
      * Unregisters a test output listener with this task.  This method will only remove listeners that were added by calling {@link #addTestOutputListener(TestOutputListener)} on this task.  If the
-     * listener was registered with Gradle using {@link org.gradle.api.invocation.Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
-     * org.gradle.api.invocation.Gradle#removeListener(Object)}.
+     * listener was registered with Gradle using {@link Gradle#addListener(Object)} this method will not do anything. Instead, use {@link
+     * Gradle#removeListener(Object)}.
      *
      * @param listener The listener to remove.
      */
@@ -486,23 +501,15 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         try {
             Files.createDirectories(binaryResultsDir.toPath());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
-
-        // Record test events to `results`, and test outputs to `testOutputStore`
-        Map<String, TestClassResult> results = new HashMap<>();
-        TestOutputStore testOutputStore = new TestOutputStore(binaryResultsDir);
-        TestOutputStore.Writer outputWriter = testOutputStore.writer();
-        TestReportDataCollector testReportDataCollector = new TestReportDataCollector(results, outputWriter);
-        addTestListener(testReportDataCollector);
-        addTestOutputListener(testReportDataCollector);
 
         // Log number of completed, skipped, and failed tests to console, and update live as count changes
         TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
         addTestListener(testCountLogger);
 
         // Adapt all listeners registered with addTestListener() and addTestOutputListener() to TestListenerInternal
-        ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster = getListenerManager().createAnonymousBroadcaster(TestListenerInternal.class);
+        ListenerBroadcast<@NonNull TestListenerInternal> testListenerInternalBroadcaster = getListenerManager().createAnonymousBroadcaster(TestListenerInternal.class);
         testListenerInternalBroadcaster.add(new TestListenerAdapter(testListenerSubscriptions.get().getSource(), testOutputListenerSubscriptions.get().getSource()));
 
         // Log to the console which tests are currently executing, and update live as current tests change
@@ -512,56 +519,116 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         TestWorkerProgressListener testWorkerProgressListener = new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
         testListenerInternalBroadcaster.add(testWorkerProgressListener);
 
-        TestExecuter<TestExecutionSpec> testExecuter = Cast.uncheckedNonnullCast(createTestExecuter());
-        TestListenerInternal resultProcessorDelegate = testListenerInternalBroadcaster.getSource();
-        if (failFast) {
-            resultProcessorDelegate = new FailFastTestListenerInternal(testExecuter, resultProcessorDelegate);
-        }
+        TestReportGenerator reportGenerator = createReportGenerator();
+        try (TestEventReporterAsListener reporterAsListener = new TestEventReporterAsListener(descriptor -> ((TestEventReporterFactoryInternal) getTestEventReporterFactory()).createInternalTestEventReporter(
+            ignored -> descriptor,
+            getBinaryResultsDirectory().get(),
+            reportGenerator,
+            testListenerInternalBroadcaster,
+            getReportEntrySkipLevels(),
+            false,
+            false
+        ))) {
+            TestExecuter<TestExecutionSpec> testExecuter = Cast.uncheckedNonnullCast(createTestExecuter());
+            TestListenerInternal resultProcessorDelegate = reporterAsListener;
+            if (failFast) {
+                resultProcessorDelegate = new FailFastTestListenerInternal(testExecuter, resultProcessorDelegate);
+            }
 
-        TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(resultProcessorDelegate);
+            TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(resultProcessorDelegate);
 
-        try {
-            testExecuter.execute(executionSpec, resultProcessor);
-        } finally {
-            parentProgressLogger.completed();
-            testWorkerProgressListener.completeAll();
-            testListenerSubscriptions.removeAllListeners();
-            testOutputListenerSubscriptions.removeAllListeners();
-            testListenerInternalBroadcaster.removeAll();
-            outputWriter.close();
-        }
+            try {
+                testExecuter.execute(executionSpec, resultProcessor);
+            } finally {
+                parentProgressLogger.completed();
+                testWorkerProgressListener.completeAll();
+                testListenerSubscriptions.removeAllListeners();
+                testOutputListenerSubscriptions.removeAllListeners();
+                testListenerInternalBroadcaster.removeAll();
+            }
 
-        // Write binary results to disk
-        new TestResultSerializer(binaryResultsDir).write(results.values());
-
-        // Generate HTML and XML reports
-        createReporting(results, testOutputStore);
-
-        handleCollectedResults(testCountLogger);
-    }
-
-    private void handleCollectedResults(TestCountLogger testCountLogger) {
-        if (testCountLogger.hadFailures()) {
-            handleTestFailures();
-        } else if (testCountLogger.getTotalTests() == 0) {
-            if (testsAreNotFiltered()) {
-                emitDeprecationMessage();
-            } else if (shouldFailOnNoMatchingTests()) {
-                throw new TestExecutionException(createNoMatchingTestErrorMessage());
+            String failureMessage = mapCollectedResultsToError(testCountLogger);
+            if (failureMessage != null) {
+                throw new MarkedVerificationException(failureMessage);
             }
         }
     }
 
-    private boolean shouldFailOnNoMatchingTests() {
-        return patternFiltersSpecified() && filter.isFailOnNoMatchingTests();
+    @Nullable
+    private TestReportGenerator createReportGenerator() {
+        List<TestReportGenerator> reportGenerators = new ArrayList<>();
+
+        DirectoryReport html = reports.getHtml();
+        File outputLocation = html.getOutputLocation().get().getAsFile();
+        if (html.getRequired().get()) {
+            if (testReporter != null) {
+                // Map results for legacy reporting interface
+                reportGenerators.add(new CustomTestReportingGenerator(outputLocation, testReporter));
+            } else {
+                reportGenerators.add(getObjectFactory().newInstance(GenericHtmlTestReportGenerator.class, outputLocation.toPath()));
+            }
+        } else {
+            getLogger().info("Test report disabled, omitting generation of the HTML test report.");
+        }
+
+        JUnitXmlReport junitXml = reports.getJunitXml();
+        if (junitXml.getRequired().get()) {
+            JUnitXmlResultOptions xmlResultOptions = new JUnitXmlResultOptions(
+                junitXml.isOutputPerTestCase(),
+                junitXml.getMergeReruns().get(),
+                junitXml.getIncludeSystemOutLog().get(),
+                junitXml.getIncludeSystemErrLog().get()
+            );
+            reportGenerators.add(getObjectFactory().newInstance(JunitXmlTestReportGenerator.class, junitXml.getOutputLocation().get().getAsFile().toPath(), xmlResultOptions));
+        }
+
+        if (reportGenerators.isEmpty()) {
+            return null;
+        } else if (reportGenerators.size() == 1) {
+            return reportGenerators.get(0);
+        } else {
+            // Using get(0) prefers the HTML report if present
+            return new MultiTestReportGenerator(reportGenerators.get(0), ImmutableSet.copyOf(reportGenerators.subList(1, reportGenerators.size())));
+        }
     }
 
-    private void emitDeprecationMessage() {
-        DeprecationLogger.deprecateBehaviour("No test executed.")
-            .withAdvice("There are test sources present but no test was executed. Please check your test configuration.")
-            .willBecomeAnErrorInGradle9()
-            .withUpgradeGuideSection(8, "test_task_fail_on_no_test_executed")
-            .nagUser();
+    /**
+     * Maps the collected test results to an error message if the task should fail, or {@code null} if the task should succeed.
+     *
+     * <p>
+     * Note that this may return a non-{@code null} value even if no test fails, e.g. if no tests were discovered.
+     * The task should still fail in that case.
+     * </p>
+     *
+     * @param testCountLogger the collected test result counts
+     * @return the error message, or {@code null} if the task should not fail
+     */
+    @Nullable
+    private String mapCollectedResultsToError(TestCountLogger testCountLogger) {
+        if (testCountLogger.hadFailures()) {
+            if (testCountLogger.hasWorkerFailures()) {
+                return testCountLogger.handleWorkerFailures();
+            } else {
+                return handleTestFailures();
+            }
+        } else if (testCountLogger.getTotalTests() == 0) {
+            // No tests were executed, the following rules apply:
+            // - If there are no filters, and no tests or test suites were discovered, fail
+            // - If there are filters and the task is configured to fail when no tests match the filters, throw an exception
+            // - Otherwise, this is fine - the task should succeed with no warnings or errors
+            if (testsAreNotFiltered()) {
+                if (testCountLogger.getTotalDiscoveredItems() == 0 && getFailOnNoDiscoveredTests().get()) {
+                    return "There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.";
+                }
+            } else if (shouldFailOnNoMatchingTests()) {
+                return createNoMatchingTestErrorMessage();
+            }
+        }
+        return null;
+    }
+
+    private boolean shouldFailOnNoMatchingTests() {
+        return patternFiltersSpecified() && filter.isFailOnNoMatchingTests();
     }
 
     boolean testsAreNotFiltered() {
@@ -594,47 +661,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             reasons.add(filter.getCommandLineIncludePatterns() + "(--tests filter)");
         }
         return reasons;
-    }
-
-    private void createReporting(Map<String, TestClassResult> results, TestOutputStore testOutputStore) {
-        TestResultsProvider testResultsProvider = new InMemoryTestResultsProvider(results.values(), testOutputStore);
-
-        try {
-
-            JUnitXmlReport junitXml = reports.getJunitXml();
-            if (junitXml.getRequired().get()) {
-                JUnitXmlResultOptions xmlResultOptions = new JUnitXmlResultOptions(
-                    junitXml.isOutputPerTestCase(),
-                    junitXml.getMergeReruns().get(),
-                    junitXml.getIncludeSystemOutLog().get(),
-                    junitXml.getIncludeSystemErrLog().get()
-                );
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(
-                    junitXml.getOutputLocation().getAsFile().get(),
-                    testResultsProvider,
-                    xmlResultOptions,
-                    getBuildOperationRunner(),
-                    getBuildOperationExecutor(),
-                    getHostnameLookup().getHostname());
-                binary2JUnitXmlReportGenerator.generate();
-            }
-
-            DirectoryReport html = reports.getHtml();
-            if (!html.getRequired().get()) {
-                getLogger().info("Test report disabled, omitting generation of the HTML test report.");
-            } else {
-                File htmlReportDestinationDir = html.getOutputLocation().getAsFile().getOrNull();
-                if (testReporter != null) {
-                    testReporter.generateReport(testResultsProvider, htmlReportDestinationDir);
-                } else {
-                    HtmlTestReport htmlReport = new HtmlTestReport(getBuildOperationRunner(), getBuildOperationExecutor());
-                    htmlReport.generateReport(testResultsProvider, htmlReportDestinationDir);
-                }
-            }
-        } finally {
-            CompositeStoppable.stoppable(testResultsProvider).stop();
-            testReporter = null;
-        }
     }
 
     /**
@@ -693,28 +719,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         return reports;
     }
 
-    private void handleTestFailures() {
-        String message = "There were failing tests";
-
-        DirectoryReport htmlReport = getReports().getHtml();
-        if (htmlReport.getRequired().get()) {
-            String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
-            message = message.concat(". See the report at: " + reportUrl);
-        } else {
-            DirectoryReport junitXmlReport = getReports().getJunitXml();
-            if (junitXmlReport.getRequired().get()) {
-                String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
-                message = message.concat(". See the results at: " + resultsUrl);
-            }
-        }
-
-        if (getIgnoreFailures()) {
-            getLogger().warn(message);
-        } else {
-            throw new MarkedVerificationException(message);
-        }
-    }
-
     /**
      * Allows filtering tests for execution.
      *
@@ -724,5 +728,72 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     @Nested
     public TestFilter getFilter() {
         return filter;
+    }
+
+    /**
+     * Whether the task should fail if test sources are present, but no tests are discovered during test execution.  Defaults to true.
+     *
+     * @since 9.0.0
+     */
+    @Input
+    abstract public Property<Boolean> getFailOnNoDiscoveredTests();
+
+    /**
+     * Handles test failures based on the {@link #getIgnoreFailures()} property.
+     *
+     * @return the error message to throw, or {@code null} if failures are ignored
+     */
+    @Nullable
+    private String handleTestFailures() {
+        String message = buildFailureResultsMessage("There were failing tests.");
+
+        if (getIgnoreFailures()) {
+            getLogger().warn(message);
+            return null;
+        } else {
+            return message;
+        }
+    }
+
+    private String buildFailureResultsMessage(String message) {
+        DirectoryReport htmlReport = getReports().getHtml();
+        if (htmlReport.getRequired().get()) {
+            String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
+            message = message.concat(" See the report at: " + reportUrl);
+        } else {
+            DirectoryReport junitXmlReport = getReports().getJunitXml();
+            if (junitXmlReport.getRequired().get()) {
+                String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
+                message = message.concat(" See the results at: " + resultsUrl);
+            }
+        }
+
+        return message;
+    }
+
+    /**
+     * Internal {@link TestReportGenerator} implementation that wires results to the provided {@link TestReporter}.
+     */
+    @NullMarked
+    private static final class CustomTestReportingGenerator implements TestReportGenerator {
+        private final File outputDir;
+        private final TestReporter testReporter;
+
+        private CustomTestReportingGenerator(File outputDir, TestReporter testReporter) {
+            this.outputDir = outputDir;
+            this.testReporter = testReporter;
+        }
+
+        @Override
+        public Path generate(List<Path> resultsDirectories) {
+            if (resultsDirectories.size() > 1) {
+                throw new IllegalArgumentException("CustomTestReportingGenerator can only generate a report from a single results directory. Found: " + resultsDirectories);
+            }
+            TestTreeModelResultsProvider.useResultsFrom(
+                resultsDirectories.get(0),
+                resultsProvider -> testReporter.generateReport(resultsProvider, outputDir)
+            );
+            return outputDir.toPath();
+        }
     }
 }

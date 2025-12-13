@@ -25,8 +25,8 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 /**

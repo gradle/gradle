@@ -4,32 +4,28 @@ plugins {
 
 description = "Gradle plugin development plugins"
 
-errorprone {
-    disabledChecks.addAll(
-        "DefaultCharset", // 1 occurrences
-        "LoopOverCharArray", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.daemonServerWorker)
     api(projects.files)
-    api(projects.stdlibJavaExtensions)
     api(projects.logging)
-    api(projects.modelCore)
+    api(projects.modelReflect)
     api(projects.platformJvm)
     api(projects.problemsApi)
     api(projects.resources)
+    api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvmShared)
     api(projects.workers)
 
     api(libs.groovy)
     api(libs.gson)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
 
+    implementation(projects.buildProcessServices)
+    implementation(projects.classloaders)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
@@ -39,11 +35,13 @@ dependencies {
     implementation(projects.fileOperations)
     implementation(projects.hashing)
     implementation(projects.ivy)
+    implementation(projects.jvmServices)
     implementation(projects.languageJava)
     implementation(projects.languageJvm)
     implementation(projects.loggingApi)
     implementation(projects.maven)
     implementation(projects.messaging)
+    implementation(projects.modelCore)
     implementation(projects.modelGroovy)
     implementation(projects.pluginsGroovy)
     implementation(projects.pluginsJava)
@@ -66,7 +64,7 @@ dependencies {
 
     integTestImplementation(projects.baseServicesGroovy)
 
-    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.toolingApi))
 
     integTestImplementation(libs.groovyTest)
@@ -76,19 +74,17 @@ dependencies {
         because("Required by GradleImplDepsCompatibilityIntegrationTest")
     }
 
-    testRuntimeOnly(projects.distributionsBasics) {
+    testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(projects.distributionsBasics)
-    crossVersionTestDistributionRuntimeOnly(projects.distributionsBasics)
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 
     testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(projects.logging)
     testFixturesImplementation(libs.gson)
     testFixturesImplementation(projects.baseServices)
 }
-
-integTest.usesJavadocCodeSnippets = true
 
 strictCompile {
     ignoreDeprecations()

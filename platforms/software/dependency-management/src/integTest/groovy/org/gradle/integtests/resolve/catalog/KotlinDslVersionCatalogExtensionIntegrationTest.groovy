@@ -401,7 +401,8 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             it.rootMetaData.expectGet()
             it.artifact.expectGet()
         }
-        publishLib("lib-core", "1.1")
+        // Version will not be resolved at all
+        mavenHttpRepo.module("org.gradle.test", "lib-core", "1.1").withModuleMetadata().publish()
         publishLib("lib-ext", "1.0").with {
             it.rootMetaData.expectGet()
             it.artifact.expectGet()

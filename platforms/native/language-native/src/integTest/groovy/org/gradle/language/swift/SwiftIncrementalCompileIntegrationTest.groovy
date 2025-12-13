@@ -22,11 +22,13 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.junit.Assume
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 @DoesNotSupportNonAsciiPaths(reason = "swiftc does not support these paths")
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/4825")
 class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def setup() {
         // Useful for diagnosing swiftc incremental compile failures
@@ -62,10 +64,11 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
         when:
         outputs.snapshot()
-        main.replace("a: 21, b: 21", "a: 5, b: 7")
+        main.replace("a: 21, b: 21", "a: 22, b: 22")
         succeeds("compileDebugSwift")
 
         then:
+        Thread.sleep(5000) // https://github.com/gradle/gradle-private/issues/4653
         outputs.recompiledFile(main)
     }
 
@@ -289,10 +292,8 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
             allprojects { p ->
                 apply plugin: ${swiftc3.pluginClass}
 
-                model {
-                      toolChains {
-                        ${swiftc3.buildScriptConfig}
-                      }
+                toolChains {
+                    ${swiftc3.buildScriptConfig}
                 }
             }
         """
@@ -312,10 +313,8 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
             allprojects { p ->
                 apply plugin: ${swiftc4.pluginClass}
 
-                model {
-                      toolChains {
-                        ${swiftc4.buildScriptConfig}
-                      }
+                toolChains {
+                    ${swiftc4.buildScriptConfig}
                 }
             }
         """

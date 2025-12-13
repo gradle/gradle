@@ -1,0 +1,119 @@
+// Copyright 2025 Gradle and contributors.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.
+// You may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[how_to_downgrade_dependencies]]
+= How to Downgrade Transitive Dependencies in Gradle
+
+This guide explains how to **downgrade transitive dependencies** in Gradle when your project requires an older version due to API compatibility, bugs, or other constraints.
+
+== Why Downgrade a Transitive Dependency?
+
+By default, Gradle **resolves dependency version conflicts** by selecting the latest version found in the dependency graph.
+However, there are cases where an earlier version is required:
+
+* A **bug** exists in the latest release.
+* Your project **depends on an older API** that is incompatible with newer versions.
+* Your code does **not require** the features that demand a higher version.
+
+Before downgrading, consider **updating your source code** to support the latest version instead.
+
+Additionally, you should make sure there aren't existing <<dependency_constraints.adoc#dependency-constraints,dependency constraint>>, <<platforms.adoc#platforms,platforms>>, or <<version_catalogs.adoc#version-catalog,version catalogs>>, that are setting the dependency to an undesired version in your project.
+
+If downgrading is necessary, use **strict dependencies** or **forced dependencies**.
+
+== Option 1: Enforcing a Strict Version of a Dependency
+
+Gradle allows you to enforce a <<dependency_versions.adoc#sec:rich-version-constraints,**strict version**>> for a dependency, ensuring that the selected version cannot be upgraded by transitive dependencies.
+
+=== Step 1: Setting a Strict Version
+
+Suppose a project depends on **HttpClient**, which pulls in **Commons Codec 1.10**, but your project requires **Commons Codec 1.9**:
+
+====
+include::sample[dir="snippets/how-to/downgrade-transitives/tests",files="dependencies.out"]
+====
+
+You can enforce the required version by setting a **strict version constraint**:
+
+====
+include::sample[dir="snippets/how-to/downgrade-transitives/kotlin",files="build.gradle.kts[tags=dependency-full]"]
+include::sample[dir="snippets/how-to/downgrade-transitives/groovy",files="build.gradle[tags=dependency-full]"]
+====
+
+Running `./gradlew dependencies --configuration runtimeClasspath` showcases the results:
+
+====
+include::sample[dir="snippets/how-to/downgrade-transitives/tests",files="dependencies-downgrade.out"]
+====
+
+Important notes about strict versions:
+
+- A **strict version behaves like a force**, meaning it overrides transitive dependencies.
+- If another dependency **requires a higher version**, Gradle **will fail** with a resolution error.
+- Use **version ranges** instead of absolute strict versions to allow flexibility.
+
+=== Step 2: Setting a Strict Version Range
+
+Instead of locking to a single version, define a **strict range**:
+
+====
+include::sample[dir="snippets/how-to/downgrade-transitives/kotlin",files="build.gradle.kts[tags=dependency-full-prefer]"]
+include::sample[dir="snippets/how-to/downgrade-transitives/groovy",files="build.gradle[tags=dependency-full-prefer]"]
+====
+
+If another dependency requires **1.10**, Gradle can resolve it without failure, as long as it falls within the specified range.
+
+====
+include::sample[dir="snippets/how-to/downgrade-transitives/tests",files="dependencies-extra.out"]
+====
+
+== Option 2: Forcing a Version at the Configuration Level
+
+If a strict dependency is **too restrictive**, you can **force** a specific version for an entire configuration using link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[`resolutionStrategy.force()`].
+
+=== Step 1: Forcing a Version for the Entire Build
+
+====
+include::sample[dir="snippets/how-to/downgrade-transitives/kotlin",files="build.gradle.kts[tags=dependency-configs]"]
+include::sample[dir="snippets/how-to/downgrade-transitives/groovy",files="build.gradle[tags=dependency-configs]"]
+====
+
+Running `./gradlew dependencies --configuration compileClasspath` showcases the results:
+
+====
+include::sample[dir="snippets/how-to/downgrade-transitives/tests",files="dependencies-config.out"]
+====
+
+This ensures that **Commons Codec 1.9 is always used**, even if transitive dependencies request a newer version.
+
+== Summary
+
+To review the two options:
+
+[cols="1,2"]
+|===
+| Approach | Behavior
+
+| 1. *Strict version (link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html[`strictly()`])*
+| The version is enforced but can trigger resolution failures if conflicts exist.
+
+| 2. *Forced version (link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#force(java.lang.Object...)[`force()`])*
+| The version is forcibly applied at the configuration level, overriding all other constraints.
+|===
+
+In summary:
+
+- **Use strict versions** if you need to enforce an older version and want to control compatibility.
+- **Use version ranges** with a preferred version to allow some flexibility.
+- **Use `force()` at the configuration level** when you need to override transitive dependencies without strict constraints.

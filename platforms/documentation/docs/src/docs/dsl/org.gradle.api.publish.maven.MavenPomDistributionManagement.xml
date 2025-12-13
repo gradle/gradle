@@ -39,6 +39,9 @@
             <tr>
                 <td>relocation</td>
             </tr>
+            <tr>
+                <td>repository</td>
+            </tr>
         </table>
     </section>
 </section>

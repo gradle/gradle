@@ -18,8 +18,8 @@ package org.gradle.api.tasks.diagnostics.internal.configurations.model;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.IncubatingAttributesChecker;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**

@@ -15,7 +15,8 @@
  */
 package org.gradle.api.attributes;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.util.Set;
 
 /**

@@ -17,8 +17,8 @@ package org.gradle.api.internal.file.copy;
 
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +42,7 @@ public class DefaultZipCompressor implements ZipCompressor {
         } catch (Exception e) {
             IoActions.closeQuietly(outStream);
             String message = String.format("Unable to create ZIP output stream for file %s.", destination);
-            throw new UncheckedIOException(message, e);
+            throw UncheckedException.throwAsUncheckedException(new IOException(message, e), true);
         }
     }
 

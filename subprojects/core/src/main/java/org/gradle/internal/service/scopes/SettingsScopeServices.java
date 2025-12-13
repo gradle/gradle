@@ -33,12 +33,12 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
-import org.gradle.api.internal.plugins.SoftwareTypeRegistrationPluginTarget;
+import org.gradle.api.internal.plugins.ProjectFeatureDeclarationPluginTarget;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.cache.internal.LegacyCacheCleanupEnablement;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
+import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -49,8 +49,8 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.plugin.software.internal.PluginScheme;
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+import org.gradle.plugin.internal.PluginScheme;
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
 
 import java.util.List;
 
@@ -58,7 +58,7 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
 
     public static CloseableServiceRegistry create(ServiceRegistry parent, SettingsInternal settings) {
         return ServiceRegistryBuilder.builder()
-            .scope(Scope.Settings.class)
+            .scopeStrictly(Scope.Settings.class)
             .displayName("settings services")
             .parent(parent)
             .provider(new SettingsScopeServices(settings))
@@ -76,7 +76,7 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
         for (GradleModuleServices services : gradleModuleServiceProviders) {
             services.registerSettingsServices(registration);
         }
-        registration.add(DefaultProjectDescriptorRegistry.class);
+        registration.add(ProjectDescriptorRegistry.class, DefaultProjectDescriptorRegistry.class);
     }
 
     @Provides
@@ -105,12 +105,12 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        SoftwareTypeRegistry softwareTypeRegistry,
+        ProjectFeatureDeclarations projectFeatureDeclarations,
         InternalProblems problems
     ) {
-        PluginTarget target = new SoftwareTypeRegistrationPluginTarget(
+        PluginTarget target = new ProjectFeatureDeclarationPluginTarget(
             new ImperativeOnlyPluginTarget<>(PluginTargetType.SETTINGS, settings, problems),
-            softwareTypeRegistry,
+            projectFeatureDeclarations,
             pluginScheme.getInspectionScheme(),
             problems
         );
@@ -123,13 +123,8 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected GradleInternal createGradleInternal() {
-        return settings.getGradle();
-    }
-
-    @Provides
-    protected CacheConfigurationsInternal createCacheConfigurations(ObjectFactory objectFactory, CacheConfigurationsInternal persistentCacheConfigurations, GradleInternal gradleInternal, LegacyCacheCleanupEnablement legacyCacheCleanupEnablement) {
-        CacheConfigurationsInternal cacheConfigurations = objectFactory.newInstance(DefaultCacheConfigurations.class, legacyCacheCleanupEnablement);
+    protected CacheConfigurationsInternal createCacheConfigurations(ObjectFactory objectFactory, CacheConfigurationsInternal persistentCacheConfigurations, GradleInternal gradleInternal) {
+        CacheConfigurationsInternal cacheConfigurations = objectFactory.newInstance(DefaultCacheConfigurations.class);
         if (gradleInternal.isRootBuild()) {
             cacheConfigurations.synchronize(persistentCacheConfigurations);
             persistentCacheConfigurations.setCleanupHasBeenConfigured(false);

@@ -18,8 +18,8 @@ package org.gradle.internal.buildprocess.execution;
 
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -38,12 +38,10 @@ public class StartParamsValidatingActionExecutor implements BuildActionExecutor<
 
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
+        // The client verifies the JVM compatibility of the daemon, but check in the daemon just in case.
+        UnsupportedJavaRuntimeException.assertCurrentProcessSupportsDaemonJavaVersion();
+
         StartParameter startParameter = action.getStartParameter();
-        @SuppressWarnings("deprecation")
-        File customBuildFile = DeprecationLogger.whileDisabled(startParameter::getBuildFile);
-        if (customBuildFile != null) {
-            validateIsFileAndExists(customBuildFile, "build file");
-        }
         if (startParameter.getProjectDir() != null) {
             if (!startParameter.getProjectDir().isDirectory()) {
                 if (!startParameter.getProjectDir().exists()) {
@@ -51,11 +49,6 @@ public class StartParamsValidatingActionExecutor implements BuildActionExecutor<
                 }
                 throw new IllegalArgumentException(String.format("The specified project directory '%s' is not a directory.", startParameter.getProjectDir()));
             }
-        }
-        @SuppressWarnings("deprecation")
-        File customSettingsFile = DeprecationLogger.whileDisabled(startParameter::getSettingsFile);
-        if (customSettingsFile != null) {
-            validateIsFileAndExists(customSettingsFile, "settings file");
         }
         for (File initScript : startParameter.getInitScripts()) {
             validateIsFileAndExists(initScript, "initialization script");

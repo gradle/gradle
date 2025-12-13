@@ -20,7 +20,6 @@ import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.process.ShellScript
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -514,7 +513,7 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         outputContains("execution value = someValue")
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/23689")
+    @Issue("https://github.com/gradle/gradle/issues/23689")
     def "value source can read mutated system property at configuration time with Java API"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
@@ -554,10 +553,8 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         configurationCacheRun()
 
         then:
-        // TODO(mlopatkin) This behavior is correct but suboptimal, as we're never going to have a cache hit.
-        //  We may want to warn the user about it.
-        configurationCache.assertStateStored()
-        outputContains("configuration value = someValue")
+        configurationCache.assertStateLoaded()
+        outputDoesNotContain("configuration value = someValue")
         outputContains("execution value = someValue")
     }
 

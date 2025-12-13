@@ -30,8 +30,8 @@ import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 import org.gradle.workers.WorkQueue;
 import org.gradle.workers.WorkerExecutor;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
@@ -62,7 +62,7 @@ public abstract class PrefixHeaderFileGenerateTask extends DefaultTask {
 
         workQueue.submit(GeneratePrefixHeaderFile.class, new Action<PrefixHeaderFileParameters>() {
             @Override
-            public void execute(@Nonnull PrefixHeaderFileParameters parameters) {
+            public void execute(@NonNull PrefixHeaderFileParameters parameters) {
                 parameters.getHeader().set(header);
                 parameters.getPrefixHeaderFile().set(prefixHeaderFile);
             }

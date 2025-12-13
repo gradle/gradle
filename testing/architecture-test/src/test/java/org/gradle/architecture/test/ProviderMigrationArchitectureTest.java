@@ -76,24 +76,12 @@ import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 
 @AnalyzeClasses(packages = "org.gradle")
 public class ProviderMigrationArchitectureTest {
-    private static final DescribedPredicate<JavaMethod> getters = new DescribedPredicate<JavaMethod>("getters") {
-        @Override
-        public boolean test(JavaMethod input) {
-            PropertyAccessorType accessorType = PropertyAccessorType.fromName(input.getName());
-            if (accessorType == PropertyAccessorType.IS_GETTER) {
-                // PropertyAccessorType.IS_GETTER doesn't handle names that start with is
-                // but are not getters, e.g. issueManagement is detected as IS_GETTER
-                return !Character.isLowerCase(input.getName().charAt(2));
-            }
-            return accessorType == PropertyAccessorType.GET_GETTER;
-        }
-    };
 
     private static final DescribedPredicate<JavaClass> class_with_any_mutable_property = new DescribedPredicate<JavaClass>("class with any mutable property") {
         @Override
         public boolean test(JavaClass input) {
             return input.getAllMethods().stream()
-                .filter(getters)
+                .filter(ArchUnitFixture.getters)
                 .anyMatch(ProviderMigrationArchitectureTest::hasSetter);
         }
     };
@@ -106,14 +94,14 @@ public class ProviderMigrationArchitectureTest {
         .and(not(declaredIn(FileCollection.class)))
         .and(not(declaredIn(ConfigurableFileCollection.class)))
         .and(are(declaredIn(class_with_any_mutable_property)))
-        .and(are(getters))
+        .and(are(ArchUnitFixture.getters))
         .and(not(annotatedWith(Inject.class)))
         .as("mutable public API properties");
 
     @SuppressWarnings({"deprecation", "UnnecessaryFullyQualifiedName"})
     private static final DescribedPredicate<JavaMethod> task_properties = ArchPredicates.<JavaMethod>are(public_api_methods)
         .and(declaredIn(assignableTo(Task.class)))
-        .and(are(getters))
+        .and(are(ArchUnitFixture.getters))
         .and(not(annotatedWith(Inject.class)))
         .and(not(annotatedWith(OptionValues.class)))
         .and(not(declaredIn(Task.class)))

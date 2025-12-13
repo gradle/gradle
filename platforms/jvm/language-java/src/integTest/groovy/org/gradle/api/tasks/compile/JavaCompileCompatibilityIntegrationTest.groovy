@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
@@ -33,6 +35,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         file("src/main/java/Foo.java") << "public class Foo {}"
     }
 
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "source compatibility convention is set and used for target compatibility convention"() {
         def jdk11 = AvailableJavaHomes.getJdk11()
 
@@ -79,6 +82,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         null       | null        | null            | null          | currentJavaVersion() | currentJavaVersion()
     }
 
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "target compatibility convention is set"() {
         def jdk11 = AvailableJavaHomes.getJdk11()
 
@@ -151,9 +155,6 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         """
 
         when:
-        if (forkOption == "java home") {
-            executer.expectDocumentedDeprecationWarning("The ForkOptions.setJavaHome(File) method has been deprecated. This is scheduled to be removed in Gradle 9.0. The 'javaHome' property of ForkOptions is deprecated and will be removed in Gradle 9. Use JVM toolchains or the 'executable' property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_fork_options_java_home")
-        }
         withInstallations(earlierJdk).run(":compileJava", "--info")
 
         then:
@@ -169,6 +170,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         "executable" | { "options.forkOptions.executable = '$it'" }     | OperatingSystem.current().getExecutableName('/bin/javac')
     }
 
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "source and target compatibility override toolchain (source #source, target #target)"() {
         def jdk11 = AvailableJavaHomes.getJdk11()
 
@@ -377,6 +379,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         """
     }
 
+    @Requires([IntegTestPreconditions.Java11HomeAvailable, IntegTestPreconditions.Java17HomeAvailable])
     def "source compatibility lower than compiler version allows accessing newer JDK APIs"() {
         def jdk11 = AvailableJavaHomes.getJdk11()
         def jdk17 = AvailableJavaHomes.getJdk17()
@@ -491,6 +494,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         classJavaVersion(javaClassFile("Main.class")) == JavaVersion.VERSION_17
     }
 
+    @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "earlier toolchain does not allow accessing later JDK APIs in source"() {
         def jdk = AvailableJavaHomes.getJdk11()
 

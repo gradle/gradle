@@ -16,7 +16,8 @@
 
 package org.gradle.internal.configuration.inputs;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.io.File;
 
 public interface InstrumentedInputsListener {
@@ -84,4 +85,6 @@ public interface InstrumentedInputsListener {
     void fileSystemEntryObserved(File file, String consumer);
 
     void directoryContentObserved(File file, String consumer);
+
+    void startParameterProjectPropertiesObserved();
 }

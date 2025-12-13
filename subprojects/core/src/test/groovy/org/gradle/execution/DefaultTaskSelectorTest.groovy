@@ -20,19 +20,26 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.Path
 
 class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
-    def buildStateRegistry = Stub(BuildStateRegistry) {
-        getIncludedBuilds() >> []
-    }
     def projectModel1 = Stub(ProjectInternal)
     def project1 = project(":a", projectModel1)
     def resolver = Mock(TaskNameResolver)
     def projectConfigurer = Mock(ProjectConfigurer)
-    def selector = new DefaultTaskSelector(resolver, projectConfigurer)
+    def selector = new DefaultTaskSelector(resolver) {
+        @Override
+        protected ProjectConfigurer getConfigurer() {
+            return projectConfigurer
+        }
+
+        @Override
+        protected InternalProblems getProblemsService() {
+            throw new UnsupportedOperationException()
+        }
+    }
 
     def "exclude filter configures target project and selects exact match on task name when subprojects not included"() {
         def excluded = Stub(Task)
@@ -44,7 +51,7 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
 
         then:
         1 * projectConfigurer.configure(projectModel1)
-        1 * resolver.selectWithName("b", projectModel1, false) >> selectionResult
+        1 * resolver.selectWithName("b", project1, false) >> selectionResult
         _ * selectionResult.collectTasks(_) >> { it[0] << excluded }
         0 * _
 
@@ -63,8 +70,8 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
 
         then:
         1 * projectConfigurer.configure(projectModel1)
-        1 * resolver.selectWithName("b", projectModel1, false) >> null
-        1 * resolver.selectAll(projectModel1, false) >> [b1: selectionResult]
+        1 * resolver.selectWithName("b", project1, false) >> null
+        1 * resolver.selectAll(project1, false) >> [b1: selectionResult]
         _ * selectionResult.collectTasks(_) >> { it[0] << excluded }
         0 * _
 
@@ -105,7 +112,7 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
         1 * projectConfigurer.configure(projectModel1)
         1 * resolver.tryFindUnqualifiedTaskCheaply("b", projectModel1) >> false
         1 * projectConfigurer.configureHierarchy(projectModel1)
-        1 * resolver.selectWithName("b", projectModel1, true) >> selectionResult
+        1 * resolver.selectWithName("b", project1, true) >> selectionResult
         _ * selectionResult.collectTasks(_) >> { it[0] << excluded }
         0 * _
 

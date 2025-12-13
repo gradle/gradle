@@ -19,6 +19,7 @@ package org.gradle.language.rc.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 
 /**
@@ -34,7 +35,7 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 public abstract class WindowsResourcesPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        project.getPluginManager().apply(NativeComponentPlugin.class);
+        project.getPluginManager().apply(NativeComponentModelPlugin.class);
         project.getPluginManager().apply(WindowsResourceScriptPlugin.class);
     }
 

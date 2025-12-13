@@ -111,6 +111,7 @@ class PackageListGeneratorIntegrationTest {
         touchFile(directory.resolve("com/acme/internal/FooInternal.class"))
         touchFile(directory.resolve("com/foo/internal/FooInternal.class"))
         touchFile(directory.resolve("javax/servlet/http/HttpServletRequest.class"))
+        touchFile(directory.resolve("org/gradle/fileevents/FileEvent.class"))
 
         return sequenceOf(directory)
     }

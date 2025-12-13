@@ -17,57 +17,51 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.ExecutionContext
+import org.gradle.internal.execution.WorkOutput
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.operations.TestBuildOperationRunner
 
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_INCREMENTALLY
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
-import static org.gradle.internal.execution.UnitOfWork.WorkResult.DID_NO_WORK
-import static org.gradle.internal.execution.UnitOfWork.WorkResult.DID_WORK
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_INCREMENTALLY
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE
+import static org.gradle.internal.execution.WorkOutput.WorkResult.DID_NO_WORK
+import static org.gradle.internal.execution.WorkOutput.WorkResult.DID_WORK
 
-class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
+abstract class ExecuteStepTest<C extends WorkspaceContext> extends StepSpec<C> {
     def workspace = Mock(File)
-    def previousOutputs = ImmutableSortedMap.of()
-    def previousExecutionState = Stub(PreviousExecutionState) {
-        getOutputFilesProducedByWork() >> previousOutputs
-    }
+    def buildOperationRunner = new TestBuildOperationRunner()
+    def step = createStep()
 
-    def step = new ExecuteStep<>(new TestBuildOperationRunner())
-    def inputChanges = Mock(InputChangesInternal)
-
+    protected abstract ExecuteStep<C> createStep()
 
     def setup() {
         _ * context.getWorkspace() >> workspace
-        _ * context.getPreviousExecutionState() >> Optional.of(previousExecutionState)
     }
 
-    def "result #workResult yields outcome #expectedOutcome (incremental false)"() {
+    def "successful execution is handled"() {
+        def executed = false
+
         when:
         def result = step.execute(work, context)
 
         then:
-        result.execution.get().outcome == expectedOutcome
-        // Check
+        result.execution.successful
+        executed
         result.duration.toMillis() >= 100
 
         _ * context.inputChanges >> Optional.empty()
-        _ * work.execute({ UnitOfWork.ExecutionRequest executionRequest ->
-            executionRequest.workspace == workspace && !executionRequest.inputChanges.present && executionRequest.previouslyProducedOutputs.get() == previousOutputs
+        _ * work.execute({ ExecutionContext executionRequest ->
+            executionRequest.workspace == workspace
         }) >> {
             sleep 200
-            Stub(UnitOfWork.WorkOutput) {
-                getDidWork() >> workResult
+            executed = true
+            return Stub(WorkOutput) {
+                getDidWork() >> DID_WORK
             }
         }
         0 * _
-
-        where:
-        workResult  | expectedOutcome
-        DID_WORK    | EXECUTED_NON_INCREMENTALLY
-        DID_NO_WORK | UP_TO_DATE
     }
 
     def "failure #failure.class.simpleName is handled"() {
@@ -80,8 +74,8 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
         result.duration.toMillis() >= 100
 
         _ * context.inputChanges >> Optional.empty()
-        _ * work.execute({ UnitOfWork.ExecutionRequest executionRequest ->
-            executionRequest.workspace == workspace && !executionRequest.inputChanges.present && executionRequest.previouslyProducedOutputs.get() == previousOutputs
+        _ * work.execute({ ExecutionContext executionRequest ->
+            executionRequest.workspace == workspace
         }) >> {
             sleep 200
             throw failure
@@ -90,6 +84,60 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
 
         where:
         failure << [new RuntimeException(), new Error()]
+    }
+}
+
+class ImmutableExecuteStepTest extends ExecuteStepTest<WorkspaceContext> {
+    @Override
+    protected ExecuteStep createStep() {
+        return new ExecuteStep.Immutable(buildOperationRunner)
+    }
+}
+
+class MutableExecuteStepTest extends ExecuteStepTest<InputChangesContext> {
+    def previousOutputs = ImmutableSortedMap.of()
+    def previousExecutionState = Stub(PreviousExecutionState) {
+        getOutputFilesProducedByWork() >> previousOutputs
+    }
+    def inputChanges = Mock(InputChangesInternal)
+
+    @Override
+    protected ExecuteStep createStep() {
+        return new ExecuteStep.Mutable(buildOperationRunner)
+    }
+
+    def setup() {
+        _ * context.getPreviousExecutionState() >> Optional.of(previousExecutionState)
+    }
+
+    def "result #workResult yields outcome #expectedOutcome (incremental false)"() {
+        def executed = false
+
+        when:
+        def result = step.execute(work, context)
+
+        then:
+        result.execution.get().outcome == expectedOutcome
+        // Check
+        executed
+        result.duration.toMillis() >= 100
+
+        _ * context.inputChanges >> Optional.empty()
+        _ * work.execute({ ExecutionContext executionRequest ->
+            executionRequest.workspace == workspace && !executionRequest.inputChanges.present && executionRequest.previouslyProducedOutputs.get() == previousOutputs
+        }) >> {
+            sleep 200
+            executed = true
+            Stub(WorkOutput) {
+                getDidWork() >> workResult
+            }
+        }
+        0 * _
+
+        where:
+        workResult  | expectedOutcome
+        DID_WORK    | EXECUTED_NON_INCREMENTALLY
+        DID_NO_WORK | UP_TO_DATE
     }
 
     def "incremental work with result #workResult yields outcome #expectedOutcome (executed incrementally: #incrementalExecution)"() {
@@ -101,9 +149,9 @@ class ExecuteStepTest extends StepSpec<ChangingOutputsContext> {
 
         _ * context.inputChanges >> Optional.of(inputChanges)
         _ * inputChanges.incremental >> incrementalExecution
-        _ * work.execute({ UnitOfWork.ExecutionRequest executionRequest ->
+        _ * work.execute({ ExecutionContext executionRequest ->
             executionRequest.workspace == workspace && executionRequest.inputChanges.get() == inputChanges && executionRequest.previouslyProducedOutputs.get() == previousOutputs
-        }) >> Stub(UnitOfWork.WorkOutput) {
+        }) >> Stub(WorkOutput) {
             getDidWork() >> workResult
         }
         0 * _

@@ -5,6 +5,7 @@ plugins {
 dependencies {
     api(projects.serviceProvider)
     api(projects.baseServices)
+    api(projects.classloaders)
     api(projects.coreApi)
     api(projects.core)
     api(projects.dependencyManagement)
@@ -13,16 +14,18 @@ dependencies {
     api(projects.logging)
     api(projects.messaging)
     api(projects.modelCore)
-    api(projects.problemsApi)
+    api(projects.projectFeatures)
+    api(projects.projectFeaturesApi)
 
     api(libs.guava)
-    api(libs.jsr305)
+    api(libs.inject)
+    api(libs.jspecify)
 
     implementation(projects.functional)
+    implementation(projects.jvmServices)
+    implementation(projects.modelReflect)
 
     implementation(libs.slf4jApi)
-
-    implementation(projects.jvmServices)
 
     testImplementation(testFixtures(projects.resourcesHttp))
     testImplementation(testFixtures(projects.core))

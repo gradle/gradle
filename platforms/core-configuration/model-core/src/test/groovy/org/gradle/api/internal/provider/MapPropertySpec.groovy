@@ -1545,6 +1545,34 @@ The value of this property is derived from: <source>""")
         assertValueIs(['k1': '1', 'k2': '4', 'k3': '3'])
     }
 
+    def "value coercion is applied to #description after configuration cache round-trip"() {
+        given:
+        GString gstringKey = "${'key'}"
+        GString gstringValue = "${'value'}"
+
+        appendAction(property, gstringKey, gstringValue)
+        def value = property.calculateExecutionTimeValue()
+
+        when:
+        def restoredProperty = property()
+        restoredProperty.fromState(value)
+
+        then:
+        restoredProperty.get().forEach { Object k, Object v ->
+            assert k instanceof String
+            assert v instanceof String
+        }
+
+        where:
+        description               | appendAction
+        "fixed map value"         | { p, k, v -> p.putAll([(k): v]) }
+        "fixed map provider"      | { p, k, v -> p.putAll(Providers.of([(k): v])) }
+        "changing map provider"   | { p, k, v -> p.putAll(Providers.changing { [(k): v] }) }
+        "fixed entry value"       | { p, k, v -> p.put(k, v) }
+        "fixed entry provider"    | { p, k, v -> p.put(k, Providers.of(v).map { it }) } // map {} here hides the fact that provider returns a GString
+        "changing entry provider" | { p, k, v -> p.put(k, Providers.changing { v }) }
+    }
+
     static class MapPropertyCircularChainEvaluationTest extends PropertySpec.PropertyCircularChainEvaluationSpec<Map<String, String>> {
         @Override
         DefaultMapProperty<String, String> property() {

@@ -6,7 +6,7 @@ description = "Execution engine that takes a unit of work and makes it happen"
 
 dependencies {
     api(libs.guava)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.slf4jApi)
 
     api(projects.concurrent)
@@ -20,9 +20,11 @@ dependencies {
     api(projects.buildOperations)
     api(projects.coreApi)
     api(projects.files)
+    api(projects.fileCollections)
     api(projects.functional)
     api(projects.hashing)
     api(projects.modelCore)
+    api(projects.modelReflect)
     api(projects.persistentCache)
     api(projects.problemsApi)
     api(projects.snapshots)
@@ -35,6 +37,7 @@ dependencies {
 
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
+    implementation(libs.jsr305)
 
     testImplementation(projects.native)
     testImplementation(projects.logging)
@@ -49,7 +52,7 @@ dependencies {
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.modelCore))
+    testImplementation(testFixtures(projects.modelReflect))
 
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(projects.baseServices)

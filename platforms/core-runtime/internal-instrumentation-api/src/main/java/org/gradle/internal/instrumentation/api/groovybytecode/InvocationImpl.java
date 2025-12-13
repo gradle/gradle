@@ -16,7 +16,7 @@
 
 package org.gradle.internal.instrumentation.api.groovybytecode;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import static org.gradle.internal.instrumentation.api.groovybytecode.InvocationUtils.unwrap;
 

@@ -16,14 +16,13 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.NonNullApi;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Data object for use with version catalog generation to encode module, version and if generated aliases should be shortened or qualified.
  */
-@NonNullApi
+@NullMarked
 public class BuildInitDependency {
     final String module;
     final String version;

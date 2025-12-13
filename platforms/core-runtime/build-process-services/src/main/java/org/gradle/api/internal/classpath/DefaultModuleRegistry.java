@@ -16,17 +16,17 @@
 package org.gradle.api.internal.classpath;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,7 +35,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -48,16 +47,6 @@ import java.util.zip.ZipFile;
  */
 public class DefaultModuleRegistry implements ModuleRegistry, GlobalCacheRootsProvider {
     private static final Spec<File> SATISFY_ALL = element -> true;
-    private static final List<String> JARS_REPLACED_BY_TD_PLUGIN = createJarsReplacedByTdPlugin();
-
-    private static List<String> createJarsReplacedByTdPlugin() {
-        List<String> jarsReplacedByTdPlugin = new ArrayList<>();
-        jarsReplacedByTdPlugin.add("junit-platform-commons-");
-        jarsReplacedByTdPlugin.add("junit-platform-engine-");
-        jarsReplacedByTdPlugin.add("junit-platform-launcher-");
-        jarsReplacedByTdPlugin.add("opentest4j-");
-        return jarsReplacedByTdPlugin;
-    }
 
     @Nullable
     private final GradleInstallation gradleInstallation;
@@ -80,34 +69,9 @@ public class DefaultModuleRegistry implements ModuleRegistry, GlobalCacheRootsPr
         for (File classpathFile : new EffectiveClassPath(classLoader).plus(additionalModuleClassPath).getAsFiles()) {
             classpath.add(classpathFile);
             if (classpathFile.isFile() && !classpathJars.containsKey(classpathFile.getName())) {
-                String jarFileName = classpathFile.getName();
-                classpathJars.put(jarFileName, classpathFile);
-                if (gradleInstallation == null) {
-                    // Store the name without version as well, so we can look it up later
-                    // See getNameOfJarReplacedByTestDistributionWithoutVersion why we are doing this
-                    Optional<String> replacedPrefix = getNameOfJarReplacedByTestDistributionWithoutVersion(jarFileName);
-                    replacedPrefix.ifPresent(prefix -> classpathJars.put(prefix, classpathFile));
-                }
+                classpathJars.put(classpathFile.getName(), classpathFile);
             }
         }
-    }
-
-    /**
-     * Determines the name without version when the JAR may have been replaced on the classpath.
-     * <p>
-     * The Test Acceleration plugins from Develocity replace some JUnit platform JARS on the test classpath.
-     * Gradle's testing modules need the original JARs with a possible different version.
-     * When loading the dependencies from the classpath, this may cause a problem.
-     * Note that this happens only in integration tests in the Gradle codebase.
-     * As a workaround, we look up those dependency JARs without the version, so we can run embedded tests with Gradle.
-     * We only do the lookup when we don't have a Gradle installation to use.
-     */
-    private static Optional<String> getNameOfJarReplacedByTestDistributionWithoutVersion(String jarFileName) {
-        return jarFileName.endsWith(".jar")
-            ? JARS_REPLACED_BY_TD_PLUGIN.stream()
-                .filter(jarFileName::startsWith)
-                .findAny()
-            : Optional.empty();
     }
 
     @Override
@@ -342,12 +306,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, GlobalCacheRootsPr
             return jarFile;
         }
         if (gradleInstallation == null) {
-            // We only try to get a JAR with a different name in tests, when there is no Gradle installation
-            // See getNameOfJarReplacedByTestDistributionWithoutVersion why we are doing this
-            return getNameOfJarReplacedByTestDistributionWithoutVersion(name)
-                .map(classpathJars::get)
-                .orElseThrow(() -> new IllegalArgumentException(
-                    String.format("Cannot find JAR '%s' required by module '%s' using classpath.", name, module)));
+            throw new IllegalArgumentException(String.format("Cannot find JAR '%s' required by module '%s' using classpath.", name, module));
         }
         for (File libDir : gradleInstallation.getLibDirs()) {
             jarFile = new File(libDir, name);

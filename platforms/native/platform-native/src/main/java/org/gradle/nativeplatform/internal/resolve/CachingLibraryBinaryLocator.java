@@ -19,8 +19,8 @@ package org.gradle.nativeplatform.internal.resolve;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.nativeplatform.NativeLibraryBinary;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +29,7 @@ public class CachingLibraryBinaryLocator implements LibraryBinaryLocator {
     private final LibraryBinaryLocator delegate;
     private final Map<LibraryIdentifier, DomainObjectSet<NativeLibraryBinary>> libraries = new HashMap<LibraryIdentifier, DomainObjectSet<NativeLibraryBinary>>();
 
+    @SuppressWarnings("StaticAssignmentInConstructor") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public CachingLibraryBinaryLocator(LibraryBinaryLocator delegate, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.delegate = delegate;
         if (nullResult == null) {

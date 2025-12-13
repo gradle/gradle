@@ -18,8 +18,8 @@ package org.gradle.api.internal.attributes.matching;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -37,7 +37,7 @@ public interface AttributeSelectionSchema {
     boolean hasAttribute(Attribute<?> attribute);
 
     /**
-     * Given a set of {@code candidate} attribute values for a given {@code attribute}, produce
+     * Given a set of candidate attribute values ({@code candidates}) for a given {@code attribute}, produce
      * a set of matching values from within the candidate set based on the provided {@code requested} value.
      *
      * @param attribute The attribute being disambiguated.

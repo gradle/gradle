@@ -16,7 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.tasks.testing.TestWorkerFailureException;
+import org.gradle.api.internal.tasks.testing.worker.ForkingTestDefinitionProcessor;
 import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -25,6 +29,11 @@ import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Reports a live-updating total of tests run, failed and skipped.
  * <p>
@@ -32,6 +41,8 @@ import org.slf4j.LoggerFactory;
  * <pre>
  * > :project-name:testTaskName > 6659 tests completed, 1 failed, 2 skipped
  * </pre>
+ *
+ * This logger also keeps track of whether there were any worker failures that make the overall test result incomplete.
  */
 public class TestCountLogger implements TestListener {
     private final ProgressLoggerFactory factory;
@@ -39,9 +50,11 @@ public class TestCountLogger implements TestListener {
     private final Logger logger;
 
     private long totalTests;
+    private long totalDiscoveredItems;
     private long failedTests;
     private long skippedTests;
     private boolean hadFailures;
+    private List<TestFailure> workerFailures;
 
     public TestCountLogger(ProgressLoggerFactory factory) {
         this(factory, LoggerFactory.getLogger(TestCountLogger.class));
@@ -50,6 +63,7 @@ public class TestCountLogger implements TestListener {
     TestCountLogger(ProgressLoggerFactory factory, Logger logger) {
         this.factory = factory;
         this.logger = logger;
+        this.workerFailures = new ArrayList<>();
     }
 
     @Override
@@ -59,6 +73,7 @@ public class TestCountLogger implements TestListener {
     @Override
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
         totalTests += result.getTestCount();
+        totalDiscoveredItems += result.getTestCount();
         failedTests += result.getFailedTestCount();
         skippedTests += result.getSkippedTestCount();
         progressLogger.progress(summary());
@@ -110,6 +125,23 @@ public class TestCountLogger implements TestListener {
 
             if (result.getResultType() == TestResult.ResultType.FAILURE) {
                 hadFailures = true;
+                // TODO: Instead of assuming all failures at the root suite are worker failures, we should
+                // identify worker failures in the TestFailureDetails
+                workerFailures.addAll(result.getFailures());
+            }
+        } else {
+            // Looks like a test worker suite
+            // TODO: Instead of assuming all failures at this level are worker failures, we should
+            // identify worker failures in the TestFailureDetails
+            if (suite.getParent().getParent() == null && suite.getDisplayName().startsWith(ForkingTestDefinitionProcessor.GRADLE_TEST_WORKER_NAME)) {
+                if (result.getResultType() == TestResult.ResultType.FAILURE) {
+                    workerFailures.addAll(result.getFailures());
+                }
+            }
+            // Only count suites that can be attributed to a discovered class such as test class suites, explicit test suites,
+            // parameterized tests, test templates, dynamic tests, etc, and ignore the "test worker" and root suites.
+            if (suite.getClassName() != null) {
+                totalDiscoveredItems++;
             }
         }
     }
@@ -120,5 +152,34 @@ public class TestCountLogger implements TestListener {
 
     public long getTotalTests() {
         return totalTests;
+    }
+
+    /**
+     * Returns the total number of test methods, test suites, test classes and/or dynamic tests that were discovered before
+     * or during test execution.  This does not include the "test worker" or root suites.
+     */
+    public long getTotalDiscoveredItems() {
+        return totalDiscoveredItems;
+    }
+
+    /**
+     * Checks if any test failures were reported during test worker startup and throws an exception if so.
+     */
+    public boolean hasWorkerFailures() {
+        return !workerFailures.isEmpty();
+    }
+
+    public String handleWorkerFailures() {
+        // TODO: We should expand this into different kinds of failures based on the situation we've detected.
+        // e.g., test workers can fail to start due to command-line misconfiguration
+        // or test workers can start, but fail to run any tests due to a bad classpath
+        // or test workers can start, run some tests and then fail due to OOM or System.exit(...)
+        //
+        // We currently treat all of these as the same kind of failure.
+        //
+        // It would be better to emit these as problems instead of packing everything into the exception.
+        throw new TestWorkerFailureException("Test process encountered an unexpected problem.",
+            workerFailures.stream().map(TestFailure::getRawFailure).collect(Collectors.toList()),
+            Collections.singletonList("Check common problems " + new DocumentationRegistry().getDocumentationFor("java_testing", "sec:java_testing_troubleshooting") + "."));
     }
 }

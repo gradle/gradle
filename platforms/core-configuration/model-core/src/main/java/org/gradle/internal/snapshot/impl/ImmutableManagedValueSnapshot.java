@@ -19,8 +19,8 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 
 public class ImmutableManagedValueSnapshot implements ValueSnapshot {

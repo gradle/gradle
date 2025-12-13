@@ -16,30 +16,27 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.gradle.api.artifacts.ModuleDependency
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.ResolvedModuleVersion
-import org.gradle.api.internal.artifacts.DependencyGraphNodeResult
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
-import org.gradle.api.specs.Spec
 import spock.lang.Specification
 
+import java.util.function.Function
+
 class DefaultLenientConfigurationTest extends Specification {
+
     def transientConfigurationResults = Mock(TransientConfigurationResults)
-    def resultsLoader = Mock(TransientConfigurationResultsLoader)
+    def resultsLoader = Mock(Function)
     def artifactSet = Stub(VisitedArtifactSet)
-    def fileDependencyResults = Stub(VisitedFileDependencyResults)
 
     def "should resolve first level dependencies in tree"() {
         given:
@@ -58,33 +55,8 @@ class DefaultLenientConfigurationTest extends Specification {
         results == expectedResults
 
         and:
-        1 * resultsLoader.create(_) >> transientConfigurationResults
-        1 * transientConfigurationResults.getFirstLevelDependencies() >> [(Mock(ModuleDependency)): child]
-        0 * _
-    }
-
-    def "should resolve and filter first level dependencies in tree"() {
-        given:
-        def spec = Mock(Spec)
-        def node1 = new TestResolvedDependency()
-        def node2 = new TestResolvedDependency()
-        def node3 = new TestResolvedDependency()
-        def firstLevelDependencies = [(Mock(ModuleDependency)): node1, (Mock(ModuleDependency)): node2, (Mock(ModuleDependency)): node3]
-        def firstLevelDependenciesEntries = firstLevelDependencies.entrySet() as List
-
-        def lenientConfiguration = newConfiguration()
-
-        when:
-        def result = lenientConfiguration.getFirstLevelModuleDependencies(spec)
-
-        then:
-        result == [node1, node3] as Set
-
-        1 * resultsLoader.create(_) >> transientConfigurationResults
-        1 * transientConfigurationResults.getFirstLevelDependencies() >> firstLevelDependencies
-        1 * spec.isSatisfiedBy(firstLevelDependenciesEntries[0].key) >> true
-        1 * spec.isSatisfiedBy(firstLevelDependenciesEntries[1].key) >> false
-        1 * spec.isSatisfiedBy(firstLevelDependenciesEntries[2].key) >> true
+        1 * resultsLoader.apply(_) >> transientConfigurationResults
+        1 * transientConfigurationResults.getFirstLevelDependencies() >> ImmutableSet.of(child)
         0 * _
     }
 
@@ -101,7 +73,7 @@ class DefaultLenientConfigurationTest extends Specification {
         result.size() == size
         result == expected
 
-        1 * resultsLoader.create(_) >> transientConfigurationResults
+        1 * resultsLoader.apply(_) >> transientConfigurationResults
         1 * transientConfigurationResults.getRootNode() >> root
 
         where:
@@ -111,8 +83,8 @@ class DefaultLenientConfigurationTest extends Specification {
     }
 
     private DefaultLenientConfiguration newConfiguration() {
-        VisitedGraphResults visitedGraphResults = new DefaultVisitedGraphResults(Stub(MinimalResolutionResult), [] as Set, null)
-        new DefaultLenientConfiguration(Stub(ResolutionHost), visitedGraphResults, artifactSet, fileDependencyResults, resultsLoader, Mock(ResolvedArtifactSetResolver), Mock(ArtifactSelectionSpec))
+        VisitedGraphResults visitedGraphResults = new DefaultVisitedGraphResults(Stub(MinimalResolutionResult), [] as Set)
+        new DefaultLenientConfiguration(Stub(ResolutionHost), visitedGraphResults, artifactSet, resultsLoader, Mock(ResolvedArtifactSetResolver), Mock(ArtifactSelectionSpec))
     }
 
     def generateDependenciesWithChildren(Map treeStructure) {
@@ -136,7 +108,8 @@ class DefaultLenientConfigurationTest extends Specification {
         [new LinkedHashSet(dependenciesById.values()), root]
     }
 
-    private static class TestResolvedDependency implements ResolvedDependency, DependencyGraphNodeResult {
+    private static class TestResolvedDependency implements ResolvedDependency {
+
         String name
         String moduleGroup
         String moduleName
@@ -147,21 +120,6 @@ class DefaultLenientConfigurationTest extends Specification {
         Set<ResolvedDependency> parents
         Set<ResolvedArtifact> moduleArtifacts
         Set<ResolvedArtifact> allModuleArtifacts
-
-        @Override
-        ResolvedDependency getPublicView() {
-            return this
-        }
-
-        @Override
-        Collection<? extends DependencyGraphNodeResult> getOutgoingEdges() {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        ResolvedArtifactSet getArtifactsForNode() {
-            throw new UnsupportedOperationException()
-        }
 
         @Override
         Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent) {
@@ -177,5 +135,6 @@ class DefaultLenientConfigurationTest extends Specification {
         Set<ResolvedArtifact> getAllArtifacts(ResolvedDependency parent) {
             return null
         }
+
     }
 }

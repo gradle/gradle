@@ -16,13 +16,14 @@
 
 package org.gradle.internal.deprecation;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.internal.InternalDocLink;
+import org.jspecify.annotations.Nullable;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
 
 public abstract class Documentation implements InternalDocLink {
     public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
@@ -36,8 +37,12 @@ public abstract class Documentation implements InternalDocLink {
         return new UserGuide(id, null);
     }
 
-    public static Documentation upgradeGuide(int majorVersion, String upgradeGuideSection) {
-        return new UpgradeGuide(majorVersion, upgradeGuideSection);
+    public static Documentation upgradeMinorGuide(int majorVersion, String upgradeGuideSection) {
+        return UpgradeGuide.forMinorVersion(majorVersion, upgradeGuideSection);
+    }
+
+    public static Documentation upgradeMajorGuide(int majorVersion, String upgradeGuideSection) {
+        return UpgradeGuide.forMajorVersion(majorVersion, upgradeGuideSection);
     }
 
     public static Documentation dslReference(Class<?> targetClass, String property) {
@@ -72,14 +77,6 @@ public abstract class Documentation implements InternalDocLink {
          * Output: See USER_MANUAL_URL for more details.
          */
         @CheckReturnValue
-        public T withUserManual(String documentationId) {
-            return withDocumentation(Documentation.userManual(documentationId));
-        }
-
-        /**
-         * Output: See USER_MANUAL_URL for more details.
-         */
-        @CheckReturnValue
         public T withUserManual(String documentationId, String section) {
             return withDocumentation(Documentation.userManual(documentationId, section));
         }
@@ -97,7 +94,7 @@ public abstract class Documentation implements InternalDocLink {
          */
         @CheckReturnValue
         public T withUpgradeGuideSection(int majorVersion, String upgradeGuideSection) {
-            return withDocumentation(Documentation.upgradeGuide(majorVersion, upgradeGuideSection));
+            return withDocumentation(Documentation.upgradeMinorGuide(majorVersion, upgradeGuideSection));
         }
     }
 
@@ -124,12 +121,33 @@ public abstract class Documentation implements InternalDocLink {
             return DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor(topic, page, section);
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof UserGuide)) {
+                return false;
+            }
+            UserGuide userGuide = (UserGuide) o;
+            return Objects.equal(page, userGuide.page) && Objects.equal(section, userGuide.section) && Objects.equal(topic, userGuide.topic);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(page, section, topic);
+        }
     }
 
     private static class UpgradeGuide extends UserGuide {
 
-        private UpgradeGuide(int majorVersion, String section) {
-            super("upgrading_version_" + majorVersion, section);
+        private UpgradeGuide(String basePath, String section) {
+            super(basePath, section);
+        }
+
+        public static UpgradeGuide forMinorVersion(int majorVersion, String section) {
+            return new UpgradeGuide("upgrading_version_" + majorVersion, section);
+        }
+
+        public static UpgradeGuide forMajorVersion(int majorVersion, String section) {
+            return new UpgradeGuide("upgrading_major_version_" + majorVersion, section);
         }
 
         @Override
@@ -152,6 +170,19 @@ public abstract class Documentation implements InternalDocLink {
             return DOCUMENTATION_REGISTRY.getDslRefForProperty(targetClass, property);
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof DslReference)) {
+                return false;
+            }
+            DslReference that = (DslReference) o;
+            return Objects.equal(targetClass, that.targetClass) && Objects.equal(property, that.property);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(targetClass, property);
+        }
     }
 
     private static class KotlinDslExtensionReference extends SerializableDocumentation {
@@ -166,6 +197,19 @@ public abstract class Documentation implements InternalDocLink {
             return DOCUMENTATION_REGISTRY.getKotlinDslRefForExtension(extensionName);
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof KotlinDslExtensionReference)) {
+                return false;
+            }
+            KotlinDslExtensionReference that = (KotlinDslExtensionReference) o;
+            return Objects.equal(extensionName, that.extensionName);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(extensionName);
+        }
     }
 
 }

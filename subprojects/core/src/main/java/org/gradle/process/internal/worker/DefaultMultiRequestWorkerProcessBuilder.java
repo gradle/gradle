@@ -34,23 +34,23 @@ import org.gradle.process.internal.worker.request.ResponseProtocol;
 import org.gradle.process.internal.worker.request.WorkerAction;
 
 import java.io.File;
-import java.net.URL;
 import java.util.Collections;
 import java.util.Set;
 
 class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWorkerProcessBuilder<IN, OUT> {
+
     private final Class<?> workerImplementation;
+    private final OutputEventListener outputEventListener;
+
+    // Mutable state
     private final DefaultWorkerProcessBuilder workerProcessBuilder;
     private final RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
-    private final OutputEventListener outputEventListener;
+    private boolean useApplicationClassloaderOnly;
 
     public DefaultMultiRequestWorkerProcessBuilder(Class<?> workerImplementation, DefaultWorkerProcessBuilder workerProcessBuilder, OutputEventListener outputEventListener) {
         this.workerImplementation = workerImplementation;
         this.workerProcessBuilder = workerProcessBuilder;
-        ClassPath implementationClasspath = ClasspathUtil.getClasspath(workerImplementation.getClassLoader());
         this.outputEventListener = outputEventListener;
-        workerProcessBuilder.worker(new WorkerAction(workerImplementation));
-        workerProcessBuilder.setImplementationClasspath(implementationClasspath.getAsURLs());
     }
 
     @Override
@@ -125,12 +125,21 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
     }
 
     @Override
-    public void useApplicationClassloaderOnly() {
-        workerProcessBuilder.setImplementationClasspath(Collections.<URL>emptyList());
+    public void withoutAutomaticImplementationClasspath() {
+        this.useApplicationClassloaderOnly = true;
     }
 
     @Override
     public MultiRequestClient<IN, OUT> build() {
+        workerProcessBuilder.worker(new WorkerAction(this.workerImplementation));
+
+        if (useApplicationClassloaderOnly) {
+            workerProcessBuilder.setImplementationClasspath(Collections.emptyList());
+        } else {
+            ClassPath implementationClasspath = ClasspathUtil.getClasspath(this.workerImplementation.getClassLoader());
+            workerProcessBuilder.setImplementationClasspath(implementationClasspath.getAsURLs());
+        }
+
         // Always publish process info for multi-request workers
         workerProcessBuilder.enableJvmMemoryInfoPublishing(true);
         final WorkerProcess workerProcess = workerProcessBuilder.build();

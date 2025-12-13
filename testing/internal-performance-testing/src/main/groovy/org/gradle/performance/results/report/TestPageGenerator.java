@@ -20,7 +20,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.googlecode.jatl.Html;
 import groovy.json.JsonOutput;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.performance.results.CrossVersionPerformanceTestHistory;
 import org.gradle.performance.results.FormatSupport;
 import org.gradle.performance.results.PerformanceScenario;
@@ -28,8 +28,8 @@ import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ScenarioDefinition;
 import org.gradle.performance.util.Git;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Writer;
 import java.time.Instant;
 import java.util.ArrayList;

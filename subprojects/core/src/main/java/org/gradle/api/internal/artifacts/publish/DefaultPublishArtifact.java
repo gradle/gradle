@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Date;
 
@@ -30,6 +31,22 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact implements C
     private String classifier;
     private Date date;
     private File file;
+
+    /**
+     * Create a publish artifact with nothing set
+     *
+     * @param taskDependencyFactory factory to create task dependencies
+     */
+    @Inject
+    public DefaultPublishArtifact(TaskDependencyFactory taskDependencyFactory) {
+        super(taskDependencyFactory);
+        this.name = null;
+        this.extension = null;
+        this.type = null;
+        this.date = null;
+        this.classifier = null;
+        this.file = null;
+    }
 
     public DefaultPublishArtifact(
         TaskDependencyFactory taskDependencyFactory,

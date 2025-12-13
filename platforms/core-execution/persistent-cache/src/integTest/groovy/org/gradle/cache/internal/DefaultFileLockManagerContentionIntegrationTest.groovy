@@ -31,12 +31,15 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.internal.time.Time
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 import java.util.function.Consumer
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 import static org.gradle.util.internal.TextUtil.escapeString
 
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requires a daemon")
 class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegrationSpec {
     def addressFactory = new InetAddressFactory()
 
@@ -242,6 +245,8 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             import org.gradle.workers.WorkAction
             import org.gradle.internal.instrumentation.agent.AgentStatus
             import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
+            import org.gradle.internal.classpath.ClassPath
+            import org.gradle.internal.installation.CurrentGradleInstallation
 
             abstract class WorkerTask extends DefaultTask {
                 @Inject
@@ -281,24 +286,27 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                 }
             }
 
-            class ZincCompilerServices extends DefaultServiceRegistry {
+            class ZincCompilerServices {
                 private static def instance
 
-                private ZincCompilerServices(File gradleUserHome) {
-                    super(NativeServices.getInstance())
-
-                    add(OutputEventListener.class, OutputEventListener.NO_OP)
-                    addProvider(new GlobalScopeServices(true, AgentStatus.disabled()))
-                }
-
-                 static def getInstance(File gradleUserHome) {
+                static def getInstance(File gradleUserHome) {
                     if (instance == null) {
                         NativeServices.initializeOnWorker(gradleUserHome, NativeServicesMode.ENABLED)
-                        def global = new ZincCompilerServices(gradleUserHome)
-                        ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder()
-                        builder.parent(global)
-                        builder.provider(new GradleUserHomeScopeServices(global))
-                        instance = builder.build()
+                        def nativeServices = NativeServices.getInstance()
+
+                        def global = ServiceRegistryBuilder.builder().displayName("test worker Global services")
+                            .parent(nativeServices)
+                            .provider {
+                                it.add(OutputEventListener.class, OutputEventListener.NO_OP)
+                                it.addProvider(new GlobalScopeServices(true, AgentStatus.disabled(), ClassPath.EMPTY, new CurrentGradleInstallation(null)))
+                            }.build()
+
+                        def zincCompilerServices = ServiceRegistryBuilder.builder().displayName("test worker ZincCompiler services")
+                            .parent(global)
+                            .provider(new GradleUserHomeScopeServices(global))
+                            .build()
+
+                        instance = zincCompilerServices
                     }
                     return instance
                 }
@@ -313,7 +321,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     }
 
     void assertConfirmationCount(GradleHandle build, FileLock lock = receivingLock) {
-        assert (build.standardOutput =~ "Gradle process at port ${communicator.port} confirmed unlock request for lock with id ${lock.lockId}.").count == 1
+        assert (build.standardOutput =~ "Process at port ${communicator.port} confirmed unlock request for lock with id ${lock.lockId}.").count == 1
     }
 
     void assertReleaseSignalTriggered(GradleHandle build, FileLock lock = receivingLock) {

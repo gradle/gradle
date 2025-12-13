@@ -1,0 +1,105 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[part4_unit_test]]
+= Part 4: Writing a Unit Test
+
+Learn the basics of unit testing your plugin to ensure it behaves as expected.
+
+****
+**In this section, you'll:**
+
+- Update the default unit test to verify your plugin's functionality.
+- Run the unit tests to confirm your plugin registers its task correctly.
+****
+
+[[part4_begin]]
+== Step 0: Before you Begin
+
+1. You initialized your plugin in <<part1_gradle_init_plugin.adoc#part1_begin,part 1>>.
+2. You added an extension to your plugin in <<part2_add_extension.adoc#part2_begin,part 2>>.
+3. You created a custom task in <<part3_create_custom_task.adoc#part3_begin,part 3>>.
+
+== Step 1: About Unit Tests
+
+Gradle `init` creates a sample unit test to get you started.
+
+[.multi-language-text.lang-kotlin]
+----
+It's located in `src/test/kotlin/org/example/PluginTutorialPluginTest.kt`.
+----
+[.multi-language-text.lang-groovy]
+----
+It's located in `src/test/groovy/org/example/PluginTutorialPluginTest.groovy`.
+----
+
+The original test is simple, it applies the default `org.example.greeting` plugin and verifies that the `greeting` task is available.
+We will update it to test our new plugin.
+
+== Step 2: Update the Test
+
+First, let's rename the test file to match our plugin's name.
+
+[.multi-language-text.lang-kotlin]
+----
+Rename the file `PluginTutorialPluginTest.kt` to `SlackPluginTest.kt`.
+----
+[.multi-language-text.lang-groovy]
+----
+Rename the file `PluginTutorialPluginTest.groovy` to `SlackPluginTest.groovy`.
+----
+
+Next, update the code to reflect our plugin's ID (`org.example.slack`) and task name (`sendTestSlackMessage`).
+
+====
+include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/test/kotlin/org/example/SlackPluginTest.kt[]"]
+include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/test/groovy/org/example/SlackPluginTest.groovy[]"]
+====
+
+This test:
+
+1.  **`ProjectBuilder.builder().build()`**: Creates an in-memory test project, which is perfect for isolating our plugin's behavior.
+2.  **`project.plugins.apply(...)`**: Applies our `SlackPlugin` to the test project.
+3.  **`assertNotNull(...)`**: Confirms that our `sendTestSlackMessage` task was successfully registered by the plugin.
+
+== Step 3: Run the Test
+
+You can now run the `test` task from the command line to make sure everything is working correctly.
+
+[source,text]
+----
+$ ./gradlew test
+
+> Task :plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :plugin:processTestResources NO-SOURCE
+> Task :plugin:pluginDescriptors UP-TO-DATE
+> Task :plugin:processResources UP-TO-DATE
+> Task :plugin:compileKotlin UP-TO-DATE
+> Task :plugin:compileJava NO-SOURCE
+> Task :plugin:classes UP-TO-DATE
+> Task :plugin:pluginUnderTestMetadata UP-TO-DATE
+> Task :plugin:jar UP-TO-DATE
+> Task :plugin:compileTestKotlin
+> Task :plugin:compileTestJava NO-SOURCE
+> Task :plugin:testClasses UP-TO-DATE
+> Task :plugin:test
+
+BUILD SUCCESSFUL in 1s
+7 actionable tasks: 2 executed, 5 up-to-date
+----
+
+If your test passes, you've successfully verified that your plugin is registering its custom task as intended!
+
+[.text-right]
+**Next Step:** <<part5_add_dataflow_action.adoc#part5_add_dataflow_action,Add a DataFlow Action>> >>

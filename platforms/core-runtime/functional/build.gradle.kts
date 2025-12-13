@@ -6,12 +6,14 @@ plugins {
 description = "Tools to work with functional code, including data structures"
 
 dependencies {
+    api(libs.jspecify)
     api(libs.jsr305)
     api(projects.stdlibJavaExtensions)
 
     implementation(libs.guava)
     implementation(libs.fastutil)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
+
+errorprone {
+    nullawayEnabled = true
 }

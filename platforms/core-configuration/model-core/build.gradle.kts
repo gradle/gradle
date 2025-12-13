@@ -5,36 +5,43 @@ plugins {
 
 description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
 
-gradlebuildJava {
-    usesJdkInternals = true
+jvmCompile {
+    compilations {
+        named("main") {
+            usesJdkInternals = true
+        }
+    }
 }
 
 dependencies {
-    api(projects.serialization)
-    api(projects.serviceLookup)
-    api(projects.stdlibJavaExtensions)
-    api(projects.coreApi)
-    api(projects.problemsApi)
-    api(projects.hashing)
     api(projects.baseServices)
+    api(projects.coreApi)
     api(projects.files)
     api(projects.functional)
-    api(projects.logging)
+    api(projects.hashing)
     api(projects.messaging)
+    api(projects.modelReflect)
     api(projects.persistentCache)
+    api(projects.problemsApi)
+    api(projects.serialization)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
     api(projects.snapshots)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.asm)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
     api(libs.groovy)
     api(libs.guava)
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.baseAsm)
-    implementation(projects.serviceProvider)
+    implementation(projects.classloaders)
+    implementation(projects.logging)
     implementation(projects.serviceRegistryBuilder)
 
+    implementation(libs.jsr305)
     implementation(libs.kotlinStdlib)
     implementation(libs.slf4jApi)
     implementation(libs.commonsLang)
@@ -46,7 +53,6 @@ dependencies {
     testFixturesApi(projects.internalIntegTesting)
     testFixturesImplementation(projects.baseAsm)
     testFixturesImplementation(libs.guava)
-    testFixturesImplementation(libs.groovyAnt)
     testFixturesImplementation(libs.groovyDatetime)
     testFixturesImplementation(libs.groovyDateUtil)
 
@@ -55,6 +61,8 @@ dependencies {
     testImplementation(projects.native)
     testImplementation(projects.resources)
     testImplementation(testFixtures(projects.coreApi))
+    testImplementation(testFixtures(projects.languageGroovy))
+    testImplementation(testFixtures(projects.modelReflect))
 
     integTestImplementation(projects.platformBase)
 
@@ -71,8 +79,6 @@ dependencies {
 strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
-
-integTest.usesJavadocCodeSnippets = true
 
 packageCycles {
     excludePatterns.add("org/gradle/model/internal/core/**")

@@ -16,15 +16,14 @@
 
 package org.gradle.util.internal;
 
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.UncheckedException;
+import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -54,8 +53,13 @@ import java.util.regex.Pattern;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
+/**
+ * Various utility methods.
+ * <p>
+ * To keep this class usable from Workers, do <strong>NOT</strong> add dependencies on Guava, which
+ * we don't want to make available at runtime in TestWorkers.
+ */
 public class GUtil {
-    private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
     private static final Pattern UPPER_LOWER = Pattern.compile("(?m)([A-Z]*)([a-z0-9]*)");
 
     public static <T extends Collection<?>> T flatten(Object[] elements, T addTo, boolean flattenMaps) {
@@ -181,24 +185,6 @@ public class GUtil {
         return addToCollection(dest, false, src);
     }
 
-    @Deprecated
-    public static <V, T extends Collection<? super V>> T addToCollection(T dest, boolean failOnNull, Iterable<? extends V>... srcs) {
-        for (Iterable<? extends V> src : srcs) {
-            for (V v : src) {
-                if (failOnNull && v == null) {
-                    throw new IllegalArgumentException("Illegal null value provided in this collection: " + src);
-                }
-                dest.add(v);
-            }
-        }
-        return dest;
-    }
-
-    @Deprecated
-    public static <V, T extends Collection<? super V>> T addToCollection(T dest, Iterable<? extends V>... srcs) {
-        return addToCollection(dest, false, srcs);
-    }
-
     public static Comparator<String> caseInsensitive() {
         return new Comparator<String>() {
             @Override
@@ -234,7 +220,7 @@ public class GUtil {
                 inputStream.close();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -244,7 +230,7 @@ public class GUtil {
             uc.setUseCaches(false);
             return loadProperties(uc.getInputStream());
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -253,7 +239,7 @@ public class GUtil {
         try {
             properties.load(inputStream);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             IoActions.closeQuietly(inputStream);
         }
@@ -269,7 +255,7 @@ public class GUtil {
                 propertiesFileOutputStream.close();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -281,7 +267,7 @@ public class GUtil {
                 outputStream.close();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -309,52 +295,10 @@ public class GUtil {
     }
 
     /**
-     * Converts an arbitrary string to a camel-case string which can be used in a Java identifier. Eg, with_underscores -&gt; withUnderscores
-     */
-    public static String toCamelCase(CharSequence string) {
-        return toCamelCase(string, false);
-    }
-
-    public static String toLowerCamelCase(CharSequence string) {
-        return toCamelCase(string, true);
-    }
-
-    private static String toCamelCase(CharSequence string, boolean lower) {
-        if (string == null) {
-            return null;
-        }
-        StringBuilder builder = new StringBuilder();
-        Matcher matcher = WORD_SEPARATOR.matcher(string);
-        int pos = 0;
-        boolean first = true;
-        while (matcher.find()) {
-            String chunk = string.subSequence(pos, matcher.start()).toString();
-            pos = matcher.end();
-            if (chunk.isEmpty()) {
-                continue;
-            }
-            if (lower && first) {
-                chunk = StringUtils.uncapitalize(chunk);
-                first = false;
-            } else {
-                chunk = StringUtils.capitalize(chunk);
-            }
-            builder.append(chunk);
-        }
-        String rest = string.subSequence(pos, string.length()).toString();
-        if (lower && first) {
-            rest = StringUtils.uncapitalize(rest);
-        } else {
-            rest = StringUtils.capitalize(rest);
-        }
-        builder.append(rest);
-        return builder.toString();
-    }
-
-    /**
      * Converts an arbitrary string to upper case identifier with words separated by _. Eg, camelCase -&gt; CAMEL_CASE
      */
-    public static String toConstant(CharSequence string) {
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String toConstant(@Nullable CharSequence string) {
         if (string == null) {
             return null;
         }
@@ -364,11 +308,13 @@ public class GUtil {
     /**
      * Converts an arbitrary string to space-separated words. Eg, camelCase -&gt; camel case, with_underscores -&gt; with underscores
      */
-    public static String toWords(CharSequence string) {
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String toWords(@Nullable CharSequence string) {
         return toWords(string, ' ');
     }
 
-    public static String toWords(CharSequence string, char separator) {
+    @Contract("null, _ -> null; !null, _ -> !null")
+    public static @Nullable String toWords(@Nullable CharSequence string, char separator) {
         if (string == null) {
             return null;
         }
@@ -444,12 +390,7 @@ public class GUtil {
 
             throw new IllegalArgumentException(
                 String.format("Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
-                    literal, enumType.getName(), CollectionUtils.join(", ", CollectionUtils.collect(Arrays.asList(enumType.getEnumConstants()), new InternalTransformer<Object, T>() {
-                        @Override
-                        public String transform(T t) {
-                            return t.name();
-                        }
-                    }))
+                    literal, enumType.getName(), CollectionUtils.join(", ", CollectionUtils.collect(Arrays.asList(enumType.getEnumConstants()), Enum::name))
                 )
             );
         }

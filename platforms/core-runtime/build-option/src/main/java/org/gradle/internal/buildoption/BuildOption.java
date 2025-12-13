@@ -18,8 +18,8 @@ package org.gradle.internal.buildoption;
 
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -39,5 +39,6 @@ public interface BuildOption<T> extends Option {
 
     void applyFromCommandLine(ParsedCommandLine options, T settings);
 
+    @Nullable
     String getDeprecatedProperty();
 }

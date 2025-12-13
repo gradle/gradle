@@ -17,8 +17,8 @@
 package org.gradle.internal.configuration.inputs;
 
 import com.google.common.collect.Maps;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 
@@ -42,8 +42,7 @@ class AccessTrackingUtils {
      * @param o the object to cast
      * @return the entry if the object is {@code Map.Entry<String, String>} or {@code null} otherwise
      */
-    @Nullable
-    public static Map.Entry<String, String> tryConvertingToTrackableEntry(@Nullable Object o) {
+    public static Map.@Nullable Entry<String, String> tryConvertingToTrackableEntry(@Nullable Object o) {
         Map.Entry<?, ?> entry = tryConvertingToEntry(o);
         if (entry == null) {
             return null;
@@ -57,8 +56,7 @@ class AccessTrackingUtils {
         return null;
     }
 
-    @Nullable
-    public static Map.Entry<?, ?> tryConvertingToEntry(@Nullable Object o) {
+    public static Map.@Nullable Entry<?, ?> tryConvertingToEntry(@Nullable Object o) {
         if (!(o instanceof Map.Entry)) {
             return null;
         }

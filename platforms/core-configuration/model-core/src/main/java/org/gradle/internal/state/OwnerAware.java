@@ -17,8 +17,7 @@
 package org.gradle.internal.state;
 
 import org.gradle.internal.DisplayName;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents an object that may be owned by some model object. This is mixed-in to generated classes and may

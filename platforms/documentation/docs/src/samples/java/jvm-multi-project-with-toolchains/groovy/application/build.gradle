@@ -13,7 +13,7 @@ application {
 }
 
 // tag::customExec[]
-task('runOn17', type: JavaExec) {
+tasks.register('runOn17', JavaExec) {
     javaLauncher = javaToolchains.launcherFor {
         languageVersion = JavaLanguageVersion.of(17)
     }

@@ -18,8 +18,7 @@ package org.gradle.api.internal.classpath;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A registry of dynamically loadable modules.

@@ -22,7 +22,6 @@ plugins {
 description = "Base utilities and services to report and track configuration problems"
 
 val configurationCacheReportPath by configurations.creating {
-    isVisible = false
     isCanBeConsumed = false
     attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
 }
@@ -54,14 +53,10 @@ dependencies {
 
     api(libs.kotlinStdlib)
 
-    implementation(libs.groovyJson)
     implementation(libs.guava)
     implementation(libs.jacksonCore)
 
     implementation(projects.core)
     implementation(projects.hashing)
     implementation(projects.stdlibKotlinExtensions)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

@@ -18,7 +18,6 @@ package org.gradle.internal.build;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.ExecutionPlan;
@@ -31,8 +30,9 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.internal.taskgraph.NodeIdentity;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -45,7 +45,7 @@ import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedTask;
 import static org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.Result;
 
-@NonNullApi
+@NullMarked
 public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer {
     private final BuildOperationRunner buildOperationRunner;
     private final BuildWorkPreparer delegate;
@@ -106,15 +106,14 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
             delegate.populateWorkGraph(gradle, plan, action);
         }
 
-        @Nonnull
         @Override
-        public BuildOperationDescriptor.Builder description() {
+        public BuildOperationDescriptor.@NonNull Builder description() {
             //noinspection Convert2Lambda
             return BuildOperationDescriptor.displayName(gradle.contextualize("Calculate task graph"))
                 .details(new Details() {
                     @Override
                     public String getBuildPath() {
-                        return gradle.getIdentityPath().getPath();
+                        return gradle.getIdentityPath().asString();
                     }
                 });
         }

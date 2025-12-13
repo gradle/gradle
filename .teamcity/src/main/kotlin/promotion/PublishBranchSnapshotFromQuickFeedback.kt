@@ -18,7 +18,6 @@ package promotion
 
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.RelativeId
-import vcsroots.gradlePromotionBranches
 
 object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistributionFullBuild(
     promotedBranch = "%branch.qualifier%",
@@ -26,7 +25,6 @@ object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistributionFullBui
     prepTask = "prepSnapshot",
     promoteTask = "promoteSnapshot",
     extraParameters = "-PpromotedBranch=%branch.qualifier%",
-    vcsRootId = gradlePromotionBranches,
 ) {
     init {
         id("Promotion_PublishBranchSnapshotFromQuickFeedback")
@@ -42,7 +40,7 @@ object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistributionFullBui
                 label = "Branch qualifier for the published distribution version",
                 description = "The published distribution version looks like '8.13-branch-%branch.qualifier%-20241217145847+0000'.",
                 display = ParameterDisplay.PROMPT,
-                allowEmpty = false
+                allowEmpty = false,
             )
         }
     }

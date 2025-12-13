@@ -28,11 +28,17 @@ import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConv
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
+import org.gradle.internal.declarativedsl.schemaBuilder.AugmentationsProvider
+import org.gradle.internal.declarativedsl.schemaBuilder.CompositeAugmentationsProvider
+import org.gradle.internal.declarativedsl.schemaBuilder.CompositeDefaultImportsProvider
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositeFunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositePropertyExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.CompositeTopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositeTypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.DefaultImportsProvider
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.TopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import kotlin.reflect.KClass
@@ -43,9 +49,12 @@ internal interface EvaluationSchemaBuilder {
 }
 
 internal interface EvaluationSchemaBuilderResult {
+    val defaultImportsProviders: List<DefaultImportsProvider>
     val typeDiscoveries: List<TypeDiscovery>
+    val topLevelFunctionDiscovery: List<TopLevelFunctionDiscovery>
     val propertyExtractors: List<PropertyExtractor>
     val functionExtractors: List<FunctionExtractor>
+    val augmentationsProviders: List<AugmentationsProvider>
 }
 
 internal interface ConversionSchemaBuilder : EvaluationSchemaBuilder {
@@ -135,8 +144,11 @@ fun buildEvaluationAndConversionSchema(
 internal
 interface AnalysisSchemaComponent {
     fun typeDiscovery(): List<TypeDiscovery> = listOf()
+    fun topLevelFunctionDiscovery(): List<TopLevelFunctionDiscovery> = listOf()
+    fun defaultImportsProvider(): List<DefaultImportsProvider> = listOf()
     fun propertyExtractors(): List<PropertyExtractor> = listOf()
     fun functionExtractors(): List<FunctionExtractor> = listOf()
+    fun augmentationsProviders(): List<AugmentationsProvider> = listOf()
 }
 
 /**
@@ -157,10 +169,13 @@ fun analysisSchema(
     val analysisSchema = schemaFromTypes(
         topLevelReceiverType,
         listOf(topLevelReceiverType),
+        externalFunctionDiscovery = CompositeTopLevelFunctionDiscovery(builder.topLevelFunctionDiscovery),
         configureLambdas = gradleConfigureLambdas,
         propertyExtractor = CompositePropertyExtractor(builder.propertyExtractors),
         functionExtractor = CompositeFunctionExtractor(builder.functionExtractors),
-        typeDiscovery = CompositeTypeDiscovery(builder.typeDiscoveries)
+        typeDiscovery = CompositeTypeDiscovery(builder.typeDiscoveries),
+        defaultImports = CompositeDefaultImportsProvider(builder.defaultImportsProviders).defaultImports(),
+        augmentationsProvider = CompositeAugmentationsProvider(builder.augmentationsProviders)
     )
     return analysisSchema
 }
@@ -175,14 +190,23 @@ open class DefaultEvaluationSchemaBuilder : EvaluationSchemaBuilder, EvaluationS
         analysisSchemaComponents += analysisSchemaComponent
     }
 
+    override val defaultImportsProviders: List<DefaultImportsProvider>
+        get() = analysisSchemaComponents.flatMap { it.defaultImportsProvider() }
+
     override val typeDiscoveries: List<TypeDiscovery>
         get() = analysisSchemaComponents.flatMap { it.typeDiscovery() }
+
+    override val topLevelFunctionDiscovery: List<TopLevelFunctionDiscovery>
+        get() = analysisSchemaComponents.flatMap { it.topLevelFunctionDiscovery() }
 
     override val propertyExtractors: List<PropertyExtractor>
         get() = analysisSchemaComponents.flatMap { it.propertyExtractors() }
 
     override val functionExtractors: List<FunctionExtractor>
         get() = analysisSchemaComponents.flatMap { it.functionExtractors() }
+
+    override val augmentationsProviders: List<AugmentationsProvider>
+        get() = analysisSchemaComponents.flatMap { it.augmentationsProviders() }
 }
 
 

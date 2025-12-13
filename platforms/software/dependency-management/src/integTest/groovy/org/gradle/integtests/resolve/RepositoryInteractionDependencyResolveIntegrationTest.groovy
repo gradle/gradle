@@ -68,7 +68,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         return 'default'
     }
 
-    private ResolveTestFixture resolve
+    private ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
     private Map<String, RemoteRepositorySpec> repoSpecs = [:]
     private Map<String, HttpRepository> repos = [:]
 
@@ -100,15 +100,15 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         }
 
         def conf = "conf"
-        resolve = new ResolveTestFixture(buildFile, conf)
-        settingsFile << "rootProject.name = 'test'"
-        resolve.prepare()
+        settingsFile << """
+            rootProject.name = 'test'
+        """
         buildFile << """
             configurations {
                 $conf
             }
+            ${resolve.configureProject(conf)}
         """
-        resolve.addDefaultVariantDerivationStrategy()
 
         repoTypes.each { repoType ->
             repository(repoType) {
@@ -213,7 +213,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         expectChainInteractions(REPO_TYPES, chain, testVariant)
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         resolve.expectGraph {
             root(':', ':test:') {
                 module("org:${chain[0]}:1.0:${RepositoryInteractionDependencyResolveIntegrationTest.expectedConfiguration(chain[0], testVariant)}") {
@@ -249,13 +249,13 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         buildFile << """
             dependencies {
                 configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-                conf group: 'org', name: 'mavenCompile1', version: '1.0'
+                conf("org:mavenCompile1:1.0")
             }
         """
         expectChainInteractions(modules, modules)
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         resolve.expectGraph {
             root(':', ':test:') {
                 module("org:mavenCompile1:1.0:compile") {
@@ -281,13 +281,13 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         buildFile << """
             dependencies {
                 configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-                conf group: 'org', name: 'mavenCompile1', version: '1.0'
+                conf("org:mavenCompile1:1.0")
             }
         """
         expectChainInteractions(modules, modules)
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         resolve.expectGraph {
             root(':', ':test:') {
                 module("org:mavenCompile1:1.0:compile") {
@@ -316,13 +316,13 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         buildFile << """
             dependencies {
                 configurations.conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-                conf group: 'org', name: 'maven', version: '1.0'
+                conf("org:maven:1.0")
             }
         """
         expectChainInteractions(modules, modules, 'api')
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         resolve.expectGraph {
             root(':', ':test:') {
                 module("org:maven:1.0") {
@@ -361,7 +361,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         expectChainInteractions([target, 'ivy'], ['ivy', target], 'runtime')
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         resolve.expectGraph {
             root(':', ':test:') {
                 module("org:ivy:1.0") {
@@ -401,7 +401,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         expectChainInteractions([targetRepoName, 'ivy'], ['ivy', targetRepoName], 'api')
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         resolve.expectGraph {
             root(':', ':test:') {
                 module("org:ivy:1.0") {

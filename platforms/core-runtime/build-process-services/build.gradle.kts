@@ -5,9 +5,12 @@ plugins {
 description = "Services and types used to setup a build process from a Gradle distribution."
 
 dependencies {
+    api(projects.classloaders)
     api(projects.stdlibJavaExtensions)
-    api(projects.baseServices)
-    api(libs.jsr305)
+
+    api(libs.jspecify)
+
+    implementation(projects.baseServices)
 
     implementation(libs.guava)
 
@@ -15,7 +18,4 @@ dependencies {
     testImplementation(libs.asmTree)
 
     testRuntimeOnly(projects.resources)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

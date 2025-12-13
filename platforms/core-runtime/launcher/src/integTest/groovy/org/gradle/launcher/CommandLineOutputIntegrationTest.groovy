@@ -20,10 +20,13 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 /**
  * Assertions over the output of certain command line invocations.
  */
+@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class CommandLineOutputIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture {
     def setup() {
         // forces the tests to fork and not run in-process
@@ -35,7 +38,7 @@ class CommandLineOutputIntegrationTest extends AbstractIntegrationSpec implement
         succeeds("--version")
 
         then:
-        outputContains("Daemon JVM:    ${Jvm.current().javaHome.absolutePath} (no JDK specified, using current Java home)")
+        outputContains("Daemon JVM:    ${Jvm.current().javaHome.absolutePath} (no Daemon JVM specified, using current Java home)")
     }
 
     def "displays version message appropriately for daemon JVM requested by org.gradle.java.home"() {
@@ -57,6 +60,6 @@ class CommandLineOutputIntegrationTest extends AbstractIntegrationSpec implement
         succeeds("--version")
 
         then:
-        outputContains("Daemon JVM:    Compatible with Java 17, any vendor (from gradle/gradle-daemon-jvm.properties)")
+        outputContains("Daemon JVM:    Compatible with Java 17, any vendor, nativeImageCapable=false (from gradle/gradle-daemon-jvm.properties)")
     }
 }

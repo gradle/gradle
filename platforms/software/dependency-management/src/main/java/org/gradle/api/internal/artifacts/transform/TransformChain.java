@@ -17,8 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A series of {@link TransformStep}s.

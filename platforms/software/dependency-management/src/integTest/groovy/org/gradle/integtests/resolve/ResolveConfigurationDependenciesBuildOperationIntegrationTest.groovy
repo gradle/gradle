@@ -79,16 +79,17 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         when:
         fails "checkDeps"
+        operations.debugTree()
 
         then:
         failedResolve.assertFailurePresent(failure)
-        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
+        def op = operations.first(ResolveConfigurationDependenciesBuildOperationType) {
+            it.details.projectPath == ":"
+        }
         op.details.configurationName == "compileClasspath"
-        op.details.projectPath == ":"
         op.details.buildPath == ":"
         op.details.scriptConfiguration == false
         op.details.configurationDescription ==~ /Compile classpath for source set 'main'.*/
-        op.details.configurationVisible == false
         op.details.configurationTransitive == true
 
         op.result.resolvedDependenciesCount == 4
@@ -122,7 +123,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.details.scriptConfiguration == false
         op.details.buildPath == ":"
         op.details.configurationDescription == null
-        op.details.configurationVisible == true
         op.details.configurationTransitive == true
 
         op.result.resolvedDependenciesCount == 1
@@ -169,7 +169,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolveOperations[0].details.buildPath == ":"
         resolveOperations[0].details.scriptConfiguration == false
         resolveOperations[0].details.configurationDescription ==~ /Compile classpath for source set 'main'.*/
-        resolveOperations[0].details.configurationVisible == false
         resolveOperations[0].details.configurationTransitive == true
         resolveOperations[0].result.resolvedDependenciesCount == 2
 
@@ -179,7 +178,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolveOperations[1].details.buildPath == ":my-composite-app"
         resolveOperations[1].details.scriptConfiguration == false
         resolveOperations[1].details.configurationDescription == "Compile classpath for source set 'main'."
-        resolveOperations[1].details.configurationVisible == false
         resolveOperations[1].details.configurationTransitive == true
         resolveOperations[1].result.resolvedDependenciesCount == 1
     }
@@ -224,7 +222,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             assert it.details.buildPath == ":"
             assert it.details.scriptConfiguration == true
             assert it.details.configurationDescription == null
-            assert it.details.configurationVisible == true
             assert it.details.configurationTransitive == true
             assert it.result.resolvedDependenciesCount == 2
         }
@@ -234,7 +231,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolveOperations[1].details.buildPath == ":my-composite-app"
         resolveOperations[1].details.scriptConfiguration == false
         resolveOperations[1].details.configurationDescription == "Compile classpath for source set 'main'."
-        resolveOperations[1].details.configurationVisible == false
         resolveOperations[1].details.configurationTransitive == true
         resolveOperations[1].result.resolvedDependenciesCount == 1
 
@@ -282,14 +278,13 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolveOperations[0].details.projectPath == null
         resolveOperations[0].details.scriptConfiguration == true
         resolveOperations[0].details.configurationDescription == null
-        resolveOperations[0].details.configurationVisible == true
         resolveOperations[0].details.configurationTransitive == true
         resolveOperations[0].result.resolvedDependenciesCount == 1
 
         where:
         scriptType      | scriptBlock   | scriptFileName
-        "project build" | 'buildscript' | getDefaultBuildFileName()
-        "script plugin" | 'buildscript' | "scriptPlugin.gradle"
+        "project build" | 'buildscript' | 'build.gradle'
+        "script plugin" | 'buildscript' | 'scriptPlugin.gradle'
         "settings"      | 'buildscript' | 'settings.gradle'
         "init"          | 'initscript'  | 'init.gradle'
     }
@@ -383,7 +378,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         mavenHttpRepo.module('org.foo', 'app-dep').publish().allowAll()
     }
 
-    def "failed resolved configurations are exposed via build operation"() {
+    def "version conflict failures incur no build operation failure"() {
         given:
         MavenHttpModule a
         MavenHttpModule b
@@ -412,7 +407,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                compile 'org:a:1.0'
                compile 'org:b:1.0'
             }
-"""
+        """
         failedResolve.prepare()
 
         a.pom.expectGet()
@@ -427,16 +422,11 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         failedResolve.assertFailurePresent(failure)
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         op.details.configurationName == "compile"
-        op.failure == "org.gradle.api.internal.artifacts.ivyservice.TypedResolveException: Could not resolve all dependencies for configuration ':compile'."
-        failure.assertHasCause("""Conflict found for the following module:
-  - org:leaf between versions 2.0 and 1.0""")
         op.result != null
         op.result.resolvedDependenciesCount == 2
     }
 
-    // This documents the current behavior, not necessarily the smartest one.
-    // FTR This behaves the same in 4.7, 4.8 and 4.9
-    def "non fatal errors incur no resolution failure"() {
+    def "non fatal errors incur no build operation failure"() {
         def mod = mavenHttpRepo.module('org', 'a', '1.0')
         mod.pomFile << "corrupt"
 
@@ -453,7 +443,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             dependencies {
                compile 'org:a:1.0'
             }
-"""
+        """
         failedResolve.prepare()
 
         then:

@@ -12,7 +12,7 @@ repositories {
 dependencies {
     api "org.gradle:gradle-tooling-api:${toolingApiVersion}"
     // Need an SLF4J implementation at runtime
-    runtimeOnly 'org.slf4j:slf4j-simple:1.7.10'
+    runtimeOnly 'org.slf4j:slf4j-simple:2.0.17'
 }
 
 application {

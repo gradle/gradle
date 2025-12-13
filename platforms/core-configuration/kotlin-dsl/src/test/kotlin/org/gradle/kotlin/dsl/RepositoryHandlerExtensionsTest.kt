@@ -1,17 +1,15 @@
 package org.gradle.kotlin.dsl
 
-import com.nhaarman.mockito_kotlin.any
-import com.nhaarman.mockito_kotlin.only
-import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.verify
 import org.gradle.api.Action
-
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
-
 import org.junit.Test
 import org.mockito.invocation.InvocationOnMock
+import org.mockito.kotlin.any
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.only
+import org.mockito.kotlin.verify
 
 
 class RepositoryHandlerExtensionsTest {

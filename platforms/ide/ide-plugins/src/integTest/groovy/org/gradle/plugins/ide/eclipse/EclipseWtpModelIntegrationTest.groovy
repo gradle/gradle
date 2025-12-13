@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
@@ -30,7 +29,6 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
     String component
 
     @Test
-    @ToBeFixedForConfigurationCache
     void allowsConfiguringEclipseWtp() {
         //given
         file('someExtraSourceDir').mkdirs()
@@ -106,7 +104,6 @@ eclipse {
 
     @Issue("GRADLE-2653")
     @Test
-    @ToBeFixedForConfigurationCache
     void "wtp component respects configuration modifications"() {
         //given
         mavenRepo.module("gradle", "foo").publish()
@@ -139,7 +136,6 @@ configurations.all {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void allowsConfiguringHooksForComponent() {
         //given
         def componentFile = file('.settings/org.eclipse.wst.common.component')
@@ -194,7 +190,6 @@ eclipseWtpComponent.doLast() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void allowsConfiguringHooksForFacet() {
         //given
         def componentFile = file('.settings/org.eclipse.wst.common.project.facet.core.xml')
@@ -247,7 +242,6 @@ eclipse {
 
     @Issue("GRADLE-2661")
     @Test
-    @ToBeFixedForConfigurationCache
     void "file dependencies respect plus minus configurations"() {
         //when
         runEclipseTask """
@@ -284,7 +278,6 @@ eclipse {
 
     @Test
     @Issue("GRADLE-1881")
-    @ToBeFixedForConfigurationCache
     void "uses eclipse project name for wtp module dependencies"() {
         //given
         createDirs("impl", "contrib")
@@ -325,7 +318,6 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1881")
-    @ToBeFixedForConfigurationCache
     void "does not explode if dependent project does not have eclipse plugin"() {
         //given
         createDirs("impl", "contrib")
@@ -356,7 +348,6 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-2030")
-    @ToBeFixedForConfigurationCache
     void "component for war plugin does not contain non-existing source and resource dirs"() {
         //given
         file('xxxSource').createDir()
@@ -387,7 +378,6 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-2030")
-    @ToBeFixedForConfigurationCache
     void "component for ear plugin does not contain non-existing source and resource dirs"() {
         //given
         file('xxxSource').createDir()
@@ -421,7 +411,6 @@ project(':contrib') {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void "component for ear plugin contains the app dir"() {
         //given
         file('coolAppDir').createDir()
@@ -442,7 +431,6 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1974")
-    @ToBeFixedForConfigurationCache
     void "may use web libraries container"() {
         //given
         //adding a little bit more stress with a subproject and some web resources:
@@ -476,7 +464,6 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1974")
-    @ToBeFixedForConfigurationCache
     void "the web container is not present without war+wtp combo"() {
         //given
         file("build.gradle") << """
@@ -493,7 +480,6 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1707")
-    @ToBeFixedForConfigurationCache
     void "classpath entries are protected from conflicting component dependency attributes"() {
         //given
         file("build.gradle") << """
@@ -529,7 +515,6 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1412")
-    @ToBeFixedForConfigurationCache
     void "utility project's library and variable classpath entries contain necessary dependency attribute"() {
         //given
         file('libs/myFoo.jar').touch()
@@ -562,7 +547,6 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1412")
-    @ToBeFixedForConfigurationCache
     void "web project's library and variable classpath entries contain necessary dependency attribute"() {
         //given
         file('libs/myFoo.jar').touch()

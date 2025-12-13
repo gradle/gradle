@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.util.Path;
 
 public class UnknownProjectFinder implements ProjectFinder {
     private final String exceptionMessage;
@@ -27,7 +27,8 @@ public class UnknownProjectFinder implements ProjectFinder {
     }
 
     @Override
-    public ProjectInternal getProject(String path) {
+    public Path resolveIdentityPath(String path) {
         throw new UnknownProjectException(exceptionMessage);
     }
+
 }

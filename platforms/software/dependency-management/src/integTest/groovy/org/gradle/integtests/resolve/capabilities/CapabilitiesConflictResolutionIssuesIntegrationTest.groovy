@@ -23,11 +23,23 @@ import spock.lang.Issue
 
 class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
 
-    def resolve = new ResolveTestFixture(buildFile, "runtimeClasspath")
+    def resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
+        """
+    }
+
+    String getCommon() {
+        """
+            plugins {
+                id("java-library")
+            }
+
+            ${resolve.configureProject("runtimeClasspath")}
+
+            ${mavenTestRepository()}
         """
     }
 
@@ -38,11 +50,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             .publish()
 
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
+            $common
 
             dependencies {
                 implementation("org.hamcrest:hamcrest-core:2.2")
@@ -58,15 +66,14 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         """
 
         when:
-        resolve.prepare()
         fails(":checkDeps")
 
         then:
         failure.assertHasCause("Could not resolve org.hamcrest:hamcrest-core:2.2")
         failure.assertHasCause("Module 'org.hamcrest:hamcrest-core' has been rejected")
-        failure.assertHasErrorOutput("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by [org.hamcrest:hamcrest:2.2(runtime)]")
+        failure.assertHasErrorOutput("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by ['org.hamcrest:hamcrest:2.2' (runtime)]")
         failure.assertHasCause("Module 'org.hamcrest:hamcrest' has been rejected")
-        failure.assertHasErrorOutput("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by [org.hamcrest:hamcrest-core:2.2(runtime)]")
+        failure.assertHasErrorOutput("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by ['org.hamcrest:hamcrest-core:2.2' (runtime)]")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30969")
@@ -76,11 +83,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             .publish()
 
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
+            $common
 
             dependencies {
                 implementation("org.hamcrest:hamcrest-core:2.2")
@@ -93,7 +96,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
 
         when:
-        resolve.prepare()
         succeeds(":checkDeps")
 
         then:
@@ -130,11 +132,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         ).publish()
 
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
+            $common
 
             dependencies {
                 implementation("org:parent:2.2")
@@ -147,7 +145,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
 
         when:
-        resolve.prepare()
         succeeds(":checkDeps")
 
         then:
@@ -191,11 +188,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             .publish()
 
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
+            $common
 
             dependencies {
                 implementation("org:A:1.0")
@@ -211,7 +204,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
 
         when:
-        resolve.prepare()
         succeeds("checkDeps")
 
         then:
@@ -318,7 +310,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             }
         """
         file("p1/build.gradle") << """
-            apply plugin: 'java'
+            $common
 
             dependencies {
                 implementation project(':p2')
@@ -353,7 +345,9 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             }
         """
         file("p2/build.gradle") << """
-            apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
             dependencies {
                 implementation(project(':shared')) {
@@ -375,11 +369,10 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         """
 
         when:
-        resolve.prepare()
         succeeds(":p1:checkDeps", "-s")
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":p1") {
             root(":p1", "test:p1:") {
                 project(":p2", "test:p2:") {
                     configuration 'runtimeElements'
@@ -429,11 +422,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             .publish()
 
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
+            $common
 
             dependencies {
                 implementation 'org.hibernate:hibernate-core:5.4.18.Final'
@@ -447,7 +436,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
 
         when:
-        resolve.prepare()
         succeeds(":checkDeps")
 
         then:
@@ -480,11 +468,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             .publish()
 
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
+            $common
 
             dependencies {
                 implementation("org.bouncycastle:bctls-fips:1.0.9")
@@ -509,7 +493,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
 
         when:
-        resolve.prepare()
         succeeds(":checkDeps")
 
         then:
@@ -545,11 +528,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         mavenRepo.module("woodstox", "wstx-asl", "2.9.3").publish()
 
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
+            $common
 
             dependencies {
                 implementation("org.codehaus.woodstox:wstx-asl:4.0.6")
@@ -572,7 +551,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
 
         when:
-        resolve.prepare()
         succeeds(":checkDeps")
 
         then:
@@ -611,11 +589,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             .publish()
 
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
+            $common
 
             dependencies {
                 implementation("org.hibernate:hibernate-core:5.4.18.Final")
@@ -634,8 +608,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
 
         when:
-        resolve.prepare()
-        succeeds(":checkDeps", "-s")
+        succeeds(":checkDeps")
 
         then:
         resolve.expectGraph {
@@ -667,11 +640,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         mavenRepo.module("ch.qos.logback", "logback-classic", "1.3.11").publish()
 
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
+            $common
 
             dependencies {
                 implementation("ch.qos.logback:logback-classic:1.3.11")
@@ -693,7 +662,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
 
         when:
-        resolve.prepare()
         succeeds(":checkDeps")
 
         then:
@@ -717,11 +685,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             .publish()
 
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
+            $common
 
             dependencies {
                 implementation("org.bouncycastle:bcprov-jdk12:130")
@@ -737,7 +701,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
 
         when:
-        resolve.prepare()
         succeeds(":checkDeps")
 
         then:
@@ -762,11 +725,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         mavenRepo.module("org", "testC", "1.0").publish()
 
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
+            $common
 
             dependencies {
                 ${deps.collect { "implementation('$it')" }.join("\n")}
@@ -781,7 +740,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
 
         when:
-        resolve.prepare()
         succeeds(":checkDeps")
 
         then:
@@ -849,11 +807,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             .publish()
 
         buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            ${mavenTestRepository()}
+            $common
 
             dependencies {
                 constraints {
@@ -876,7 +830,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
 
         when:
-        resolve.prepare()
         succeeds(":checkDeps")
 
         then:
@@ -901,6 +854,54 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                 module("org.apache.httpcomponents:httpclient:4.5.14")
             }
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35625")
+    def "can use manual alignment and capability conflict detection together"() {
+        mavenRepo.module("org.slf4j", "slf4j-simple", "1.7.36").publish()
+
+        mavenRepo.module("org.slf4j", "slf4j-simple", "1.7.27")
+            .dependsOn(mavenRepo.module("org.slf4j", "slf4j-api", "1.7.27").publish())
+            .publish()
+
+        mavenRepo.module("org.apache.logging.log4j", "log4j-slf4j2-impl", "2.20.0")
+            .dependsOn(mavenRepo.module("org.slf4j", "slf4j-api", "1.7.36").publish())
+            .publish()
+
+        given:
+        buildFile << """
+            ${common}
+
+            dependencies {
+                implementation("org.slf4j:slf4j-simple:1.7.27")
+                implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.20.0")
+            }
+
+            def modules = ["org.slf4j:slf4j-api", "org.slf4j:slf4j-simple"]
+            modules.each {
+                dependencies.components.withModule(it) {
+                    def version = id.version
+                    allVariants {
+                        withDependencyConstraints {
+                            modules.each {
+                                add(it + ":" + version)
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        capability("org.gradlex", "slf4j-impl") {
+            forModule("org.slf4j:slf4j-simple")
+            forModule("org.apache.logging.log4j:log4j-slf4j2-impl")
+        }
+
+        when:
+        fails(':checkDeps')
+
+        then:
+        failure.assertHasCause("Component is the target of multiple version constraints with conflicting requirements")
     }
 
     // region test fixtures

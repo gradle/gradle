@@ -17,5 +17,7 @@
 /**
  * This package contains internal types used for handling resolution failures.
  */
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.internal.component.resolution.failure;
+
+import org.jspecify.annotations.NullMarked;

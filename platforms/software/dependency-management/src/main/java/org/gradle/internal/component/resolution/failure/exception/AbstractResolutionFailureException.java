@@ -31,8 +31,8 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.exceptions.StyledException;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static org.gradle.api.problems.Severity.ERROR;
@@ -51,7 +51,7 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
  */
 @Contextual
 public abstract class AbstractResolutionFailureException extends StyledException implements ResolutionProvider, ReportableAsProblem {
-    private static final Logger LOGGER = Logging.getLogger(AbstractResolutionFailureException.class);
+    protected static final Logger LOGGER = Logging.getLogger(AbstractResolutionFailureException.class);
 
     private final ImmutableList<String> resolutions;
     protected final ResolutionFailure failure;

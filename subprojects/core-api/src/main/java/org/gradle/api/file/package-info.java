@@ -17,5 +17,5 @@
 /**
  * Classes for working with files.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.api.file;

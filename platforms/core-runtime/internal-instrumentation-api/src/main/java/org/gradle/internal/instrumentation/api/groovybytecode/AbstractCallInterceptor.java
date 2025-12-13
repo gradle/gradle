@@ -19,8 +19,8 @@ package org.gradle.internal.instrumentation.api.groovybytecode;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.GradleException;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -57,6 +57,11 @@ public abstract class AbstractCallInterceptor implements CallInterceptor {
     @Nullable
     @SuppressWarnings("unused")
     private Object interceptMethodHandle(MethodHandle original, int flags, String consumer, Object[] args) throws Throwable {
+        boolean isSafeNavigation = (flags & IndyInterface.SAFE_NAVIGATION) != 0;
+        if (isSafeNavigation && InvocationUtils.unwrap(args[0]) == null) {
+            // Skip interception for safe navigation calls on null receiver
+            return original.invokeExact(args);
+        }
         boolean isSpread = (flags & IndyInterface.SPREAD_CALL) != 0;
         return intercept(new MethodHandleInvocation(original, args, isSpread), consumer);
     }

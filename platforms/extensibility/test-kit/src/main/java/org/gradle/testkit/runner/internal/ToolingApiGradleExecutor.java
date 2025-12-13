@@ -16,14 +16,14 @@
 
 package org.gradle.testkit.runner.internal;
 
+import com.google.common.io.FileBackedOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.testkit.runner.UnsupportedFeatureException;
+import org.gradle.testkit.runner.internal.feature.BuildResultOutputFeatureCheck;
 import org.gradle.testkit.runner.internal.feature.TestKitFeature;
 import org.gradle.testkit.runner.internal.io.NoCloseOutputStream;
 import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
@@ -45,12 +45,14 @@ import org.gradle.tooling.events.task.TaskSuccessResult;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.tooling.model.build.BuildEnvironment;
-import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.CollectionUtils;
 import org.gradle.wrapper.GradleUserHomeLookup;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -72,18 +74,23 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
 
     private static final String CLEANUP_THREAD_NAME = "gradle-runner-cleanup";
 
-    private final static AtomicBoolean SHUTDOWN_REGISTERED = new AtomicBoolean();
+    /**
+     * The number of bytes before the output of an execution output should switch to buffering to a file
+     *
+     * @see FileBackedOutputStream
+     */
+    private static final int OUTPUT_BUFFER_FILE_THRESHOLD_BYTES = 1024 * 1024;
 
+    private static final AtomicBoolean SHUTDOWN_REGISTERED = new AtomicBoolean();
+
+    @SuppressWarnings("CatchAndPrintStackTrace") // We don't have logging infrastructure here
     private static void maybeRegisterCleanup() {
         if (SHUTDOWN_REGISTERED.compareAndSet(false, true)) {
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        DefaultGradleConnector.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    DefaultGradleConnector.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }, CLEANUP_THREAD_NAME));
         }
@@ -91,8 +98,8 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
 
     @Override
     public GradleExecutionResult run(GradleExecutionParameters parameters) {
-        final StreamByteBuffer outputBuffer = new StreamByteBuffer();
-        final OutputStream syncOutput = new SynchronizedOutputStream(outputBuffer.getOutputStream());
+        final FileBackedOutputStream outputBuffer = new FileBackedOutputStream(OUTPUT_BUFFER_FILE_THRESHOLD_BYTES);
+        final OutputStream syncOutput = new SynchronizedOutputStream(outputBuffer);
 
         final List<BuildTask> tasks = new ArrayList<BuildTask>();
 
@@ -115,7 +122,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
                 throw new UnsupportedFeatureException(String.format("The version of Gradle you are using (%s) is not supported by TestKit. TestKit supports all Gradle versions %s and later.",
                     targetGradleVersion.getVersion(), MINIMUM_SUPPORTED_GRADLE_VERSION.getVersion()));
             } else {
-                checkDeprecationWarning(targetGradleVersion);
+                warnIfUnsupportedVersion(targetGradleVersion);
             }
 
 
@@ -138,7 +145,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
                 if (targetGradleVersion.compareTo(TestKitFeature.PLUGIN_CLASSPATH_INJECTION.getSince()) < 0) {
                     throw new UnsupportedFeatureException("support plugin classpath injection", targetGradleVersion, TestKitFeature.PLUGIN_CLASSPATH_INJECTION.getSince());
                 } else {
-                    checkDeprecationWarning(targetGradleVersion);
+                    warnIfUnsupportedVersion(targetGradleVersion);
                 }
                 launcher.withInjectedClassPath(parameters.getInjectedClassPath());
             }
@@ -147,7 +154,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         } catch (UnsupportedVersionException e) {
             throw new InvalidRunnerConfigurationException("The build could not be executed due to a feature not being supported by the target Gradle version", e);
         } catch (BuildException t) {
-            return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.readAsString(), tasks, t);
+            return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.asByteSource(), tasks, t);
         } catch (GradleConnectionException t) {
             StringBuilder message = new StringBuilder("An error occurred executing build with ");
             if (parameters.getBuildArgs().isEmpty()) {
@@ -160,7 +167,13 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
 
             message.append(" in directory '").append(parameters.getProjectDir().getAbsolutePath()).append("'");
 
-            String capturedOutput = outputBuffer.readAsString();
+            String capturedOutput;
+            try {
+                capturedOutput = outputBuffer.asByteSource().asCharSource(Charset.defaultCharset())
+                    .read();
+            } catch (IOException e) {
+                capturedOutput = "<Error fetching output: " + e.getMessage() + ">";
+            }
             if (!capturedOutput.isEmpty()) {
                 message.append(". Output before error:")
                     .append(SystemProperties.getInstance().getLineSeparator())
@@ -174,17 +187,12 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             }
         }
 
-        return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.readAsString(), tasks);
+        return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.asByteSource(), tasks);
     }
 
-    private static void checkDeprecationWarning(GradleVersion targetGradleVersion) {
-        if (targetGradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_VERSION) < 0) {
-            DeprecationLogger.deprecate(String.format("The version of Gradle you are using (%s) is deprecated with TestKit. TestKit will only support the last 5 major versions in future.",
-                    targetGradleVersion.getVersion()))
-                .willBecomeAnErrorInGradle9()
-                .withUserManual("third_party_integration", "sec:embedding_compatibility")
-                .nagUser();
-        }
+    private static void warnIfUnsupportedVersion(GradleVersion targetGradleVersion) {
+        BuildResultOutputFeatureCheck.warnIfUnsupportedVersion(targetGradleVersion,
+            version -> String.format("The version of Gradle you are using (%s) is deprecated with TestKit.", version));
     }
 
     private GradleVersion determineTargetGradleVersion(ProjectConnection connection) {
@@ -224,7 +232,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         public void statusChanged(ProgressEvent event) {
             if (event instanceof TaskStartEvent) {
                 TaskStartEvent taskStartEvent = (TaskStartEvent) event;
-                if (!accept(taskStartEvent)) {
+                if (taskIsFromBuildSrc(taskStartEvent)) {
                     return;
                 }
                 order.put(taskStartEvent.getDescriptor().getTaskPath(), tasks.size());
@@ -232,7 +240,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             }
             if (event instanceof TaskFinishEvent) {
                 TaskFinishEvent taskFinishEvent = (TaskFinishEvent) event;
-                if (!accept(taskFinishEvent)) {
+                if (taskIsFromBuildSrc(taskFinishEvent)) {
                     return;
                 }
                 String taskPath = taskFinishEvent.getDescriptor().getTaskPath();
@@ -245,9 +253,8 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             }
         }
 
-        private boolean accept(TaskProgressEvent event) {
-            // Exclude tasks from `buildSrc`
-            return !event.getDescriptor().getTaskPath().startsWith(":buildSrc");
+        private static boolean taskIsFromBuildSrc(TaskProgressEvent event) {
+            return event.getDescriptor().getTaskPath().startsWith(":buildSrc");
         }
 
         private BuildTask determineBuildTask(TaskOperationResult result, String taskPath) {
@@ -267,7 +274,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         }
 
         private boolean isNoSource(TaskOperationResult result) {
-            return isSkipped(result) && ((TaskSkippedResult)result).getSkipMessage().equals("NO-SOURCE");
+            return isSkipped(result) && ((TaskSkippedResult) result).getSkipMessage().equals("NO-SOURCE");
         }
 
         private BuildTask createBuildTask(String taskPath, TaskOutcome outcome) {

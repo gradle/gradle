@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.specs.Spec;
@@ -30,6 +28,7 @@ import org.gradle.api.specs.Spec;
  * In case of failures, both fatal and partial, exceptions are attached to the {@link VisitedGraphResults}.
  */
 public interface ResolverResults {
+
     /**
      * Returns the old model, which has been replaced by {@link VisitedGraphResults} and {@link VisitedArtifactSet}.
      *
@@ -64,29 +63,12 @@ public interface ResolverResults {
     interface LegacyResolverResults {
 
         /**
-         * Returns the artifacts visited during graph resolution, filterable by the legacy selection mechanism.
-         */
-        LegacyVisitedArtifactSet getLegacyVisitedArtifactSet();
-
-        /**
          * Get a legacy {@link ResolvedConfiguration}.
          *
          * @throws IllegalStateException If only build dependencies have been resolved.
          */
         ResolvedConfiguration getResolvedConfiguration();
 
-        /**
-         * Similar to {@link VisitedArtifactSet}, except artifacts can be filtered by
-         * reachability from first level dependencies.
-         */
-        interface LegacyVisitedArtifactSet {
-            /**
-             * Creates a set that selects the artifacts from this set that match the given criteria.
-             * Implementations are lazy, so that the selection happens only when the contents are queried.
-             *
-             * @param dependencySpec Select only those artifacts reachable from first level dependencies that match the given spec.
-             */
-            SelectedArtifactSet select(Spec<? super Dependency> dependencySpec);
-        }
     }
+
 }

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import gradlebuild.commons.configureJavaToolChain
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -26,13 +25,13 @@ plugins {
     id("gradlebuild.private-javadoc")
 }
 
-java.configureJavaToolChain()
-
 dependencies {
     api(platform("gradlebuild:build-platform"))
     implementation("gradlebuild:gradle-plugin")
 
     testImplementation("org.junit.vintage:junit-vintage-engine")
+
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<KotlinCompile>().configureEach {

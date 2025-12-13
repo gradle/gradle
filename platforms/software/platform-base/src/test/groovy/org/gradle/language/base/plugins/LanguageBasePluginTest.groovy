@@ -16,6 +16,8 @@
 
 package org.gradle.language.base.plugins
 
+import org.gradle.api.plugins.internal.ComponentReportingTasksPlugin
+import org.gradle.api.plugins.internal.ModelReportingTasksPlugin
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.platform.base.PlatformBaseSpecification
 import org.gradle.platform.base.plugins.ComponentBasePlugin
@@ -28,9 +30,11 @@ class LanguageBasePluginTest extends PlatformBaseSpecification {
         }
 
         then:
-        project.pluginManager.pluginContainer.size() == 3
+        project.pluginManager.pluginContainer.size() == 5
         project.pluginManager.pluginContainer.findPlugin(ComponentBasePlugin) != null
         project.pluginManager.pluginContainer.findPlugin(LifecycleBasePlugin) != null
+        project.pluginManager.pluginContainer.findPlugin(ComponentReportingTasksPlugin) != null
+        project.pluginManager.pluginContainer.findPlugin(ModelReportingTasksPlugin) != null
     }
 
     def "registers LanguageSourceSet"() {

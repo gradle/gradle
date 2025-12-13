@@ -17,6 +17,13 @@ import gradlebuild.jmh.tasks.JmhHTMLReport
 
 plugins {
     id("me.champeau.jmh")
+    id("gradlebuild.jvm-compile")
+}
+
+jvmCompile {
+    addCompilationFrom(sourceSets.jmh) {
+        associate(tasks.jmhCompileGeneratedClasses)
+    }
 }
 
 configurations {

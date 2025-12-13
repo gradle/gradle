@@ -18,6 +18,7 @@ package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
@@ -80,7 +81,10 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         result.assertHasErrorOutput("package java.util.logging is not visible")
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(value = [
+        UnitTestPreconditions.Symlinks,
+        IntegTestPreconditions.NotEmbeddedExecutor,
+    ], reason = "requires a daemon")
     @Issue("https://github.com/gradle/gradle/issues/9202")
     def "source mapping file works with symlinks"() {
         // Daemon cleans up symlinks in VFS

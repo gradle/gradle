@@ -22,10 +22,10 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static org.gradle.internal.build.NestedRootBuildRunner.createStartParameterForNewBuild;
 import static org.gradle.internal.build.NestedRootBuildRunner.runNestedRootBuild;
@@ -94,64 +94,6 @@ public abstract class GradleBuild extends ConventionTask {
     }
 
     /**
-     * Returns the build file that should be used for this build. Defaults to {@value
-     * org.gradle.api.Project#DEFAULT_BUILD_FILE} in the project directory.
-     *
-     * @return The build file. May be null.
-     * @deprecated Use {@link #getDir()} instead to get the root of the nested build.
-     * This method will be removed in Gradle 9.0.
-     */
-    @Nullable
-    @Optional
-    @PathSensitive(PathSensitivity.NAME_ONLY)
-    @InputFile
-    @Deprecated
-    public File getBuildFile() {
-        logBuildFileDeprecation();
-        return DeprecationLogger.whileDisabled(() ->
-            getStartParameter().getBuildFile()
-        );
-    }
-
-    /**
-     * Sets the build file that should be used for this build.
-     *
-     * @param file The build file. May be null to use the default build file for the build.
-     * @since 4.0
-     * @deprecated Use {@link #setDir(File)} instead to set the root of the nested build.
-     * This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    public void setBuildFile(@Nullable File file) {
-        setBuildFile((Object) file);
-    }
-
-    /**
-     * Sets the build file that should be used for this build.
-     *
-     * @param file The build file. May be null to use the default build file for the build.
-     * @deprecated Use {@link #setDir(Object)} instead to set the root of the nested build.
-     * This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    public void setBuildFile(@Nullable Object file) {
-        logBuildFileDeprecation();
-        DeprecationLogger.whileDisabled(() ->
-            getStartParameter().setBuildFile(getProject().file(file))
-        );
-    }
-
-    private void logBuildFileDeprecation() {
-        DeprecationLogger.deprecateProperty(GradleBuild.class, "buildFile")
-            .withContext("Setting custom build file to select the root of the nested build has been deprecated.")
-            .withAdvice("Please use 'dir' to specify the root of the nested build instead.")
-            .replaceWith("dir")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "configuring_custom_build_layout")
-            .nagUser();
-    }
-
-    /**
      * Returns the tasks that should be executed for this build.
      *
      * @return The sequence. May be empty. Never returns null.
@@ -208,6 +150,24 @@ public abstract class GradleBuild extends ConventionTask {
     @TaskAction
     void build() {
         // TODO: Allow us to inject plugins into nested builds too.
-        runNestedRootBuild(buildName, (StartParameterInternal) getStartParameter(), getServices());
+        StartParameterInternal startParameter = (StartParameterInternal) getStartParameter();
+        nagForNonStringProjectProperties(startParameter.getProjectPropertiesUntracked());
+        runNestedRootBuild(buildName, startParameter, getServices());
+    }
+
+    @SuppressWarnings("ConstantValue")
+    private static void nagForNonStringProjectProperties(Map<String, String> projectProperties) {
+        for (Map.Entry<String, String> entry : projectProperties.entrySet()) {
+            String propertyName = entry.getKey();
+            Object propertyValue = entry.getValue();
+            if (!(propertyValue instanceof String)) {
+                // TODO: Remove non-String project properties support in Gradle 10 - https://github.com/gradle/gradle/issues/34454
+                DeprecationLogger.deprecateBehaviour(String.format("Using non-String project properties: property '%s' has value of type %s.", propertyName, propertyValue.getClass().getName()))
+                    .willBecomeAnErrorInGradle10()
+                    .withUpgradeGuideSection(9, "deprecated-gradle-build-non-string-properties")
+                    .nagUser();
+                return;
+            }
+        }
     }
 }

@@ -16,17 +16,17 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Stack;
 
-@NonNullApi
+@NullMarked
 public class DefaultInstrumentedGroovyCallsTracker implements InstrumentedGroovyCallsTracker {
 
     private final Stack<EntryPointCallSiteImpl> callSiteStack = new Stack<>();
 
-    @NonNullApi
+    @NullMarked
     private static class EntryPointCallSiteImpl implements EntryPointCallSite {
         private final String callableName;
         private final String callerClassName;

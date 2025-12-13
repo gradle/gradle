@@ -16,23 +16,35 @@
 
 package org.gradle.api.internal.project.taskfactory
 
+import org.gradle.api.tasks.Internal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+
+import javax.inject.Inject
 
 class TaskFactoryIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-3317")
     def "can generate a task when the inject annotation is not present on all of the methods in the hierarchy"() {
         given:
         buildFile """
-            //getInputs() and getOutputs() exists on both org.gradle.api.Task and org.gradle.api.internal.AbstractTask
-            //Only AbstractTask has the @Inject annotation
+            public interface InternalGetterInterface {
+                @${Internal.class.getName()}
+                ExecOperations getExecOperations()
+            }
+            public interface InjectGetterInterface extends InternalGetterInterface {
+                @${Inject.class.getName()}
+                ExecOperations getExecOperations()
+            }
+            public abstract class MyTask extends DefaultTask implements InjectGetterInterface {
+                @TaskAction
+                void doSomething() {
+                    println(getExecOperations().toString())
+                }
+            }
 
-            public interface BinaryFileProviderTask extends Task {}
-            public class AndroidJarTask extends org.gradle.jvm.tasks.Jar implements BinaryFileProviderTask {}
-
-            task droidTask(type: AndroidJarTask) {}
+            task myTask(type: MyTask) {}
             """
         expect:
-        succeeds "help"
+        succeeds "myTask"
     }
 }

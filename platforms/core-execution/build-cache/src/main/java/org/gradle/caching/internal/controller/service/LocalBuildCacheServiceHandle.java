@@ -19,8 +19,8 @@ package org.gradle.caching.internal.controller.service;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.util.Optional;

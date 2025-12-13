@@ -18,8 +18,7 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
 import org.gradle.api.attributes.AttributeContainer;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Describes a metadata about a dependency - direct dependency or dependency constraint - declared in a resolved component's metadata.

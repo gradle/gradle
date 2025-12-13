@@ -16,7 +16,7 @@
 
 package org.gradle.internal.serialization;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A value that gets discarded during serialization.
@@ -77,7 +77,7 @@ public abstract class Transient<T> implements java.io.Serializable {
         }
 
         @Override
-        public T get() {
+        public @Nullable T get() {
             return value;
         }
 

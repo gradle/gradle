@@ -17,18 +17,18 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Action;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.artifacts.transform.TransformNodeDependency;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.function.Supplier;
 
 import static java.util.Arrays.asList;
 import static org.gradle.api.internal.tasks.WorkDependencyResolver.TASK_AS_TASK;
 
-@NonNullApi
+@NullMarked
 public abstract class AbstractTaskDependency implements TaskDependencyContainerInternal {
 
     @Nullable

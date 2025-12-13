@@ -35,8 +35,6 @@ class XCTestPluginOnUnsupportedPlatformIntegrationTest extends AbstractIntegrati
         when:
         fails "check"
         then:
-        failure.assertHasCause("""No tool chain is available to build Swift for host operating system '${osName}' architecture '${archName}':
-  - Tool chain 'swiftc' (Swift Compiler):
-      - Could not find Swift compiler 'swiftc' in system path.""")
+        failure.assertHasCause("""No tool chain is available to build Swift for host operating system '${osName}' architecture '${archName}':""")
     }
 }

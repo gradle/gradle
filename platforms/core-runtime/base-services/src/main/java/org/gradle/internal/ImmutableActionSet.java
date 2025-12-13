@@ -44,6 +44,7 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
     /**
      * Creates an action set.
      */
+    @SuppressWarnings("unchecked")
     public static <T> ImmutableActionSet<T> of(Action<? super T>... actions) {
         if (actions.length == 0) {
             return empty();

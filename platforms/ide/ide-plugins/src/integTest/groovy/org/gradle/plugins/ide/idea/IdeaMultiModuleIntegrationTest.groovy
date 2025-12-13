@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
 import org.junit.Test
@@ -26,7 +25,6 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
-    @ToBeFixedForConfigurationCache
     void buildsCorrectModuleDependencies() {
         def settingsFile = file("settings.gradle")
         createDirs("api", "shared", "shared/api", "shared/model", "util")
@@ -82,7 +80,6 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
 
 
     @Test
-    @ToBeFixedForConfigurationCache
     void buildsCorrectModuleDependenciesForDependencyOnRoot() {
         createDirs("api")
         file("settings.gradle") << """
@@ -116,7 +113,6 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void respectsApiOfJavaLibraries() {
         def settingsFile = file("settings.gradle")
         createDirs("api", "impl", "library", "application")
@@ -169,7 +165,6 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void buildsCorrectModuleDependenciesWhenRootProjectDoesNotApplyIdePlugin() {
         createDirs("api", "util", "other")
         file("settings.gradle") << """
@@ -221,7 +216,6 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void dealsWithDuplicatedModuleNames() {
       /*
       This is the multi-module project structure the integration test works with:
@@ -323,7 +317,6 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void allowsFullyReconfiguredModuleNames() {
         //use case from the mailing list
         def settingsFile = file("settings.gradle")
@@ -366,7 +359,6 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void handlesModuleDependencyCycles() {
         def settingsFile = file("settings.gradle")
         createDirs("one", "two", "three")
@@ -424,7 +416,6 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void classpathContainsConflictResolvedDependencies() {
         def someLib1Jar = mavenRepo.module('someGroup', 'someLib', '1.0').publish().artifactFile
         def someLib2Jar= mavenRepo.module('someGroup', 'someLib', '2.0').publish().artifactFile
@@ -491,7 +482,6 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void cleansCorrectlyWhenModuleNamesAreChangedOrDeduplicated() {
         def settingsFile = file("settings.gradle")
         createDirs("api", "shared", "shared/api", "contrib")
@@ -527,7 +517,6 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void handlesInternalDependenciesToNonIdeaProjects() {
         def settingsFile = file("settings.gradle")
         createDirs("api", "nonIdeaProject")
@@ -559,7 +548,6 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void doesNotCreateDuplicateEntriesInIpr() {
         def settingsFile = file("settings.gradle")
         createDirs("api", "iml")
@@ -585,7 +573,6 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     void buildsCorrectModuleDependenciesWithScopes() {
         def settingsFile = file("settings.gradle")
         createDirs("api", "impl", "app")

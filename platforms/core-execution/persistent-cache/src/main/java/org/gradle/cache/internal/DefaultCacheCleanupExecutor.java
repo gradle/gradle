@@ -19,6 +19,7 @@ package org.gradle.cache.internal;
 import org.apache.commons.io.FileUtils;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CleanableStore;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
@@ -26,7 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
@@ -89,7 +89,7 @@ public class DefaultCacheCleanupExecutor implements CacheCleanupExecutor {
             try {
                 FileUtils.touch(gcFile);
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
             return Optional.empty();
         }

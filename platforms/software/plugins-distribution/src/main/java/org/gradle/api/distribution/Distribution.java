@@ -75,7 +75,7 @@ public interface Distribution extends Named {
      *     }
      * }
      * </pre>
-     * The DSL inside the {@code contents\{} } block is the same DSL used for Copy tasks.
+     * The DSL inside the {@code contents{} } block is the same DSL used for Copy tasks.
      */
     CopySpec contents(Action<? super CopySpec> action);
 }

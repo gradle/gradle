@@ -16,7 +16,8 @@
 
 package org.gradle.testing.junit.platform
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.JavaVersion
+import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_ARCHUNIT_VERSION
@@ -58,10 +59,13 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('org.gradle.NestedTest$Inner')
-            .testClass('org.gradle.NestedTest$Inner').assertTestCount(1, 0, 0)
-            .assertTestPassed('innerTest()')
+        def results = resultsFor(testDirectory)
+        results.testPath("org.gradle.NestedTest").onlyRoot()
+            .assertChildCount(1, 0)
+        results.testPathPreNormalized(':org.gradle.NestedTest:org.gradle.NestedTest$Inner').onlyRoot()
+            .assertChildCount(1, 0)
+        results.testPathPreNormalized(':org.gradle.NestedTest:org.gradle.NestedTest$Inner:innerTest()').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def 'can use nested class as test pattern'() {
@@ -96,11 +100,14 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         succeeds('test', '--tests', 'EnclosingClass$NestedClass.nestedTest')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('EnclosingClass$NestedClass')
-            .testClass('EnclosingClass$NestedClass')
-            .assertTestCount(1, 0, 0)
-            .assertTestPassed('nestedTest')
+        def results = resultsFor(testDirectory)
+        results.testPath("EnclosingClass").onlyRoot()
+            .assertChildCount(1, 0)
+        results.testPathPreNormalized(':EnclosingClass:EnclosingClass$NestedClass').onlyRoot()
+            .assertChildCount(1, 0)
+            .assertChildrenExecuted("nestedTest()")
+        results.testPathPreNormalized(':EnclosingClass:EnclosingClass$NestedClass:nestedTest()').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def 'can filter tests from a superclass'() {
@@ -128,11 +135,11 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         succeeds('test', '--tests', 'SubClass.superTest')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('SubClass')
-            .testClass('SubClass')
-            .assertTestCount(1, 0, 0)
-            .assertTestPassed('superTest')
+        def results = resultsFor(testDirectory)
+        results.testPath("SubClass").onlyRoot()
+            .assertChildCount(1, 0)
+        results.testPathPreNormalized(':SubClass:superTest()').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     /**
@@ -170,14 +177,15 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         '''
 
         when:
+        maybeExpectArchUnitUnsafeDeprecationWarning()
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('DeclaresTestsAsFieldsNotMethodsTest')
-            .testClass('DeclaresTestsAsFieldsNotMethodsTest')
-            .assertTestCount(1, 0, 0)
-            .assertTestPassed('example')
+        def results = resultsFor(testDirectory)
+        results.testPath('DeclaresTestsAsFieldsNotMethodsTest').onlyRoot()
+            .assertChildCount(1, 0)
+        results.testPathPreNormalized(':DeclaresTestsAsFieldsNotMethodsTest:example').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     /**
@@ -215,18 +223,19 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         '''
 
         when:
+        maybeExpectArchUnitUnsafeDeprecationWarning()
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('DeclaresTestsAsFieldsNotMethodsTest')
-            .testClass('DeclaresTestsAsFieldsNotMethodsTest')
-            .assertTestCount(1, 0, 0)
-            .assertTestPassed('example')
+        def results = resultsFor(testDirectory)
+        results.testPath('DeclaresTestsAsFieldsNotMethodsTest').onlyRoot()
+            .assertChildCount(1, 0)
+        results.testPathPreNormalized(':DeclaresTestsAsFieldsNotMethodsTest:example').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     /**
-     * This test demonstrates the workaround for the inabilty to filter fields - we can
+     * This test demonstrates the workaround for the inability to filter fields - we can
      * filter based on containing class name.
      */
     @Issue("https://github.com/gradle/gradle/issues/19352")
@@ -261,5 +270,14 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         expect:
         fails('test')
         errorOutput.contains("No tests found for given includes")
+    }
+
+    /**
+     * ArchUnit uses an Guava version older than 33.4.5, which emits this warning when being used with Java 24+.
+     */
+    private void maybeExpectArchUnitUnsafeDeprecationWarning() {
+        if (JavaVersion.current() >= JavaVersion.VERSION_24) {
+            executer.expectExternalDeprecatedMessage("WARNING: A terminally deprecated method in sun.misc.Unsafe has been called")
+        }
     }
 }

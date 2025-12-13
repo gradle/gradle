@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ivy.IvyExtraInfo;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 public class DefaultIvyModuleDescriptor implements IvyModuleDescriptor {

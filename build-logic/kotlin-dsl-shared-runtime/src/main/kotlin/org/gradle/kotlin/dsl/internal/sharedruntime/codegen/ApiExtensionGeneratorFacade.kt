@@ -37,7 +37,6 @@ class ApiExtensionGeneratorFacade {
             parameters["classPath"] as List<File>,
             parameters["classPathDependencies"] as List<File>,
             parameters["apiSpec"] as java.util.function.Function<String, Boolean>,
-            parameters["parameterNamesSupplier"] as java.util.function.Function<String, List<String>?>,
             parameters["functionSinceSupplier"] as java.util.function.Function<String, String?>,
         )
     }
@@ -60,7 +59,6 @@ fun interface ApiSpec {
  * @param classPath the api classpath elements
  * @param classPathDependencies the api classpath dependencies
  * @param apiSpec the api include/exclude spec
- * @param parameterNamesSupplier the api function parameter names
  * @param sinceSupplier the api functions `@since` values for binary signatures
  *
  * @return the list of generated source files
@@ -76,7 +74,6 @@ fun generateKotlinDslApiExtensionsSourceTo(
     classPath: List<File>,
     classPathDependencies: List<File>,
     apiSpec: java.util.function.Function<String, Boolean>,
-    parameterNamesSupplier: java.util.function.Function<String, List<String>?>,
     sinceSupplier: java.util.function.Function<String, String?>,
 ): List<File> =
 
@@ -86,7 +83,7 @@ fun generateKotlinDslApiExtensionsSourceTo(
         incubatingAnnotationTypeDescriptor,
         classPath,
         classPathDependencies
-    ) { parameterNamesSupplier.apply(it) }.use { api ->
+    ).use { api ->
 
         val extensionsPerTarget =
             kotlinDslApiExtensionsDeclarationsFor(
@@ -278,7 +275,7 @@ fun List<MappedApiFunctionParameter>.groovyNamedArgumentsToVarargs() =
                         "Pair",
                         typeArguments = listOf(
                             ApiTypeUsage("String"),
-                            ApiTypeUsage("Any", isNullable = true)
+                            ApiTypeUsage("Any", isNullable = false)
                         )
                     )
                 )

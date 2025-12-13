@@ -18,6 +18,7 @@ package org.gradle.internal.serialize.beans.services
 
 import org.gradle.api.internal.GeneratedSubclasses.unpack
 import org.gradle.internal.configuration.problems.PropertyKind
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.serialize.graph.BeanStateReader
@@ -76,7 +77,9 @@ class BeanPropertyReader(
     private
     fun attachModelPropertiesOf(bean: Any) {
         if (bean is ModelObject) {
-            bean.attachModelProperties()
+            DeprecationLogger.whileDisabled {
+                bean.attachModelProperties()
+            }
         }
     }
 

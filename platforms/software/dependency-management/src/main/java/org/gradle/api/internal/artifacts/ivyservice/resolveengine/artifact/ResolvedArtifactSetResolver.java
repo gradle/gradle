@@ -76,13 +76,7 @@ public class ResolvedArtifactSetResolver {
                 return BuildOperationDescriptor
                     .displayName(displayName)
                     .progressDisplayName(displayName)
-                    .details(new ResolveArtifactsBuildOperationType.Details() {
-                        @Override
-                        @Deprecated
-                        public String getConfigurationPath() {
-                            return "";
-                        }
-                    });
+                    .details(new ResolveArtifactsBuildOperationType.Details() {});
             }
         });
     }

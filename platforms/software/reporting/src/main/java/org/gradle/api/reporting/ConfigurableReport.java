@@ -16,8 +16,6 @@
 
 package org.gradle.api.reporting;
 
-import java.io.File;
-
 /**
  * A file based report to be created with a configurable destination.
  *
@@ -25,15 +23,5 @@ import java.io.File;
  * should implement {@link Report} directly instead of using this interface.
  */
 public interface ConfigurableReport extends Report {
-    /**
-     * Sets the destination for the report.
-     *
-     * @param file The destination for the report.
-     * @see #getOutputLocation()
-     * @since 4.0
-     *
-     * @deprecated Use {@link #getOutputLocation()}.set() instead. This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    void setDestination(File file);
+    /* intentionally empty */
 }

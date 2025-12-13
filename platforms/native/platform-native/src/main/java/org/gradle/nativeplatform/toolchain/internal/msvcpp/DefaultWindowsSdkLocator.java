@@ -22,8 +22,8 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;

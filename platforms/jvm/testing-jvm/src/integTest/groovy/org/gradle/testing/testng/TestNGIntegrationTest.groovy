@@ -16,7 +16,9 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.MultiJvmTestCompatibility
@@ -27,8 +29,14 @@ import spock.lang.Issue
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.not
 
-@TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
-class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
+@TargetCoverage({ TestNGCoverage.SUPPORTS_ICLASS_LISTENER })
+class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements VerifiesGenericTestReportResults {
+    @Override
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.TEST_NG
+    }
+
+    private testResults = resultsFor()
 
     def setup() {
         executer.noExtraLogging()
@@ -83,7 +91,7 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         succeeds 'test'
 
         then:
-        new DefaultTestExecutionResult(testDirectory).testClass('org.gradle.OkTest').assertTestPassed('ok')
+        testResults.testPath(':org.gradle.OkTest:ok').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def "can listen for test results"() {
@@ -184,9 +192,8 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         succeeds 'test'
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.groups.SomeTest')
-        result.testClass('org.gradle.groups.SomeTest').assertTestsExecuted("databaseTest")
+        testResults.assertAtLeastTestPathsExecuted(':org.gradle.groups.SomeTest:databaseTest')
+        testResults.testPath(":org.gradle.groups.SomeTest:databaseTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     def "does not emit deprecation warning about no tests executed when groups are specified"() {
@@ -214,8 +221,7 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         succeeds 'test'
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertNoTestClassesExecuted()
+        testResults.assertTestPathsNotExecuted("org.gradle.groups.SomeTest")
 
         where:
         configureIncludeOrExcludeGroups << ["includeGroups 'notDatabase'", "excludeGroups 'database'"]
@@ -233,6 +239,17 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
 
                 @Test
                 public void printMethod(){ System.out.println("Testing" + name); }
+
+                // DO NOT DELETE
+                // Removing this may cause the test to work on some OSes and fail on others.
+                // TestNG orders tests by the toString() of the instance.
+                // If this is not overridden, then it will depend on the identity hashcode,
+                // which IS STABLE across our test workers, but different on different OSes.
+                // See https://bugs.openjdk.org/browse/JDK-8329968 for why the hashcode is stable.
+                @Override
+                public String toString() {
+                    return "FactoryTest[name=" + name + "]";
+                }
             }
         '''.stripIndent()
         file('src/test/java/org/gradle/factory/TestNGFactory.java') << '''
@@ -251,12 +268,15 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         succeeds 'test'
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.factory.FactoryTest')
-        result.testClass('org.gradle.factory.FactoryTest').assertTestCount(2, 0, 0)
-        result.testClass('org.gradle.factory.FactoryTest').assertStdout(containsString('TestingFirst'))
-        result.testClass('org.gradle.factory.FactoryTest').assertStdout(containsString('TestingSecond'))
-        result.testClass('org.gradle.factory.FactoryTest').assertStdout(not(containsString('Default test name')))
+        testResults.assertTestPathsExecuted(
+            ':org.gradle.factory.FactoryTest:printMethod on FactoryTest[name=First]',
+            ':org.gradle.factory.FactoryTest:printMethod on FactoryTest[name=Second]',
+        )
+        testResults.testPath(':org.gradle.factory.FactoryTest:printMethod on FactoryTest[name=First]').onlyRoot()
+            .assertStdout(containsString('TestingFirst'))
+            .assertStdout(not(containsString('Default test name')))
+        testResults.testPath(':org.gradle.factory.FactoryTest:printMethod on FactoryTest[name=Second]').onlyRoot()
+            .assertStdout(containsString('TestingSecond'))
     }
 
     @Issue("GRADLE-3315")
@@ -302,11 +322,12 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         fails('test', '-x', 'compileTestJava')
 
         then:
-        failureCauseContains("There were failing tests")
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.testClassStartsWith('Gradle Test Executor')
-            .assertTestCount(1, 1, 0)
-            .assertTestFailed("failed to execute tests", containsString("Could not execute test class 'com.example.Foo'"))
+        failure.assertHasCause("Test process encountered an unexpected problem.")
+        failure.assertHasCause("Could not execute test class 'com.example.Foo'.")
+
+        testResults.testPathPreNormalized(':').onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("Could not execute test class 'com.example.Foo'"))
     }
 
     @Issue("https://github.com/gradle/gradle/issues/7878")
@@ -333,6 +354,17 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
                 public void testGet2() {
                     Assert.assertEquals(true, true);
                 }
+
+                // DO NOT DELETE
+                // Removing this may cause the test to work on some OSes and fail on others.
+                // TestNG orders tests by the toString() of the instance.
+                // If this is not overridden, then it will depend on the identity hashcode,
+                // which IS STABLE across our test workers, but different on different OSes.
+                // See https://bugs.openjdk.org/browse/JDK-8329968 for why the hashcode is stable.
+                @Override
+                public String toString() {
+                    return "TestNG7878";
+                }
             }
         """
 
@@ -340,9 +372,18 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('TestNG7878')
-            .testClass('TestNG7878').assertTestCount(4, 0, 0)
+        testResults.assertTestPathsExecuted(
+            ':TestNG7878:runFirst on TestNG7878',
+            ':TestNG7878:testGet2 on TestNG7878',
+        )
+        testResults.testPath(':TestNG7878:runFirst on TestNG7878').singleRootWithRun(1)
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        testResults.testPath(':TestNG7878:runFirst on TestNG7878').singleRootWithRun(2)
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        testResults.testPath(':TestNG7878:testGet2 on TestNG7878').singleRootWithRun(1)
+            .assertHasResult(TestResult.ResultType.SUCCESS)
+        testResults.testPath(':TestNG7878:testGet2 on TestNG7878').singleRootWithRun(2)
+            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23602")
@@ -382,11 +423,11 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         fails("test")
 
         then:
-        with(new DefaultTestExecutionResult(testDirectory).testClass("PoisonTest")) {
-            assertTestPassed("passingTest")
-            assertTestFailed("testWithUnserializableException", containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
-            assertTestFailed("normalFailingTest", containsString("AssertionError"))
-        }
+        testResults.testPath(":PoisonTest:passingTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        testResults.testPath(":PoisonTest:testWithUnserializableException").onlyRoot().assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("TestFailureSerializationException: An exception of type PoisonTest\$UnserializableException was thrown by the test, but Gradle was unable to recreate the exception in the build process"))
+        testResults.testPath(":PoisonTest:normalFailingTest").onlyRoot().assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("AssertionError"))
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2313")

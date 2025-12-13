@@ -27,8 +27,8 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.internal.resource.TextResource;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 

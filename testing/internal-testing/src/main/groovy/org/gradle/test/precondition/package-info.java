@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@NonNullApi
+@GroovyNullMarked
 package org.gradle.test.precondition;
 
-import org.gradle.api.NonNullApi;
+import org.gradle.util.GroovyNullMarked;

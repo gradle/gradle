@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.VersionConstraintInternal;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -129,10 +129,6 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
     @Override
     public List<String> getRejectedVersions() {
        return rejectedVersions;
-    }
-
-    public String getVersion() {
-        return requiredVersion.isEmpty() ? preferredVersion : requiredVersion;
     }
 
     @Override

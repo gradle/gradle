@@ -23,8 +23,8 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.resource.ExternalResourceListBuildOperationType;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.List;
 

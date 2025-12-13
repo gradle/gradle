@@ -23,6 +23,7 @@ import org.gradle.testkit.runner.UnexpectedBuildFailure
 import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
+import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -41,28 +42,28 @@ abstract class AbstractBinaryCompatibilityTest {
         get() = tmpDir.root
 
     internal
-    fun checkBinaryCompatibleKotlin(v1: String = "", v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
+    fun checkBinaryCompatibleKotlin(@Language("kotlin") v1: String = "", @Language("kotlin") v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
         runKotlinBinaryCompatibilityCheck(v1, v2) {
             assertBinaryCompatible()
             block()
         }
 
     internal
-    fun checkNotBinaryCompatibleKotlin(v1: String = "", v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
+    fun checkNotBinaryCompatibleKotlin(@Language("kotlin") v1: String = "", @Language("kotlin") v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
         runKotlinBinaryCompatibilityCheck(v1, v2) {
             assertNotBinaryCompatible()
             block()
         }
 
     internal
-    fun checkBinaryCompatibleJava(v1: String = "", v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
+    fun checkBinaryCompatibleJava(@Language("java") v1: String = "", @Language("java") v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
         runJavaBinaryCompatibilityCheck(v1, v2) {
             assertBinaryCompatible()
             block()
         }
 
     internal
-    fun checkNotBinaryCompatibleJava(v1: String = "", v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
+    fun checkNotBinaryCompatibleJava(@Language("java") v1: String = "", @Language("java") v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
         runJavaBinaryCompatibilityCheck(v1, v2) {
             assertNotBinaryCompatible()
             block()
@@ -107,26 +108,24 @@ abstract class AbstractBinaryCompatibilityTest {
     fun runKotlinBinaryCompatibilityCheck(v1: String, v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
         runBinaryCompatibilityCheck(
             v1 = {
-                withFile(
+                withKotlinFile(
                     "kotlin/com/example/Source.kt",
                     """
                     package com.example
 
                     import org.gradle.api.Incubating
-                    import javax.annotation.Nullable
 
                     $v1
                     """
                 )
             },
             v2 = {
-                withFile(
+                withKotlinFile(
                     "kotlin/com/example/Source.kt",
                     """
                     package com.example
 
                     import org.gradle.api.Incubating
-                    import javax.annotation.Nullable
 
                     $v2
                     """
@@ -139,26 +138,24 @@ abstract class AbstractBinaryCompatibilityTest {
     fun runJavaBinaryCompatibilityCheck(v1: String, v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
         runBinaryCompatibilityCheck(
             v1 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Source.java",
                     """
                     package com.example;
 
                     import org.gradle.api.Incubating;
-                    import javax.annotation.Nullable;
 
                     $v1
                     """
                 )
             },
             v2 = {
-                withFile(
+                withJavaFile(
                     "java/com/example/Source.java",
                     """
                     package com.example;
 
                     import org.gradle.api.Incubating;
-                    import javax.annotation.Nullable;
 
                     $v2
                     """
@@ -218,7 +215,7 @@ abstract class AbstractBinaryCompatibilityTest {
      */
     private
     fun runBinaryCompatibilityCheckWithFailure(v1: File.() -> Unit, v2: File.() -> Unit, block: BuildResult.() -> Unit = {}): BuildResult {
-        rootDir.withFile("version.txt", "1.0")
+        rootDir.withFile("version.txt", "9.0.0")
 
         val inputBuildDir = setupRunBinaryCompatibility(v1, v2)
 
@@ -248,14 +245,14 @@ abstract class AbstractBinaryCompatibilityTest {
 
     private
     fun setupRunBinaryCompatibility(v1: File.() -> Unit, v2: File.() -> Unit): File {
-        rootDir.withFile("version.txt", "1.0")
+        rootDir.withFile("version.txt", "9.0.0")
 
         return rootDir.withUniqueDirectory("input-build").apply {
 
             withSettings("""include("v1", "v2", "binary-compatibility")""")
             withBuildScript(
                 """
-                    import gradlebuild.identity.extension.ModuleIdentityExtension
+                    import gradlebuild.identity.extension.GradleModuleExtension
 
                     plugins {
                         base
@@ -264,13 +261,15 @@ abstract class AbstractBinaryCompatibilityTest {
                     subprojects {
                         apply(plugin = "gradlebuild.module-identity")
                         apply(plugin = "kotlin")
-                        the<ModuleIdentityExtension>().baseName.set("api-module")
+                        the<GradleModuleExtension>().identity.baseName.set("api-module")
                         repositories {
                             mavenCentral()
                         }
                         dependencies {
                             "implementation"(gradleApi())
                             "implementation"(kotlin("stdlib"))
+                            // TODO remove once JSpecify is part of the Gradle API
+                            "implementation"("org.jspecify:jspecify:1.0.0")
                         }
                     }
                     project(":v1") {
@@ -427,6 +426,12 @@ abstract class AbstractBinaryCompatibilityTest {
                 "$thing ${describe(thing, desc)}: Is not annotated with @since 2.0."
             )
 
+        fun addedWithInvalidSince(thing: String, desc: String): List<String> =
+            listOf(
+                "$thing ${describe(thing, desc)}: Is not annotated with @Incubating.",
+                "$thing ${describe(thing, desc)}: Has invalid @since: it should be 2.0, but currently is 1.0."
+            )
+
         fun removed(thing: String, desc: String): Pair<String, List<String>> =
             "$thing ${describe(thing, desc)}: Is not binary compatible." to listOf("$thing has been removed")
 
@@ -444,6 +449,15 @@ abstract class AbstractBinaryCompatibilityTest {
             parentFile.mkdirs()
             writeText(text.trimIndent())
         }
+
+    protected
+    fun File.withKotlinFile(path: String, @Language("kotlin") text: String): File = withFile(path, text)
+
+    protected
+    fun File.withJavaFile(path: String, @Language("java") text: String): File = withFile(path, text)
+
+    protected
+    fun File.withJsonFile(path: String, @Language("json") text: String): File = withFile(path, text)
 
     private
     fun File.withUniqueDirectory(prefixPath: String): File =

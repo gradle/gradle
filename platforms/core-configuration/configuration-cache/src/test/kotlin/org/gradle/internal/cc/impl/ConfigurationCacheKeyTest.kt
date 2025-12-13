@@ -17,16 +17,17 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.Option
 import org.gradle.internal.buildtree.RunTasksRequirements
+import org.gradle.internal.buildtree.control.BuildModelParametersProvider
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
-import org.gradle.internal.cc.impl.services.DefaultBuildModelParameters
 import org.gradle.internal.encryption.EncryptionConfiguration
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.initialization.layout.BuildTreeLocations
+import org.gradle.internal.scripts.DefaultScriptFileResolver
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.EncryptionAlgorithm
 import org.gradle.util.internal.SupportedEncryptionAlgorithm
@@ -60,33 +61,6 @@ class ConfigurationCacheKeyTest {
                 includeBuild(file("included"))
             },
             not(equalTo(cacheKeyStringFromStartParameter { }))
-        )
-    }
-
-    @Suppress("DEPRECATION") // StartParameter.setSettingsFile
-    @Test
-    fun `cache key honours --settings-file`() {
-        assertThat(
-            cacheKeyStringFromStartParameter {
-                settingsFile = file("settings.gradle")
-            },
-            equalTo(
-                cacheKeyStringFromStartParameter {
-                    settingsFile = file("settings.gradle")
-                }
-            )
-        )
-        assertThat(
-            cacheKeyStringFromStartParameter {
-                settingsFile = file("settings.gradle")
-            },
-            not(
-                equalTo(
-                    cacheKeyStringFromStartParameter {
-                        settingsFile = file("custom-settings.gradle")
-                    }
-                )
-            )
         )
     }
 
@@ -161,28 +135,13 @@ class ConfigurationCacheKeyTest {
     private
     fun cacheKeyStringFromStartParameter(configure: StartParameterInternal.() -> Unit): String {
         val startParameter = StartParameterInternal().apply(configure)
+        val internalOptions = DefaultInternalOptions(mapOf())
         return ConfigurationCacheKey(
             ConfigurationCacheStartParameter(
-                BuildLayout(
-                    file("root"),
-                    file("settings"),
-                    null,
-                    null
-                ),
+                BuildTreeLocations(BuildLayout(file("root"), null, DefaultScriptFileResolver())),
                 startParameter,
-                DefaultInternalOptions(mapOf()),
-                DefaultBuildModelParameters(
-                    requiresToolingModels = false,
-                    parallelProjectExecution = false,
-                    configureOnDemand = false,
-                    configurationCache = true,
-                    isolatedProjects = startParameter.isolatedProjects.get(),
-                    intermediateModelCache = false,
-                    parallelToolingApiActions = false,
-                    invalidateCoupledProjects = false,
-                    modelAsProjectDependency = false
-                ),
-                ConfigurationCacheLoggingParameters(LogLevel.LIFECYCLE)
+                internalOptions,
+                BuildModelParametersProvider.parameters(RunTasksRequirements(startParameter), internalOptions),
             ),
             RunTasksRequirements(startParameter),
             object : EncryptionConfiguration {

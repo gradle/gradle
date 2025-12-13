@@ -23,6 +23,8 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.process.ExecOperations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 
 class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
 
@@ -131,6 +133,65 @@ class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureCauseContains "Property 'text' cannot carry a dependency on task ':producer' as these are not yet supported."
+    }
+
+    @ToBeImplemented()
+    @Issue("https://github.com/gradle/gradle/issues/32918")
+    def 'flow actions cannot depend on tasks indirectly'() {
+        given:
+        buildFile '''
+            import org.gradle.api.flow.*
+            import org.gradle.api.services.*
+            import org.gradle.api.tasks.*
+
+            abstract class FlowActionPlugin implements Plugin<Project> {
+                final FlowScope flowScope
+                final FlowProviders flowProviders
+
+                @Inject FlowActionPlugin(FlowScope flowScope, FlowProviders flowProviders) {
+                    this.flowScope = flowScope
+                    this.flowProviders = flowProviders
+                }
+                void apply(Project target) {
+                    def producer = target.tasks.register('producer', Producer) {
+                        outputFile = target.layout.buildDirectory.file('out')
+                    }
+
+                    def lateBindProperty = target.objects.property(String)
+
+                    flowScope.always(PrintAction) {
+                        parameters.text = lateBindProperty
+                    }
+
+                    lateBindProperty.set(producer.flatMap { it.outputFile }.map { it.asFile.text })
+                }
+            }
+
+            abstract class Producer extends DefaultTask {
+                @OutputFile abstract RegularFileProperty getOutputFile()
+                @TaskAction def produce() {
+                    outputFile.get().asFile << "42"
+                }
+            }
+
+            class PrintAction implements FlowAction<Parameters> {
+                interface Parameters extends FlowParameters {
+                    @Input Property<String> getText()
+                }
+                void execute(Parameters parameters) {
+                    println(parameters.text.get())
+                }
+            }
+
+            apply type: FlowActionPlugin
+        '''
+
+        expect:
+        fails 'help'
+
+        // TODO(mlopatkin): should have failed because of a task reference or run the producer task first
+        // then:
+        // failureCauseContains "Property 'text' cannot carry a dependency on task ':producer' as these are not yet supported."
     }
 
     def '#scriptTarget action can use injectable #simpleServiceTypeName'() {
@@ -259,6 +320,75 @@ class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
         if (GradleContextualExecuter.configCache) {
             failureDescriptionStartsWith "Configuration cache problems found in this build"
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/33713")
+    def "flow actions can consume configurations"() {
+        // TODO(mlopatkin): this is a test for a regression in KMP (resolving referenced configuration without a lock).
+        //  However, the way configuration is consumed doesn't make sense. FlowActions should be able to consume configurations directly.
+        //  See https://github.com/gradle/gradle/issues/32913
+        given:
+
+        buildFile """
+            plugins {
+                id("java")
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            dependencies {
+                implementation 'com.google.guava:guava:18.0'
+            }
+
+            import org.gradle.api.flow.*
+
+            class FlowActionInjection implements FlowAction<Params> {
+                interface Params extends FlowParameters {
+                    @Input
+                    Property<String> getInputText()
+                }
+
+                @Override void execute(Params parameters) {
+                    println(parameters.inputText.get())
+                }
+            }
+
+            class FlowActionInjectionPlugin implements Plugin<Project> {
+
+                final FlowScope flowScope
+                final FlowProviders flowProviders
+
+                @Inject
+                FlowActionInjectionPlugin(FlowScope flowScope, FlowProviders flowProviders) {
+                    this.flowScope = flowScope
+                    this.flowProviders = flowProviders
+                }
+
+                void apply(Project target) {
+                    def classpath = target.configurations["compileClasspath"]
+
+                    def p = target.provider { classpath.resolve().join(", ") }
+
+                    flowScope.always(FlowActionInjection) {
+                        parameters {
+                            inputText = p
+                        }
+                    }
+                }
+            }
+
+            apply type: FlowActionInjectionPlugin
+
+            tasks.register("run") {}
+        """
+
+        when:
+        run("run")
+
+        then:
+        outputContains("guava")
     }
 
     enum ScriptTarget {

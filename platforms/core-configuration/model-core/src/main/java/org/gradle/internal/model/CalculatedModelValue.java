@@ -16,7 +16,8 @@
 
 package org.gradle.internal.model;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.function.Function;
 

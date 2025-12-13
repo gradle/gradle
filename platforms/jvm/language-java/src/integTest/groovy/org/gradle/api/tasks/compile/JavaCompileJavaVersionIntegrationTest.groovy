@@ -18,112 +18,118 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
+import org.gradle.integtests.fixtures.jvm.TestJavaClassUtil
 import org.gradle.internal.jvm.Jvm
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.internal.TextUtil
+import org.junit.Assume
 
-@Requires([IntegTestPreconditions.LowestSupportedLTSJavaHomeAvailable, IntegTestPreconditions.HighestSupportedLTSJavaHomeAvailable ])
-class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec {
+import static org.gradle.internal.serialize.JavaClassUtil.getClassMajorVersion
 
-    /**
-     * When running in embedded mode, core tasks are loaded from the runtime classloader.
-     * When running in the daemon, they are loaded from the plugins classloader.
-     * This difference leads to different up-to-date messages, which is why we force
-     * a consistent execution mode.
-     */
-    def setup() {
-        executer.requireDaemon().requireIsolatedDaemons()
-        executer.beforeExecute {
-            noDeprecationChecks()
-        }
-    }
+class JavaCompileJavaVersionIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
+    @Requires(value = [
+        IntegTestPreconditions.NotEmbeddedExecutor,
+        IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable
+    ], reason = "requires use of specific JDK version")
     def "not up-to-date when default Java version changes"() {
+        def otherJdk = AvailableJavaHomes.differentVersion
+
         given:
         buildFile << """
-            apply plugin: "java"
-
-            sourceCompatibility = "1.8"
-            targetCompatibility = "1.8"
+            plugins {
+                id("java-library")
+            }
         """
-
-        and:
-        file("src/main/java/org/gradle/Person.java") << """
-            package org.gradle;
-            class Person {}
-        """
+        withHelloJava()
 
         when:
-        executer.withJvm(AvailableJavaHomes.getLowestSupportedLTS())
         succeeds "compileJava"
+
         then:
         executedAndNotSkipped ":compileJava"
+        assertCompiledWith(Jvm.current())
 
         when:
-        executer.withJvm(AvailableJavaHomes.getLowestSupportedLTS())
         succeeds "compileJava"
+
         then:
         skipped ":compileJava"
+        assertCompiledWith(Jvm.current())
 
         when:
-        executer.withJvm(AvailableJavaHomes.getHighestSupportedLTS())
+        executer.withJvm(otherJdk)
         succeeds "compileJava", "--info"
+
         then:
         executedAndNotSkipped ":compileJava"
+        assertCompiledWith(otherJdk)
         output.contains "Value of input property 'javaVersion' has changed for task ':compileJava'"
     }
 
     def "not up-to-date when java version for forking changes"() {
+        def otherJdk = AvailableJavaHomes.getDifferentVersion(jdk.javaVersion)
+        Assume.assumeTrue(otherJdk != null)
+
         given:
-        def lowestLTS = AvailableJavaHomes.getLowestSupportedLTS()
-        def highestLTS = AvailableJavaHomes.getHighestSupportedLTS()
-
-
-        buildFile << forkedJavaCompilation(lowestLTS)
-
-        and:
-        file("src/main/java/org/gradle/Person.java") << """
-            package org.gradle;
-            class Person {}
-        """
-
-        when:
-        executer.withJvm(highestLTS)
-        succeeds "compileJava"
-        then:
-        executedAndNotSkipped ":compileJava"
-
-        when:
-        executer.withJvm(lowestLTS)
-        succeeds "compileJava"
-        then:
-        skipped ":compileJava"
-
-        when:
-        executer.withJvm(lowestLTS)
-        buildFile.text = forkedJavaCompilation(highestLTS)
-        succeeds "compileJava", "--info"
-        then:
-        executedAndNotSkipped ":compileJava"
-        output.contains "Value of input property 'javaVersion' has changed for task ':compileJava'"
-    }
-
-    private static String forkedJavaCompilation(Jvm jdk) {
-        def javaHome = TextUtil.escapeString(jdk.getJavaHome().absolutePath)
-        """
-            apply plugin: "java"
-
-            sourceCompatibility = "1.8"
-            targetCompatibility = "1.8"
-
-            compileJava {
-                options.with {
-                    fork = true
-                    forkOptions.javaHome=file('${javaHome}')
-                }
+        buildFile << """
+            plugins {
+                id("java-library")
             }
 
+            def compileJavaVersion = providers.systemProperty("compileJavaVersion")
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(compileJavaVersion.get())
+                }
+            }
         """
+        withHelloJava()
+
+        when:
+        compileWith(jdk)
+        succeeds "compileJava"
+
+        then:
+        executedAndNotSkipped ":compileJava"
+        assertCompiledWith(jdk)
+
+        when:
+        compileWith(jdk)
+        succeeds "compileJava"
+
+        then:
+        skipped ":compileJava"
+        assertCompiledWith(jdk)
+
+        when:
+        compileWith(otherJdk)
+        succeeds "compileJava", "--info"
+
+        then:
+        executedAndNotSkipped ":compileJava"
+        assertCompiledWith(otherJdk)
+        output.contains "Value of input property 'javaVersion' has changed for task ':compileJava'"
+
+        where:
+        jdk << AvailableJavaHomes.supportedWorkerJdks
+    }
+
+    private TestFile withHelloJava() {
+        file("src/main/java/Hello.java") << """
+            public class Hello { }
+        """
+    }
+
+    void compileWith(Jvm jvm) {
+        withInstallations(jvm)
+        executer.withArgument("-DcompileJavaVersion=${jvm.javaVersionMajor}")
+    }
+
+    void assertCompiledWith(Jvm jvm) {
+        assert getClassMajorVersion(javaClassFile("Hello.class")) == TestJavaClassUtil.getClassVersion(jvm.javaVersion)
     }
 }

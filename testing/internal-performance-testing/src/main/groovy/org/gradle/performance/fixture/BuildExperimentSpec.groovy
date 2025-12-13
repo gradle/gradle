@@ -22,8 +22,8 @@ import groovy.transform.EqualsAndHashCode
 import org.gradle.performance.results.BuildDisplayInfo
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
+import org.jspecify.annotations.Nullable
 
-import javax.annotation.Nullable
 import java.util.function.Function
 
 @CompileStatic

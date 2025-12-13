@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.logging;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.TestDescriptor;
@@ -24,8 +25,8 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,7 +72,15 @@ public abstract class AbstractTestLogger {
                 // but we nevertheless want to see the class name. We use "." rather than
                 // " > " as a separator to make it clear that the class is not a separate
                 // level. This matters when configuring granularity.
-                names.add(current.getClassName() + "." + current.getDisplayName());
+                // For non-class-based testing, the className should be an empty
+                // string, so we just use the display name.
+                String name;
+                if (!Strings.isNullOrEmpty(current.getClassName())) {
+                    name = current.getClassName() + "." + current.getDisplayName();
+                } else {
+                    name = current.getDisplayName();
+                }
+                names.add(name);
             } else {
                 names.add(current.getDisplayName());
             }

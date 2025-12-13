@@ -16,21 +16,20 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import kotlinx.metadata.Flag
-import kotlinx.metadata.KmType
-import kotlinx.metadata.flagsOf
 import org.gradle.api.Project
 import org.gradle.api.internal.catalog.ExternalModuleDependencyFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.Identity
 import org.gradle.internal.execution.ImmutableUnitOfWork
 import org.gradle.internal.execution.InputFingerprinter
-import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.UnitOfWork.InputVisitor
-import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
+import org.gradle.internal.execution.InputVisitor
+import org.gradle.internal.execution.OutputVisitor
+import org.gradle.internal.execution.OutputVisitor.OutputFileValueSupplier
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -46,6 +45,7 @@ import org.gradle.kotlin.dsl.support.bytecode.InternalName
 import org.gradle.kotlin.dsl.support.bytecode.newClassTypeOf
 import java.io.File
 import javax.inject.Inject
+import kotlin.metadata.KmType
 
 
 /**
@@ -62,18 +62,26 @@ class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
     private val fileCollectionFactory: FileCollectionFactory,
     private val executionEngine: ExecutionEngine,
     private val inputFingerprinter: InputFingerprinter,
-    private val workspaceProvider: KotlinDslWorkspaceProvider
+    private val workspaceProvider: KotlinDslWorkspaceProvider,
+    private val buildState: BuildState,
 ) {
-    fun stage1BlocksAccessorClassPath(project: ProjectInternal): AccessorsClassPath =
-        project.owner.owner.projects.rootProject.mutableModel.let { rootProject ->
-            rootProject.getOrCreateProperty("gradleKotlinDsl.stage1AccessorsClassPath") {
-                val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)
-                val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
-                val versionCatalogAccessors = generateVersionCatalogAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
-                val pluginSpecBuildersAccessors = generatePluginSpecBuildersAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
-                versionCatalogAccessors + pluginSpecBuildersAccessors
-            }
+
+    private
+    val stage1BlocksAccessorClassPath by lazy {
+        val rootProject = buildState.projects.rootProject.mutableModel
+        val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)
+        val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
+        val versionCatalogAccessors = generateVersionCatalogAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
+        val pluginSpecBuildersAccessors = generatePluginSpecBuildersAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
+        versionCatalogAccessors + pluginSpecBuildersAccessors
+    }
+
+    fun stage1BlocksAccessorClassPath(project: ProjectInternal): AccessorsClassPath {
+        require(project.owner.owner === buildState) {
+            "$project belongs to a different build."
         }
+        return stage1BlocksAccessorClassPath
+    }
 
     private
     fun baseClassLoaderScopeOf(rootProject: Project) =
@@ -147,8 +155,8 @@ abstract class AbstractStage1BlockAccessorsUnitOfWork(
         const val CLASSES_OUTPUT_PROPERTY = "classes"
     }
 
-    override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) =
-        UnitOfWork.Identity { "$classLoaderHash-$identitySuffix" }
+    override fun identify(scalarInputs: MutableMap<String, ValueSnapshot>, fileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) =
+        Identity { "$classLoaderHash-$identitySuffix" }
 
     protected
     abstract val identitySuffix: String
@@ -162,11 +170,11 @@ abstract class AbstractStage1BlockAccessorsUnitOfWork(
 
     override fun getInputFingerprinter() = inputFingerprinter
 
-    override fun visitIdentityInputs(visitor: InputVisitor) {
+    override fun visitImmutableInputs(visitor: InputVisitor) {
         visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY) { classLoaderHash }
     }
 
-    override fun visitOutputs(workspace: File, visitor: UnitOfWork.OutputVisitor) {
+    override fun visitOutputs(workspace: File, visitor: OutputVisitor) {
         val sourcesOutputDir = getSourcesOutputDir(workspace)
         val classesOutputDir = getClassesOutputDir(workspace)
         visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir)))
@@ -202,7 +210,3 @@ fun IO.writeClassFileTo(binDir: File, internalClassName: InternalName, classByte
     val classFile = binDir.resolve("$internalClassName.class")
     writeFile(classFile, classBytes)
 }
-
-
-internal
-val nonInlineGetterFlags = flagsOf(Flag.IS_PUBLIC, Flag.PropertyAccessor.IS_NOT_DEFAULT)

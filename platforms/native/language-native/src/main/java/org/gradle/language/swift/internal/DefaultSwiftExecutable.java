@@ -29,9 +29,10 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.publish.internal.component.ConfigurationSoftwareComponentVariant;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.publish.internal.component.ConfigurationSoftwareComponentVariant;
+import org.gradle.language.cpp.internal.NativeDependencyCache;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithExecutable;
 import org.gradle.language.nativeplatform.internal.ConfigurableComponentWithRuntimeUsage;
@@ -43,8 +44,8 @@ import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.Set;
@@ -60,8 +61,8 @@ public class DefaultSwiftExecutable extends DefaultSwiftBinary implements SwiftE
     private final ConfigurableFileCollection outputs;
 
     @Inject
-    public DefaultSwiftExecutable(Names names, ObjectFactory objectFactory, TaskDependencyFactory taskDependencyFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
-        super(names, objectFactory, taskDependencyFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
+    public DefaultSwiftExecutable(Names names, ObjectFactory objectFactory, NativeDependencyCache nativeDependencyCache, TaskDependencyFactory taskDependencyFactory, Provider<String> module, boolean testable, FileCollection source, ConfigurationContainer configurations, Configuration implementation, SwiftPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider, NativeVariantIdentity identity) {
+        super(names, objectFactory, nativeDependencyCache, taskDependencyFactory, module, testable, source, configurations, implementation, targetPlatform, toolChain, platformToolProvider, identity);
         this.executableFile = objectFactory.fileProperty();
         this.executableFileProducer = objectFactory.property(Task.class);
         this.installDirectory = objectFactory.directoryProperty();

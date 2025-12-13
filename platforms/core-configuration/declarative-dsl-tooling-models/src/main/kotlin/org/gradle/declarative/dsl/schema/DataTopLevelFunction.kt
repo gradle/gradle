@@ -19,6 +19,7 @@ package org.gradle.declarative.dsl.schema
 
 interface DataTopLevelFunction : SchemaFunction {
     val packageName: String
+    val ownerJvmTypeName: String
     override val simpleName: String
     override val parameters: List<DataParameter>
     override val semantics: FunctionSemantics.Pure

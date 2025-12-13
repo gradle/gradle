@@ -16,7 +16,7 @@
 
 package org.gradle.internal.nativeintegration.console;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class TestOverrideConsoleDetector implements ConsoleDetector {
     public static final String INTERACTIVE_TOGGLE = "org.gradle.internal.interactive";

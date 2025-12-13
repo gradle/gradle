@@ -48,6 +48,6 @@ class DeprecatedFeatureUsageTest extends Specification {
         documentationReference                 | expected
         null                                   | null
         Documentation.userManual("foo", "bar") | "https://docs.gradle.org/${GradleVersion.current().version}/userguide/foo.html#bar"
-        Documentation.upgradeGuide(42, "bar")  | "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_42.html#bar"
+        Documentation.upgradeMinorGuide(42, "bar")  | "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_42.html#bar"
     }
 }

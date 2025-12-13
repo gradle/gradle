@@ -20,7 +20,6 @@ import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.model.ObjectFactory;
 
 public class DefaultSoftwareComponentFactory implements SoftwareComponentFactory {
-
     private final ObjectFactory objectFactory;
 
     public DefaultSoftwareComponentFactory(ObjectFactory objectFactory) {

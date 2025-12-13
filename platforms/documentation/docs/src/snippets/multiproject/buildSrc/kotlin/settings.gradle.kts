@@ -1,0 +1,6 @@
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
+
+rootProject.name = "multiproject-buildSrc"
+include("api", "shared", "services")

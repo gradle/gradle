@@ -16,7 +16,8 @@
 
 package org.gradle.internal.instrumentation.api.groovybytecode;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.lang.invoke.MethodHandle;
 
 import static org.gradle.internal.instrumentation.api.groovybytecode.InvocationUtils.unwrap;
@@ -43,7 +44,7 @@ class MethodHandleInvocation implements Invocation {
     }
 
     @Override
-    public Object getReceiver() {
+    public @Nullable Object getReceiver() {
         return unwrap(originalArgs[0]);
     }
 
@@ -53,14 +54,12 @@ class MethodHandleInvocation implements Invocation {
     }
 
     @Override
-    @Nullable
-    public Object getArgument(int pos) {
+    public @Nullable Object getArgument(int pos) {
         return unwrap(unspreadArgs[pos + unspreadArgsOffset]);
     }
 
     @Override
-    @Nullable
-    public Object callNext() throws Throwable {
+    public @Nullable Object callNext() throws Throwable {
         return original.invokeExact(originalArgs);
     }
 }

@@ -16,26 +16,41 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.base.Objects;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
-import java.util.Map;
+import java.util.Arrays;
 
 public class DefaultTypedAdditionalData implements TypedAdditionalData {
-    private final Map<String, Object> data;
     private final SerializedPayload type;
+    private final byte[] byteSerializedIsolate;
 
-    public DefaultTypedAdditionalData(Map<String, Object> data, SerializedPayload type) {
-        this.data = data;
+    public DefaultTypedAdditionalData(SerializedPayload type, byte[] byteSerializedIsolate) {
         this.type = type;
-    }
-
-    @Override
-    public Map<String, Object> getData() {
-        return data;
+        this.byteSerializedIsolate = byteSerializedIsolate;
     }
 
     @Override
     public Object getSerializedType() {
         return type;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DefaultTypedAdditionalData)) {
+            return false;
+        }
+        DefaultTypedAdditionalData that = (DefaultTypedAdditionalData) o;
+        return Arrays.equals(byteSerializedIsolate, that.byteSerializedIsolate) && Objects.equal(type, that.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(Arrays.hashCode(byteSerializedIsolate), type);
+    }
+
+    @Override
+    public byte[] getBytesForIsolatedObject() {
+        return byteSerializedIsolate;
     }
 }

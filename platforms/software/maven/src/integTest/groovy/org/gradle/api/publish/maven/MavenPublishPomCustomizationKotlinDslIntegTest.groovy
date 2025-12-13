@@ -23,17 +23,17 @@ import org.gradle.test.fixtures.file.TestFile
 class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublishIntegTest {
 
     @Override
-    protected String getDefaultBuildFileName() {
-        'build.gradle.kts'
+    TestFile getBuildFile() {
+        return super.getBuildKotlinFile()
     }
 
     @Override
-    protected TestFile getSettingsFile() {
-        testDirectory.file('settings.gradle.kts')
+    TestFile getSettingsFile() {
+        return super.getSettingsKotlinFile()
     }
 
     def setup() {
-        requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
+        requireOwnGradleUserHomeDir("need to isolate Kotlin DSL extensions API jar")
     }
 
     def "can customize POM using Kotlin DSL"() {
@@ -122,6 +122,11 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
                                     artifactId.set("new-artifact-id")
                                     version.set("42")
                                     message.set("the answer to life, the universe and everything")
+                                }
+                                repository {
+                                    id = "internalMaven"
+                                    name = "Our internal maven repo"
+                                    url = "https://internal.maven.example.com"
                                 }
                             }
                             mailingLists {
@@ -222,6 +227,11 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
         parsedPom.distributionManagement.relocation[0].artifactId.text() == "new-artifact-id"
         parsedPom.distributionManagement.relocation[0].version.text() == "42"
         parsedPom.distributionManagement.relocation[0].message.text() == "the answer to life, the universe and everything"
+
+        and:
+        parsedPom.distributionManagement.repository.id.text() == "internalMaven"
+        parsedPom.distributionManagement.repository.name.text() == "Our internal maven repo"
+        parsedPom.distributionManagement.repository.url.text() == "https://internal.maven.example.com"
 
         and:
         parsedPom.mailingLists.size() == 2

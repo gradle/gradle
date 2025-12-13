@@ -1,0 +1,14 @@
+> Task :dependencies
+
+------------------------------------------------------------
+Root project 'how_to_upgrade_transitive_dependencies'
+------------------------------------------------------------
+
+compileClasspath - Compile classpath for source set 'main'.
++--- org.apache.httpcomponents:httpclient -> 4.5.3
+|    +--- org.apache.httpcomponents:httpcore:4.4.6
+|    +--- commons-logging:commons-logging:1.2
+|    \--- commons-codec:commons-codec:1.9 -> 1.11
++--- org.apache.httpcomponents:httpclient:4.5.3 (c)
+\--- commons-codec:commons-codec:1.11 (c)
+

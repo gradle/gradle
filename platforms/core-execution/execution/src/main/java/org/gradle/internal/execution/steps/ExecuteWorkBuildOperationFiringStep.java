@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.Execution;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
@@ -28,8 +28,8 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
@@ -92,13 +92,13 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
 
     private static class ExecuteWorkResult implements ExecuteWorkBuildOperationType.Result {
 
-        private final Try<ExecutionEngine.Execution> execution;
+        private final Try<Execution> execution;
         private final CachingState cachingState;
         private final Optional<OriginMetadata> originMetadata;
         private final ImmutableList<String> executionReasons;
 
         public ExecuteWorkResult(
-            Try<ExecutionEngine.Execution> execution,
+            Try<Execution> execution,
             CachingState cachingState,
             Optional<OriginMetadata> originMetadata,
             ImmutableList<String> executionReasons
@@ -121,9 +121,8 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
             return originMetadata.map(OriginMetadata::getBuildInvocationId).orElse(null);
         }
 
-        @Nullable
         @Override
-        public byte[] getOriginBuildCacheKeyBytes() {
+        public byte @Nullable [] getOriginBuildCacheKeyBytes() {
             return originMetadata
                 .map(OriginMetadata::getBuildCacheKey)
                 .map(HashCode::toByteArray)
@@ -137,7 +136,7 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
         }
 
         @Nullable
-        private static String getSkipMessage(ExecutionEngine.Execution execution) {
+        private static String getSkipMessage(Execution execution) {
             switch (execution.getOutcome()) {
                 case SHORT_CIRCUITED:
                     return "NO-SOURCE";

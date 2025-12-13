@@ -45,8 +45,4 @@ public class ConnectionFactory {
         AsyncConsumerActionExecutor asyncConnection = new DefaultAsyncConsumerActionExecutor(rethrowingErrorsConnection, executorFactory);
         return new DefaultProjectConnection(asyncConnection, parameters, listener);
     }
-
-    ToolingImplementationLoader getToolingImplementationLoader() {
-        return toolingImplementationLoader;
-    }
 }

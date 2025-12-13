@@ -19,8 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     private final ProviderInternal<? extends T> provider;
@@ -55,7 +54,7 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
         }
     }
 
-    private ProviderInternal<? extends S> doMapValue(@SuppressWarnings("unused") EvaluationScopeContext context, Value<? extends T> value) {
+    private ProviderInternal<? extends S> doMapValue(EvaluationScopeContext ignored, Value<? extends T> value) {
         T unpackedValue = value.getWithoutSideEffect();
         Provider<? extends S> transformedProvider = transformer.transform(unpackedValue);
         if (transformedProvider == null) {

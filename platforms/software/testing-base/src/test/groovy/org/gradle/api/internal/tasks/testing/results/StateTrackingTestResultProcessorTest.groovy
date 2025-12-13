@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.testing.results
 
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
+import org.gradle.api.internal.tasks.testing.DefaultTestFailure
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
@@ -26,6 +27,7 @@ import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.api.tasks.testing.TestResult.ResultType
+import org.junit.AssumptionViolatedException
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -84,6 +86,27 @@ class StateTrackingTestResultProcessorTest extends Specification {
         1 * listener.completed({ it.descriptor == test },
                 { it.successfulTestCount == 0 && it.testCount == 1 && it.failedTestCount == 1 && it.exception.is(failure.rawFailure) },
                 completeEvent
+        )
+        0 * _
+    }
+
+    void createsAResultForATestWithAssumptionFailure() {
+        given:
+        def failure = DefaultTestFailure.fromTestAssumptionFailure(new AssumptionViolatedException(""))
+        def test = new DefaultTestDescriptor("15", "Foo", "bar");
+        def startEvent = new TestStartEvent(100L)
+        def completeEvent = new TestCompleteEvent(200L, ResultType.SKIPPED)
+
+        when:
+        adapter.started(test, startEvent)
+        adapter.failure('15', failure)
+        adapter.completed('15', completeEvent)
+
+        then:
+        1 * listener.started(_, _)
+        1 * listener.completed({ it.descriptor == test },
+            { it.successfulTestCount == 0 && it.testCount == 1 && it.failedTestCount == 0 && it.skippedTestCount == 1 && it.assumptionFailure.is(failure) },
+            completeEvent
         )
         0 * _
     }

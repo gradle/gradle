@@ -66,8 +66,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -452,7 +452,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         }
 
         /**
-         * This is used to generate the repository id and for reporting purposes on build scans.
+         * This is used to generate the repository id and for reporting purposes on a Build Scan.
          * Changing this means a change of repository.
          *
          * @return a list of implemented metadata sources, as strings.

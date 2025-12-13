@@ -226,14 +226,14 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         file("buildSrc/src/main/java/TaskWithActionProperty.java") << """
             import org.gradle.api.Action;
             import org.gradle.api.DefaultTask;
-            import org.gradle.api.NonNullApi;
             import org.gradle.api.tasks.Nested;
             import org.gradle.api.tasks.OutputFile;
             import org.gradle.api.tasks.TaskAction;
 
+            import javax.annotation.Nonnull;
             import java.io.File;
 
-            @NonNullApi
+            @Nonnull
             public class TaskWithActionProperty extends DefaultTask {
                 private File outputFile = new File(getTemporaryDir(), "output.txt");
                 private Action<File> action;
@@ -267,15 +267,15 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
     private TestFile setupTaskClassWithConsumerProperty() {
         file("buildSrc/src/main/java/TaskWithConsumerProperty.java") << """
             import org.gradle.api.DefaultTask;
-            import org.gradle.api.NonNullApi;
             import org.gradle.api.tasks.Nested;
             import org.gradle.api.tasks.OutputFile;
             import org.gradle.api.tasks.TaskAction;
 
+            import javax.annotation.Nonnull;
             import java.io.File;
             import java.util.function.Consumer;
 
-            @NonNullApi
+            @Nonnull
             public class TaskWithConsumerProperty extends DefaultTask {
                 private File outputFile = new File(getTemporaryDir(), "output.txt");
                 private Consumer<File> consumer;
@@ -417,16 +417,16 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         file("buildSrc/src/main/java/CustomTask.java") << """
             import org.gradle.api.Action;
             import org.gradle.api.DefaultTask;
-            import org.gradle.api.NonNullApi;
             import org.gradle.api.tasks.Nested;
             import org.gradle.api.tasks.OutputFile;
             import org.gradle.api.tasks.TaskAction;
 
+            import javax.annotation.Nonnull;
             import java.io.File;
             import java.io.IOException;
             import java.nio.file.Files;
 
-            @NonNullApi
+            @Nonnull
             public class CustomTask extends DefaultTask {
                 private File outputFile = new File(getTemporaryDir(), "output.txt");
 

@@ -18,7 +18,7 @@
 
 package org.gradle.test.fixtures.maven
 
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 
 class MavenScope {
     String name

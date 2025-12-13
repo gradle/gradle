@@ -17,20 +17,10 @@
 package org.gradle.internal.buildconfiguration.resolvers;
 
 import org.gradle.api.GradleException;
-import org.gradle.internal.deprecation.Documentation;
-import org.gradle.internal.exceptions.ResolutionProvider;
 
-import java.util.Collections;
-import java.util.List;
-
-public class UnconfiguredToolchainRepositoriesResolver extends GradleException implements ResolutionProvider {
+public class UnconfiguredToolchainRepositoriesResolver extends GradleException {
 
     public UnconfiguredToolchainRepositoriesResolver() {
         super("Toolchain download repositories have not been configured.");
-    }
-
-    @Override
-    public List<String> getResolutions() {
-        return Collections.singletonList("Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
     }
 }

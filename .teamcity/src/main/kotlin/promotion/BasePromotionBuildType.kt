@@ -18,6 +18,7 @@ package promotion
 
 import common.BuildToolBuildJvm
 import common.Os
+import common.VersionedSettingsBranch
 import common.paramsForBuildToolBuild
 import common.requiresNotEc2Agent
 import common.requiresOs
@@ -25,10 +26,12 @@ import jetbrains.buildServer.configs.kotlin.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.CheckoutMode
 
-abstract class BasePromotionBuildType(vcsRootId: String, cleanCheckout: Boolean = true) : BuildType() {
+abstract class BasePromotionBuildType(
+    cleanCheckout: Boolean = true,
+) : BuildType() {
     init {
         vcs {
-            root(AbsoluteId(vcsRootId))
+            root(AbsoluteId(VersionedSettingsBranch.fromDslContext().gradlePromoteVcsRootId()))
 
             checkoutMode = CheckoutMode.ON_AGENT
             this.cleanCheckout = cleanCheckout
@@ -43,7 +46,10 @@ abstract class BasePromotionBuildType(vcsRootId: String, cleanCheckout: Boolean 
         paramsForBuildToolBuild(BuildToolBuildJvm, Os.LINUX)
 
         params {
-            password("env.DEVELOCITY_ACCESS_KEY", "%ge.gradle.org.access.key%;%develocity.grdev.net.access.key%")
+            password(
+                "env.DEVELOCITY_ACCESS_KEY",
+                "%ge.gradle.org.access.key%;%develocity.grdev.net.access.key%;%develocity-ext-hetzner.grdev.net.access.key%",
+            )
             password("env.ORG_GRADLE_PROJECT_botGradleGitHubToken", "%github.bot-gradle.token%")
         }
 

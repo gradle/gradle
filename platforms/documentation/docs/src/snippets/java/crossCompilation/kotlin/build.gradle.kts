@@ -22,6 +22,9 @@ java {
 
 tasks.withType<Test>().configureEach {
     project.findProperty("targetJavaVersion")?.let { systemProperty("targetJavaVersion", it) }
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(8) // Only compilation is supported < 8. Tests are not.
+    }
 }
 
 tasks.register("checkJavadocOutput") {

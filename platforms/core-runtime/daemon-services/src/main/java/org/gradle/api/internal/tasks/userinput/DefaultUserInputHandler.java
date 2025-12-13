@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.tasks.userinput;
 
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.gradle.api.Transformer;
 import org.gradle.internal.logging.events.BooleanQuestionPromptEvent;
 import org.gradle.internal.logging.events.IntQuestionPromptEvent;
@@ -27,8 +27,8 @@ import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.logging.events.YesNoQuestionPromptEvent;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;

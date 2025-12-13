@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.CopyProcessingSpec;
@@ -27,9 +26,9 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.FilePermissions;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileLookup;
@@ -42,6 +41,7 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.CopySpecResolver;
 import org.gradle.api.internal.file.copy.CopySpecSource;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
@@ -51,8 +51,9 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.FilterReader;
 import java.util.Map;
@@ -61,11 +62,12 @@ import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 /**
  * {@code AbstractCopyTask} is the base class for all copy tasks.
  */
-@NonNullApi
+@NullMarked
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractCopyTask extends ConventionTask implements CopySpec, CopySpecSource {
 
@@ -94,9 +96,9 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             getInputs().property(specPropertyName + ".caseSensitive", (Callable<Boolean>) spec::isCaseSensitive);
             getInputs().property(specPropertyName + ".includeEmptyDirs", (Callable<Boolean>) spec::getIncludeEmptyDirs);
             getInputs().property(specPropertyName + ".duplicatesStrategy", (Callable<DuplicatesStrategy>) spec::getDuplicatesStrategy);
-            getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().map(FilePermissions::toUnixNumeric))
+            getInputs().property(specPropertyName + ".dirPermissions", spec.getDirPermissions().map(transformer(FilePermissions::toUnixNumeric)))
                 .optional(true);
-            getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().map(FilePermissions::toUnixNumeric))
+            getInputs().property(specPropertyName + ".filePermissions", spec.getFilePermissions().map(transformer(FilePermissions::toUnixNumeric)))
                 .optional(true);
             getInputs().property(specPropertyName + ".filteringCharset", (Callable<String>) spec::getFilteringCharset);
         });
@@ -114,39 +116,28 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     protected abstract CopyAction createCopyAction();
 
     @Inject
-    protected Instantiator getInstantiator() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract Instantiator getInstantiator();
 
     @Inject
-    protected FileSystem getFileSystem() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileSystem getFileSystem();
 
     @Inject
-    protected FileResolver getFileResolver() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileResolver getFileResolver();
 
     @Inject
-    protected FileLookup getFileLookup() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileLookup getFileLookup();
 
     @Inject
-    protected DirectoryFileTreeFactory getDirectoryFileTreeFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract DirectoryFileTreeFactory getDirectoryFileTreeFactory();
 
     @Inject
-    protected DocumentationRegistry getDocumentationRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract DocumentationRegistry getDocumentationRegistry();
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    protected abstract PropertyFactory getPropertyFactory();
 
     @TaskAction
     protected void copy() {
@@ -160,7 +151,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         Instantiator instantiator = getInstantiator();
         FileSystem fileSystem = getFileSystem();
 
-        return new CopyActionExecuter(instantiator, getObjectFactory(), fileSystem, false, getDocumentationRegistry());
+        return new CopyActionExecuter(instantiator, getPropertyFactory(), fileSystem, false, getDocumentationRegistry());
     }
 
     /**
@@ -248,7 +239,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public AbstractCopyTask from(Object... sourcePaths) {
+    public AbstractCopyTask from(@Nullable Object... sourcePaths) {
         getMainSpec().from(sourcePaths);
         return this;
     }
@@ -465,7 +456,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public AbstractCopyTask rename(Transformer<@org.jetbrains.annotations.Nullable String, String> renamer) {
+    public AbstractCopyTask rename(Transformer<@Nullable String, String> renamer) {
         getMainSpec().rename(renamer);
         return this;
     }
@@ -519,7 +510,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     @Override
-    public AbstractCopyTask filter(Transformer<@org.jetbrains.annotations.Nullable String, String> transformer) {
+    public AbstractCopyTask filter(Transformer<@Nullable String, String> transformer) {
         getMainSpec().filter(transformer);
         return this;
     }
@@ -539,46 +530,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     @Override
     public AbstractCopyTask expand(Map<String, ?> properties, Action<? super ExpandDetails> action) {
         getMainSpec().expand(properties, action);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Internal
-    @Override
-    @Deprecated
-    public Integer getDirMode() {
-        return getMainSpec().getDirMode();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Internal
-    @Override
-    @Deprecated
-    public Integer getFileMode() {
-        return getMainSpec().getFileMode();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Deprecated
-    public AbstractCopyTask setDirMode(@Nullable Integer mode) {
-        getMainSpec().setDirMode(mode);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Deprecated
-    public AbstractCopyTask setFileMode(@Nullable Integer mode) {
-        getMainSpec().setFileMode(mode);
         return this;
     }
 

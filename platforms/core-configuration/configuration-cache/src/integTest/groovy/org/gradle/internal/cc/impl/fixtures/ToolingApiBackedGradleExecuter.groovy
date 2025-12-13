@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,13 @@ import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.tooling.ProjectConnection
+import org.gradle.util.DebugUtil
 
 import java.util.function.Function
 
@@ -35,6 +36,11 @@ class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
 
     ToolingApiBackedGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider)
+    }
+
+    @Override
+    protected boolean isDebuggerAttached() {
+        return DebugUtil.isDebuggerAttached();
     }
 
     void withToolingApiJvmArgs(String... args) {
@@ -91,7 +97,7 @@ class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
                 action.execute(it)
             }
         } finally {
-            if (GradleContextualExecuter.embedded) {
+            if (IntegrationTestBuildContext.embedded) {
                 System.getProperties().clear()
                 System.getProperties().putAll(systemPropertiesBeforeInvocation)
             }

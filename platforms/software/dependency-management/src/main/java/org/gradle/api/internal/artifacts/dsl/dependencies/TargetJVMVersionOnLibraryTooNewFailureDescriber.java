@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.attributes.plugin.GradlePluginApiVersion;
-import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.ImmutableAttributesEntry;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException;
@@ -40,12 +40,13 @@ import java.util.List;
  * attribute.
  */
 public abstract class TargetJVMVersionOnLibraryTooNewFailureDescriber extends AbstractJVMVersionTooNewFailureDescriber {
+    @SuppressWarnings("InlineFormatString")
     private static final String JVM_VERSION_TOO_HIGH_TEMPLATE = "Dependency resolution is looking for a library compatible with JVM runtime version %s, but '%s' is only compatible with JVM runtime version %s or newer.";
 
     @Override
     protected JavaVersion getJVMVersion(NoCompatibleVariantsFailure failure) {
-        AttributeValue<Integer> jvmVersionAttribute = failure.getRequestedAttributes().findEntry(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
-        return JavaVersion.toVersion(jvmVersionAttribute.get());
+        ImmutableAttributesEntry<Integer> jvmVersionEntry = failure.getRequestedAttributes().findEntry(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
+        return JavaVersion.toVersion(jvmVersionEntry.getIsolatedValue());
     }
 
     @Override

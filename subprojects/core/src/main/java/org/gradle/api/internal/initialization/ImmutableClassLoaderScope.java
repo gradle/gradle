@@ -22,8 +22,8 @@ import org.gradle.initialization.ClassLoaderScopeOrigin;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.function.Function;
 
 /**

@@ -16,11 +16,11 @@
 
 package org.gradle.configuration;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class DeferredProjectEvaluationCondition {
 
     public static boolean skipEvaluationDuringProjectPreparation(

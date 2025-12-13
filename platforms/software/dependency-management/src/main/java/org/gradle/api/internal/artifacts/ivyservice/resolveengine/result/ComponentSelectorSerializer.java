@@ -18,11 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -33,67 +31,40 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.util.Path;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
- * A serializer for {@link ComponentSelector} that is not thread-safe and not reusable.
+ * A thread-safe and reusable serializer for {@link ComponentSelector}s.
  */
 @NotThreadSafe
 public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSelector> {
-    private final OptimizingAttributeContainerSerializer attributeContainerSerializer;
-    private final BuildIdentifierSerializer buildIdentifierSerializer;
+
+    private final AttributeContainerSerializer attributeContainerSerializer;
     private final CapabilitySelectorSerializer capabilitySelectorSerializer;
+
+    private final ProjectIdentitySerializer projectIdentitySerializer;
     private final ModuleComponentSelectorSerializer moduleComponentSelectorSerializer;
 
     public ComponentSelectorSerializer(AttributeContainerSerializer attributeContainerSerializer, CapabilitySelectorSerializer capabilitySelectorSerializer) {
-        this.attributeContainerSerializer = new OptimizingAttributeContainerSerializer(attributeContainerSerializer);
-        this.buildIdentifierSerializer = new BuildIdentifierSerializer();
+        this.attributeContainerSerializer = attributeContainerSerializer;
         this.capabilitySelectorSerializer = capabilitySelectorSerializer;
-        this.moduleComponentSelectorSerializer = new ModuleComponentSelectorSerializer(this.attributeContainerSerializer, capabilitySelectorSerializer);
-    }
 
-    void reset() {
-        attributeContainerSerializer.reset();
+        this.projectIdentitySerializer = new ProjectIdentitySerializer(new PathSerializer());
+        this.moduleComponentSelectorSerializer = new ModuleComponentSelectorSerializer(attributeContainerSerializer, capabilitySelectorSerializer);
     }
 
     @Override
     public ComponentSelector read(Decoder decoder) throws IOException {
         byte id = decoder.readByte();
 
-        if (Implementation.ROOT_PROJECT.getId() == id) {
-            BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
-            String projectName = decoder.readString();
-            ProjectIdentity projectId = new ProjectIdentity(buildIdentifier, Path.ROOT, Path.ROOT, projectName);
+        if (Implementation.PROJECT.getId() == id) {
+            ProjectIdentity projectId = projectIdentitySerializer.read(decoder);
             ImmutableAttributes attributes = readAttributes(decoder);
-            return new DefaultProjectComponentSelector(projectId, attributes, readCapabilitySelectors(decoder));
-        } else if (Implementation.ROOT_BUILD_PROJECT.getId() == id) {
-            BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
-            Path projectPath = Path.path(decoder.readString());
-            ProjectIdentity projectId = new ProjectIdentity(buildIdentifier, projectPath, projectPath, projectPath.getName());
-            ImmutableAttributes attributes = readAttributes(decoder);
-            return new DefaultProjectComponentSelector(projectId, attributes, readCapabilitySelectors(decoder));
-        } else if (Implementation.OTHER_BUILD_ROOT_PROJECT.getId() == id) {
-            BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
-            Path identityPath = Path.path(decoder.readString());
-            String projectName = decoder.readString();
-            ProjectIdentity projectId = new ProjectIdentity(buildIdentifier, identityPath, Path.ROOT, projectName);
-            ImmutableAttributes attributes = readAttributes(decoder);
-            return new DefaultProjectComponentSelector(projectId, attributes, readCapabilitySelectors(decoder));
-        } else if (Implementation.OTHER_BUILD_PROJECT.getId() == id) {
-            BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
-            Path identityPath = Path.path(decoder.readString());
-            Path projectPath = Path.path(decoder.readString());
-            ProjectIdentity projectId = new ProjectIdentity(buildIdentifier, identityPath, projectPath, projectPath.getName());
-            ImmutableAttributes attributes = readAttributes(decoder);
-            return new DefaultProjectComponentSelector(projectId, attributes, readCapabilitySelectors(decoder));
+            ImmutableSet<CapabilitySelector> capabilitySelectors = readCapabilitySelectors(decoder);
+            return new DefaultProjectComponentSelector(projectId, attributes, capabilitySelectors);
         } else if (Implementation.MODULE.getId() == id) {
             return moduleComponentSelectorSerializer.read(decoder);
         } else if (Implementation.LIBRARY.getId() == id) {
@@ -138,30 +109,9 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
 
         if (implementation == Implementation.MODULE) {
             moduleComponentSelectorSerializer.write(encoder, (ModuleComponentSelector) value);
-        } else if (implementation == Implementation.ROOT_PROJECT) {
+        } else if (implementation == Implementation.PROJECT) {
             DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
-            buildIdentifierSerializer.write(encoder, projectComponentSelector.getProjectIdentity().getBuildIdentifier());
-            encoder.writeString(projectComponentSelector.getProjectIdentity().getProjectName());
-            writeAttributes(encoder, projectComponentSelector.getAttributes());
-            writeCapabilitySelectors(encoder, projectComponentSelector.getCapabilitySelectors());
-        } else if (implementation == Implementation.ROOT_BUILD_PROJECT) {
-            DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
-            buildIdentifierSerializer.write(encoder, projectComponentSelector.getProjectIdentity().getBuildIdentifier());
-            encoder.writeString(projectComponentSelector.getProjectPath());
-            writeAttributes(encoder, projectComponentSelector.getAttributes());
-            writeCapabilitySelectors(encoder, projectComponentSelector.getCapabilitySelectors());
-        } else if (implementation == Implementation.OTHER_BUILD_ROOT_PROJECT) {
-            DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
-            buildIdentifierSerializer.write(encoder, projectComponentSelector.getProjectIdentity().getBuildIdentifier());
-            encoder.writeString(projectComponentSelector.getIdentityPath().getPath());
-            encoder.writeString(projectComponentSelector.getProjectIdentity().getProjectName());
-            writeAttributes(encoder, projectComponentSelector.getAttributes());
-            writeCapabilitySelectors(encoder, projectComponentSelector.getCapabilitySelectors());
-        } else if (implementation == Implementation.OTHER_BUILD_PROJECT) {
-            DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
-            buildIdentifierSerializer.write(encoder, projectComponentSelector.getProjectIdentity().getBuildIdentifier());
-            encoder.writeString(projectComponentSelector.getIdentityPath().getPath());
-            encoder.writeString(projectComponentSelector.getProjectPath());
+            projectIdentitySerializer.write(encoder, projectComponentSelector.getProjectIdentity());
             writeAttributes(encoder, projectComponentSelector.getAttributes());
             writeCapabilitySelectors(encoder, projectComponentSelector.getCapabilitySelectors());
         } else if (implementation == Implementation.LIBRARY) {
@@ -174,46 +124,24 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
         }
     }
 
-    private void writeAttributes(Encoder encoder, AttributeContainer attributes) throws IOException {
+    private void writeAttributes(Encoder encoder, ImmutableAttributes attributes) throws IOException {
         attributeContainerSerializer.write(encoder, attributes);
     }
 
-    private ComponentSelectorSerializer.Implementation resolveImplementation(ComponentSelector value) {
-        Implementation implementation;
-
+    private static Implementation resolveImplementation(ComponentSelector value) {
         if (value instanceof DefaultModuleComponentSelector) {
-            implementation = Implementation.MODULE;
+            return Implementation.MODULE;
         } else if (value instanceof DefaultProjectComponentSelector) {
-            DefaultProjectComponentSelector projectComponentSelector = (DefaultProjectComponentSelector) value;
-            // Special case some common combinations of names and paths
-            boolean isARootProject = projectComponentSelector.getProjectIdentity().getProjectPath().equals(Path.ROOT);
-            if (projectComponentSelector.getIdentityPath().equals(Path.ROOT) && isARootProject) {
-                return Implementation.ROOT_PROJECT;
-            }
-            if (isARootProject) {
-                return Implementation.OTHER_BUILD_ROOT_PROJECT;
-            }
-            // For non-root project, project name must be the last element of the project path
-            Path projectPath = projectComponentSelector.getProjectIdentity().getProjectPath();
-            String projectName = projectComponentSelector.getProjectIdentity().getProjectName();
-            if (!projectName.equals(projectPath.getName())) {
-                throw new IllegalArgumentException("Unexpected name for project " + projectPath + ". Expected: " + projectPath.getName() + ", found: " + projectName);
-            }
-            if (projectComponentSelector.getIdentityPath().equals(projectPath)) {
-                return Implementation.ROOT_BUILD_PROJECT;
-            }
-            return Implementation.OTHER_BUILD_PROJECT;
+            return Implementation.PROJECT;
         } else if (value instanceof DefaultLibraryComponentSelector) {
-            implementation = Implementation.LIBRARY;
+            return Implementation.LIBRARY;
         } else {
             throw new IllegalArgumentException("Unsupported component selector class: " + value.getClass());
         }
-
-        return implementation;
     }
 
     private enum Implementation {
-        MODULE(1), ROOT_PROJECT(2), ROOT_BUILD_PROJECT(3), OTHER_BUILD_ROOT_PROJECT(4), OTHER_BUILD_PROJECT(5), LIBRARY(6), SNAPSHOT(7);
+        MODULE(1), PROJECT(2), LIBRARY(6);
 
         private final byte id;
 
@@ -223,66 +151,6 @@ public class ComponentSelectorSerializer extends AbstractSerializer<ComponentSel
 
         byte getId() {
             return id;
-        }
-    }
-
-    private static class OptimizingAttributeContainerSerializer implements AttributeContainerSerializer {
-        // We use an identity hashmap for performance, because we know that our attributes
-        // are generated by a factory which guarantees same instances
-        private final Map<AttributeContainer, Integer> writeIndex = new IdentityHashMap<>();
-        private final List<ImmutableAttributes> readIndex = new ArrayList<>();
-        private final AttributeContainerSerializer delegate;
-
-        private OptimizingAttributeContainerSerializer(AttributeContainerSerializer delegate) {
-            this.delegate = delegate;
-        }
-
-        /**
-         * If the cache expired, or that it contains too many entries,
-         * it is possible for the same file to be read multiple times, in which
-         * case the internal state of the reader _must_ be reset.
-         */
-        public void reset() {
-            writeIndex.clear();
-            readIndex.clear();
-        }
-
-        @Override
-        public ImmutableAttributes read(Decoder decoder) throws IOException {
-            boolean empty = decoder.readBoolean();
-            if (empty) {
-                return ImmutableAttributes.EMPTY;
-            }
-            int idx = decoder.readSmallInt();
-            ImmutableAttributes attributes;
-            if (idx == readIndex.size()) {
-                // new entry
-                attributes = delegate.read(decoder);
-                readIndex.add(attributes);
-            } else {
-                attributes = readIndex.get(idx);
-            }
-            return attributes;
-        }
-
-        @Override
-        public void write(Encoder encoder, AttributeContainer container) throws IOException {
-            if (container.isEmpty()) {
-                encoder.writeBoolean(true);
-                return;
-            } else {
-                encoder.writeBoolean(false);
-            }
-            Integer idx = writeIndex.get(container);
-            if (idx == null) {
-                // new value
-                encoder.writeSmallInt(writeIndex.size());
-                writeIndex.put(container, writeIndex.size());
-                delegate.write(encoder, container);
-            } else {
-                // known value, only write index
-                encoder.writeSmallInt(idx);
-            }
         }
     }
 

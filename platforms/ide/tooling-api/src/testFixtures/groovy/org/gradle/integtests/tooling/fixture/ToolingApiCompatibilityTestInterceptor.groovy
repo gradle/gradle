@@ -19,21 +19,11 @@ package org.gradle.integtests.tooling.fixture
 import org.gradle.integtests.fixtures.GradleDistributionTool
 import org.gradle.integtests.fixtures.compatibility.AbstractCompatibilityTestInterceptor
 import org.gradle.integtests.fixtures.compatibility.CoverageContext
-import org.gradle.integtests.fixtures.executer.GradleDistribution
-import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 
 class ToolingApiCompatibilityTestInterceptor extends AbstractCompatibilityTestInterceptor {
 
     protected ToolingApiCompatibilityTestInterceptor(Class<?> target) {
         super(target)
-    }
-
-    /**
-     * Tooling API tests will can run against any version back to Gradle 0.8.
-     */
-    @Override
-    protected List<GradleDistribution> choosePreviousVersionsToTest(ReleasedVersionDistributions previousVersions) {
-        return previousVersions.all
     }
 
     @Override
@@ -46,12 +36,8 @@ class ToolingApiCompatibilityTestInterceptor extends AbstractCompatibilityTestIn
     }
 
     @Override
-    protected Collection<Execution> createDistributionExecutionsFor(GradleDistributionTool versionedTool) {
+    protected Collection<Execution> createExecutionsFor(GradleDistributionTool versionedTool) {
         return [new ToolingApiExecution(current, versionedTool.distribution)]
     }
 
-    @Override
-    protected boolean isAvailable(GradleDistributionTool version) {
-        return version.distribution.toolingApiSupported
-    }
 }

@@ -18,7 +18,6 @@ package org.gradle.plugin.devel.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -39,7 +38,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaLibraryPlugin;
-import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.ClasspathNormalizer;
@@ -54,8 +52,6 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.buildoption.InternalFlag;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
-import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
@@ -65,6 +61,7 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -89,11 +86,12 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/java_gradle_plugin.html">Gradle plugin development reference</a>
  */
-@NonNullApi
+@NullMarked
 public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
 
+    @Deprecated
     static final String API_CONFIGURATION = JvmConstants.API_CONFIGURATION_NAME;
     static final String JAR_TASK = "jar";
     static final String PROCESS_RESOURCES_TASK = "processResources";
@@ -102,7 +100,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String CLASSES_PATTERN = "**/*.class";
     static final String BAD_IMPL_CLASS_WARNING_MESSAGE = "%s: A valid plugin descriptor was found for %s but the implementation class %s was not found in the jar.";
     static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "%s: A plugin descriptor was found for %s but it was invalid.";
-    static final String NO_DESCRIPTOR_WARNING_MESSAGE = "%s: No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
+    static final String NO_DESCRIPTOR_WARNING_MESSAGE = "%s: No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS;
     static final String DECLARED_PLUGIN_MISSING_MESSAGE = "%s: Could not find plugin descriptor of %s at META-INF/" + GRADLE_PLUGINS + "/%s.properties";
     static final String DECLARATION_MISSING_ID_MESSAGE = "Missing id for %s";
     static final String DECLARATION_MISSING_IMPLEMENTATION_MESSAGE = "Missing implementationClass for %s";
@@ -175,7 +173,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
             return;
         }
         DependencyHandler dependencies = project.getDependencies();
-        dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
+        dependencies.add(JvmConstants.COMPILE_ONLY_API_CONFIGURATION_NAME, dependencies.gradleApi());
     }
 
     private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {
@@ -281,20 +279,22 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
             task.getClasses().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getOutput().getClassesDirs());
             task.getClasspath().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getCompileClasspath());
-
-            task.getLauncher().convention(toolchainLauncher(project));
         });
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, check -> check.dependsOn(validatorTask));
+
+        // Published plugins get stricter validation by default
+        project.getPluginManager().withPlugin("publishing", p -> enableStricterValidation(validatorTask));
+        project.getPluginManager().withPlugin("com.gradle.plugin-publish", p -> enableStricterValidation(validatorTask));
+    }
+
+    private static void enableStricterValidation(TaskProvider<ValidatePlugins> validatePlugins) {
+        validatePlugins.configure(task -> {
+            task.getEnableStricterValidation().convention(true);
+        });
     }
 
     private void configureDependencyGradlePluginsResolution(Project project) {
         new GradlePluginApiVersionAttributeConfigurationAction().execute((ProjectInternal) project);
-    }
-
-    private Provider<JavaLauncher> toolchainLauncher(Project project) {
-        JavaPluginExtension extension = project.getExtensions().findByType(JavaPluginExtension.class);
-        JavaToolchainService service = project.getExtensions().findByType(JavaToolchainService.class);
-        return service.launcherFor(extension.getToolchain());
     }
 
     /**
@@ -458,6 +458,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
             for (SourceSet testSourceSet : testSourceSets) {
                 String implementationConfigurationName = testSourceSet.getImplementationConfigurationName();
                 dependencies.add(implementationConfigurationName, dependencies.gradleTestKit());
+                dependencies.add(implementationConfigurationName, dependencies.gradleApi());
                 String runtimeOnlyConfigurationName = testSourceSet.getRuntimeOnlyConfigurationName();
                 dependencies.add(runtimeOnlyConfigurationName, project.getLayout().files(pluginClasspathTask));
             }

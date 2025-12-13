@@ -47,6 +47,11 @@ import spock.lang.Subject
 import java.util.zip.ZipEntry
 
 class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
+    private static final String HASH_JAR = "6ba9833c4754af6aa96aadf278e1238d"
+    private static final String HASH_JAR_WITH_STORED_RESOURCE = "ee7f96984f55556280370ac4efa84278"
+    private static final String HASH_DIR = "2787f09c9cb02cf94cb732195cb527f5"
+    private static final String HASH_COPYING_TRANSFORM_ON_JAR = "o_1f5b1eae547bef94b883b9b49cacc47c"
+
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
     def testDir = testDirectoryProvider.testDirectory
@@ -171,7 +176,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/o_e161f24809571a55f09d3f820c8e5942/thing.jar")
+        def cachedFile = testDir.file("cached/${HASH_COPYING_TRANSFORM_ON_JAR}/thing.jar")
 
         when:
         def cachedClasspath = transformer.copyingTransform(classpath)
@@ -189,7 +194,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/o_e161f24809571a55f09d3f820c8e5942/thing.jar")
+        def cachedFile = testDir.file("cached/${HASH_COPYING_TRANSFORM_ON_JAR}/thing.jar")
         transformer.copyingTransform(classpath)
 
         when:
@@ -226,7 +231,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/o_e161f24809571a55f09d3f820c8e5942/thing.jar")
+        def cachedFile = testDir.file("cached/${HASH_COPYING_TRANSFORM_ON_JAR}/thing.jar")
         transformer.copyingTransform(classpath)
         modifiedJar(file)
 
@@ -262,7 +267,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/886ef9a57c5a3916bcd98f1162c2b925/thing.jar")
+        def cachedFile = testDir.file("cached/${HASH_JAR}/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, noOpCustomTransform)
@@ -291,7 +296,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def dir = testDir.file("thing.dir")
         classesDir(dir)
         def classpath = DefaultClassPath.of(dir)
-        def cachedFile = testDir.file("cached/57c791ec01b383c61cd1941d3babdcbc/thing.dir")
+        def cachedFile = testDir.file("cached/${HASH_DIR}/thing.dir")
 
         when:
         def cachedClasspath = transformer.transform(classpath, noOpCustomTransform)
@@ -322,8 +327,8 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(dir, file)
-        def cachedDir = testDir.file("cached/57c791ec01b383c61cd1941d3babdcbc/thing.dir")
-        def cachedFile = testDir.file("cached/886ef9a57c5a3916bcd98f1162c2b925/thing.jar")
+        def cachedDir = testDir.file("cached/${HASH_DIR}/thing.dir")
+        def cachedFile = testDir.file("cached/${HASH_JAR}/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, noOpCustomTransform)
@@ -352,7 +357,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file3 = testDir.file("thing3.jar")
         jar(file3)
         def classpath = DefaultClassPath.of(dir, file, dir2, file2, dir3, file3)
-        def cachedFile = testDir.file("cached/o_e161f24809571a55f09d3f820c8e5942/thing.jar")
+        def cachedFile = testDir.file("cached/${HASH_COPYING_TRANSFORM_ON_JAR}/thing.jar")
 
         when:
         def cachedClasspath = transformer.copyingTransform(classpath)
@@ -380,8 +385,8 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file3 = testDir.file("thing3.jar")
         jar(file3)
         def classpath = DefaultClassPath.of(dir, file, dir2, file2, dir3, file3)
-        def cachedDir = testDir.file("cached/57c791ec01b383c61cd1941d3babdcbc/thing.dir")
-        def cachedFile = testDir.file("cached/886ef9a57c5a3916bcd98f1162c2b925/thing.jar")
+        def cachedDir = testDir.file("cached/${HASH_DIR}/thing.dir")
+        def cachedFile = testDir.file("cached/${HASH_JAR}/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, noOpCustomTransform)
@@ -401,7 +406,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/7e24674c3afc724bf3a9a45f567ec286/thing.jar")
+        def cachedFile = testDir.file("cached/4acd541ac6dd8ce7ab6de4133c1ac30f/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, transform)
@@ -435,7 +440,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jarWithStoredResource(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/c74031ab9e94d160bc953e94f7adb0d3/thing.jar")
+        def cachedFile = testDir.file("cached/${HASH_JAR_WITH_STORED_RESOURCE}/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, noOpCustomTransform)
@@ -452,7 +457,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         def file = testDir.file("thing.jar")
         jar(file)
         def remote = new URL("https://somewhere")
-        def cachedFile = testDir.file("cached/o_e161f24809571a55f09d3f820c8e5942/thing.jar")
+        def cachedFile = testDir.file("cached/${HASH_COPYING_TRANSFORM_ON_JAR}/thing.jar")
 
         when:
         def cachedClasspath = transformer.copyingTransform([file.toURI().toURL(), remote])

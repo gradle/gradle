@@ -28,7 +28,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
+import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
@@ -46,7 +46,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     public DefaultConfigurableFileTree(
         PathToFileResolver resolver,
         FileCollectionObservationListener listener,
-        Factory<PatternSet> patternSetFactory,
+        PatternSetFactory patternSetFactory,
         TaskDependencyFactory taskDependencyFactory,
         DirectoryFileTreeFactory directoryFileTreeFactory
     ) {
@@ -54,7 +54,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
         this.resolver = resolver;
         this.listener = listener;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        patternSet = patternSetFactory.create();
+        patternSet = patternSetFactory.createPatternSet();
         buildDependency = taskDependencyFactory.configurableDependency();
     }
 
@@ -208,5 +208,9 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     public ConfigurableFileTree setBuiltBy(Iterable<?> tasks) {
         buildDependency.setValues(tasks);
         return this;
+    }
+
+    public PathToFileResolver getResolver() {
+        return resolver;
     }
 }

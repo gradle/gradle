@@ -181,12 +181,13 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         public static final String GRADLE_PROPERTY = "org.gradle.console";
 
         public ConsoleOption() {
-            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies which type of console output to generate. Values are 'plain', 'auto' (default), 'rich' or 'verbose'."));
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies which type of console output to generate. Values are 'plain', 'colored', 'auto' (default), 'rich' or 'verbose'."));
         }
 
         @Override
         public void applyTo(String value, LoggingConfiguration settings, Origin origin) {
-            String consoleValue = TextUtil.capitalize(value.toLowerCase(Locale.ROOT));
+            String normalized = value.toLowerCase(Locale.ROOT);
+            String consoleValue = TextUtil.capitalize(normalized);
             try {
                 ConsoleOutput consoleOutput = ConsoleOutput.valueOf(consoleValue);
                 settings.setConsoleOutput(consoleOutput);

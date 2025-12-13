@@ -1508,4 +1508,30 @@ The value of this property is derived from: <source>""")
         property.get().size() == 100000
         property.getProducer().visitProducerTasks {}
     }
+
+    def "value coercion is applied to #description after configuration cache round-trip"() {
+        given:
+        GString gstring = "${'value'}"
+
+        appendAction(property, gstring)
+        def value = property.calculateExecutionTimeValue()
+
+        when:
+        def restoredProperty = property()
+        restoredProperty.fromState(value)
+
+        then:
+        restoredProperty.get().forEach {
+            assert it instanceof String
+        }
+
+        where:
+        description               | appendAction
+        "fixed items value"       | { p, v -> p.addAll([v]) }
+        "fixed items provider"    | { p, v -> p.addAll(Providers.of([v])) }
+        "changing items provider" | { p, v -> p.addAll(Providers.changing { [v] }) }
+        "fixed value"             | { p, v -> p.add(v) }
+        "fixed provider"          | { p, v -> p.add(Providers.of(v)) }
+        "changing provider"       | { p, v -> p.add(Providers.changing { v }) }
+    }
 }

@@ -24,7 +24,7 @@ import org.gradle.util.internal.DefaultGradleVersion
 
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
     public static final String PLUGIN_DEPRECATION_MESSAGE = 'The DeprecatedPlugin plugin has been deprecated'
-    private static final String RUN_WITH_STACKTRACE = "(Run with -D${LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME}=true to print the full stack trace for this deprecation warning.)"
+    private static final String RUN_WITH_STACKTRACE = '(Run with --stacktrace to get the full stack trace of this deprecation warning.)'
 
     def setup() {
         file('buildSrc/src/main/java/DeprecatedTask.java') << """
@@ -35,17 +35,17 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             public class DeprecatedTask extends DefaultTask {
                 @TaskAction
                 void causeDeprecationWarning() {
-                    DeprecationLogger.deprecateTask("thisIsADeprecatedTask").replaceWith("foobar").willBeRemovedInGradle9().undocumented().nagUser();
+                    DeprecationLogger.deprecateTask("thisIsADeprecatedTask").replaceWith("foobar").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser();
                     System.out.println("DeprecatedTask.causeDeprecationWarning() executed.");
                 }
 
                 public static void someFeature() {
-                    DeprecationLogger.deprecateMethod(DeprecatedTask.class, "someFeature()").willBeRemovedInGradle9().undocumented().nagUser();
+                    DeprecationLogger.deprecateMethod(DeprecatedTask.class, "someFeature()").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser();
                     System.out.println("DeprecatedTask.someFeature() executed.");
                 }
 
                 void otherFeature() {
-                    DeprecationLogger.deprecateMethod(DeprecatedTask.class, "otherFeature()").withAdvice("Relax. This is just a test.").willBeRemovedInGradle9().undocumented().nagUser();
+                    DeprecationLogger.deprecateMethod(DeprecatedTask.class, "otherFeature()").withAdvice("Relax. This is just a test.").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser();
                     System.out.println("DeprecatedTask.otherFeature() executed.");
                 }
 
@@ -59,7 +59,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             public class DeprecatedPlugin implements Plugin<Project> {
                 @Override
                 public void apply(Project project) {
-                    DeprecationLogger.deprecatePlugin("DeprecatedPlugin").replaceWithExternalPlugin("Foobar").willBeRemovedInGradle9().undocumented().nagUser();
+                    DeprecationLogger.deprecatePlugin("DeprecatedPlugin").replaceWithExternalPlugin("Foobar").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser();
                     project.getTasks().create("thisIsADeprecatedTask", DeprecatedTask.class);
                 }
             }
@@ -71,6 +71,9 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
     def 'DeprecatedPlugin and DeprecatedTask - #scenario'() {
         given:
+        executer.beforeExecute {
+            withoutInternalDeprecationStackTraceFlag()
+        }
         buildFile << """
             apply plugin: DeprecatedPlugin // line 2
 
@@ -86,10 +89,10 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         if (fullStacktraceEnabled) {
-            executer.withFullDeprecationStackTraceEnabled()
+            executer.withStacktraceEnabled()
         }
         if (warningsCount > 0) {
-            executer.expectDeprecationWarnings(warningsCount)
+            executer.noDeprecationChecks()
         }
         executer.withWarningMode(warnings)
         warnings == WarningMode.Fail ? fails('thisIsADeprecatedTask', 'broken') : succeeds('thisIsADeprecatedTask', 'broken')
@@ -122,7 +125,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         if (warnings == WarningMode.Fail) {
-            failure.assertHasDescription("Deprecated Gradle features were used in this build, making it incompatible with ${DefaultGradleVersion.current().nextMajorVersion}")
+            failure.assertHasDescription("Deprecated Gradle features were used in this build, making it incompatible with Gradle ${DefaultGradleVersion.current().nextMajorVersion.majorVersion}")
         }
 
         where:
@@ -150,7 +153,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        executer.expectDeprecationWarning("The DeprecatedPlugin plugin has been deprecated. This is scheduled to be removed in Gradle 9.0. Consider using the Foobar plugin instead.")
+        executer.expectDocumentedDeprecationWarning("The DeprecatedPlugin plugin has been deprecated. This is scheduled to be removed in Gradle 10. Consider using the Foobar plugin instead. For more information, please refer to https://docs.gradle.org/current/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation.")
         executer.withWarningMode(WarningMode.Fail)
 
         then:
@@ -164,12 +167,12 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         given:
         def initScript = file("init.gradle") << """
             allprojects {
-                org.gradle.internal.deprecation.DeprecationLogger.deprecatePlugin("DeprecatedPlugin").replaceWithExternalPlugin("Foobar").willBeRemovedInGradle9().undocumented().nagUser() // line 2
+                org.gradle.internal.deprecation.DeprecationLogger.deprecatePlugin("DeprecatedPlugin").replaceWithExternalPlugin("Foobar").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser() // line 2
             }
         """.stripIndent()
 
         when:
-        executer.expectDeprecationWarnings(1)
+        executer.noDeprecationChecks()
         executer.usingInitScript(initScript)
         run '-s'
 
@@ -199,7 +202,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         if (withFullStacktrace) {
             executer.withFullDeprecationStackTraceEnabled()
         }
-        executer.expectDeprecationWarning()
+        executer.noDeprecationChecks()
         run()
 
         then:
@@ -232,7 +235,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         if (withFullStacktrace) {
             executer.withFullDeprecationStackTraceEnabled()
         }
-        executer.expectDeprecationWarning()
+        executer.noDeprecationChecks()
         run()
 
         then:
@@ -278,9 +281,9 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         2.times {
-            executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 9.0.")
-            executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 9.0.")
-            executer.expectDeprecationWarningWithPattern(/The Task\.\w+\(\) method has been deprecated\. This is scheduled to be removed in Gradle 9\.0\./)
+            executer.expectDocumentedDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 10. For more information, please refer to https://docs.gradle.org/current/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation.")
+            executer.expectDocumentedDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 10. For more information, please refer to https://docs.gradle.org/current/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation.")
+            executer.expectDocumentedDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 10. For more information, please refer to https://docs.gradle.org/current/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation.")
             run("broken", "buildSrc:broken", "included:broken")
 
             outputContains("Build file '${file("included/build.gradle")}': line 5")
@@ -289,78 +292,9 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "prints correct deprecation trace property value to use to display stack traces for deprecation warnings"() {
-        disableProblemsApiCheck()
-
-        given:
-        buildFile << """
-            def myConf = project.configurations.resolvable("myConf")
-            def myDetached = project.configurations.detachedConfiguration()
-            myDetached.extendsFrom(myConf.get())
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("Calling extendsFrom on configuration ':detachedConfiguration1' has been deprecated. This will fail with an error in Gradle 9.0. Detached configurations should not extend other configurations, this was extending: 'myConf'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#detached_configurations_cannot_extend")
-        succeeds "tasks"
-
-        and: "stack trace suggestion is printed"
-        outputContains("\t(Run with -Dorg.gradle.deprecation.trace=true to print the full stack trace for this deprecation warning.)")
-
-        and: "we can verify the stack trace is not printed"
-        String notExpected = """run(${buildFile.absolutePath}:4)
-\tat org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory\$ScriptRunnerImpl.run(DefaultScriptRunnerFactory.java"""
-        result.assertNotOutput(notExpected)
-    }
-
-    def "does not print stack traces for deprecation warnings if --stacktrace is set"() {
-        disableProblemsApiCheck()
-
-        given:
-        buildFile << """
-            def myConf = project.configurations.resolvable("myConf")
-            def myDetached = project.configurations.detachedConfiguration()
-            myDetached.extendsFrom(myConf.get())
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("Calling extendsFrom on configuration ':detachedConfiguration1' has been deprecated. This will fail with an error in Gradle 9.0. Detached configurations should not extend other configurations, this was extending: 'myConf'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#detached_configurations_cannot_extend")
-        succeeds "tasks", "--stacktrace"
-
-        and: "stack trace suggestion is printed"
-        outputContains("\t(Run with -Dorg.gradle.deprecation.trace=true to print the full stack trace for this deprecation warning.)")
-
-        and: "we can verify the stack trace is not printed"
-        String notExpected = """run($buildFile.absolutePath}:4)
-\tat org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory\$ScriptRunnerImpl.run(DefaultScriptRunnerFactory.java"""
-        result.assertNotOutput(notExpected)
-    }
-
-    def "prints stack traces for deprecation warnings if deprecation trace property value is set"() {
-        disableProblemsApiCheck()
-
-        given:
-        buildFile << """
-            def myConf = project.configurations.resolvable("myConf")
-            def myDetached = project.configurations.detachedConfiguration()
-            myDetached.extendsFrom(myConf.get())
-        """
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("Calling extendsFrom on configuration ':detachedConfiguration1' has been deprecated. This will fail with an error in Gradle 9.0. Detached configurations should not extend other configurations, this was extending: 'myConf'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#detached_configurations_cannot_extend")
-        succeeds "tasks", "-Dorg.gradle.deprecation.trace=true"
-
-        and: "stack trace suggestion is not printed"
-        result.assertNotOutput("\t(Run with -Dorg.gradle.deprecation.trace=true to print the full stack trace for this deprecation warning.)")
-
-        and: "we can verify the part of the stack trace that should be unchanged is printed"
-        String expected = """run(${buildFile.absolutePath}:4)
-\tat org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory\$ScriptRunnerImpl.run(DefaultScriptRunnerFactory.java"""
-        outputContains(expected)
-    }
-
     String deprecatedMethodUsage() {
         return """
-            ${DeprecationLogger.name}.deprecateMethod(Task.class, "someFeature()").willBeRemovedInGradle9().undocumented().nagUser();
+            ${DeprecationLogger.name}.deprecateMethod(Task.class, "someFeature()").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser();
         """
     }
 

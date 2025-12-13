@@ -18,8 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal;
 import org.gradle.api.Task;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.util.Path;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface TaskDetails {
     Path getPath();

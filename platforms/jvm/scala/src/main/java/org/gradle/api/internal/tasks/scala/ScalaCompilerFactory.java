@@ -63,8 +63,15 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
 
         // currently, we leave it to ZincScalaCompiler to also compile the Java code
         Compiler<ScalaJavaJointCompileSpec> scalaCompiler = new DaemonScalaCompiler<>(
-            daemonWorkingDir, ZincScalaCompilerFacade.class, new Object[] {hashedScalaClasspath},
-            compilerWorkerExecutor, zincClasspathFiles, forkOptionsFactory, classPathRegistry, classLoaderRegistry);
+            daemonWorkingDir,
+            hashedScalaClasspath,
+            compilerWorkerExecutor,
+            zincClasspathFiles,
+            forkOptionsFactory,
+            classPathRegistry,
+            classLoaderRegistry
+        );
+
         return new NormalizingScalaCompiler(scalaCompiler);
     }
 }

@@ -348,6 +348,7 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
 
     @Issue("https://github.com/gradle/gradle/issues/20394")
     @Requires(UnitTestPreconditions.Jdk16OrLater)
+    @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
     def "doesn't recompile when record implementation changes"() {
         given:
         buildFile << """
@@ -387,6 +388,7 @@ record Foo(String property) {
 
     @Issue("https://github.com/gradle/gradle/issues/20394")
     @Requires(UnitTestPreconditions.Jdk16OrLater)
+    @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
     def "recompiles when record components change"() {
         given:
         buildFile << """
@@ -426,6 +428,7 @@ record Foo(String property, int newProperty) {
 
     @Issue("https://github.com/gradle/gradle/issues/20394")
     @Requires(UnitTestPreconditions.Jdk17OrLater)
+    @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
     def "recompiles when sealed modifier is changed"() {
         given:
         buildFile << """

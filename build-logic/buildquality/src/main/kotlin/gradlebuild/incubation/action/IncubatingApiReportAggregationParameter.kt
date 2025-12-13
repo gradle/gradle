@@ -18,10 +18,13 @@ package gradlebuild.incubation.action
 
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
 import org.gradle.workers.WorkParameters
 
 
 interface IncubatingApiReportAggregationParameter : WorkParameters {
     val reports: ConfigurableFileCollection
     val htmlReportFile: RegularFileProperty
+    val csvReportFile: RegularFileProperty
+    val currentCommit: Property<String>
 }

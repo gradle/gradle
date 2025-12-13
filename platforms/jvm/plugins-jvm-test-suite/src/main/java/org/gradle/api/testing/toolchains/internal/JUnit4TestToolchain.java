@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.testing.TestFramework;
-import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.Test;
 
 import javax.inject.Inject;
@@ -41,9 +41,12 @@ abstract public class JUnit4TestToolchain implements JvmTestToolchain<JUnit4Tool
     @Inject
     protected abstract DependencyFactory getDependencyFactory();
 
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
     @Override
     public TestFramework createTestFramework(Test task) {
-        return new JUnitTestFramework(task, (DefaultTestFilter) task.getFilter(), false);
+        return getObjectFactory().newInstance(JUnitTestFramework.class, task.getFilter(), task.getTemporaryDirFactory(), task.getDryRun());
     }
 
     @Override

@@ -17,7 +17,9 @@
 package org.gradle.smoketests
 
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.testdistribution.LocalOnly
 
+@LocalOnly(because = "Needs Android environment")
 class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractKotlinPluginAndroidSmokeTest {
     @Override
     String getSampleName() {

@@ -27,7 +27,7 @@ import java.io.Serializable;
  * The absence of shared mutable state allows these actions to be safely executed in parallel as needed.
  *
  * <p><b>IMPORTANT:</b> As isolated action instances are recreated using Configuration Cache serialization, they must
- * adhere to the <a href="https://docs.gradle.org/current/userguide/configuration_cache.html#config_cache:requirements">same requirements</a>
+ * adhere to the <a href="https://docs.gradle.org/current/userguide/configuration_cache_requirements.html#config_cache:requirements">same requirements</a>
  * as any other object serialized into the Configuration Cache.</p>
  *
  * @param <T> The type of object the action operates on.

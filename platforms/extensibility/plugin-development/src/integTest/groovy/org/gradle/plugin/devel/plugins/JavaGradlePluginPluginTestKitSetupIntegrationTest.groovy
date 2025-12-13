@@ -44,12 +44,20 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
                     assert testRuntimeClasspath.files.containsAll(testKit.files)
                 }
             }
+            task assertHasGradleApi() {
+                def testRuntimeClasspath = project.sourceSets.test.runtimeClasspath
+                def gradleApi = dependencies.gradleApi().files
+                doLast {
+                    assert testRuntimeClasspath.files.containsAll(gradleApi.files)
+                }
+            }
         """
         expect:
         succeeds("assertHasTestKit")
+        succeeds("assertHasGradleApi")
         succeeds("test")
-        result.assertTaskExecuted(":pluginUnderTestMetadata")
-        result.assertTaskExecuted(":pluginDescriptors")
+        result.assertTaskScheduled(":pluginUnderTestMetadata")
+        result.assertTaskScheduled(":pluginDescriptors")
     }
 
     def "wires creation of plugin under test metadata into build lifecycle"() {
@@ -67,7 +75,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         assertHasImplementationClasspath(pluginMetadata, expectedClasspath)
     }
 
-    def "can configure plugin and test source set by extension"() {
+    def "can configure test source set by extension"() {
         given:
         buildFile << """
             sourceSets {
@@ -99,7 +107,6 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
             check.dependsOn functionalTest
 
             gradlePlugin {
-                pluginSourceSet sourceSets.custom
                 testSourceSets sourceSets.functionalTest
             }
         """
@@ -112,7 +119,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         then:
         executedAndNotSkipped PLUGIN_UNDER_TEST_METADATA_TASK_PATH
         def pluginMetadata = file("build/$PLUGIN_UNDER_TEST_METADATA_TASK_NAME/$METADATA_FILE_NAME")
-        def expectedClasspath = [file('build/classes/java/custom'), file('build/resources/custom'), module.artifactFile]
+        def expectedClasspath = [file('build/classes/java/main'), file('build/resources/main')]
         assertHasImplementationClasspath(pluginMetadata, expectedClasspath)
     }
 

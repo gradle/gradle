@@ -16,12 +16,12 @@
 
 package org.gradle.internal.build.event.types;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.Serializable;
 
-@NonNullApi
+@NullMarked
 public class DefaultDocumentationLink implements InternalDocumentationLink, Serializable {
     private final String url;
 

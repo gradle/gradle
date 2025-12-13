@@ -18,8 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ComponentMetadata;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface MetadataProvider {
     @Nullable

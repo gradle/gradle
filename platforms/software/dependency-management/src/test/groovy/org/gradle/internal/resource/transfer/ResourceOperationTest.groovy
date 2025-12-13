@@ -16,11 +16,11 @@
 
 package org.gradle.internal.resource.transfer
 
-
+import org.gradle.internal.logging.progress.ResourceOperation
 import org.gradle.internal.operations.BuildOperationContext
 import spock.lang.Specification
 
-import static org.gradle.internal.resource.transfer.ResourceOperation.Type
+import static org.gradle.internal.logging.progress.ResourceOperation.Type
 
 class ResourceOperationTest extends Specification {
     BuildOperationContext context = Mock()

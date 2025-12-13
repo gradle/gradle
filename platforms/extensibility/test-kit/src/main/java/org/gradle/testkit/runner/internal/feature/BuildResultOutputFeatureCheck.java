@@ -20,6 +20,8 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.testkit.runner.UnsupportedFeatureException;
 import org.gradle.util.GradleVersion;
 
+import java.util.function.Function;
+
 import static org.gradle.tooling.internal.consumer.DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION;
 
 public class BuildResultOutputFeatureCheck implements FeatureCheck {
@@ -35,15 +37,22 @@ public class BuildResultOutputFeatureCheck implements FeatureCheck {
     @Override
     public void verify() {
         if (!supportsVersion() && embedded) {
-            throw new UnsupportedFeatureException("capture build output in debug mode with the GradleRunner", targetGradleVersion, TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.getSince());
+            throw new UnsupportedFeatureException(
+                "capture build output in debug mode with the GradleRunner",
+                targetGradleVersion,
+                TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.getSince());
         } else {
-            if (targetGradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_VERSION) < 0) {
-                DeprecationLogger.deprecate("Capturing build output in debug mode with the GradleRunner for the version of Gradle you are using (%s) is deprecated with TestKit. " +
-                        "TestKit will only support the last 5 major versions in future.")
-                    .willBecomeAnErrorInGradle9()
-                    .withUserManual("third_party_integration", "sec:embedding_compatibility")
-                    .nagUser();
-            }
+            warnIfUnsupportedVersion(targetGradleVersion, version -> String.format("Capturing build output in debug mode with the GradleRunner for the version of Gradle you are using (%s) is deprecated with TestKit.",
+                version));
+        }
+    }
+
+    public static void warnIfUnsupportedVersion(GradleVersion targetGradleVersion, Function<String, String> messageSupplier) {
+        if (targetGradleVersion.compareTo(MINIMUM_SUPPORTED_GRADLE_VERSION) < 0) {
+            DeprecationLogger.deprecate(messageSupplier.apply(targetGradleVersion.getVersion()) + " TestKit will only support the last 5 major versions in future.")
+                .willBecomeAnErrorInGradle10()
+                .withUserManual("tooling_api", "sec:embedding_compatibility")
+                .nagUser();
         }
     }
 

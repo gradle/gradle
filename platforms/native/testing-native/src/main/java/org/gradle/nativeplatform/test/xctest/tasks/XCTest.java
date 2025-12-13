@@ -34,9 +34,8 @@ import org.gradle.nativeplatform.test.xctest.internal.execution.XCTestExecuter;
 import org.gradle.nativeplatform.test.xctest.internal.execution.XCTestSelection;
 import org.gradle.nativeplatform.test.xctest.internal.execution.XCTestTestExecutionSpec;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 
@@ -95,9 +94,6 @@ public abstract class XCTest extends AbstractTestTask {
     protected TestExecuter<XCTestTestExecutionSpec> createTestExecuter() {
         return getObjectFactory().newInstance(XCTestExecuter.class);
     }
-
-    @Inject
-    protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Workaround for when the task is given an input file that doesn't exist

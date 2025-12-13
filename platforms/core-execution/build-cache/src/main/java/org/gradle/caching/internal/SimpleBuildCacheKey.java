@@ -42,11 +42,22 @@ public class SimpleBuildCacheKey implements BuildCacheKeyInternal {
         return hashCode.toByteArray();
     }
 
-    // TODO Provide default implementation
     @Override
-    @Deprecated
-    @SuppressWarnings("InlineMeSuggester")
-    public String getDisplayName() {
-        return getHashCode();
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        SimpleBuildCacheKey that = (SimpleBuildCacheKey) o;
+
+        return hashCode.equals(that.hashCode);
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode.hashCode();
     }
 }

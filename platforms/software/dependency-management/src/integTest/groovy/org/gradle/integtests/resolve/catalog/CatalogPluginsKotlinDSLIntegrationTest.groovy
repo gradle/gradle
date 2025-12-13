@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.resolve.catalog
 
-
-import org.gradle.integtests.resolve.PluginDslSupport
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
@@ -34,7 +32,7 @@ import org.junit.Rule
  * These tests use Groovy settings files because the parent class sets up things in it already.
  */
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport {
+class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogIntegrationTest {
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
@@ -59,13 +57,10 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
                 }
             }
         """
-        buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
                 alias(otherLibs.plugins.${alias.replace('-', '.')})
             }
-
-            apply(from="fixture.gradle")
         """
 
         when:
@@ -97,13 +92,10 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
                 }
             }
         """
-        buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
                 alias(libs.plugins.greeter) version "1.5"
             }
-
-            apply(from="fixture.gradle")
         """
 
         when:
@@ -132,13 +124,10 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
                 }
             }
         """
-        buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
                 id("com.acme.greeter") version libs.versions.greeter
             }
-
-            apply(from="fixture.gradle")
         """
 
         when:
@@ -171,7 +160,6 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
                 }
             }
         """
-        buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
                 alias(libs.plugins.greeter)
@@ -210,7 +198,6 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
                 }
             }
         """
-        buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             buildscript {
                 repositories {
@@ -235,14 +222,13 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
         outputContains 'Hello from second plugin!'
     }
 
-    def "emits deprecation warning when #useCase from plugins block"() {
+    def "fails when #useCase from plugins block"() {
 
         String taskName = 'greet'
-        String message = 'Hello from plugin!'
         String pluginId = 'com.acme.greeter'
         String pluginVersion = '1.5'
         def plugin = new PluginBuilder(file("greeter"))
-            .addPluginWithPrintlnTask(taskName, message, pluginId)
+            .addPluginWithPrintlnTask(taskName, 'Hello from plugin!', pluginId)
             .publishAs("some", "artifact", pluginVersion, pluginPortal, executer)
 
         file("settings.gradle") << """
@@ -259,27 +245,18 @@ class CatalogPluginsKotlinDSLIntegrationTest extends AbstractVersionCatalogInteg
                 }
             }
         """
-        buildFile.renameTo(file('fixture.gradle'))
         buildKotlinFile << """
             plugins {
                 $pluginRequest
             }
-            apply(from="fixture.gradle")
         """
 
         when:
         plugin.allowAll()
-        executer.expectDocumentedDeprecationWarning(
-            "Accessing libraries or bundles from version catalogs in the plugins block. " +
-                "This behavior has been deprecated. " +
-                "This behavior is scheduled to be removed in Gradle 9.0. " +
-                "Only use versions or plugins from catalogs in the plugins block. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#kotlin_dsl_deprecated_catalogs_plugins_block"
-        )
-        succeeds taskName
+        fails taskName
 
         then:
-        outputContains message
+        failure.assertHasDescription("Accessing libraries or bundles from version catalogs in the plugins block is not allowed. Only use versions or plugins from catalogs in the plugins block.")
 
         where:
         useCase               | pluginRequest

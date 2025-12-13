@@ -18,6 +18,8 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Action;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Allows to query for toolchain managed tools, like {@link JavaCompiler}, {@link JavaLauncher} and {@link JavadocTool}.
@@ -26,6 +28,7 @@ import org.gradle.api.provider.Provider;
  *
  * @since 6.7
  */
+@ServiceScope(Scope.Project.class)
 public interface JavaToolchainService {
 
     /**

@@ -31,10 +31,10 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -323,10 +323,6 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
             } else {
                 listener.finished(notification);
             }
-        }
-
-        public void reset() {
-
         }
     }
 

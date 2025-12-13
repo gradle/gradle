@@ -16,17 +16,15 @@
 
 package org.gradle.kotlin.dsl.plugins.embedded
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
-
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
-
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
-
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assume
 import org.junit.Test
+import spock.lang.Issue
 
 
 class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
@@ -52,7 +50,6 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `adds stdlib and reflect as compile only dependencies`() {
 
         withBuildScript(
@@ -70,11 +67,12 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
 
             tasks {
                 register("assertions") {
+                    val configurationsToCheck = listOf("compileOnlyClasspath", "testRuntimeClasspath").associate { Pair(it, configurations[it] as FileCollection) }
                     doLast {
                         val requiredLibs = listOf("kotlin-stdlib-$embeddedKotlinVersion.jar", "kotlin-reflect-$embeddedKotlinVersion.jar")
-                        listOf("compileOnlyClasspath", "testRuntimeClasspath").forEach { configuration ->
-                            require(configurations[configuration].files.map { it.name }.containsAll(requiredLibs), {
-                                "Embedded Kotlin libraries not found in ${'$'}configuration"
+                        configurationsToCheck.forEach { (name, fileCollection) ->
+                            require(fileCollection.files.map { it.name }.containsAll(requiredLibs), {
+                                "Embedded Kotlin libraries not found in ${'$'}name"
                             })
                         }
                     }
@@ -100,10 +98,12 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
             $repositoriesBlock
 
             dependencies {
-                ${dependencyDeclarationsFor(
-                "implementation",
-                listOf("compiler-embeddable", "scripting-compiler-embeddable", "scripting-compiler-impl-embeddable")
-            )}
+                ${
+                dependencyDeclarationsFor(
+                    "implementation",
+                    listOf("compiler-embeddable", "scripting-compiler-embeddable", "scripting-compiler-impl-embeddable")
+                )
+            }
             }
 
             configurations["compileClasspath"].files.map { println(it) }
@@ -231,7 +231,37 @@ class EmbeddedKotlinPluginIntegTest : AbstractKotlinIntegrationTest() {
 
         val result = build("assemble")
 
-        result.assertTaskExecuted(":compileKotlin")
+        result.assertTaskScheduled(":compileKotlin")
+    }
+
+    /**
+     * See EmbeddedKotlinPlugin.workAroundKgpEagerConfigurations()
+     * TODO remove once https://youtrack.jetbrains.com/issue/KT-81706/ is fixed
+     */
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/35309")
+    fun `clears swift configurations created by KGP`() {
+        // TODO: investigate why the test fails with "Error resolving plugin [id: 'org.gradle.kotlin.embedded-kotlin', version: '6.4.2']"
+        Assume.assumeFalse("This test does not work with forceRealize set to true",
+            System.getProperty("org.gradle.integtest.force.realize.metadata", "false").toBooleanStrictOrNull() ?: false
+        )
+
+        withDefaultSettings()
+
+        withBuildScript(
+            """
+            plugins {
+                `embedded-kotlin`
+            }
+
+            $repositoriesBlock
+            """
+        )
+
+        build("dependencies", "--write-verification-metadata", "sha256")
+
+        val verificationMetadata = existing("gradle/verification-metadata.xml")
+        assertThat(verificationMetadata.readText(), not(containsString("swift-export")))
     }
 
     private

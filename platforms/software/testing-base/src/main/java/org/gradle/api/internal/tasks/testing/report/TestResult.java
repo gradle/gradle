@@ -17,18 +17,23 @@ package org.gradle.api.internal.tasks.testing.report;
 
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 
+import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.gradle.api.tasks.testing.TestResult.ResultType;
 
+/**
+ * @deprecated Only present for compatibility with cashapp/paparazzi. No replacement.
+ */
+@Deprecated
 public class TestResult extends TestResultModel implements Comparable<TestResult> {
     private final long duration;
-    final ClassTestResults classResults;
-    final List<SerializableFailure> failures = new ArrayList<SerializableFailure>();
-    final String name;
-    final String displayName;
-    boolean ignored;
+    private final ClassTestResults classResults;
+    private final List<SerializableFailure> failures = new ArrayList<SerializableFailure>();
+    private final String name;
+    private final String displayName;
+    private boolean ignored;
 
     public TestResult(String name, long duration, ClassTestResults classResults) {
         this(name, name, duration, classResults);
@@ -93,9 +98,12 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         failures.add(failure);
     }
 
-    public void setIgnored() {
+    public void markIgnored(@Nullable SerializableFailure assumptionFailure) {
         classResults.ignored(this);
         ignored = true;
+        if (assumptionFailure != null) {
+            failures.add(assumptionFailure);
+        }
     }
 
     @Override

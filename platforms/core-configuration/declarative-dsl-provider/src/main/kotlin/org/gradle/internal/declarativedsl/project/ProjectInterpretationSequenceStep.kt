@@ -16,22 +16,31 @@
 
 package org.gradle.internal.declarativedsl.project
 
+import org.gradle.internal.declarativedsl.common.RunsBeforeClassScopeIsReady
 import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
+import org.gradle.internal.declarativedsl.evaluator.checks.AccessOnCurrentReceiverCheck
 import org.gradle.internal.declarativedsl.evaluator.defaults.ApplyModelDefaults
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 
 
 /**
- * A step in the interpretation sequence that processes the project build file and applies Software Type conventions
+ * A step in the interpretation sequence that processes the project build file and applies project type conventions
  * configured in the Settings DSL.
  */
 internal
 fun projectInterpretationSequenceStep(
-    softwareTypeRegistry: SoftwareTypeRegistry,
+    projectFeatureDeclarations: ProjectFeatureDeclarations,
 ) = SimpleInterpretationSequenceStepWithConversion(
-    "project",
-    features = setOf(ApplyModelDefaults(), UnsupportedSyntaxFeatureCheck.feature),
+    PROJECT_INTERPRETATION_SEQUENCE_STEP_KEY,
+    features = setOf(
+        ApplyModelDefaults(),
+        UnsupportedSyntaxFeatureCheck.feature,
+        AccessOnCurrentReceiverCheck.feature,
+        RunsBeforeClassScopeIsReady()
+    ),
 ) {
-    projectEvaluationSchema(softwareTypeRegistry)
+    projectEvaluationSchema(projectFeatureDeclarations)
 }
+
+internal const val PROJECT_INTERPRETATION_SEQUENCE_STEP_KEY = "project"

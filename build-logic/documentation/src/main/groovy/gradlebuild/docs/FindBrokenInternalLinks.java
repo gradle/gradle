@@ -18,17 +18,17 @@ package gradlebuild.docs;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.CacheableTask;
-import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.UncheckedException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -134,7 +134,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                 fw.println(message);
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
         throw new GradleException("Documentation assertion failed: found invalid internal links. See " + new org.gradle.internal.logging.ConsoleRenderer().asClickableFileUrl(reportFile));
     }
@@ -166,7 +166,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                 line = br.readLine();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         if (!errorsForFile.isEmpty()) {
@@ -233,7 +233,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                 line = br.readLine();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         if (!errorsForFile.isEmpty()) {
@@ -286,7 +286,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
                 line = br.readLine();
             }
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
 
         if (!errorsForFile.isEmpty()) {

@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.tooling.r31
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.file.TestFile
@@ -27,7 +27,6 @@ import org.gradle.tooling.model.idea.IdeaProject
 /**
  * Dependency substitution is performed for models in a composite build
  */
-@TargetGradleVersion(">=3.1")
 class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     TestFile buildA
     TestFile buildB
@@ -136,7 +135,6 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
 
     }
 
-    @TargetGradleVersion(">=3.3")
     def "Idea models for included builds have dependencies substituted"() {
         when:
         def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
@@ -172,7 +170,6 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         projectC.modules[0].name == 'buildC'
     }
 
-    @TargetGradleVersion(">=4.0")
     def "ensures unique name for all Idea modules in composite"() {
         given:
         buildA.buildFile << """
@@ -180,19 +177,18 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
                 ${testImplementationConfiguration} "org.test:buildC:1.0"
                 ${testImplementationConfiguration} "org.buildD:b1:1.0"
             }
-"""
+        """
         def buildD = multiProjectBuildInSubFolder("buildD", ["b1", "buildC"]) {
-            buildFile << """
-                allprojects {
+            [buildFile, project("b1").buildFile, project("buildC").buildFile].each {
+                it << """
                     apply plugin: 'java'
-
                     group = 'org.buildD'
-                }
-"""
+                """
+            }
         }
         settingsFile << """
             includeBuild 'buildD'
-"""
+        """
 
         when:
         def allProjects = withConnection {c -> c.action(new IdeaProjectUtil.GetAllIdeaProjectsAction()).run() }
@@ -216,7 +212,6 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
         allProjects.getIdeaProject('buildD').modules.collect { it.name } == ['buildD', 'buildD-b1', 'buildD-buildC']
     }
 
-    @TargetGradleVersion(">=3.3")
     def "Does not execute tasks for included builds when generating IDE models"() {
         when:
         def modelOperation = withModel(modelType)
@@ -224,7 +219,7 @@ class PersistentCompositeDependencySubstitutionCrossVersionSpec extends ToolingA
 
         then:
         modelType.isInstance modelInstance
-        modelOperation.result.assertTasksExecuted()
+        modelOperation.result.assertNoTasksScheduled()
 
         where:
         modelType << [EclipseProject, IdeaProject]

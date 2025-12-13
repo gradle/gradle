@@ -16,11 +16,11 @@
 
 package org.gradle.language.base.internal.compile;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.language.base.compile.CompilerVersion;
 import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class DefaultCompilerVersion implements CompilerVersion {
 
     private final String type;

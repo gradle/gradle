@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.scan.NotUsedByScanPlugin;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -39,8 +39,14 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
 
     public interface Details {
 
+        /**
+         * The path of the build this task belongs to.
+         */
         String getBuildPath();
 
+        /**
+         * Get the path of this task within the build.
+         */
         String getTaskPath();
 
         /**
@@ -96,8 +102,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
          *
          * @since 8.7
          */
-        @Nullable
-        byte[] getOriginBuildCacheKeyBytes();
+        byte @Nullable [] getOriginBuildCacheKeyBytes();
 
         /**
          * If task was UP_TO_DATE or FROM_CACHE, this will convey the execution time of the task in the build that produced the outputs being reused.

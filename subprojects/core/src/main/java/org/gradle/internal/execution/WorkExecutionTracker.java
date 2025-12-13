@@ -17,6 +17,7 @@
 package org.gradle.internal.execution;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -34,9 +35,14 @@ public interface WorkExecutionTracker {
     Optional<TaskInternal> getCurrentTask();
 
     /**
-     * Checks if the current thread is executing a {@link org.gradle.api.artifacts.transform.TransformAction}.
-     *
-     * @return {@code true} if the current thread is executing a transform action
+     * Finds the task executing the target operation, if any.
      */
-    boolean isExecutingTransformAction();
+    Optional<TaskInternal> getCurrentTask(OperationIdentifier id);
+
+    /**
+     * Checks if the current thread is executing a Task or a {@link org.gradle.api.artifacts.transform.TransformAction}.
+     *
+     * @return {@code true} if the current thread is executing a task or a transform action
+     */
+    boolean isExecutingTaskOrTransformAction();
 }

@@ -18,12 +18,7 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
-import spock.lang.Issue
 
-@Issue("https://github.com/gradle/gradle-private/issues/3247")
-@Requires(UnitTestPreconditions.NotJava8OnMacOs)
 class PluginApplicationErrorIntegrationTest extends AbstractIntegrationSpec {
     def pluginBuilder = new PluginBuilder(file("plugin"))
 
@@ -100,7 +95,8 @@ class BrokenPlugin {
 
         then:
         failure.assertHasCause("Failed to apply plugin 'org.gradle.base'")
-        failure.assertHasCause("The plugin must be applied in a build script (or to the Project object), but was applied in a settings script (or to the Settings object)")
+        failureHasCause("Unexpected plugin type")
+        failureCauseContains("The plugin must be applied in a build script (or to the Project object), but was applied in a settings script (or to the Settings object)")
 
         and:
         verifyAll(receivedProblem(0)) {
@@ -128,7 +124,8 @@ class BrokenPlugin {
 
         then:
         failure.assertHasCause("Failed to apply plugin class 'SomePlugin'.")
-        failure.assertHasCause(errorMessage)
+        failureHasCause("Unexpected plugin type")
+        failureCauseContains(errorMessage)
 
         where:
         pluginTarget | targetFile        | errorMessage
@@ -159,7 +156,8 @@ class BrokenPlugin {
 
         then:
         failure.assertHasCause("Failed to apply plugin class 'SomePlugin'.")
-        failure.assertHasCause(errorMessage)
+        failureHasCause("Unexpected plugin type")
+        failureCauseContains(errorMessage)
 
         where:
         pluginTarget | targetFile        | errorMessage

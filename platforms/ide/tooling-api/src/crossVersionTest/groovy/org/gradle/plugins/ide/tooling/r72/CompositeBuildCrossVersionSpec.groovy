@@ -125,13 +125,13 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "can query model for multi-project buildSrc builds"() {
-        multiProjectBuildSrc(projectDir)
+        multiProjectBuildSrc(null)
         settingsFile << """
             includeBuild("child")
         """
 
         def childBuild = file("child")
-        multiProjectBuildSrc(childBuild)
+        multiProjectBuildSrc("child")
 
         given:
         def model = withConnection {
@@ -291,8 +291,14 @@ class CompositeBuildCrossVersionSpec extends ToolingApiSpecification {
         return buildSrc
     }
 
-    void multiProjectBuildSrc(TestFile dir) {
-        dir.file("buildSrc/settings.gradle") << """
+    void multiProjectBuildSrc(String subDir) {
+        if (subDir) {
+            subDir = "$subDir/"
+        } else {
+            subDir = ""
+        }
+        createProjectSubDirs("${subDir}buildSrc/a/", "${subDir}buildSrc/b/")
+        projectDir.file("$subDir/buildSrc/settings.gradle") << """
             include("a")
             include("b")
         """

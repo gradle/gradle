@@ -21,8 +21,8 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.provider.Provider;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
@@ -195,6 +195,7 @@ public class Collectors {
         }
 
         @Override
+        @SuppressWarnings("UndefinedEquals") // We're fine with having weak contract of Iterable/Collection.equals.
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -202,12 +203,7 @@ public class Collectors {
             if (o == null || getClass() != o.getClass()) {
                 return false;
             }
-            ElementsFromCollection<?> that = (ElementsFromCollection<?>) o;
-
-            // We're fine with having weak contract of Iterable/Collection.equals.
-            @SuppressWarnings("UndefinedEquals")
-            boolean result = Objects.equal(value, that.value);
-            return result;
+            return Objects.equal(value, ((ElementsFromCollection<?>) o).value);
         }
 
         @Override

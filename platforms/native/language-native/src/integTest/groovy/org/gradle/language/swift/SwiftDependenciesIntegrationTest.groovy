@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -55,7 +54,6 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
         assertAppHasOutputFor("release")
     }
 
-    @ToBeFixedForConfigurationCache(because = "source dependencies")
     def "can depend on swift libraries from VCS"() {
         given:
         createDirs("app")
@@ -97,7 +95,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
         if (buildType == "Release") {
             tasks << [ ":log:stripSymbols${buildType}", ":hello:stripSymbols${buildType}", ":app:stripSymbols${buildType}"]
         }
-        assert result.assertTasksExecuted(tasks)
+        assert result.assertTasksScheduled(tasks)
     }
 
     private void assertAppHasOutputFor(String buildType) {

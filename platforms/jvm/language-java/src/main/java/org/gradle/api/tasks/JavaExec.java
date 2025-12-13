@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
@@ -33,6 +34,7 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
 import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
@@ -44,8 +46,8 @@ import org.gradle.process.internal.DefaultJavaExecSpec;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.JavaExecAction;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
@@ -139,12 +141,18 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
 
         JavaToolchainService javaToolchainService = getJavaToolchainService();
+        PropertyFactory propertyFactory = getPropertyFactory();
         Provider<JavaLauncher> javaLauncherConvention = getProviderFactory()
-            .provider(() -> JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(this, objectFactory))
+            .provider(() -> JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(this, propertyFactory))
             .flatMap(javaToolchainService::launcherFor)
             .orElse(javaToolchainService.launcherFor(it -> {}));
         javaLauncher = objectFactory.property(JavaLauncher.class).convention(javaLauncherConvention);
         javaLauncher.finalizeValueOnRead();
+
+        // The task will only be up-to-date if it has outputs, those outputs are up-to-date,
+        // and the Java launcher can be probed (i.e. javaLanguageVersion is not UNKNOWN)
+        doNotTrackStateIf("Java launcher cannot be probed",
+            task -> javaLauncher.map(launcher -> launcher.getMetadata().getLanguageVersion()).get() == DefaultJavaLanguageVersion.UNKNOWN);
     }
 
     @TaskAction
@@ -203,7 +211,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     @ToBeReplacedByLazyProperty
     public List<String> getJvmArgs() {
-        return javaExecSpec.getJvmArguments().getOrNull();
+        return javaExecSpec.getJvmArguments().get();
     }
 
     /**
@@ -254,7 +262,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @ToBeReplacedByLazyProperty
-    public Map<String, Object> getSystemProperties() {
+    public Map<String, @Nullable Object> getSystemProperties() {
         return javaExecSpec.getSystemProperties();
     }
 
@@ -262,7 +270,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public void setSystemProperties(Map<String, ?> properties) {
+    public void setSystemProperties(Map<String, ? extends @Nullable Object> properties) {
         javaExecSpec.setSystemProperties(properties);
     }
 
@@ -270,7 +278,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public JavaExec systemProperties(Map<String, ?> properties) {
+    public JavaExec systemProperties(Map<String, ? extends @Nullable Object> properties) {
         javaExecSpec.systemProperties(properties);
         return this;
     }
@@ -279,7 +287,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public JavaExec systemProperty(String name, Object value) {
+    public JavaExec systemProperty(String name, @Nullable Object value) {
         javaExecSpec.systemProperty(name, value);
         return this;
     }
@@ -305,7 +313,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public JavaExec bootstrapClasspath(Object... classpath) {
+    public JavaExec bootstrapClasspath(@Nullable Object... classpath) {
         javaExecSpec.bootstrapClasspath(classpath);
         return this;
     }
@@ -315,6 +323,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     public String getMinHeapSize() {
         return javaExecSpec.getMinHeapSize();
     }
@@ -323,7 +332,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public void setMinHeapSize(String heapSize) {
+    public void setMinHeapSize(@Nullable String heapSize) {
         javaExecSpec.setMinHeapSize(heapSize);
     }
 
@@ -332,6 +341,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     public String getDefaultCharacterEncoding() {
         return javaExecSpec.getDefaultCharacterEncoding();
     }
@@ -340,7 +350,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
+    public void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding) {
         javaExecSpec.setDefaultCharacterEncoding(defaultCharacterEncoding);
     }
 
@@ -349,6 +359,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     public String getMaxHeapSize() {
         return javaExecSpec.getMaxHeapSize();
     }
@@ -357,7 +368,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public void setMaxHeapSize(String heapSize) {
+    public void setMaxHeapSize(@Nullable String heapSize) {
         javaExecSpec.setMaxHeapSize(heapSize);
     }
 
@@ -518,7 +529,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    public JavaExec classpath(Object... paths) {
+    public JavaExec classpath(@Nullable Object... paths) {
         javaExecSpec.classpath(paths);
         return this;
     }
@@ -554,7 +565,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      *
      * @since 5.2
      */
-    @Input
+    @Internal("covered by getJavaLauncher().getMetadata().getLanguageVersion()")
     @ToBeReplacedByLazyProperty
     public JavaVersion getJavaVersion() {
         return JavaVersion.toVersion(getJavaLauncher().get().getMetadata().getLanguageVersion().asInt());
@@ -801,24 +812,19 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    protected ExecActionFactory getExecActionFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract PropertyFactory getPropertyFactory();
 
     @Inject
-    protected JavaToolchainService getJavaToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ExecActionFactory getExecActionFactory();
 
     @Inject
-    protected ProviderFactory getProviderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaToolchainService getJavaToolchainService();
+
+    @Inject
+    protected abstract ProviderFactory getProviderFactory();
 
     private Iterable<String> jvmArgsConventionValue() {
         Iterable<String> jvmArgs = getConventionMapping().getConventionValue(null, "jvmArgs", false);

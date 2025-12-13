@@ -16,6 +16,7 @@
 
 package gradlebuild.binarycompatibility
 
+import com.google.gson.FormattingStyle
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import org.gradle.api.tasks.CacheableTask
@@ -31,30 +32,14 @@ abstract class SortAcceptedApiChangesTask : AbstractAcceptedApiChangesMaintenanc
 
     @TaskAction
     fun execute() {
+        val gson: Gson = GsonBuilder().setFormattingStyle(FormattingStyle.PRETTY.withIndent("    ")).create()
         loadChanges().mapValues {
-            formatChanges(sortChanges(it.value))
+            gson.toJson(AcceptedApiChanges(sortChanges(it.value)))
         }.forEach {
-            it.key.bufferedWriter().use { out -> out.write(it.value) }
-        }
-    }
-
-    private
-    fun formatChanges(changes: List<AcceptedApiChange>): String {
-        val gson: Gson = GsonBuilder().setPrettyPrinting().create()
-        val initialString = gson.toJson(AcceptedApiChanges(changes))
-        return adjustIndentation(initialString) + "\n"
-    }
-
-    /**
-     * It appears there is no way to configure Gson to use 4 spaces instead of 2 for indentation.
-     *
-     * See: https://github.com/google/gson/blob/master/UserGuide.md#TOC-Compact-Vs.-Pretty-Printing-for-JSON-Output-Format
-     */
-    private
-    fun adjustIndentation(initalJsonString: String): String {
-        val indentationRegex = """^\s+""".toRegex(RegexOption.MULTILINE)
-        return indentationRegex.replace(initalJsonString) { m ->
-            " ".repeat(m.value.length * 2)
+            it.key.bufferedWriter().use { out ->
+                out.write(it.value)
+                out.write("\n")
+            }
         }
     }
 }

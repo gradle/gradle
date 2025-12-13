@@ -19,5 +19,5 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.work.DisableCachingByDefault
 
 @DisableCachingByDefault(because = "Gradle would require more information to cache this task")
-class JavaExecProjectGeneratorTask extends JavaExec {
+abstract class JavaExecProjectGeneratorTask extends JavaExec {
 }

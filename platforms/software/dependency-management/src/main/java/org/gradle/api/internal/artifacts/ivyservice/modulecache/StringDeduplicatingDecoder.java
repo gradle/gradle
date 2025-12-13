@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.collect.Interner;
 import org.gradle.internal.serialize.Decoder;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;

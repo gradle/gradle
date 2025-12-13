@@ -17,11 +17,11 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -38,7 +38,7 @@ import java.nio.file.StandardCopyOption;
  * If you execute work where output integrity and atomicity is enforced (e.g. with execution engine) you should prefer {@link InPlaceClasspathBuilder},
  * otherwise this implementation can help you to avoid having partially written files.
  */
-@NonNullApi
+@NullMarked
 @ServiceScope(Scope.UserHome.class)
 public class DefaultClasspathBuilder implements ClasspathBuilder {
 

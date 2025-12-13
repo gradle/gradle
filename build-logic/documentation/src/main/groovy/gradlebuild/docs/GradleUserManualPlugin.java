@@ -59,6 +59,8 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         generateUserManual(project, tasks, layout, extension);
 
         checkXrefLinksInUserManualAreValid(layout, tasks, extension);
+        checkMultiLangSnippetsAreValid(layout, tasks, extension);
+        checkLinksInUserManualAreNotMissing(layout, tasks, extension);
     }
 
     public static List<String> getDefaultExcludedPackages() {
@@ -149,6 +151,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("doctype", "book");
             attributes.put("imagesdir", "img");
             attributes.put("nofooter", true);
+            attributes.put("javadocPath", "../javadoc");
             attributes.put("sectanchors", true);
             attributes.put("sectlinks", true);
             attributes.put("linkattrs", true);
@@ -164,13 +167,15 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             // TODO: This is coupled to extension.getJavadocs().getJavaApi()
             attributes.put("javadocReferenceUrl", "https://docs.oracle.com/javase/8/docs/technotes/tools/windows/javadoc.html");
             // TODO: This is coupled to extension.getJavadocs().getJavaApi()
-            attributes.put("minJdkVersion", "8");
+            attributes.put("minJdkVersion", "17");
 
             attributes.put("antManual", "https://ant.apache.org/manual");
             attributes.put("docsUrl", "https://docs.gradle.org");
 
             // TODO: This breaks if the version is changed later.
             attributes.put("gradleVersion", project.getVersion().toString());
+            attributes.put("gradleVersion90", "9.0.0");
+            attributes.put("gradleVersion8", "8.14.3");
             attributes.put("snippetsPath", "snippets");
             // Make sure the 'raw' location of the samples is available in all AsciidoctorTasks to access files with expected outputs in the 'tests' folder for inclusion in READMEs
             attributes.put("samplesPath", extension.getUserManual().getStagingRoot().dir("raw/samples").get().getAsFile());
@@ -232,16 +237,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-single-html").get().getAsFile());
         });
 
-        TaskProvider<AsciidoctorTask> userguideSinglePagePdf = tasks.register("userguideSinglePagePdf", AsciidoctorTask.class, task -> {
-            task.setDescription("Generates PDF single-page user manual.");
-            configureForUserGuideSinglePage(task, extension, project);
-            task.outputOptions(options -> options.setBackends(singletonList("pdf")));
-            // TODO: This breaks the provider
-            task.setOutputDir(extension.getUserManual().getStagingRoot().dir("render-single-pdf").get().getAsFile());
-            // The PDF rendering needs at least 2GB of heap
-            task.jvm(options -> options.setMaxHeapSize("3g"));
-        });
-
         TaskProvider<AsciidoctorTask> userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask.class, task -> {
             task.setGroup("documentation");
             task.setDescription("Generates multi-page user manual.");
@@ -249,6 +244,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             task.sources(patternSet -> {
                 patternSet.include("**/*.adoc");
+                patternSet.include("**/*.js");
                 patternSet.exclude("javaProject*Layout.adoc");
                 patternSet.exclude("userguide_single.adoc");
                 patternSet.exclude("snippets/**/*.adoc");
@@ -261,7 +257,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             Map<String, Object> attributes = new HashMap<>();
             attributes.put("icons", "font");
-            attributes.put("source-highlighter", "prettify");
+            configureCodeHighlightingAttributes(attributes);
             attributes.put("toc", "auto");
             attributes.put("toclevels", 1);
             attributes.put("toc-title", "Contents");
@@ -280,7 +276,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.setDescription("Stages rendered user manual documentation.");
 
             task.from(userguideSinglePageHtml);
-            task.from(userguideSinglePagePdf);
             task.from(userguideMultiPage);
             task.into(extension.getUserManual().getStagingRoot().dir("final"));
             // TODO: Eliminate this duplication with the flatten task
@@ -288,8 +283,10 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 sub.include("**/*.png", "**/*.gif", "**/*.jpg", "**/*.svg");
                 sub.into("img");
             });
-
-            task.rename("userguide_single.pdf", "userguide.pdf");
+            task.from(extension.getUserManual().getRoot().dir("js"), sub -> {
+                sub.include("**/*.js");
+                sub.into("js");
+            });
         });
 
         extension.userManual(userManual -> {
@@ -303,6 +300,12 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
     }
 
+    private static void configureCodeHighlightingAttributes(Map<String, Object> attributes) {
+        attributes.put("source-highlighter", "highlight.js");
+        //attributes.put("highlightjs-theme", "atom-one-dark");
+        attributes.put("highlightjs-languages", "java,groovy,kotlin,toml,gradle,properties,text");
+    }
+
     private void configureForUserGuideSinglePage(AsciidoctorTask task, GradleDocumentationExtension extension, Project project) {
         task.setGroup("documentation");
         task.dependsOn(extension.getUserManual().getStagedDocumentation());
@@ -314,7 +317,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
 
         Map<String, Object> attributes = new HashMap<>();
-        attributes.put("source-highlighter", "coderay");
+        configureCodeHighlightingAttributes(attributes);
         attributes.put("toc", "macro");
         attributes.put("toclevels", 2);
 
@@ -342,5 +345,22 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
 
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkDeadInternalLinks));
+    }
+
+    private void checkMultiLangSnippetsAreValid(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
+        TaskProvider<FindBadMultiLangSnippets> checkMultiLangSnippets = tasks.register("checkMultiLangSnippets", FindBadMultiLangSnippets.class, task -> {
+            task.getDocumentationRoot().convention(extension.getUserManual().getStagedDocumentation()); // working/usermanual/raw/
+        });
+
+        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkMultiLangSnippets));
+    }
+
+    private void checkLinksInUserManualAreNotMissing(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
+        TaskProvider<FindMissingDocumentationFiles> checkMissingInternalLinks = tasks.register("checkMissingInternalLinks", FindMissingDocumentationFiles.class, task -> {
+            task.getDocumentationRoot().convention(extension.getUserManual().getRoot());
+            task.getJsonFilesDirectory().convention(layout.getProjectDirectory().dir("src/main/resources"));
+        });
+
+        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkMissingInternalLinks));
     }
 }

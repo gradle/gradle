@@ -20,15 +20,14 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 
-import java.util.NavigableSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
 import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
 
 public abstract class TaskNode extends Node {
-    private final NavigableSet<Node> shouldSuccessors = newSortedNodeSet();
-    private final NavigableSet<Node> finalizingSuccessors = newSortedNodeSet();
+    private final Set<Node> shouldSuccessors = newSortedNodeSet();
+    private final Set<Node> finalizingSuccessors = newSortedNodeSet();
 
     @Override
     protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {

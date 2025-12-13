@@ -31,8 +31,8 @@ import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -264,7 +264,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         }
 
         @Override
-        public TaskInternal getTask() {
+        public TaskNode getTaskNode() {
             synchronized (lock) {
                 if (taskNode == null) {
                     TaskInternal task = findTaskNode(taskPath);
@@ -273,8 +273,13 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
                     }
                     taskNode = taskNodeFactory.getOrCreateNode(task);
                 }
-                return taskNode.getTask();
+                return taskNode;
             }
+        }
+
+        @Override
+        public TaskInternal getTask() {
+            return getTaskNode().getTask();
         }
 
         @Override

@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.rules.DefaultRuleActionAdapter;
 import org.gradle.internal.rules.DefaultRuleActionValidator;
 import org.gradle.internal.rules.RuleAction;
@@ -46,6 +47,7 @@ import java.util.Set;
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
 
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
+    @SuppressWarnings("InlineFormatString")
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
@@ -94,7 +96,12 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     @Override
+    @Deprecated
     public ComponentSelectionRules all(Object ruleSource) {
+        DeprecationLogger.deprecateMethod(ComponentSelectionRules.class, "all(Object)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_management_rules")
+            .nagUser();
         return addRule(createAllSpecRulesAction(ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
 
@@ -109,7 +116,12 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     @Override
+    @Deprecated
     public ComponentSelectionRules withModule(Object id, Object ruleSource) {
+        DeprecationLogger.deprecateMethod(ComponentSelectionRules.class, "withModule(Object,Object)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "dependency_management_rules")
+            .nagUser();
         return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
 

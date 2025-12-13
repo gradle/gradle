@@ -19,9 +19,9 @@ package org.gradle
 import org.apache.tools.ant.taskdefs.Expand
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.AntUtil
 import org.gradle.util.internal.ToBeImplemented
@@ -29,6 +29,7 @@ import org.gradle.util.internal.ToBeImplemented
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
@@ -37,8 +38,8 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
     }
 
     @Override
-    int getMaxDistributionSizeBytes() {
-        return 62 * 1024 * 1024
+    int getDistributionSizeMiB() {
+        return 70
     }
 
     @Override
@@ -47,7 +48,6 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
     }
 
     @Requires(UnitTestPreconditions.NotWindows)
-    @ToBeFixedForConfigurationCache
     def sourceZipContents() {
         given:
         TestFile contentsDir = unpackDistribution()
@@ -62,19 +62,18 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
             // we add implicit Xmx1024m in AbstractGradleExecuter.getImplicitBuildJvmArgs()
             // that's too small for this build
             useOnlyRequestedJvmOpts()
-            withArgument("--no-configuration-cache") // TODO:configuration-cache remove me
             withTasks(':distributions-full:binDistributionZip')
             withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
-            withArgument("-Porg.gradle.java.installations.auto-detect=false")
-            withArgument("-Porg.gradle.java.installations.auto-download=false")
-            withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}" as String)
+            withArgument("-Dorg.gradle.java.installations.auto-detect=false")
+            withArgument("-Dorg.gradle.java.installations.auto-download=false")
+            withArgument("-Dorg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}" as String)
             withEnvironmentVars([BUILD_BRANCH: System.getProperty("gradleBuildBranch"), BUILD_COMMIT_ID: System.getProperty("gradleBuildCommitId")])
             withWarningMode(WarningMode.None)
             noDeprecationChecks()
         }.run()
 
         then:
-        File binZip = contentsDir.file("subprojects/distributions-full/build/distributions").listFiles().find() { it.name.endsWith("-bin.zip") }
+        File binZip = contentsDir.file("packaging/distributions-full/build/distributions").listFiles().find() { it.name.endsWith("-bin.zip") }
         binZip.exists()
 
         when:

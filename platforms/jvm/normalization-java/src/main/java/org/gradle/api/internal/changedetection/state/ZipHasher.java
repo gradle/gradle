@@ -35,10 +35,10 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -57,21 +57,11 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
     }
 
     private final ResourceHasher resourceHasher;
-    private final ZipHasher fallbackZipHasher;
     private final HashingExceptionReporter hashingExceptionReporter;
 
     public ZipHasher(ResourceHasher resourceHasher) {
-        this(
-            resourceHasher,
-            null,
-            (s, e) -> LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e)
-        );
-    }
-
-    public ZipHasher(ResourceHasher resourceHasher, @Nullable ZipHasher fallbackZipHasher, HashingExceptionReporter hashingExceptionReporter) {
         this.resourceHasher = resourceHasher;
-        this.fallbackZipHasher = fallbackZipHasher;
-        this.hashingExceptionReporter = hashingExceptionReporter;
+        this.hashingExceptionReporter = (s, e) -> LOGGER.debug("Malformed archive '{}'. Falling back to full content hash instead of entry hashing.", s.getName(), e);
     }
 
     @Nullable
@@ -98,9 +88,6 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
             return hasher.hash();
         } catch (Exception e) {
             hashingExceptionReporter.report(zipFileSnapshot, e);
-            if (fallbackZipHasher != null) {
-                return fallbackZipHasher.hashZipContents(zipFileSnapshot);
-            }
             return zipFileSnapshot.getHash();
         }
     }

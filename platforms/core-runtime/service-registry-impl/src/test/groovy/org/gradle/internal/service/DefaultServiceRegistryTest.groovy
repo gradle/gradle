@@ -17,9 +17,9 @@
 package org.gradle.internal.service
 
 import com.google.common.reflect.TypeToken
-import org.gradle.api.NonNullApi
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.util.GroovyNullMarked
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
@@ -29,7 +29,17 @@ import java.lang.reflect.Type
 import java.util.concurrent.Callable
 
 class DefaultServiceRegistryTest extends Specification {
-    TestRegistry registry = new TestRegistry()
+    def registry = new DefaultServiceRegistry("test registry")
+        .addProvider(new TestProvider())
+
+    def notAllowedToInherit() {
+        when:
+        new DefaultServiceRegistry() {}
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Inheriting from DefaultServiceRegistry is not allowed. Use ServiceRegistryBuilder instead."
+    }
 
     def throwsExceptionForUnknownService() {
         when:
@@ -37,13 +47,14 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         UnknownServiceException e = thrown()
-        e.message == "No service of type StringBuilder available in TestRegistry."
+        e.message == "No service of type StringBuilder available in test registry."
     }
 
     def delegatesToParentForUnknownService() {
         def value = BigDecimal.TEN
         def parent = Mock(ParentServices)
-        def registry = new TestRegistry(registry(parent))
+        def registry = new DefaultServiceRegistry(registry(parent))
+        registry.addProvider(new TestProvider())
 
         when:
         def result = registry.get(BigDecimal)
@@ -74,7 +85,7 @@ class DefaultServiceRegistryTest extends Specification {
 
     def throwsExceptionForUnknownParentService() {
         def parent = Mock(ParentServices)
-        def registry = new TestRegistry(registry(parent))
+        def registry = new DefaultServiceRegistry("test registry", registry(parent))
 
         given:
         _ * parent.get(StringBuilder) >> null
@@ -84,7 +95,7 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         UnknownServiceException e = thrown()
-        e.message == "No service of type StringBuilder available in TestRegistry."
+        e.message == "No service of type StringBuilder available in test registry."
     }
 
     def returnsServiceInstanceThatHasBeenRegistered() {
@@ -239,7 +250,8 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def injectsGenericTypesFromParentIntoProviderFactoryMethod() {
-        def parent = new DefaultServiceRegistry() {
+        def parent = new DefaultServiceRegistry()
+        parent.addProvider(new ServiceRegistrationProvider() {
             @Provides
             Callable<String> createStringCallable() {
                 return { "hello" }
@@ -249,7 +261,7 @@ class DefaultServiceRegistryTest extends Specification {
             Factory<String> createStringFactory() {
                 return { "world" } as Factory
             }
-        }
+        })
         def registry = new DefaultServiceRegistry(parent)
         registry.addProvider(new ServiceRegistrationProvider() {
             @Provides
@@ -634,13 +646,8 @@ class DefaultServiceRegistryTest extends Specification {
     }
 
     def usesOverriddenFactoryMethodToCreateServiceInstance() {
-        def registry = new TestRegistry() {
-            @Provides
-            @Override
-            protected String createString() {
-                return "overridden"
-            }
-        }
+        def registry = new DefaultServiceRegistry()
+        registry.addProvider(new OverridingTestProvider())
 
         expect:
         registry.get(String) == "overridden"
@@ -704,7 +711,8 @@ class DefaultServiceRegistryTest extends Specification {
 
     def usesDecoratorMethodToDecorateParentServiceInstance() {
         def parent = Mock(ParentServices)
-        def registry = decoratorCreator.call(registry(parent))  /* .call needed in spock 0.7 */
+        def registry = new DefaultServiceRegistry(registry(parent))
+        registry.addProvider(provider)
 
         when:
         def result = registry.get(Long)
@@ -716,12 +724,16 @@ class DefaultServiceRegistryTest extends Specification {
         1 * parent.get(Long) >> 110L
 
         where:
-        decoratorCreator << [{ p -> new RegistryWithDecoratorMethodsWithCreate(p) }, { p -> new RegistryWithDecoratorMethodsWithDecorate(p) }]
+        provider << [
+            new TestProviderWithDecoratorMethodsWithCreate(),
+            new TestProviderWithDecoratorMethodsWithDecorate(),
+        ]
     }
 
     def "decorator methods can take additional parameters"() {
         def parent = Mock(ParentServices)
-        def registry = decoratorCreator.call(registry(parent))
+        def registry = new DefaultServiceRegistry(registry(parent))
+        registry.addProvider(provider)
 
         when:
         def result = registry.get(String)
@@ -734,19 +746,27 @@ class DefaultServiceRegistryTest extends Specification {
         1 * parent.get(String) >> "Foo"
 
         where:
-        decoratorCreator << [{ p -> new RegistryWithDecoratorMethodsWithCreate(p) }, { p -> new RegistryWithDecoratorMethodsWithDecorate(p) }]
+        provider << [
+            new TestProviderWithDecoratorMethodsWithCreate(),
+            new TestProviderWithDecoratorMethodsWithDecorate(),
+        ]
     }
 
     def decoratorCreateMethodFailsWhenNoParentRegistry() {
+        def registry = new DefaultServiceRegistry()
+
         when:
-        decoratorCreator.call() /* .call needed in spock 0.7 */
+        registry.addProvider(provider)
 
         then:
         ServiceLookupException e = thrown()
-        e.message.matches(/Cannot use decorator method RegistryWithDecoratorMethodsWith(Create|Decorate)\..*\(\) when no parent registry is provided./)
+        e.message.matches(/Cannot use decorator method TestProviderWithDecoratorMethodsWith(Create|Decorate)\..*\(\) when no parent registry is provided./)
 
         where:
-        decoratorCreator << [{ new RegistryWithDecoratorMethodsWithCreate() }, { new RegistryWithDecoratorMethodsWithDecorate() }]
+        provider << [
+            new TestProviderWithDecoratorMethodsWithCreate(),
+            new TestProviderWithDecoratorMethodsWithDecorate(),
+        ]
     }
 
     def canRegisterServicesUsingAction() {
@@ -1020,121 +1040,6 @@ class DefaultServiceRegistryTest extends Specification {
         e.cause.message == 'Locating services with type ? super java.lang.String is not supported.'
     }
 
-    def canGetServiceAsFactoryWhenTheServiceImplementsFactoryInterface() {
-        expect:
-        registry.getFactory(BigDecimal) instanceof TestFactory
-        registry.getFactory(Number) instanceof TestFactory
-        registry.getFactory(BigDecimal).is(registry.getFactory(BigDecimal))
-        registry.getFactory(Number).is(registry.getFactory(BigDecimal))
-    }
-
-    def canLocateFactoryWhenServiceInterfaceExtendsFactory() {
-        def registry = new DefaultServiceRegistry()
-
-        given:
-        registry.add(StringFactory, new StringFactory() {
-            String create() {
-                return "value"
-            }
-        })
-
-        expect:
-        registry.getFactory(String.class).create() == "value"
-    }
-
-    def canGetAFactoryUsingParameterizedFactoryType() {
-        def registry = new RegistryWithMultipleFactoryMethods()
-
-        expect:
-        def stringFactory = registry.get(stringFactoryType)
-        stringFactory.create() == "hello"
-
-        def numberFactory = registry.get(numberFactoryType)
-        numberFactory.create() == 12
-    }
-
-    def canGetAFactoryUsingFactoryTypeWithBounds() throws NoSuchFieldException {
-        expect:
-        def superBigDecimalFactory = registry.get(superBigDecimalFactoryType)
-        superBigDecimalFactory.create() == BigDecimal.valueOf(0)
-
-        def extendsBigDecimalFactory = registry.get(extendsBigDecimalFactoryType)
-        extendsBigDecimalFactory.create() == BigDecimal.valueOf(1)
-
-        def extendsNumberFactory = registry.get(extendsNumberFactoryType)
-        extendsNumberFactory.create() == BigDecimal.valueOf(2)
-    }
-
-    def usesAFactoryServiceToCreateInstances() {
-        expect:
-        registry.newInstance(BigDecimal) == BigDecimal.valueOf(0)
-        registry.newInstance(BigDecimal) == BigDecimal.valueOf(1)
-        registry.newInstance(BigDecimal) == BigDecimal.valueOf(2)
-    }
-
-    def throwsExceptionForUnknownFactory() {
-        when:
-        registry.getFactory(String)
-
-        then:
-        UnknownServiceException e = thrown()
-        e.message == "No factory for objects of type String available in TestRegistry."
-    }
-
-    def delegatesToParentForUnknownFactory() {
-        def factory = Mock(Factory)
-        def parent = Mock(ParentServices)
-        def registry = new TestRegistry(registry(parent))
-
-        when:
-        def result = registry.getFactory(Map)
-
-        then:
-        result == factory
-
-        and:
-        1 * parent.getFactory(Map) >> factory
-    }
-
-    def usesDecoratorMethodToDecorateParentFactoryInstance() {
-        def factory = Mock(Factory)
-        def parent = Mock(ParentServices)
-        def registry = decoratorCreator.call(registry(parent))  /* .call needed in spock 0.7 */
-
-        given:
-        _ * parent.getFactory(Long) >> factory
-        _ * factory.create() >>> [10L, 20L]
-
-        expect:
-        registry.newInstance(Long) == 12L
-        registry.newInstance(Long) == 22L
-
-        where:
-        decoratorCreator << [{ p -> new RegistryWithDecoratorMethodsWithCreate(p) }, { p -> new RegistryWithDecoratorMethodsWithDecorate(p) }]
-    }
-
-    def failsWhenMultipleFactoriesAreAvailableForServiceType() {
-        def registry = new RegistryWithAmbiguousFactoryMethods()
-
-        when:
-        registry.getFactory(Comparable)
-
-        then:
-        ServiceLookupException e = thrown()
-        e.message == TextUtil.toPlatformLineSeparators("""Multiple factories for objects of type Comparable available in RegistryWithAmbiguousFactoryMethods:
-   - Service Factory<Integer> via DefaultServiceRegistryTest\$RegistryWithAmbiguousFactoryMethods.createIntegerFactory()
-   - Service Factory<String> via DefaultServiceRegistryTest\$RegistryWithAmbiguousFactoryMethods.createStringFactory()""")
-    }
-
-    def servicesCreatedByFactoryMethodsAreVisibleWhenUsingASubClass() {
-        def registry = new TestRegistry() {
-        }
-
-        expect:
-        registry.get(String) == "12"
-        registry.get(Integer) == 12
-    }
-
     def closeInvokesCloseMethodOnEachService() {
         def service = Mock(TestCloseService)
 
@@ -1370,34 +1275,20 @@ class DefaultServiceRegistryTest extends Specification {
 
         then:
         IllegalStateException e = thrown()
-        e.message == "TestRegistry has been closed."
+        e.message == "test registry has been closed."
 
         when:
         registry.getAll(String)
 
         then:
         e = thrown()
-        e.message == "TestRegistry has been closed."
+        e.message == "test registry has been closed."
     }
 
-    def cannotLookupFactoriesWhenClosed() {
-        given:
-        registry.getFactory(BigDecimal)
-        registry.close()
-
-        when:
-        registry.getFactory(BigDecimal)
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == "TestRegistry has been closed."
-    }
-
-    /*
+    /**
      * Closing children would imply holding a reference to them. This would
      * create memory leaks.
      */
-
     def "does not close services from child registries"() {
         given:
         def parentService = Mock(TestCloseService)
@@ -1565,7 +1456,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(TestServiceImpl)
         then:
         def e = thrown(UnknownServiceException)
-        e.message == "No service of type DefaultServiceRegistryTest\$TestServiceImpl available in TestRegistry."
+        e.message == "No service of type DefaultServiceRegistryTest\$TestServiceImpl available in test registry."
     }
 
     def "can lookup a multi-service by any service type declared via @Provides"() {
@@ -1589,7 +1480,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(TestMultiServiceImpl)
         then:
         def e = thrown(UnknownServiceException)
-        e.message == "No service of type DefaultServiceRegistryTest\$TestMultiServiceImpl available in TestRegistry."
+        e.message == "No service of type DefaultServiceRegistryTest\$TestMultiServiceImpl available in test registry."
     }
 
     def "cannot declare explicit service type via @Provides that is not implemented by the return type"() {
@@ -1637,7 +1528,7 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(TestMultiServiceImpl)
         then:
         def e = thrown(UnknownServiceException)
-        e.message == "No service of type DefaultServiceRegistryTest\$TestMultiServiceImpl available in TestRegistry."
+        e.message == "No service of type DefaultServiceRegistryTest\$TestMultiServiceImpl available in test registry."
     }
 
     def MockServiceRegistry registry(ParentServices parentServices) {
@@ -1681,7 +1572,7 @@ class DefaultServiceRegistryTest extends Specification {
         Factory<?> getFactory(Class<?> type)
     }
 
-    @NonNullApi
+    @GroovyNullMarked
     private static class MockServiceWrapper implements Service {
         private final Object instance
 
@@ -1722,15 +1613,6 @@ class DefaultServiceRegistryTest extends Specification {
         }
 
         @Override
-        Service getFactory(Class<?> type, @Nullable ServiceAccessToken token) {
-            def factory = parentServices.getFactory(type)
-            if (factory == null) {
-                return factory
-            }
-            return serviceFor(factory)
-        }
-
-        @Override
         Visitor getAll(Class<?> serviceType, ServiceAccessToken token, Visitor visitor) {
             parentServices.getAll(serviceType).forEach {
                 visitor.visit(serviceFor(it))
@@ -1753,7 +1635,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    @NonNullApi
+    @GroovyNullMarked
     private static class MockServiceRegistry implements ContainsServices, ServiceRegistry {
         private final ParentServices parentServices
 
@@ -1783,16 +1665,6 @@ class DefaultServiceRegistryTest extends Specification {
 
         @Override
         Object find(Type serviceType) throws ServiceLookupException {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        def <T> Factory<T> getFactory(Class<T> type) throws UnknownServiceException, ServiceLookupException {
-            throw new UnsupportedOperationException()
-        }
-
-        @Override
-        def <T> T newInstance(Class<T> type) throws UnknownServiceException, ServiceLookupException {
             throw new UnsupportedOperationException()
         }
 
@@ -1846,33 +1718,6 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    private interface StringFactory extends Factory<String> {
-    }
-
-    private static class TestRegistry extends DefaultServiceRegistry {
-        TestRegistry() {
-        }
-
-        TestRegistry(ServiceRegistry parent) {
-            super(parent)
-        }
-
-        @Provides
-        protected String createString() {
-            return get(Integer).toString()
-        }
-
-        @Provides
-        protected Integer createInt() {
-            return 12
-        }
-
-        @Provides
-        protected Factory<BigDecimal> createTestFactory() {
-            return new TestFactory()
-        }
-    }
-
     private static class TestProvider implements ServiceRegistrationProvider {
         @Provides
         String createString(Integer integer) {
@@ -1892,6 +1737,14 @@ class DefaultServiceRegistryTest extends Specification {
         @Provides
         Callable<BigDecimal> createCallable() {
             return { 12 }
+        }
+    }
+
+    private static class OverridingTestProvider extends TestProvider {
+        @Override
+        @Provides
+        String createString(Integer integer) {
+            return "overridden"
         }
     }
 
@@ -2026,44 +1879,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    private static class RegistryWithAmbiguousFactoryMethods extends DefaultServiceRegistry {
-        @Provides
-        Integer createInteger() {
-            return 123
-        }
-
-        @Provides
-        String createString() {
-            return "hello"
-        }
-
-        @Provides
-        Factory<Integer> createIntegerFactory() {
-            return new Factory<Integer>() {
-                Integer create() {
-                    return createInteger()
-                }
-            }
-        }
-
-        @Provides
-        Factory<String> createStringFactory() {
-            return new Factory<String>() {
-                String create() {
-                    return createString()
-                }
-            }
-        }
-    }
-
-    private static class RegistryWithDecoratorMethodsWithCreate extends DefaultServiceRegistry {
-        RegistryWithDecoratorMethodsWithCreate() {
-        }
-
-        RegistryWithDecoratorMethodsWithCreate(ServiceRegistry parent) {
-            super(parent)
-        }
-
+    private static class TestProviderWithDecoratorMethodsWithCreate implements ServiceRegistrationProvider {
         @Provides
         protected Long createLong(Long value) {
             return value + 10
@@ -2084,14 +1900,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    private static class RegistryWithDecoratorMethodsWithDecorate extends DefaultServiceRegistry {
-        RegistryWithDecoratorMethodsWithDecorate() {
-        }
-
-        RegistryWithDecoratorMethodsWithDecorate(ServiceRegistry parent) {
-            super(parent)
-        }
-
+    private static class TestProviderWithDecoratorMethodsWithDecorate implements ServiceRegistrationProvider {
         @Provides
         protected Long decorateLong(Long value) {
             return value + 10
@@ -2109,26 +1918,6 @@ class DefaultServiceRegistryTest extends Specification {
         @Provides
         protected String decorateString(String parentValue, Long myValue) {
             return parentValue + myValue
-        }
-    }
-
-    private static class RegistryWithMultipleFactoryMethods extends DefaultServiceRegistry {
-        @Provides
-        Factory<Number> createObjectFactory() {
-            return new Factory<Number>() {
-                Number create() {
-                    return 12
-                }
-            }
-        }
-
-        @Provides
-        Factory<String> createStringFactory() {
-            return new Factory<String>() {
-                String create() {
-                    return "hello"
-                }
-            }
         }
     }
 

@@ -11,12 +11,19 @@ tasks.configCacheIntegTest {
     enabled = false
 }
 
+// The integration tests in this project do not need to run in 'isolated projects' mode.
+tasks.isolatedProjectsIntegTest {
+    enabled = false
+}
+
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
+    api(projects.buildOption)
     api(projects.concurrent)
     api(projects.configurationCacheBase)
     api(projects.configurationProblemsBase)
+    api(projects.coreSerializationCodecs)
     api(projects.core)
     api(projects.coreApi)
     api(projects.dependencyManagement)
@@ -29,18 +36,21 @@ dependencies {
     api(projects.resources)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
-    api(projects.stdlibJavaExtensions)
     api(projects.snapshots)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
     api(libs.inject)
     api(libs.kotlinStdlib)
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
+    implementation(projects.buildDiscovery)
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildEvents)
-    implementation(projects.buildOption)
+    implementation(projects.buildProcessServices)
+    implementation(projects.classloaders)
+    implementation(projects.coreFlowServicesApi)
     implementation(projects.coreKotlinExtensions)
-    implementation(projects.coreSerializationCodecs)
     implementation(projects.dependencyManagementSerializationCodecs)
     implementation(projects.encryptionServices)
     implementation(projects.enterpriseOperations)
@@ -51,7 +61,6 @@ dependencies {
     implementation(projects.files)
     implementation(projects.flowServices)
     implementation(projects.functional)
-    implementation(projects.guavaSerializationCodecs)
     implementation(projects.hashing)
     implementation(projects.inputTracking)
     implementation(projects.instrumentationAgentServices)
@@ -59,15 +68,18 @@ dependencies {
     implementation(projects.modelCore)
     implementation(projects.persistentCache)
     implementation(projects.problemsApi)
+    implementation(projects.scopedPersistentCache)
     implementation(projects.serialization)
     implementation(projects.stdlibKotlinExtensions)
     implementation(projects.stdlibSerializationCodecs)
     implementation(projects.toolingApi)
 
-    implementation(libs.fastutil)
     implementation(libs.guava)
+    implementation(libs.fastutil)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
+
+    compileOnly(libs.jspecify)
 
     runtimeOnly(projects.beanSerializationServices)
     runtimeOnly(projects.compositeBuilds)
@@ -78,28 +90,30 @@ dependencies {
     runtimeOnly(libs.kotlinReflect)
 
     testImplementation(projects.beanSerializationServices)
+    testImplementation(testFixtures(projects.beanSerializationServices))
     testImplementation(projects.io)
     testImplementation(testFixtures(projects.core))
-    testImplementation(libs.mockitoKotlin2)
+    testImplementation(libs.mockitoKotlin)
     testImplementation(libs.kotlinCoroutinesDebug)
 
+    integTestImplementation(projects.cli)
+    integTestImplementation(projects.ide)
     integTestImplementation(projects.jvmServices)
-    integTestImplementation(projects.toolingApi)
+    integTestImplementation(projects.launcher)
     integTestImplementation(projects.platformJvm)
     integTestImplementation(projects.testKit)
-    integTestImplementation(projects.launcher)
-    integTestImplementation(projects.cli)
+    integTestImplementation(projects.toolingApi)
     integTestImplementation(projects.workers)
 
-    integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
+    integTestImplementation(libs.guava)
     integTestImplementation(libs.inject)
     integTestImplementation("com.microsoft.playwright:playwright:1.20.1")
 
     integTestImplementation(testFixtures(projects.toolingApi))
     integTestImplementation(testFixtures(projects.dependencyManagement))
     integTestImplementation(testFixtures(projects.jacoco))
-    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(projects.modelReflect))
 
     crossVersionTestImplementation(projects.cli)
 
@@ -112,9 +126,14 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
+jvmCompile {
+    compilations {
+        named("main") {
+            targetJvmVersion = 17
+        }
+    }
+}
+
 packageCycles {
     excludePatterns.add("org/gradle/internal/cc/**")
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

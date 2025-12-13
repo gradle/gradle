@@ -275,9 +275,9 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause """Cannot find a version of 'org:c' that satisfies the version constraints:
-   Dependency path ':test:unspecified' --> 'org:c:2.0'
-   Dependency path ':test:unspecified' --> 'org:a:1.0' (runtime) --> 'org:c:{strictly 1.0}'
-   Dependency path ':test:unspecified' --> 'org:a:1.0' (runtime) --> 'org:b:1.0' (runtime) --> 'org:c:2.0'"""
+   Dependency path: 'root project :' (conf) --> 'org:c:2.0'
+   Dependency path: 'root project :' (conf) --> 'org:a:1.0' (runtime) --> 'org:c:{strictly 1.0}'
+   Dependency path: 'root project :' (conf) --> 'org:a:1.0' (runtime) --> 'org:b:1.0' (runtime) --> 'org:c:2.0'"""
     }
 
     def "strict from selected and later evicted modules are ignored"() {
@@ -548,8 +548,8 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path ':test:unspecified' --> 'project :foo'
-   Constraint path ':test:unspecified' --> 'org:foo:{strictly 1.0}'""")
+   Dependency path: 'root project :' (conf) --> 'project :foo'
+   Constraint path: 'root project :' (conf) --> 'org:foo:{strictly 1.0}'""")
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -596,8 +596,8 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path ':test:unspecified' --> 'org:x1:1.0' (runtime) --> 'org:bar:1.0' (runtime) --> 'org:foo:2.0'
-   Constraint path ':test:unspecified' --> 'org:x1:1.0' (runtime) --> 'org:foo:{strictly 1.0}'"""
+   Dependency path: 'root project :' (conf) --> 'org:x1:1.0' (runtime) --> 'org:bar:1.0' (runtime) --> 'org:foo:2.0'
+   Constraint path: 'root project :' (conf) --> 'org:x1:1.0' (runtime) --> 'org:foo:{strictly 1.0}'"""
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")

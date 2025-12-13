@@ -18,5 +18,5 @@
  * Specification classes which describe options used to run Artifact Transform reports
  * which will affect output.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.api.tasks.diagnostics.internal.artifact.transforms.spec;

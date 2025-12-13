@@ -66,10 +66,10 @@ class CompositeBuildRootProjectIntegrationTest extends AbstractCompositeBuildInt
         execute(buildB, "c3:jar")
 
         then:
-        result.assertTaskExecuted(":c1:compileJava")
-        result.assertTaskExecuted(":c2:compileJava")
-        result.assertTaskExecuted(":c3:compileJava")
-        result.assertTaskExecuted(":compileJava")
+        result.assertTaskScheduled(":c1:compileJava")
+        result.assertTaskScheduled(":c2:compileJava")
+        result.assertTaskScheduled(":c3:compileJava")
+        result.assertTaskScheduled(":compileJava")
     }
 
     def "included build can depend on including build"() {
@@ -96,10 +96,10 @@ class CompositeBuildRootProjectIntegrationTest extends AbstractCompositeBuildInt
         execute(buildA, "buildBJar")
 
         then:
-        result.assertTaskExecuted(":compileJava")
-        result.assertTaskExecuted(":jar")
-        result.assertTaskExecuted(":buildB:compileJava")
-        result.assertTaskExecuted(":buildB:jar")
-        result.assertTaskExecuted(":buildBJar")
+        result.assertTaskScheduled(":compileJava")
+        result.assertTaskScheduled(":jar")
+        result.assertTaskScheduled(":buildB:compileJava")
+        result.assertTaskScheduled(":buildB:jar")
+        result.assertTaskScheduled(":buildBJar")
     }
 }

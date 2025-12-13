@@ -16,34 +16,36 @@
 
 package org.gradle.util.internal;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Iterables;
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.UncheckedIOException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.UncheckedException;
+import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+/**
+ * Utility methods for working with text.
+ * <p>
+ * To keep this class usable from Workers, do <strong>NOT</strong> add dependencies on Guava, which
+ * we don't want to make available at runtime in TestWorkers.
+ */
 public class TextUtil {
     private static final Pattern WHITESPACE = Pattern.compile("\\s*");
-    private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");
-    private static final Joiner KEBAB_JOINER = Joiner.on("-");
-    private static final Function<String, String> TO_LOWERCASE = new Function<String, String>() {
-        @Override
-        public String apply(String input) {
-            return input.toLowerCase(Locale.ROOT);
-        }
-    };
+    private static final Pattern LINE_SEPARATORS = Pattern.compile("\r\n|\r|\n");
     private static final Pattern NON_UNIX_LINE_SEPARATORS = Pattern.compile("\r\n|\r");
+    private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
+    private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");
 
     /**
      * Returns the line separator for Windows.
@@ -82,14 +84,24 @@ public class TextUtil {
     }
 
     /**
-     * Converts all line separators in the specified non-null {@link CharSequence} to the specified line separator.
+     * Converts all line separators in the specified non-null string to the specified line separator.
      */
-    public static String replaceLineSeparatorsOf(CharSequence string, String bySeparator) {
-        return replaceAll("\r\n|\r|\n", string, bySeparator);
+    public static String replaceLineSeparatorsOf(String string, String bySeparator) {
+        if (isMultiLeLine(string)) {
+            return replaceAll(LINE_SEPARATORS, string, bySeparator);
+        } else {
+            return string;
+        }
     }
 
-    private static String replaceAll(String regex, CharSequence inString, String byString) {
-        return replaceAll(Pattern.compile(regex), inString, byString);
+    private static boolean isMultiLeLine(String string) {
+        for (int i = 0; i < string.length(); i++) {
+            char c = string.charAt(i);
+            if (c == '\n' || c == '\r') {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String replaceAll(Pattern pattern, CharSequence inString, String byString) {
@@ -99,7 +111,8 @@ public class TextUtil {
     /**
      * Converts all line separators in the specified string to the platform's line separator.
      */
-    public static String toPlatformLineSeparators(String str) {
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String toPlatformLineSeparators(@Nullable String str) {
         return str == null ? null : replaceLineSeparatorsOf(str, getPlatformLineSeparator());
     }
 
@@ -108,6 +121,7 @@ public class TextUtil {
      *
      * @return null if the given string is null
      */
+    @Contract("null -> null; !null -> !null")
     @Nullable
     public static String normaliseLineSeparators(@Nullable String str) {
         return str == null ? null : convertLineSeparatorsToUnix(str);
@@ -127,7 +141,7 @@ public class TextUtil {
      * with Java 6 on old Gradle versions because StringUtils require SQLException which
      * is absent from Java 6.
      */
-    public static boolean isBlank(String str) {
+    public static boolean isBlank(@Nullable String str) {
         int strLen;
         if (str == null || (strLen = str.length()) == 0) {
             return true;
@@ -148,7 +162,8 @@ public class TextUtil {
      * with Java 6 on old Gradle versions because StringUtils require SQLException which
      * is absent from Java 6.
      */
-    public static String capitalize(String str) {
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String capitalize(@Nullable String str) {
         if (str == null || str.length() == 0) {
             return str;
         }
@@ -159,7 +174,8 @@ public class TextUtil {
      * Escapes the toString() representation of {@code obj} for use in a literal string.
      * This is useful for interpolating variables into script strings, as well as in other situations.
      */
-    public static String escapeString(Object obj) {
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String escapeString(@Nullable Object obj) {
         return obj == null ? null : escapeJavaStyleString(obj.toString(), false, false);
     }
 
@@ -168,7 +184,8 @@ public class TextUtil {
      * with Java 6 on old Gradle versions because StringUtils require SQLException which
      * is absent from Java 6.
      */
-    private static String escapeJavaStyleString(String str, boolean escapeSingleQuotes, boolean escapeForwardSlash) {
+    @Contract("null, _, _ -> null; !null, _, _ -> !null")
+    private static @Nullable String escapeJavaStyleString(@Nullable String str, boolean escapeSingleQuotes, boolean escapeForwardSlash) {
         if (str == null) {
             return null;
         }
@@ -178,7 +195,7 @@ public class TextUtil {
             return writer.toString();
         } catch (IOException ioe) {
             // this should never ever happen while writing to a StringWriter
-            throw new UncheckedIOException(ioe);
+            throw UncheckedException.throwAsUncheckedException(ioe);
         }
     }
 
@@ -335,10 +352,6 @@ public class TextUtil {
         return normaliseLineSeparators(normaliseFileSeparators(in));
     }
 
-    public static String camelToKebabCase(String camelCase) {
-        return KEBAB_JOINER.join(Iterables.transform(Arrays.asList(UPPER_CASE.split(camelCase)), TO_LOWERCASE));
-    }
-
     /**
      * This method returns the plural ending for an english word for trivial cases depending on the number of elements a list has.
      *
@@ -356,7 +369,70 @@ public class TextUtil {
         return txt + ".";
     }
 
+    // TODO: This should probably also live in GUtil to be with other camel/kebab case methods
     public static String screamingSnakeToKebabCase(String text) {
-        return StringUtils.replace(text.toLowerCase(Locale.ENGLISH), "_", "-");
+        return Strings.CS.replace(text.toLowerCase(Locale.ENGLISH), "_", "-");
+    }
+
+    /**
+     * Converts a camel case string to kebab case. E.g. fooBar -&gt; foo-bar
+     */
+    public static String camelToKebabCase(String camelCase) {
+        return Stream.of(UPPER_CASE.split(camelCase))
+            .map(s -> s.toLowerCase(Locale.ROOT))
+            .collect(Collectors.joining("-"));
+    }
+
+    /**
+     * Converts an arbitrary string to a camel-case string which can be used in a Java identifier. Eg, with_underscores -&gt; withUnderscores
+     */
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String toCamelCase(@Nullable CharSequence string) {
+        return toCamelCase(string, false);
+    }
+
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String toLowerCamelCase(@Nullable CharSequence string) {
+        return toCamelCase(string, true);
+    }
+
+    @Contract("null, _ -> null; !null, _ -> !null")
+    private static @Nullable String toCamelCase(@Nullable CharSequence string, boolean lower) {
+        if (string == null) {
+            return null;
+        }
+        StringBuilder builder = new StringBuilder();
+        Matcher matcher = WORD_SEPARATOR.matcher(string);
+        int pos = 0;
+        boolean first = true;
+        while (matcher.find()) {
+            String chunk = string.subSequence(pos, matcher.start()).toString();
+            pos = matcher.end();
+            if (chunk.isEmpty()) {
+                continue;
+            }
+            if (lower && first) {
+                chunk = StringUtils.uncapitalize(chunk);
+                first = false;
+            } else {
+                chunk = StringUtils.capitalize(chunk);
+            }
+            builder.append(chunk);
+        }
+        String rest = string.subSequence(pos, string.length()).toString();
+        if (lower && first) {
+            rest = StringUtils.uncapitalize(rest);
+        } else {
+            rest = StringUtils.capitalize(rest);
+        }
+        builder.append(rest);
+        return builder.toString();
+    }
+
+    public static String removeTrailing(String originalString, String suffix) {
+        if (originalString.endsWith(suffix)) {
+            return originalString.substring(0, originalString.length() - suffix.length());
+        }
+        return originalString;
     }
 }

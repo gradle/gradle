@@ -34,6 +34,6 @@ abstract class AbstractNativeLibraryDependenciesIntegrationTest extends Abstract
         run(assembleDevBinaryTask)
 
         then:
-        result.assertTasksExecuted(libDebugTasks, assembleDevBinaryTasks, assembleDevBinaryTask)
+        result.assertTasksScheduled(libDebugTasks, assembleDevBinaryTasks, assembleDevBinaryTask)
     }
 }

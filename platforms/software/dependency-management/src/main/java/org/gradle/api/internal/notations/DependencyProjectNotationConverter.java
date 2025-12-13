@@ -19,6 +19,7 @@ package org.gradle.api.internal.notations;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
@@ -39,6 +40,6 @@ public class DependencyProjectNotationConverter implements NotationConverter<Pro
 
     @Override
     public void convert(Project notation, NotationConvertResult<? super ProjectDependency> result) throws TypeConversionException {
-        result.converted(factory.create(notation));
+        result.converted(factory.create(((ProjectInternal) notation).getOwner()));
     }
 }

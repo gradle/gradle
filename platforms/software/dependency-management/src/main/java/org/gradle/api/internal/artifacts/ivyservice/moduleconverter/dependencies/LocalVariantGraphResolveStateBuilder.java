@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009 the original author or authors.
+ * Copyright 2007 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
@@ -46,7 +45,6 @@ public interface LocalVariantGraphResolveStateBuilder {
      */
     LocalVariantGraphResolveState createRootVariantState(
         ConfigurationInternal configuration,
-        ConfigurationsProvider configurationsProvider,
         ComponentIdentifier componentId,
         DependencyCache dependencyCache,
         ModelContainer<?> model,
@@ -58,7 +56,6 @@ public interface LocalVariantGraphResolveStateBuilder {
      */
     LocalVariantGraphResolveState createConsumableVariantState(
         ConfigurationInternal configuration,
-        ConfigurationsProvider configurationsProvider,
         ComponentIdentifier componentId,
         DependencyCache dependencyCache,
         ModelContainer<?> model,
@@ -70,6 +67,7 @@ public interface LocalVariantGraphResolveStateBuilder {
      * dependency representations for these types so when constructing leaf configuration metadata
      * (resolvable and consumable), these conversions do not need to be executed multiple times.
      */
+    @SuppressWarnings("NonCanonicalType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     class DependencyCache {
         private final Map<String, DefaultLocalVariantGraphResolveStateBuilder.DependencyState> cache = new HashMap<>();
 

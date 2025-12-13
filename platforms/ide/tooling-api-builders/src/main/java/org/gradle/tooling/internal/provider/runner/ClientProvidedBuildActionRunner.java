@@ -23,8 +23,7 @@ import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.provider.action.ClientProvidedBuildAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class ClientProvidedBuildActionRunner extends AbstractClientProvidedBuildActionRunner implements BuildActionRunner {
     private final PayloadSerializer payloadSerializer;

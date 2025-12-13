@@ -16,6 +16,11 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
+/**
+ * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol. </p>
+ */
 public interface InternalPayloadSerializedAdditionalData extends InternalAdditionalData {
     Object getSerializedType();
+
+    byte[] getBytesForIsolatadObject();
 }

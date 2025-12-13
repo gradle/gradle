@@ -33,11 +33,6 @@ public interface DependencyGraphVisitor {
     default void visitNode(DependencyGraphNode node) {}
 
     /**
-     * Visits a selector. This method is called for all selectors before {@link #visitEdges(DependencyGraphNode)} is called.
-     */
-    default void visitSelector(DependencyGraphSelector selector) {}
-
-    /**
      * Visits edges to/from a node of the graph. Includes the root. This method is called for all nodes after {@link #visitNode(DependencyGraphNode)} has been called for all nodes.
      * Nodes are visited in consumer-first order.
      */

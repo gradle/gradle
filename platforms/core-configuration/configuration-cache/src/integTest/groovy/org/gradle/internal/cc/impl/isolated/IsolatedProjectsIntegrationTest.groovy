@@ -55,7 +55,7 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         isolatedProjectsFails("thing", "--no-configuration-cache")
 
         then:
-        failure.assertHasDescription("The configuration cache cannot be disabled when isolated projects is enabled.")
+        failure.assertHasDescription("Configuration Cache cannot be disabled when Isolated Projects is enabled.")
     }
 
     @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
@@ -83,7 +83,7 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         isolatedProjectsRun(":b:producer")
 
         then:
-        result.assertTasksExecuted(":a:producer", ":b:producer")
+        result.assertTasksScheduled(":a:producer", ":b:producer")
         fixture.assertStateStored {
             // TODO:isolated desired behavior
 //            projectsConfigured(":", ":b", ":a")
@@ -94,14 +94,14 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         isolatedProjectsRun(":b:producer")
 
         then:
-        result.assertTasksExecuted(":a:producer", ":b:producer")
+        result.assertTasksScheduled(":a:producer", ":b:producer")
         fixture.assertStateLoaded()
 
         when:
         isolatedProjectsRun("producer")
 
         then:
-        result.assertTasksExecuted(":a:producer", ":b:producer", ":c:producer")
+        result.assertTasksScheduled(":a:producer", ":b:producer", ":c:producer")
         fixture.assertStateStored {
             projectsConfigured(":", ":b", ":a", ":c")
         }
@@ -110,7 +110,7 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         isolatedProjectsRun("producer")
 
         then:
-        result.assertTasksExecuted(":a:producer", ":b:producer", ":c:producer")
+        result.assertTasksScheduled(":a:producer", ":b:producer", ":c:producer")
         fixture.assertStateLoaded()
     }
 

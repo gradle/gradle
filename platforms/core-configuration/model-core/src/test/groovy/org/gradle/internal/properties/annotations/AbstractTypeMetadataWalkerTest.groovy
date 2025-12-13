@@ -21,10 +21,6 @@ import groovy.transform.EqualsAndHashCode
 import org.gradle.api.Named
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
-import org.gradle.internal.reflect.annotations.Ignored
-import org.gradle.internal.reflect.annotations.Long
-import org.gradle.internal.reflect.annotations.TestAnnotationHandlingSupport
-import org.gradle.internal.reflect.annotations.TestNested
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

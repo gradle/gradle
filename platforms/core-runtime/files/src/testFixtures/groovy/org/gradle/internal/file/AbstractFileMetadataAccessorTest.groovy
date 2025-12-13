@@ -16,7 +16,6 @@
 
 package org.gradle.internal.file
 
-import org.gradle.api.UncheckedIOException
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
@@ -167,7 +166,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         assertSameAccessType(stat, VIA_SYMLINK)
     }
 
-    @Requires(UnitTestPreconditions.UnixDerivative)
+    @Requires(UnitTestPreconditions.Unix)
     def "stats named pipes"() {
         def pipe = tmpDir.file("testPipe").createNamedPipe()
 

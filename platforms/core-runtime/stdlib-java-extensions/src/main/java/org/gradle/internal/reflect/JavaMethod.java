@@ -18,8 +18,8 @@ package org.gradle.internal.reflect;
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -125,7 +125,8 @@ public class JavaMethod<T, R> {
             Object result = method.invoke(target, args);
             return returnType.cast(result);
         } catch (InvocationTargetException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+            Throwable cause = e.getCause();
+            throw UncheckedException.throwAsUncheckedException(cause != null ? cause : e);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not call %s.%s() on %s", method.getDeclaringClass().getSimpleName(), method.getName(), target), e);
         }

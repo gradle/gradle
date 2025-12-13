@@ -20,8 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.HasInternalProtocol;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Allows adding 'namespaced' DSL extensions to a target object.

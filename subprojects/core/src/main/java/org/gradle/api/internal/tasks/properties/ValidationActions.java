@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.problems.ProblemSpec;
@@ -26,8 +26,8 @@ import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Locale;

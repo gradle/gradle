@@ -35,9 +35,13 @@ class DeclarativeDslToolingModelsClasspathProvider implements ToolingApiAddition
 
     private static List<String> jarPrefixesFor() {
         return [
-            "gradle-declarative-dsl-",
+            "gradle-declarative-dsl-tooling-models-",
+            "gradle-declarative-dsl-core-",
+            "gradle-declarative-dsl-api-",
+            "gradle-declarative-dsl-evaluator-",
             "kotlin-stdlib-",
-            "kotlin-compiler-embeddable-"
+            "kotlin-compiler-embeddable-",
+            "kotlinx-serialization-core-"
         ]
     }
 }

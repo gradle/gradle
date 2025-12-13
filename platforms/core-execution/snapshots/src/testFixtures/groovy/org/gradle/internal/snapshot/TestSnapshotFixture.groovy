@@ -31,7 +31,7 @@ trait TestSnapshotFixture {
 
     private final Random pseudoRandom = new Random(1234)
 
-    FileSystemLocationSnapshot directory(String absolutePath, FileMetadata.AccessType accessType = DIRECT, Long hashCode = null, List<FileSystemLocationSnapshot> children) {
+    FileSystemLocationSnapshot directory(String absolutePath, FileMetadata.AccessType accessType = DIRECT, List<FileSystemLocationSnapshot> children) {
         def builder = MerkleDirectorySnapshotBuilder.sortingRequired()
         builder.enterDirectory(
             accessType,
@@ -42,7 +42,7 @@ trait TestSnapshotFixture {
         children.each { snapshot ->
             if (snapshot instanceof DirectorySnapshot) {
                 builder.visitDirectory(snapshot)
-            } else {
+            } else if (snapshot instanceof FileSystemLeafSnapshot) {
                 builder.visitLeafElement(snapshot)
             }
         }

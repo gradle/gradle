@@ -15,6 +15,7 @@
  */
 package org.gradle.buildinit.plugins
 
+import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
@@ -34,9 +35,12 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
     @SuppressWarnings('GroovyAssignabilityCheck')
     def "init must be only task requested #args"() {
-        expect:
-        executer.expectDocumentedDeprecationWarning("Executing other tasks along with the 'init' task has been deprecated. This will fail with an error in Gradle 9.0. The init task should be run by itself. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#init_must_run_alone")
-        succeeds(args)
+        when:
+        fails(args)
+
+        then:
+        failureDescriptionContains("Executing other tasks along with the 'init' task is not allowed. The 'init' task must be run by itself.")
+        failure.assertHasResolution("Remove all other tasks from the command line when running init.")
 
         where:
         args << [
@@ -55,6 +59,15 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
             ["init", "--type", "java-application"],
             ["help", "--task", "init"]
         ]
+    }
+
+    @SuppressWarnings('GroovyAssignabilityCheck')
+    def "init can be run with arguments #args and built afterwards"() {
+        when:
+        succeeds("init", "--type", "java-library", "--project-name", "example", "--split-project", "--package", "org.example.gradleinit", "--dsl", "kotlin", "--java-version", JavaVersion.current().majorVersion)
+
+        then:
+        succeeds 'build'
     }
 
     def "init shows up on tasks overview "() {
@@ -131,7 +144,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         initFailsWith targetScriptDsl as BuildInitDsl
 
         then:
-        result.assertTasksExecuted(":init")
+        result.assertTasksScheduled(":init")
         result.assertHasErrorOutput("Aborting build initialization due to existing files in the project directory: '${existingDslFixture.rootDir.toPath()}'.")
 
         and:
@@ -154,7 +167,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         initFailsWith targetScriptDsl as BuildInitDsl
 
         then:
-        result.assertTasksExecuted(":init")
+        result.assertTasksScheduled(":init")
         result.assertHasErrorOutput("Aborting build initialization due to existing files in the project directory: '${existingDslFixture.rootDir.toPath()}'.")
 
         and:
@@ -177,39 +190,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         initFailsWith targetScriptDsl as BuildInitDsl
 
         then:
-        result.assertTasksExecuted(":init")
-        result.assertHasErrorOutput("Aborting build initialization due to existing files in the project directory: '${existingDslFixture.rootDir.toPath()}'.")
-
-        and:
-        !targetDslFixture.buildFile.exists()
-        !targetDslFixture.settingsFile.exists()
-        targetDslFixture.assertWrapperFilesNotGenerated()
-
-        where:
-        [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
-    }
-
-    @SuppressWarnings('GrDeprecatedAPIUsage')
-    def "#targetScriptDsl build file generation is skipped when part of a multi-project build with non-standard #existingScriptDsl settings file location"() {
-        given:
-        def existingDslFixture = dslFixtureFor(existingScriptDsl as BuildInitDsl)
-        def targetDslFixture = dslFixtureFor(targetScriptDsl as BuildInitDsl)
-
-        and:
-        def customSettings = existingDslFixture.scriptFile("customSettings")
-        customSettings.parentFile.createDirs("child")
-        customSettings << """
-            include("child")
-        """
-
-        when:
-        executer.usingSettingsFile(customSettings)
-        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 9.0. " +
-            "Consult the upgrading guide for further information: ${documentationRegistry.getDocumentationFor("upgrading_version_7", "configuring_custom_build_layout")}")
-        initFailsWith targetScriptDsl as BuildInitDsl
-
-        then:
-        result.assertTasksExecuted(":init")
+        result.assertTasksScheduled(":init")
         result.assertHasErrorOutput("Aborting build initialization due to existing files in the project directory: '${existingDslFixture.rootDir.toPath()}'.")
 
         and:
@@ -452,19 +433,6 @@ Description""") // include the next header to make sure all options are listed
 
         then:
         fails "init"
-        failure.assertHasCause("Aborting build initialization due to existing files in the project directory: '${targetDir.path}'")
-        targetDir.assertContainsDescendants("settings.gradle")
-    }
-
-    def "fails when initializing plus help in a directory that contains a working settings file"() {
-        when:
-        targetDir.file("settings.gradle") << """
-            // empty
-        """
-
-        then:
-        executer.expectDocumentedDeprecationWarning("Executing other tasks along with the 'init' task has been deprecated. This will fail with an error in Gradle 9.0. The init task should be run by itself. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#init_must_run_alone")
-        fails "init", "help"
         failure.assertHasCause("Aborting build initialization due to existing files in the project directory: '${targetDir.path}'")
         targetDir.assertContainsDescendants("settings.gradle")
     }

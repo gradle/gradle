@@ -50,7 +50,7 @@ abstract class AbstractExecutionResultExecTaskIntegrationTest extends AbstractIn
         succeeds('verify')
 
         then:
-        result.assertTasksExecutedAndNotSkipped(':verify')
+        result.assertTasksExecuted(':verify')
     }
 
     @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
@@ -71,7 +71,7 @@ abstract class AbstractExecutionResultExecTaskIntegrationTest extends AbstractIn
         succeeds('verify')
 
         then:
-        result.assertTasksExecutedAndNotSkipped(':compileJava', ":$taskNameUnderTest", ':verify')
+        result.assertTasksExecuted(':compileJava', ":$taskNameUnderTest", ':verify')
     }
 
     @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
@@ -93,6 +93,6 @@ abstract class AbstractExecutionResultExecTaskIntegrationTest extends AbstractIn
         succeeds('verify')
 
         then:
-        result.assertTasksExecutedAndNotSkipped(':compileJava', ":$taskNameUnderTest", ':verify')
+        result.assertTasksExecuted(':compileJava', ":$taskNameUnderTest", ':verify')
     }
 }

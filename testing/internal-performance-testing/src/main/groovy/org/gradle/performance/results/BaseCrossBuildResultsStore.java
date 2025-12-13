@@ -22,7 +22,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
-import org.joda.time.LocalDate;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -31,6 +30,7 @@ import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -158,7 +158,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 executionsForName.setString(++idx, experiment.getScenario().getClassName());
                 executionsForName.setString(++idx, experiment.getScenario().getTestName());
                 executionsForName.setString(++idx, experiment.getTestProject());
-                Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
+                Timestamp minDate = Timestamp.valueOf(LocalDate.now().minusDays(maxDaysOld).atStartOfDay());
                 executionsForName.setTimestamp(++idx, minDate);
                 for (String channelPattern : channelPatterns) {
                     executionsForName.setString(++idx, channelPattern);

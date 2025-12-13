@@ -20,8 +20,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.logging.LogEventLevel;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @SuppressWarnings("deprecation")
 public class ProgressStartEvent extends CategorisedOutputEvent implements org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails {
@@ -39,7 +38,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
     private final BuildOperationCategory buildOperationCategory;
 
     public ProgressStartEvent(
-        OperationIdentifier progressOperationId,
+        @Nullable OperationIdentifier progressOperationId,
         @Nullable OperationIdentifier parentProgressOperationId,
         long timestamp,
         String category,

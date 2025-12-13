@@ -21,31 +21,35 @@ plugins {
 description = "Public types for unit testing plugins"
 
 dependencies {
-    api(libs.jsr305)
-    api(projects.serviceLookup)
-    api(projects.serviceProvider)
-    api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
     api(projects.persistentCache)
     api(projects.serialization)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
     api(projects.time)
-    api(projects.buildProcessServices)
 
+    api(libs.jspecify)
+
+    implementation(projects.baseServices)
+    implementation(projects.buildDiscoveryImpl)
+    implementation(projects.buildOption)
+    implementation(projects.buildProcessServices)
     implementation(projects.buildState)
+    implementation(projects.classloaders)
+    implementation(projects.daemonServices)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
     implementation(projects.instrumentationAgentServices)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
-    implementation(projects.daemonServices)
     implementation(projects.native)
+    implementation(projects.problemsApi)
     implementation(projects.serviceRegistryBuilder)
-
+    implementation(projects.stdlibJavaExtensions)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(projects.testingBase)
@@ -53,10 +57,12 @@ dependencies {
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder loads services from a Gradle distribution.")
     }
-    integTestRuntimeOnly(projects.distributionsCore) {
-        because("ProjectBuilder loads services from a Gradle distribution.")
-    }
-    integTestDistributionRuntimeClasspath(projects.distributionsFull)
+
+    integTestImplementation(testFixtures(projects.buildProcessServices))
+    integTestImplementation(testFixtures(projects.testingBase))
+    integTestCompileOnly(libs.jetbrainsAnnotations)
+
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false

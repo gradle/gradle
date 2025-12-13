@@ -23,12 +23,12 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -37,11 +37,12 @@ import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -52,6 +53,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Resolution state for a given module.
@@ -77,7 +82,7 @@ public class ModuleResolveState implements CandidateModule {
     private ComponentState selected;
     private ImmutableAttributes mergedConstraintAttributes = ImmutableAttributes.EMPTY;
 
-    private AttributeMergingException attributeMergingError;
+    private @Nullable AttributeMergingException attributeMergingError;
     private VirtualPlatformState platformState;
     private boolean overriddenSelection;
     private Set<VirtualPlatformState> platformOwners;
@@ -137,6 +142,7 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     @Override
+    @SuppressWarnings("MixedMutabilityReturnType")
     public Collection<ComponentState> getVersions() {
         if (this.versions.isEmpty()) {
             return Collections.emptyList();
@@ -154,6 +160,10 @@ public class ModuleResolveState implements CandidateModule {
         return versions;
     }
 
+    /**
+     * Get all versions of this module that have been seen during graph resolution,
+     * even those which are no longer candidates for selection.
+     */
     public Collection<ComponentState> getAllVersions() {
         return this.versions.values();
     }
@@ -200,6 +210,7 @@ public class ModuleResolveState implements CandidateModule {
     /**
      * Changes the selected target component for this module due to version conflict resolution.
      */
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private void changeSelection(ComponentState newSelection) {
         assert this.selected != null;
         assert newSelection != null;
@@ -250,7 +261,7 @@ public class ModuleResolveState implements CandidateModule {
         assert this.selected == null;
         assert selected != null;
 
-        if (!selected.getId().getModule().equals(getId())) {
+        if (!selected.getModule().getId().equals(getId())) {
             this.overriddenSelection = true;
         }
         this.selected = selected;
@@ -265,7 +276,7 @@ public class ModuleResolveState implements CandidateModule {
 
     private boolean computeReplaced(ComponentState selected) {
         // This module might be resolved to a different module, through replacedBy
-        return !selected.getId().getModule().equals(getId());
+        return !selected.getModule().getId().equals(getId());
     }
 
     private void doRestart(ComponentState selected) {
@@ -307,9 +318,24 @@ public class ModuleResolveState implements CandidateModule {
 
     public ComponentState getVersion(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
         assert id.getModule().equals(this.id);
-        return versions.computeIfAbsent(id, k ->
+        ComponentState componentState = versions.computeIfAbsent(id, k ->
             new ComponentState(idGenerator.nextGraphNodeId(), this, id, componentIdentifier, metaDataResolver)
         );
+
+        // Starting in Gradle 10, the root component's module identity will no longer
+        // be the module identity of the project performing dependency resolution.
+        // In Gradle 10, attempting to resolve the root component using its old module coordinates will no
+        // longer resolve the project component of the project performing resolution, but will
+        // instead attempt to resolve the component from external repositories.
+        if (componentIdentifier instanceof ModuleComponentIdentifier && componentState.isRoot()) {
+            DeprecationLogger.deprecateAction("Depending on the resolving project's module coordinates")
+                .withAdvice("Use a project dependency instead.")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(9, "module_identity_for_root_component")
+                .nagUser();
+        }
+
+        return componentState;
     }
 
     void addSelector(SelectorState selector, boolean deferSelection) {
@@ -341,15 +367,11 @@ public class ModuleResolveState implements CandidateModule {
         return unattachedEdges;
     }
 
-    ImmutableAttributes mergedConstraintsAttributes(AttributeContainer append) throws AttributeMergingException {
+    ImmutableAttributes getMergedConstraintAttributes() {
         if (attributeMergingError != null) {
             throw new IllegalStateException(IncompatibleDependencyAttributesMessageBuilder.buildMergeErrorMessage(this, attributeMergingError));
         }
-        ImmutableAttributes attributes = ((AttributeContainerInternal) append).asImmutable();
-        if (mergedConstraintAttributes.isEmpty()) {
-            return attributes;
-        }
-        return attributesFactory.safeConcat(mergedConstraintAttributes.asImmutable(), attributes);
+        return mergedConstraintAttributes;
     }
 
     private ImmutableAttributes appendAttributes(ImmutableAttributes dependencyAttributes, SelectorState selectorState) {
@@ -365,6 +387,14 @@ public class ModuleResolveState implements CandidateModule {
             attributeMergingError = e;
         }
         return dependencyAttributes;
+    }
+
+    public List<ComponentSelectionReasonInternal> getSelectionReasons() {
+        return StreamSupport.stream(
+                Spliterators.spliteratorUnknownSize(selectors.iterator(), Spliterator.ORDERED),
+                false
+            ).map(SelectorState::getSelectionReason)
+            .collect(Collectors.toList());
     }
 
     Set<EdgeState> getIncomingEdges() {
@@ -442,6 +472,7 @@ public class ModuleResolveState implements CandidateModule {
         pendingDependencies.unregisterConstraintProvider(nodeState);
     }
 
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public void maybeUpdateSelection() {
         if (replaced) {
             // Never update selection for a replaced module
@@ -513,5 +544,25 @@ public class ModuleResolveState implements CandidateModule {
         }
 
         return null;
+    }
+
+    /* package */ Set<EdgeState> getAllEdges() {
+        Set<EdgeState> allEdges = new LinkedHashSet<>();
+        allEdges.addAll(getIncomingEdges());
+        allEdges.addAll(getUnattachedEdges());
+        return allEdges;
+    }
+
+    public Map<SelectorState, List<List<String>>> getSegmentedPathsBySelectors() {
+        return getAllEdges().stream()
+            .collect(Collectors.toMap(
+                EdgeState::getSelector,
+                MessageBuilderHelper::segmentedPathsTo,
+                (a, b) -> {
+                    List<List<String>> combined = new ArrayList<>(a);
+                    combined.addAll(b);
+                    return combined;
+                }
+            ));
     }
 }

@@ -19,7 +19,6 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
@@ -27,8 +26,8 @@ import org.gradle.internal.component.model.ComponentArtifactResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ModuleSources;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 
@@ -45,7 +44,7 @@ import java.util.List;
  * @see ComponentArtifactResolveState
  * @see ComponentArtifactResolveMetadata
  */
-public interface ExternalComponentResolveMetadata extends HasAttributes {
+public interface ExternalComponentResolveMetadata {
     List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
 
     /**
@@ -87,6 +86,5 @@ public interface ExternalComponentResolveMetadata extends HasAttributes {
 
     ImmutableList<? extends VirtualComponentIdentifier> getPlatformOwners();
 
-    @Override
     ImmutableAttributes getAttributes();
 }

@@ -13,7 +13,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.bouncycastlePgp)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.groovy)
     api(libs.inject)
 
@@ -56,11 +56,12 @@ packageCycles {
     excludePatterns.add("org/gradle/plugins/signing/**")
 }
 
-tasks {
-    integTest {
-        usesJavadocCodeSnippets = true
-    }
-}
 tasks.isolatedProjectsIntegTest {
     enabled = false
+}
+
+tasks.withType<Test>().configureEach {
+    // increase the amount of memory available as the sample key from https://www.rfc-editor.org/rfc/rfc9580.html#name-sample-locked-version-6-sec
+    // used Argon2 in a configuration that uses a lot of memory (probably 2GiB) for a very short time.
+    maxHeapSize = "3g"
 }

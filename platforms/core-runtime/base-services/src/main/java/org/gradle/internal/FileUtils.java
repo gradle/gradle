@@ -18,8 +18,6 @@ package org.gradle.internal;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.io.FilenameUtils;
-import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,8 +29,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class FileUtils {
-    public static final int WINDOWS_PATH_LIMIT = 260;
-
     private static final Comparator<File> FILE_SEGMENT_COMPARATOR = new Comparator<File>() {
         @Override
         public int compare(File left, File right) {
@@ -62,37 +58,6 @@ public class FileUtils {
             return len1 - len2;
         }
     };
-
-    /**
-     * Converts a string into a string that is safe to use as a file name. The result will only include ascii characters and numbers, and the "-","_", #, $ and "." characters.
-     */
-    public static String toSafeFileName(String name) {
-        int size = name.length();
-        StringBuilder rc = new StringBuilder(size * 2);
-        for (int i = 0; i < size; i++) {
-            char c = name.charAt(i);
-            boolean valid = c >= 'a' && c <= 'z';
-            valid = valid || (c >= 'A' && c <= 'Z');
-            valid = valid || (c >= '0' && c <= '9');
-            valid = valid || (c == '_') || (c == '-') || (c == '.') || (c == '$');
-            if (valid) {
-                rc.append(c);
-            } else {
-                // Encode the character using hex notation
-                rc.append('#');
-                rc.append(Integer.toHexString(c));
-            }
-        }
-        return rc.toString();
-    }
-
-    public static File assertInWindowsPathLengthLimitation(File file) {
-        if (file.getAbsolutePath().length() > WINDOWS_PATH_LIMIT) {
-            throw new GradleException(String.format("Cannot create file. '%s' exceeds windows path limitation of %d character.", file.getAbsolutePath(), WINDOWS_PATH_LIMIT));
-
-        }
-        return file;
-    }
 
     /**
      * Returns the outer most files that encompass the given files inclusively.
@@ -203,7 +168,7 @@ public class FileUtils {
         try {
             return src.getCanonicalFile();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -224,6 +189,25 @@ public class FileUtils {
             parent = root.getParentFile();
         }
         return root;
+    }
+
+    /**
+     * Adds suffix to the filename, preserving the extension
+     *
+     * @param filename original file name, e.g. name.zip
+     * @param suffix suffix to add, e.g. "-new"
+     * @return new file name, e.g. name-new.zip
+     */
+    public static String addSuffixToName(String filename, String suffix) {
+        int dotIndex = filename.indexOf('.');
+
+        if (dotIndex > 0) {
+            String name = filename.substring(0, dotIndex);
+            String extension = filename.substring(dotIndex);
+            return name + suffix + extension;
+        } else {
+            return filename + suffix;
+        }
     }
 
 }

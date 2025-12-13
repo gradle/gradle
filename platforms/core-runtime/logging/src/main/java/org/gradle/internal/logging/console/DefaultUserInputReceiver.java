@@ -17,13 +17,13 @@
 package org.gradle.internal.logging.console;
 
 import com.google.common.base.CharMatcher;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.logging.events.ReadStdInEvent;
 import org.gradle.internal.logging.events.UserInputValidationProblemEvent;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultUserInputReceiver implements GlobalUserInputReceiver {

@@ -4,13 +4,6 @@ plugins {
 
 description = "Plugins and model builders for integration with Eclipse and IntelliJ IDEs"
 
-errorprone {
-    disabledChecks.addAll(
-        "LoopOverCharArray", // 1 occurrences
-        "ObjectEqualsForPrimitives", // 3 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.core)
@@ -18,20 +11,25 @@ dependencies {
     api(projects.dependencyManagement)
     api(projects.fileCollections)
     api(projects.fileOperations)
+    api(projects.jvmServices)
     api(projects.stdlibJavaExtensions)
     api(projects.modelCore)
     api(projects.platformJvm)
+    api(projects.problemsApi)
     api(projects.serviceProvider)
     api(projects.toolingApi)
 
     api(libs.guava)
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.baseServicesGroovy)
+    implementation(projects.buildProcessServices)
+    implementation(projects.classloaders)
     implementation(projects.ear)
     implementation(projects.languageJava)
+    implementation(projects.launcher)
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
     implementation(projects.pluginsJava)
@@ -42,8 +40,9 @@ dependencies {
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
 
-
+    runtimeOnly(projects.buildEvents)
     runtimeOnly(projects.languageJvm)
     runtimeOnly(projects.testingBase)
     runtimeOnly(projects.testingJvm)
@@ -74,7 +73,6 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
-    crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 strictCompile {
@@ -89,7 +87,6 @@ packageCycles {
     excludePatterns.add("org/gradle/plugins/ide/idea/model/internal/*")
 }
 
-integTest.usesJavadocCodeSnippets = true
 testFilesCleanup.reportOnly = true
 tasks.isolatedProjectsIntegTest {
     enabled = false

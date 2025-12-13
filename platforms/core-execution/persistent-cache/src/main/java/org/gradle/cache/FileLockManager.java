@@ -17,8 +17,8 @@ package org.gradle.cache;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.function.Consumer;
 
@@ -80,6 +80,21 @@ public interface FileLockManager {
          * Not supported by {@link FileLockManager}.
          */
         OnDemand,
+
+        /**
+         * On demand, single writer, no readers (on demand exclusive mode).
+         * <br><br>
+         *
+         * Only one process can access the cache at a time.
+         * <br><br>
+         *
+         * For {@link PersistentCache} the file lock is created with {@link PersistentCache#useCache} or {@link PersistentCache#withFileLock} method.
+         * Lock is released when no longer needed, see {@link org.gradle.cache.internal.DefaultFileLockManager.DefaultFileLock#lock(org.gradle.cache.FileLockManager.LockMode)}.
+         * <br><br>
+         *
+         * Not supported by {@link FileLockManager}.
+         */
+        OnDemandEagerRelease,
 
         /**
          * Multiple readers, no writers.

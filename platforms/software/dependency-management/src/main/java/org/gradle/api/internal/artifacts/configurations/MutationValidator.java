@@ -22,12 +22,17 @@ package org.gradle.api.internal.artifacts.configurations;
 public interface MutationValidator {
     enum MutationType {
         /**
+         * The mutation of basic state, including transitivity, attributes, capabilities.
+         */
+        BASIC_STATE("state"),
+
+        /**
          * The mutation of the resolution strategy of the configuration, i.e. caching, resolution rules etc.
          */
         STRATEGY("resolution strategy"),
 
         /**
-         * The mutation of anything that will affect the resolved dependency graph of this configuration.
+         * The mutation of dependencies, dependency constraints, or global excludes.
          */
         DEPENDENCIES("dependencies"),
 
@@ -75,6 +80,7 @@ public interface MutationValidator {
         public String toString() {
             return displayName;
         }
+
     }
 
     /**

@@ -19,6 +19,7 @@ package org.gradle.internal.serialize.codecs.dm.transform
 import org.gradle.api.internal.artifacts.transform.ComponentVariantIdentifier
 import org.gradle.api.internal.artifacts.transform.TransformStepNode
 import org.gradle.api.internal.artifacts.transform.TransformedProjectArtifactSet
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
@@ -33,6 +34,7 @@ import org.gradle.internal.serialize.graph.writeCollection
 class TransformedProjectArtifactSetCodec : Codec<TransformedProjectArtifactSet> {
     override suspend fun WriteContext.encode(value: TransformedProjectArtifactSet) {
         encodePreservingSharedIdentityOf(value) {
+            write(value.sourceVariantId)
             write(value.targetVariant)
             writeCollection(value.transformedArtifacts)
         }
@@ -40,9 +42,10 @@ class TransformedProjectArtifactSetCodec : Codec<TransformedProjectArtifactSet> 
 
     override suspend fun ReadContext.decode(): TransformedProjectArtifactSet {
         return decodePreservingSharedIdentity {
+            val sourceVariantId = readNonNull<VariantIdentifier>()
             val targetVariant = readNonNull<ComponentVariantIdentifier>()
             val nodes: List<TransformStepNode> = readList().uncheckedCast()
-            TransformedProjectArtifactSet(targetVariant, nodes)
+            TransformedProjectArtifactSet(sourceVariantId, targetVariant, nodes)
         }
     }
 }

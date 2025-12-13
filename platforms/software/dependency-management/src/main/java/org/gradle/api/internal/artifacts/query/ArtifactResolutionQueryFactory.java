@@ -16,7 +16,10 @@
 package org.gradle.api.internal.artifacts.query;
 
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Project.class)
 public interface ArtifactResolutionQueryFactory {
     ArtifactResolutionQuery createArtifactResolutionQuery();
 }

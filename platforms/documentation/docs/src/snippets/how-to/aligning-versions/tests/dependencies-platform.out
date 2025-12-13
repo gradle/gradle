@@ -1,0 +1,16 @@
+> Task :dependencies
+
+------------------------------------------------------------
+Root project 'how_to_align_dependency_versions'
+------------------------------------------------------------
+
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- com.fasterxml.jackson.core:jackson-databind:2.8.9 -> 2.9.5
+|    +--- com.fasterxml.jackson.core:jackson-annotations:2.9.0 -> 2.9.5
+|    \--- com.fasterxml.jackson.core:jackson-core:2.9.5
+\--- io.vertx:vertx-core:3.5.3
+     +--- io.netty:netty-common:4.1.19.Final
+     ...
+     |    \--- io.netty:netty-transport:4.1.19.Final (*)
+     +--- com.fasterxml.jackson.core:jackson-core:2.9.5
+     \--- com.fasterxml.jackson.core:jackson-databind:2.9.5 (*)

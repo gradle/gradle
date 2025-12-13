@@ -17,25 +17,16 @@
 package org.gradle.testing.junit.vintage
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.TestClassExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.testing.junit.AbstractJUnitTestExecutionIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT4_VERSION
-import static org.hamcrest.CoreMatchers.containsString
 
 @TargetCoverage({ JUNIT_VINTAGE })
 class JUnitVintageTestExecutionIntegrationTest extends AbstractJUnitTestExecutionIntegrationTest implements JUnitVintageMultiVersionTest {
     @Override
     String getJUnitVersionAssertion() {
         return "assertEquals(\"${LATEST_JUNIT4_VERSION}\", new org.junit.runner.JUnitCore().getVersion());"
-    }
-
-    @Override
-    TestClassExecutionResult assertFailedToExecute(TestExecutionResult testResult, String testClassName) {
-        return testResult.testClassStartsWith('Gradle Test Executor')
-            .assertTestFailed("failed to execute tests", containsString("Could not execute test class '${testClassName}'"))
     }
 
     @Override

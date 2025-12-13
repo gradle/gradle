@@ -18,6 +18,7 @@ package org.gradle.testing.testsuites
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import spock.lang.Issue
 
 class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
 
@@ -76,8 +77,8 @@ class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'check'
 
         then:
-        result.assertTaskExecuted(':test')
-        result.assertTaskExecuted(':integTest')
+        result.assertTaskScheduled(':test')
+        result.assertTaskScheduled(':integTest')
 
         def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory)
         unitTestResults.assertTestClassesExecuted('example.UnitTest')
@@ -152,12 +153,59 @@ class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'check'
 
         then:
-        result.assertTaskExecuted(':test')
-        result.assertTaskExecuted(':integTest')
+        result.assertTaskScheduled(':test')
+        result.assertTaskScheduled(':integTest')
 
         def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory)
         unitTestResults.assertTestClassesExecuted('example.UnitTest')
         def integTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'build/test-results/integTest')
         integTestResults.assertTestClassesExecuted('it.IntegrationTest')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23544")
+    def 'can configure test task testing framework after test suite framework is set'() {
+        given:
+        buildFile """
+            plugins {
+                id("java")
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    register("functionalTest", JvmTestSuite) {
+                        dependencies {
+                            implementation(project())
+                        }
+
+                        targets.configureEach {
+                            testTask.configure {
+                                useJUnitPlatform {
+
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        file('src/functionalTest/java/org/example/MyFunctionalTest.java') << '''
+            package org.example;
+
+            import org.junit.jupiter.api.Assertions;
+            import org.junit.jupiter.api.Test;
+
+            public class MyFunctionalTest {
+                @Test
+                public void functionalTest() {
+                    Assertions.assertTrue(true);
+                }
+            }
+        '''
+
+        expect:
+        succeeds 'functionalTest'
     }
 }

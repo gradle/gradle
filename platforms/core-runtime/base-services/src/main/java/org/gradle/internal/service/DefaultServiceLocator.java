@@ -18,8 +18,9 @@ package org.gradle.internal.service;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,7 +81,7 @@ public class DefaultServiceLocator implements ServiceLocator {
      * Locates a factory for a given service. Returns null when no service implementation is available.
      */
     @Override
-    public <T> ServiceFactory<T> findFactory(Class<T> serviceType) {
+    public <T> @Nullable ServiceFactory<T> findFactory(Class<T> serviceType) {
         List<ServiceFactory<T>> factories = findFactoriesForServiceType(serviceType);
         if (factories.isEmpty()) {
             return null;
@@ -187,7 +188,7 @@ public class DefaultServiceLocator implements ServiceLocator {
         }
 
         @Override
-        @Nonnull
+        @NonNull
         public T create() {
             return newInstance();
         }

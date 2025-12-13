@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@NonNullApi
+@NullMarked
 package org.gradle.language.base.internal.model;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
-import static org.gradle.util.internal.GUtil.toCamelCase
+import static org.gradle.util.internal.TextUtil.toCamelCase
 
 abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
     @Override
@@ -56,24 +56,17 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
                     }
                 }
             }
+            dependencies {
+                $variantToTest("org.test:moduleA:1.0") {
+                    if (${!publishedModulesHaveAttributes && useIvy()}) {
+                        targetConfiguration = "$variantToTest"
+                    }
+                }
+            }
         """
-
-        if (useMaven() || publishedModulesHaveAttributes) {
-            buildFile << """
-                dependencies {
-                    $variantToTest group: 'org.test', name: 'moduleA', version: '1.0'
-                }
-            """
-        } else {
-            buildFile << """
-                dependencies {
-                    $variantToTest group: 'org.test', name: 'moduleA', version: '1.0', configuration: '$variantToTest'
-                }
-            """
-        }
     }
 
-    def "#thing can be added using #notation notation"() {
+    def "#thing can be added"() {
         when:
         buildFile << """
             class ModifyRule implements ComponentMetadataRule {
@@ -105,7 +98,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -123,11 +116,9 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         where:
-        thing                    | notation | declaration
-        "dependency constraints" | "string" | "'org.test:moduleB:1.0'"
-        "dependency constraints" | "map"    | "group: 'org.test', name: 'moduleB', version: '1.0'"
-        "dependencies"           | "string" | "'org.test:moduleB:1.0'"
-        "dependencies"           | "map"    | "group: 'org.test', name: 'moduleB', version: '1.0'"
+        thing                    | declaration
+        "dependency constraints" | "'org.test:moduleB:1.0'"
+        "dependencies"           | "'org.test:moduleB:1.0'"
     }
 
     def "#thing can be added to a new variant"() {
@@ -169,7 +160,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -193,14 +184,14 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         "dependencies"           | _
     }
 
-    def "#thing can be added and configured using #notation notation"() {
+    def "#thing can be added and configured"() {
         when:
         buildFile << """
             class ModifyRule implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext context) {
                     context.details.withVariant("$variantToTest") {
                         with${toCamelCase(thing)} {
-                            add($declaration) {
+                            add('org.test:moduleB:1.0') {
                                 it.version { strictly '1.0' }
                             }
                         }
@@ -227,7 +218,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -245,11 +236,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         where:
-        thing                    | notation | declaration
-        "dependency constraints" | "string" | "'org.test:moduleB:1.0'"
-        "dependency constraints" | "map"    | "group: 'org.test', name: 'moduleB', version: '1.0'"
-        "dependencies"           | "string" | "'org.test:moduleB:1.0'"
-        "dependencies"           | "map"    | "group: 'org.test', name: 'moduleB', version: '1.0'"
+        thing << ["dependency constraints", "dependencies"]
     }
 
     def "dependencies can be removed"() {
@@ -286,7 +273,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -337,7 +324,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -398,7 +385,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -455,7 +442,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         def versionConstraint = keyword == 'require' ? '1.0' : "{${keyword} 1.0}"
         resolve.expectGraph {
@@ -512,7 +499,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -555,7 +542,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -595,7 +582,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -654,7 +641,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -754,7 +741,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -794,7 +781,11 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
             configurations { anotherConfiguration { attributes { attribute(Attribute.of('format', String), 'custom') } } }
 
             dependencies {
-                anotherConfiguration group: 'org.test', name: 'moduleA', version: '1.0' ${publishedModulesHaveAttributes || useMaven() ? "" : ", configuration: '$variantToTest'"}
+                anotherConfiguration("org.test:moduleA:1.0") {
+                    if (${!publishedModulesHaveAttributes && !useMaven()}) {
+                        targetConfiguration = "$variantToTest"
+                    }
+                }
             }
 
             dependencies {
@@ -847,7 +838,11 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
             }
 
             dependencies {
-                $variantToTest group: 'org.test', name: 'moduleB', version: '1.1' ${publishedModulesHaveAttributes || useMaven() ? "" : ", configuration: '$variantToTest'"}
+                $variantToTest("org.test:moduleB:1.1") {
+                    if (${!publishedModulesHaveAttributes && !useMaven()}) {
+                        targetConfiguration = "$variantToTest"
+                    }
+                }
 
                 components {
                     withModule('org.test:moduleA', ModifyRule)
@@ -869,10 +864,10 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        fails 'checkDep'
+        fails 'checkDeps'
         failure.assertHasCause """Cannot find a version of 'org.test:moduleB' that satisfies the version constraints:
-   Dependency path ':test:unspecified' --> 'org.test:moduleB:1.1'
-   ${defineAsConstraint? 'Constraint' : 'Dependency'} path ':test:unspecified' --> 'org.test:moduleA:1.0' ($variantToTest) --> 'org.test:moduleB:{strictly 1.0}'"""
+   Dependency path: 'root project :' ($variantToTest) --> 'org.test:moduleB:1.1'
+   ${defineAsConstraint? 'Constraint' : 'Dependency'} path: 'root project :' ($variantToTest) --> 'org.test:moduleA:1.0' ($variantToTest) --> 'org.test:moduleB:{strictly 1.0}'"""
 
         where:
         thing                    | defineAsConstraint
@@ -912,7 +907,11 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
             }
 
             dependencies {
-                $variantToTest group: 'org.test', name: 'moduleB', version: '1.1' ${publishedModulesHaveAttributes || useMaven() ? "" : ", configuration: '$variantToTest'"}
+                $variantToTest("org.test:moduleB:1.1") {
+                    if (${!publishedModulesHaveAttributes && !useMaven()}) {
+                        targetConfiguration = "$variantToTest"
+                    }
+                }
 
                 components {
                     withModule('org.test:moduleA', ModifyRule)
@@ -940,10 +939,10 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        fails 'checkDep'
+        fails 'checkDeps'
         failure.assertHasCause """Cannot find a version of 'org.test:moduleB' that satisfies the version constraints:
-   Dependency path ':test:unspecified' --> 'org.test:moduleB:1.1'
-   ${defineAsConstraint? 'Constraint' : 'Dependency'} path ':test:unspecified' --> 'org.test:moduleA:1.0' ($variantToTest) --> 'org.test:moduleB:{require 1.+; reject 1.1 & 1.2}'"""
+   Dependency path: 'root project :' ($variantToTest) --> 'org.test:moduleB:1.1'
+   ${defineAsConstraint? 'Constraint' : 'Dependency'} path: 'root project :' ($variantToTest) --> 'org.test:moduleA:1.0' ($variantToTest) --> 'org.test:moduleB:{require 1.+; reject 1.1 & 1.2}'"""
 
         where:
         thing                    | defineAsConstraint
@@ -992,7 +991,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         resolve.expectGraph {
             root(':', ':test:') {
@@ -1074,7 +1073,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         }
 
         then:
-        succeeds 'checkDep'
+        succeeds 'checkDeps'
         def expectedVariant = variantToTest
         if (constraintsUnsupported) {
             resolve.expectGraph {

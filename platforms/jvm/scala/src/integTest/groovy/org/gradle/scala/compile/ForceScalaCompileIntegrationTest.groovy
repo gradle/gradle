@@ -17,14 +17,10 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ZincScalaCompileFixture
-import org.junit.Rule
+import org.gradle.integtests.fixtures.ScalaCoverage
 import spock.lang.Issue
 
 class ForceScalaCompileIntegrationTest extends AbstractIntegrationSpec {
-
-    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
-
     def setup() {
         executer.withRepositoryMirrors()
     }
@@ -42,7 +38,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.scala-lang:scala-library:2.12.18'
+    implementation 'org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}'
 }
 
 tasks.withType(ScalaCompile).configureEach {
@@ -78,7 +74,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.scala-lang:scala-library:2.12.18'
+    implementation 'org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}'
 }
 
 tasks.withType(ScalaCompile).configureEach {

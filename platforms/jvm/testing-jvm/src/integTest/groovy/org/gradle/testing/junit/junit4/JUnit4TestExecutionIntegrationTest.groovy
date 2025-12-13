@@ -16,26 +16,17 @@
 
 package org.gradle.testing.junit.junit4
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.TestClassExecutionResult
-import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.testing.junit.AbstractJUnitTestExecutionIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4
-import static org.hamcrest.CoreMatchers.containsString
 
 @TargetCoverage({ JUNIT_4 })
 class JUnit4TestExecutionIntegrationTest extends AbstractJUnitTestExecutionIntegrationTest implements JUnit4MultiVersionTest {
     @Override
     String getJUnitVersionAssertion() {
         return "assertEquals(\"${version}\", new org.junit.runner.JUnitCore().getVersion());"
-    }
-
-    @Override
-    TestClassExecutionResult assertFailedToExecute(TestExecutionResult testResult, String testClassName) {
-        return testResult.testClass(testClassName)
-            .assertTestFailed("initializationError", containsString('ClassFormatError'))
     }
 
     def "test thread name is reset after test execution"() {
@@ -57,9 +48,9 @@ class JUnit4TestExecutionIntegrationTest extends AbstractJUnitTestExecutionInteg
         succeeds "clean", "test"
 
         and:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass("SomeTest").assertTestPassed("checkThreadName")
-        result.testClass("AnotherTest").assertTestPassed("checkThreadName")
+        def results = resultsFor(testDirectory)
+        results.testPath("SomeTest", "checkThreadName").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPath("AnotherTest", "checkThreadName").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     private String threadNameCheckTest(String className) {

@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.resource.transfer.DefaultExternalResourceRepository;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;

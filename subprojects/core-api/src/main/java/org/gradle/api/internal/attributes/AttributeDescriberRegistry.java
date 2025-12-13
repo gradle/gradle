@@ -15,10 +15,14 @@
  */
 package org.gradle.api.internal.attributes;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@ServiceScope(Scope.Project.class)
 public class AttributeDescriberRegistry {
 
     private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();

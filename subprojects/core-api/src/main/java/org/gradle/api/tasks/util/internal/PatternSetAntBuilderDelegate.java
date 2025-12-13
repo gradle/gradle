@@ -44,6 +44,7 @@ public class PatternSetAntBuilderDelegate implements AntBuilderAware {
     private static Object logical(Object node, String op, final Action<Object> withNode) {
         GroovyObject groovyObject = (GroovyObject) node;
         groovyObject.invokeMethod(op, new Closure(null, null) {
+            @SuppressWarnings("unused")
             void doCall() {
                 withNode.execute(getDelegate());
             }

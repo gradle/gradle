@@ -19,14 +19,15 @@ package org.gradle.tooling.internal.consumer.versioning;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.build.BuildEnvironment;
+import org.gradle.tooling.model.build.Help;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.gradle.ProjectPublications;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,6 +48,7 @@ public class ModelMapping {
         map.put(Void.class, "1.0-milestone-3");
         map.put(GradleBuild.class, "1.8");
         map.put(ProjectPublications.class, "1.12");
+        map.put(Help.class, "9.4");
     }
 
     public ModelIdentifier getModelIdentifierFromModelType(final Class<?> modelType) {

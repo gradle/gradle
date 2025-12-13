@@ -2,14 +2,15 @@ package org.gradle.internal.declarativedsl.mappingToJvm
 
 import org.gradle.declarative.dsl.schema.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
+import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationException
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.OperationId
-import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
 import org.gradle.internal.declarativedsl.objectGraph.PropertyValueReflection
 import kotlin.reflect.KClass
@@ -69,14 +70,14 @@ class DeclarativeReflectionToObjectConverter(
             reflectionIdentityPublicTypes[key] = instanceAndPublicType.publicType
             return instanceAndPublicType
         } else {
-            return InstanceAndPublicType.of(reflectionIdentityObjects[key],  reflectionIdentityPublicTypes[key])
+            return InstanceAndPublicType.of(reflectionIdentityObjects[key], reflectionIdentityPublicTypes[key])
         }
     }
 
     private
     fun applyPropertyValue(receiver: ObjectOrigin, property: DataProperty, assigned: PropertyValueReflection) {
         when (assigned.assignmentMethod) {
-            is AssignmentMethod.Property -> setPropertyValue(receiver, property, getObjectByResolvedOrigin(assigned.value.objectOrigin).instance)
+            is AssignmentMethod.Property, is AssignmentMethod.Augmentation -> setPropertyValue(receiver, property, getObjectByResolvedOrigin(assigned.value.objectOrigin).instance)
             is AssignmentMethod.BuilderFunction -> invokeBuilderFunction(receiver, assigned.assignmentMethod.function, assigned.value.objectOrigin)
             is AssignmentMethod.AsConstructed -> Unit // the value should have already been passed to the constructor or the factory function
         }
@@ -87,19 +88,54 @@ class DeclarativeReflectionToObjectConverter(
         return when (objectOrigin) {
             is ObjectOrigin.DelegatingObjectOrigin -> getObjectByResolvedOrigin(objectOrigin.delegate)
             is ObjectOrigin.ConstantOrigin -> InstanceAndPublicType.of(objectOrigin.literal.value, objectOrigin.literal.type.constantType.kotlin)
-            is ObjectOrigin.EnumConstantOrigin -> InstanceAndPublicType.of(getEnumConstant(objectOrigin), getScopeClassLoader().loadClass(objectOrigin.javaTypeName).kotlin)
-            is ObjectOrigin.External -> InstanceAndPublicType.unknownPublicType(externalObjectsMap[objectOrigin.key] ?: error("no external object provided for external object key of ${objectOrigin.key}"))
+            is ObjectOrigin.EnumConstantOrigin -> getEnumConstant(objectOrigin)
+            is ObjectOrigin.External -> InstanceAndPublicType.unknownPublicType(
+                externalObjectsMap[objectOrigin.key] ?: error("no external object provided for external object key of ${objectOrigin.key}")
+            )
+
             is ObjectOrigin.NewObjectFromMemberFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromMemberFunction(objectOrigin) }
-            is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromTopLevelFunction() }
+            is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromTopLevelFunction(objectOrigin) }
             is ObjectOrigin.NullObjectOrigin -> InstanceAndPublicType.NULL
             is ObjectOrigin.PropertyDefaultValue -> getPropertyValue(objectOrigin.receiver, objectOrigin.property)
             is ObjectOrigin.PropertyReference -> getPropertyValue(objectOrigin.receiver, objectOrigin.property)
             is ObjectOrigin.TopLevelReceiver -> InstanceAndPublicType.of(topLevelObject, topLevelObject::class)
             is ObjectOrigin.ConfiguringLambdaReceiver -> objectFromConfiguringLambda(objectOrigin)
             is ObjectOrigin.CustomConfigureAccessor -> objectFromCustomAccessor(objectOrigin)
+            is ObjectOrigin.GroupedVarargValue -> {
+                @Suppress("UNCHECKED_CAST")
+                val resultArray = when (val elementClass = loadJvmTypeFor(objectOrigin.elementType)) {
+                    Int::class.java -> IntArray(objectOrigin.elementValues.size) { getObjectByResolvedOrigin(objectOrigin.elementValues[it]).instance as Int }
+                    Long::class.java -> LongArray(objectOrigin.elementValues.size) { getObjectByResolvedOrigin(objectOrigin.elementValues[it]).instance as Long }
+                    Boolean::class.java -> BooleanArray(objectOrigin.elementValues.size) { getObjectByResolvedOrigin(objectOrigin.elementValues[it]).instance as Boolean }
+                    else -> (java.lang.reflect.Array.newInstance(elementClass, objectOrigin.elementValues.size) as Array<in Any>).also {
+                        (objectOrigin.elementValues.map { getObjectByResolvedOrigin(it).instance }.toTypedArray() as Array<out Any>).copyInto(it)
+                    }
+                }
+
+                InstanceAndPublicType.of(
+                    resultArray,
+                    resultArray::class
+                )
+            }
         }
     }
 
+    private fun loadJvmTypeFor(dataType: DataType): Class<*> = when (dataType) {
+        is DataType.HasTypeName -> try {
+            getScopeClassLoader().loadClass(dataType.javaTypeName)
+        } catch (e: ClassNotFoundException) {
+            throw DeclarativeDslInterpretationException("Failed to load the JVM class for $dataType (${e.message})")
+                .also { it.addSuppressed(e) }
+        }
+
+        is DataType.BooleanDataType -> Boolean::class.java
+        is DataType.IntDataType -> Int::class.java
+        is DataType.LongDataType -> Long::class.java
+        is DataType.StringDataType -> String::class.java
+        is DataType.NullType -> Nothing::class.java
+        is DataType.TypeVariableUsage -> Any::class.java
+        is DataType.UnitType -> Unit::class.java
+    }
 
     private
     sealed interface ObjectAccessKey {
@@ -107,7 +143,6 @@ class DeclarativeReflectionToObjectConverter(
         data class CustomAccessor(val owner: ObjectOrigin, val accessorId: String) : ObjectAccessKey
         data class ConfiguringLambda(val owner: ObjectOrigin, val function: SchemaFunction, val identityValues: List<Any?>) : ObjectAccessKey
     }
-
 
     private
     fun objectFromMemberFunction(
@@ -128,9 +163,9 @@ class DeclarativeReflectionToObjectConverter(
         val dataFun = origin.function
         val receiverInstance = receiverInstanceAndPublicType.first
         val receiverKClass = receiverInstanceAndPublicType.second
-        return when (val runtimeFunction = functionResolver.resolve(receiverKClass, dataFun)) {
+        return when (val runtimeFunction = functionResolver.resolve(receiverKClass, dataFun, getScopeClassLoader())) {
             is RuntimeFunctionResolver.Resolution.Resolved -> {
-                val bindingWithValues = origin.parameterBindings.bindingMap.mapValues { getObjectByResolvedOrigin(it.value).instance }
+                val bindingWithValues = origin.parameterBindings.bindingMap.mapValues { getObjectByResolvedOrigin(it.value.objectOrigin).instance }
                 runtimeFunction.function.callByWithErrorHandling(receiverInstance, bindingWithValues, origin.parameterBindings.providesConfigureBlock)
             }
 
@@ -147,7 +182,7 @@ class DeclarativeReflectionToObjectConverter(
             origin.function,
             identityValues = origin.parameterBindings.bindingMap.map { (parameter, value) ->
                 if (parameter.semantics is ParameterSemantics.IdentityKey) {
-                    (value as? ObjectOrigin.ConstantOrigin)?.literal?.value
+                    (value.objectOrigin as? ObjectOrigin.ConstantOrigin)?.literal?.value
                 } else null
             })
     ) {
@@ -169,23 +204,30 @@ class DeclarativeReflectionToObjectConverter(
         val receiverInstanceAndPublicType = getObjectByResolvedOrigin(receiverOrigin).validate { "tried to invoke a function $function on a null receiver $receiverOrigin" }
         val receiverInstance = receiverInstanceAndPublicType.first
         val receiverKClass = receiverInstanceAndPublicType.second
-        val parameterBinding = ParameterValueBinding(mapOf(function.dataParameter to valueOrigin), false)
 
-        when (val runtimeFunction = functionResolver.resolve(receiverKClass, function)) {
+        when (val runtimeFunction = functionResolver.resolve(receiverKClass, function, getScopeClassLoader())) {
             is RuntimeFunctionResolver.Resolution.Resolved -> {
-                val binding = parameterBinding.bindingMap.mapValues { getObjectByResolvedOrigin(it.value).instance }
-                val hasLambda = parameterBinding.providesConfigureBlock
-                runtimeFunction.function.callByWithErrorHandling(receiverInstance, binding, hasLambda).result
+                val binding = mapOf(function.dataParameter to getObjectByResolvedOrigin(valueOrigin).instance)
+                runtimeFunction.function.callByWithErrorHandling(receiverInstance, binding, false).result
             }
+
             RuntimeFunctionResolver.Resolution.Unresolved -> error("could not resolve a member function $function call in the owner class $receiverKClass")
         }
     }
 
     private
     fun objectFromTopLevelFunction(
-        // origin: ObjectOrigin.NewObjectFromTopLevelFunction
+        origin: ObjectOrigin.NewObjectFromTopLevelFunction
     ): InstanceAndPublicType {
-        TODO("support calls to top-level functions: they need to carry the owner class information to get resolved")
+        return when (val runtimeFunction = functionResolver.resolve(Any::class, origin.function, getScopeClassLoader())) {
+            is RuntimeFunctionResolver.Resolution.Resolved -> {
+                val bindingWithValues = origin.parameterBindings.bindingMap.mapValues { getObjectByResolvedOrigin(it.value.objectOrigin).instance }
+                runtimeFunction.function.callByWithErrorHandling(receiver = null, bindingWithValues, origin.parameterBindings.providesConfigureBlock)
+                    .result
+            }
+
+            RuntimeFunctionResolver.Resolution.Unresolved -> error("could not resolve a top-level function ${origin.function}")
+        }
     }
 
     private
@@ -200,19 +242,15 @@ class DeclarativeReflectionToObjectConverter(
     }
 
     private
-    fun getEnumConstant(objectOrigin: ObjectOrigin.EnumConstantOrigin): Enum<*>? {
-        val typeName = objectOrigin.javaTypeName
-        try {
-            val enumClass = getScopeClassLoader().loadClass(typeName) as Class<*>
-            if (enumClass.isEnum) {
-                @Suppress("UNCHECKED_CAST")
-                return (enumClass as Class<Enum<*>>).enumConstants.find { it.name == objectOrigin.entryName }
-            } else {
-                error("$typeName is not an enum class")
-            }
-        } catch (e: ClassNotFoundException) {
-            error("failed loading class $typeName: ${e.message}")
+    fun getEnumConstant(objectOrigin: ObjectOrigin.EnumConstantOrigin): InstanceAndPublicType {
+        val enumClass = loadJvmTypeFor(objectOrigin.type)
+        val enumConstant = if (enumClass.isEnum) {
+            @Suppress("UNCHECKED_CAST")
+            (enumClass as Class<Enum<*>>).enumConstants.find { it.name == objectOrigin.entryName }
+        } else {
+            error("$enumClass is not an enum class")
         }
+        return InstanceAndPublicType.of(enumConstant, enumClass.kotlin)
     }
 
     private

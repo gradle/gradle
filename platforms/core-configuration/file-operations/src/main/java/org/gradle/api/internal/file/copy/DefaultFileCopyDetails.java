@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.ContentFilterable;
-import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FilePermissions;
@@ -29,11 +28,13 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.file.DefaultExpandDetails;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Chmod;
+import org.gradle.internal.reflect.Instantiator;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -46,22 +47,26 @@ import java.util.Map;
 public class DefaultFileCopyDetails extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetailsInternal {
     private final FileVisitDetails fileDetails;
     private final CopySpecResolver specResolver;
+    private final Instantiator instantiator;
     private final FilterChain filterChain;
-    private final ObjectFactory objectFactory;
+    private final PropertyFactory propertyFactory;
     private boolean defaultDuplicatesStrategy;
+    @Nullable
     private RelativePath relativePath;
     private boolean excluded;
 
+    @Nullable
     private DefaultConfigurableFilePermissions permissions;
     private DuplicatesStrategy duplicatesStrategy;
 
     @Inject
-    public DefaultFileCopyDetails(FileVisitDetails fileDetails, CopySpecResolver specResolver, ObjectFactory objectFactory, Chmod chmod) {
+    public DefaultFileCopyDetails(FileVisitDetails fileDetails, CopySpecResolver specResolver, Instantiator instantiator, PropertyFactory propertyFactory, Chmod chmod) {
         super(chmod);
         this.filterChain = new FilterChain(specResolver.getFilteringCharset());
         this.fileDetails = fileDetails;
         this.specResolver = specResolver;
-        this.objectFactory = objectFactory;
+        this.instantiator = instantiator;
+        this.propertyFactory = propertyFactory;
         this.duplicatesStrategy = specResolver.getDuplicatesStrategy();
         this.defaultDuplicatesStrategy = specResolver.isDefaultDuplicateStrategy();
     }
@@ -197,17 +202,6 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     @Override
-    @Deprecated
-    public void setMode(int mode) {
-        DeprecationLogger.deprecateMethod(CopyProcessingSpec.class, "setMode()")
-            .replaceWith("permissions(Action)")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(8, "unix_file_permissions_deprecated")
-            .nagUser();
-        getPermissionsHolder().unix(mode);
-    }
-
-    @Override
     public void permissions(Action<? super ConfigurableFilePermissions> configureAction) {
         configureAction.execute(getPermissionsHolder());
     }
@@ -219,7 +213,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     private DefaultConfigurableFilePermissions getPermissionsHolder() {
         if (permissions == null) {
-            permissions = objectFactory.newInstance(DefaultConfigurableFilePermissions.class, objectFactory, DefaultConfigurableFilePermissions.getDefaultUnixNumeric(fileDetails.isDirectory()));
+            permissions = instantiator.newInstance(DefaultConfigurableFilePermissions.class, DefaultConfigurableFilePermissions.getDefaultUnixNumeric(fileDetails.isDirectory()));
         }
         return permissions;
     }
@@ -254,8 +248,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     @Override
     public ContentFilterable expand(Map<String, ?> properties, Action<? super ExpandDetails> action) {
-        ExpandDetails details = objectFactory.newInstance(ExpandDetails.class);
-        details.getEscapeBackslash().convention(false);
+        ExpandDetails details = instantiator.newInstance(DefaultExpandDetails.class, propertyFactory);
         action.execute(details);
         filterChain.expand(properties, details.getEscapeBackslash());
         return this;

@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r81
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.BuildActionFailureException
@@ -69,6 +70,7 @@ class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecif
     @TargetGradleVersion(">=8.1")
     def "nested actions that query a project model which leverages toolchain information do not cause Property evaluation to be in unexpected state"() {
         given:
+        System.setProperty("org.gradle.java.installations.auto-download", "true")
         setupBuildWithToolchainsResolution()
 
         when:
@@ -83,9 +85,15 @@ class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecif
         then:
         def e = thrown(BuildActionFailureException)
         def root = rootCause(e)
-        root.message.startsWith(targetVersion >= GradleVersion.version("8.8") ?
-            'No matching toolchain could be found in the locally installed toolchains' :
-            'No locally installed toolchains match')
+        def message = 'No locally installed toolchains match'
+        if (targetVersion >= GradleVersion.version("8.14")) {
+            message = "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. No matching toolchain could be found in the configured toolchain download repositories."
+        } else if (targetVersion >= GradleVersion.version("8.13")) {
+            message = "Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=any vendor, implementation=vendor-specific}. No matching toolchain could be found in the configured toolchain download repositories."
+        } else if (targetVersion >= GradleVersion.version("8.8")) {
+            message = 'No matching toolchain could be found in the locally installed toolchains'
+        }
+        root.message.startsWith(message)
     }
 
     def rootCause(Exception e) {
@@ -97,13 +105,12 @@ class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecif
     }
 
     def setupBuildWithToolchainsResolution() {
-        createDirs("a", "b")
         settingsFile << """
             ${applyToolchainResolverPlugin()}
 
             rootProject.name = 'root'
-            include 'a', 'b'
         """
+        includeProjects("a", "b")
         buildFile << """
             allprojects {
                 apply plugin: ToolchainPlugin

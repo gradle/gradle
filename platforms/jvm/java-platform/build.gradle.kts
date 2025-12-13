@@ -20,12 +20,6 @@ plugins {
 
 description = "Adds support for creating dependency platforms for JVM projects"
 
-errorprone {
-    disabledChecks.addAll(
-        "InlineFormatString", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.coreApi)
 
@@ -57,7 +51,4 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/api/internal/java/**")
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

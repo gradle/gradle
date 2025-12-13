@@ -30,7 +30,7 @@ import java.util.Set;
  * @see <a href="https://junit.org/junit5/docs/current/user-guide">JUnit 5 User Guide</a>
  * @since 4.6
  */
-public class JUnitPlatformOptions extends TestFrameworkOptions {
+public abstract class JUnitPlatformOptions extends TestFrameworkOptions {
     private Set<String> includeEngines = new LinkedHashSet<String>();
 
     private Set<String> excludeEngines = new LinkedHashSet<String>();

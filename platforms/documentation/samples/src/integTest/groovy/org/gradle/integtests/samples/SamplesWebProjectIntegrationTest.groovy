@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2007 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,10 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 
 class SamplesWebProjectIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(temporaryFolder, 'webApplication/customized/groovy')
-    @Rule ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
     def setup() {
         executer.withRepositoryMirrors()

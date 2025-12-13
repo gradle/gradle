@@ -21,8 +21,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.SetMultimap;
 import kotlin.collections.ArrayDeque;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -342,8 +342,7 @@ public class FinalizerGroup extends HasFinalizers {
         /**
          * @return null when all successors have completed but none have executed
          */
-        @Nullable
-        Node.DependenciesState successorsComplete();
+        Node.@Nullable DependenciesState successorsComplete();
     }
 
     private static class DoNotBlock implements MemberSuccessors {
@@ -354,15 +353,14 @@ public class FinalizerGroup extends HasFinalizers {
     }
 
     private static class WaitForNodesToComplete implements MemberSuccessors {
-        private final Set<Node> nodes;
+        private final Iterable<Node> nodes;
 
-        public WaitForNodesToComplete(Set<Node> nodes) {
+        public WaitForNodesToComplete(Iterable<Node> nodes) {
             this.nodes = nodes;
         }
 
-        @Nullable
         @Override
-        public Node.DependenciesState successorsComplete() {
+        public Node.@Nullable DependenciesState successorsComplete() {
             boolean isAnyExecuted = false;
             for (Node node : nodes) {
                 if (!node.isComplete()) {
@@ -379,15 +377,14 @@ public class FinalizerGroup extends HasFinalizers {
     }
 
     private static class WaitForFinalizedNodesToBecomeActive implements MemberSuccessors {
-        private final Set<Node> nodes;
+        private final Iterable<Node> nodes;
 
-        public WaitForFinalizedNodesToBecomeActive(Set<Node> nodes) {
+        public WaitForFinalizedNodesToBecomeActive(Iterable<Node> nodes) {
             this.nodes = nodes;
         }
 
-        @Nullable
         @Override
-        public Node.DependenciesState successorsComplete() {
+        public Node.@Nullable DependenciesState successorsComplete() {
             for (Node node : nodes) {
                 for (FinalizerGroup finalizerGroup : ((HasFinalizers) node.getGroup()).getFinalizerGroups()) {
                     if (finalizerGroup.finalizedNodeHasStarted) {

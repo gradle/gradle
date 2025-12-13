@@ -16,12 +16,12 @@
 
 package org.gradle.api.file;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
@@ -54,7 +54,6 @@ public interface ProjectLayout {
      *
      * @since 8.13
      */
-    @Incubating
     @Restricted
     Directory getSettingsDirectory();
 
@@ -85,5 +84,5 @@ public interface ProjectLayout {
      * @return The file collection. Never returns null.
      * @since 4.8
      */
-    FileCollection files(Object... paths);
+    FileCollection files(@Nullable Object... paths);
 }

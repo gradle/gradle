@@ -38,7 +38,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * Uses the existing {@link OutputEventListener} to observe events that <i>may</i> cause console output,
  * and emits build operation progress events for those that do cause console output.
  *
- * Currently, the only audience of these events is the build scan plugin.
+ * Currently, the only audience of these events is the Develocity plugin.
  * It is concerned with recreating the <i>plain</i> console for an invocation,
  * and associating logging output with tasks, projects, and other logical entities.
  * It does not attempt to emulate the rich console.
@@ -49,7 +49,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * some observer may wish to know about in order to visualise what is happening, e.g. a console renderer.
  * We are integrating at this level, but imposing different semantics.
  * We only broadcast the subset of events that influence the "plain console", because this is all we need right now.
- * The build scan infrastructure has some knowledge of how different versions of Gradle respond to these events
+ * The Build Scan infrastructure has some knowledge of how different versions of Gradle respond to these events
  * with regard to console rendering and effectively emulate.
  *
  * Ideally, we would emit a more concrete model.

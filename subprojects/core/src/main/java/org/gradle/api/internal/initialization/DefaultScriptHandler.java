@@ -17,6 +17,7 @@ package org.gradle.api.internal.initialization;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -27,7 +28,6 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -35,7 +35,6 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.util.internal.ConfigureUtil;
 
@@ -88,7 +87,13 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     @Override
     public void dependencies(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getDependencies());
+        dependencies(ConfigureUtil.configureUsing(configureClosure));
+    }
+
+    // TODO: This cannot be made part of the public API for ScriptHandler yet
+    // because Kotlin DSL relies on creating a DependencyHandlerScope to back dependencies {}
+    public void dependencies(Action<? super DependencyHandler> action) {
+        action.execute(getDependencies());
     }
 
     @Override
@@ -135,7 +140,12 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     @Override
     public void repositories(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getRepositories());
+        repositories(ConfigureUtil.configureUsing(configureClosure));
+    }
+
+    @Override
+    public void repositories(Action<? super RepositoryHandler> action) {
+        action.execute(getRepositories());
     }
 
     @Override
@@ -145,8 +155,8 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     }
 
     @Override
-    public void configurations(Action<? super ConfigurationContainer> configureClosure) {
-        configureClosure.execute(getConfigurations());
+    public void configurations(Action<? super ConfigurationContainer> action) {
+        action.execute(getConfigurations());
     }
 
     @SuppressWarnings("deprecation")
@@ -160,20 +170,25 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
             resolutionContext = buildLogicBuilder.prepareDependencyHandler(dependencyHandler);
         }
         if (classpathConfiguration == null) {
-            classpathConfiguration = configContainer.migratingUnlocked(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
-            configContainer.beforeCollectionChanges(methodName ->
-                DeprecationLogger.deprecateAction("Mutating " + configContainer.getDisplayName() + " using " + methodName)
-                .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(8, "mutating_buildscript_configurations")
-                .nagUser()
-            );
+            classpathConfiguration = configContainer.resolvableDependencyScopeLocked(CLASSPATH_CONFIGURATION);
+            configContainer.beforeCollectionChanges(methodName -> {
+                throw new InvalidUserCodeException(
+                    "Cannot mutate " + configContainer.getDisplayName() + " using " + methodName + ". " +
+                        "Configurations cannot be added or removed from the buildscript configuration container."
+                );
+            });
             buildLogicBuilder.prepareClassPath(classpathConfiguration, resolutionContext);
         }
     }
 
     @Override
     public void dependencyLocking(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getDependencyLocking());
+        dependencyLocking(ConfigureUtil.configureUsing(configureClosure));
+    }
+
+    @Override
+    public void dependencyLocking(Action<? super DependencyLockingHandler> action) {
+        action.execute(getDependencyLocking());
     }
 
     @Override

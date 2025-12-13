@@ -17,5 +17,7 @@
 /**
  * Build operations and data types for component variants.
  */
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.operations.dependencies.variants;
+
+import org.jspecify.annotations.NullMarked;

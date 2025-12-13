@@ -17,14 +17,14 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.tasks.testing.GenericTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.logging.ConsoleRenderer;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemReporter;
+import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,28 +43,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Aggregates test results from multiple test executions and generates a report at the end of the build.
  */
-@NonNullApi
+@NullMarked
+@ServiceScope(Scope.BuildTree.class)
 public class AggregateTestEventReporter implements ProblemReporter, TestExecutionResultsListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AggregateTestEventReporter.class);
 
-    private final BuildOperationRunner buildOperationRunner;
-    private final BuildOperationExecutor buildOperationExecutor;
-    private final MetadataRendererRegistry metadataRendererRegistry;
+    private final ObjectFactory objectFactory;
 
     // Mutable state
     private final AtomicInteger numFailedResults = new AtomicInteger(0);
     private final Map<TestDescriptorInternal, Path> results = new ConcurrentHashMap<>();
 
     @Inject
-    public AggregateTestEventReporter(
-        BuildOperationRunner buildOperationRunner,
-        BuildOperationExecutor buildOperationExecutor,
-        MetadataRendererRegistry metadataRendererRegistry
-    ) {
-        this.buildOperationRunner = buildOperationRunner;
-        this.buildOperationExecutor = buildOperationExecutor;
-        this.metadataRendererRegistry = metadataRendererRegistry;
+    public AggregateTestEventReporter(ObjectFactory objectFactory) {
+        this.objectFactory = objectFactory;
     }
 
     @Override
@@ -73,9 +66,9 @@ public class AggregateTestEventReporter implements ProblemReporter, TestExecutio
     }
 
     @Override
-    public void executionResultsAvailable(TestDescriptorInternal rootDescriptor, Path binaryResultsDir, boolean hasFailures) {
+    public void executionResultsAvailable(TestDescriptorInternal rootDescriptor, Path binaryResultsDir, boolean hasTestFailures) {
         results.put(rootDescriptor, binaryResultsDir);
-        if (hasFailures) {
+        if (hasTestFailures) {
             numFailedResults.incrementAndGet();
         }
     }
@@ -112,8 +105,7 @@ public class AggregateTestEventReporter implements ProblemReporter, TestExecutio
         // Generate a consistent ordering by sorting the Paths
         List<Path> sortedResults = new ArrayList<>(results.values());
         sortedResults.sort(Comparator.naturalOrder());
-        new GenericTestReportGenerator(sortedResults, metadataRendererRegistry).generateReport(buildOperationRunner, buildOperationExecutor, reportDirectory);
-        return reportDirectory.resolve("index.html");
+        return objectFactory.newInstance(GenericHtmlTestReportGenerator.class, reportDirectory).generate(sortedResults);
     }
 
     /**

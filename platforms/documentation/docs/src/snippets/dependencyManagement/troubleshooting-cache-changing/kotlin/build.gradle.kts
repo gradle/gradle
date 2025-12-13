@@ -14,7 +14,7 @@ dependencies {
 }
 
 // tag::changing-module-cache-control[]
-configurations.all {
+configurations.configureEach {
     resolutionStrategy.cacheChangingModulesFor(4, "hours")
 }
 // end::changing-module-cache-control[]

@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.model.build;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.BuildModel;
 import org.gradle.tooling.model.Model;
@@ -64,4 +65,15 @@ public interface BuildEnvironment extends Model, BuildModel {
      * @throws UnsupportedMethodException For Gradle versions older than 1.0-milestone-8, where this method is not supported.
      */
     JavaEnvironment getJava() throws UnsupportedMethodException;
+
+    /**
+     * Returns a rendered version of the Gradle runtime version information.
+     * The result is similar to what is rendered on the console when {@code gradle --version} is executed.
+     *
+     * @return the rendered text
+     * @throws UnsupportedMethodException For Gradle versions older than 9.4.0, where this method is not supported.
+     * @since 9.4.0
+     */
+    @Incubating
+    String getVersionInfo();
 }

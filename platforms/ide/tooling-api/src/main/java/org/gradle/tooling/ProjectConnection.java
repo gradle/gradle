@@ -96,7 +96,7 @@ public interface ProjectConnection extends Closeable {
     /**
      * Creates a test launcher which can be used to execute tests.
      *
-     * <p>Requires Gradle 3.0 or later.</p>
+     * <p>Requires Gradle 4.0 or later.</p>
      *
      * @return The launcher.
      * @since 2.6
@@ -112,6 +112,7 @@ public interface ProjectConnection extends Closeable {
      * <ul>
      *     <li>{@link org.gradle.tooling.model.gradle.GradleBuild}</li>
      *     <li>{@link org.gradle.tooling.model.build.BuildEnvironment}</li>
+     *     <li>{@link org.gradle.tooling.model.build.Help}</li>
      *     <li>{@link org.gradle.tooling.model.GradleProject}</li>
      *     <li>{@link org.gradle.tooling.model.gradle.BuildInvocations}</li>
      *     <li>{@link org.gradle.tooling.model.gradle.ProjectPublications}</li>

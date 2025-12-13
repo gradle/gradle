@@ -49,22 +49,22 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
             def testAttribute = Attribute.of("TEST_ATTRIBUTE", String)
             def formatAttribute = Attribute.of('format', String)
 
-            configurations { $variantToTest { attributes { attribute(formatAttribute, 'custom') } } }
-        """
+            configurations {
+                $variantToTest {
+                    attributes {
+                        attribute(formatAttribute, 'custom')
+                    }
+                }
+            }
 
-        if (useIvy()) {
-            buildFile << """
-                dependencies {
-                    $variantToTest group: 'org.test', name: 'moduleA', version: '1.0' ${publishedModulesHaveAttributes ? "" : ", configuration: '$variantToTest'"}
+            dependencies {
+                $variantToTest("org.test:moduleA:1.0") {
+                    if (${!publishedModulesHaveAttributes && useIvy()}) {
+                        targetConfiguration = "$variantToTest"
+                    }
                 }
-            """
-        } else {
-            buildFile << """
-                dependencies {
-                    $variantToTest group: 'org.test', name: 'moduleA', version: '1.0'
-                }
-            """
-        }
+            }
+        """
     }
 
     def "can add attributes"() {

@@ -19,12 +19,14 @@ package org.gradle.integtests.fixtures.versions;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.internal.Factory;
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import static org.gradle.util.internal.CollectionUtils.findFirst;
 import static org.gradle.util.internal.CollectionUtils.sort;
@@ -94,8 +96,9 @@ public class ReleasedVersionDistributions {
     }
 
     public List<GradleDistribution> getSupported() {
-        final GradleVersion firstSupported = GradleVersion.version("1.0");
-        return CollectionUtils.filter(getAll(), element -> element.getVersion().compareTo(firstSupported) >= 0);
+        return getAll().stream()
+            .filter(element -> element.getVersion().compareTo(DefaultGradleConnector.MINIMUM_SUPPORTED_GRADLE_VERSION) >= 0)
+            .collect(Collectors.toList());
     }
 
     public GradleDistribution getDistribution(final GradleVersion gradleVersion) {

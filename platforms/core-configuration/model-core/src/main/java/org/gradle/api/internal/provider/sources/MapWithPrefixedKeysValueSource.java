@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -34,11 +34,14 @@ public abstract class MapWithPrefixedKeysValueSource<P extends MapWithPrefixedKe
     @Override
     public Map<String, String> obtain() {
         String prefix = getParameters().getPrefix().getOrElse("");
+        return collectItems(prefix);
+    }
 
-        return itemsToFilter()
+    protected abstract Map<String, String> collectItems(String prefix);
+
+    protected Map<String, String> collectWithKeyPrefix(String prefix, Stream<Map.Entry<String, String>> items) {
+        return items
             .filter(e -> e.getKey().startsWith(prefix))
             .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
     }
-
-    protected abstract Stream<Map.Entry<String, String>> itemsToFilter();
 }

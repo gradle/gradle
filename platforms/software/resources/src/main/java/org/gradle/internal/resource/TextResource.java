@@ -19,8 +19,8 @@ package org.gradle.internal.resource;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.hash.HashCode;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Reader;
 import java.nio.charset.Charset;

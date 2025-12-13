@@ -101,17 +101,7 @@ task check {
         and:
         buildFile << """
 repositories {
-    if (gradle.gradleVersion == '${current.version.version}' || ${previous.fullySupportsIvyRepository}) {
-        ivy { url = "${ivyHttpRepo.uri}" }
-    } else {
-        add(Class.forName('org.apache.ivy.plugins.resolver.URLResolver').newInstance()) {
-            name = 'repo'
-            addIvyPattern("${ivyHttpRepo.uri}/[organisation]/[module]/[revision]/ivy-[revision].xml")
-            addArtifactPattern("${ivyHttpRepo.uri}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
-            descriptor = 'required'
-            checkmodified = true
-        }
-    }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 
 configurations {

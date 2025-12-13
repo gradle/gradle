@@ -16,26 +16,34 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Objects;
 
-public abstract class DefaultToolchainSpec implements JavaToolchainSpecInternal {
+public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
+
+    private final Property<JavaLanguageVersion> version;
+    private final Property<JvmVendorSpec> vendor;
+    private final Property<JvmImplementation> implementation;
+    private final Property<Boolean> nativeImageCapable;
 
     public static class Key implements JavaToolchainSpecInternal.Key {
         private final JavaLanguageVersion languageVersion;
         private final JvmVendorSpec vendor;
         private final JvmImplementation implementation;
+        private final boolean nativeImageCapable;
 
-        public Key(@Nullable JavaLanguageVersion languageVersion, @Nullable JvmVendorSpec vendor, @Nullable JvmImplementation implementation) {
+        public Key(@Nullable JavaLanguageVersion languageVersion, @Nullable JvmVendorSpec vendor, @Nullable JvmImplementation implementation, boolean nativeImageCapable) {
             this.languageVersion = languageVersion;
             this.vendor = vendor;
             this.implementation = implementation;
+            this.nativeImageCapable = nativeImageCapable;
         }
 
         @Override
@@ -49,12 +57,13 @@ public abstract class DefaultToolchainSpec implements JavaToolchainSpecInternal 
             Key that = (Key) o;
             return Objects.equals(languageVersion, that.languageVersion)
                 && Objects.equals(vendor, that.vendor)
-                && Objects.equals(implementation, that.implementation);
+                && Objects.equals(implementation, that.implementation)
+                && nativeImageCapable == that.nativeImageCapable;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(languageVersion, vendor, implementation);
+            return Objects.hash(languageVersion, vendor, implementation, nativeImageCapable);
         }
 
         @Override
@@ -63,19 +72,45 @@ public abstract class DefaultToolchainSpec implements JavaToolchainSpecInternal 
                 "languageVersion=" + languageVersion +
                 ", vendor=" + vendor +
                 ", implementation=" + implementation +
+                ", nativeImageCapable=" + nativeImageCapable +
                 '}';
         }
     }
 
-    // TODO Since we might need to use it on the launcher, we may have to decouple it from instantiator features
     @Inject
-    public DefaultToolchainSpec() {
+    public DefaultToolchainSpec(PropertyFactory propertyFactory) {
+        version = propertyFactory.property(JavaLanguageVersion.class);
+        vendor = propertyFactory.property(JvmVendorSpec.class);
+        implementation = propertyFactory.property(JvmImplementation.class);
+        nativeImageCapable = propertyFactory.property(Boolean.class);
+
         getVendor().convention(getConventionVendor());
         getImplementation().convention(getConventionImplementation());
     }
+
+    @Override
+    public Property<JavaLanguageVersion> getLanguageVersion() {
+        return version;
+    }
+
+    @Override
+    public Property<JvmVendorSpec> getVendor() {
+        return vendor;
+    }
+
+    @Override
+    public Property<JvmImplementation> getImplementation() {
+        return implementation;
+    }
+
+    @Override
+    public Property<Boolean> getNativeImageCapable() {
+        return nativeImageCapable;
+    }
+
     @Override
     public JavaToolchainSpecInternal.Key toKey() {
-        return new Key(getLanguageVersion().getOrNull(), getVendor().getOrNull(), getImplementation().getOrNull());
+        return new Key(getLanguageVersion().getOrNull(), getVendor().getOrNull(), getImplementation().getOrNull(), nativeImageCapable.getOrElse(false));
     }
 
     @Override
@@ -86,27 +121,12 @@ public abstract class DefaultToolchainSpec implements JavaToolchainSpecInternal 
     @SuppressWarnings("deprecation")
     @Override
     public boolean isValid() {
-        if (getVendor().getOrNull() == JvmVendorSpec.IBM_SEMERU) {
-            // https://github.com/gradle/gradle/issues/23155
-            // This should make the spec invalid when the enum gets removed
-            DeprecationLogger.deprecateBehaviour("Requesting JVM vendor IBM_SEMERU.")
-                .willBeRemovedInGradle9()
-                .withUpgradeGuideSection(8, "ibm_semeru_should_not_be_used")
-                .nagUser();
-        }
-        return getLanguageVersion().isPresent() || isSecondaryPropertiesUnchanged();
+        return (getLanguageVersion().isPresent() || isSecondaryPropertiesUnchanged()) && getLanguageVersion().getOrNull() != DefaultJavaLanguageVersion.UNKNOWN;
     }
 
     private boolean isSecondaryPropertiesUnchanged() {
         return Objects.equals(getConventionVendor(), getVendor().getOrNull()) &&
             Objects.equals(getConventionImplementation(), getImplementation().getOrNull());
-    }
-
-    @Override
-    public void finalizeProperties() {
-        getLanguageVersion().finalizeValue();
-        getVendor().finalizeValue();
-        getImplementation().finalizeValue();
     }
 
     @Override

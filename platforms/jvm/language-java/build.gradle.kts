@@ -2,67 +2,60 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
+description = "Source for JavaCompile and JavaExec tasks, it also contains logic for incremental Java compilation"
 
-gradlebuildJava {
-    usesJdkInternals = true
-}
-
-errorprone {
-    disabledChecks.addAll(
-        "CheckReturnValue", // 2 occurrences
-        "DoNotClaimAnnotations", // 6 occurrences
-        "InconsistentCapitalization", // 1 occurrences
-        "InvalidInlineTag", // 3 occurrences
-        "MissingCasesInEnumSwitch", // 1 occurrences
-        "MixedMutabilityReturnType", // 3 occurrences
-    )
+jvmCompile {
+    compilations {
+        named("main") {
+            usesJdkInternals = true
+        }
+    }
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
-    api(projects.serialization)
-    api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.buildEvents)
     api(projects.buildOperations)
+    api(projects.buildProcessServices)
+    api(projects.classloaders)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.daemonServerWorker)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
     api(projects.fileOperations)
     api(projects.files)
     api(projects.hashing)
+    api(projects.jvmServices)
     api(projects.languageJvm)
+    api(projects.modelCore)
     api(projects.persistentCache)
     api(projects.platformBase)
     api(projects.platformJvm)
     api(projects.problemsApi)
     api(projects.processServices)
+    api(projects.scopedPersistentCache)
+    api(projects.serialization)
+    api(projects.serviceProvider)
     api(projects.snapshots)
+    api(projects.stdlibJavaExtensions)
     api(projects.testSuitesBase)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
     api(projects.workerMain)
     api(projects.workers)
-    api(projects.buildProcessServices)
 
     api(libs.asm)
     api(libs.fastutil)
-    api(libs.groovy)
     api(libs.guava)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
 
     implementation(projects.concurrent)
     implementation(projects.serviceLookup)
     implementation(projects.time)
     implementation(projects.fileTemp)
-    implementation(projects.jvmServices)
-    implementation(projects.logging)
     implementation(projects.loggingApi)
-    implementation(projects.logging)
-    implementation(projects.modelCore)
     implementation(projects.problemsRendering)
     implementation(projects.toolingApi)
 
@@ -74,8 +67,10 @@ dependencies {
     runtimeOnly(projects.javaCompilerPlugin)
 
     testImplementation(projects.baseServicesGroovy)
+    testImplementation(projects.native)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformBase))
+    testImplementation(testFixtures(projects.languageGroovy))
     testImplementation(testFixtures(projects.toolchainsJvm))
     testImplementation(testFixtures(projects.toolchainsJvmShared))
 
@@ -85,8 +80,11 @@ dependencies {
     }
 
     integTestImplementation(projects.messaging)
+    integTestImplementation(testFixtures(projects.buildProcessServices))
+
     // TODO: Make these available for all integration tests? Maybe all tests?
     integTestImplementation(libs.jetbrainsAnnotations)
+    integTestImplementation(libs.commonsHttpclient)
 
     testFixturesApi(testFixtures(projects.languageJvm))
     testFixturesImplementation(projects.baseServices)
@@ -120,10 +118,7 @@ strictCompile {
 packageCycles {
     // These public packages have classes that are tangled with the corresponding internal package.
     excludePatterns.add("org/gradle/api/tasks/**")
-    excludePatterns.add("org/gradle/external/javadoc/**")
 }
-
-integTest.usesJavadocCodeSnippets = true
 
 tasks.javadoc {
     options {

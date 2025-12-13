@@ -19,12 +19,16 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
-@Requires(UnitTestPreconditions.Symlinks)
+@Requires(value = [
+    UnitTestPreconditions.Symlinks,
+    IntegTestPreconditions.NotEmbeddedExecutor,
+], reason = "requires isolated daemons for symlink data cleanup between builds")
 class IncrementalBuildSymlinkHandlingIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
         expectReindentedValidationMessage()
@@ -72,7 +76,7 @@ task work {
         run("work")
 
         then:
-        result.assertTasksNotSkipped(":work")
+        result.assertTasksExecuted(":work")
 
         when:
         run("work")
@@ -97,7 +101,7 @@ task work {
         run("work")
 
         then:
-        result.assertTasksNotSkipped(":work")
+        result.assertTasksExecuted(":work")
 
         when:
         run("work")
@@ -122,7 +126,7 @@ task work {
         run("work")
 
         then:
-        result.assertTasksNotSkipped(":work")
+        result.assertTasksExecuted(":work")
 
         when:
         run("work")
@@ -178,7 +182,7 @@ task work {
         run("work")
 
         then:
-        result.assertTasksNotSkipped(":work")
+        result.assertTasksExecuted(":work")
     }
 
     def "can replace input directory with symlink to directory with same content"() {
@@ -214,7 +218,7 @@ task work {
         run("work")
 
         then:
-        result.assertTasksNotSkipped(":work")
+        result.assertTasksExecuted(":work")
     }
 
     def "can replace output file with symlink to file with same content"() {
@@ -250,7 +254,7 @@ task work {
         run("work")
 
         then:
-        result.assertTasksNotSkipped(":work")
+        result.assertTasksExecuted(":work")
     }
 
     def "can replace output directory with symlink to directory with same content"() {
@@ -286,6 +290,6 @@ task work {
         run("work")
 
         then:
-        result.assertTasksNotSkipped(":work")
+        result.assertTasksExecuted(":work")
     }
 }

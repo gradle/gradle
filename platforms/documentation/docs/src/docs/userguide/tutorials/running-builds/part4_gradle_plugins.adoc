@@ -1,0 +1,250 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[part4_gradle_plugins]]
+= Part 4: Applying Gradle Plugins
+
+Learn about how plugins extend Gradle's capabilities and use a popular plugin.
+
+****
+**In this section you will:**
+
+- Apply a plugin
+- Configure the plugin
+- Use the plugin
+- Explore other plugins
+****
+
+[[part4_begin]]
+== Step 0. Before you Begin
+
+1. You initialized your Java app in <<part1_gradle_init.adoc#part1_begin,part 1>>.
+2. You ran several tasks in <<part2_gradle_tasks#part2_begin,part 2>>.
+3. You learned about dependency management in <<part3_gradle_dep_man#part3_begin,part 3>>.
+
+== Step 1. Understanding Plugins
+
+Plugins are the primary method to organize build logic and reuse build logic within a project.
+
+Plugins are also used to distribute custom tasks as packaged code.
+
+Applying a plugin to a project executes code that can create tasks, configure properties, and otherwise extend the project's capabilities. Generally, plugins use the Gradle API to provide additional functionality and extend Gradle's core features.
+
+Plugins can:
+
+- Add tasks to the project (e.g. compile, test).
+- Extend the basic Gradle model (e.g. add new DSL elements that can be configured).
+- Configure the project, according to conventions (e.g. add new tasks or configure sensible defaults).
+- Apply specific configuration (e.g. add organizational repositories or enforce standards).
+- Add new properties and methods to existing types via extensions.
+
+== Step 2. Applying a Plugin
+
+Our project currently applies a single plugin, the <<application_plugin#application_plugin,Application Plugin>> which is bundled with Gradle:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/init/generated">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-plugins]"]
+include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-plugins]"]
+====
+
+Let's apply a plugin to our project that is maintained and distributed by Gradle called the <<publishing_maven#publishing_maven,Maven Publish Plugin>>.
+The Maven Publish Plugin provides the ability to publish build artifacts to an https://maven.apache.org/[Apache Maven repository].
+It can also publish to Maven local which is a repository located on your machine.
+
+The default location for Maven local repository may vary but is typically:
+
+- **Mac**: /Users/\[username]/.m2
+- **Linux**: /home/\[username]/.m2
+- **Windows**: C:\Users\[username]\.m2
+
+A publication destined for a Maven repository normally includes:
+
+- One or more artifacts
+- The Gradle Module Metadata
+- The Maven POM file
+
+Apply the plugin by adding `maven-publish` to the plugins block in `build.gradle(.kts)`:
+
+++++
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/init/upgraded">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/init/upgraded/kotlin",files="app/build.gradle.kts[tags=init-plugins]"]
+include::sample[dir="snippets/init/upgraded/groovy",files="app/build.gradle[tags=init-plugins]"]
+====
+
+Don't forget to sync Gradle if you are using IntelliJ IDEA.
+
+Let's make sure the plugin has been applied by looking at the new tasks that are available.
+
+Run `./gradlew :app:tasks` in your command line:
+
+[source,text]
+----
+$ ./gradlew :app:tasks
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+...
+
+Publishing tasks
+----------------
+publish - Publishes all publications produced by this project.
+publishToMavenLocal - Publishes all Maven publications produced by this project to the local Maven cache.
+----
+
+A new set of publishing tasks are now available called `publish`, and `publishToMavenLocal`.
+
+Similarly, the new tasks from the Maven Publish plugin are now available in IntelliJ in the Gradle right-hand pane.
+
+image::tutorial/intellij-idea-plugin.png[]
+
+== Step 3. Configuring the Plugin
+
+Add the publishing information to your `build.gradle(.kts)` file:
+
+====
+include::sample[dir="snippets/init/upgraded/kotlin",files="app/build.gradle.kts[tags=init-publish]"]
+include::sample[dir="snippets/init/upgraded/groovy",files="app/build.gradle[tags=init-publish]"]
+====
+
+Run `./gradlew :app:tasks` in your command line again, you will see additional tasks now that we have given the plugin additional information about our app:
+
+[source,text]
+----
+$ ./gradlew :app:tasks
+
+> Task :app:tasks
+
+------------------------------------------------------------
+Tasks runnable from project ':app'
+------------------------------------------------------------
+
+...
+
+Publishing tasks
+----------------
+generateMetadataFileForMavenPublication - Generates the Gradle metadata file for publication 'maven'.
+generatePomFileForMavenPublication - Generates the Maven POM file for publication 'maven'.
+publish - Publishes all publications produced by this project.
+publishMavenPublicationToMavenLocal - Publishes Maven publication 'maven' to the local Maven repository.
+publishToMavenLocal - Publishes all Maven publications produced by this project to the local Maven cache.
+----
+
+image::tutorial/intellij-idea-pub.png[]
+
+== Step 4. Using the Plugin
+
+To use the plugin, run the `publishToMavenLocal` task by running `./gradlew :app:publishToMavenLocal`:
+
+[source,text]
+----
+$ ./gradlew :app:publishToMavenLocal
+
+> Task :app:compileJava FROM-CACHE
+> Task :app:processResources NO-SOURCE
+> Task :app:classes UP-TO-DATE
+> Task :app:jar
+> Task :app:generateMetadataFileForMavenPublication
+> Task :app:generatePomFileForMavenPublication
+> Task :app:publishMavenPublicationToMavenLocal
+> Task :app:publishToMavenLocal
+
+BUILD SUCCESSFUL in 331ms
+----
+
+The `publishToMavenLocal` task builds the POM file and the artifacts to be published.
+It then _installs_ them into the local Maven repository.
+
+You can view the POM and GMM file in the `build` directory:
+
+image::tutorial/intellij-idea-dist.png[]
+
+You can also view the files in your Maven Local directory: `~/.m2/repository/com/gradle/tutorial/tutorial/1.0`.
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.gradle.tutorial</groupId>
+  <artifactId>tutorial</artifactId>
+  <version>1.0</version>
+  <packaging>pom</packaging>
+</project>
+----
+
+== Step 5. Exploring Plugins
+
+Plugins extend Gradle’s capabilities by adding tasks, configurations, and behavior to your build.
+They are the **main way to organize and reuse build logic**.
+
+Gradle supports three main plugin types:
+
+1. **Core plugins** – Built into Gradle (e.g., `java`, `application`):
++
+[source,kotlin]
+----
+plugins {
+    id("java")
+}
+----
+
+2. **Community plugins** – Published by others to the link:https://plugins.gradle.org/[Gradle Plugin Portal]:
++
+[source,kotlin]
+----
+plugins {
+    id("com.diffplug.spotless") version "6.25.0"
+}
+----
+
+3. **Custom plugins** – Created by you or your team for internal use. These live in `buildSrc/` or a dedicated subproject.
++
+**Convention plugins** are custom plugins used to share common build logic across subprojects (like code style, compiler options, or testing setup):
++
+[source,kotlin]
+----
+plugins {
+    id("myproject.java-conventions")
+}
+----
+
+[TIP]
+====
+Gradle recommends using convention plugins to avoid duplication and manage shared settings in large builds.
+====
+
+You can learn more from the link:../samples/sample_convention_plugins.html[Convention Plugin Samples].
+
+[.text-right]
+**Next Step:** <<part5_gradle_inc_builds.adoc#part5_begin,Exploring Incremental Builds>> >>

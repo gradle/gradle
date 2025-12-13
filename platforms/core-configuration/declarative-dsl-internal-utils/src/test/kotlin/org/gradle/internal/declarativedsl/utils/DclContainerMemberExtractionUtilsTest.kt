@@ -97,7 +97,7 @@ class DclContainerMemberExtractionUtilsTest {
 
     @Test
     fun `no element type is extracted from NDOC parameterized with a star-projected type`() {
-        abstract class Parameterized<P> : NamedDomainObjectContainer<P> {
+        abstract class Parameterized<P : Any> : NamedDomainObjectContainer<P> {
             abstract val t: Parameterized<P>
         }
 
@@ -107,7 +107,7 @@ class DclContainerMemberExtractionUtilsTest {
 
     @Test
     fun `no element type is extracted from projected types`() {
-        abstract class Subtype<S> : NamedDomainObjectContainer<S>
+        abstract class Subtype<S : Any> : NamedDomainObjectContainer<S>
 
         assertNull(elementTypeFromNdocContainerType(typeOf<NamedDomainObjectContainer<in String>>()))
         assertNull(elementTypeFromNdocContainerType(typeOf<NamedDomainObjectContainer<out String>>()))
@@ -123,9 +123,9 @@ class DclContainerMemberExtractionUtilsTest {
     class Unrelated<@Suppress("unused") T>
     abstract class NdocStringSubtype : NamedDomainObjectContainer<String>
 
-    abstract class Subtype1<S1> : NamedDomainObjectContainer<S1>
-    abstract class Subtype2<S2> : Subtype1<S2>()
-    abstract class MultiArgSubtype<A, B> : Subtype2<B>()
+    abstract class Subtype1<S1 : Any> : NamedDomainObjectContainer<S1>
+    abstract class Subtype2<S2 : Any> : Subtype1<S2>()
+    abstract class MultiArgSubtype<A : Any, B : Any> : Subtype2<B>()
 
     abstract class Instantiation {
         abstract val subtype2OfString: Subtype2<String>

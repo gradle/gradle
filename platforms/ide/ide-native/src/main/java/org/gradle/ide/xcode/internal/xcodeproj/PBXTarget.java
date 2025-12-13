@@ -17,8 +17,8 @@
 package org.gradle.ide.xcode.internal.xcodeproj;
 
 import com.google.common.base.Preconditions;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -23,6 +23,31 @@ import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements InspectsConfigurationReport, ConfigurationUsageChangingFixture {
+    @Issue("https://github.com/gradle/gradle/issues/23932")
+    def "does not eagerly resolve compile tasks"() {
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            tasks.withType(JavaCompile).configureEach {
+                throw new RuntimeException("Compile task should not have been realized")
+            }
+
+            tasks.register("anotherCompileTask") {
+                throw new RuntimeException("anotherCompileTask should not have been realized")
+            }
+
+            sourceSets {
+                main {
+                    output.dir(tasks.named("anotherCompileTask").map { it.outputs })
+                }
+            }
+        """
+
+        expect:
+        succeeds "help"
+    }
 
     def "main component is java component"() {
         given:
@@ -36,6 +61,21 @@ class JavaPluginIntegrationTest extends AbstractIntegrationSpec implements Inspe
 
         expect:
         succeeds "expect"
+    }
+
+    def "assemble builds the jar"() {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+            apply plugin: 'java'
+        """
+
+        expect:
+        succeeds "assemble"
+
+        and:
+        executed(":jar")
+        file("build/libs/test.jar").exists()
     }
 
     def "Java plugin adds outgoing variant for main source set"() {
@@ -110,7 +150,6 @@ Artifacts
 
             // A resolvable configuration to collect source data
             def sourceElementsConfig = configurations.create("sourceElements") {
-                visible = true
                 assert canBeResolved
                 canBeConsumed = false
                 attributes {
@@ -201,7 +240,6 @@ Artifacts
 
             // A resolvable configuration to collect JaCoCo coverage data
             def sourceElementsConfig = configurations.create("sourceElements") {
-                visible = true
                 assert canBeResolved
                 canBeConsumed = false
                 extendsFrom(configurations.implementation)
@@ -456,7 +494,7 @@ Artifacts
         expect:
         succeeds ":subB:test"
         result.assertTaskOrder(":subA:jar", ":subB:test")
-        result.assertTaskNotExecuted(":subA:test")
+        result.assertTasksNotScheduled(":subA:test")
     }
 
     def "classes directories registered on source set output are included in runtime classes variant"() {
@@ -502,7 +540,7 @@ Artifacts
         succeeds "consumer:consumeRuntimeClasses"
 
         then:
-        result.assertTaskExecuted(":customCompile")
+        result.assertTaskScheduled(":customCompile")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22484")
@@ -535,65 +573,46 @@ Artifacts
         succeeds "bar"
 
         then:
-        result.assertTasksExecuted(":compileJava", ":bar")
+        result.assertTasksScheduled(":compileJava", ":bar")
     }
 
-    def "accessing reportsDir convention from the java plugin convention is deprecated"() {
-        given:
-        buildFile("""
-            plugins { id 'java' }
-            println(reportsDir)
-        """)
-
-        expect:
-        executer.expectDocumentedDeprecationWarning(
-            "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation"
-        )
-        succeeds('help')
-    }
-
-    def "changing the role of jvm configurations emits deprecation warnings"() {
+    def "changing the role of jvm configurations fails (#configuration - #method(true))"() {
         buildFile << """
             plugins {
                 id("java-library")
             }
 
             configurations {
-                [apiElements, runtimeElements].each {
-                    it.canBeResolved = true
-                    it.canBeDeclared = true
-                }
-
-                [implementation, runtimeOnly, compileOnly, api, compileOnlyApi].each {
-                    it.canBeConsumed = true
-                    it.canBeResolved = true
-                }
-
-                [runtimeClasspath, compileClasspath].each {
-                    it.canBeDeclared = true
-                    it.canBeConsumed = true
-                }
+                $configuration.$method(true)
             }
         """
 
-        expect:
-        [":apiElements", ":runtimeElements"].each {
-            expectResolvableChanging(it, true)
-            expectDeclarableChanging(it, true)
-        }
-        [":implementation", ":runtimeOnly", ":compileOnly", ":api", ":compileOnlyApi"].each {
-            expectConsumableChanging(it, true)
-            expectResolvableChanging(it, true)
-        }
-        [":runtimeClasspath", ":compileClasspath"].each {
-            expectDeclarableChanging(it, true)
-            expectConsumableChanging(it, true)
-        }
+        when:
+        fails("help")
 
-        succeeds("help")
+        then:
+        assertUsageLockedFailure(configuration, role)
+
+        where:
+        configuration       | method                | role
+        "apiElements"       | "setCanBeResolved"    | "Consumable"
+        "apiElements"       | "setCanBeDeclared"    | "Consumable"
+        "runtimeElements"   | "setCanBeResolved"    | "Consumable"
+        "runtimeElements"   | "setCanBeDeclared"    | "Consumable"
+        "implementation"    | "setCanBeResolved"    | "Dependency Scope"
+        "implementation"    | "setCanBeConsumed"    | "Dependency Scope"
+        "runtimeOnly"       | "setCanBeResolved"    | "Dependency Scope"
+        "runtimeOnly"       | "setCanBeConsumed"    | "Dependency Scope"
+        "compileOnly"       | "setCanBeResolved"    | "Dependency Scope"
+        "compileOnly"       | "setCanBeConsumed"    | "Dependency Scope"
+        "api"               | "setCanBeResolved"    | "Dependency Scope"
+        "api"               | "setCanBeConsumed"    | "Dependency Scope"
+        "compileOnlyApi"    | "setCanBeResolved"    | "Dependency Scope"
+        "compileOnlyApi"    | "setCanBeConsumed"    | "Dependency Scope"
+        "runtimeClasspath"  | "setCanBeConsumed"    | "Resolvable"
+        "runtimeClasspath"  | "setCanBeDeclared"    | "Resolvable"
+        "compileClasspath"  | "setCanBeConsumed"    | "Resolvable"
+        "compileClasspath"  | "setCanBeDeclared"    | "Resolvable"
     }
 
     def "registerFeature features are added to java component"() {
@@ -630,4 +649,95 @@ Artifacts
         expect:
         succeeds("verify")
     }
+
+    def "calling configuration attributes keySet does not realize compileJava task"() {
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            tasks.named("compileJava").configure {
+                throw new RuntimeException("compileJava should not have been realized")
+            }
+
+            // Calling keySet() does not realize the compileJava task
+            [configurations.compileClasspath, configurations.runtimeClasspath].each { Configuration configuration ->
+                configuration.attributes.keySet()
+            }
+
+            // Getting the value of the TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE does realize the compileJava task
+            [configurations.compileClasspath, configurations.runtimeClasspath].each { Configuration configuration ->
+                try {
+                    configuration.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)
+                    assert false : "This should have failed"
+                } catch (Exception e) {
+                    assert e.cause.message.contains("compileJava should not have been realized")
+                }
+            }
+        """
+
+        expect:
+        succeeds("help")
+    }
+
+    def "consumable configurations are not realized at configuration-time"() {
+        given:
+        buildFile("""
+            plugins {
+                id("java")
+            }
+            configurations.named(Dependency.DEFAULT_CONFIGURATION).configure {
+                throw new RuntimeException("Should not be called!")
+            }
+            configurations.named(${configuration}).configure {
+                throw new RuntimeException("Should not be called!")
+            }
+        """)
+
+        expect:
+        succeeds("help")
+
+        where:
+        configuration << [
+            "JavaPlatformPlugin.API_ELEMENTS_CONFIGURATION_NAME",
+            "JavaPlatformPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME"
+        ]
+    }
+
+    def "sourcesElements consumable configuration is not realized at configuration-time"() {
+        given:
+        buildFile("""
+            plugins {
+                id("java")
+            }
+            java {
+                withSourcesJar()
+            }
+            configurations.named(JavaPlugin.SOURCES_ELEMENTS_CONFIGURATION_NAME).configure {
+                throw new RuntimeException("Should not be called!")
+            }
+        """)
+
+        expect:
+        succeeds("help")
+    }
+
+    def "javadocElements consumable configuration is not realized at configuration-time"() {
+        given:
+        buildFile("""
+            plugins {
+                id("java")
+            }
+            java {
+                withJavadocJar()
+            }
+            configurations.named(JavaPlugin.JAVADOC_ELEMENTS_CONFIGURATION_NAME).configure {
+                throw new RuntimeException("Should not be called!")
+            }
+        """)
+
+        expect:
+        succeeds("help")
+    }
+
 }

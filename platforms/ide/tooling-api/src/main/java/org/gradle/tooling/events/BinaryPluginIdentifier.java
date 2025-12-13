@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.events;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Identifies a Gradle binary plugin.

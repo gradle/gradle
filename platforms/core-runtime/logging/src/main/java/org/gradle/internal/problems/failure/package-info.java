@@ -14,5 +14,7 @@
  * limitations under the License.
  */
 
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.internal.problems.failure;
+
+import org.jspecify.annotations.NullMarked;

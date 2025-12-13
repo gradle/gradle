@@ -25,8 +25,8 @@ import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Optional;
 

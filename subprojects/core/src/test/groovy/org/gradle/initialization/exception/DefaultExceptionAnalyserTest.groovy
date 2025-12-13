@@ -20,10 +20,13 @@ import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.Describables
+import org.gradle.internal.buildevents.ContextAwareExceptionHandler
 import org.gradle.internal.exceptions.Contextual
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.exceptions.ResolutionProvider
+import org.gradle.internal.problems.failure.DefaultFailureFactory
+import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.problems.Location
 import org.gradle.problems.ProblemDiagnostics
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
@@ -31,6 +34,7 @@ import spock.lang.Specification
 
 class DefaultExceptionAnalyserTest extends Specification {
     private final ProblemDiagnosticsFactory diagnosticsFactory = Stub(ProblemDiagnosticsFactory)
+    private final FailureFactory failureFactory = DefaultFailureFactory.withDefaultClassifier()
 
     def 'wraps original exception when it is not a contextual exception'() {
         given:
@@ -46,7 +50,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         def transformedFailure = result[0]
         transformedFailure instanceof LocationAwareException
         transformedFailure.cause.is(failure)
-        transformedFailure.reportableCauses.isEmpty()
+        getReportableCauses(transformedFailure).isEmpty()
     }
 
     def 'wraps contextual exception with location aware exception'() {
@@ -64,7 +68,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         transformedFailure instanceof LocationAwareException
 
         transformedFailure.cause.is(failure)
-        transformedFailure.reportableCauses.isEmpty()
+        getReportableCauses(transformedFailure).isEmpty()
     }
 
     def 'wraps highest contextual exception with location aware exception'() {
@@ -82,7 +86,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         def transformedFailure = result[0]
         transformedFailure instanceof LocationAwareException
         transformedFailure.cause.is(failure)
-        transformedFailure.reportableCauses == [cause]
+        getReportableCauses(transformedFailure) == [cause]
     }
 
     def 'adds location info from stack trace'() {
@@ -91,7 +95,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         def result = []
 
         given:
-        _ * diagnosticsFactory.forException(failure) >> location("<source>", 7)
+        _ * diagnosticsFactory.forException(failure) >> location("<source>", "<path to source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -112,8 +116,8 @@ class DefaultExceptionAnalyserTest extends Specification {
         def result = []
 
         given:
-        _ * diagnosticsFactory.forException(failure) >> location("<source>", 12)
-        _ * diagnosticsFactory.forException(cause) >> location("<source>", 7)
+        _ * diagnosticsFactory.forException(failure) >> location("<source>", "<path to source>", 12)
+        _ * diagnosticsFactory.forException(cause) >> location("<source>", "<path to source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -159,7 +163,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         def transformedFailure = result[0]
         transformedFailure instanceof LocationAwareException
         transformedFailure.cause.is(failure)
-        transformedFailure.reportableCauses == [cause1, cause2]
+        getReportableCauses(transformedFailure) == [cause1, cause2]
     }
 
     def 'uses original exception when it is already location aware'() {
@@ -244,7 +248,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         def result = []
 
         given:
-        _ * diagnosticsFactory.forException(failure) >> location("<source>", 7)
+        _ * diagnosticsFactory.forException(failure) >> location("<source>", "<path to source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -324,8 +328,8 @@ class DefaultExceptionAnalyserTest extends Specification {
         return failure
     }
 
-    private ProblemDiagnostics location(String longDisplayName, int line) {
-        def location = new Location(Describables.of(longDisplayName), Describables.of("short"), line)
+    private ProblemDiagnostics location(String longDisplayName, String fileName, int line) {
+        def location = new Location(Describables.of(longDisplayName), Describables.of("short"), fileName, line)
         return Stub(ProblemDiagnostics) {
             getLocation() >> location
         }
@@ -333,6 +337,10 @@ class DefaultExceptionAnalyserTest extends Specification {
 
     private DefaultExceptionAnalyser analyser() {
         return new DefaultExceptionAnalyser(diagnosticsFactory)
+    }
+
+    private List<Throwable> getReportableCauses(Throwable e) {
+        ContextAwareExceptionHandler.getReportableCauses(failureFactory.create(e)).collect { it.original }
     }
 
     @Contextual

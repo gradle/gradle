@@ -28,7 +28,6 @@ import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 import org.gradle.workers.WorkerExecutor;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 
 public class NoIsolationWorkerFactory implements WorkerFactory {
@@ -60,7 +59,6 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                     DefaultWorkResult result;
                     try {
                         result = ClassLoaderUtils.executeInClassloader(contextClassLoader, new Factory<DefaultWorkResult>() {
-                            @Nullable
                             @Override
                             public DefaultWorkResult create() {
                                 return workerServer.execute(specFactory.newSimpleSpec(workSpec));

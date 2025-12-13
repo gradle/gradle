@@ -15,66 +15,20 @@
  */
 package org.gradle.testfixtures.internal;
 
-import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.api.internal.BuildDefinition;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
-import org.gradle.initialization.GradlePropertiesController;
-import org.gradle.internal.build.BuildModelControllerServices;
-import org.gradle.internal.installation.CurrentGradleInstallation;
-import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
-import javax.annotation.Nullable;
-import java.io.File;
-import java.util.Collections;
-import java.util.Map;
-
 public class TestBuildScopeServices extends BuildScopeServices {
-    private final File homeDir;
 
-    public TestBuildScopeServices(File homeDir, BuildModelControllerServices.Supplier supplier) {
-        super(supplier);
-        this.homeDir = homeDir;
+    public TestBuildScopeServices(BuildDefinition buildDefinition, BuildState buildState) {
+        super(buildDefinition, buildState);
     }
 
     @Provides
     protected DefaultProjectDescriptorRegistry createProjectDescriptorRegistry() {
         return new DefaultProjectDescriptorRegistry();
-    }
-
-    @Override
-    @Provides
-    protected GradleProperties createGradleProperties(GradlePropertiesController gradlePropertiesController) {
-        return new EmptyGradleProperties();
-    }
-
-    @Provides
-    protected BuildCancellationToken createBuildCancellationToken() {
-        return new DefaultBuildCancellationToken();
-    }
-
-    @Provides
-    protected CurrentGradleInstallation createCurrentGradleInstallation() {
-        return new CurrentGradleInstallation(new GradleInstallation(homeDir));
-    }
-
-    private static class EmptyGradleProperties implements GradleProperties {
-        @Nullable
-        @Override
-        public Object find(String propertyName) {
-            return null;
-        }
-
-        @Override
-        public Map<String, Object> mergeProperties(Map<String, Object> properties) {
-            return properties;
-        }
-
-        @Override
-        public Map<String, Object> getProperties() {
-            return Collections.emptyMap();
-        }
     }
 }

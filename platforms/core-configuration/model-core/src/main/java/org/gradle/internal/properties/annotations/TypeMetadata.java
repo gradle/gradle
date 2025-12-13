@@ -18,8 +18,8 @@ package org.gradle.internal.properties.annotations;
 
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 public interface TypeMetadata {

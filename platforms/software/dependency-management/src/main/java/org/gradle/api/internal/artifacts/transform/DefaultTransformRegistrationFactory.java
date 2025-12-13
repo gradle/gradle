@@ -47,8 +47,8 @@ import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.service.ServiceLookup;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
 public class DefaultTransformRegistrationFactory implements TransformRegistrationFactory {

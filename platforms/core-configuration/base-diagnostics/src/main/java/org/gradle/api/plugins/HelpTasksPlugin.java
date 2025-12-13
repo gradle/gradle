@@ -28,8 +28,6 @@ import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.gradle.api.tasks.diagnostics.internal.DiagnosticsTaskNames;
 import org.gradle.configuration.Help;
 
-import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
-
 /**
  * Adds various reporting tasks that provide information about the project.
  *
@@ -40,7 +38,6 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
     public static final String PROPERTIES_TASK = DiagnosticsTaskNames.PROPERTIES_TASK;
     public static final String DEPENDENCIES_TASK = DiagnosticsTaskNames.DEPENDENCIES_TASK;
     public static final String DEPENDENCY_INSIGHT_TASK = DiagnosticsTaskNames.DEPENDENCY_INSIGHT_TASK;
-    public static final String COMPONENTS_TASK = DiagnosticsTaskNames.COMPONENTS_TASK;
 
     /**
      * The name of the outgoing variants report task.
@@ -66,34 +63,18 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
     public static final String ARTIFACT_TRANSFORMS_TASK = DiagnosticsTaskNames.ARTIFACT_TRANSFORMS_TASK;
 
     public static final String MODEL_TASK = DiagnosticsTaskNames.MODEL_TASK;
-    public static final String DEPENDENT_COMPONENTS_TASK = DiagnosticsTaskNames.DEPENDENT_COMPONENTS_TASK;
+
 
     @Override
     public void apply(final Project project) {
-        final TaskContainer tasks = project.getTasks();
-
-        // static classes are used for the actions to avoid implicitly dragging project/tasks into the model registry
+        TaskContainer tasks = project.getTasks();
         String projectName = project.toString();
+
+        // Static classes are used for the configure actions here to avoid implicitly dragging project/tasks into the model registry
         tasks.register(ProjectInternal.HELP_TASK, Help.class, new HelpAction());
         tasks.register(ProjectInternal.PROJECTS_TASK, ProjectReportTask.class, new ProjectReportTaskAction(projectName));
-        tasks.register(ProjectInternal.TASKS_TASK, TaskReportTask.class, new TaskReportTaskAction(projectName, getChildProjectsForInternalUse(project).isEmpty()));
+        tasks.register(ProjectInternal.TASKS_TASK, TaskReportTask.class, new TaskReportTaskAction(projectName, project.getChildProjects().isEmpty()));
         tasks.register(PROPERTIES_TASK, PropertyReportTask.class, new PropertyReportTaskAction(projectName));
-
-        registerDeprecatedSoftwareModelTasks(tasks, projectName);
-
-        tasks.withType(TaskReportTask.class).configureEach(task -> {
-            task.getShowTypes().convention(false);
-        });
-    }
-
-    /**
-     * Registers the deprecated tasks used by the Software Model.
-     * <p>
-     * Note that these tasks <strong>are</strong> deprecated, even though they do not emit a deprecation warning when run.
-     */
-    @SuppressWarnings("deprecation")
-    private void registerDeprecatedSoftwareModelTasks(TaskContainer tasks, String projectName) {
-        tasks.register(MODEL_TASK, org.gradle.api.reporting.model.ModelReport.class, new ModelReportAction(projectName));
     }
 
     private static class HelpAction implements Action<Help> {
@@ -140,6 +121,7 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
             task.setDescription(description);
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
+            task.getShowTypes().convention(false);
         }
     }
 
@@ -154,21 +136,6 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
         public void execute(PropertyReportTask task) {
             task.setDescription("Displays the properties of " + projectName + ".");
             task.setGroup(HELP_GROUP);
-            task.setImpliesSubProjects(true);
-        }
-    }
-
-    @SuppressWarnings("deprecation")
-    private static class ModelReportAction implements Action<org.gradle.api.reporting.model.ModelReport> {
-        private final String projectName;
-
-        public ModelReportAction(String projectName) {
-            this.projectName = projectName;
-        }
-
-        @Override
-        public void execute(org.gradle.api.reporting.model.ModelReport task) {
-            task.setDescription("Displays the configuration model of " + projectName + ". [deprecated]");
             task.setImpliesSubProjects(true);
         }
     }

@@ -18,8 +18,7 @@ package org.gradle.initialization.buildsrc;
 
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.classpath.ClassPath;
-
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 public class BuildSrcUpdateFactory {
     private final BuildSrcBuildListenerFactory listenerFactory;
@@ -28,7 +27,7 @@ public class BuildSrcUpdateFactory {
         this.listenerFactory = listenerFactory;
     }
 
-    @Nonnull
+    @NonNull
     public ClassPath create(BuildTreeLifecycleController buildController) {
         BuildSrcBuildListenerFactory.Listener listener = listenerFactory.create();
         buildController.beforeBuild(gradle -> gradle.addListener(listener));

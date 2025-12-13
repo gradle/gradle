@@ -22,6 +22,8 @@ description = "Types for build process and session state management"
 
 dependencies {
     api(projects.baseServices)
+    api(projects.buildProcessServices)
+    api(projects.classloaders)
     api(projects.core)
     api(projects.daemonProtocol)
     api(projects.instrumentationAgentServices)
@@ -31,7 +33,9 @@ dependencies {
     api(projects.serviceRegistryBuilder)
     api(projects.stdlibJavaExtensions)
 
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOperationsTrace)
+    implementation(projects.buildOption)
     implementation(projects.concurrent)
     implementation(projects.coreApi)
     implementation(projects.loggingApi)
@@ -39,7 +43,7 @@ dependencies {
     implementation(projects.problemsApi)
     implementation(projects.serialization)
 
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
+    compileOnly(libs.jspecify)
+
+    testImplementation(projects.serviceRegistryImpl)
 }

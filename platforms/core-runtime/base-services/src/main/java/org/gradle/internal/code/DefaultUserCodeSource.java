@@ -17,8 +17,7 @@
 package org.gradle.internal.code;
 
 import org.gradle.internal.DisplayName;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Default implementation of {@link UserCodeSource}.
@@ -26,7 +25,7 @@ import javax.annotation.Nullable;
 public class DefaultUserCodeSource implements UserCodeSource {
 
     private final DisplayName displayName;
-    private final String pluginId;
+    private final @Nullable String pluginId;
 
     public DefaultUserCodeSource(DisplayName displayName, @Nullable String pluginId) {
         this.displayName = displayName;

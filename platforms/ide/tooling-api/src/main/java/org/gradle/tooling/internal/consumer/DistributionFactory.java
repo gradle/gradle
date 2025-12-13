@@ -113,7 +113,7 @@ public class DistributionFactory {
         @Override
         public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, final InternalBuildProgressListener progressListener, final ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
             if (installedDistribution == null) {
-                final DistributionInstaller installer = new DistributionInstaller(progressLoggerFactory, progressListener, clock);
+                final DistributionInstaller installer = new DistributionInstaller(progressLoggerFactory, progressListener, clock, wrapperConfiguration.getNetworkTimeout());
                 File installDir;
                 try {
                     cancellationToken.addCallback(new Runnable() {

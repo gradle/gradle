@@ -19,9 +19,12 @@ package org.gradle.kotlin.dsl.support.delegates
 import groovy.lang.Closure
 import org.gradle.StartParameter
 import org.gradle.api.Action
+import org.gradle.api.cache.CacheConfigurations
+import org.gradle.api.file.BuildLayout
 import org.gradle.api.initialization.ConfigurableIncludedBuild
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
+import org.gradle.api.initialization.SharedModelDefaults
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.invocation.Gradle
@@ -31,9 +34,6 @@ import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.toolchain.management.ToolchainManagement
-import org.gradle.api.cache.CacheConfigurations
-import org.gradle.api.file.BuildLayout
-import org.gradle.api.initialization.SharedModelDefaults
 import org.gradle.caching.configuration.BuildCacheConfiguration
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.plugin.management.PluginManagementSpec
@@ -44,15 +44,15 @@ import java.io.File
 /**
  * Facilitates the implementation of the [Settings] interface by delegation via subclassing.
  */
-@Deprecated("Will be removed in Gradle 9.0")
+@Deprecated("Will be removed in Gradle 10")
 abstract class SettingsDelegate : Settings {
 
     init {
         @Suppress("DEPRECATION")
         if (!org.gradle.kotlin.dsl.SettingsScriptApi::class.java.isAssignableFrom(this::class.java)) {
             DeprecationLogger.deprecateType(SettingsDelegate::class.java)
-                .willBeRemovedInGradle9()
-                .undocumented()
+                .willBeRemovedInGradle10()
+                .withUpgradeGuideSection(8, "kotlin_dsl_precompiled_gradle_lt_6")
                 .nagUser()
         }
     }
@@ -138,7 +138,7 @@ abstract class SettingsDelegate : Settings {
     override fun include(projectPaths: Iterable<String>) =
         delegate.include(projectPaths)
 
-    override fun includeFlat(vararg projectNames: String?) =
+    override fun includeFlat(vararg projectNames: String) =
         delegate.includeFlat(*projectNames)
 
     override fun includeFlat(projectNames: Iterable<String>) {

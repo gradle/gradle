@@ -29,9 +29,9 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.hash.PrimitiveHasher;
 import org.gradle.util.GradleVersion;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -73,14 +73,14 @@ public class UriTextResource implements TextResource {
     private final URI sourceUri;
     private final RelativeFilePathResolver resolver;
 
-    UriTextResource(String description, @Nonnull File sourceFile, RelativeFilePathResolver resolver) {
+    UriTextResource(String description, @NonNull File sourceFile, RelativeFilePathResolver resolver) {
         this.description = description;
         this.sourceFile = FileUtils.normalize(sourceFile);
         this.sourceUri = sourceFile.toURI();
         this.resolver = resolver;
     }
 
-    public UriTextResource(String description, @Nonnull URI sourceUri, RelativeFilePathResolver resolver) {
+    public UriTextResource(String description, @NonNull URI sourceUri, RelativeFilePathResolver resolver) {
         this.description = description;
         this.sourceFile = sourceUri.getScheme().equals("file") ? FileUtils.normalize(new File(sourceUri.getPath())) : null;
         this.sourceUri = sourceUri;

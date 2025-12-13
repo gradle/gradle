@@ -26,6 +26,8 @@ import gradlebuild.basics.transforms.Minify
  */
 val keepPatterns = mapOf(
     "fastutil" to setOf(
+        // For persistence cache
+        "it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap",
         // For Java compilation incremental analysis
         "it.unimi.dsi.fastutil.ints.IntOpenHashSet",
         "it.unimi.dsi.fastutil.ints.IntSets",
@@ -47,6 +49,8 @@ val keepPatterns = mapOf(
         // For the configuration cache module
         "it.unimi.dsi.fastutil.objects.ReferenceArrayList",
         "it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet",
+        "it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap",
+        "it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap",
     )
 )
 plugins.withId("java-base") {

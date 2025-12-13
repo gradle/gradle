@@ -17,8 +17,7 @@
 package org.gradle.api;
 
 import org.gradle.internal.HasInternalProtocol;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@code ProjectState} provides information about the execution state of a project.

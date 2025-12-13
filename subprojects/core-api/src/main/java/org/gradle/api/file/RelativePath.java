@@ -16,8 +16,8 @@
 package org.gradle.api.file;
 
 import org.gradle.internal.file.FilePathUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.nio.CharBuffer;
@@ -202,6 +202,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
      *
      * @return The parent of this path, or null if this is the root path.
      */
+    @Nullable
     public RelativePath getParent() {
         switch (segments.length) {
             case 0:
@@ -279,6 +280,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
     }
 
     @Override
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public int compareTo(RelativePath o) {
         int len1 = segments.length;
         int len2 = o.segments.length;

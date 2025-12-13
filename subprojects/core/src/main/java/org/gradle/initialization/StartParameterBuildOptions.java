@@ -30,9 +30,11 @@ import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
 import org.gradle.internal.buildoption.EnumBuildOption;
 import org.gradle.internal.buildoption.IntegerBuildOption;
 import org.gradle.internal.buildoption.ListBuildOption;
+import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.watch.registry.WatchMode;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.time.Duration;
@@ -71,16 +73,23 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheProblemsOption(),
         new ConfigurationCacheOption(),
         new ConfigurationCacheIgnoreInputsDuringStore(),
+        new ConfigurationCacheIgnoreUnsupportedBuildEventsListeners(),
         new ConfigurationCacheMaxProblemsOption(),
         new ConfigurationCacheIgnoredFileSystemCheckInputs(),
         new ConfigurationCacheDebugOption(),
         new ConfigurationCacheParallelOption(),
+        new ConfigurationCacheReadOnlyOption(),
         new ConfigurationCacheRecreateOption(),
         new ConfigurationCacheQuietOption(),
+        new ConfigurationCacheIntegrityCheckOption(),
         new ConfigurationCacheEntriesPerKeyOption(),
+        new ConfigurationCacheHeapDumpDir(),
+        new ConfigurationCacheFineGrainedPropertyTracking(),
         new IsolatedProjectsOption(),
         new ProblemReportGenerationOption(),
-        new PropertyUpgradeReportOption()
+        new PropertyUpgradeReportOption(),
+        new TaskGraphOption(),
+        new ParallelToolingModelBuildingOption()
     );
 
     @Override
@@ -336,7 +345,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public static final String LONG_OPTION = "scan";
 
         public BuildScanOption() {
-            super(null, BooleanCommandLineOptionConfiguration.create(LONG_OPTION, "Creates a build scan. Gradle will emit a warning if the build scan plugin has not been applied. (https://gradle.com/build-scans)", "Disables the creation of a build scan. For more information about build scans, please visit https://gradle.com/build-scans."));
+            super(null, BooleanCommandLineOptionConfiguration.create(LONG_OPTION,
+                "Generate a Build Scan (powered by Develocity).\n" +
+                    "                                   Build Scan and Develocity are registered trademarks of Gradle, Inc.\n" +
+                    "                                   For more information, please visit https://gradle.com/develocity/product/build-scan/.",
+                "Disables the creation of a Build Scan."));
         }
 
         @Override
@@ -468,7 +481,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCache(Value.value(value));
+            settings.setConfigurationCache(Option.Value.value(value));
         }
     }
 
@@ -481,7 +494,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setIsolatedProjects(Value.value(value));
+            settings.setIsolatedProjects(Option.Value.value(value));
         }
     }
 
@@ -525,6 +538,25 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheIgnoreInputsDuringStore(value);
+        }
+    }
+
+    /**
+     * Suppresses Configuration Cache problems for unsupported listeners registered in {@code BuildEventsListenersRegistry}.
+     *
+     * @since 9.0.0
+     */
+    public static class ConfigurationCacheIgnoreUnsupportedBuildEventsListeners extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners";
+
+        public ConfigurationCacheIgnoreUnsupportedBuildEventsListeners() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(value);
         }
     }
 
@@ -588,6 +620,20 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
+    public static class ConfigurationCacheReadOnlyOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.read-only";
+
+        public ConfigurationCacheReadOnlyOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheReadOnly(value);
+        }
+    }
+
     public static class ConfigurationCacheEntriesPerKeyOption extends IntegerBuildOption<StartParameterInternal> {
 
         public static final String PROPERTY_NAME = "org.gradle.configuration-cache.entries-per-key";
@@ -633,6 +679,63 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
+    /**
+     * Enables stricter integrity checks of the stored configuration cache entries, at the cost of potential performance penalty and significantly inflated entry size.
+     * Can be useful when debugging store failures.
+     */
+    public static class ConfigurationCacheIntegrityCheckOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.integrity-check";
+
+        public ConfigurationCacheIntegrityCheckOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheIntegrityCheckEnabled(value);
+        }
+    }
+
+    /**
+     * When set, tells Gradle to emit heap dumps in the given directory after loading the work graph on a Configuration Cache hit,
+     * after storing and loading the work graph on a Configuration Cache miss.
+     */
+    public static class ConfigurationCacheHeapDumpDir extends StringBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.heap-dump-dir";
+
+        public ConfigurationCacheHeapDumpDir() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheHeapDumpDir(value);
+        }
+    }
+
+    /**
+     * Whether [project property accesses][org.gradle.api.internal.properties.GradleProperties] are tracked individually
+     * to increase cache hit rates.
+     *
+     * Increases memory usage proportionally to the number of projects and property accesses.
+     *
+     * It can be disabled to save on memory.
+     *
+     * The default is `true`.
+     */
+    public static class ConfigurationCacheFineGrainedPropertyTracking extends BooleanBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.fine-grained-property-tracking";
+
+        public ConfigurationCacheFineGrainedPropertyTracking() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheFineGrainedPropertyTracking(value);
+        }
+    }
+
     public static class PropertyUpgradeReportOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
 
         public static final String LONG_OPTION = "property-upgrade-report";
@@ -659,6 +762,33 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.enableProblemReportGeneration(value);
+        }
+    }
+
+    public static class TaskGraphOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+
+        public static final String LONG_OPTION = "task-graph";
+
+        public TaskGraphOption() {
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Print task graph instead of executing tasks."));
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setTaskGraph(true);
+        }
+    }
+
+    public static class ParallelToolingModelBuildingOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.tooling.parallel";
+
+        public ParallelToolingModelBuildingOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, @Nullable Origin origin) {
+            settings.setParallelToolingModelBuilding(Option.Value.value(value));
         }
     }
 }

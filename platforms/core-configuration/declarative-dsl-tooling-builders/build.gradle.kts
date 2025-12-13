@@ -5,8 +5,9 @@ plugins {
 description = "Declarative DSL Tooling Builders for IDEs"
 
 dependencies {
-    api(projects.serviceProvider)
     api(projects.core)
+    api(projects.serviceProvider)
+    api(projects.projectFeatures)
 
     api(libs.kotlinStdlib)
 
@@ -17,7 +18,4 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsBasics)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

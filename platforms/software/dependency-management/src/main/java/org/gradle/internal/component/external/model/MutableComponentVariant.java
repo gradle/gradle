@@ -22,8 +22,8 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
@@ -52,8 +52,6 @@ public interface MutableComponentVariant {
     void addCapability(Capability capability);
 
     ImmutableAttributes getAttributes();
-
-    void setAttributes(ImmutableAttributes updatedAttributes);
 
     MutableComponentVariant copy(String variantName, ImmutableAttributes attributes, Capability capability);
 

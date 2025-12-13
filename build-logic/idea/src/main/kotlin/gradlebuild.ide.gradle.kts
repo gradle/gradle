@@ -19,7 +19,7 @@ import org.gradle.plugins.ide.idea.model.IdeaProject
 import org.jetbrains.gradle.ext.CopyrightConfiguration
 import org.jetbrains.gradle.ext.ProjectSettings
 import org.jetbrains.gradle.ext.Remote
-import org.jetbrains.gradle.ext.RunConfiguration
+import org.jetbrains.gradle.ext.RunConfigurationContainer
 
 plugins {
     id("org.jetbrains.gradle.plugin.idea-ext")
@@ -81,23 +81,28 @@ fun ProjectSettings.configureCopyright() {
 
 fun ProjectSettings.configureRunConfigurations() {
     runConfigurations {
-        create<Remote>("Remote debug port 5005") {
-            mode = Remote.RemoteMode.ATTACH
+        create<Remote>("Daemon debug (port 5005)") {
+            mode = Remote.RemoteMode.LISTEN
             transport = Remote.RemoteTransport.SOCKET
             sharedMemoryAddress = "javadebug"
             host = "localhost"
             port = 5005
+            autoRestart = true
+        }
+        create<Remote>("Launcher debug (port 5006)") {
+            mode = Remote.RemoteMode.LISTEN
+            transport = Remote.RemoteTransport.SOCKET
+            sharedMemoryAddress = "javadebug"
+            host = "localhost"
+            port = 5006
+            autoRestart = true
         }
     }
 }
 
-
 fun IdeaProject.settings(configuration: ProjectSettings.() -> Unit) = (this as ExtensionAware).configure(configuration)
-
 
 fun ProjectSettings.copyright(configuration: CopyrightConfiguration.() -> Unit) = (this as ExtensionAware).configure(configuration)
 
-
-fun ProjectSettings.runConfigurations(configuration: PolymorphicDomainObjectContainer<RunConfiguration>.() -> Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<RunConfiguration>> {
-    (this as PolymorphicDomainObjectContainer<RunConfiguration>).apply(configuration)
-}
+val ProjectSettings.runConfigurations: RunConfigurationContainer
+    get() = (this as ExtensionAware).the()

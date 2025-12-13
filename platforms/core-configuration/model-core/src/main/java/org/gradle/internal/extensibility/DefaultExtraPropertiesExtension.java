@@ -20,19 +20,36 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.ReadOnlyPropertyException;
+import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultExtraPropertiesExtension extends GroovyObjectSupport implements ExtraPropertiesExtension {
+import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
-    private final Map<String, Object> storage = new HashMap<>();
+public class DefaultExtraPropertiesExtension extends GroovyObjectSupport implements ExtraPropertiesExtensionInternal {
+
+    @Nullable
+    private GradleProperties gradleProperties;
+
+    @Nullable
+    private Map<String, Object> storage = null;
 
     @Override
     public boolean has(String name) {
-        return storage.containsKey(name);
+        if (storage != null && storage.containsKey(name)) {
+            return true;
+        }
+
+        if (gradleProperties != null) {
+            return gradleProperties.findUnsafe(name) != null;
+        }
+
+        return false;
     }
 
     @Override
@@ -46,12 +63,26 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
     }
 
     @Nullable
-    public Object find(String name) {
-        return storage.get(name);
+    private Object find(String name) {
+        if (storage != null) {
+            Object value = storage.get(name);
+            if (value != null || storage.containsKey(name)) {
+                return value;
+            }
+        }
+
+        if (gradleProperties != null) {
+            return gradleProperties.findUnsafe(name);
+        }
+
+        return null;
     }
 
     @Override
     public void set(String name, @Nullable Object value) {
+        if (storage == null) {
+            storage = new HashMap<>();
+        }
         storage.put(name, value);
     }
 
@@ -62,11 +93,21 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
             return getProperties();
         }
 
-        if (storage.containsKey(name)) {
-            return storage.get(name);
-        } else {
-            throw new MissingPropertyException(UnknownPropertyException.createMessage(name), name, null);
+        if (storage != null) {
+            Object value = storage.get(name);
+            if (value != null || storage.containsKey(name)) {
+                return value;
+            }
         }
+
+        if (gradleProperties != null) {
+            Object value = gradleProperties.findUnsafe(name);
+            if (value != null) {
+                return value;
+            }
+        }
+
+        throw new MissingPropertyException(UnknownPropertyException.createMessage(name), name, null);
     }
 
     @Override
@@ -79,9 +120,27 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
 
     @Override
     public Map<String, Object> getProperties() {
-        return new HashMap<>(storage);
+        // Must return a mutable map to preserve the contract
+        // TODO:configuration-cache introduce a lazy mutable map that does not force eager reading of all Gradle properties
+        if (storage == null) {
+            return new HashMap<>(getGradlePropertiesAsMap());
+        }
+        Map<String, Object> gradlePropertiesMap = getGradlePropertiesAsMap();
+        Map<String, Object> properties = new HashMap<>(storage.size() + gradlePropertiesMap.size());
+        properties.putAll(storage);
+        for (Map.Entry<String, Object> entry : gradlePropertiesMap.entrySet()) {
+            if (!storage.containsKey(entry.getKey())) {
+                properties.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return properties;
     }
 
+    private Map<String, Object> getGradlePropertiesAsMap() {
+        return gradleProperties == null ? Collections.emptyMap() : uncheckedNonnullCast(gradleProperties.getProperties());
+    }
+
+    @SuppressWarnings("rawtypes")
     public Object methodMissing(String name, Object args) {
         Object item = find(name);
         if (item instanceof Closure) {
@@ -90,5 +149,10 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         } else {
             throw new groovy.lang.MissingMethodException(name, getClass(), (Object[]) args);
         }
+    }
+
+    @Override
+    public void setGradleProperties(GradleProperties gradleProperties) {
+        this.gradleProperties = gradleProperties;
     }
 }

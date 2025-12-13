@@ -5,7 +5,11 @@ plugins {
 
 description = "Logging infrastructure"
 
-gradlebuildJava.usedInWorkers()
+gradleModule {
+    targetRuntimes {
+        usedInWorkers = true
+    }
+}
 
 dependencies {
     api(projects.stdlibJavaExtensions)
@@ -24,6 +28,7 @@ dependencies {
     api(projects.problemsApi)
 
     api(libs.jansi)
+    api(libs.jspecify)
     api(libs.jsr305)
     api(libs.slf4jApi)
 
@@ -32,11 +37,10 @@ dependencies {
     implementation(projects.messaging)
     implementation(projects.serviceRegistryBuilder)
 
-    implementation(libs.errorProneAnnotations)
-    implementation(libs.julToSlf4j)
     implementation(libs.commonsLang)
-    implementation(libs.commonsIo)
+    implementation(libs.errorProneAnnotations)
     implementation(libs.guava)
+    implementation(libs.julToSlf4j)
 
     // GSon is not strictly required here but removing it moves the dependency in the distribution from lib to lib/plugins
     // TODO Check if this is an issue
@@ -51,7 +55,7 @@ dependencies {
     testImplementation(libs.groovyDateUtil)
 
     integTestImplementation(projects.problems)
-    
+
     integTestImplementation(libs.ansiControlSequenceUtil)
 
     testFixturesImplementation(projects.baseServices)

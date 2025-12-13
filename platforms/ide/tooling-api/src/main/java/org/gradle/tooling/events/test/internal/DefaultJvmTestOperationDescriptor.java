@@ -19,9 +19,9 @@ package org.gradle.tooling.events.test.internal;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.test.JvmTestKind;
 import org.gradle.tooling.events.test.JvmTestOperationDescriptor;
+import org.gradle.tooling.events.test.source.TestSource;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Implementation of the {@code JvmTestOperationDescriptor} interface.
@@ -31,6 +31,7 @@ public final class DefaultJvmTestOperationDescriptor extends DefaultTestOperatio
     private final String suiteName;
     private final String className;
     private final String methodName;
+    private final TestSource testSource;
 
     public DefaultJvmTestOperationDescriptor(
         InternalJvmTestDescriptor internalJvmTestDescriptor,
@@ -38,13 +39,15 @@ public final class DefaultJvmTestOperationDescriptor extends DefaultTestOperatio
         JvmTestKind jvmTestKind,
         String suiteName,
         String className,
-        String methodName
+        String methodName,
+        TestSource testSource
     ) {
         super(internalJvmTestDescriptor, parent);
         this.jvmTestKind = jvmTestKind;
         this.suiteName = suiteName;
         this.className = className;
         this.methodName = methodName;
+        this.testSource = testSource;
     }
 
     @Override
@@ -68,5 +71,10 @@ public final class DefaultJvmTestOperationDescriptor extends DefaultTestOperatio
     @Override
     public String getMethodName() {
         return this.methodName;
+    }
+
+    @Override
+    public TestSource getSource() {
+        return this.testSource;
     }
 }

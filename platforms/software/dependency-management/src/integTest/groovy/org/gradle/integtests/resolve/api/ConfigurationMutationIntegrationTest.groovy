@@ -15,51 +15,62 @@
  */
 package org.gradle.integtests.resolve.api
 
+
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.featurelifecycle.DefaultDeprecatedUsageProgressDetails
+import org.gradle.util.GradleVersion
 
 class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionTest {
     ResolveTestFixture resolve
 
     def setup() {
-        resolve = new ResolveTestFixture(buildFile, "compile").expectDefaultConfiguration("runtime")
-        resolve.addDefaultVariantDerivationStrategy()
+        resolve = new ResolveTestFixture(testDirectory)
 
         mavenRepo.module("org", "foo").publish()
         mavenRepo.module("org", "bar").publish()
 
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
-group = "org.test"
-version = "1.1"
+            plugins {
+                id("jvm-ecosystem")
+            }
 
-configurations {
-    conf
-    compile.extendsFrom conf
-}
-repositories {
-    maven { url = '${mavenRepo.uri}' }
-}
+            group = "org.test"
+            version = "1.1"
 
-"""
+            configurations {
+                conf
+                compile.extendsFrom conf
+            }
+
+            repositories {
+                maven {
+                    url = '${mavenRepo.uri}'
+                }
+            }
+        """
     }
 
     def "can use withDependencies to mutate dependencies of parent configuration"() {
         when:
         buildFile << """
-dependencies {
-    conf "org:to-remove:1.0"
-    conf "org:foo:1.0"
-}
-configurations.conf.withDependencies { deps ->
-    deps.remove deps.find { it.name == 'to-remove' }
-    deps.add project.dependencies.create("org:bar:1.0")
-}
-configurations.compile.withDependencies { deps ->
-    assert deps.empty : "Compile dependencies should be empty"
-}
-"""
+            dependencies {
+                conf "org:to-remove:1.0"
+                conf "org:foo:1.0"
+            }
+            ${resolve.configureProject("compile")}
+            configurations.conf.withDependencies { deps ->
+                deps.remove deps.find { it.name == 'to-remove' }
+                deps.add project.dependencies.create("org:bar:1.0")
+            }
+            configurations.compile.withDependencies { deps ->
+                assert deps.empty : "Compile dependencies should be empty"
+            }
+        """
 
         then:
         resolvedGraph {
@@ -71,18 +82,19 @@ configurations.compile.withDependencies { deps ->
     def "can use withDependencies to mutate declared dependencies"() {
         when:
         buildFile << """
-dependencies {
-    compile "org:to-remove:1.0"
-    compile "org:foo:1.0"
-}
-configurations.compile.withDependencies { deps ->
-    deps.remove deps.find { it.name == 'to-remove' }
-    deps.add project.dependencies.create("org:bar:1.0")
-}
-configurations.conf.withDependencies { deps ->
-    assert deps.empty : "Parent dependencies should be empty"
-}
-"""
+            dependencies {
+                compile "org:to-remove:1.0"
+                compile "org:foo:1.0"
+            }
+            ${resolve.configureProject("compile")}
+            configurations.compile.withDependencies { deps ->
+                deps.remove deps.find { it.name == 'to-remove' }
+                deps.add project.dependencies.create("org:bar:1.0")
+            }
+            configurations.conf.withDependencies { deps ->
+                assert deps.empty : "Parent dependencies should be empty"
+            }
+        """
 
         then:
         resolvedGraph {
@@ -94,19 +106,20 @@ configurations.conf.withDependencies { deps ->
     def "withDependencies actions are executed in order added"() {
         when:
         buildFile << """
-dependencies {
-    compile "org:foo:1.0"
-}
-configurations.compile.withDependencies { DependencySet deps ->
-    assert deps.collect {it.name} == ['foo']
-}
-configurations.compile.withDependencies { DependencySet deps ->
-    deps.add project.dependencies.create("org:bar:1.0")
-}
-configurations.compile.withDependencies { DependencySet deps ->
-    assert deps.collect {it.name} == ['foo', 'bar']
-}
-"""
+            dependencies {
+                compile "org:foo:1.0"
+            }
+            ${resolve.configureProject("compile")}
+            configurations.compile.withDependencies { DependencySet deps ->
+                assert deps.collect {it.name} == ['foo']
+            }
+            configurations.compile.withDependencies { DependencySet deps ->
+                deps.add project.dependencies.create("org:bar:1.0")
+            }
+            configurations.compile.withDependencies { DependencySet deps ->
+                assert deps.collect {it.name} == ['foo', 'bar']
+            }
+        """
 
         then:
         resolvedGraph {
@@ -118,14 +131,15 @@ configurations.compile.withDependencies { DependencySet deps ->
     def "withDependencies action can mutate dependencies provided by defaultDependencies"() {
         when:
         buildFile << """
-configurations.compile.withDependencies { DependencySet deps ->
-    assert deps.collect {it.name} == ['foo']
-    deps.add project.dependencies.create("org:bar:1.0")
-}
-configurations.compile.defaultDependencies { DependencySet deps ->
-    deps.add project.dependencies.create("org:foo:1.0")
-}
-"""
+            ${resolve.configureProject("compile")}
+            configurations.compile.withDependencies { DependencySet deps ->
+                assert deps.collect {it.name} == ['foo']
+                deps.add project.dependencies.create("org:bar:1.0")
+            }
+            configurations.compile.defaultDependencies { DependencySet deps ->
+                deps.add project.dependencies.create("org:foo:1.0")
+            }
+        """
 
         then:
         resolvedGraph {
@@ -137,25 +151,26 @@ configurations.compile.defaultDependencies { DependencySet deps ->
     def "can use withDependencies to mutate dependency versions"() {
         when:
         buildFile << """
-dependencies {
-    compile "org:foo"
-    compile "org:bar:2.2"
-}
-configurations.compile.withDependencies { deps ->
-    def foo = deps.find { it.name == 'foo' }
-    assert foo.version == null
-    foo.version { require '1.0' }
+            dependencies {
+                compile "org:foo"
+                compile "org:bar:2.2"
+            }
+            ${resolve.configureProject("compile")}
+            configurations.compile.withDependencies { deps ->
+                def foo = deps.find { it.name == 'foo' }
+                assert foo.version == null
+                foo.version { require '1.0' }
 
-    def bar = deps.find { it.name == 'bar' }
-    assert bar.version == '2.2'
-    bar.version { require null }
-}
-configurations.compile.withDependencies { deps ->
-    def bar = deps.find { it.name == 'bar' }
-    assert bar.version == null
-    bar.version { require '1.0' }
-}
-"""
+                def bar = deps.find { it.name == 'bar' }
+                assert bar.version == '2.2'
+                bar.version { require null }
+            }
+            configurations.compile.withDependencies { deps ->
+                def bar = deps.find { it.name == 'bar' }
+                assert bar.version == null
+                bar.version { require '1.0' }
+            }
+        """
 
         then:
         resolvedGraph {
@@ -167,13 +182,13 @@ configurations.compile.withDependencies { deps ->
     def "provides useful error message when withDependencies action fails to execute"() {
         when:
         buildFile << """
-configurations.compile.withDependencies {
-    throw new RuntimeException("Bad user code")
-}
-"""
+            ${resolve.configureProject("compile")}
+            configurations.compile.withDependencies {
+                throw new RuntimeException("Bad user code")
+            }
+        """
 
         then:
-        resolve.prepare()
         fails ":checkDeps"
 
         failure.assertHasCause("Bad user code")
@@ -208,15 +223,14 @@ configurations.compile.withDependencies {
 
         then:
         fails "mutateResolved"
-        failure.assertHasCause("Cannot change dependencies of dependency configuration ':compile' after it has been resolved.")
+        failure.assertHasCause("Cannot mutate the state of configuration ':compile' after the configuration was resolved. After a configuration has been observed, it should not be modified.")
 
         and:
         fails "mutateParent"
-        failure.assertHasCause("Cannot change dependencies of dependency configuration ':conf' after it has been included in dependency resolution.")
+        failure.assertHasCause("Cannot mutate the state of configuration ':conf' after the configuration's child configuration ':compile' was resolved. After a configuration has been observed, it should not be modified.")
     }
 
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
-        resolve.prepare()
         succeeds ":checkDeps"
 
         resolve.expectGraph {
@@ -261,16 +275,16 @@ configurations.compile.withDependencies {
             plugins {
                 id("java-library")
             }
+            ${resolve.configureProject("runtimeClasspath")}
             dependencies {
                 implementation project(":producer")
             }
         """
 
-        resolve.prepare("runtimeClasspath")
         expect:
         // relying on default dependency
         succeeds(":consumer:checkDeps")
-        resolve.expectGraph {
+        resolve.expectGraph(":consumer") {
             root(":consumer", "root:consumer:") {
                 project(":producer", "root:producer:") {
                     module("org:explicit-dependency:3.4")
@@ -311,22 +325,24 @@ configurations.compile.withDependencies {
         }
 
         settingsFile << """
-    includeBuild '${producer.toURI()}'
-"""
+            includeBuild '${producer.toURI()}'
+        """
         buildFile << """
-    apply plugin: 'java'
-    repositories {
-        maven { url = '${mavenRepo.uri}' }
-    }
+            apply plugin: 'java'
 
-    repositories {
-        maven { url = '${mavenRepo.uri}' }
-    }
-    dependencies {
-        implementation 'org.test:producer:1.0'
-    }
-"""
-        resolve.prepare("runtimeClasspath")
+            ${resolve.configureProject("runtimeClasspath")}
+
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
+
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
+            dependencies {
+                implementation 'org.test:producer:1.0'
+            }
+        """
 
         expect:
         succeeds ":checkDeps"
@@ -339,6 +355,84 @@ configurations.compile.withDependencies {
                 }
             }
         }
+    }
+
+    def "withDependencies deprecations are properly attributed to source plugin"() {
+        BuildOperationsFixture buildOps = new BuildOperationsFixture(executer, temporaryFolder)
+
+        settingsFile << """
+            includeBuild("plugin")
+        """
+
+        file("plugin/build.gradle") << """
+            plugins {
+                id("java-gradle-plugin")
+            }
+
+            gradlePlugin {
+                plugins {
+                    transformPlugin {
+                        id = "com.example.plugin"
+                        implementationClass = "com.example.ExamplePlugin"
+                    }
+                }
+            }
+        """
+
+        file("plugin/src/main/java/com/example/ExamplePlugin.java") << """
+            package com.example;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import ${DeprecationLogger.name};
+
+            public class ExamplePlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    project.getConfigurations().configureEach(conf -> {
+                        conf.withDependencies(deps -> {
+                            DeprecationLogger.deprecate("foo")
+                                .willBecomeAnErrorInNextMajorGradleVersion()
+                                .withUserManual("feature_lifecycle", "sec:deprecated")
+                                .nagUser();
+                        });
+                    });
+                }
+            }
+        """
+
+        buildFile.text = """
+            plugins {
+                id("com.example.plugin")
+            }
+
+            configurations {
+                create("deps")
+            }
+
+            task resolve {
+                // triggers `defaultDependencies`
+                def root = configurations.deps.incoming.resolutionResult.rootComponent
+                doLast {
+                    root.get()
+                }
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("foo has been deprecated. This will fail with an error in Gradle ${GradleVersion.current().majorVersion + 1}. For more information, please refer to https://docs.gradle.org/current/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation.")
+        succeeds("resolve")
+
+        then:
+        def deprecationOperations = buildOps.all().findAll { !it.progress(DefaultDeprecatedUsageProgressDetails).isEmpty() }
+        deprecationOperations.findAll { op ->
+            if (!op.details.containsKey("applicationId")) {
+                return false
+            }
+            def pluginId = op.details["applicationId"]
+            def pluginOperations = buildOps.all(org.gradle.api.internal.plugins.ApplyPluginBuildOperationType)
+            def associatedPlugins = pluginOperations.findAll { it.details.applicationId == pluginId }
+            associatedPlugins.size() == 1 && associatedPlugins[0].details.pluginId == "com.example.plugin"
+        }.size() == 1
     }
 
     def "can lazily add dependencies to a configuration"() {
@@ -454,11 +548,218 @@ configurations.compile.withDependencies {
             }
         """
 
+        when:
+        fails("resolve")
+
+        then:
+        failure.assertHasCause("Cannot mutate the dependency attributes of configuration ':deps' after the configuration's child configuration ':res' was resolved. After a configuration has been observed, it should not be modified.")
+    }
+
+    def "can add dependency from provider, configure each dependency, and add constraint for each"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+
+        buildFile << """
+            configurations {
+                conf {
+                    dependencies.addLater(provider {
+                        project.dependencies.create("org:foo:1.0")
+                    })
+                }
+            }
+
+            ${mavenTestRepository()}
+
+            configurations.conf.dependencies.configureEach {
+                if (it.group == "org" && it.name == "foo") {
+                    configurations.conf.dependencyConstraints.add(project.dependencies.constraints.create("org:foo:2.0"))
+                }
+            }
+
+            task resolve {
+                def files = configurations.conf.incoming.files
+                doLast {
+                    assert files*.name == ["foo-2.0.jar"]
+                }
+            }
+        """
+
         expect:
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':deps' after it's child configuration ':res' has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':parent' after it's child configuration ':res' has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency constraint attributes of configuration ':deps' after it's child configuration ':res' has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency constraint attributes of configuration ':parent' after it's child configuration ':res' has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
         succeeds("resolve")
     }
+
+    def "can add dependency from provider, configure each dependency in withDependencies, and add constraint for each"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+
+        buildFile << """
+            configurations {
+                conf {
+                    dependencies.addLater(provider {
+                        project.dependencies.create("org:foo:1.0")
+                    })
+                }
+            }
+
+            ${mavenTestRepository()}
+
+            configurations.conf.withDependencies { deps ->
+                deps.configureEach {
+                    if (it.group == "org" && it.name == "foo") {
+                        configurations.conf.dependencyConstraints.add(project.dependencies.constraints.create("org:foo:2.0"))
+                    }
+                }
+            }
+
+            task resolve {
+                def files = configurations.conf.incoming.files
+                doLast {
+                    assert files*.name == ["foo-2.0.jar"]
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+
+    def "can add dependency from provider, configure each dependency in withDependencies, and mutate them"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+
+        buildFile << """
+            configurations {
+                conf {
+                    dependencies.addLater(provider {
+                        project.dependencies.create("org:foo:1.0")
+                    })
+                }
+            }
+
+            ${mavenTestRepository()}
+
+            configurations.conf.withDependencies {
+                it.configureEach {
+                    it.version {
+                        require("2.0")
+                    }
+                }
+            }
+
+            task resolve {
+                def files = configurations.conf.incoming.files
+                doLast {
+                    assert files*.name == ["foo-2.0.jar"]
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+
+    def "can add dependency from provider, configure each configuration dependencies, and mutate them"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+
+        buildFile << """
+            configurations {
+                conf {
+                    dependencies.addLater(provider {
+                        project.dependencies.create("org:foo:1.0")
+                    })
+                }
+            }
+
+            ${mavenTestRepository()}
+
+            configurations.conf.dependencies.configureEach {
+                it.version {
+                    require("2.0")
+                }
+            }
+
+            task resolve {
+                def files = configurations.conf.incoming.files
+                doLast {
+                    assert files*.name == ["foo-2.0.jar"]
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+
+    // This is not desired behavior.
+    def "can add dependency from provider, resolve the configuration, mutate the dependency, and resolve the configuration again"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+
+        buildFile << """
+            configurations {
+                conf {
+                    dependencies.addLater(provider {
+                        project.dependencies.create("org:foo:1.0")
+                    })
+                }
+            }
+
+            ${mavenTestRepository()}
+
+            println(configurations.conf.incoming.files*.name)
+            configurations.conf.dependencies.each { // Mutating conf's dependencies after resolution should be forbidden.
+                it.version {
+                    require("2.0")
+                }
+            }
+            println(configurations.conf.incoming.files*.name)
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""[foo-1.0.jar]
+[foo-1.0.jar]""")
+    }
+
+    // This is not desired behavior.
+    def "can add dependency from provider from other configuration, resolve that configuration, mutate the dependency, and resolve the original configuration"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "foo", "2.0").publish()
+
+        buildFile << """
+            configurations {
+                confA
+                confB {
+                    dependencies.addAllLater(provider {
+                        confA.dependencies
+                    })
+                }
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                confA("org:foo:1.0")
+            }
+
+            println(configurations.confB.files*.name)
+            configurations.confB.dependencies.each { // Mutating confB's dependencies after resolution should be forbidden.
+                it.version {
+                    require("2.0")
+                }
+            }
+            println(configurations.confA.files*.name)
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("""[foo-1.0.jar]
+[foo-2.0.jar]""")
+    }
+
 }

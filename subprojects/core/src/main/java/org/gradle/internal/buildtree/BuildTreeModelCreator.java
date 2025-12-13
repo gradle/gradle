@@ -16,7 +16,7 @@
 
 package org.gradle.internal.buildtree;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Responsible for creating a model from the build tree model.

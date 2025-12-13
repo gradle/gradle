@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.r34
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
@@ -32,7 +31,6 @@ class NoSourceTaskOutcomeCrossVersionSpec extends ToolingApiSpecification {
             }"""
     }
 
-    @TargetGradleVersion('>=3.4')
     def "tasks with no source is reported as NO-SOURCE"() {
         when:
         def taskEvents = ProgressEvents.create()

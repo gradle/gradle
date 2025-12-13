@@ -21,6 +21,8 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.artifacts.transform.Transform;
 import org.gradle.api.internal.artifacts.transform.TransformStep;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collection;
 
@@ -30,6 +32,7 @@ import java.util.Collection;
  * <p>
  * See the {@link org.gradle.internal.component.resolution.failure.transform package javadoc} for why.
  */
+@ServiceScope(Scope.Project.class)
 public final class TransformedVariantConverter {
     public ImmutableList<TransformationChainData> convert(Collection<TransformedVariant> transformedVariants) {
         ImmutableList.Builder<TransformationChainData> builder = ImmutableList.builder();

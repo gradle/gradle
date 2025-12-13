@@ -1,47 +1,41 @@
 {
     "acceptedApiChanges": [
         {
-            "type": "org.gradle.api.plugins.SoftwareReportingTasksPlugin",
-            "member": "Class org.gradle.api.plugins.SoftwareReportingTasksPlugin",
-            "acceptation": "Splitting diagnostics into base- and software-",
+            "type": "org.gradle.api.initialization.dsl.ScriptHandler",
+            "member": "Method org.gradle.api.initialization.dsl.ScriptHandler.dependencyLocking(org.gradle.api.Action)",
+            "acceptation": "faulty since detection",
             "changes": [
-                "Interface has been added"
+                "Method added to interface"
             ]
         },
         {
-            "type": "org.gradle.api.plugins.SoftwareReportingTasksPlugin",
-            "member": "Constructor org.gradle.api.plugins.SoftwareReportingTasksPlugin()",
-            "acceptation": "Splitting diagnostics into base- and software-",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.TestReport",
-            "member": "Method org.gradle.api.tasks.testing.TestReport.getBuildOperationExecutor()",
-            "acceptation": "Protected methods intended to be overriden by Gradle, not API",
+            "type": "org.gradle.api.initialization.dsl.ScriptHandler",
+            "member": "Method org.gradle.api.initialization.dsl.ScriptHandler.repositories(org.gradle.api.Action)",
+            "acceptation": "de-incubating API",
             "changes": [
-                "Method is now abstract"
+                "Method added to interface"
             ]
         },
         {
-            "type": "org.gradle.api.tasks.testing.TestReport",
-            "member": "Method org.gradle.api.tasks.testing.TestReport.getBuildOperationRunner()",
-            "acceptation": "Protected methods intended to be overriden by Gradle, not API",
+            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getSoftwareTypeRegistry()",
+            "acceptation": "Internal and unpublished API",
             "changes": [
-                "Method is now abstract"
+                "Method has been removed"
             ]
         },
         {
-            "type": "org.gradle.api.tasks.testing.TestReport",
-            "member": "Method org.gradle.api.tasks.testing.TestReport.getObjectFactory()",
-            "acceptation": "Protected methods intended to be overriden by Gradle, not API",
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.dependencyLocking(org.gradle.api.Action)",
+            "acceptation": "faulty since detection",
             "changes": [
-                "Method is now abstract"
+                "Method added to public class"
             ]
         },
         {
-            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getSoftware-reporting-tasks(org.gradle.plugin.use.PluginDependenciesSpec)",
-            "acceptation": "Splitting diagnostics into base- and software-",
+            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
+            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.repositories(org.gradle.api.Action)",
+            "acceptation": "faulty since detection",
             "changes": [
                 "Method added to public class"
             ]

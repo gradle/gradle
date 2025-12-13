@@ -19,7 +19,7 @@
  *
  * @since 6.1
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.services;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

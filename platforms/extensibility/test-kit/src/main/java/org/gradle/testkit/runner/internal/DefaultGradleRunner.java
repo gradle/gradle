@@ -18,13 +18,13 @@ package org.gradle.testkit.runner.internal;
 
 import org.apache.commons.io.output.WriterOutputStream;
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -257,7 +258,7 @@ public class DefaultGradleRunner extends GradleRunner {
         try {
             return WriterOutputStream.builder().setWriter(standardOutput).get();
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
@@ -300,7 +301,13 @@ public class DefaultGradleRunner extends GradleRunner {
         message.append(" with arguments ");
         message.append(getArguments());
 
-        String output = gradleExecutionResult.getOutput();
+        String output;
+        try {
+            output = gradleExecutionResult.getOutputSource().asCharSource(Charset.defaultCharset()).read();
+        } catch (IOException e) {
+            output = "<Error fetching output: " + e.getMessage() + ">";
+        }
+
         if (output != null && !output.isEmpty()) {
             message.append(lineBreak);
             message.append(lineBreak);
@@ -368,10 +375,10 @@ public class DefaultGradleRunner extends GradleRunner {
         return createBuildResult(execResult);
     }
 
-    private BuildResult createBuildResult(GradleExecutionResult execResult) {
+    private static BuildResult createBuildResult(GradleExecutionResult execResult) {
         return new FeatureCheckBuildResult(
             execResult.getBuildOperationParameters(),
-            execResult.getOutput(),
+            execResult.getOutputSource(),
             execResult.getTasks()
         );
     }
