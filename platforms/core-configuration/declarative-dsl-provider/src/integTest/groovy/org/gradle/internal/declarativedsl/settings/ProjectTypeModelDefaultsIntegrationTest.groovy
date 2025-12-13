@@ -46,17 +46,17 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         run(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        outputContains(expectedConfiguration)
+        expectedValues.each { String value -> outputContains(value) }
 
         where:
-        testCase                                           | modelDefault                 | buildConfiguration    | expectedConfiguration
-        "top-level property has default and is set"        | setId("default")             | setId("test")         | """id = test\nbar = bar"""
-        "top-level property has default, nested is set"    | setId("default")             | setFooBar("baz")      | """id = default\nbar = baz"""
-        "nested property has default and is set"           | setFooBar("default")         | setFooBar("baz")      | """id = <no id>\nbar = baz"""
-        "nested property has default, top-level is set"    | setFooBar("default")         | setId("test")         | """id = test\nbar = default"""
-        "no defaults, top-level property is set"           | ""                           | setId("test")         | """id = test\nbar = bar"""
-        "everything has default and nothing set"           | setAll("default", "default") | ""                    | """id = default\nbar = default"""
-        "everything has default and is set"                | setAll("default", "default") | setAll("test", "baz") | """id = test\nbar = baz"""
+        testCase                                           | modelDefault                 | buildConfiguration    | expectedValues
+        "top-level property has default and is set"        | setId("default")             | setId("test")         | expected("id":"test", "foo.bar":"bar")
+        "top-level property has default, nested is set"    | setId("default")             | setFooBar("baz")      | expected("id":"default", "foo.bar":"baz")
+        "nested property has default and is set"           | setFooBar("default")         | setFooBar("baz")      | expected("id":"<no id>", "foo.bar":"baz")
+        "nested property has default, top-level is set"    | setFooBar("default")         | setId("test")         | expected("id": "test", "foo.bar":"default")
+        "no defaults, top-level property is set"           | ""                           | setId("test")         | expected("id":"test", "foo.bar":"bar")
+        "everything has default and nothing set"           | setAll("default", "default") | ""                    | expected("id":"default", "foo.bar":"default")
+        "everything has default and is set"                | setAll("default", "default") | setAll("test", "baz") | expected("id":"test", "foo.bar":"baz")
     }
 
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Kotlin DSL does accept re-assigning values")
@@ -98,16 +98,16 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         run(":printTestProjectTypeDefinitionWithDependenciesConfiguration")
 
         then:
-        expectedConfigurations.each { outputContains(it) }
+        expectedValues.each { String value -> outputContains(value) }
 
         where:
-        testCase                                          | modelDefault     | buildConfiguration | expectedConfigurations
-        "top-level adder has a default and is called"     | addToList("foo") | addToList("bar")   | "list = foo, bar"
-        "top-level adder has a default and is not called" | addToList("foo") | ""                 | "list = foo"
-        "nested adder has a default and is called"        | addToBaz("foo")  | addToBaz("bar")    | "baz = foo, bar"
-        "nested adder has a default and is not called"    | addToBaz("foo")  | ""                 | "baz = foo"
-        "everything has defaults and nothing is called"   | addToAll("foo")  | ""                 | ["list = foo", "baz = foo"]
-        "everything has defaults and all are called"      | addToAll("foo")  | addToAll("bar")    | ["list = foo, bar", "baz = foo, bar"]
+        testCase                                          | modelDefault     | buildConfiguration | expectedValues
+        "top-level adder has a default and is called"     | addToList("foo") | addToList("bar")   | expected("list":"foo, bar")
+        "top-level adder has a default and is not called" | addToList("foo") | ""                 | expected("list":"foo")
+        "nested adder has a default and is called"        | addToBaz("foo")  | addToBaz("bar")    | expected("bar.baz": "foo, bar")
+        "nested adder has a default and is not called"    | addToBaz("foo")  | ""                 | expected("bar.baz":"foo")
+        "everything has defaults and nothing is called"   | addToAll("foo")  | ""                 | expected("list":"foo", "bar.baz":"foo")
+        "everything has defaults and all are called"      | addToAll("foo")  | addToAll("bar")    | expected("list":"foo, bar", "bar.baz":"foo, bar")
     }
 
     @UnsupportedWithConfigurationCache
@@ -246,17 +246,19 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         run(":foo:printTestProjectTypeDefinitionWithDependenciesConfiguration")
 
         then:
-        outputContains("id = foo\nbar = fooBar")
-        outputContains("baz = default, foo")
-        outputContains("implementation = ${externalDependency('foo', 'bar', '1.0')}")
+        outputContains("definition id = foo")
+        outputContains("definition foo.bar = fooBar")
+        outputContains("definition bar.baz = default, foo")
+        outputContains("definition implementation = ${externalDependency('foo', 'bar', '1.0')}")
 
         when:
         run(":bar:printTestProjectTypeDefinitionWithDependenciesConfiguration")
 
         then:
-        outputContains("id = bar\nbar = barBar")
-        outputContains("baz = default")
-        outputContains("implementation = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('bar', 'foo', '2.0')}")
+        outputContains("definition id = bar")
+        outputContains("definition foo.bar = barBar")
+        outputContains("definition bar.baz = default")
+        outputContains("definition implementation = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('bar', 'foo', '2.0')}")
     }
 
     def "can trigger object configuration for nested objects used in defaults"() {
@@ -300,13 +302,15 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         run(":declarative:printTestProjectTypeDefinitionConfiguration")
 
         then:
-        outputContains("""id = foo\nbar = default""")
+        outputContains("definition id = foo")
+        outputContains("definition foo.bar = default")
 
         when:
         run(":non-declarative:printTestProjectTypeDefinitionConfiguration")
 
         then:
-        outputContains("""id = default\nbar = bar""")
+        outputContains("definition id = default")
+        outputContains("definition foo.bar = bar")
 
         where:
         type     | extension
@@ -332,13 +336,15 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         run(":non-declarative:printTestProjectTypeDefinitionConfiguration")
 
         then:
-        outputContains("""id = default\nbar = bar""")
+        outputContains("definition id = default")
+        outputContains("definition foo.bar = bar")
 
         when:
         run(":declarative:printTestProjectTypeDefinitionConfiguration")
 
         then:
-        outputContains("""id = bar\nbar = default""")
+        outputContains("definition id = bar")
+        outputContains("definition foo.bar = default")
 
         where:
         type     | extension
@@ -353,7 +359,10 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
 
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaultsForNdoc()
 
-        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestProjectType(fooNdocYValues())
+        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestProjectType("""
+            id = "test"
+            ${fooNdocYValues()}
+        """)
 
         when:
         run(":printTestProjectTypeDefinitionConfiguration")
@@ -376,7 +385,12 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         run(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        outputContains("""id = test\nbar = plugin""")
+        outputContains("definition id = test")
+        outputContains("definition foo.bar = plugin")
+    }
+
+    private static String[] expected(Map<String, String> expectations) {
+        return expectations.collect { k, v -> "definition ${k} = ${v}" }
     }
 
     static String setId(String id) {
