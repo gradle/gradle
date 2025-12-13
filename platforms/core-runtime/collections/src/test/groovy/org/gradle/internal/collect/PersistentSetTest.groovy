@@ -18,6 +18,10 @@ package org.gradle.internal.collect
 
 import spock.lang.Specification
 
+import java.util.function.Function
+import java.util.function.Predicate
+import java.util.stream.Stream
+
 class PersistentSetTest extends Specification {
 
     def 'empty === empty'() {
@@ -495,4 +499,183 @@ class PersistentSetTest extends Specification {
         thrown(IllegalArgumentException)
     }
 
+    def 'toPersistentSet collector'() {
+        expect:
+        PersistentSet.of() === Stream.empty().collect(PersistentSet.toPersistentSet())
+        PersistentSet.of(1, 2, 3) == Stream.of(1, 2, 3).collect(PersistentSet.toPersistentSet())
+    }
+
+    def 'toArray returns array of exact size with elements in unspecified order'() {
+        given:
+        def set = PersistentSet.of(1, 2, 3)
+
+        when:
+        Integer[] result = set.toArray(new Integer[0])
+
+        then:
+        result as Set == [1, 2, 3] as Set
+    }
+
+    def 'toArray fills provided array when it has sufficient capacity'() {
+        given:
+        def set = PersistentSet.of(1, 2, 3)
+        Integer[] target = new Integer[5]
+        // Pre-fill to verify untouched trailing elements remain unchanged
+        target[3] = 99
+        target[4] = 100
+
+        when:
+        def same = set.toArray(target)
+
+        then:
+        same.is(target)
+        target[0..2] as Set == [1, 2, 3] as Set
+        // Implementation does not null-terminate; ensures untouched values remain
+        target[3] == 99
+        target[4] == 100
+    }
+
+    def 'toArray allocates new array when provided array is too small'() {
+        given:
+        def set = PersistentSet.of(1, 2, 3)
+        Integer[] small = new Integer[2]
+
+        when:
+        def allocated = set.toArray(small)
+
+        then:
+        !allocated.is(small)
+        allocated.length == 3
+        allocated as Set == [1, 2, 3] as Set
+    }
+
+    def 'toArray throws when target array component type is incompatible'() {
+        given:
+        def set = PersistentSet.of(1, 2, 3)
+
+        when:
+        set.toArray(new String[0])
+
+        then:
+        thrown(ArrayStoreException)
+    }
+
+    def 'groupBy on empty set returns empty map'() {
+        expect:
+        PersistentSet.of().groupBy({ k -> k } as Function) === PersistentMap.of()
+    }
+
+    def 'groupBy groups elements by parity'() {
+        given:
+        def set = PersistentSet.of(1, 2, 3, 4)
+
+        when:
+        def grouped = set.groupBy({ it % 2 == 0 ? 'even' : 'odd' } as Function)
+
+        then:
+        grouped == PersistentMap.of()
+            .assoc('odd', PersistentSet.of(1, 3))
+            .assoc('even', PersistentSet.of(2, 4))
+    }
+
+    def 'groupBy ignores elements that map to null group'() {
+        given:
+        def set = PersistentSet.copyOf(keys)
+
+        when:
+        def grouped = set.groupBy({ it % 2 == 0 ? null : 'odd' } as Function)
+
+        then:
+        grouped == expected
+
+        where:
+        keys         | expected
+        [1]          | PersistentMap.of('odd', PersistentSet.of(1))
+        [2]          | PersistentMap.of()
+        [1, 2, 3, 4] | PersistentMap.of('odd', PersistentSet.of(1, 3))
+    }
+
+    def 'groupBy on singleton set returns same set'() {
+        given:
+        def set = PersistentSet.of(1)
+
+        expect:
+        set.is(set.groupBy({ "group" } as Function).get("group"))
+    }
+
+    def 'groupBy with constant key produces single bucket with all elements'() {
+        given:
+        def set = PersistentSet.of('a', 'b', 'c')
+
+        when:
+        def grouped = set.groupBy({ 'all' } as Function)
+
+        then:
+        grouped == PersistentMap.of('all', PersistentSet.of('a', 'b', 'c'))
+    }
+
+    def 'filter on empty set returns same empty instance'() {
+        given:
+        def empty = PersistentSet.of()
+
+        when:
+        def filtered = empty.filter({ true } as Predicate)
+
+        then:
+        filtered.is(empty)
+    }
+
+    def 'filter on singleton set retains or removes element'() {
+        given:
+        def one = PersistentSet.of(42)
+
+        expect:
+        // predicate accepts -> identity
+        one.filter({ it == 42 } as Predicate) === one
+        // predicate rejects -> becomes empty singleton
+        one.filter({ it != 42 } as Predicate) === PersistentSet.of()
+    }
+
+    def 'filter on set with many elements keeps those matching predicate'() {
+        given:
+        def many = PersistentSet.of(1, 2, 3, 4, 5)
+
+        expect:
+        // keep even numbers
+        many.filter({ it % 2 == 0 } as Predicate) == PersistentSet.of(2, 4)
+        // predicate matches all -> identity
+        many.filter({ it >= 1 && it <= 5 } as Predicate) === many
+        // predicate matches none -> empty singleton
+        many.filter({ it > 10 } as Predicate) === PersistentSet.of()
+    }
+
+    def 'anyMatch'() {
+        expect:
+        // empty -> no element matches
+        !PersistentSet.of().anyMatch({ true } as Predicate)
+
+        // singleton -> depends on predicate
+        PersistentSet.of(1).anyMatch({ it == 1 } as Predicate)
+        !PersistentSet.of(1).anyMatch({ it == 2 } as Predicate)
+
+        // two elements -> matches at least one
+        PersistentSet.of(1, 2).anyMatch({ it == 2 } as Predicate)
+        PersistentSet.of(1, 2).anyMatch({ it < 3 } as Predicate) // matches both
+        !PersistentSet.of(1, 2).anyMatch({ it > 5 } as Predicate) // matches none
+    }
+
+    def 'noneMatch'() {
+        expect:
+        // empty -> none match by definition
+        PersistentSet.of().noneMatch({ true } as Predicate)
+
+        // singleton -> inverse of anyMatch for same predicate
+        !PersistentSet.of(1).noneMatch({ it == 1 } as Predicate)
+        PersistentSet.of(1).noneMatch({ it == 2 } as Predicate)
+
+        // two elements
+        !PersistentSet.of(1, 2).noneMatch({ it == 2 } as Predicate) // one matches
+        !PersistentSet.of(1, 2).noneMatch({ it < 3 } as Predicate)  // both match
+        PersistentSet.of(1, 2).noneMatch({ it > 5 } as Predicate)   // none match
+    }
 }
