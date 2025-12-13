@@ -16,6 +16,8 @@
 
 package org.gradle.internal.service;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Tokens are evaluated by {@link ServiceAccessScope scopes}
  * to determine which services can be accessed.
@@ -25,7 +27,7 @@ package org.gradle.internal.service;
 interface ServiceAccessToken {
 
     @Override
-    boolean equals(Object o);
+    boolean equals(@Nullable Object o);
 
     @Override
     int hashCode();

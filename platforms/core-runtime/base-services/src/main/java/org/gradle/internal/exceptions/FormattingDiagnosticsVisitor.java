@@ -17,6 +17,8 @@
 package org.gradle.internal.exceptions;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -28,7 +30,7 @@ import java.util.Map;
  */
 public class FormattingDiagnosticsVisitor implements DiagnosticsVisitor {
     private final Map<String, Candidate> candidates = new LinkedHashMap<String, Candidate>();
-    private Candidate current;
+    private @Nullable Candidate current;
 
     public List<String> getCandidates() {
         return format(candidates);
@@ -59,6 +61,7 @@ public class FormattingDiagnosticsVisitor implements DiagnosticsVisitor {
 
     @Override
     public DiagnosticsVisitor example(String example) {
+        Preconditions.checkState(current != null, "add a candidate() first");
         current.examples.add(example);
         return this;
     }

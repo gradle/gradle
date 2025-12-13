@@ -28,3 +28,7 @@ dependencies {
     implementation(projects.baseServices)
     implementation(projects.buildProcessServices)
 }
+
+errorprone {
+    nullawayEnabled = true
+}

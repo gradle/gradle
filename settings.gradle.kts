@@ -72,6 +72,7 @@ val core = platform("core") {
         subproject("classloaders")
         subproject("cli")
         subproject("client-services")
+        subproject("collections")
         subproject("concurrent")
         subproject("daemon-main")
         subproject("daemon-protocol")

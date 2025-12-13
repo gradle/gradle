@@ -325,7 +325,8 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
                                     """ : ""}
                                 });
                             });
-                        });
+                        })
+                        .withUnsafeDefinition();
                     }
                 }
 
@@ -357,7 +358,8 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             abstract public class AnotherSoftwareTypeImplPlugin implements Plugin<Project> {
                 static class Binding implements ${ProjectTypeBinding.class.simpleName} {
                     public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
-                        builder.bindProjectType("anotherSoftwareType", TestSoftwareTypeExtension.class, (context, definition, model) -> { });
+                        builder.bindProjectType("anotherSoftwareType", TestSoftwareTypeExtension.class, (context, definition, model) -> { })
+                            .withUnsafeDefinition();
                     }
                 }
 

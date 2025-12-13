@@ -34,13 +34,15 @@ inline fun <
     reified TargetDefinition : org.gradle.api.internal.plugins.Definition<*>,
     reified OwnBuildModel : BuildModel
     >
-        ProjectFeatureBindingBuilder.bindProjectFeature(
-    name: String,
-    noinline block: ProjectFeatureApplicationContext.(Definition, OwnBuildModel, TargetDefinition) -> Unit
-): DeclaredProjectFeatureBindingBuilder<Definition, OwnBuildModel> {
-    val bindingTypeInformation = ProjectFeatureBindingBuilder.bindingToTargetDefinition(Definition::class.java, TargetDefinition::class.java)
-    return bindProjectFeature(name, bindingTypeInformation, block)
-}
+    ProjectFeatureBindingBuilder.bindProjectFeature(
+        name: String,
+        noinline block: ProjectFeatureApplicationContext.(Definition, OwnBuildModel, TargetDefinition) -> Unit
+    ): DeclaredProjectFeatureBindingBuilder<Definition, OwnBuildModel> =
+        bindProjectFeature(
+            name,
+            ProjectFeatureBindingBuilder.bindingToTargetDefinition(Definition::class.java, TargetDefinition::class.java),
+            block
+        )
 
 /**
  * Binds a project feature to a target definition.
@@ -67,15 +69,17 @@ fun <
     TargetDefinition : Definition<out TargetBuildModel>,
     TargetBuildModel : BuildModel,
     >
-        ProjectFeatureBindingBuilder.bindProjectFeatureToDefinition(
-    name: String,
-    ownDefinitionType: KClass<OwnDefinition>,
-    targetDefinitionType: KClass<TargetDefinition>,
-    block: ProjectFeatureApplicationContext.(OwnDefinition, OwnBuildModel, TargetDefinition) -> Unit
-): DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> {
-    val bindingTypeInformation = bindingToTargetDefinition(ownDefinitionType.asDefinitionType(), targetDefinitionType.asDefinitionType())
-    return bindProjectFeature(name, bindingTypeInformation, block)
-}
+    ProjectFeatureBindingBuilder.bindProjectFeatureToDefinition(
+        name: String,
+        ownDefinitionType: KClass<OwnDefinition>,
+        targetDefinitionType: KClass<TargetDefinition>,
+        block: ProjectFeatureApplicationContext.(OwnDefinition, OwnBuildModel, TargetDefinition) -> Unit
+    ): DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> =
+        bindProjectFeature(
+            name,
+            bindingToTargetDefinition(ownDefinitionType.asDefinitionType(), targetDefinitionType.asDefinitionType()),
+            block
+        )
 
 /**
  * Binds a project feature to a target build model.  In other words, bind the feature to any definition that implements
@@ -102,15 +106,18 @@ fun <
     OwnBuildModel : BuildModel,
     TargetBuildModel : BuildModel,
     >
-        ProjectFeatureBindingBuilder.bindProjectFeatureToBuildModel(
-    name: String,
-    ownDefinitionType: KClass<OwnDefinition>,
-    targetBuildModelType: KClass<TargetBuildModel>,
-    block: ProjectFeatureApplicationContext.(OwnDefinition, OwnBuildModel, Definition<TargetBuildModel>) -> Unit
-): DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> {
-    val bindingTypeInformation = bindingToTargetBuildModel(ownDefinitionType.asDefinitionType(), targetBuildModelType.java)
-    return bindProjectFeature(name, bindingTypeInformation, block)
-}
+    ProjectFeatureBindingBuilder.bindProjectFeatureToBuildModel(
+        name: String,
+        ownDefinitionType: KClass<OwnDefinition>,
+        targetBuildModelType: KClass<TargetBuildModel>,
+        block: ProjectFeatureApplicationContext.(OwnDefinition, OwnBuildModel, Definition<TargetBuildModel>) -> Unit
+    ): DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> =
+        bindProjectFeature(
+            name,
+            bindingToTargetBuildModel(ownDefinitionType.asDefinitionType(), targetBuildModelType.java),
+            block
+        )
+
 
 /**
  * Binds a project type for the given name.  The types are inferred from the provided transform function.
@@ -133,7 +140,7 @@ fun <
 inline fun <reified OwnDefinition: Definition<OwnBuildModel>, reified OwnBuildModel: BuildModel> ProjectTypeBindingBuilder.bindProjectType(
     name: String,
     noinline block: ProjectFeatureApplicationContext.(OwnDefinition, OwnBuildModel) -> Unit
-): DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> = bindProjectType(name, OwnDefinition::class.java, OwnBuildModel::class.java, block)
+): DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> = bindProjectType(name, OwnDefinition::class.java, block)
 
 @PublishedApi
 internal fun <T : Definition<out V>, V : BuildModel> KClass<T>.asDefinitionType() = DefinitionType<T, V>(
@@ -158,6 +165,3 @@ internal fun <OwnDefinition : Definition<OwnBuildModel>, TargetBuildModel : Buil
     bindingToTargetBuildModel(definitionType: DefinitionType<OwnDefinition, OwnBuildModel>, targetBuildModel: Class<TargetBuildModel>) =
     ProjectFeatureBindingBuilder.bindingToTargetBuildModel(definitionType.definition, targetBuildModel)
 
-internal inline fun <reified T: Definition<V>, reified V: BuildModel> ProjectTypeBindingBuilder.bindProjectFeature(name: String, noinline block: ProjectFeatureApplicationContext.(T, V) -> Unit): DeclaredProjectFeatureBindingBuilder<T, V> {
-    return this.bindProjectType(name, T::class.java, V::class.java, block)
-}

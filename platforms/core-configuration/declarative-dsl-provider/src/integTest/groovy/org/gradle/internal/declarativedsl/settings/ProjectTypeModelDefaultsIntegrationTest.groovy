@@ -36,7 +36,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
 
     def "can configure build-level defaults for property objects in a project type (#testCase)"() {
         given:
-        withProjectTypePlugins().prepareToExecute()
+        withProjectType().prepareToExecute()
 
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
 
@@ -63,7 +63,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL does accept re-assigning values")
     def "sensible error when defaults are set more than once (#testCase)"() {
         given:
-        withProjectTypePlugins().prepareToExecute()
+        withProjectType().prepareToExecute()
 
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
 
@@ -78,14 +78,14 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         where:
         testCase                                   | modelDefault
         "id has default set twice"                 | setId("default") + setId("again")
-        "bar has default set twice"                | setFoo(setBar("default") + setBar("again"))
+        "bar has default set twice"                | configureFoo(setBar("default") + setBar("again"))
         // TODO - doesn't work
         //"bar has default set in multiple blocks" | setFooBar("default") + setFooBar("again")
     }
 
     def "can configure build-level defaults for adding functions in a project type (#testCase)"() {
         given:
-        withProjectTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
+        withProjectTypeDefinitionWithDependencies().prepareToExecute()
 
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
 
@@ -113,7 +113,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
     @UnsupportedWithConfigurationCache
     def "can configure build-level defaults for dependencies objects in a project type (#testCase)"() {
         given:
-        withProjectTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
+        withProjectTypeDefinitionWithDependencies().prepareToExecute()
 
         file("foo").createDir()
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(dependencies(modelDefault)) + """
@@ -218,7 +218,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
     @UnsupportedWithConfigurationCache
     def "can configure build-level defaults for project types in a multi-project build"() {
         given:
-        withProjectTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
+        withProjectTypeDefinitionWithDependencies().prepareToExecute()
 
         file("foo").createDir()
         file("bar").createDir()
@@ -261,11 +261,11 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
 
     def "can trigger object configuration for nested objects used in defaults"() {
         given:
-        withProjectTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
+        withProjectTypeDefinitionWithDependencies().prepareToExecute()
 
         and: 'a default that only accesses a nested object but does not apply any configuration to it'
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults("""
-            ${setFoo("")}
+            ${configureBar("")}
         """)
         settingsFile() << """
             include("foo")
@@ -278,14 +278,14 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         run(":foo:printTestProjectTypeDefinitionWithDependenciesConfiguration")
 
         then: 'the side effect of the configuring function used in the default should get applied to the project model'
-        outputContains("(foo is configured)")
+        outputContains("(bar is configured)")
     }
 
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Test is written with build files for specific DSLs in mind")
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Test is written with build files for specific DSLs in mind")
     def "can configure build-level defaults in a non-declarative settings file and apply in a declarative project file (#type settings script)"() {
         given:
-        withProjectTypePlugins().prepareToExecute()
+        withProjectType().prepareToExecute()
 
         file("settings.gradle${extension}") << getDeclarativeSettingsScriptThatSetsDefaults(setAll("default", "default")) + """
             include("declarative")
@@ -318,7 +318,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Test is written with build files for specific DSLs in mind")
     def "can configure build-level defaults in a declarative settings file and apply in a non-declarative project file (#type build script)"() {
         given:
-        withProjectTypePlugins().prepareToExecute()
+        withProjectType().prepareToExecute()
 
         file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults(setAll("default", "default")) + """
             include("non-declarative")
@@ -349,7 +349,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Neither the foo() method is available in Groovy, nor can the x or y values remain undefined")
     def "can configure defaults for named domain object container elements"() {
         given:
-        withProjectTypePluginWithNdoc().prepareToExecute()
+        withProjectTypeWithNdoc().prepareToExecute()
 
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaultsForNdoc()
 
@@ -384,15 +384,19 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
     }
 
     static String setFooBar(String bar) {
-        return setFoo(setBar(bar))
+        return configureFoo(setBar(bar))
     }
 
     static String setBar(String bar) {
         return "bar = \"${bar}\"\n"
     }
 
-    static String setFoo(String contents) {
+    static String configureFoo(String contents) {
         return "foo {\n${contents}\n}"
+    }
+
+    static String configureBar(String contents) {
+        return "bar {\n${contents}\n}"
     }
 
     static String setAll(String id, String bar) {

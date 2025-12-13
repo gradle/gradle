@@ -310,10 +310,11 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         descriptorsByUniqueId.computeIfAbsent(node.getUniqueId(), uniqueId -> {
             wasCreated.set(true);
             boolean isTestClassId = isTestClassIdentifier(node);
-            if (node.getType().isContainer() || isTestClassId) {
-                if (isTestClassId) {
-                    return createTestContainerDescriptor(node);
-                }
+            if (isTestClassId) {
+                return createTestContainerDescriptor(node);
+            }
+
+            if (node.getType().isContainer()) {
                 String displayName = node.getDisplayName();
                 Optional<TestDescriptorInternal> parentId = node.getParentId().map(descriptorsByUniqueId::get);
                 if (parentId.isPresent()) {
@@ -395,14 +396,14 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     private String determineClassName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor) {
-        return determineName(node, parentDescriptor, TestDescriptorInternal::getName);
+        return determineClassRelatedName(node, parentDescriptor, TestDescriptorInternal::getName);
     }
 
     private String determineClassDisplayName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor) {
-        return determineName(node, parentDescriptor, TestDescriptorInternal::getClassDisplayName);
+        return determineClassRelatedName(node, parentDescriptor, TestDescriptorInternal::getClassDisplayName);
     }
 
-    private String determineName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor, Function<TestDescriptorInternal, @Nullable String> nameGetter) {
+    private String determineClassRelatedName(TestIdentifier node, @Nullable TestDescriptorInternal parentDescriptor, Function<TestDescriptorInternal, @Nullable String> nameGetter) {
         org.junit.platform.engine.TestSource source = node.getSource().orElse(null);
         if (source instanceof ClassSource || source instanceof MethodSource) {
             if (parentDescriptor == null) {
@@ -411,6 +412,11 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
                 String result = nameGetter.apply(parentDescriptor);
                 return result != null ? result : JUnitPlatformSupport.UNKNOWN;
             }
+        } else if (source == null && parentDescriptor != null && parentDescriptor.getSource() instanceof org.gradle.api.tasks.testing.source.ClassSource) {
+            // Spek doesn't provide source for tests, and we need to set the class name for Develocity (DV), which requires it for proper test reporting.
+            // If the parent is a Class, it should be safe to use its name here.
+            String result = nameGetter.apply(parentDescriptor);
+            return result != null ? result : JUnitPlatformSupport.UNKNOWN;
         } else {
             return JUnitPlatformSupport.NON_CLASS;
         }
@@ -570,5 +576,4 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         }
         return true;
     }
-
 }

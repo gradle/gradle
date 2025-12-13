@@ -26,9 +26,9 @@ import org.jspecify.annotations.Nullable;
 @ServiceScope({Scope.Global.class, Scope.Build.class})
 public class CurrentGradleInstallation {
 
-    private static CurrentGradleInstallation instance;
+    private static @Nullable CurrentGradleInstallation instance;
 
-    private final GradleInstallation gradleInstallation;
+    private final @Nullable GradleInstallation gradleInstallation;
 
     public CurrentGradleInstallation(@Nullable GradleInstallation gradleInstallation) {
         this.gradleInstallation = gradleInstallation;

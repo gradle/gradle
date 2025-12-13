@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
+import spock.lang.Ignore
 
 @Requires(UnitTestPreconditions.Jdk17OrLater)
 class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implements TestsBuildInitSpecsViaPlugin, JavaToolchainFixture {
@@ -251,6 +252,7 @@ class BuildInitSpecsIntegrationTest extends AbstractInitIntegrationSpec implemen
         assertWrapperGenerated()
     }
 
+    @Ignore("Temporarily disabled until a version of the prototypes is available with definitions declared unsafe")
     @LeaksFileHandles
     @Requires(value = [
         IntegTestPreconditions.Java17HomeAvailable,

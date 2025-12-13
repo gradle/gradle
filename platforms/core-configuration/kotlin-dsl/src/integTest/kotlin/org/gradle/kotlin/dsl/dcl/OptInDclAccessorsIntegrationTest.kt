@@ -189,8 +189,8 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
                 @SomeExperimentalApi
                 @Suppress("deprecation")
-                abstract class MyExtension : ${Definition::class.java.simpleName}<Model> {
-                    abstract val myElements: NamedDomainObjectContainer<MyElement>
+                interface MyExtension : ${Definition::class.java.simpleName}<Model> {
+                    val myElements: NamedDomainObjectContainer<MyElement>
                 }
 
                 interface Model : ${BuildModel::class.java.simpleName} { }

@@ -22,6 +22,7 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.Definition;
 import org.gradle.api.internal.plugins.ProjectFeatureApplyAction;
+import org.gradle.api.internal.plugins.ProjectFeatureBindingDeclaration;
 import org.gradle.api.internal.plugins.TargetTypeInformation;
 import org.jspecify.annotations.Nullable;
 
@@ -37,6 +38,7 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
     private final String featureName;
     private final Class<T> definitionPublicType;
     private final Class<? extends T> definitionImplementationType;
+    private final ProjectFeatureBindingDeclaration.Safety definitionSafety;
     private final TargetTypeInformation<?> targetDefinitionType;
     private final Class<V> buildModelType;
     private final Class<? extends V> buildModelImplementationType;
@@ -51,6 +53,7 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
         String featureName,
         Class<T> definitionPublicType,
         Class<? extends T> definitionImplementationType,
+        ProjectFeatureBindingDeclaration.Safety definitionSafety,
         TargetTypeInformation<?> targetDefinitionType,
         Class<V> buildModelType,
         Class<? extends V> buildModelImplementationType,
@@ -62,6 +65,7 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
         this.featureName = featureName;
         this.definitionPublicType = definitionPublicType;
         this.definitionImplementationType = definitionImplementationType;
+        this.definitionSafety = definitionSafety;
         this.targetDefinitionType = targetDefinitionType;
         this.buildModelType = buildModelType;
         this.buildModelImplementationType = buildModelImplementationType;
@@ -84,6 +88,11 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
     @Override
     public Class<? extends T> getDefinitionImplementationType() {
         return definitionImplementationType;
+    }
+
+    @Override
+    public ProjectFeatureBindingDeclaration.Safety getDefinitionSafety() {
+        return definitionSafety;
     }
 
     @Override

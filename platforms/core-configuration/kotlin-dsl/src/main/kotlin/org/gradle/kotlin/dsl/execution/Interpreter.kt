@@ -276,7 +276,8 @@ class Interpreter(val host: Host) {
             programTarget,
             host.compilationClassPathOf(targetScope.parent),
             stage1BlocksAccessorsClassPath,
-            scriptHost.temporaryFileProvider
+            scriptHost.temporaryFileProvider,
+            scriptHost.metadataCompatibilityChecker
         )
 
         return loadClassInChildScopeOf(
@@ -300,7 +301,8 @@ class Interpreter(val host: Host) {
         programTarget: ProgramTarget,
         compilationClassPath: ClassPath,
         stage1BlocksAccessorsClassPath: ClassPath,
-        temporaryFileProvider: TemporaryFileProvider
+        temporaryFileProvider: TemporaryFileProvider,
+        metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker
     ): File = host.cachedDirFor(
         scriptHost,
         programId,
@@ -334,6 +336,7 @@ class Interpreter(val host: Host) {
                     implicitImports = host.implicitImports,
                     logger = interpreterLogger,
                     temporaryFileProvider = temporaryFileProvider,
+                    metadataCompatibilityChecker = metadataCompatibilityChecker,
                     compileBuildOperationRunner = host::runCompileBuildOperation,
                     stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
                     packageName = residualProgram.packageName,
@@ -494,6 +497,7 @@ class Interpreter(val host: Host) {
                                     host.implicitImports,
                                     interpreterLogger,
                                     scriptHost.temporaryFileProvider,
+                                    scriptHost.metadataCompatibilityChecker,
                                     host::runCompileBuildOperation
                                 ).emitStage2ProgramFor(
                                     scriptFile,

@@ -21,6 +21,7 @@ import org.gradle.performance.results.CrossVersionResultsStore;
 import org.gradle.performance.results.DefaultPerformanceFlakinessDataProvider;
 import org.gradle.performance.results.PerformanceDatabase;
 import org.gradle.performance.results.PerformanceFlakinessDataProvider;
+import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.results.ResultsStoreHelper;
 
 import java.util.Set;
@@ -51,6 +52,7 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
         executionDataProvider.getReportScenarios()
             .forEach(scenario -> {
                 if (scenario.isBuildFailed()) {
+                    System.out.println("Build failed for " + scenario.getName() + scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getWebUrl).collect(Collectors.joining(", ")));
                     failureCollector.scenarioFailed();
                 } else if (scenario.isRegressed()) {
                     Set<PerformanceFlakinessDataProvider.ScenarioRegressionResult> regressionResults = scenario.getCurrentExecutions().stream()

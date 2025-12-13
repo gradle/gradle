@@ -33,6 +33,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.groovy.scripts.internal.InitialPassStatementTransformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.GUtil;
@@ -745,20 +746,38 @@ public class BuildScriptBuilder {
         final String configuration;
         final String dependencyOrCatalogReference;
         final boolean catalogReference;
+        final Collection<BuildInitDependency.DependencyExclusion> exclusions;
 
-        DepSpec(String configuration, @Nullable String comment, String dependencyOrCatalogReference, boolean catalogReference) {
+        DepSpec(String configuration, @Nullable String comment, String dependencyOrCatalogReference, boolean catalogReference, Collection<BuildInitDependency.DependencyExclusion> exclusions) {
             super(comment);
             this.configuration = configuration;
             this.dependencyOrCatalogReference = dependencyOrCatalogReference;
             this.catalogReference = catalogReference;
+            this.exclusions = exclusions;
         }
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
+            String notation;
             if (catalogReference) {
-                printer.println(printer.syntax.dependencySpec(configuration, dependencyOrCatalogReference));
+                notation = dependencyOrCatalogReference;
             } else {
-                printer.println(printer.syntax.dependencySpec(configuration, printer.syntax.string(dependencyOrCatalogReference)));
+                notation = printer.syntax.string(dependencyOrCatalogReference);
+            }
+            if (exclusions.isEmpty()) {
+                printer.println(printer.syntax.dependencySpec(configuration, notation));
+            } else {
+                ScriptBlockImpl dependencyBlock = new ScriptBlockImpl();
+                for (BuildInitDependency.DependencyExclusion exclusion : exclusions) {
+                    Map<String, String> exclusionConfig = new LinkedHashMap<>();
+                    exclusionConfig.put("group", exclusion.getGroup());
+                    exclusionConfig.put("module", exclusion.getModule());
+
+                    String comment = "TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent, see: " + Documentation.userManual("build_init_plugin", "sec:pom_maven_conversion").getUrl();
+                    dependencyBlock.add(new MethodInvocation(comment, new MethodInvocationExpression(null, "exclude", expressionValues(exclusionConfig))));
+                }
+                printer.printBlock(printer.syntax.complexDependencySpec(configuration, notation), dependencyBlock);
+                printer.needSeparatorLine = false;
             }
         }
     }
@@ -1140,11 +1159,11 @@ public class BuildScriptBuilder {
         private Statement makeDepSpec(String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
             StatementGroup statementGroup = new StatementGroup(comment);
             for (BuildInitDependency d : dependencies) {
-                if (d.version != null && buildScriptBuilder.useVersionCatalog) {
-                    String versionCatalogRef = buildScriptBuilder.buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerLibrary(d.module, d.version);
-                    statementGroup.add(new DepSpec(configuration, null, versionCatalogRef, true));
+                if (d.getVersion() != null && buildScriptBuilder.useVersionCatalog) {
+                    String versionCatalogRef = buildScriptBuilder.buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerLibrary(d.getModule(), d.getVersion());
+                    statementGroup.add(new DepSpec(configuration, null, versionCatalogRef, true, d.getExclusions()));
                 } else {
-                    statementGroup.add(new DepSpec(configuration, null, d.toNotation(), false));
+                    statementGroup.add(new DepSpec(configuration, null, d.toNotation(), false, d.getExclusions()));
                 }
             }
             return statementGroup;
@@ -1154,8 +1173,8 @@ public class BuildScriptBuilder {
         public void platformDependency(String configuration, @Nullable String comment, BuildInitDependency... dependencies) {
             StatementGroup statementGroup = new StatementGroup(comment);
             for (BuildInitDependency d : dependencies) {
-                if (d.version != null && buildScriptBuilder.useVersionCatalog) {
-                    String versionCatalogRef = buildScriptBuilder.buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerLibrary(d.module, d.version);
+                if (d.getVersion() != null && buildScriptBuilder.useVersionCatalog) {
+                    String versionCatalogRef = buildScriptBuilder.buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerLibrary(d.getModule(), d.getVersion());
                     statementGroup.add(new PlatformDepSpec(configuration, comment, versionCatalogRef, true));
                 } else {
                     statementGroup.add(new PlatformDepSpec(configuration, comment, d.toNotation(), false));
@@ -1973,6 +1992,8 @@ public class BuildScriptBuilder {
 
         String dependencySpec(String config, String notation);
 
+        String complexDependencySpec(String config, String notation);
+
         String propertyAssignment(PropertyAssignment expression);
 
         String taskSelector(TaskSelector selector);
@@ -2069,6 +2090,11 @@ public class BuildScriptBuilder {
         @Override
         public String dependencySpec(String config, String notation) {
             return config + "(" + notation + ")";
+        }
+
+        @Override
+        public String complexDependencySpec(String config, String notation) {
+            return dependencySpec(config, notation);
         }
 
         @Override
@@ -2252,6 +2278,11 @@ public class BuildScriptBuilder {
         @Override
         public String dependencySpec(String config, String notation) {
             return config + " " + notation;
+        }
+
+        @Override
+        public String complexDependencySpec(String config, String notation) {
+            return config + "(" + notation + ")";
         }
 
         @Override

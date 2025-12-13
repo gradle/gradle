@@ -231,6 +231,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "collections",
+    "path": "platforms/core-runtime/collections",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "composite-builds",
     "path": "subprojects/composite-builds",
     "unitTests": true,
@@ -1130,7 +1137,7 @@
     "name": "project-features",
     "path": "platforms/core-configuration/project-features",
     "unitTests": false,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

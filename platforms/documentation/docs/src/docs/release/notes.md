@@ -14,7 +14,7 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
@@ -36,7 +36,7 @@ Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gr
 
 See the [Gradle 9.x upgrade guide](userguide/upgrading_version_9.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## New features and usability improvements
 
@@ -129,8 +129,8 @@ Example:
 > PROVIDE a screenshot or snippet illustrating the new feature, if applicable
 > LINK to the full documentation for more details
 
-To embed videos, use the macros below. 
-You can extract the URL from YouTube by clicking the "Share" button. 
+To embed videos, use the macros below.
+You can extract the URL from YouTube by clicking the "Share" button.
 For Wistia, contact Gradle's Video Team.
 @youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
 @wistia(Summary,a5izazvgit)@
@@ -143,6 +143,109 @@ ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 
+### Non-Class Based Testing
+
+When testing using [JUnit Platform](https://junit.org/), Gradle can now discover and execute tests that are not defined in classes.
+
+JUnit Platform [`TestEngine`](https://docs.junit.org/current/user-guide/#test-engines)s are capable of discovering and executing tests defined in arbitrary formats, extending testing beyond the confines of JVM classes.
+However, Gradle's [`Test`](dsl/org.gradle.api.tasks.testing.Test.html) task requires test classes to be present; otherwise execution fails with a message:
+
+```text
+There are test sources present and no filters are applied, but the test task did not discover any tests to execute.
+```
+
+In this release, tests can be defined in whatever format is understood by the configured `TestEngine`.
+Gradle no longer requires a test class be present to “unlock” test execution.
+
+For example, this library project structure doesn't use typical class-based testing, but instead uses XML test definitions understood by a custom `TestEngine`:
+
+```text
+my-lib/
+├── src/
+│   ├── main/
+│   │   └── test/
+│   └── test/
+│       └── definitions/
+│           ├── some-tests.xml
+│           ├── some-other-tests.xml
+│           └── sub/
+│               └── even-more-tests.xml
+└── build.gradle.kts
+```
+
+```kotlin
+testing.suites.named("test", JvmTestSuite::class) {
+    useJUnitJupiter()
+
+	dependencies {
+	    implementation("...") // Library containing custom TestEngine
+	}
+
+    targets.all {
+        testTask.configure {
+            testDefinitionDirs.from("src/test/definitions") // Conventional non-class-based test definitions location
+        }
+    }
+}
+```
+
+This feature works both with and without using [JvmTestSuites](userguide/jvm_test_suite_plugin.htm).
+
+We recommend storing non-class test definitions in the conventional location `src/<TEST_TASK_NAME>/definitions` to keep builds using this feature structured similarly; however, any location can be used.
+
+For more information, see the section on [Non-Class-Based Testing](userguide/java_testing.html) in the User Manual.
+
+#### Improved Cucumber support
+
+`TestEngine`s such as [Cucumber](https://cucumber.io/) previously required workarounds when testing with Gradle, such as creating an empty `@Suite` class, or using a JUnit extension like `@RunWith(Cucumber.class)` to satisfy Gradle's class-based test discovery requirement.
+
+These non-class-based tests can now be run directly without workarounds:
+
+```kotlin
+    testing.suites.named("test", JvmTestSuite::class) {
+        useJUnitJupiter()
+
+        dependencies {
+            implementation("io.cucumber:cucumber-java:7.15.0")
+            runtimeOnly("io.cucumber:cucumber-junit-platform-engine:7.15.0")
+        }
+
+        targets.all {
+            testTask.configure {
+                testDefinitionDirs.from("src/test/resources")  // Conventional Cucumber *.feature files location
+            }
+        }
+    }
+```
+
+### Additional test data capture
+
+During test execution, JUnit Platform tests can emit additional data such as file attachments or arbitrary key–value pairs using the [TestReporter API](https://docs.junit.org/current/user-guide/#writing-tests-dependency-injection).
+
+For example:
+
+```java
+    @Test
+    void someTestMethod(TestReporter testReporter) {
+        testReporter.publishEntry("myKey", "myValue");
+        testReporter.publishFile("test1.txt", MediaType.TEXT_PLAIN_UTF_8, file -> Files.write(file, List.of("Test 1")));
+        // Test logic continues...
+    }
+```
+
+Gradle now captures this additional data and includes it in both the [HTML test report and the XML test results](userguide/java_testing.html#test_reporting).
+
+In the HTML test report, when such data is published during a test, two new tabs are shown alongside `stdout` and `stderr`:
+
+- Data – for key–value entries
+- Attachments – for file attachments
+
+In the JUnit XML report, the data is represented as:
+
+- `ReportEntry` values as `<properties/>`
+- `FileEntry` values as `[[ATTACHMENT|/path/to/file]]`, following conventions used by Jenkins, Azure Pipelines, and GitLab
+
+This information is captured for both class-based and non-class-based tests, and includes data published during test construction as well as setup/teardown phases.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

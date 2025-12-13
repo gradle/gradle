@@ -29,7 +29,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 
 @SelfType(AbstractIntegrationSpec)
 trait ProjectTypeFixture {
-    PluginBuilder withProjectTypePlugins(ProjectTypeDefinitionClassBuilder definitionBuilder, ProjectTypePluginClassBuilder projectTypeBuilder, SettingsPluginClassBuilder settingsBuilder) {
+    PluginBuilder withProjectType(ProjectTypeDefinitionClassBuilder definitionBuilder, ProjectTypePluginClassBuilder projectTypeBuilder, SettingsPluginClassBuilder settingsBuilder) {
         def pluginBuilder = new PluginBuilder(file("plugins"))
         pluginBuilder.addPluginId("com.example.test-project-type-impl", projectTypeBuilder.projectTypePluginClassName)
         pluginBuilder.addPluginId("com.example.test-software-ecosystem", settingsBuilder.pluginClassName)
@@ -41,27 +41,28 @@ trait ProjectTypeFixture {
         return pluginBuilder
     }
 
-    PluginBuilder withProjectTypePlugins() {
+    PluginBuilder withProjectType() {
         def definition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 
-        return withProjectTypePlugins(
+        return withProjectType(
             definition,
             projectType,
             settingsBuilder
         )
     }
 
-    PluginBuilder withProjectTypePluginWithNdoc() {
+    PluginBuilder withProjectTypeWithNdoc() {
         def definition = new ProjectTypeDefinitionWithNdocClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
             .withoutConventions()
+            .withUnsafeDefinition()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 
-        return withProjectTypePlugins(
+        return withProjectType(
             definition,
             projectType,
             settingsBuilder
@@ -76,7 +77,7 @@ trait ProjectTypeFixture {
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 
-        return withProjectTypePlugins(
+        return withProjectType(
             definition,
             projectType,
             settingsBuilder
@@ -97,7 +98,7 @@ trait ProjectTypeFixture {
             .registersProjectType(mainProjectType.projectTypePluginClassName)
             .registersProjectType(anotherProjectType.projectTypePluginClassName)
 
-        PluginBuilder pluginBuilder = withProjectTypePlugins(
+        PluginBuilder pluginBuilder = withProjectType(
             mainDefinition,
             mainProjectType,
             settingsBuilder
@@ -110,15 +111,41 @@ trait ProjectTypeFixture {
         return pluginBuilder
     }
 
-    PluginBuilder withProjectTypePluginThatHasDifferentPublicAndImplementationModelTypes() {
-        def definition = new ProjectTypeDefinitionWithPublicTypeClassBuilder()
+    PluginBuilder withTwoProjectTypesThatHaveTheSameName() {
+        def mainDefinition = new ProjectTypeDefinitionClassBuilder()
+        def anotherDefinition = new AnotherProjectTypeDefinitionClassBuilder()
+        def mainProjectType = new ProjectTypePluginClassBuilder()
+        def anotherProjectType = new ProjectTypePluginClassBuilder()
+            .definitionImplementationTypeClassName("AnotherProjectTypeDefinition")
+            .definitionPublicTypeClassName("AnotherProjectTypeDefinition")
+            .projectTypePluginClassName("AnotherProjectTypeImplPlugin")
+            .withoutConventions()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(mainProjectType.projectTypePluginClassName)
+            .registersProjectType(anotherProjectType.projectTypePluginClassName)
+
+        PluginBuilder pluginBuilder = withProjectType(
+            mainDefinition,
+            mainProjectType,
+            settingsBuilder
+        )
+
+        pluginBuilder.addPluginId("com.example.another-software-type-impl", anotherProjectType.projectTypePluginClassName)
+        anotherProjectType.build(pluginBuilder)
+        anotherDefinition.build(pluginBuilder)
+
+        return pluginBuilder
+    }
+
+    PluginBuilder withProjectTypeThatHasDifferentPublicAndImplementationModelTypes() {
+        def definition = new ProjectTypeDefinitionWithImplementationTypeClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
             .definitionPublicTypeClassName(definition.publicTypeClassName)
-            .definitionImplementationTypeClassName(definition.implementationTypeClassName)
+            .definitionImplementationTypeClassName(definition.defaultClassName)
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 
-        PluginBuilder pluginBuilder = withProjectTypePlugins(
+        PluginBuilder pluginBuilder = withProjectType(
             definition,
             projectType,
             settingsBuilder
@@ -131,12 +158,12 @@ trait ProjectTypeFixture {
         def definition = new ProjectTypeDefinitionClassBuilder()
         def anotherProjectTypeDefinition = new AnotherProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectPluginThatProvidesMultipleProjectTypesBuilder()
-            .anotherDefinitionImplementationTypeClassName(anotherProjectTypeDefinition.implementationTypeClassName)
-            .definitionImplementationTypeClassName(definition.implementationTypeClassName)
+            .anotherDefinitionImplementationTypeClassName(anotherProjectTypeDefinition.defaultClassName)
+            .definitionImplementationTypeClassName(definition.defaultClassName)
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 
-        PluginBuilder pluginBuilder = withProjectTypePlugins(
+        PluginBuilder pluginBuilder = withProjectType(
             definition,
             projectType,
             settingsBuilder
@@ -147,14 +174,15 @@ trait ProjectTypeFixture {
         return pluginBuilder
     }
 
-    PluginBuilder withProjectTypePluginThatExposesExtensionWithDependencies() {
+    PluginBuilder withProjectTypeDefinitionWithDependencies() {
         def definitionWithClasses = new ProjectTypeDefinitionWithDependenciesClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
-            .definitionImplementationTypeClassName(definitionWithClasses.implementationTypeClassName)
+            .definitionImplementationTypeClassName(definitionWithClasses.defaultClassName)
+            .withUnsafeDefinition()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 
-        PluginBuilder pluginBuilder = withProjectTypePlugins(
+        PluginBuilder pluginBuilder = withProjectType(
             definitionWithClasses,
             projectType,
             settingsBuilder
@@ -167,10 +195,101 @@ trait ProjectTypeFixture {
         def definition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder()
         def settingsBuilder = new SettingsPluginThatConfiguresProjectTypeConventionsBuilder()
-            .definitionImplementationTypeClassName(definition.implementationTypeClassName)
+            .definitionImplementationTypeClassName(definition.defaultClassName)
             .registersProjectType(projectType.projectTypePluginClassName)
 
-        return withProjectTypePlugins(
+        return withProjectType(
+            definition,
+            projectType,
+            settingsBuilder
+        )
+    }
+
+    PluginBuilder withUnsafeProjectTypeDefinitionDeclaredSafe() {
+        def definition = new ProjectTypeDefinitionAbstractClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+
+        return withProjectType(
+            definition,
+            projectType,
+            settingsBuilder
+        )
+    }
+
+    PluginBuilder withUnsafeProjectTypeDefinitionDeclaredUnsafe() {
+        def definition = new ProjectTypeDefinitionAbstractClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder().withUnsafeDefinition()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+
+        return withProjectType(
+            definition,
+            projectType,
+            settingsBuilder
+        )
+    }
+
+    PluginBuilder withSafeProjectTypeAndInjectableDefinition() {
+        def definition = new ProjectTypeDefinitionClassBuilder().withInjectedServices()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+
+        return withProjectType(
+            definition,
+            projectType,
+            settingsBuilder
+        )
+    }
+
+    PluginBuilder withSafeProjectTypeAndNestedInjectableDefinition() {
+        def definition = new ProjectTypeDefinitionClassBuilder().withNestedInjectedServices()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+
+        return withProjectType(
+            definition,
+            projectType,
+            settingsBuilder
+        )
+    }
+
+    PluginBuilder withSafeProjectTypeAndMultipleInjectableDefinition() {
+        def definition = new ProjectTypeDefinitionClassBuilder().withInjectedServices().withNestedInjectedServices()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+
+        return withProjectType(
+            definition,
+            projectType,
+            settingsBuilder
+        )
+    }
+
+    PluginBuilder withSafeProjectTypeAndInheritedInjectableDefinition() {
+        def definition = new ProjectTypeDefinitionWithInjectableParentClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+
+        return withProjectType(
+            definition,
+            projectType,
+            settingsBuilder
+        )
+    }
+
+    PluginBuilder withPolyUnsafeProjectTypeDefinitionDeclaredSafe() {
+        def definition = new ProjectTypeDefinitionAbstractClassBuilder().withInjectedServices()
+        def projectType = new ProjectTypePluginClassBuilder()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+
+        return withProjectType(
             definition,
             projectType,
             settingsBuilder
@@ -187,6 +306,7 @@ trait ProjectTypeFixture {
             definition.getFoo().getBar().convention("bar");
         """
         String applyActionExtraStatements = ""
+        List<String> bindingModifiers = []
 
         ProjectTypePluginClassBuilder definitionImplementationTypeClassName(String implementationTypeClassName) {
             this.definitionImplementationTypeClassName = implementationTypeClassName
@@ -223,6 +343,11 @@ trait ProjectTypeFixture {
             return this
         }
 
+        ProjectTypePluginClassBuilder withUnsafeDefinition() {
+            this.bindingModifiers.add("withUnsafeDefinition()")
+            return this
+        }
+
         void build(PluginBuilder pluginBuilder) {
             pluginBuilder.file("src/main/java/org/gradle/test/${projectTypePluginClassName}.java") << getClassContent()
         }
@@ -248,7 +373,7 @@ trait ProjectTypeFixture {
 
                     static class Binding implements ${ProjectTypeBinding.class.simpleName} {
                         public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
-                            builder.bindProjectType("${name}", ${dslTypeClassName}.class, ${dslTypeClassName}.ModelType.class, (context, definition, model) -> {
+                            builder.bindProjectType("${name}", ${dslTypeClassName}.class, (context, definition, model) -> {
                                 System.out.println("Binding " + ${dslTypeClassName}.class.getSimpleName());
                                 ${conventions == null ? "" : conventions}
                                 String projectName = context.getProject().getName();
@@ -257,11 +382,12 @@ trait ProjectTypeFixture {
 
                                 context.getProject().getTasks().register("print${definitionImplementationTypeClassName}Configuration", DefaultTask.class, task -> {
                                     task.doLast("print restricted extension content", t -> {
-                                        System.out.println(projectName + ": " + definition);
+                                        System.out.println(projectName + ": " + definition.propertyValues());
                                     });
                                 });
                             })
-                            ${maybeDeclareDefinitionImplementationType()};
+                            ${maybeDeclareDefinitionImplementationType()}
+                            ${maybeDeclareBindingModifiers()};
                         }
                     }
 
@@ -274,7 +400,11 @@ trait ProjectTypeFixture {
         }
 
         String maybeDeclareDefinitionImplementationType() {
-            return (definitionPublicTypeClassName && definitionPublicTypeClassName != definitionImplementationTypeClassName) ? ".withDefinitionImplementationType(${definitionImplementationTypeClassName}.class);" : ""
+            return (definitionPublicTypeClassName && definitionPublicTypeClassName != definitionImplementationTypeClassName) ? ".withUnsafeDefinitionImplementationType(${definitionImplementationTypeClassName}.class)" : ""
+        }
+
+        String maybeDeclareBindingModifiers() {
+            return bindingModifiers.isEmpty() ? "" : bindingModifiers.collect { ".${it}" }.join("")
         }
     }
 
@@ -311,7 +441,7 @@ trait ProjectTypeFixture {
                             String projectName = context.getProject().getName();
                             context.getProject().getTasks().register("printTestProjectTypeDefinitionConfiguration", DefaultTask.class, task -> {
                                 task.doLast("print restricted extension content", t -> {
-                                    System.out.println(projectName + ": " + definition);
+                                    System.out.println(projectName + ": " + definition.propertyValues());
                                 });
                             });
                         });
@@ -322,7 +452,7 @@ trait ProjectTypeFixture {
                             String projectName = context.getProject().getName();
                             context.getProject().getTasks().register("printAnotherProjectTypeDefinitionConfiguration", DefaultTask.class, task -> {
                                 task.doLast("print restricted extension content", t -> {
-                                    System.out.println(projectName + ": " + definition);
+                                    System.out.println(projectName + ": " + definition.propertyValues());
                                 });
                             });
                         });
@@ -429,28 +559,34 @@ trait ProjectTypeFixture {
     }
 
     static class ProjectTypeDefinitionClassBuilder {
-        String implementationTypeClassName = "TestProjectTypeDefinition"
-        String publicTypeClassName = null
+        String defaultClassName = "TestProjectTypeDefinition"
 
-        ProjectTypeDefinitionClassBuilder implementationTypeClassName(String implementationTypeClassName) {
-            this.implementationTypeClassName = implementationTypeClassName
-            return this
-        }
-
-        ProjectTypeDefinitionClassBuilder publicTypeClassName(String publicTypeClassName) {
-            this.publicTypeClassName = publicTypeClassName
-            return this
-        }
+        boolean hasInjectedServices = false
+        boolean hasNestedInjectedServices = false
 
         String getBuildModelClassName() {
-            return implementationTypeClassName + ".ModelType"
+            return defaultClassName + ".ModelType"
         }
 
         void build(PluginBuilder pluginBuilder) {
-            pluginBuilder.file("src/main/java/org/gradle/test/${implementationTypeClassName}.java") << getClassContent()
+            pluginBuilder.file("src/main/java/org/gradle/test/${defaultClassName}.java") << getClassContent()
+        }
+
+        ProjectTypeDefinitionClassBuilder withInjectedServices() {
+            this.hasInjectedServices = true
+            return this
+        }
+
+        ProjectTypeDefinitionClassBuilder withNestedInjectedServices() {
+            this.hasNestedInjectedServices = true
+            return this
         }
 
         String getClassContent() {
+            return defaultClassContent(defaultClassName)
+        }
+
+        String defaultClassContent(String effectiveClassName) {
             return """
                 package org.gradle.test;
 
@@ -461,59 +597,61 @@ trait ProjectTypeFixture {
                 import org.gradle.api.model.ObjectFactory;
                 import org.gradle.api.provider.ListProperty;
                 import org.gradle.api.provider.Property;
+                import org.gradle.api.tasks.Nested;
                 import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
-                    private final Foo foo;
-                    private boolean isFooConfigured = false;
-
-                    @Inject
-                    public ${implementationTypeClassName}(ObjectFactory objects) {
-                        this.foo = objects.newInstance(Foo.class);
-                    }
-
+                public interface ${effectiveClassName} extends ${Definition.class.simpleName}<${effectiveClassName}.ModelType> {
                     @Restricted
-                    public abstract Property<String> getId();
+                    abstract Property<String> getId();
 
-                    public Foo getFoo() {
-                        return foo;
-                    }
+                    @Nested
+                    Foo getFoo();
 
                     @Configuring
-                    public void foo(Action<? super Foo> action) {
-                        isFooConfigured = true;
-                        action.execute(foo);
+                    default void foo(Action<? super Foo> action) {
+                        action.execute(getFoo());
                     }
 
-                    public abstract static class Foo implements ${Definition.class.simpleName}<FooBuildModel> {
-                        public Foo() { }
+                    ${maybeInjectedServiceDeclaration}
 
+                    interface Foo extends ${Definition.class.simpleName}<FooBuildModel> {
                         @Restricted
                         public abstract Property<String> getBar();
+
+                        ${maybeNestedInjectedServiceDeclaration}
                     }
 
-                    public interface FooBuildModel extends BuildModel {
+                    interface FooBuildModel extends BuildModel {
                         Property<String> getBarProcessed();
                     }
 
-                    @Override
-                    public String toString() {
-                        return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get() + (isFooConfigured ? "\\n(foo is configured)" : "");
+                    default String propertyValues() {
+                        return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get();
                     }
 
-                    public interface ModelType extends BuildModel {
+                    interface ModelType extends BuildModel {
                         Property<String> getId();
                     }
                 }
             """
         }
 
-        String maybeImplementsPublicType() {
-            return publicTypeClassName ? "implements ${publicTypeClassName}" : ""
+        String getMaybeInjectedServiceDeclaration() {
+            return hasInjectedServices ? """
+                @Inject
+                ObjectFactory getObjects();
+            """ : ""
+        }
+
+        String getMaybeNestedInjectedServiceDeclaration() {
+            return hasNestedInjectedServices ? """
+                @Inject
+                ObjectFactory getObjects();
+            """ : ""
         }
     }
 
@@ -533,7 +671,7 @@ trait ProjectTypeFixture {
 
                 import java.util.stream.Collectors;
 
-                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
+                public abstract class ${defaultClassName} implements ${Definition.class.simpleName}<${defaultClassName}.ModelType> {
                     public abstract NamedDomainObjectContainer<Foo> getFoos();
 
                     public abstract static class Foo implements Named {
@@ -560,8 +698,7 @@ trait ProjectTypeFixture {
                         }
                     }
 
-                    @Override
-                    public String toString() {
+                    public String propertyValues() {
                         return getFoos().stream().map(Foo::toString).collect(Collectors.joining(", "));
                     }
 
@@ -574,10 +711,11 @@ trait ProjectTypeFixture {
         }
     }
 
-    static class ProjectTypeDefinitionWithPublicTypeClassBuilder extends ProjectTypeDefinitionClassBuilder {
-        ProjectTypeDefinitionWithPublicTypeClassBuilder() {
-            this.implementationTypeClassName = "TestProjectTypeDefinitionImpl"
-            this.publicTypeClassName = "TestProjectTypeDefinition"
+    static class ProjectTypeDefinitionWithImplementationTypeClassBuilder extends ProjectTypeDefinitionClassBuilder {
+        String publicTypeClassName = "PublicTestProjectTypeDefinition"
+
+        ProjectTypeDefinitionWithImplementationTypeClassBuilder() {
+            this.defaultClassName = "TestProjectTypeDefinitionImpl"
         }
 
         @Override
@@ -594,11 +732,11 @@ trait ProjectTypeFixture {
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} ${maybeImplementsPublicType()} {
+                public abstract class ${defaultClassName} implements ${publicTypeClassName} {
                     private final Foo foo;
 
                     @Inject
-                    public ${implementationTypeClassName}(ObjectFactory objects) {
+                    public ${defaultClassName}(ObjectFactory objects) {
                         this.foo = objects.newInstance(Foo.class);
                     }
 
@@ -610,8 +748,7 @@ trait ProjectTypeFixture {
                     @Restricted
                     public abstract Property<String> getNonPublic();
 
-                    @Override
-                    public String toString() {
+                    public String propertyValues() {
                         return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get();
                     }
                 }
@@ -619,41 +756,7 @@ trait ProjectTypeFixture {
         }
 
         String getPublicClassContent() {
-            return """
-                package org.gradle.test;
-
-                import org.gradle.declarative.dsl.model.annotations.Configuring;
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
-
-                import org.gradle.api.provider.Property;
-                import org.gradle.api.Action;
-                import ${Definition.class.name};
-                import ${BuildModel.class.name};
-
-                @Restricted
-                public interface ${publicTypeClassName} extends ${Definition.class.simpleName}<${publicTypeClassName}.ModelType> {
-                    @Restricted
-                    Property<String> getId();
-
-                    Foo getFoo();
-
-                    @Configuring
-                    default void foo(Action<? super Foo> action) {
-                        action.execute(getFoo());
-                    }
-
-                    public abstract static class Foo {
-                        public Foo() { }
-
-                        @Restricted
-                        public abstract Property<String> getBar();
-                    }
-
-                    public interface ModelType extends BuildModel {
-                        Property<String> getId();
-                    }
-                }
-            """
+            super.defaultClassContent(publicTypeClassName)
         }
 
         @Override
@@ -665,7 +768,7 @@ trait ProjectTypeFixture {
 
     static class AnotherProjectTypeDefinitionClassBuilder extends ProjectTypeDefinitionClassBuilder {
         AnotherProjectTypeDefinitionClassBuilder() {
-            implementationTypeClassName = "AnotherProjectTypeDefinition"
+            defaultClassName = "AnotherProjectTypeDefinition"
         }
 
         @Override
@@ -688,29 +791,25 @@ trait ProjectTypeFixture {
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> ${maybeImplementsPublicType()} {
-                    @Inject
-                    public ${implementationTypeClassName}() { }
+                public interface ${defaultClassName} extends ${Definition.class.simpleName}<${defaultClassName}.ModelType> {
 
                     @Restricted
-                    public abstract Property<String> getFoo();
+                    Property<String> getFoo();
 
                     @Nested
-                    public abstract Bar getBar();
+                    Bar getBar();
 
                     @Configuring
-                    public void bar(Action<? super Bar> action) {
+                    default void bar(Action<? super Bar> action) {
                         action.execute(getBar());
                     }
 
-                    public abstract static class Bar {
-                        public Bar() { }
-
+                    abstract interface Bar {
                         @Restricted
-                        public abstract Property<String> getBaz();
+                        Property<String> getBaz();
                     }
 
-                    public String toString() {
+                    default String propertyValues() {
                         return "foo = " + getFoo().get() + "\\nbaz = " + getBar().getBaz().get();
                     }
 
@@ -723,14 +822,14 @@ trait ProjectTypeFixture {
     }
 
     static class ProjectTypeDefinitionWithDependenciesClassBuilder extends ProjectTypeDefinitionClassBuilder {
-        private String parentClassName = "TestProjectTypeDefinition"
+        private String interfaceName = "TestProjectTypeDefinition"
 
         ProjectTypeDefinitionWithDependenciesClassBuilder() {
-            this.implementationTypeClassName = "TestProjectTypeDefinitionWithDependencies"
+            this.defaultClassName = "TestProjectTypeDefinitionWithDependencies"
         }
 
         ProjectTypeDefinitionWithDependenciesClassBuilder parentClassName(String parentClassName) {
-            this.parentClassName = parentClassName
+            this.interfaceName = parentClassName
             return this
         }
 
@@ -753,11 +852,11 @@ trait ProjectTypeFixture {
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} extends ${parentClassName} {
+                public abstract class ${defaultClassName} implements ${interfaceName} {
+                    private boolean isBarConfigured = false;
+
                     @Inject
-                    public ${implementationTypeClassName}(ObjectFactory objects) {
-                        super(objects);
-                    }
+                    public ${defaultClassName}() { }
 
                     @Nested
                     abstract public LibraryDependencies getDependencies();
@@ -766,7 +865,6 @@ trait ProjectTypeFixture {
                     public void dependencies(Action<? super LibraryDependencies> action) {
                         action.execute(getDependencies());
                     }
-
 
                     public abstract ListProperty<String> getList();
 
@@ -780,6 +878,7 @@ trait ProjectTypeFixture {
 
                     @Configuring
                     public void bar(Action<? super Bar> action) {
+                        isBarConfigured = true;
                         action.execute(getBar());
                     }
 
@@ -793,15 +892,15 @@ trait ProjectTypeFixture {
                         }
                     }
 
-                    @Override
-                    public String toString() {
-                        return super.toString() +
+                    public String propertyValues() {
+                        return ${interfaceName}.super.propertyValues() +
                             "\\nlist = " + printList(getList().get()) +
                             "\\nbaz = " + printList(getBar().getBaz().get()) +
                             "\\napi = " + printDependencies(getDependencies().getApi()) +
                             "\\nimplementation = " + printDependencies(getDependencies().getImplementation()) +
                             "\\nruntimeOnly = " + printDependencies(getDependencies().getRuntimeOnly()) +
-                            "\\ncompileOnly = " + printDependencies(getDependencies().getCompileOnly());
+                            "\\ncompileOnly = " + printDependencies(getDependencies().getCompileOnly()) +
+                            (isBarConfigured ? "\\n(bar is configured)" : "");
                     }
 
                     private String printDependencies(DependencyCollector collector) {
@@ -847,6 +946,127 @@ trait ProjectTypeFixture {
             super.build(pluginBuilder)
             pluginBuilder.file("src/main/java/org/gradle/test/LibraryDependencies.java") << libraryDependencies
             new ProjectTypeDefinitionClassBuilder().build(pluginBuilder)
+        }
+    }
+
+    static class ProjectTypeDefinitionAbstractClassBuilder extends ProjectTypeDefinitionClassBuilder {
+        @Override
+        String getClassContent() {
+            return """
+                package org.gradle.test;
+
+                import org.gradle.declarative.dsl.model.annotations.Configuring;
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+                import org.gradle.api.Action;
+                import org.gradle.api.model.ObjectFactory;
+                import org.gradle.api.provider.ListProperty;
+                import org.gradle.api.provider.Property;
+                import ${Definition.class.name};
+                import ${BuildModel.class.name};
+
+                import javax.inject.Inject;
+
+                @Restricted
+                public abstract class ${defaultClassName} implements ${Definition.class.simpleName}<${defaultClassName}.ModelType> {
+                    private final Foo foo;
+                    private boolean isFooConfigured = false;
+
+                    @Inject
+                    public ${defaultClassName}(ObjectFactory objects) {
+                        this.foo = objects.newInstance(Foo.class);
+                    }
+
+                    @Restricted
+                    public abstract Property<String> getId();
+
+                    public Foo getFoo() {
+                        return foo;
+                    }
+
+                    @Configuring
+                    public void foo(Action<? super Foo> action) {
+                        isFooConfigured = true;
+                        action.execute(foo);
+                    }
+
+                    ${maybeInjectedServiceDeclaration}
+
+                    public abstract static class Foo implements ${Definition.class.simpleName}<FooBuildModel> {
+                        public Foo() { }
+
+                        ${maybeNestedInjectedServiceDeclaration}
+
+                        @Restricted
+                        public abstract Property<String> getBar();
+                    }
+
+                    public interface FooBuildModel extends BuildModel {
+                        Property<String> getBarProcessed();
+                    }
+
+                    public String propertyValues() {
+                        return "id = " + getId().get() + "\\nbar = " + getFoo().getBar().get() + (isFooConfigured ? "\\n(foo is configured)" : "");
+                    }
+
+                    public interface ModelType extends BuildModel {
+                        Property<String> getId();
+                    }
+                }
+            """
+        }
+
+        @Override
+        String getMaybeInjectedServiceDeclaration() {
+            return hasInjectedServices ? """
+                @Inject
+                abstract ObjectFactory getObjects();
+            """ : ""
+        }
+
+        @Override
+        String getMaybeNestedInjectedServiceDeclaration() {
+            return hasNestedInjectedServices ? """
+                @Inject
+                abstract ObjectFactory getObjects();
+            """ : ""
+        }
+    }
+
+    static class ProjectTypeDefinitionWithInjectableParentClassBuilder extends ProjectTypeDefinitionClassBuilder {
+        String parentTypeClassName = "ParentTestProjectTypeDefinition"
+
+        ProjectTypeDefinitionWithInjectableParentClassBuilder() {
+            // Adds injected services to the parent
+            withInjectedServices()
+        }
+
+        @Override
+        String getClassContent() {
+            return """
+                package org.gradle.test;
+
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
+                import org.gradle.api.Action;
+                import org.gradle.api.model.ObjectFactory;
+                import org.gradle.api.provider.ListProperty;
+                import org.gradle.api.provider.Property;
+
+                import javax.inject.Inject;
+
+                @Restricted
+                public interface ${defaultClassName} extends ${parentTypeClassName} { }
+            """
+        }
+
+        String getPublicClassContent() {
+            super.defaultClassContent(parentTypeClassName)
+        }
+
+        @Override
+        void build(PluginBuilder pluginBuilder) {
+            super.build(pluginBuilder)
+            pluginBuilder.file("src/main/java/org/gradle/test/${parentTypeClassName}.java") << getPublicClassContent()
         }
     }
 

@@ -165,6 +165,7 @@
             <option value="$PROJECT_DIR$/platforms/core-runtime/classloaders" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/cli" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/client-services" />
+            <option value="$PROJECT_DIR$/platforms/core-runtime/collections" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/concurrent" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/daemon-main" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/daemon-protocol" />

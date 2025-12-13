@@ -77,6 +77,7 @@ public class ForkedTestClasspathFactory {
             moduleRegistry.getModule("gradle-service-provider").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-service-registry-builder").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-service-registry-impl").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-collections").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-time").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-testing-base-infrastructure").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-testing-jvm-infrastructure").getImplementationClasspath().getAsURLs(),
