@@ -17,6 +17,7 @@
 package org.gradle.internal.buildtree.control
 
 import org.gradle.api.logging.Logging
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildModelParametersFactory
@@ -26,8 +27,8 @@ internal class DefaultBuildModelParametersFactory : BuildModelParametersFactory 
 
     private val logger = Logging.getLogger(DefaultBuildModelParametersFactory::class.java)
 
-    override fun parametersForRootBuildTree(requirements: BuildActionModelRequirements): BuildModelParameters {
-        val modelParameters = BuildModelParametersProvider.parameters(requirements)
+    override fun parametersForRootBuildTree(requirements: BuildActionModelRequirements, internalOptions: InternalOptions): BuildModelParameters {
+        val modelParameters = BuildModelParametersProvider.parameters(requirements, internalOptions)
         logger.info("Operational build model parameters: {}", modelParameters.toDisplayMap())
 
         modelParameters.configurationCacheDisabledReason?.let { reason ->

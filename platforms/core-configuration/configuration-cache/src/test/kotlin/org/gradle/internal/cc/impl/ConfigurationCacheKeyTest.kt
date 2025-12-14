@@ -135,12 +135,13 @@ class ConfigurationCacheKeyTest {
     private
     fun cacheKeyStringFromStartParameter(configure: StartParameterInternal.() -> Unit): String {
         val startParameter = StartParameterInternal().apply(configure)
+        val internalOptions = DefaultInternalOptions(mapOf())
         return ConfigurationCacheKey(
             ConfigurationCacheStartParameter(
                 BuildTreeLocations(BuildLayout(file("root"), null, DefaultScriptFileResolver())),
                 startParameter,
-                DefaultInternalOptions(mapOf()),
-                BuildModelParametersProvider.parameters(RunTasksRequirements(startParameter)),
+                internalOptions,
+                BuildModelParametersProvider.parameters(RunTasksRequirements(startParameter), internalOptions),
             ),
             RunTasksRequirements(startParameter),
             object : EncryptionConfiguration {

@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.settings
+package org.gradle.plugin.software.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.internal.declarativedsl.DeclarativeTestUtils
+import org.gradle.internal.declarativedsl.settings.ProjectFeatureFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
@@ -48,7 +50,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
 
     def 'can declare and configure a custom project feature from included build'() {
         given:
-        PluginBuilder pluginBuilder = withProjectFeaturePlugins()
+        PluginBuilder pluginBuilder = withProjectFeature()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.prepareToExecute()
 
@@ -71,7 +73,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
     def 'can declare and configure a custom project feature from published plugin'() {
         given:
         pluginPortal.start()
-        PluginBuilder pluginBuilder = withProjectFeaturePlugins()
+        PluginBuilder pluginBuilder = withProjectFeature()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
         pluginBuilder.publishAs("com", "example", "1.0", pluginPortal, createExecuter()).allowAll()
 
@@ -97,7 +99,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
 
     def 'can declare and configure a custom project feature from plugin published to a custom repository'() {
         given:
-        PluginBuilder pluginBuilder = withProjectFeaturePlugins()
+        PluginBuilder pluginBuilder = withProjectFeature()
         pluginBuilder.publishAs("com", "example", "1.0", mavenHttpRepo, createExecuter()).allowAll()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
 
@@ -246,6 +248,30 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         failure.assertHasCause("Type 'org.gradle.test.NotAProjectFeaturePlugin' is registered as a project feature plugin but does not expose a project feature.")
     }
 
+    def 'sensible error when two plugins register features with the same name'() {
+        given:
+        PluginBuilder pluginBuilder = withTwoProjectFeaturesThatHaveTheSameName()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        fails(":help")
+
+        then:
+        assertDescriptionOrCause(failure,
+            "Project feature 'feature' is registered by multiple plugins:\n" +
+            "  - Project feature 'feature' is registered by both 'org.gradle.test.AnotherProjectFeatureImplPlugin' and 'org.gradle.test.ProjectFeatureImplPlugin'.\n" +
+            "    \n" +
+            "    Reason: A project feature or type with a given name can only be registered by a single plugin.\n" +
+            "    \n" +
+            "    Possible solution: Remove one of the plugins from the build."
+        )
+    }
+
     def 'can declare and configure a custom project feature that binds to a build model'() {
         given:
         PluginBuilder pluginBuilder = withProjectFeatureThatBindsToBuildModel()
@@ -367,9 +393,16 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         """
     }
 
-
     void assertThatDeclaredValuesAreSetProperly() {
         outputContains("""id = test\nbar = baz""")
         outputContains("feature text = foo")
+    }
+
+    void assertDescriptionOrCause(ExecutionFailure failure, String expectedMessage) {
+        if (currentDsl() == GradleDsl.DECLARATIVE) {
+            failure.assertHasDescription(expectedMessage)
+        } else {
+            failure.assertHasCause(expectedMessage)
+        }
     }
 }

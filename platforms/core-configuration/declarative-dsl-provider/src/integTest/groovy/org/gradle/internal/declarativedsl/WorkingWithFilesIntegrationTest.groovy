@@ -36,11 +36,11 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
 
     def 'set single value: #name (set defaults: #setDefaults) (set values: #setValues)'() {
         given:
-        def projectType = new ProjectTypePluginClassBuilder().withoutConventions()
+        def projectType = new ProjectTypePluginClassBuilder().withoutConventions().withUnsafeDefinition()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 
-        withProjectTypePlugins(
+        withProjectType(
             definition as ProjectTypeDefinitionClassBuilder,
             projectType,
             settingsBuilder
@@ -87,11 +87,11 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy doesn't have the `listOf(...)` function")
     def 'set multi value: #name (set defaults: #setDefaults) (set values: #setValues)'() {
         given:
-        def projectType = new ProjectTypePluginClassBuilder().withoutConventions()
+        def projectType = new ProjectTypePluginClassBuilder().withoutConventions().withUnsafeDefinition()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 
-        withProjectTypePlugins(
+        withProjectType(
             definition as ProjectTypeDefinitionClassBuilder,
             projectType,
             settingsBuilder
@@ -137,7 +137,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 
-        withProjectTypePlugins(
+        withProjectType(
             definition as ProjectTypeDefinitionClassBuilder,
             projectType,
             settingsBuilder
@@ -212,15 +212,14 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
+                public abstract class ${defaultClassName} implements ${Definition.class.simpleName}<${defaultClassName}.ModelType> {
                     @Restricted
                     public abstract DirectoryProperty getDir();
 
                     @Restricted
                     public abstract RegularFileProperty getFile();
 
-                    @Override
-                    public String toString() {
+                    public String propertyValues() {
                         return "dir = " + getDir().getOrNull() + ", file = " + getFile().getOrNull();
                     }
 
@@ -248,15 +247,14 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
+                public abstract class ${defaultClassName} implements ${Definition.class.simpleName}<${defaultClassName}.ModelType> {
                     @Restricted
                     public abstract ListProperty<Directory> getDirs();
 
                     @Restricted
                     public abstract ListProperty<RegularFile> getFiles();
 
-                    @Override
-                    public String toString() {
+                    public String propertyValues() {
                         return "dirs = " + getDirs().getOrNull() + ", files = " + getFiles().getOrNull();
                     }
 
@@ -284,12 +282,16 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public interface ${implementationTypeClassName} extends ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
+                public interface ${defaultClassName} extends ${Definition.class.simpleName}<${defaultClassName}.ModelType> {
                     @Restricted
                     Directory getDir();
 
                     @Restricted
                     RegularFileProperty getFile();
+
+                    default public String propertyValues() {
+                        return "dir = " + getDir().getAsFile() + ", file = " + getFile().getOrNull();
+                    }
 
                     public interface ModelType extends BuildModel {
                         Directory getDir();
@@ -315,12 +317,16 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import ${BuildModel.class.name};
 
                 @Restricted
-                public interface ${implementationTypeClassName} extends ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
+                public interface ${defaultClassName} extends ${Definition.class.simpleName}<${defaultClassName}.ModelType> {
                     @Restricted
                     DirectoryProperty getDir();
 
                     @Restricted
                     RegularFile getFile();
+
+                    default public String propertyValues() {
+                        return "dir = " + getDir().getOrNull() + ", file = " + getFile().getAsFile();
+                    }
 
                     public interface ModelType extends BuildModel {
                         DirectoryProperty getDir();
@@ -351,13 +357,13 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
+                public abstract class ${defaultClassName} implements ${Definition.class.simpleName}<${defaultClassName}.ModelType> {
 
                     private final Property<Directory> dir;
                     private final Property<RegularFile> file;
 
                     @Inject
-                    public ${implementationTypeClassName}(ObjectFactory objects) {
+                    public ${defaultClassName}(ObjectFactory objects) {
                         dir = objects.directoryProperty();
                         file = objects.fileProperty();
                     }
@@ -372,8 +378,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                         return file;
                     }
 
-                    @Override
-                    public String toString() {
+                    public String propertyValues() {
                         return "dir = " + getDir().getOrNull() + ", file = " + getFile().getOrNull();
                     }
 
@@ -404,13 +409,13 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import javax.inject.Inject;
 
                 @Restricted
-                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
+                public abstract class ${defaultClassName} implements ${Definition.class.simpleName}<${defaultClassName}.ModelType> {
 
                     private Directory dir;
                     private RegularFile file;
 
                     @Inject
-                    public ${implementationTypeClassName}() {
+                    public ${defaultClassName}() {
                     }
 
                     @Restricted
@@ -433,8 +438,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                         this.file = file;
                     }
 
-                    @Override
-                    public String toString() {
+                    public String propertyValues() {
                         return "dir = " + dir + ", file = " + file;
                     }
 
