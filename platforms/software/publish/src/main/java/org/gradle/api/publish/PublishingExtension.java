@@ -18,7 +18,7 @@ package org.gradle.api.publish;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.component.SoftwareComponent;
+
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.jspecify.annotations.NullMarked;
 
