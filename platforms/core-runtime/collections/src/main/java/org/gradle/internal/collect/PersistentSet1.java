@@ -16,10 +16,14 @@
 
 package org.gradle.internal.collect;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static org.gradle.internal.collect.Preconditions.keyCannotBeNull;
 
@@ -67,11 +71,12 @@ final class PersistentSet1<K> implements PersistentSet<K> {
         return clear(other.contains(key));
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public PersistentSet<K> union(PersistentSet<K> other) {
+    public <S extends K> PersistentSet<K> union(PersistentSet<S> other) {
         return other.isEmpty()
             ? this
-            : other.plus(key);
+            : (PersistentSet<K>) other.plus((S) key);
     }
 
     @Override
@@ -83,6 +88,41 @@ final class PersistentSet1<K> implements PersistentSet<K> {
         return removed
             ? PersistentSet.of()
             : this;
+    }
+
+    @Override
+    public PersistentSet<K> filter(Predicate<? super K> predicate) {
+        return predicate.test(key)
+            ? this
+            : PersistentSet.of();
+    }
+
+    @Override
+    public <R> PersistentSet<R> map(Function<? super K, ? extends R> mapper) {
+        return PersistentSet.of(mapper.apply(key));
+    }
+
+    @Override
+    public <R> PersistentSet<R> flatMap(Function<? super K, PersistentSet<R>> mapper) {
+        return mapper.apply(key);
+    }
+
+    @Override
+    public <G> PersistentMap<G, PersistentSet<K>> groupBy(Function<? super K, ? extends @Nullable G> group) {
+        G g = group.apply(key);
+        return g != null
+            ? PersistentMap.of(g, this)
+            : PersistentMap.of();
+    }
+
+    @Override
+    public boolean anyMatch(Predicate<? super K> predicate) {
+        return predicate.test(key);
+    }
+
+    @Override
+    public boolean noneMatch(Predicate<? super K> predicate) {
+        return !predicate.test(key);
     }
 
     @Override

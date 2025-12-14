@@ -70,5 +70,6 @@ jmh {
 //        "PersistentMapBenchmark.randomLookup",
 //        "PersistentMapBenchmark.removeAbsent",
 //        "PersistentMapBenchmark.removePresent",
+//        "PersistentSetPolymorphismBenchmark.groupByRandom",
     )
 }
