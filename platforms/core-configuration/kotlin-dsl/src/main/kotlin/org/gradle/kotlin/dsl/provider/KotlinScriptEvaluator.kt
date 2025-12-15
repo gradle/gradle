@@ -402,7 +402,6 @@ class StandardKotlinScriptEvaluator(
         companion object {
             const val JVM_TARGET = "jvmTarget"
             const val ALL_WARNINGS_AS_ERRORS = "allWarningsAsErrors"
-            const val SKIP_METADATA_VERSION_CHECK = "skipMetadataVersionCheck"
             const val TEMPLATE_ID = "templateId"
             const val SCRIPT_FILE_NAME = "scriptFileName"
             const val CLASS_NAME = "className"
@@ -429,7 +428,6 @@ class StandardKotlinScriptEvaluator(
             super.visitImmutableInputs(visitor)
             visitor.visitInputProperty(JVM_TARGET) { programId.compilerOptions.jvmTarget.majorVersion }
             visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { programId.compilerOptions.allWarningsAsErrors }
-            visitor.visitInputProperty(SKIP_METADATA_VERSION_CHECK) { programId.compilerOptions.skipMetadataVersionCheck }
             visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }
             visitor.visitInputProperty(SCRIPT_FILE_NAME) { programId.scriptFileName }
             visitor.visitInputProperty(CLASS_NAME) { programId.className }

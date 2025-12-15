@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.execution
 
-import checkAllMetadataInClasspath
 import org.gradle.api.Project
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.internal.classpath.ClassPath
@@ -93,7 +92,6 @@ class ResidualProgramCompiler(
     private val implicitImports: List<String> = emptyList(),
     private val logger: Logger = interpreterLogger,
     private val temporaryFileProvider: TemporaryFileProvider,
-    private val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker,
     private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() },
     private val stage1BlocksAccessorsClassPath: ClassPath = ClassPath.EMPTY,
     private val packageName: String? = null,
@@ -713,7 +711,6 @@ class ResidualProgramCompiler(
     ): InternalName {
         return InternalName.from(
             compileBuildOperationRunner(originalPath, stage) {
-                checkAllMetadataInClasspath(compilerOptions, compileClassPath, metadataCompatibilityChecker)
                 compileKotlinScriptToDirectory(
                     outputDir,
                     compilerOptions,

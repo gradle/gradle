@@ -361,7 +361,7 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions
         put(JDK_HOME, File(System.getProperty("java.home")))
         put(SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
         addJvmSdkRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
-        put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettingsFor(compilerOptions))
+        put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettingsFor())
         put(CommonConfigurationKeys.ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS, true)
     }
 
@@ -376,11 +376,10 @@ fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
 
 
 private
-fun gradleKotlinDslLanguageVersionSettingsFor(compilerOptions: KotlinCompilerOptions) = LanguageVersionSettingsImpl(
+fun gradleKotlinDslLanguageVersionSettingsFor() = LanguageVersionSettingsImpl(
     languageVersion = LanguageVersion.KOTLIN_2_2,
     apiVersion = ApiVersion.KOTLIN_2_2,
     analysisFlags = mapOf(
-        AnalysisFlags.skipMetadataVersionCheck to compilerOptions.skipMetadataVersionCheck,
         AnalysisFlags.skipPrereleaseCheck to true,
         AnalysisFlags.allowUnstableDependencies to true,
         JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
