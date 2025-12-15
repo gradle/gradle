@@ -878,18 +878,17 @@ public class NodeState implements DependencyGraphNode {
         // Constraint: only consider explicit exclusions declared for this constraint
         ExcludeSpec constraintExclusions = dependencyEdge.getEdgeExclusions();
         if (constraintExclusions != nothing && constraintExclusions != nodeExclusions) {
-            excludedByEither = excludedByEither.plus(constraintExclusions);
+            return excludedByEither.plus(constraintExclusions);
         }
         return excludedByEither;
     }
 
     @Nullable
     private ExcludeSpec joinNodeExclusions(@Nullable ExcludeSpec nodeExclusions, PersistentSet<ExcludeSpec> excludedByEither) {
-        if (excludedByEither.isNotEmpty()) {
-            if (nodeExclusions != null) {
-                excludedByEither = excludedByEither.plus(nodeExclusions);
-                nodeExclusions = moduleExclusions.excludeAny(excludedByEither);
-            }
+        if (excludedByEither.isNotEmpty() && nodeExclusions != null) {
+            return moduleExclusions.excludeAny(
+                excludedByEither.plus(nodeExclusions)
+            );
         }
         return nodeExclusions;
     }
@@ -900,10 +899,11 @@ public class NodeState implements DependencyGraphNode {
             return edgeExclusions;
         }
         if (excludedByBoth.isNotEmpty()) {
-            if (edgeExclusions != null) {
-                excludedByBoth = excludedByBoth.plus(edgeExclusions);
-            }
-            edgeExclusions = moduleExclusions.excludeAll(excludedByBoth);
+            return moduleExclusions.excludeAll(
+                edgeExclusions != null
+                    ? excludedByBoth.plus(edgeExclusions)
+                    : excludedByBoth
+            );
         }
         return edgeExclusions;
     }
