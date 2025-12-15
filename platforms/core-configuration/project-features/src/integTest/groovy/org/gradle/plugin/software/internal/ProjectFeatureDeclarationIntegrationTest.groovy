@@ -247,7 +247,9 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
 
     def 'sensible error when a project feature plugin is registered that does not expose a project feature'() {
         given:
-        withProjectFeaturePluginThatDoesNotExposeProjectFeatures().prepareToExecute()
+        def pluginBuilder = withProjectFeaturePluginThatDoesNotExposeProjectFeatures()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -349,6 +351,23 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("model text = foo BAR")
     }
 
+    def 'can declare and configure a custom feature that targets a nested build model of a project type'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectTypeAndFeatureThatBindsToNestedBuildModel()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatAppliesFeatureToNestedBlock << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printFeatureDefinitionConfiguration")
+
+        then:
+        outputContains("model text = foo BAR")
+    }
+
     def 'can declare a custom project feature with no build model'() {
         given:
         PluginBuilder pluginBuilder = withProjectFeatureThatHasNoBuildModel()
@@ -365,12 +384,91 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         then:
         outputContains("definition id = test")
         outputContains("definition foo.bar = baz")
-        outputContains("model id = foo")
+        outputContains("model id = foo") // parent model has been set by feature
+        outputContains("feature model class: None")
 
         and:
         outputContains("Applying ProjectTypeImplPlugin")
         outputContains("Binding TestProjectTypeDefinition")
         outputContains("Binding FeatureDefinition")
+    }
+
+    def 'can declare a custom project feature with no build model and another feature that binds to its definition'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeatureThatHasNoBuildModelAndAnotherFeatureThatBindsToItsDefinition()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << """
+            testProjectType {
+                id = "test"
+
+                foo {
+                    bar = "baz"
+                }
+
+                feature {
+                    text = "foo"
+                    anotherFeature {
+                        text = "bar"
+                        fizz {
+                            buzz = "baz"
+                        }
+                    }
+                }
+            }
+        """ << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printAnotherFeatureDefinitionConfiguration")
+
+        then:
+        outputContains("definition text = bar")
+        outputContains("definition fizz.buzz = baz")
+        outputContains("feature model class: None")
+        outputContains("model text = foo bar") // feature is set with value from parent definition
+        outputContains("model parent type = None")
+
+        and:
+        outputContains("Applying ProjectTypeImplPlugin")
+        outputContains("Binding TestProjectTypeDefinition")
+        outputContains("Binding FeatureDefinition")
+    }
+
+    def 'sensible error when a project feature attempts to bind to a build model of None'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeatureThatBindsToNoneBuildModel()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << """
+            testProjectType {
+                id = "test"
+
+                foo {
+                    bar = "baz"
+                }
+            }
+        """ << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        fails(":help")
+
+        then:
+        assertDescriptionOrCause(failure,
+            "Project feature 'feature' is bound to an invalid type:\n" +
+                "  - Project feature 'feature' is bound to 'BuildModel.None'.\n" +
+                "    \n" +
+                "    Reason: A project feature cannot bind to 'BuildModel.None' as its target build model type.\n" +
+                "    \n" +
+                "    Possible solutions:\n" +
+                "      1. Bind to a target definition type instead.\n" +
+                "      2. Bind to a concrete build model type other than 'BuildModel.None'."
+        )
     }
 
     private String getPluginBuildScriptForJava() {

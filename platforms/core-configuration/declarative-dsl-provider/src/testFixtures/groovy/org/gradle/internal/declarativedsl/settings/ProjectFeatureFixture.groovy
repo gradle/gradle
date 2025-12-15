@@ -203,7 +203,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
         def projectFeature = new ProjectFeaturePluginClassBuilder(projectFeatureDefinition)
             .bindToBuildModel()
-            .bindingTypeClassName(projectTypeDefinition.buildModelClassName)
+            .bindingTypeClassName(projectTypeDefinition.fullyQualifiedBuildModelClassName)
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
@@ -235,11 +235,60 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
+    PluginBuilder withProjectTypeAndFeatureThatBindsToNestedBuildModel() {
+        def projectTypeDefinition = new ProjectTypeDefinitionThatRegistersANestedBindingLocationClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
+
+        def projectFeatureDefinition = new ProjectFeatureNestedDefinitionClassBuilder()
+        def projectFeature = new ProjectFeaturePluginClassBuilder(projectFeatureDefinition)
+            .bindingTypeClassName(projectTypeDefinition.fullyQualifiedPublicTypeClassName + ".FooBuildModel")
+            .bindToBuildModel()
+
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
     PluginBuilder withProjectFeatureThatHasNoBuildModel() {
         def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
         def projectFeatureDefinition = new ProjectFeatureDefinitionWithNoBuildModelClassBuilder()
         def projectFeature = new ProjectFeatureWithNoBuildModelPluginClassBuilder(projectFeatureDefinition)
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
+    PluginBuilder withProjectFeatureThatHasNoBuildModelAndAnotherFeatureThatBindsToItsDefinition() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
+        def projectFeatureDefinition = new ProjectFeatureDefinitionWithNoBuildModelClassBuilder()
+        def projectFeature = new ProjectFeatureWithNoBuildModelPluginClassBuilder(projectFeatureDefinition)
+        def anotherFeatureDefinition = new ProjectFeatureThatBindsToDefinitionWithNoBuildModeClassBuilder()
+            .withPublicClassName("AnotherFeatureDefinition")
+        def anotherProjectFeature = new ProjectFeaturePluginClassBuilder(anotherFeatureDefinition)
+            .projectFeaturePluginClassName("AnotherProjectFeatureImplPlugin")
+            .bindingTypeClassName(projectFeatureDefinition.publicTypeClassName)
+            .name("anotherFeature")
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+            .registersProjectFeature(anotherProjectFeature.projectFeaturePluginClassName)
+        def pluginBuilder = withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+        anotherProjectFeature.build(pluginBuilder)
+        anotherFeatureDefinition.build(pluginBuilder)
+        return pluginBuilder
+    }
+
+    PluginBuilder withProjectFeatureThatBindsToNoneBuildModel() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
+        def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
+        def projectFeature = new ProjectFeaturePluginClassBuilder(projectFeatureDefinition)
+            .bindingTypeClassName(BuildModel.name + ".None")
+            .bindToBuildModel()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
@@ -888,4 +937,21 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
             return ""
         }
     }
+
+    static class ProjectFeatureThatBindsToDefinitionWithNoBuildModeClassBuilder extends ProjectFeatureDefinitionClassBuilder {
+        @Override
+        String getBuildModelMapping() {
+            return super.getBuildModelMapping() + """
+                model.getText().set(parent.getText().map(text -> text + " " + definition.getText().get()));
+            """
+        }
+
+        @Override
+        String displayModelPropertyValues() {
+            return super.displayModelPropertyValues() + """
+                ${displayProperty("model", "parent type", "context.getBuildModel(parent).getClass().getSimpleName()")}
+            """
+        }
+    }
+
 }
