@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.internal.GUtil;
+import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
@@ -42,7 +43,7 @@ public class Path implements Comparable<Path> {
     public static final String SEPARATOR = ":";
 
     public static Path path(@Nullable String path) {
-        validatePath(path);
+        validatePathInternal(path);
         if (SEPARATOR.equals(path)) {
             return ROOT;
         } else {
@@ -57,6 +58,11 @@ public class Path implements Comparable<Path> {
      */
     @Incubating
     public static void validatePath(@Nullable String path) {
+        validatePathInternal(path);
+    }
+
+    @Contract("null -> fail")
+    private static void validatePathInternal(@Nullable String path) {
         if (Strings.isNullOrEmpty(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
@@ -71,7 +77,7 @@ public class Path implements Comparable<Path> {
     private final String[] segments;
     private final boolean absolute;
     private final int hashCode;
-    private volatile String fullPath;
+    private volatile @Nullable String fullPath;
 
     private Path(String[] segments, boolean absolute) {
         assert !(segments.length == 0 && !absolute) : "Empty relative paths are forbidden";

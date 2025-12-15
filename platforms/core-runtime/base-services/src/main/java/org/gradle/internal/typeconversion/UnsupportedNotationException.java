@@ -42,7 +42,7 @@ public class UnsupportedNotationException extends TypeConversionException {
         return candidates;
     }
 
-    private static String format(String failure, String resolution, Collection<String> formats) {
+    private static String format(String failure, @Nullable String resolution, Collection<String> formats) {
         Formatter message = new Formatter();
         message.format("%s%n", failure);
         message.format("The following types/formats are supported:");

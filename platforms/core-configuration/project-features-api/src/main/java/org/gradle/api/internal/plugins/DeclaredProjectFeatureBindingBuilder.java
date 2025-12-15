@@ -24,12 +24,13 @@ package org.gradle.api.internal.plugins;
  */
 public interface DeclaredProjectFeatureBindingBuilder<OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> {
     /**
-     * Specify the implementation type to use when creating instances of the definition object in the DSL.
+     * Specify the implementation type to use when creating instances of the definition object in the DSL.  Feature bindings that declare
+     * a definition implementation type are inherently declaring that the definition is unsafe.
      *
      * @param implementationType the implementation type to use
      * @return this builder
      */
-    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withDefinitionImplementationType(Class<? extends OwnDefinition> implementationType);
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withUnsafeDefinitionImplementationType(Class<? extends OwnDefinition> implementationType);
 
     /**
      * Specify the implementation type to use when creating instances of the build model object.
@@ -38,4 +39,19 @@ public interface DeclaredProjectFeatureBindingBuilder<OwnDefinition extends Defi
      * @return this builder
      */
     DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withBuildModelImplementationType(Class<? extends OwnBuildModel> implementationType);
+
+    /**
+     * Indicates that the definition object is not safe.  A safe definition is one that:
+     * <ul>
+     *     <li>Is implemented as an interface only (i.e. not an abstract class)</li>
+     *     <li>Does not inject any services</li>
+     *     <li>Does not contain a nested object that injects any services</li>
+     *     <li>Does not also have an implementation type</li>
+     * </ul>
+     *
+     * If a definition does not meet these criteria, it must be marked as unsafe using this method.
+     *
+     * @return this builder
+     */
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withUnsafeDefinition();
 }

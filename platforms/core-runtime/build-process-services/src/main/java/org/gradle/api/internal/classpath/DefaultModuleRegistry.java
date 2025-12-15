@@ -144,7 +144,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, GlobalCacheRootsPr
         throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", moduleName, gradleInstallation.getGradleHome()));
     }
 
-    private Module loadOptionalModule(final String moduleName) {
+    private @Nullable Module loadOptionalModule(final String moduleName) {
         File jarFile = findJar(moduleName, jarFile1 -> hasModuleProperties(moduleName, jarFile1));
         if (jarFile != null) {
             Set<File> implementationClasspath = new LinkedHashSet<>();
@@ -281,7 +281,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, GlobalCacheRootsPr
         return moduleName + "-classpath.properties";
     }
 
-    private File findJar(String name, Spec<File> allowedJarFiles) {
+    private @Nullable File findJar(String name, Spec<File> allowedJarFiles) {
         Pattern pattern = Pattern.compile(Pattern.quote(name) + "-\\d.*\\.jar");
         if (gradleInstallation != null) {
             for (File libDir : gradleInstallation.getLibDirs()) {
@@ -402,7 +402,7 @@ public class DefaultModuleRegistry implements ModuleRegistry, GlobalCacheRootsPr
             ((DefaultModule) module).collectRequiredModules(modules);
         }
 
-        private Module findModule(String optionalProject) {
+        private @Nullable Module findModule(String optionalProject) {
             try {
                 return getModule(optionalProject);
             } catch (UnknownModuleException ex) {

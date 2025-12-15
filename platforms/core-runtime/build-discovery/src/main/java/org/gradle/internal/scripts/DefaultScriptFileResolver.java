@@ -40,7 +40,7 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
     }
 
     @Override
-    public File resolveScriptFile(File dir, String basename) {
+    public @Nullable File resolveScriptFile(File dir, String basename) {
         for (String extension : EXTENSIONS) {
             File candidate = new File(dir, basename + extension);
             if (isCandidateFile(candidate)) {

@@ -158,7 +158,7 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
                                         println(names)
                                     }
                                 }
-                            }
+                            }.withUnsafeDefinition()
                         }
                     }
 

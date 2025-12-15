@@ -68,7 +68,7 @@ class GroovyProjectTypePlugin : Plugin<Project> {
 
                 registerJar(model.classes.named("main"), model)
             }
-            .withDefinitionImplementationType(DefaultGroovyProjectType::class.java)
+            .withUnsafeDefinitionImplementationType(DefaultGroovyProjectType::class.java)
         }
     }
 

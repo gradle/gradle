@@ -35,6 +35,8 @@ dependencies {
     api(libs.jspecify)
     api(libs.guava)
 
+    compileOnly(libs.jetbrainsAnnotations)
+
     implementation(projects.time)
     implementation(projects.baseAsm)
 
@@ -82,4 +84,8 @@ val createBuildReceipt by tasks.registering(BuildReceipt::class) {
 
 tasks.named<Jar>("jar").configure {
     from(createBuildReceipt.map { it.receiptFolder })
+}
+
+errorprone {
+    nullawayEnabled = true
 }
