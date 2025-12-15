@@ -58,6 +58,22 @@ The size of the report file is reduced.
 
 Daemon logs older than 14 days are now automatically cleaned up when the daemon shuts down, eliminating the need for manual cleanup.
 
+### POM exclusion importing
+
+When using the [Build Init Plugin](https://docs.gradle.org/current/userguide/build_init_plugin.html#sec:pom_maven_conversion) to generate a Gradle build from an existing Maven project, Gradle now imports `<exclusion>` elements from the Maven POM and translates them into Gradle dependency exclusions.
+
+Due to differences in how Maven and Gradle handle dependency exclusions, some exclusions may not translate perfectly.
+Due to this, the generated exclusions will be marked with a comment noting they require manual verification:
+
+```kotlin
+dependencies {
+    implementation("some.group:some-artifact:1.0") {
+        // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent
+        exclude(group = "excluded.group", module = "excluded-artifact")
+    }
+}
+```
+
 ## Plugin development
 
 ### Stricter validation for published plugins
@@ -91,7 +107,7 @@ import java.io.File;
 
 void main() {
     var projectDir = new File("/path/to/project");
-    try (var conn = GradleConnector.newConnector().forProjectDirectory(projectDir).connect()) { 
+    try (var conn = GradleConnector.newConnector().forProjectDirectory(projectDir).connect()) {
         System.out.println("--version:\n + " + conn.getModel(BuildEnvironment.class).getVersionInfo());
         System.out.println("--help:\n" + conn.getModel(Help.class).getRenderedText());
     }
