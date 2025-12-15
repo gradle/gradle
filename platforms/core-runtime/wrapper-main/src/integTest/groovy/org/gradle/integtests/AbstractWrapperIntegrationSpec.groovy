@@ -33,10 +33,10 @@ class AbstractWrapperIntegrationSpec extends AbstractIntegrationSpec {
         distDir.listFiles()[0].file("gradle-${distribution.version.baseVersion.version}").assertIsDir()
     }
 
-    void prepareWrapper(URI distributionUri = distribution.binDistribution.toURI(), Action<GradleExecuter> action = Actions.doNothing()) {
+    GradleExecuter prepareWrapper(URI distributionUri = distribution.binDistribution.toURI(), Action<GradleExecuter> action = Actions.doNothing()) {
         def executer = new InProcessGradleExecuter(distribution, temporaryFolder)
         executer.beforeExecute(action)
-        executer.withArguments("wrapper", "--gradle-distribution-url", distributionUri.toString()).run()
+        executer.withArguments("wrapper", "--gradle-distribution-url", distributionUri.toString())
     }
 
     void prepareWrapper(URI distributionUri = distribution.binDistribution.toURI(), TestKeyStore keyStore) {
@@ -44,7 +44,7 @@ class AbstractWrapperIntegrationSpec extends AbstractIntegrationSpec {
             keyStore.trustStoreArguments.each {
                 executer.withArgument(it)
             }
-        }
+        }.run()
     }
 
     GradleExecuter getWrapperExecuter() {

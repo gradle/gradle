@@ -57,18 +57,18 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.start()
 
         file("build.gradle") << """
-    task hello {
-        doLast {
-            println 'hello'
-        }
-    }
-
-    task echoProperty {
-        doLast {
-            println "fooD=" + project.findProperty("fooD")
-        }
-    }
-"""
+            task hello {
+                doLast {
+                    println 'hello'
+                }
+            }
+        
+            task echoProperty {
+                doLast {
+                    println "fooD=" + project.findProperty("fooD")
+                }
+            }
+        """.stripIndent()
     }
 
     private prepareWrapper(String baseUrl) {
