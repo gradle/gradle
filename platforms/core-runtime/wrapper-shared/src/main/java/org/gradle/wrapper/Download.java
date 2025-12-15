@@ -190,11 +190,11 @@ public class Download implements IDownload {
         if (token == null) {
             addBasicAuthentication(address, connection);
         } else {
-            connection.setRequestProperty("Authorization", "Bearer " + token);
+            addBearerTokenAuthentication(token, address, connection);
         }
     }
 
-    private void addBasicAuthentication(URI address, URLConnection connection) throws IOException {
+    private void addBasicAuthentication(URI address, URLConnection connection) {
         String userInfo = calculateUserInfo(address);
         if (userInfo == null) {
             return;
@@ -203,6 +203,13 @@ public class Download implements IDownload {
             logger.log("WARNING Using HTTP Basic Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.");
         }
         connection.setRequestProperty("Authorization", "Basic " + base64Encode(userInfo));
+    }
+
+    private void addBearerTokenAuthentication(String token, URI address, URLConnection connection) {
+        if (!"https".equals(address.getScheme())) {
+            logger.log("WARNING Using HTTP Bearer Token Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.");
+        }
+        connection.setRequestProperty("Authorization", "Bearer " + token);
     }
 
     /**
