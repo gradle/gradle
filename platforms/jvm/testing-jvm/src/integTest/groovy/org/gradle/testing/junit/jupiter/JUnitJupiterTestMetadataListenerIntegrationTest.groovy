@@ -19,6 +19,7 @@ package org.gradle.testing.junit.jupiter
 import org.gradle.api.tasks.testing.TestMetadataListener
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Ignore
 
@@ -65,7 +66,7 @@ class JUnitJupiterTestMetadataListenerIntegrationTest extends AbstractTestingMul
             }
         """.stripIndent())
 
-        buildFile << """
+        buildFile("""
             tasks.test {
                 addTestMetadataListener(new LoggingMetadataListener(logger: project.logger))
 
@@ -77,17 +78,17 @@ class JUnitJupiterTestMetadataListenerIntegrationTest extends AbstractTestingMul
             class LoggingMetadataListener implements TestMetadataListener {
                 private logger
 
-                public void onMetadata(TestDescriptor descriptor, TestMetadataEvent event) {
-                    logger.lifecycle(descriptor.toString() + " with values: " + event.values);
+                void onMetadata(TestDescriptor descriptor, TestMetadataEvent event) {
+                    logger.lifecycle(descriptor.toString() + " with values: " + event.values)
                 }
             }
 
             class RemoveMeListener implements TestMetadataListener {
-                public void onMetadata(TestDescriptor descriptor, TestMetadataEvent event) {
+                void onMetadata(TestDescriptor descriptor, TestMetadataEvent event) {
                     println "remove me!"
                 }
             }
-        """.stripIndent()
+        """)
 
         when:
         def failure = executer.withTasks('test').runWithFailure()
@@ -95,6 +96,81 @@ class JUnitJupiterTestMetadataListenerIntegrationTest extends AbstractTestingMul
         then:
         failure.output.contains("Test successful(TestReporter)(SomeTest) with values: [myKey:myValue]")
         failure.output.contains("Test failing(TestReporter)(SomeTest) with values: [myKey2:myValue2]")
+
+        !failure.output.contains("remove me!")
+    }
+
+    def "can register metadata listener for tests in kotlin DSL"() {
+        given:
+        buildFile.delete()
+        settingsFile.delete()
+
+        javaFile("src/test/java/SomeTest.java", """
+            ${testFrameworkImports}
+            import org.junit.jupiter.api.TestReporter;
+
+            public class SomeTest {
+                @Test
+                public void successful(TestReporter testReporter) {
+                    testReporter.publishEntry("myKey", "myValue");
+                }
+
+                @Test
+                public void failing(TestReporter testReporter) {
+                    testReporter.publishEntry("myKey2", "myValue2");
+                    assertTrue(false);
+                }
+            }
+        """.stripIndent())
+
+        settingsKotlinFile << """
+            rootProject.name = "test-metadata-listener"
+        """
+
+        buildKotlinFile("""
+            plugins {
+                `java-library`
+            }
+
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+
+            dependencies {
+                testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.2")
+                testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.13.2")
+                testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+            }
+
+            tasks.named<Test>("test").configure {
+                ${configureTestFramework}
+
+                addTestMetadataListener(LoggingMetadataListener(project.logger))
+
+                val removeMe = RemoveMeListener()
+                addTestMetadataListener(removeMe)
+                removeTestMetadataListener(removeMe)
+            }
+
+            class LoggingMetadataListener(val logger: Logger) : TestMetadataListener {
+                override fun onMetadata(descriptor: TestDescriptor , event: TestMetadataEvent) {
+                    if (event is TestKeyValueDataEvent) {
+                        logger.lifecycle(descriptor.toString() + " with values: " + event.getValues())
+                    }
+                }
+            }
+
+            class RemoveMeListener : TestMetadataListener {
+                override fun onMetadata(descriptor: TestDescriptor , event: TestMetadataEvent) {
+                    println("remove me!")
+                }
+            }
+        """)
+
+        when:
+        def failure = executer.withTasks('test').runWithFailure()
+
+        then:
+        failure.output.contains("Test successful(TestReporter)(SomeTest) with values: {myKey=myValue}")
+        failure.output.contains("Test failing(TestReporter)(SomeTest) with values: {myKey2=myValue2}")
 
         !failure.output.contains("remove me!")
     }

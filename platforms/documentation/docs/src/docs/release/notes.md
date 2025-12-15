@@ -60,12 +60,14 @@ Gradle now allows listening for test metadata events during test execution.
 In the exact same manner as [`TestOutputListener`](javadoc/org/gradle/api/tasks/testing/TestOutputListener.html), a [`TestMetadataListener`](javadoc/org/gradle/api/tasks/testing/TestMetadataListener.html) can be registered to receive metadata events emitted by the test framework during via the new [`Test#addTestMetadataListener(TestMetadataListener)`](dsl/org.gradle.api.tasks.testing.Test.html#addTestMetadataListener(TestMetadataListener)) method.
 
 ```kotlin
-test {
-    addTestMetadataListener(object : TestMetadataListener {
-        override fun onMetadata(descriptor: TestDescriptor, event: TestMetadataEvent) {
-            logger.lifecycle("From listener: " + descriptor.toString() + " received event: " + event.toString())
-        }
-    })
+class LoggingListener(val logger: Logger) : TestMetadataListener {
+    override fun onMetadata(descriptor: TestDescriptor , event: TestMetadataEvent) {
+        logger.lifecycle("Got metadata event: " + event.toString())
+    }
+}
+
+tasks.named<Test>("test").configure {
+    addTestMetadataListener(LoggingListener())
 }
 ```
 
