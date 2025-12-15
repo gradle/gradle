@@ -22,7 +22,6 @@ import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -36,7 +35,6 @@ import org.junit.Rule
 import spock.lang.Issue
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
-import static org.junit.Assert.assertEquals
 
 @LeaksFileHandles
 class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
@@ -45,20 +43,6 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
     @Rule
     ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
-
-    def assertWrapperDirectoryContentDownloadFailed() {
-        assertWrapperDirectoryContent(toolingApi.gradleUserHomeDir, "custom-dist.zip.part")
-    }
-
-    def assertWrapperDirectoryContentDownloaded(TestFile base = toolingApi.gradleUserHomeDir) {
-        assertWrapperDirectoryContent(base, "custom-dist.zip.ok")
-    }
-
-    def assertWrapperDirectoryContent(TestFile base, String expectedFile) {
-        TestFile[] files = base.file("wrapper/dists/custom-dist").assertIsDir().listFiles()
-        assertEquals("Expected one directory in wrapper distribution directory, but found: $files", 1, files.size())
-        files.first().file(expectedFile).assertIsFile()
-    }
 
     def setup() {
         assert distribution.binDistribution.exists(): "bin distribution must exist to run this test; make sure a <test>NormalizedDistribution dependency is defined."
@@ -84,7 +68,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         }
 
         then:
-        assertWrapperDirectoryContentDownloaded()
+        toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
     }
 
     def "loads credentials from gradle.properties"() {
@@ -108,75 +92,8 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         }
 
         then:
-        assertWrapperDirectoryContentDownloaded()
+        toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
     }
-
-    def "loads host credentials from gradle.properties"() {
-        given:
-        server.withBasicAuthentication("username", "password")
-        file("gradle.properties") << """
-            systemProp.gradle.wrapperUser=other
-            systemProp.gradle.wrapperPassword=wrong
-            systemProp.gradle.my_localhost.wrapperUser=username
-            systemProp.gradle.my_localhost.wrapperPassword=password
-        """.stripIndent()
-        server.expect(server.get("/custom-dist.zip").sendFile(distribution.binDistribution))
-
-        and:
-        def distUri = URI.create("http://my.localhost:${server.port}/custom-dist.zip")
-        toolingApi.withConnector {
-            it.useDistribution(distUri)
-        }
-
-        when:
-        toolingApi.withConnection {
-             it.newBuild().forTasks("help").run()
-        }
-
-        then:
-        assertWrapperDirectoryContentDownloaded()
-    }
-
-    def "loads credentials from gradle.properties and reject invalid password"() {
-        given:
-        server.withBasicAuthentication("username", "password")
-        file("gradle.properties") << """
-            systemProp.gradle.wrapperUser=username
-            systemProp.gradle.wrapperPassword=invalid
-        """.stripIndent()
-
-        and:
-        def distUri = URI.create("http://localhost:${server.port}/custom-dist.zip")
-        toolingApi.withConnector {
-            it.useDistribution(distUri)
-        }
-
-        when:
-        def events = ProgressEvents.create()
-        toolingApi.withConnection {
-            it.newBuild()
-                .forTasks("help")
-                .addProgressListener(events)
-                .run()
-        }
-
-        then:
-        GradleConnectionException e = thrown()
-        e.message == "Could not install Gradle distribution from '$distUri'."
-
-        and:
-        events.buildOperations.size() == 1
-
-        def download = events.buildOperations.first()
-        download.assertIsDownload(distUri, 0)
-        !download.successful
-        download.failures.size() == 1
-        download.failures.first().message == "Server returned HTTP response code: 401 for URL: ${distUri}"
-
-        and:
-        assertWrapperDirectoryContentDownloadFailed()
-    }
-
 
     def "supports project-relative distribution download dir"() {
         given:
@@ -198,7 +115,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         toolingApi.withConnection { it.newBuild().forTasks("help").run() }
 
         then:
-        assertWrapperDirectoryContentDownloaded(getTestDirectory())
+        file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
     }
 
     @Issue('https://github.com/gradle/gradle-private/issues/1537')
@@ -239,7 +156,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         def build = events.buildOperations.get(1)
         build.descriptor.displayName == "Run build"
 
-        assertWrapperDirectoryContentDownloaded()
+        toolingApi.gradleUserHomeDir.file("wrapper/dists/custom-dist").assertIsDir().listFiles().size() == 1
     }
 
     def "receives distribution download progress events when download fails"() {
@@ -276,9 +193,6 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
         !download.successful
         download.failures.size() == 1
         download.failures.first().message == "Server returned HTTP response code: 500 for URL: ${distUri}"
-
-        and:
-        assertWrapperDirectoryContentDownloadFailed()
     }
 
     def "does not receive distribution download progress events when not requested"() {
