@@ -42,6 +42,7 @@ import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.service.ServiceRegistry
@@ -94,6 +95,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         buildOperationRunner,
         new BuildOperationCrossProjectConfigurator(buildOperationRunner),
         callbackActionDecorator,
+        userCodeApplicationContext,
         crossProjectModelAccess
     ).create()
 
@@ -1650,7 +1652,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     }
 
     private <U extends TaskInternal> U task(final String name, Class<U> type) {
-        def taskId = taskIdentityFactory.create(name, type, project)
+        def taskId = taskIdentityFactory.create(name, type, project, UserCodeSource.UNKNOWN)
         Mock(type, name: "[task" + taskId.id + "]") {
             getName() >> name
             getTaskDependency() >> Mock(TaskDependency)

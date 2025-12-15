@@ -563,7 +563,7 @@ The following types/formats are supported:
         fails "broken"
         then:
         executedAndNotSkipped ":broken"
-        failureDescriptionContains("Execution failed for task ':broken'.")
+        failureDescriptionContains("Execution failed for task ':broken' (created in build file 'build.gradle').")
         failureCauseContains(cause)
     }
 

@@ -1088,7 +1088,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Internal
-    @Nullable
     public UserCodeSource getUserCodeSource() {
         return identity.getUserCodeSource();
     }

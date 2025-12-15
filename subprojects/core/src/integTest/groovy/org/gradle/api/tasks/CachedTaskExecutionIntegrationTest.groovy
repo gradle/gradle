@@ -304,7 +304,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().fails 'adHocTask'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':adHocTask'.")
+        failure.assertHasDescription("Execution failed for task ':adHocTask' (created in build file 'build.gradle').")
         failure.assertHasCause("Could not evaluate spec for 'on CI'.")
     }
 

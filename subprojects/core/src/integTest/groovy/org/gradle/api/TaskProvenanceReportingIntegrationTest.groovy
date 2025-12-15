@@ -18,19 +18,27 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+/**
+ * Integration tests for task provenance reporting in task failure messages.
+ */
 class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
-
-    def "can report task provenance when registered in project"() {
+    def "can report task provenance when registered in #buildScriptPath"() {
         given:
-        settingsFile """
+        settingsFile("""
             includeBuild("included")
             include(":lib")
-        """
-        buildFile("included/settings.gradle", "")
-        buildFile("buildSrc/build.gradle", "")
-        buildFile("included/build.gradle", "")
-        buildFile("lib/build.gradle", "")
+        """)
+        settingsFile("included/settings.gradle", """
+            include(':otherLib')
+        """)
 
+        buildFile("included/build.gradle", "")
+        buildFile("included/otherLib/build.gradle", "")
+        buildFile("buildSrc/build.gradle", "")
+        buildFile("lib/build.gradle", "")
+        buildFile("build.gradle", "")
+
+        and:
         buildFile(buildScriptPath, """
             tasks.register('foo') {
               doLast {
@@ -41,59 +49,42 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
         )
 
         when:
-        fails task
+        fails(task)
 
         then:
-        failureDescriptionContains expectedFailureDescription
+        failureDescriptionContains(expectedFailureDescription)
+        failureCauseContains("Failure!")
 
         where:
-        buildScriptPath         | task           | expectedFailureDescription
-        "buildSrc/build.gradle" | "buildSrc:foo" | "Execution failed for task ':buildSrc:foo' created by build file 'buildSrc/build.gradle'"
-        "included/build.gradle" | "included:foo" | "Execution failed for task ':included:foo' created by build file 'included/build.gradle'"
-        "lib/build.gradle"      | "foo"          | "Execution failed for task ':lib:foo' created by build file 'lib/build.gradle'"
+        buildScriptPath                 | task                      | expectedFailureDescription
+        "build.gradle"                  | "foo"                     | "Execution failed for task ':foo' (created in build file 'build.gradle')."
+        "lib/build.gradle"              | "foo"                     | "Execution failed for task ':lib:foo' (created in build file 'lib/build.gradle')."
+        "buildSrc/build.gradle"         | "buildSrc:foo"            | "Execution failed for task ':buildSrc:foo' (created in build file 'buildSrc/build.gradle')."
+        "included/build.gradle"         | "included:foo"            | "Execution failed for task ':included:foo' (created in build file 'included/build.gradle')."
+        "included/otherLib/build.gradle"| "included:otherLib:foo"   | "Execution failed for task ':included:otherLib:foo' (created in build file 'included/otherLib/build.gradle')."
     }
 
-    def "can read task user code source"() {
+    def "task added in afterEvaluate reports provenance"() {
         given:
         buildFile """
-            task foo {
-                doLast {
-                    println "Hello from \${userCodeSource.displayName}"
-                }
-            }
-        """
-
-        when:
-        def result = run("foo")
-
-        then:
-        outputContains("Hello from build file 'build.gradle'")
-    }
-
-    def "can read task user code source for task registered by plugin"() {
-        given:
-        buildFile """
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    project.tasks.register("foo") {
-                        doLast {
-                            println "Hello from \${userCodeSource.displayName}"
-                        }
+            project.afterEvaluate { p ->
+                p.tasks.register("foo") {
+                    doLast {
+                        throw new RuntimeException("Failure!")
                     }
                 }
             }
-
-            apply plugin: MyPlugin
         """
 
         when:
-        def result = run("foo")
+        fails("foo")
 
         then:
-        outputContains("Hello from plugin class 'MyPlugin'")
+        failureDescriptionContains("Execution failed for task ':foo' (created in build file 'build.gradle').")
+        failureCauseContains("Failure!")
     }
 
-    def "can read task user code source for task registered by plugin in afterEvaluate"() {
+    def "task added by plugin in afterEvaluate reports provenance"() {
         given:
         buildFile """
             class MyPlugin implements Plugin<Project> {
@@ -101,32 +92,7 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
                     project.afterEvaluate { p ->
                         p.tasks.register("foo") {
                             doLast {
-                                println "Hello from \${userCodeSource.displayName}"
-                            }
-                        }
-                    }
-                }
-            }
-
-            apply plugin: MyPlugin
-        """
-
-        when:
-        def result = run("foo")
-
-        then:
-        outputContains("Hello from plugin class 'MyPlugin'")
-    }
-
-    def "task fails in afterEvaluate"() {
-        given:
-        buildFile """
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    project.afterEvaluate { p ->
-                        p.tasks.register("foo") {
-                            doLast {
-                                throw new RuntimeException("foo")
+                                throw new RuntimeException("Failure!")
                             }
                         }
                     }
@@ -140,10 +106,11 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
         fails("foo")
 
         then:
-        failureDescriptionContains("Execution failed for task ':foo' created by plugin class 'MyPlugin'.")
+        failureDescriptionContains("Execution failed for task ':foo' (created by plugin class 'MyPlugin').")
+        failureCauseContains("Failure!")
     }
 
-    def "task fails in afterEvaluate from plugin applied by other plugin"() {
+    def "task added by transitively applied plugin in afterEvaluate reports provenance"() {
         given:
         buildFile """
             class MyPlugin implements Plugin<Project> {
@@ -151,7 +118,7 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
                     project.afterEvaluate { p ->
                         p.tasks.register("foo") {
                             doLast {
-                                throw new RuntimeException("foo")
+                                throw new RuntimeException("Failure!")
                             }
                         }
                     }
@@ -171,24 +138,8 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
         fails("foo")
 
         then:
-        failureDescriptionContains("Execution failed for task ':foo' created by plugin class 'MyPlugin'.")
-    }
-
-    def "task registered in project fails"() {
-        given:
-        buildFile """
-            tasks.register("foo") {
-                doLast {
-                    throw new RuntimeException("foo")
-                }
-            }
-        """
-
-        when:
-        fails("foo")
-
-        then:
-        failureDescriptionContains("Execution failed for task ':foo' created by build file 'build.gradle'")
+        failureDescriptionContains("Execution failed for task ':foo' (created by plugin class 'MyPlugin')")
+        failureCauseContains("Failure!")
     }
 
     def "task registered in settings fails"() {
@@ -197,7 +148,7 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
             gradle.rootProject {
                 tasks.register("foo") {
                     doLast {
-                        throw new RuntimeException("foo")
+                        throw new RuntimeException("Failure!")
                     }
                 }
             }
@@ -207,9 +158,32 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
         fails("foo")
 
         then:
-        failureDescriptionContains("Execution failed for task ':foo' created by settings file 'settings.gradle'")
+        failureDescriptionContains("Execution failed for task ':foo' (created in settings file 'settings.gradle')")
+        failureCauseContains("Failure!")
     }
 
+    def "task registered in included build settings fails"() {
+        given:
+        settingsFile("""
+            includeBuild("included")
+        """)
+        settingsFile("included/settings.gradle", """
+            gradle.rootProject {
+                tasks.register("foo") {
+                    doLast {
+                        throw new RuntimeException("Failure!")
+                    }
+                }
+            }
+        """)
+
+        when:
+        fails(":included:foo")
+
+        then:
+        failureDescriptionContains("Execution failed for task ':included:foo' (created in settings file 'included/settings.gradle').")
+        failureCauseContains("Failure!")
+    }
 
     def "task registered in provider fails"() {
         given:
@@ -217,7 +191,7 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
             def myProvider = provider {
                 tasks.register("foo") {
                     doLast {
-                        throw new RuntimeException("foo")
+                        throw new RuntimeException("Failure!")
                     }
                 }
             }
@@ -229,7 +203,8 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
         fails("foo")
 
         then:
-        failureDescriptionContains("Execution failed for task ':foo' created by build file 'build.gradle'")
+        failureDescriptionContains("Execution failed for task ':foo' (created in build file 'build.gradle').")
+        failureCauseContains("Failure!")
     }
 
     def "built in task fails"() {
@@ -237,7 +212,7 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
         buildFile """
             help {
                 doLast {
-                    throw new RuntimeException("help")
+                    throw new RuntimeException("Failure!")
                 }
             }
         """
@@ -246,12 +221,7 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
         fails("help")
 
         then:
-        failureDescriptionContains("Execution failed for task ':help' created by plugin 'org.gradle.help-tasks'")
+        failureDescriptionContains("Execution failed for task ':help' (created by plugin 'org.gradle.help-tasks').")
+        failureCauseContains("Failure!")
     }
-
-    // Test basic case: plugin registers a task, task fails at runtime, exception blames plugin
-    // Same, but plubin registers task in afterEvaluate
-    // Same, but plugin applies another plugin in afterEvaluate, which registers a task
-    // Check a built in task's context (init, help)
-    // Test task creation by rules
 }
