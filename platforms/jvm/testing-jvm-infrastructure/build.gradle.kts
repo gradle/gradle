@@ -40,6 +40,7 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.concurrent)
+    implementation(projects.loggingApi)
 
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)

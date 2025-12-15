@@ -32,12 +32,17 @@ import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAsse
 import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonTestFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFailedMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapper;
+import org.gradle.api.internal.tasks.testing.junit.description.DescriptionMap;
+import org.gradle.api.internal.tasks.testing.junit.description.DescriptionSet;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
+import org.junit.internal.runners.JUnit38ClassRunner;
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
@@ -46,7 +51,6 @@ import org.junit.runner.notification.RunListener;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,6 +69,7 @@ import java.util.regex.Pattern;
 @NullMarked
 public class JUnitTestEventAdapter extends RunListener {
 
+    private static final Logger LOGGER = Logging.getLogger(JUnitTestEventAdapter.class);
     private static final List<TestFailureMapper> MAPPERS = Arrays.asList(
         new JUnitComparisonTestFailureMapper(),
         new OpenTestAssertionFailedMapper(),
@@ -74,40 +79,75 @@ public class JUnitTestEventAdapter extends RunListener {
     );
 
     private static final class TestNode {
-        // Avoid generating the id too early, as it leads to a confusing ordering of ids
-        // Ordering generally shouldn't be relied on, but the tests read cleaner if ids are generated in a depth-first order
-        private final IdGenerator<?> idGenerator;
-        @Nullable
-        private volatile Object resolvedId;
+        private static final DescriptionMap.DescriptionWitness<TestNode, TestNode> WITNESS =
+            new DescriptionMap.DescriptionWitness<TestNode, TestNode>() {
+                @Override
+                public Description getDescription(TestNode wrappedValue) {
+                    return wrappedValue.description;
+                }
+
+                @Override
+                public TestNode getValue(TestNode wrappedValue) {
+                    return wrappedValue;
+                }
+            };
+
+        public static DescriptionMap<TestNode, TestNode> createDescriptionMap() {
+            return new DescriptionMap<>((desc, node) -> node, WITNESS);
+        }
+
+        /**
+         * ID state field. May either be an IdGenerator or the resolved id.
+         */
+        private volatile Object idState;
         final Description description;
 
+        /**
+         * Constructor that avoids generating the id too early, as it leads to a confusing ordering of ids.
+         * Ordering generally shouldn't be relied on, but the tests read cleaner if ids are generated in a depth-first order
+         * @param idGenerator the id generator, will be used to generate the id when first needed
+         * @param description the description
+         */
         TestNode(IdGenerator<?> idGenerator, Description description) {
-            this.idGenerator = idGenerator;
+            this.idState = idGenerator;
             this.description = description;
         }
 
         public Object resolveId() {
-            Object localId = resolvedId;
-            if (localId == null) {
+            Object localIdState = idState;
+            if (localIdState instanceof IdGenerator) {
                 synchronized (this) {
-                    localId = resolvedId;
-                    if (localId == null) {
-                        localId = idGenerator.generateId();
-                        resolvedId = localId;
+                    localIdState = idState;
+                    if (localIdState instanceof IdGenerator) {
+                        IdGenerator<?> idGenerator = (IdGenerator<?>) localIdState;
+                        localIdState = idGenerator.generateId();
+                        // Highly unlikely, but preserve semantics if a bad IdGenerator exists
+                        if (localIdState instanceof IdGenerator) {
+                            throw new IllegalStateException("Generated id cannot be an IdGenerator");
+                        }
+                        idState = localIdState;
                     }
                 }
             }
-            return localId;
+            return localIdState;
+        }
+
+        public Object requireId() {
+            Object localIdState = idState;
+            if (localIdState instanceof IdGenerator) {
+                throw new AssertionError("ID not yet resolved for " + description);
+            }
+            return localIdState;
         }
     }
 
     private static final class PostRunStartData {
-        final Map<Description, TestNode> descToNode;
-        final Map<Description, TestNode> childDescToParentNode;
+        final DescriptionMap<TestNode, TestNode> descToNode;
+        final DescriptionMap<TestNode, TestNode> childDescToParentNode;
 
         PostRunStartData(
-            Map<Description, TestNode> descToNode,
-            Map<Description, TestNode> childDescToParentNode
+            DescriptionMap<TestNode, TestNode> descToNode,
+            DescriptionMap<TestNode, TestNode> childDescToParentNode
         ) {
             this.descToNode = descToNode;
             this.childDescToParentNode = childDescToParentNode;
@@ -124,9 +164,22 @@ public class JUnitTestEventAdapter extends RunListener {
     @Nullable
     private volatile PostRunStartData postRunStartData;
     // This uses a Deque so grandparents are completed after parents
-    private final Deque<Description> activeParents = new ConcurrentLinkedDeque<>();
-    private final Map<Description, TestDescriptorInternal> executing = new HashMap<>();
-    private final Set<Description> assumptionFailed = new HashSet<>();
+    private final Deque<TestNode> activeParents = new ConcurrentLinkedDeque<>();
+    private final Map<Description, Integer> descToStartedCount = new HashMap<>();
+    private final Map<TestNode, DescriptionSet> parentToExecutingAmbiguousChild = new HashMap<>();
+    /**
+     * Set of descriptions that are currently executing as ambiguous children of a parent node.
+     */
+    private final DescriptionSet executingAmbiguousChildren = new DescriptionSet();
+    /**
+     * Parent nodes that JUnit has indicated are finished, but we are waiting for ambiguous children to complete before
+     * completing the parent downstream.
+     */
+    private final Set<TestNode> parentsWaitingForAmbiguousChildren = new HashSet<>();
+    private final DescriptionMap<TestNode, TestNode> executingToChosenParent = TestNode.createDescriptionMap();
+    private final DescriptionMap<TestDescriptorInternal, DescriptionMap.SimpleValueWrapper<TestDescriptorInternal>> executing =
+        DescriptionMap.createSimple();
+    private final DescriptionSet assumptionFailed = new DescriptionSet();
     private volatile boolean testsStarted = false;
     @Nullable
     private volatile String rootName;
@@ -139,7 +192,7 @@ public class JUnitTestEventAdapter extends RunListener {
 
     /**
      * Sets the root name. This is used to override the root description name, as some runners
-     * don't set a name on the root description, e.g. {@link org.junit.internal.runners.JUnit38ClassRunner}.
+     * don't set a name on the root description, e.g. {@link JUnit38ClassRunner}.
      *
      * @param rootName the root name
      */
@@ -156,8 +209,36 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     @Nullable
-    private TestNode getParentOf(Description description) {
+    private TestNode getNodeUnambiguously(Description description) {
+        return requirePostRunStartData().descToNode.get(description);
+    }
+
+    @Nullable
+    private TestNode getParentNodeUnambiguously(Description description) {
         return requirePostRunStartData().childDescToParentNode.get(description);
+    }
+
+    @Nullable
+    private TestNode getParentOfForStarting(Description description) {
+        TestNode chosenParent = getParentNodeUnambiguously(description);
+        if (chosenParent == null) {
+            // Use parent of unstarted node that matches the description
+            int startedCount = descToStartedCount.getOrDefault(description, 0);
+            List<TestNode> allParents = requirePostRunStartData().childDescToParentNode.getByEquality(description);
+            if (allParents.isEmpty() || startedCount >= allParents.size()) {
+                // All children have already started, no parent available
+                return null;
+            }
+            chosenParent = allParents.get(startedCount);
+            // Track the child so we can delay completing the parent until it is done
+            addAmbiguousChild(description, chosenParent);
+        }
+        return chosenParent;
+    }
+
+    private void addAmbiguousChild(Description childDesc, TestNode parentNode) {
+        parentToExecutingAmbiguousChild.computeIfAbsent(parentNode, k -> new DescriptionSet()).add(childDesc);
+        executingAmbiguousChildren.add(childDesc);
     }
 
     /**
@@ -168,14 +249,14 @@ public class JUnitTestEventAdapter extends RunListener {
      * </p>
      *
      * @param description the description whose parent should be started
-     * @return the id of the parent
+     * @return the parent
      */
-    private Object startRequiredParentIfNeeded(Description description) {
-        Object parentId = startParentIfNeeded(description);
-        if (parentId == null) {
+    private TestNode startRequiredParentIfNeeded(Description description) {
+        TestNode parent = startParentIfNeeded(description);
+        if (parent == null) {
             throw new AssertionError("No parent found for " + description);
         }
-        return parentId;
+        return parent;
     }
 
     /**
@@ -186,16 +267,24 @@ public class JUnitTestEventAdapter extends RunListener {
      * </p>
      *
      * @param description the description whose parent should be started
-     * @return the id of the parent, or {@code null} if there is no parent
+     * @return the parent, or {@code null}
      */
     @Nullable
-    private Object startParentIfNeeded(Description description) {
-        TestNode parent = getParentOf(description);
+    private TestNode startParentIfNeeded(Description description) {
+        TestNode chosen = executingToChosenParent.get(description);
+        if (chosen != null) {
+            if (!activeParents.contains(chosen)) {
+                throw new AssertionError("Chosen parent " + chosen.description + " for " + description + " is not active");
+            }
+            return chosen;
+        }
+        TestNode parent = getParentOfForStarting(description);
         if (parent == null) {
             return null;
         }
+        executingToChosenParent.put(description, parent);
         startParentByNodeIfNeeded(parent, clock.getCurrentTime());
-        return parent.resolveId();
+        return parent;
     }
 
     /**
@@ -210,26 +299,59 @@ public class JUnitTestEventAdapter extends RunListener {
      * @param now the current time
      */
     private void startParentByNodeIfNeeded(TestNode parent, long now) {
-        synchronized (lock) {
-            Object grandparentId = startParentIfNeeded(parent.description);
-            if (activeParents.contains(parent.description)) {
-                return;
+        TestNode grandparent = startParentIfNeeded(parent.description);
+        if (activeParents.contains(parent)) {
+            return;
+        }
+        activeParents.addLast(parent);
+        String rootName = grandparent == null ? this.rootName : className(parent.description);
+        if (rootName == null) {
+            throw new AssertionError("No class name found for " + parent.description);
+        }
+        TestDescriptorInternal parentDescriptor;
+        if (grandparent != null && supportsTestClassMethod() && getTestClassIfPossible(parent.description) == null) {
+            // When Description.getTestClass() returns null and we have a grandparent,
+            // it indicates "suites" of parameterized tests, or some other kind of synthetic grouping.
+            // Avoid treating these as classes.
+            parentDescriptor = new DefaultTestSuiteDescriptor(parent.resolveId(), rootName);
+        } else {
+            parentDescriptor = new DefaultTestClassDescriptor(parent.resolveId(), rootName, classDisplayName(rootName));
+        }
+        Object grandparentId = grandparent != null ? grandparent.requireId() : null;
+        startNode(parent.description, parentDescriptor, new TestStartEvent(now, grandparentId));
+    }
+
+    private void startNode(Description description, TestDescriptorInternal descriptorInternal, TestStartEvent event) {
+        descToStartedCount.compute(description, (desc, count) -> (count == null) ? 1 : count + 1);
+        resultProcessor.started(descriptorInternal, event);
+    }
+
+    private void completeNode(Description description, Object id, TestCompleteEvent event) {
+        resultProcessor.completed(id, event);
+
+        if (!executingAmbiguousChildren.remove(description)) {
+            return;
+        }
+
+        // Complete any parents waiting for this child
+        TestNode parent = executingToChosenParent.get(description);
+        if (parent == null) {
+            throw new AssertionError("No parent found for executing ambiguous child " + description);
+        }
+        DescriptionSet ambiguousChildren = parentToExecutingAmbiguousChild.get(parent);
+        if (ambiguousChildren == null) {
+            throw new AssertionError("No ambiguous children executing for parent of " + description);
+        }
+        if (!ambiguousChildren.remove(description)) {
+            throw new AssertionError("Ambiguous child " + description + " not found for parent " + parent.description);
+        }
+        if (ambiguousChildren.isEmpty()) {
+            // No more ambiguous children executing for this parent
+            parentToExecutingAmbiguousChild.remove(parent);
+            // Complete the parent if it was waiting
+            if (parentsWaitingForAmbiguousChildren.remove(parent)) {
+                completeParentIfActive(parent);
             }
-            activeParents.addLast(parent.description);
-            String rootName = grandparentId == null ? this.rootName : className(parent.description);
-            if (rootName == null) {
-                throw new AssertionError("No class name found for " + parent.description);
-            }
-            TestDescriptorInternal parentDescriptor;
-            if (grandparentId != null && supportsTestClassMethod() && getTestClassIfPossible(parent.description) == null) {
-                // When Description.getTestClass() returns null and we have a grandparent,
-                // it indicates "suites" of parameterized tests, or some other kind of synthetic grouping.
-                // Avoid treating these as classes.
-                parentDescriptor = new DefaultTestSuiteDescriptor(parent.resolveId(), rootName);
-            } else {
-                parentDescriptor = new DefaultTestClassDescriptor(parent.resolveId(), rootName, classDisplayName(rootName));
-            }
-            resultProcessor.started(parentDescriptor, new TestStartEvent(now, grandparentId));
         }
     }
 
@@ -240,7 +362,7 @@ public class JUnitTestEventAdapter extends RunListener {
     public void testSuiteStarted(Description description) {
         synchronized (lock) {
             testsStarted = true;
-            TestNode testNode = requirePostRunStartData().descToNode.get(description);
+            TestNode testNode = getNodeUnambiguously(description);
             if (testNode != null) {
                 startParentByNodeIfNeeded(testNode, clock.getCurrentTime());
             }
@@ -252,15 +374,29 @@ public class JUnitTestEventAdapter extends RunListener {
     // If not called, the suite end time is when the whole run finishes
     @Override
     public void testSuiteFinished(Description description) {
-        TestNode testNode = requirePostRunStartData().descToNode.get(description);
+        TestNode testNode = getNodeUnambiguously(description);
         if (testNode == null) {
             return;
         }
         synchronized (lock) {
-            if (activeParents.remove(description)) {
-                // Parent was active, complete it now
-                resultProcessor.completed(testNode.resolveId(), new TestCompleteEvent(clock.getCurrentTime()));
+            if (parentToExecutingAmbiguousChild.get(testNode) != null) {
+                Logging.getLogger(getClass()).lifecycle("Delaying completion of parent {} (id {}) as it has ambiguous children still executing", testNode.description, testNode.requireId());
+                // There are still ambiguous children executing, don't complete the parent yet
+                parentsWaitingForAmbiguousChildren.add(testNode);
+                // Make the parent of this node also wait for this node
+                TestNode parentOfTestNode = executingToChosenParent.get(testNode.description);
+                if (parentOfTestNode != null) {
+                    addAmbiguousChild(testNode.description, parentOfTestNode);
+                }
+                return;
             }
+            completeParentIfActive(testNode);
+        }
+    }
+
+    private void completeParentIfActive(TestNode testNode) {
+        if (activeParents.remove(testNode)) {
+            completeNode(testNode.description, testNode.requireId(), new TestCompleteEvent(clock.getCurrentTime()));
         }
     }
 
@@ -268,11 +404,10 @@ public class JUnitTestEventAdapter extends RunListener {
     public void testStarted(Description description) {
         synchronized (lock) {
             testsStarted = true;
-            Object parentId = startRequiredParentIfNeeded(description);
+            TestNode parent = startRequiredParentIfNeeded(description);
             TestDescriptorInternal descriptor = nullSafeDescriptor(idGenerator.generateId(), description);
-            TestDescriptorInternal oldTest = executing.put(description, descriptor);
-            assert oldTest == null : String.format("Unexpected start event for %s", description);
-            resultProcessor.started(descriptor, startEvent(parentId));
+            executing.put(description, descriptor);
+            startNode(description, descriptor, startEvent(parent.requireId()));
         }
     }
 
@@ -301,6 +436,15 @@ public class JUnitTestEventAdapter extends RunListener {
         }
     }
 
+    /**
+     * Helper method that ensures a parent with the given class name is started, even if otherwise missing.
+     * The action must complete the child test immediately, as this method will complete any synthetic parent it creates
+     * immediately after the action returns, and does not report the child as an ambiguous child.
+     *
+     * @param parentClassName the parent class name
+     * @param now the current time
+     * @param action the action to perform with the parent id
+     */
     private void withPotentiallyMissingParent(String parentClassName, long now, Consumer<Object> action) {
         TestNode parent = startParentMatchingClassName(parentClassName, now);
         Object syntheticParentId = null;
@@ -313,7 +457,7 @@ public class JUnitTestEventAdapter extends RunListener {
             resultProcessor.started(syntheticParent, new TestStartEvent(now));
         }
 
-        action.accept(parent != null ? parent.resolveId() : syntheticParentId);
+        action.accept(parent != null ? parent.requireId() : syntheticParentId);
 
         if (syntheticParentId != null) {
             resultProcessor.completed(syntheticParentId, new TestCompleteEvent(now));
@@ -322,12 +466,9 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Nullable
     private TestNode startParentMatchingClassName(String className, long now) {
-        TestNode parent = null;
-        for (Map.Entry<Description, TestNode> entry : requirePostRunStartData().descToNode.entrySet()) {
-            if (className.equals(className(entry.getKey()))) {
-                parent = entry.getValue();
-                startParentByNodeIfNeeded(entry.getValue(), now);
-            }
+        TestNode parent = requirePostRunStartData().descToNode.getFirstMatching(desc -> className.equals(className(desc)));
+        if (parent != null) {
+            startParentByNodeIfNeeded(parent, now);
         }
         return parent;
     }
@@ -378,6 +519,13 @@ public class JUnitTestEventAdapter extends RunListener {
     public void testExecutionFailure(ClassTestDefinition testClassDefinition, TestFailure failure) {
         try {
             synchronized (lock) {
+                if (postRunStartData == null) {
+                    // handleRunFinished has already been called, which means we shouldn't report anything more
+                    if (LOGGER.isErrorEnabled()) {
+                        LOGGER.error("Test execution failure after test run finished for class " + testClassDefinition.getTestClassName(), failure.getRawFailure());
+                    }
+                    return;
+                }
                 long now = clock.getCurrentTime();
                 if (executing.isEmpty()) {
                     String testName = testsStarted ? "executionError" : "initializationError";
@@ -389,10 +537,11 @@ public class JUnitTestEventAdapter extends RunListener {
                         resultProcessor.completed(initializationError.getId(), new TestCompleteEvent(now));
                     });
                 } else {
-                    for (Map.Entry<Description, TestDescriptorInternal> test : executing.entrySet()) {
-                        resultProcessor.failure(test.getValue().getId(), failure);
-                        resultProcessor.completed(test.getValue().getId(), new TestCompleteEvent(now));
-                    }
+                    executing.forEach((description, testInternal) -> {
+                        Object id = testInternal.getId();
+                        resultProcessor.failure(id, failure);
+                        completeNode(description, id, new TestCompleteEvent(now));
+                    });
                 }
             }
         } finally {
@@ -401,27 +550,29 @@ public class JUnitTestEventAdapter extends RunListener {
     }
 
     @Override
-    public void testIgnored(Description description) throws Exception {
+    public void testIgnored(Description description) {
         synchronized (lock) {
             if (methodName(description) == null) {
                 // An @Ignored class, ignore the event. We don't get testIgnored events for each method, so we have
                 // generate them on our own
                 processIgnoredClass(description);
             } else {
-                Object parentId = startRequiredParentIfNeeded(description);
+                TestNode parent = startRequiredParentIfNeeded(description);
                 TestDescriptorInternal descriptor = descriptor(idGenerator.generateId(), description);
-                resultProcessor.started(descriptor, startEvent(parentId));
+                startNode(description, descriptor, startEvent(parent.requireId()));
                 long endTime = clock.getCurrentTime();
-                resultProcessor.completed(descriptor.getId(), new TestCompleteEvent(endTime, TestResult.ResultType.SKIPPED));
+                completeNode(description, descriptor.getId(), new TestCompleteEvent(endTime, TestResult.ResultType.SKIPPED));
             }
         }
     }
 
     private void processIgnoredClass(Description description) {
         // Start the class
-        TestNode classNode = requirePostRunStartData().descToNode.get(description);
+        TestNode classNode = getNodeUnambiguously(description);
         if (classNode == null) {
-            throw new AssertionError("No class node found for " + description);
+            // Log instead of failing hard, to allow for some level of leniency in case of unexpected JUnit behavior
+            LOGGER.info("Could not find test node for ignored class: {}", description);
+            return;
         }
         startParentByNodeIfNeeded(classNode, clock.getCurrentTime());
         String className = className(description);
@@ -437,17 +588,22 @@ public class JUnitTestEventAdapter extends RunListener {
     public void testFinished(Description description) {
         long endTime = clock.getCurrentTime();
         TestDescriptorInternal testInternal;
-        TestResult.ResultType resultType;
         synchronized (lock) {
             testInternal = executing.remove(description);
-            if (testInternal == null && executing.size() == 1) {
-                // Assume that test has renamed itself (this can actually happen)
-                testInternal = executing.values().iterator().next();
-                executing.clear();
+            if (testInternal == null) {
+                testInternal = executing.getOnlyValue();
+                if (testInternal != null) {
+                    // Assume that test has renamed itself (this can actually happen)
+                    executing.clear();
+                }
             }
-            assert testInternal != null : String.format("Unexpected end event for %s", description);
-            resultType = assumptionFailed.remove(description) ? TestResult.ResultType.SKIPPED : null;
-            resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime, resultType));
+            if (testInternal == null) {
+                // Log instead of failing hard, to allow for some level of leniency in case of unexpected JUnit behavior
+                LOGGER.info("Unexpected end event for {}", description);
+                return;
+            }
+            TestResult.ResultType resultType = assumptionFailed.remove(description) ? TestResult.ResultType.SKIPPED : null;
+            completeNode(description, testInternal.getId(), new TestCompleteEvent(endTime, resultType));
         }
     }
 
@@ -544,28 +700,28 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Override
     public void testRunStarted(Description description) {
-        Map<Description, TestNode> descToNode = new HashMap<>();
-        Map<Description, TestNode> childDescToParentNode = new HashMap<>();
+        DescriptionMap<TestNode, TestNode> descToNode = TestNode.createDescriptionMap();
+        DescriptionMap<TestNode, TestNode> childDescToParentNode = TestNode.createDescriptionMap();
         addParentIds(description, descToNode, childDescToParentNode);
-        this.postRunStartData = new PostRunStartData(
-            Collections.unmodifiableMap(descToNode),
-            Collections.unmodifiableMap(childDescToParentNode)
-        );
 
-        // Start root immediately so output is captured for it
-        startParentByNodeIfNeeded(Objects.requireNonNull(descToNode.get(description)), clock.getCurrentTime());
+        synchronized (lock) {
+            this.postRunStartData = new PostRunStartData(descToNode, childDescToParentNode);
+
+            // Start root immediately so output is captured for it
+            startParentByNodeIfNeeded(Objects.requireNonNull(descToNode.get(description)), clock.getCurrentTime());
+        }
     }
 
     private void addParentIds(
         Description description,
-        Map<Description, TestNode> descToNode,
-        Map<Description, TestNode> childDescToParentNode
+        DescriptionMap<TestNode, TestNode> descToNode,
+        DescriptionMap<TestNode, TestNode> childDescToParentNode
     ) {
         TestNode thisNode = new TestNode(idGenerator, description);
         descToNode.put(description, thisNode);
         for (Description child : description.getChildren()) {
             childDescToParentNode.put(child, thisNode);
-            if (methodName(child) == null) {
+            if (description.isSuite()) {
                 addParentIds(child, descToNode, childDescToParentNode);
             }
         }
@@ -581,13 +737,18 @@ public class JUnitTestEventAdapter extends RunListener {
             // Complete any active parents, in reverse order
             long now = clock.getCurrentTime();
 
-            PostRunStartData postRunStartData = requirePostRunStartData();
-            Description parent;
+            TestNode parent;
             while ((parent = activeParents.pollLast()) != null) {
-                Object parentId = Objects.requireNonNull(postRunStartData.descToNode.get(parent)).resolveId();
+                Object parentId = parent.requireId();
                 resultProcessor.completed(parentId, new TestCompleteEvent(now));
             }
 
+            postRunStartData = null;
+            descToStartedCount.clear();
+            parentToExecutingAmbiguousChild.clear();
+            executingAmbiguousChildren.clear();
+            parentsWaitingForAmbiguousChildren.clear();
+            executingToChosenParent.clear();
             executing.clear();
             assumptionFailed.clear();
         }
