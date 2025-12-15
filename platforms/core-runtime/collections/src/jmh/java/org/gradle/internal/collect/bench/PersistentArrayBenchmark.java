@@ -45,7 +45,11 @@ public class PersistentArrayBenchmark {
         ArrayList(true, new ArrayListArrayProtocol()),
         CopyOnWriteArrayList(true, new CopyOnWriteArrayListArrayProtocol()),
         guava(false, new GuavaArrayProtocol()),
-        //        capsule(false, new CapsuleArrayProtocol()),
+        // To avoid imposing the required dependencies on every Gradle developer
+        // we keep these implementations commented out.
+        // Uncomment the dependencies on build.gradle.kts then
+        // uncomment the desired implementation(s) here and at the bottom of this file.
+//        capsule(false, new CapsuleArrayProtocol()),
 //        clojure(false, new ClojureArrayProtocol()),
 //        scala(false, new ScalaArrayProtocol()),
         gradle(false, new GradleArrayProtocol());
@@ -160,6 +164,69 @@ public class PersistentArrayBenchmark {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    static class GuavaArrayProtocol implements ArrayProtocol {
+
+        @Override
+        public Object newInstance() {
+            return ImmutableList.of();
+        }
+
+        @Override
+        public Object append(Object array, Object key) {
+            ImmutableList<Object> typed = (ImmutableList<Object>) array;
+            return ImmutableList.builderWithExpectedSize(typed.size() + 1)
+                .addAll(typed)
+                .add(key)
+                .build();
+        }
+
+        @Override
+        public Object get(Object array, int index) {
+            return ((ImmutableList<Object>) array).contains(index);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    static class ArrayListArrayProtocol implements ArrayProtocol {
+
+        @Override
+        public Object newInstance() {
+            return new ArrayList<Object>();
+        }
+
+        @Override
+        public Object append(Object array, Object key) {
+            ((ArrayList<Object>) array).add(key);
+            return array;
+        }
+
+        @Override
+        public Object get(Object array, int index) {
+            return ((ArrayList<Object>) array).get(index);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    static class CopyOnWriteArrayListArrayProtocol implements ArrayProtocol {
+
+        @Override
+        public Object newInstance() {
+            return new CopyOnWriteArrayList<>();
+        }
+
+        @Override
+        public Object append(Object array, Object key) {
+            ((CopyOnWriteArrayList<Object>) array).add(key);
+            return array;
+        }
+
+        @Override
+        public Object get(Object array, int index) {
+            return ((CopyOnWriteArrayList<Object>) array).get(index);
+        }
+    }
+
     // simulate an array using Map.Immutable<Integer, Object>
 //    @SuppressWarnings("unchecked")
 //    static class CapsuleArrayProtocol implements ArrayProtocol {
@@ -224,66 +291,4 @@ public class PersistentArrayBenchmark {
 //        }
 //    }
 
-    @SuppressWarnings("unchecked")
-    static class GuavaArrayProtocol implements ArrayProtocol {
-
-        @Override
-        public Object newInstance() {
-            return ImmutableList.of();
-        }
-
-        @Override
-        public Object append(Object array, Object key) {
-            ImmutableList<Object> typed = (ImmutableList<Object>) array;
-            return ImmutableList.builderWithExpectedSize(typed.size() + 1)
-                .addAll(typed)
-                .add(key)
-                .build();
-        }
-
-        @Override
-        public Object get(Object array, int index) {
-            return ((ImmutableList<Object>) array).contains(index);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    static class ArrayListArrayProtocol implements ArrayProtocol {
-
-        @Override
-        public Object newInstance() {
-            return new ArrayList<Object>();
-        }
-
-        @Override
-        public Object append(Object array, Object key) {
-            ((ArrayList<Object>) array).add(key);
-            return array;
-        }
-
-        @Override
-        public Object get(Object array, int index) {
-            return ((ArrayList<Object>) array).get(index);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    static class CopyOnWriteArrayListArrayProtocol implements ArrayProtocol {
-
-        @Override
-        public Object newInstance() {
-            return new CopyOnWriteArrayList<>();
-        }
-
-        @Override
-        public Object append(Object array, Object key) {
-            ((CopyOnWriteArrayList<Object>) array).add(key);
-            return array;
-        }
-
-        @Override
-        public Object get(Object array, int index) {
-            return ((CopyOnWriteArrayList<Object>) array).get(index);
-        }
-    }
 }

@@ -33,10 +33,14 @@ dependencies {
 
     implementation(projects.stdlibJavaExtensions)
 
-    // For benchmarking against capsule, clojure and scala collections
+    // For benchmarking against capsule, clojure, scala collections and more.
+    // Uncomment the libraries you want to benchmark against then update
+    // the verification metadata with:
+    // ./gradlew help --write-verification-metadata pgp,sha256 --export-keys
 //    jmhImplementation("io.usethesource:capsule:0.7.1")
 //    jmhImplementation("com.github.krukow:clj-ds:0.0.4")
 //    jmhImplementation("org.scala-lang:scala3-library_3:3.7.4")
+//    jmhImplementation("org.pcollections:pcollections:5.0.0")
 
     jmhImplementation(libs.guava)
     jmhImplementation(libs.fastutil)
@@ -58,12 +62,14 @@ jmh {
 //        "PersistentSetBenchmark",
 //        "PersistentSetBenchmark.iteration",
 //        "PersistentSetBenchmark.randomLookup",
+//        "PersistentSetBenchmark.remove",
 //        "PersistentSetBenchmark.removeAbsent",
 //        "PersistentSetBenchmark.removePresent",
 //        "PersistentSetBenchmark.removeMany",
 //        "PersistentSetBenchmark.randomInsert",
 //        "PersistentSetBenchmark.constructionOneByOne",
 //        "PersistentMapBenchmark",
+//        "PersistentMapBenchmark.modify",
 //        "PersistentMapBenchmark.constructionOneByOne",
 //        "PersistentMapBenchmark.iteration",
 //        "PersistentMapBenchmark.randomUpdate",
