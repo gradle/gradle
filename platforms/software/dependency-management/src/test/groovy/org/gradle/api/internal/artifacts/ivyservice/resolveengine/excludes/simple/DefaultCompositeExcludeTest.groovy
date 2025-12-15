@@ -118,23 +118,23 @@ class DefaultCompositeExcludeTest extends Specification {
     }
 
     ModuleSetExclude nextModuleSet() {
-        FACTORY.moduleSet(PersistentSet.copyOf((0..(1 + random.nextInt(5))).collect { randomModuleName() } as Set<String>))
+        FACTORY.moduleSet(PersistentSet.copyOf((0..(1 + random.nextInt(5))).collect { randomModuleName() }))
     }
 
     GroupSetExclude nextGroupSet() {
-        FACTORY.groupSet(PersistentSet.copyOf((0..(1 + random.nextInt(5))).collect { randomGroupName() } as Set<String>))
+        FACTORY.groupSet(PersistentSet.copyOf((0..(1 + random.nextInt(5))).collect { randomGroupName() }))
     }
 
     ModuleIdSetExclude nextModuleIdSet() {
-        FACTORY.moduleIdSet(PersistentSet.copyOf((0..(1 + random.nextInt(5))).collect { randomModuleId() } as Set<ModuleIdentifier>))
+        FACTORY.moduleIdSet(PersistentSet.copyOf((0..(1 + random.nextInt(5))).collect { randomModuleId() }))
     }
 
     ExcludeSpec nextAny() {
-        FACTORY.anyOf(PersistentSet.copyOf((0..(1 + random.nextInt(3))).collect { next() } as Set<ExcludeSpec>))
+        FACTORY.anyOf(PersistentSet.copyOf((0..(1 + random.nextInt(3))).collect { next() }))
     }
 
     ExcludeSpec nextAll() {
-        FACTORY.allOf(PersistentSet.copyOf((0..(1 + random.nextInt(3))).collect { next() } as Set<ExcludeSpec>))
+        FACTORY.allOf(PersistentSet.copyOf((0..(1 + random.nextInt(3))).collect { next() }))
     }
 
     ExcludeSpec nextArtifact() {
