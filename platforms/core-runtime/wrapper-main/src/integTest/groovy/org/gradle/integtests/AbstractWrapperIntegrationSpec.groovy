@@ -39,12 +39,12 @@ class AbstractWrapperIntegrationSpec extends AbstractIntegrationSpec {
         executer.withArguments("wrapper", "--gradle-distribution-url", distributionUri.toString())
     }
 
-    void prepareWrapper(URI distributionUri = distribution.binDistribution.toURI(), TestKeyStore keyStore) {
+    GradleExecuter prepareWrapper(URI distributionUri = distribution.binDistribution.toURI(), TestKeyStore keyStore) {
         prepareWrapper(distributionUri) { executer ->
             keyStore.trustStoreArguments.each {
                 executer.withArgument(it)
             }
-        }.run()
+        }
     }
 
     GradleExecuter getWrapperExecuter() {

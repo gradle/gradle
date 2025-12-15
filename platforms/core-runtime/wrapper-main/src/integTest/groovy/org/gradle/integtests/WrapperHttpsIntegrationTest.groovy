@@ -16,6 +16,7 @@
 
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.testdistribution.LocalOnly
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -71,14 +72,14 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         """.stripIndent()
     }
 
-    private prepareWrapper(String baseUrl) {
+    private GradleExecuter prepareWrapper(String baseUrl) {
         prepareWrapper(new URI("${baseUrl}/$TEST_DISTRIBUTION_URL"), keyStore)
     }
 
     def "does not warn about using basic authentication over secure connection"() { // TODO: add bearer token equivalent
         given:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getAuthenticatedBaseUrl())
+        prepareWrapper(getAuthenticatedBaseUrl()).run()
         server.expect(server.get("/$TEST_DISTRIBUTION_URL")
             .expectUserAgent(matchesNameAndVersion("gradlew", Download.UNKNOWN_VERSION))
             .sendFile(distribution.binDistribution))
@@ -101,7 +102,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     systemProp.http.nonProxyHosts=
 """
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getAuthenticatedBaseUrl())
+        prepareWrapper(getAuthenticatedBaseUrl()).run()
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
         when:
@@ -121,7 +122,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         and:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getAuthenticatedBaseUrl())
+        prepareWrapper(getAuthenticatedBaseUrl()).run()
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
         // Note that the HTTPS protocol handler uses the same nonProxyHosts property as the HTTP protocol.
@@ -148,7 +149,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         given:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         def baseUrl = getAuthenticatedBaseUrl()
-        prepareWrapper(baseUrl)
+        prepareWrapper(baseUrl).run()
         server.expect(server.get("/$TEST_DISTRIBUTION_URL")
             .sendFile(distribution.binDistribution))
         server.expect(server.get("/versions/current").send("""{ "version" : "7.6" }"""))
@@ -165,7 +166,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         given:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         def baseUrl = getAuthenticatedBaseUrl()
-        prepareWrapper(baseUrl)
+        prepareWrapper(baseUrl).run()
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
         def version = "7.6"
