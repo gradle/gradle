@@ -636,7 +636,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
             withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
             totalProblemsCount = 6
-            problemsWithStackTraceCount = 2
+            problemsWithStackTraceCount = 1
         }
 
         when:
@@ -653,7 +653,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
             withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
             totalProblemsCount = 6
-            problemsWithStackTraceCount = 2
+            problemsWithStackTraceCount = 1
         }
         failure.assertHasFailures(1)
 
@@ -671,7 +671,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
             withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
             totalProblemsCount = 6
-            problemsWithStackTraceCount = 2
+            problemsWithStackTraceCount = 1
         }
 
         when:
@@ -686,7 +686,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             totalProblemsCount = 4
-            problemsWithStackTraceCount = 2
+            problemsWithStackTraceCount = 1
         }
     }
 

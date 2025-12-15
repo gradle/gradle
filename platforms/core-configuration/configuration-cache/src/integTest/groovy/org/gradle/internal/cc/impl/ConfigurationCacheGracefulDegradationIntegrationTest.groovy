@@ -200,6 +200,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         configurationCache.assertNoConfigurationCache()
 
         and:
+        // feature degradation is reported as a report problem, but it is silently suppressed from the console
         problems.assertResultConsoleSummaryHasNoProblems(result)
         problems.htmlReport(result).assertContents {
             totalProblemsCount = 1
@@ -239,7 +240,8 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
             withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported with the configuration cache.")
         }
         problems.htmlReport(result).assertContents {
-            totalProblemsCount = 2
+            // gracefully degraded task appears in the report
+            withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":foo", "Project access.")
         }

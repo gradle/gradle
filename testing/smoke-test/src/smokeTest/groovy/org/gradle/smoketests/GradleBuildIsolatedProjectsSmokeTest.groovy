@@ -91,8 +91,8 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
                 "Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'",
                 "Project ':' cannot access 'Project.extensions' functionality on subprojects via 'allprojects'",
             )
-            // maximum number of problems we collect (should be 86520)
-            totalProblemsCount = 4096
+            totalProblemsCount = 87354
         }
+        result.assertNoConfigurationCache()
     }
 }
