@@ -26,6 +26,7 @@ import com.google.common.collect.Multimaps
 import com.google.common.collect.Multisets
 import com.google.common.collect.Sets
 import com.google.common.collect.Streams
+import org.gradle.api.Action
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.lazy.Lazy
 import org.gradle.util.Path
@@ -90,6 +91,14 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
      */
     Set<Path> getExecutedTestPaths() {
         return executedTestPathsLazy.get()
+    }
+
+    GenericTestExecutionResult assertHtml(String cssQuery, Action<Collection<?>> action) {
+        def parsedHtml = Jsoup.parse(htmlReportDirectory.toPath().resolve("index.html").toFile(), null)
+        def matched = parsedHtml.select(cssQuery)
+        assert matched : "Queried HTML report for $cssQuery"
+        action.execute(matched)
+        return this
     }
 
     @SuppressWarnings('GroovyAssignabilityCheck')
