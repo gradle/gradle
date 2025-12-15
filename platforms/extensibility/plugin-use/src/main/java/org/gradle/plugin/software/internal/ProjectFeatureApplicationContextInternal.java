@@ -48,7 +48,7 @@ public interface ProjectFeatureApplicationContextInternal extends ProjectFeature
             );
         }
 
-        V buildModel = ProjectFeatureSupportInternal.createBuildModelInstance(getObjectFactory(), definition, implementationType);
+        V buildModel = ProjectFeatureSupportInternal.createBuildModelInstance(getObjectFactory(), implementationType);
         ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModel, getProjectFeatureApplicator(), getProjectFeatureRegistry(), getObjectFactory());
 
         return buildModel;

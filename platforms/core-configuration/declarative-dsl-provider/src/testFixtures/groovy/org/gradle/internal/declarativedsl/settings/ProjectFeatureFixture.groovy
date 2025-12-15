@@ -376,6 +376,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                                     String projectName = context.getProject().getName();
                                     System.out.println("Binding ${definition.publicTypeClassName}");
                                     System.out.println("${name} model class: " + model.getClass().getSimpleName());
+                                    System.out.println("${name} parent model class: " + context.getBuildModel(parent).getClass().getSimpleName());
 
                                     ${definition.buildModelMapping}
 
@@ -943,13 +944,6 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         String getBuildModelMapping() {
             return super.getBuildModelMapping() + """
                 model.getText().set(parent.getText().map(text -> text + " " + definition.getText().get()));
-            """
-        }
-
-        @Override
-        String displayModelPropertyValues() {
-            return super.displayModelPropertyValues() + """
-                ${displayProperty("model", "parent type", "context.getBuildModel(parent).getClass().getSimpleName()")}
             """
         }
     }

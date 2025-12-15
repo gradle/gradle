@@ -180,11 +180,11 @@ public class ProjectFeatureSupportInternal {
         addProjectFeatureDynamicObjectToDefinition(objectFactory, (DynamicObjectAware) target, context);
     }
 
-    public static <T extends Definition<V>, V extends BuildModel> V createBuildModelInstance(ObjectFactory objectFactory, T definition, ProjectFeatureImplementation<T, V> projectFeature) {
-        return createBuildModelInstance(objectFactory, definition, projectFeature.getBuildModelImplementationType());
+    public static <T extends Definition<V>, V extends BuildModel> V createBuildModelInstance(ObjectFactory objectFactory, ProjectFeatureImplementation<T, V> projectFeature) {
+        return createBuildModelInstance(objectFactory, projectFeature.getBuildModelImplementationType());
     }
 
-    public static <V> V createBuildModelInstance(ObjectFactory factory, Object definition, Class<? extends V> buildModelType) {
+    public static <V> V createBuildModelInstance(ObjectFactory factory, Class<? extends V> buildModelType) {
         if (buildModelType == BuildModel.None.class) {
             return uncheckedCast(NONE);
         }

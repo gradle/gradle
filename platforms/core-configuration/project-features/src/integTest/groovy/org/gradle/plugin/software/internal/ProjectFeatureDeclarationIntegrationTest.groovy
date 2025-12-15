@@ -428,8 +428,8 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("definition text = bar")
         outputContains("definition fizz.buzz = baz")
         outputContains("feature model class: None")
+        outputContains("anotherFeature parent model class: None")
         outputContains("model text = foo bar") // feature is set with value from parent definition
-        outputContains("model parent type = None")
 
         and:
         outputContains("Applying ProjectTypeImplPlugin")
