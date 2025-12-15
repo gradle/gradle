@@ -186,7 +186,6 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
      * elements, and may return either the unchanged set (no simplification possible) or a
      * new set where a simplification has been applied (for example, by replacing both inputs
      * with a simplified/merged element, or by removing redundant elements).
-     * </p>
      * <p>
      * This method repeatedly applies the simplification until no further changes occur. In
      * other words, it searches for a set {@code S*} such that
@@ -195,17 +194,18 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
      * given a set-transforming function {@code F}, a fixed point is a set {@code S} for which
      * {@code F(S) = S}. Here, {@code F} is the "one-pass attempt" to simplify the current set
      * by examining element pairs; we keep applying {@code F} until the set stops changing.
-     * </p>
      * <p>
      * Implementation details:
-     * - The algorithm iterates over pairs ({@code left}, {@code right}) from the snapshot of the
-     *   current set. If the simplification function returns a new set instance, iteration restarts
-     *   on that updated set. If a full pass causes no change, the current set is the fixed point
-     *   and is returned.
-     * - Termination is guaranteed because each successful simplification must either reduce the
-     *   number of elements or replace elements with a canonical merged element, and we only loop
-     *   while changes occur. Once no change is produced, the set equals its image under the
-     *   one-pass simplification function.
+     * <ul>
+     * <li>The algorithm iterates over pairs ({@code left}, {@code right}) from the snapshot of the
+     * current set. If the simplification function returns a new set instance, iteration restarts
+     * on that updated set. If a full pass causes no change, the current set is the fixed point
+     * and is returned.</li>
+     * <li>Termination is guaranteed because each successful simplification must either reduce the
+     * number of elements or replace elements with a canonical merged element, and we only loop
+     * while changes occur. Once no change is produced, the set equals its image under the
+     * one-pass simplification function.</li>
+     * </ul>
      *
      * @param function the pairwise simplification to apply over the set
      * @param specs the initial set of elements to simplify
