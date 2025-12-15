@@ -74,6 +74,7 @@ dependencies {
     implementation(projects.stdlibSerializationCodecs)
     implementation(projects.toolingApi)
 
+    implementation(libs.capsule)
     implementation(libs.guava)
     implementation(libs.fastutil)
     implementation(libs.kryo)

@@ -43,6 +43,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.versionedCache)
 
+    api(libs.capsule)
     api(libs.bouncycastlePgp)
     api(libs.groovy)
     api(libs.guava)
