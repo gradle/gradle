@@ -34,6 +34,7 @@ object GradleDistributionSpecs {
         val runtimeApiInfoJar by tasks.getting
         val gradleApiKotlinExtensionsJar by tasks.getting
         val agentsRuntimeClasspath by configurations.getting
+        val gradlePublicAbiClasspath by configurations.getting
 
         from("${repoRoot()}/LICENSE")
         from("src/toplevel")
@@ -52,6 +53,9 @@ object GradleDistributionSpecs {
             }
             into("agents") {
                 from(agentsRuntimeClasspath)
+            }
+            into("api") {
+                from(gradlePublicAbiClasspath)
             }
         }
     }

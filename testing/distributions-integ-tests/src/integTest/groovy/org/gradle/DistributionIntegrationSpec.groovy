@@ -182,6 +182,13 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     /**
+     * Change this whenever you add or remove subprojects for distribution API jars (lib/api).
+     */
+    int getApiJarsCount() {
+        1
+    }
+
+    /**
      * Change this if you added or removed dependencies.
      */
     int getThirdPartyLibJarsCount() {
@@ -189,7 +196,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     int getLibJarsCount() {
-        coreLibJarsCount + packagedPluginsJarCount + agentJarsCount + thirdPartyLibJarsCount + NATIVE_PLATFORM_BINARIES
+        coreLibJarsCount + packagedPluginsJarCount + agentJarsCount + apiJarsCount + thirdPartyLibJarsCount + NATIVE_PLATFORM_BINARIES
     }
 
     def "distribution size should not change too much"() {
@@ -364,6 +371,9 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         // Agents
         assertIsGradleJar(contentsDir.file("lib/agents/gradle-instrumentation-agent-${baseVersion}.jar"))
+
+        // Public API
+        assertIsGradleJar(contentsDir.file("lib/api/gradle-public-api-legacy-${baseVersion}.jar"))
 
         // Docs
         contentsDir.file('README').assertIsFile()

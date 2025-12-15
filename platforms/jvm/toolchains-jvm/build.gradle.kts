@@ -55,6 +55,7 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.toolchainsJvmShared))
+    testImplementation(testFixtures(projects.languageJava))
 
     testFixturesImplementation(projects.native)
 
