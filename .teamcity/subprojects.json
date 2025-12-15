@@ -133,6 +133,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-discovery-problems",
+    "path": "platforms/core-runtime/build-discovery-problems",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-events",
     "path": "subprojects/build-events",
     "unitTests": true,

@@ -33,6 +33,8 @@ import org.gradle.initialization.buildsrc.BuildSrcDetector;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.deprecation.Documentation;
+import org.gradle.internal.scripts.ScriptResolutionResult;
+import org.gradle.internal.scripts.ScriptResolutionResultReporter;
 import org.gradle.util.Path;
 
 import java.util.List;
@@ -80,7 +82,8 @@ public class DefaultSettingsLoader implements SettingsLoader {
         StartParameterInternal startParameter = gradle.getStartParameter();
         BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
         if (buildLayout.getSettingsFileResolution() != null) {
-            buildLayout.getSettingsFileResolution().reportProblem(problems.getReporter());
+            ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(problems);
+            reporter.reportResolutionProblemsOf(buildLayout.getSettingsFileResolution());
         }
 
         SettingsState state;
@@ -168,9 +171,10 @@ public class DefaultSettingsLoader implements SettingsLoader {
         BuildLayout buildLayout,
         ClassLoaderScope classLoaderScope
     ) {
-        Optional.ofNullable(buildLayout.getSettingsFileResolution()).ifPresent(
-            resolution -> resolution.reportProblem(problems.getReporter())
-        );
+        ScriptResolutionResult resolutionResult = buildLayout.getSettingsFileResolution();
+        if (resolutionResult != null) {
+            new ScriptResolutionResultReporter(problems).reportResolutionProblemsOf(resolutionResult);
+        }
 
         SettingsState state = settingsProcessor.process(gradle, buildLayout, classLoaderScope, startParameter);
         validate(state.getSettings());

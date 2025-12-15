@@ -18,17 +18,18 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
-description = "Internal API for discovery of build settings and build-relevant locations"
+description = "Problem reporting components of the build discovery subsystem"
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
+    api(projects.buildDiscovery)
+    api(projects.problemsApi)
 
-    api(libs.jspecify)
+    api(libs.inject)
+    compileOnly(libs.jspecify)
 
-    implementation(projects.buildProcessServices)
     implementation(projects.baseServices)
 
-    integTestDistributionRuntimeOnly(projects.distributionsCore)
+    testImplementation(testFixtures(projects.problemsApi))
 }
 
 errorprone {

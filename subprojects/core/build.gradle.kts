@@ -53,6 +53,7 @@ dependencies {
     api(projects.buildCacheSpi)
     api(projects.buildDiscovery)
     api(projects.buildDiscoveryImpl)
+    api(projects.buildDiscoveryProblems)
     api(projects.buildInitSpecs)
     api(projects.buildOperations)
     api(projects.buildOption)

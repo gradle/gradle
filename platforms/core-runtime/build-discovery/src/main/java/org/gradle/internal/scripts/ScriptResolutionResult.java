@@ -16,16 +16,12 @@
 
 package org.gradle.internal.scripts;
 
-import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.ProblemReporter;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class ScriptResolutionResult {
 
@@ -78,37 +74,12 @@ public class ScriptResolutionResult {
         return new ScriptResolutionResult(scriptFile.getParentFile(), basename, scriptFile, Collections.emptyList());
     }
 
-    public void reportProblem(ProblemReporter reporter) {
-        if (selectedCandidate == null || ignoredCandidates.isEmpty()) {
-            return;
-        }
 
-        String ignoredCandidateList = ignoredCandidates
-            .stream()
-            .map(File::getName)
-            .map(name -> "'" + name + "'")
-            .collect(Collectors.joining(", "));
+    public String getBasename() {
+        return basename;
+    }
 
-        reporter.report(
-            ProblemId.create("multiple-scripts", "Multiple scripts", GradleCoreProblemGroup.scripts()),
-            spec -> spec.contextualLabel(
-                String.format("Multiple %s script files were found in directory '%s'", basename, directory)
-            ).details(
-                String.format(
-                    "Multiple %s script files were found in directory '%s'. Selected '%s', and ignoring %s." +
-                        " Deleting the selected script will automatically select another script.",
-                    basename,
-                    directory,
-                    selectedCandidate.getName(),
-                    ignoredCandidateList
-                )
-            ).solution(
-                String.format(
-                    "Delete the files %s in directory '%s'",
-                    ignoredCandidateList,
-                    directory
-                )
-            )
-        );
+    public File getDirectory() {
+        return directory;
     }
 }

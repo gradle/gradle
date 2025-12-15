@@ -16,8 +16,6 @@
 
 package org.gradle.internal.scripts
 
-import org.gradle.api.problems.ProblemReporter
-import org.gradle.api.problems.fixtures.FakeProblemBuilder
 import spock.lang.Specification
 
 class ScriptResolutionResultTest extends Specification {
@@ -90,69 +88,6 @@ class ScriptResolutionResultTest extends Specification {
         result.selectedCandidate == scriptFile
         result.scriptFound
         result.ignoredCandidates.isEmpty()
-    }
-
-    def "reportProblem formats single ignored candidate correctly"() {
-        given:
-        def directory = Mock(File) {
-            toString() >> "/some/dir"
-        }
-        def selectedFile = Mock(File) {
-            getName() >> "alice"
-        }
-        def ignoredFile = Mock(File) {
-            getName() >> "bob"
-        }
-        def result = new ScriptResolutionResult(directory, "script", selectedFile, [ignoredFile])
-        def reporter = Mock(ProblemReporter)
-
-        when:
-        result.reportProblem(reporter)
-
-        then:
-        1 * reporter.report(_, _) >> { problemId, configurer ->
-            def spec = new FakeProblemBuilder()
-            configurer.execute(spec)
-
-            assert problemId.name == "multiple-scripts"
-            assert problemId.displayName == "Multiple scripts"
-            assert spec.contextualLabel == "Multiple script script files were found in directory '/some/dir'"
-            assert spec.details == "Multiple script script files were found in directory '/some/dir'. Selected 'alice', and ignoring 'bob'. Deleting the selected script will automatically select another script."
-            assert spec.solution == "Delete the files 'bob' in directory '/some/dir'"
-        }
-    }
-
-    def "reportProblem creates correct problem for multiple ignored candidates"() {
-        given:
-        def directory = Mock(File) {
-            toString() >> "/some/dir"
-        }
-        def selectedFile = Mock(File) {
-            getName() >> "alice"
-        }
-        def ignoredFile1 = Mock(File) {
-            getName() >> "bob"
-        }
-        def ignoredFile2 = Mock(File) {
-            getName() >> "charlie"
-        }
-        def result = new ScriptResolutionResult(directory, "script", selectedFile, [ignoredFile1, ignoredFile2])
-        def reporter = Mock(ProblemReporter)
-
-        when:
-        result.reportProblem(reporter)
-
-        then:
-        1 * reporter.report(_, _) >> { problemId, configurer ->
-            def spec = new FakeProblemBuilder()
-            configurer.execute(spec)
-
-            assert problemId.name == "multiple-scripts"
-            assert problemId.displayName == "Multiple scripts"
-            assert spec.contextualLabel == "Multiple script script files were found in directory '/some/dir'"
-            assert spec.details == "Multiple script script files were found in directory '/some/dir'. Selected 'alice', and ignoring 'bob', 'charlie'. Deleting the selected script will automatically select another script."
-            assert spec.solution == "Delete the files 'bob', 'charlie' in directory '/some/dir'"
-        }
     }
 
     def "fromSingleFile works with non-null arguments"() {

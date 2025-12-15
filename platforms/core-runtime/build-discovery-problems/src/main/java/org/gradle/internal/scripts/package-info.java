@@ -14,23 +14,7 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.implementation-java")
-}
+@NullMarked
+package org.gradle.internal.scripts;
 
-description = "Internal API for discovery of build settings and build-relevant locations"
-
-dependencies {
-    api(projects.stdlibJavaExtensions)
-
-    api(libs.jspecify)
-
-    implementation(projects.buildProcessServices)
-    implementation(projects.baseServices)
-
-    integTestDistributionRuntimeOnly(projects.distributionsCore)
-}
-
-errorprone {
-    nullawayEnabled = false
-}
+import org.jspecify.annotations.NullMarked;
