@@ -75,7 +75,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         prepareWrapper(new URI("${baseUrl}/$TEST_DISTRIBUTION_URL"), keyStore)
     }
 
-    def "does not warn about using basic authentication over secure connection"() {
+    def "does not warn about using basic authentication over secure connection"() { // TODO: add bearer token equivalent
         given:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         prepareWrapper(getAuthenticatedBaseUrl())
@@ -115,7 +115,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/5052')
-    def "downloads wrapper via authenticated proxy"() {
+    def "downloads wrapper via authenticated proxy"() { // TODO: add bearer token equivalent
         given:
         proxyServer.start('my_user', 'my_password')
 
