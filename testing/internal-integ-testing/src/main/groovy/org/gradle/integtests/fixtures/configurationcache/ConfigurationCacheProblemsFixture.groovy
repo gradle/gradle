@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.fixtures.configurationcache
 
-import groovy.json.JsonSlurper
+
 import groovy.transform.PackageScope
 import groovy.transform.ToString
 import junit.framework.AssertionFailedError
@@ -25,34 +25,26 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.executer.LogContent
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.internal.ConfigureUtil
 import org.hamcrest.BaseMatcher
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.jetbrains.annotations.VisibleForTesting
 
 import javax.annotation.Nullable
-import java.nio.file.FileVisitResult
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.SimpleFileVisitor
-import java.nio.file.attribute.BasicFileAttributes
 import java.util.regex.Pattern
+import java.util.stream.Collectors
 
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.endsWith
-import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.not
-import static org.hamcrest.CoreMatchers.notNullValue
-import static org.hamcrest.CoreMatchers.nullValue
 import static org.hamcrest.CoreMatchers.startsWith
 import static org.hamcrest.MatcherAssert.assertThat
-import static org.junit.Assert.assertTrue
 
 class ConfigurationCacheProblemsFixture {
-    protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "configuration-cache-report.html"
+    protected static final String CC_REPORT_HTML_FILE_NAME = "configuration-cache-report.html"
 
     protected final TestFile rootDir
 
@@ -60,105 +52,38 @@ class ConfigurationCacheProblemsFixture {
         this.rootDir = rootDir instanceof TestFile ? rootDir : new TestFile(rootDir)
     }
 
-    static HasConfigurationCacheProblemsSpec newProblemsSpec(
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure = {}
-    ) {
-        return newProblemsSpec(ConfigureUtil.configureUsing(specClosure))
-    }
-
     protected static HasConfigurationCacheProblemsSpec newProblemsSpec(
         Action<HasConfigurationCacheProblemsSpec> specAction
     ) {
         def spec = new HasConfigurationCacheProblemsSpec()
         specAction.execute(spec)
-        return spec
-    }
-
-    static HasConfigurationCacheErrorSpec newErrorSpec(
-        String error,
-        @DelegatesTo(value = HasConfigurationCacheErrorSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure = {}
-    ) {
-        return newErrorSpec(error, ConfigureUtil.configureUsing(specClosure))
-    }
-
-    static HasConfigurationCacheErrorSpec newErrorSpec(
-        String error,
-        Action<HasConfigurationCacheErrorSpec> specAction
-    ) {
-        def spec = new HasConfigurationCacheErrorSpec(error)
-        specAction.execute(spec)
-        return spec
-    }
-
-    void assertOutputHasError(String output, HasConfigurationCacheErrorSpec spec) {
         spec.validateSpec()
+        return spec
+    }
 
-        if (spec.hasProblems()) {
-            assertHasConsoleSummary(output, spec)
-            assertProblemsHtmlReport(output, rootDir, spec)
-        } else {
-            assertNoProblemsSummary(output)
+    /**
+     * Checks if a single configuration cache report is available at the standard location and returns a fixture to assert on it.
+     * Fails if there is no report or there are multiple reports.
+     */
+    ConfigurationCacheReportFixture htmlReport() {
+        // TODO(mlopatkin) what if the report is not present? htmlReport(String) allows it.
+        return ConfigurationCacheReportFixture.forReportFile(findReportFile())
+    }
+
+    /**
+     * Creates a fixture to assert on the report based on the file URL written in the build output. The report URL may be absent in the output.
+     *
+     * @param output the output of the build
+     */
+    ConfigurationCacheReportFixture htmlReport(String output) {
+        def reportFile = resolveConfigurationCacheReport(rootDir, output)
+        if (reportFile == null) {
+            return ConfigurationCacheReportFixture.forAbsentReport(rootDir)
         }
+
+        return ConfigurationCacheReportFixture.forReportFile(reportFile)
     }
 
-    void assertHtmlReportHasProblems(
-        String output,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
-        assertHtmlReportHasProblems(reportDir, spec)
-    }
-
-    void assertHtmlReportHasProblems(
-        String output,
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure = {}
-    ) {
-        assertHtmlReportHasProblems(output, newProblemsSpec(ConfigureUtil.configureUsing(specClosure)))
-    }
-
-    void assertHtmlReportHasProblems(
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure = {}
-    ) {
-        def reportDir = findReportDir()
-        assertHtmlReportHasProblems(reportDir, newProblemsSpec(ConfigureUtil.configureUsing(specClosure)))
-    }
-
-    void assertHtmlReportHasProblems(
-        File reportDir,
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure = {}
-    ) {
-        assertHtmlReportHasProblems(reportDir, newProblemsSpec(ConfigureUtil.configureUsing(specClosure)))
-    }
-
-    /**
-     * Asserts that a report exists in the current project but has no problems.
-     */
-    void assertHtmlReportHasNoProblems() {
-        def reportDir = findReportDir()
-        assertHtmlReportHasNoProblems(reportDir)
-    }
-
-    /**
-     * Asserts that a report exists in the given dir but has no problems.
-     */
-    void assertHtmlReportHasNoProblems(
-        File reportDir
-    ) {
-        assertHtmlReportHasProblems(reportDir, {
-            totalProblemsCount = 0
-        })
-    }
-
-    void assertHtmlReportHasProblems(File reportDir, HasConfigurationCacheProblemsSpec spec) {
-        spec.checkReportProblems = true
-        assertProblemsHtmlReport(reportDir, spec)
-        assertInputs(reportDir, spec)
-        assertIncompatibleTasks(reportDir, spec)
-    }
-
-    protected static Matcher<String> failureDescriptionMatcherForError(HasConfigurationCacheErrorSpec spec) {
-        return equalTo("Configuration cache state could not be cached: ${spec.error}".toString())
-    }
 
     protected static Matcher<String> failureDescriptionMatcherForProblems(HasConfigurationCacheProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
@@ -221,272 +146,49 @@ class ConfigurationCacheProblemsFixture {
         }
     }
 
-    protected static void assertProblemsHtmlReport(
-        String output,
-        File rootDir,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        assertProblemsHtmlReport(
-            resolveConfigurationCacheReportDirectory(rootDir, output),
-            spec
-        )
+    File findReportFile() {
+        return resolveSingleConfigurationCacheReport(rootDir)
     }
 
-    protected static void assertInputs(
-        String output,
-        File rootDir,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        assertItems('input', output, rootDir, spec.inputs)
-    }
-
-    protected static void assertInputs(
-        File reportDir,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        assertItems('input', reportDir, spec.inputs)
-    }
-
-    protected static void assertIncompatibleTasks(
-        String output,
-        File rootDir,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        assertItems('incompatibleTask', output, rootDir, spec.incompatibleTasks)
-    }
-
-    protected static void assertIncompatibleTasks(
-        File reportDir,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        assertItems('incompatibleTask', reportDir, spec.incompatibleTasks)
-    }
-
-    private static void assertItems(
-        String kind,
-        String output,
-        File rootDir,
-        ItemSpec spec
-    ) {
-        def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
-        assertItems(kind, reportDir, spec)
-    }
-
-    private static void assertItems(
-            String kind,
-            File reportDir,
-            ItemSpec spec
-        ) {
-
-        if (spec == ItemSpec.IGNORING) {
-            return
-        }
-
-        List<Matcher<String>> expectedItems = spec instanceof ItemSpec.ExpectingSome
-            ? spec.itemMatchers.collect()
-            : []
-
-        if (reportDir == null) {
-            assertThat(
-                "Expecting '$kind' items but no report was found",
-                expectedItems,
-                equalTo([])
-            )
-            return
-        }
-
-        Map<String, Object> jsModel = readJsModelFromReportDir(reportDir)
-        List<Map<String, Object>> items = (jsModel.diagnostics as List<Map<String, Object>>).findAll { it[kind] != null }
-        List<String> unexpectedItems = items.collect { formatItemForAssert(it, kind) }.reverse()
-        for (int i in expectedItems.indices.reverse()) {
-            def expectedItem = expectedItems[i]
-            for (int j in unexpectedItems.indices) {
-                if (expectedItem.matches(unexpectedItems[j])) {
-                    expectedItems.removeAt(i)
-                    unexpectedItems.removeAt(j)
-                    break
-                }
-            }
-        }
-        if (!(spec instanceof ItemSpec.IgnoreUnexpected)) {
-            assert unexpectedItems.isEmpty(): "Unexpected '$kind' items $unexpectedItems found in the report, expecting $expectedItems"
-        }
-        assert expectedItems.isEmpty(): "Expecting $expectedItems in the report, found $unexpectedItems"
-    }
-
-    private static String formatItemForAssert(Map<String, Object> item, String kind) {
-        def trace = formatTrace(item['trace'][0])
-        List<Map<String, Object>> itemFragments = item[kind]
-        def message = formatStructuredMessage(itemFragments)
-        "${trace}: ${message}"
-    }
-
-    private static String formatStructuredMessage(List<Map<String, Object>> fragments) {
-        fragments.collect {
-            // See StructuredMessage.Fragment
-            it['text'] ?: "'${it['name']}'"
-        }.join('')
-    }
-
-    private static String formatTrace(Map<String, Object> trace) {
-        def kind = trace['kind']
-        switch (kind) {
-            case "Task": return trace['path']
-            case "Bean": return trace['type']
-            case "Field": return trace['name']
-            case "InputProperty": return trace['name']
-            case "OutputProperty": return trace['name']
-                // Build file 'build.gradle'
-            case "BuildLogic": return trace['location'].toString().capitalize()
-            case "BuildLogicClass": return trace['type']
-            default: return "Gradle runtime"
-        }
-    }
-
-    protected static void assertProblemsHtmlReport(
-        File reportDir,
-        HasConfigurationCacheProblemsSpec spec
-    ) {
-        def totalProblemCount = spec.totalProblemsCount ?: spec.uniqueProblems.size()
-        def problemsWithStackTraceCount = spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount
-        boolean shouldHaveReport = spec.totalProblemsCount != null ||
-            problemsWithStackTraceCount != null ||
-            !spec.uniqueProblems.empty ||
-            spec.incompatibleTasks instanceof ItemSpec.ExpectingSome ||
-            spec.inputs instanceof ItemSpec.ExpectingSome
-        doAssertProblemsHtmlReport(
-            reportDir,
-            totalProblemCount,
-            spec.uniqueProblems,
-            problemsWithStackTraceCount,
-            shouldHaveReport,
-            spec.checkReportProblems
-        )
-    }
-
-    private static void doAssertProblemsHtmlReport(
-        File reportDir,
-        int totalProblemCount,
-        List<Matcher> uniqueProblems,
-        int problemsWithStackTraceCount,
-        boolean expectReport,
-        boolean checkReportProblems
-    ) {
-        if (expectReport) {
-            Map<String, Object> jsModel = readJsModelFromReportDir(reportDir)
-            assertThat(
-                "HTML report JS model has wrong number of total problem(s)",
-                numberOfProblemsIn(jsModel),
-                equalTo(totalProblemCount)
-            )
-            assertThat(
-                "HTML report JS model has wrong number of problem(s) with stacktrace",
-                numberOfProblemsWithStacktraceIn(jsModel),
-                equalTo(problemsWithStackTraceCount)
-            )
-            if (checkReportProblems) {
-                def problemMessages = problemMessagesIn(jsModel).unique()
-                for (int i in uniqueProblems.indices) {
-                    // note that matchers for problem messages in report don't contain location prefixes
-                    assert uniqueProblems[i].matches(problemMessages[i]) : "Expected problem at #$i to be ${uniqueProblems[i]}, but was: ${problemMessages[i]}"
-                }
-            }
-        } else {
-            assertThat("Unexpected HTML report URI found", reportDir?.with { it.directory ? it : null }, nullValue())
-        }
-    }
-
-    private static Map<String, Object> readJsModelFromReportDir(File reportDir) {
-        assertThat("HTML report URI not found", reportDir, notNullValue())
-        assertTrue("HTML report directory not found '$reportDir'", reportDir.isDirectory())
-        def htmlFile = new File(reportDir, PROBLEMS_REPORT_HTML_FILE_NAME)
-        assertTrue("HTML report HTML file not found in '$reportDir'", htmlFile.isFile())
-        Map<String, Object> jsModel = readJsModelFrom(htmlFile)
-        jsModel
-    }
-
-    private static Map<String, Object> readJsModelFrom(File reportFile) {
-        // ConfigurationCacheReport ensures the pure json model can be read
-        // by looking for `// begin-report-data` and `// end-report-data`
-        def jsonText = linesBetween(reportFile, '// begin-report-data', '// end-report-data')
-        assert jsonText: "malformed report file"
-        new JsonSlurper().parseText(jsonText) as Map<String, Object>
-    }
-
-    private static String linesBetween(File file, String beginLine, String endLine) {
-        return file.withReader('utf-8') { reader ->
-            reader.lines().iterator()
-                .dropWhile { it != beginLine }
-                .drop(1)
-                .takeWhile { it != endLine }
-                .collect()
-                .join('\n')
-        }
-    }
-
-    File findReportDir() {
-        return resolveSingleConfigurationCacheReportDir(rootDir)
-    }
-
-    private static TestFile resolveSingleConfigurationCacheReportDir(TestFile rootDir) {
+    private static TestFile resolveSingleConfigurationCacheReport(TestFile rootDir) {
         TestFile reportsDir = rootDir.file("build/reports/configuration-cache")
-        assert reportsDir.exists() : "Configuration cache report directory not found at $reportsDir"
-        List<TestFile> reportDirs = []
-        Files.walkFileTree(reportsDir.toPath(), new SimpleFileVisitor<Path>() {
-            @Override
-            FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                if (file.getFileName().toString() == "configuration-cache-report.html") {
-                    reportDirs += new TestFile(file.parent.toString())
-                }
-                return FileVisitResult.CONTINUE
-            }
-        })
 
-        assert reportDirs.size() > 0 : "No report file found under $reportsDir"
-        assert reportDirs.size() == 1 : "Multiple report files (${reportDirs.size()}) found under $reportsDir - ${reportDirs.sort().collect { it.relativizeFrom(reportsDir) }.join(", ") }"
-        return reportDirs[0]
+        assert reportsDir.exists():
+            "Configuration cache report directory '$reportsDir' not found"
+
+        List<TestFile> reportFiles = Files.walk(reportsDir.toPath()).withCloseable { stream ->
+            stream
+                .filter { it.fileName.toString() == CC_REPORT_HTML_FILE_NAME }
+                .map { new TestFile(it.toString()) }
+                .sorted()
+                .collect(Collectors.toList())
+        }
+
+        assert reportFiles.size() > 0:
+            "No report file found under $reportsDir"
+        assert reportFiles.size() == 1:
+            "Multiple report files (${reportFiles.size()}) found under $reportsDir in ${reportFiles.collect { it.parentFile.relativizeFrom(reportsDir) }.join(", ") }"
+        return reportFiles.first()
     }
 
     @Nullable
     static TestFile resolveConfigurationCacheReport(File rootDir, String output) {
-        resolveConfigurationCacheReportDirectory(rootDir, output)?.file(PROBLEMS_REPORT_HTML_FILE_NAME)
+        def baseDirUri = clickableUrlFor(rootDir)
+        def pattern = Pattern.compile("^See the complete report at (${Pattern.quote(baseDirUri)}.*/${Pattern.quote(CC_REPORT_HTML_FILE_NAME)})\$", Pattern.MULTILINE)
+        def matcher = pattern.matcher(output)
+        def reportFileUri = matcher.find() ? matcher.group(1) : null
+        return reportFileUri ? new TestFile(Paths.get(URI.create(reportFileUri)).toFile().absoluteFile) : null
     }
 
+    // TODO(mlopatkin) We have tests that use this function to assert on things. It would be great to rewrite those assertions to use ConfigurationCacheReportFixture.
     @Nullable
     static TestFile resolveConfigurationCacheReportDirectory(File rootDir, String output) {
-        def baseDirUri = clickableUrlFor(rootDir)
-        def pattern = Pattern.compile("^See the complete report at (${Pattern.quote(baseDirUri)}.*/)${Pattern.quote(PROBLEMS_REPORT_HTML_FILE_NAME)}\$", Pattern.MULTILINE)
-        def matcher = pattern.matcher(output)
-        def reportDirUri = matcher.find() ? matcher.group(1) : null
-        return reportDirUri ? new TestFile(Paths.get(URI.create(reportDirUri)).toFile().absoluteFile) : null
+        resolveConfigurationCacheReport(rootDir, output)?.parentFile
     }
 
     @VisibleForTesting
     static String clickableUrlFor(File file) {
         new ConsoleRenderer().asClickableFileUrl(file)
-    }
-
-    private static int numberOfProblemsIn(jsModel) {
-        return (jsModel.diagnostics as List<Object>).count { it['problem'] != null }
-    }
-
-    /**
-     * Makes a best effort to collect problem messages from the JS model.
-     *
-     * Does not include source locations, text is collected raw.
-     */
-    private static List<String> problemMessagesIn(jsModel) {
-        return (jsModel.diagnostics as List<Object>)
-            .findAll{ it['problem'] != null }
-            .collect {
-                it['problem']
-                    .collect { (it as Map).values() }
-                    .flatten().join()
-            }
-    }
-
-    protected static int numberOfProblemsWithStacktraceIn(jsModel) {
-        return (jsModel.diagnostics as List<Object>).count { it['problem'] != null && it['error']?.getAt('parts') != null }
     }
 
     protected static ProblemsSummary extractSummary(String text) {
@@ -548,17 +250,6 @@ ${text}
             this.uniqueProblems = uniqueProblems
             this.messages = messages
         }
-    }
-}
-
-final class HasConfigurationCacheErrorSpec extends HasConfigurationCacheProblemsSpec {
-
-    @PackageScope
-    String error
-
-    @PackageScope
-    HasConfigurationCacheErrorSpec(String error) {
-        this.error = error
     }
 }
 
@@ -653,6 +344,9 @@ abstract class ItemSpec {
     }
 }
 
+/**
+ * Defines an expectation for the Configuration Cache outputs: what is printed on the console, what is in the report.
+ */
 class HasConfigurationCacheProblemsSpec {
 
     @PackageScope
@@ -664,12 +358,18 @@ class HasConfigurationCacheProblemsSpec {
     @PackageScope
     ItemSpec incompatibleTasks = ItemSpec.IGNORING
 
+    /**
+     * An expectation for the total number of reported problems (including non-unique instances).
+     * {@code null} means that no expectation is defined.
+     */
     @Nullable
-    @PackageScope
     Integer totalProblemsCount
 
+    /**
+     * An expectation for the total number of reported problems with stack traces.
+     * {@code null} means that no expectation is defined.
+     */
     @Nullable
-    @PackageScope
     Integer problemsWithStackTraceCount
 
     /**
@@ -679,7 +379,7 @@ class HasConfigurationCacheProblemsSpec {
      * so it is incorrect to enable report problems and attempt to check console messages.
      */
     @PackageScope
-    Boolean checkReportProblems = false
+    boolean checkReportProblems = false
 
     @PackageScope
     void validateSpec() {
@@ -702,10 +402,30 @@ class HasConfigurationCacheProblemsSpec {
         return !uniqueProblems.isEmpty() || totalProblemsCount > 0
     }
 
+    /**
+     * Sets the expectation for displayed problems.
+     * The number and order of actual problems must match the expected.
+     * The expected problem message is actually a prefix, so the actual message can be longer.
+     * <p>
+     * Note that the message format differs between console and report, the former includes a location prefix.
+     *
+     * @param uniqueProblems the prefixes of the expected problem messages
+     * @return this
+     */
     HasConfigurationCacheProblemsSpec withUniqueProblems(String... uniqueProblems) {
         return withUniqueProblems(uniqueProblems as List)
     }
 
+    /**
+     * Sets the expectation for displayed problems.
+     * The number and order of actual problems must match the expected.
+     * The expected problem message is actually a prefix, so the actual message can be longer.
+     * <p>
+     * Note that the message format differs between console and report, the former includes a location prefix.
+     *
+     * @param uniqueProblems the prefixes of the expected problem messages
+     * @return this
+     */
     HasConfigurationCacheProblemsSpec withUniqueProblems(Iterable<String> uniqueProblems) {
         this.uniqueProblems.clear()
         uniqueProblems.each {
@@ -714,48 +434,84 @@ class HasConfigurationCacheProblemsSpec {
         return this
     }
 
+    /**
+     * Adds an expectation for a displayed problem.
+     * The number and order of actual problems must match the expected.
+     * The expected problem message is actually a prefix, so the actual message can be longer.
+     * <p>
+     * Note that the message format differs between console and report, the former includes a location prefix.
+     *
+     * @param problem the prefixes of the expected problem message
+     * @return this
+     */
     HasConfigurationCacheProblemsSpec withProblem(String problem) {
-        uniqueProblems.add(startsWith(problem))
-        return this
+        return withProblem(startsWith(problem))
     }
 
+    /**
+     * Adds an expectation for a displayed problem.
+     * The number and order of actual problems must match the expected.
+     * This method allows an arbitrary predicate.
+     * <p>
+     * Note that the message format differs between console and report, the former includes a location prefix.
+     *
+     * @param problem the matcher for the problem message
+     * @return this
+     */
     HasConfigurationCacheProblemsSpec withProblem(Matcher<String> problem) {
         uniqueProblems.add(problem)
         return this
     }
 
-    HasConfigurationCacheProblemsSpec withTotalProblemsCount(int totalProblemsCount) {
-        this.totalProblemsCount = totalProblemsCount
-        return this
-    }
-
-    HasConfigurationCacheProblemsSpec withProblemsWithStackTraceCount(int problemsWithStackTraceCount) {
-        this.problemsWithStackTraceCount = problemsWithStackTraceCount
-        return this
-    }
-
+    /**
+     * Adds an expectation for a build configuration input to be present.
+     * The order of inputs in the predicate doesn't matter.
+     * This is not compatible with {@link #withNoInputs()}.
+     * <p>
+     * All inputs must be verified unless {@link #ignoringUnexpectedInputs()} is used.
+     *
+     * @param prefix the prefix of the input including the location
+     * @return this
+     */
     HasConfigurationCacheProblemsSpec withInput(String prefix) {
         inputs = inputs.expectPrefix(prefix)
         return this
     }
 
+    /**
+     * Adds an expectation that no build configuration are to be present.
+     * This is not compatible with {@link #withInput(String)} or {@link #ignoringUnexpectedInputs()}.
+     *
+     * @return this
+     */
     HasConfigurationCacheProblemsSpec withNoInputs() {
         inputs = inputs.expectNone()
         return this
     }
 
+    /**
+     * Allows inputs not verified with {@link #withInput(String)} to be present in the result.
+     * This is not compatible with {@link #withNoInputs()}.
+     *
+     * @return this
+     */
     HasConfigurationCacheProblemsSpec ignoringUnexpectedInputs() {
         inputs = inputs.ignoreUnexpected()
         return this
     }
 
+    /**
+     * Adds an expectation for an incompatible task to be reported.
+     * The order of tasks doesn't matter.
+     * <p>
+     * All incompatible tasks must be verified.
+     *
+     * @param task the task path
+     * @param reason the expected compatibility reason
+     * @return this
+     */
     HasConfigurationCacheProblemsSpec withIncompatibleTask(String task, String reason) {
         incompatibleTasks = incompatibleTasks.expect(allOf(startsWith("${task}: task '${task}' of type "), endsWith(reason)))
-        return this
-    }
-
-    HasConfigurationCacheProblemsSpec ignoringUnexpectedIncompatibleTasks() {
-        incompatibleTasks = incompatibleTasks.ignoreUnexpected()
         return this
     }
 }
