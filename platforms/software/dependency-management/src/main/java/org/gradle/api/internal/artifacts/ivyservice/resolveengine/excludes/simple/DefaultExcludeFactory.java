@@ -68,12 +68,12 @@ public class DefaultExcludeFactory implements ExcludeFactory {
 
     @Override
     public ExcludeSpec anyOf(PersistentSet<ExcludeSpec> specs) {
-        return DefaultExcludeAnyOf.of(PersistentSet.copyOf(specs));
+        return DefaultExcludeAnyOf.of(specs);
     }
 
     @Override
     public ExcludeSpec allOf(PersistentSet<ExcludeSpec> specs) {
-        return DefaultExcludeAllOf.of(PersistentSet.copyOf(specs));
+        return DefaultExcludeAllOf.of(specs);
     }
 
     @Override
