@@ -234,8 +234,8 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
     }
 
     void assertThatDeclaredValuesAreSetProperly() {
-        outputContains("""id = test\nbar = baz""")
-        outputContains("feature text = foo")
+        outputContains("definition text = foo")
+        outputContains("model text = foo")
     }
 
     private String getPluginBuildScriptForJava() {
