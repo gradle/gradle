@@ -63,16 +63,16 @@ public class ConsoleConfigureAction {
     }
 
     private static void configureAutoConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
-        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+        if (consoleMetaData.isStdOutATerminal() && consoleMetaData.isStdErrATerminal()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
             // This avoids interleaving problems when stdout and stderr end up at the same location
             Console console = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsoleWithErrorOutputOnStdout(console, consoleMetaData, false);
-        } else if (consoleMetaData.isStdOut()) {
+        } else if (consoleMetaData.isStdOutATerminal()) {
             // Write rich content to stdout and plain content to stderr
             Console stdoutConsole = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsole(stdoutConsole, stderr, consoleMetaData, false);
-        } else if (consoleMetaData.isStdErr()) {
+        } else if (consoleMetaData.isStdErrATerminal()) {
             // Write plain content to stdout and rich content to stderr
             Console stderrConsole = consoleForStdErr(stderr, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsole(stdout, stderrConsole, true);
@@ -82,7 +82,7 @@ public class ConsoleConfigureAction {
     }
 
     private static void configurePlainConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
-        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+        if (consoleMetaData.isStdOutATerminal() && consoleMetaData.isStdErrATerminal()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
             // This avoids interleaving problems when stdout and stderr end up at the same location
             renderer.addPlainConsoleWithErrorOutputOnStdout(stdout);
@@ -92,7 +92,7 @@ public class ConsoleConfigureAction {
     }
 
     private static void configureColoredConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
-        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+        if (consoleMetaData.isStdOutATerminal() && consoleMetaData.isStdErrATerminal()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console.
             // Assume that they are attached to the same console.
             // This avoids interleaving problems when stdout and stderr end up at the same location.
@@ -107,7 +107,7 @@ public class ConsoleConfigureAction {
     }
 
     private static void configureRichConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr, boolean verbose) {
-        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+        if (consoleMetaData.isStdOutATerminal() && consoleMetaData.isStdErrATerminal()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console.
             // Assume that they are attached to the same console.
             // This avoids interleaving problems when stdout and stderr end up at the same location.
