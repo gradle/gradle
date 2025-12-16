@@ -74,4 +74,8 @@ public class BaseModuleComponentRepository<T> implements ModuleComponentReposito
         return delegate.getComponentMetadataSupplier();
     }
 
+    @Override
+    public boolean isContinueOnConnectionFailure() {
+        return delegate.isContinueOnConnectionFailure();
+    }
 }

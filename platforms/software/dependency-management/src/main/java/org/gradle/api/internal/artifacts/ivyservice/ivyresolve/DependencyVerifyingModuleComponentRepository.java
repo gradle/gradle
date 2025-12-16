@@ -98,6 +98,11 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
         return delegate.getComponentMetadataSupplier();
     }
 
+    @Override
+    public boolean isContinueOnConnectionFailure() {
+        return delegate.isContinueOnConnectionFailure();
+    }
+
     private class VerifyingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         private final ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate;
         private final boolean verifySignatures;

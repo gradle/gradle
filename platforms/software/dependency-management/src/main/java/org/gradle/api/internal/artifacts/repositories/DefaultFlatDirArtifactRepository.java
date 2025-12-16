@@ -160,7 +160,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
 
         RepositoryTransport transport = transportFactory.createFileTransport(getName());
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, null, null);
-        return new IvyResolver(descriptor.getBackingDescriptor(), transport, locallyAvailableResourceFinder, false, artifactFileStore, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector, checksumService);
+        return new IvyResolver(descriptor.getBackingDescriptor(), transport, locallyAvailableResourceFinder, false, artifactFileStore, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector, checksumService, false);
     }
 
     private ImmutableMetadataSources createMetadataSources() {

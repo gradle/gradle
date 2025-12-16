@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
+import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
 import org.gradle.internal.resource.ExternalResourceRepository
@@ -46,7 +47,8 @@ class DefaultMavenLocalRepositoryTest extends Specification {
     final AuthenticationContainer authenticationContainer = Stub()
     final FileResourceRepository fileResourceRepository = Mock()
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
-    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(resolver)
+    final PropertyFactory propertyFactory = TestUtil.propertyFactory()
+    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(resolver, propertyFactory)
 
     final DefaultMavenArtifactRepository repository = createRepository()
 
