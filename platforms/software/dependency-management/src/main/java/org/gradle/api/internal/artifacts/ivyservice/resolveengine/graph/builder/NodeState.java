@@ -426,32 +426,43 @@ public class NodeState implements DependencyGraphNode {
         this.potentiallyActivatedConstraints = null;
         this.upcomingNoLongerPendingConstraints = null;
 
-        PendingDependenciesVisitor pendingDepsVisitor = resolveState.newPendingDependenciesVisitor();
         PersistentSet<ModuleIdentifier> strictVersionsSet = PersistentSet.of();
         for (DependencyState dependencyState : dependencies(resolutionFilter)) {
-            PendingDependenciesVisitor.PendingState pendingState = pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState);
-            if (dependencyState.getDependency().isConstraint()) {
-                registerActivatingConstraint(dependencyState);
+            boolean constraint = dependencyState.getDependency().isConstraint();
+            ModuleIdentifier moduleId = dependencyState.getModuleIdentifier(resolveState.getComponentSelectorConverter());
+            ModuleResolveState module = resolveState.getModule(moduleId);
+
+            boolean deferSelection = false;
+            if (constraint) {
+                registerActivatingConstraint(dependencyState, moduleId);
+            } else {
+                deferSelection = module.getPendingDependencies().addIncomingHardEdge();
             }
-            if (!pendingState.isPending()) {
-                createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, ancestorsStrictVersions, pendingState == PendingDependenciesVisitor.PendingState.NOT_PENDING_ACTIVATING);
+
+            if (constraint && module.isPending()) {
+                // No hard dependency targeting this module. Remember this constraint for later in case we see a hard dependency later.
+                module.registerConstraintProvider(this);
+            } else {
+                // We are a hard edge, or we are a constraint but there is already another hard edge targeting the same module.
+                createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, ancestorsStrictVersions, deferSelection);
             }
+
             strictVersionsSet = maybeCollectStrictVersions(strictVersionsSet, dependencyState);
         }
+
         // If there are 'pending' dependencies that share a target with any of these outgoing edges,
         // then reset the state of the node that owns those dependencies.
         // This way, all edges of the node will be re-processed.
-        pendingDepsVisitor.complete();
         storeOwnStrictVersions(strictVersionsSet);
 
         this.visitedDependencies = true;
     }
 
-    private void registerActivatingConstraint(DependencyState dependencyState) {
+    private void registerActivatingConstraint(DependencyState dependencyState, ModuleIdentifier targetModuleId) {
         if (potentiallyActivatedConstraints == null) {
             potentiallyActivatedConstraints = LinkedHashMultimap.create();
         }
-        potentiallyActivatedConstraints.put(dependencyState.getModuleIdentifier(resolveState.getComponentSelectorConverter()), dependencyState);
+        potentiallyActivatedConstraints.put(targetModuleId, dependencyState);
     }
 
     private List<DependencyState> dependencyStates() {
@@ -542,7 +553,6 @@ public class NodeState implements DependencyGraphNode {
     private void visitOwners(ExcludeSpec resolutionFilter, StrictVersionConstraints ancestorsStrictVersions, Collection<EdgeState> discoveredEdges) {
         List<? extends VirtualComponentIdentifier> owners = component.getMetadata().getPlatformOwners();
         if (!owners.isEmpty()) {
-            PendingDependenciesVisitor visitor = resolveState.newPendingDependenciesVisitor();
             for (VirtualComponentIdentifier owner : owners) {
                 if (owner instanceof ModuleComponentIdentifier) {
                     ModuleComponentIdentifier platformId = (ModuleComponentIdentifier) owner;
@@ -552,10 +562,9 @@ public class NodeState implements DependencyGraphNode {
                     // 2. the "platform" is a virtual, constructed thing, in which case we add virtual edges to the graph
                     resolvePlatform(platformId);
                     visitVirtualPlatformEdge(discoveredEdges, platformId, ancestorsStrictVersions, resolutionFilter);
-                    visitor.markNotPending(platformId.getModuleIdentifier());
+                    resolveState.getModule(platformId.getModuleIdentifier()).getPendingDependencies().addIncomingHardEdge();
                 }
             }
-            visitor.complete();
         }
     }
 

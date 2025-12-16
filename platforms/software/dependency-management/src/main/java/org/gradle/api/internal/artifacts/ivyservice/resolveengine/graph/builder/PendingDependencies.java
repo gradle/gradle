@@ -29,13 +29,31 @@ public class PendingDependencies {
     private final ModuleIdentifier moduleIdentifier;
     private final Set<NodeState> constraintProvidingNodes;
     private int hardEdges;
-    private boolean reportActivePending;
 
     PendingDependencies(ModuleIdentifier moduleIdentifier) {
         this.moduleIdentifier = moduleIdentifier;
         this.constraintProvidingNodes = new LinkedHashSet<>();
         this.hardEdges = 0;
-        this.reportActivePending = true;
+    }
+
+    boolean addIncomingHardEdge() {
+        increaseHardEdgeCount();
+        if (!hasConstraintProviders()) {
+            return false;
+        }
+
+        assert hardEdges == 1;
+
+        boolean hasVirtualPlatform = false;
+        for (NodeState node : constraintProvidingNodes) {
+            node.prepareForConstraintNoLongerPending(moduleIdentifier);
+            if (node.getComponent().getModule().isVirtualPlatform()) {
+                hasVirtualPlatform = true;
+            }
+        }
+        constraintProvidingNodes.clear();
+
+        return !hasVirtualPlatform;
     }
 
     void registerConstraintProvider(NodeState nodeState) {
@@ -43,9 +61,6 @@ public class PendingDependencies {
             throw new IllegalStateException("Cannot add a pending node for a dependency which is not pending");
         }
         constraintProvidingNodes.add(nodeState);
-        if (nodeState.getComponent().getModule().isVirtualPlatform()) {
-            reportActivePending = false;
-        }
     }
 
     public void unregisterConstraintProvider(NodeState nodeState) {
@@ -53,14 +68,6 @@ public class PendingDependencies {
             throw new IllegalStateException("Cannot remove a pending node for a dependency which is not pending");
         }
         constraintProvidingNodes.remove(nodeState);
-    }
-
-    void turnIntoHardDependencies() {
-        for (NodeState affectedComponent : constraintProvidingNodes) {
-            affectedComponent.prepareForConstraintNoLongerPending(moduleIdentifier);
-        }
-        constraintProvidingNodes.clear();
-        reportActivePending = true;
     }
 
     /**
@@ -81,10 +88,6 @@ public class PendingDependencies {
     void decreaseHardEdgeCount() {
         assert hardEdges > 0 : "Cannot remove a hard edge when none recorded";
         hardEdges--;
-    }
-
-    public boolean shouldReportActivatePending() {
-        return reportActivePending;
     }
 
     public void retarget(PendingDependencies pendingDependencies) {
