@@ -561,8 +561,8 @@ public class NodeState implements DependencyGraphNode {
                     // 1. the "platform" referenced is a real module, in which case we directly add it to the graph
                     // 2. the "platform" is a virtual, constructed thing, in which case we add virtual edges to the graph
                     resolvePlatform(platformId);
-                    visitVirtualPlatformEdge(discoveredEdges, platformId, ancestorsStrictVersions, resolutionFilter);
-                    resolveState.getModule(platformId.getModuleIdentifier()).getPendingDependencies().addIncomingHardEdge();
+                    boolean deferSelection = resolveState.getModule(platformId.getModuleIdentifier()).getPendingDependencies().addIncomingHardEdge();
+                    visitVirtualPlatformEdge(discoveredEdges, platformId, ancestorsStrictVersions, resolutionFilter, deferSelection);
                 }
             }
         }
@@ -600,7 +600,8 @@ public class NodeState implements DependencyGraphNode {
         Collection<EdgeState> discoveredEdges,
         ModuleComponentIdentifier componentId,
         StrictVersionConstraints ancestorsStrictVersions,
-        ExcludeSpec resolutionFilter
+        ExcludeSpec resolutionFilter,
+        boolean deferSelection
     ) {
         boolean forced = hasStrongOpinion();
         final ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(componentId.getModuleIdentifier(), componentId.getVersion());
@@ -608,7 +609,7 @@ public class NodeState implements DependencyGraphNode {
         DependencyState dependencyState = resolveState.getDependencySubstitutionApplicator().applySubstitutions(dependencyMetadata);
         EdgeState edge = new EdgeState(this, dependencyState, resolveState);
         edge.updateTransitiveExcludes(resolutionFilter);
-        edge.computeSelector(ancestorsStrictVersions, false);
+        edge.computeSelector(ancestorsStrictVersions, deferSelection);
         discoveredEdges.add(edge);
         outgoingEdges.add(edge);
     }

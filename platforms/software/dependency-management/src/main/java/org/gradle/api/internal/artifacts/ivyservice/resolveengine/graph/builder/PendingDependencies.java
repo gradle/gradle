@@ -44,16 +44,12 @@ public class PendingDependencies {
 
         assert hardEdges == 1;
 
-        boolean hasVirtualPlatform = false;
         for (NodeState node : constraintProvidingNodes) {
             node.prepareForConstraintNoLongerPending(moduleIdentifier);
-            if (node.getComponent().getModule().isVirtualPlatform()) {
-                hasVirtualPlatform = true;
-            }
         }
         constraintProvidingNodes.clear();
 
-        return !hasVirtualPlatform;
+        return true;
     }
 
     void registerConstraintProvider(NodeState nodeState) {
