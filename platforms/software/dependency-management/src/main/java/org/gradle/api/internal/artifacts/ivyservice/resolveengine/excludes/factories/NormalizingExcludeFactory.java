@@ -211,26 +211,28 @@ public class NormalizingExcludeFactory extends DelegatingExcludeFactory {
      * @param specs the initial set of elements to simplify
      * @return the fixed point set where another full simplification pass yields the same set
      */
-    @SuppressWarnings("ConstantValue") // wrongly accused by the IDE
     private static PersistentSet<ExcludeSpec> fixedPointOf(Simplification function, PersistentSet<ExcludeSpec> specs) {
-        iteration:
-        while (specs.size() > 1) {
-            PersistentSet<ExcludeSpec> original = specs;
-
-            for (ExcludeSpec left : original) {
-                for (ExcludeSpec right : original) {
-                    if (left == right) {
-                        continue;
-                    }
-                    specs = function.apply(left, right, original);
-                    if (specs != original) {
-                        // Restart iteration with new specs
-                        continue iteration;
-                    }
-                }
-            }
-            if (original == specs) {
+        PersistentSet<ExcludeSpec> current = specs;
+        while (current.size() > 1) {
+            PersistentSet<ExcludeSpec> simplified = simplifyOnce(function, current);
+            if (simplified == current) {
                 break;
+            }
+            current = simplified;
+        }
+        return current;
+    }
+
+    private static PersistentSet<ExcludeSpec> simplifyOnce(Simplification function, PersistentSet<ExcludeSpec> specs) {
+        for (ExcludeSpec left : specs) {
+            for (ExcludeSpec right : specs) {
+                if (left == right) {
+                    continue;
+                }
+                PersistentSet<ExcludeSpec> simplified = function.apply(left, right, specs);
+                if (simplified != specs) {
+                    return simplified;
+                }
             }
         }
         return specs;
