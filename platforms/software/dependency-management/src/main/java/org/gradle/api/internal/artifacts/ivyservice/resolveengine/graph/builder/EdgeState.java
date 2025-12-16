@@ -216,7 +216,7 @@ class EdgeState implements DependencyGraphEdge {
             // Broken version
             return;
         }
-        if (isConstraint && !isVirtualDependency()) {
+        if (isConstraint) {
             List<NodeState> nodes = targetComponent.getNodes();
             for (NodeState node : nodes) {
                 if (node.isSelected() && !node.isRoot()) {
@@ -338,10 +338,6 @@ class EdgeState implements DependencyGraphEdge {
             return selectedByVariantAwareResolution;
         }
 
-    }
-
-    private boolean isVirtualDependency() {
-        return selector.getDependencyMetadata() instanceof LenientPlatformDependencyMetadata;
     }
 
     @Override

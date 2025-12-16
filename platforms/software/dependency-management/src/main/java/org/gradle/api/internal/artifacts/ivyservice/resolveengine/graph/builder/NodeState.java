@@ -604,7 +604,7 @@ public class NodeState implements DependencyGraphNode {
     ) {
         boolean forced = hasStrongOpinion();
         final ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(componentId.getModuleIdentifier(), componentId.getVersion());
-        DependencyMetadata dependencyMetadata = new LenientPlatformDependencyMetadata(resolveState, this, selector, componentId, componentId, forced, true);
+        DependencyMetadata dependencyMetadata = new LenientPlatformDependencyMetadata(resolveState, this, selector, componentId, componentId, forced, true, false);
         DependencyState dependencyState = resolveState.getDependencySubstitutionApplicator().applySubstitutions(dependencyMetadata);
         EdgeState edge = new EdgeState(this, dependencyState, resolveState);
         edge.updateTransitiveExcludes(resolutionFilter);
