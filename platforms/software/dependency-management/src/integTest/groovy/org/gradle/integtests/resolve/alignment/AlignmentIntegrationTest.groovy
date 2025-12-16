@@ -451,7 +451,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         expectAlignment {
             module('core') alignsTo('2.9.4') byPublishedPlatform()
             module('databind') tries('2.7.9') alignsTo('2.9.4') byPublishedPlatform()
-            module('annotations') tries('2.7.9') alignsTo('2.9.4') byPublishedPlatform()
+            module('annotations') tries('2.7.9') tries('2.9.0') alignsTo('2.9.4') byPublishedPlatform()
             module('kt') alignsTo('2.9.4.1') byPublishedPlatform()
 
             doesNotGetPlatform("org", "platform", "2.7.9") // because of conflict resolution
@@ -466,7 +466,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                     byConstraint()
                     byConflictResolution("between versions 2.9.4 and 2.7.9")
                     edge("org:platform:2.9.4", "org:platform:2.9.4.1") {
-                        byConflictResolution("between versions 2.9.4.1 and 2.9.4")
+                        byConflictResolution("between versions 2.9.4.1, 2.9.4 and 2.7.9")
                     }
                 }
                 edge('org:databind:2.7.9', 'org:databind:2.9.4') {
@@ -1103,7 +1103,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         expectAlignment {
             module('core') alignsTo('2.9.4') byPublishedPlatform()
             module('databind') tries('2.7.9') alignsTo('2.9.4') byPublishedPlatform()
-            module('annotations') tries('2.7.9') alignsTo('2.9.4') byPublishedPlatform()
+            module('annotations') tries('2.7.9') tries('2.9.0') alignsTo('2.9.4') byPublishedPlatform()
             module('kt') alignsTo('2.9.4.1') byPublishedPlatform()
 
             doesNotGetPlatform("org", "platform", "2.7.9") // because of conflict resolution
@@ -1126,7 +1126,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 }
                 module('org:kt:2.9.4.1') {
                     module("org:platform:2.9.4.1") {
-                        byConflictResolution("between versions 2.9.4.1 and 2.9.4")
+                        byConflictResolution("between versions 2.9.4.1, 2.9.4 and 2.7.9")
                         noArtifacts()
                         constraint("org:core:2.9.4")
                         constraint("org:databind:2.9.4")
@@ -1165,7 +1165,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 }
                 module('org:kt:2.9.4.1') {
                     module("org:platform:2.9.4.1") {
-                        byConflictResolution("between versions 2.9.4.1 and 2.9.4")
+                        byConflictResolution("between versions 2.9.4.1, 2.9.4 and 2.7.9")
                         noArtifacts()
                         constraint("org:core:2.9.4")
                         constraint("org:databind:2.9.4")
@@ -1312,6 +1312,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                         byConflictResolution("between versions 1.1 and 1.0")
                         module("org:bar:1.1") {
                             byConstraint("belongs to platform org:platform:1.1")
+                            byConflictResolution("between versions 1.1 and 1.0")
                         }
                     }
                 }
