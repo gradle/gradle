@@ -149,10 +149,10 @@ class EdgeState implements DependencyGraphEdge {
         assert !targetComponent.getModule().isPending();
 
         calculateTargetNodes(targetComponent);
-        for (NodeState targetNode : targetNodes) {
-            targetNode.addIncomingEdge(this);
-        }
         if (!targetNodes.isEmpty()) {
+            for (NodeState targetNode : targetNodes) {
+                targetNode.addIncomingEdge(this);
+            }
             selector.getTargetModule().removeUnattachedEdge(this);
         }
     }

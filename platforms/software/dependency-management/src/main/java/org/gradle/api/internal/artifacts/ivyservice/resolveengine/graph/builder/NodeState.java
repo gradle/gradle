@@ -101,7 +101,7 @@ public class NodeState implements DependencyGraphNode {
      */
     private boolean virtualPlatformNeedsRefresh;
     private @Nullable Set<EdgeState> edgesToRecompute;
-    private @Nullable Multimap<ModuleIdentifier, DependencyState> potentiallyActivatedConstraints;
+    private @Nullable Multimap<ModuleIdentifier, EdgeState> potentiallyActivatedConstraints;
 
     // caches
     private final Map<DependencyMetadata, DependencyState> dependencyStateCache = new HashMap<>();
@@ -338,15 +338,15 @@ public class NodeState implements DependencyGraphNode {
         // Visit any constraints that were previously pending, but are no longer pending.
         if (upcomingNoLongerPendingConstraints != null && potentiallyActivatedConstraints != null) {
             for (ModuleIdentifier moduleId : upcomingNoLongerPendingConstraints) {
-                Collection<DependencyState> dependencyStates = potentiallyActivatedConstraints.get(moduleId);
-                if (!dependencyStates.isEmpty()) {
+                Collection<EdgeState> edges = potentiallyActivatedConstraints.get(moduleId);
+                if (!edges.isEmpty()) {
                     ModuleResolveState module = resolveState.getModule(moduleId);
                     if (module.isPending()) {
                         // The module went back to pending since we were notified that it was no longer pending.
                         module.getPendingDependencies().registerConstraintProvider(this);
                     } else {
-                        for (DependencyState dependencyState : dependencyStates) {
-                            createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, ancestorsStrictVersions, false);
+                        for (EdgeState edge : edges) {
+                            doLinkOutgoingEdge(edge, discoveredEdges, resolutionFilter, ancestorsStrictVersions, module, false);
                         }
                     }
                 }
@@ -428,41 +428,49 @@ public class NodeState implements DependencyGraphNode {
 
         PersistentSet<ModuleIdentifier> strictVersionsSet = PersistentSet.of();
         for (DependencyState dependencyState : dependencies(resolutionFilter)) {
-            boolean constraint = dependencyState.getDependency().isConstraint();
-            ModuleIdentifier moduleId = dependencyState.getModuleIdentifier(resolveState.getComponentSelectorConverter());
-            ModuleResolveState module = resolveState.getModule(moduleId);
-
-            boolean deferSelection = false;
-            if (constraint) {
-                registerActivatingConstraint(dependencyState, moduleId);
-            } else {
-                deferSelection = module.getPendingDependencies().addIncomingHardEdge();
-            }
-
-            if (constraint && module.isPending()) {
-                // No hard dependency targeting this module. Remember this constraint for later in case we see a hard dependency later.
-                module.registerConstraintProvider(this);
-            } else {
-                // We are a hard edge, or we are a constraint but there is already another hard edge targeting the same module.
-                createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, ancestorsStrictVersions, deferSelection);
-            }
-
-            strictVersionsSet = maybeCollectStrictVersions(strictVersionsSet, dependencyState);
+            EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolveState));
+            registerOutgoingEdge(resolutionFilter, ancestorsStrictVersions, discoveredEdges, dependencyEdge);
+            strictVersionsSet = maybeCollectStrictVersions(strictVersionsSet, dependencyEdge.getDependencyMetadata().getSelector());
         }
 
         // If there are 'pending' dependencies that share a target with any of these outgoing edges,
         // then reset the state of the node that owns those dependencies.
         // This way, all edges of the node will be re-processed.
         storeOwnStrictVersions(strictVersionsSet);
-
         this.visitedDependencies = true;
     }
 
-    private void registerActivatingConstraint(DependencyState dependencyState, ModuleIdentifier targetModuleId) {
+    private void registerOutgoingEdge(
+        ExcludeSpec resolutionFilter,
+        StrictVersionConstraints ancestorsStrictVersions,
+        Collection<EdgeState> discoveredEdges,
+        EdgeState dependencyEdge
+    ) {
+        boolean constraint = dependencyEdge.getDependencyMetadata().isConstraint();
+        ModuleIdentifier moduleId = dependencyEdge.getDependencyState().getModuleIdentifier(resolveState.getComponentSelectorConverter());
+        ModuleResolveState module = resolveState.getModule(moduleId);
+
+        boolean deferSelection = false;
+        if (constraint) {
+            registerActivatingConstraint(dependencyEdge, moduleId);
+        } else {
+            deferSelection = module.getPendingDependencies().addIncomingHardEdge();
+        }
+
+        if (constraint && module.isPending()) {
+            // No hard dependency targeting this module. Remember this constraint for later in case we see a hard dependency later.
+            module.registerConstraintProvider(this);
+        } else {
+            // We are a hard edge, or we are a constraint but there is already another hard edge targeting the same module.
+            doLinkOutgoingEdge(dependencyEdge, discoveredEdges, resolutionFilter, ancestorsStrictVersions, module, deferSelection);
+        }
+    }
+
+    private void registerActivatingConstraint(EdgeState edge, ModuleIdentifier targetModuleId) {
         if (potentiallyActivatedConstraints == null) {
             potentiallyActivatedConstraints = LinkedHashMultimap.create();
         }
-        potentiallyActivatedConstraints.put(targetModuleId, dependencyState);
+        potentiallyActivatedConstraints.put(targetModuleId, edge);
     }
 
     private List<DependencyState> dependencyStates() {
@@ -526,19 +534,17 @@ public class NodeState implements DependencyGraphNode {
         return result;
     }
 
-    /**
-     * Creates an edge and add it to this node as an outgoing edge.
-     */
-    private void createAndLinkEdgeState(
-        DependencyState dependencyState,
+    private void doLinkOutgoingEdge(
+        EdgeState dependencyEdge,
         Collection<EdgeState> discoveredEdges,
         ExcludeSpec resolutionFilter,
         StrictVersionConstraints ancestorsStrictVersions,
+        ModuleResolveState module,
         boolean deferSelection
     ) {
-        EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolveState));
         dependencyEdge.updateTransitiveExcludes(resolutionFilter);
         dependencyEdge.computeSelector(ancestorsStrictVersions, deferSelection);
+        module.addUnattachedEdge(dependencyEdge);
         discoveredEdges.add(dependencyEdge);
         outgoingEdges.add(dependencyEdge);
     }
@@ -561,8 +567,19 @@ public class NodeState implements DependencyGraphNode {
                     // 1. the "platform" referenced is a real module, in which case we directly add it to the graph
                     // 2. the "platform" is a virtual, constructed thing, in which case we add virtual edges to the graph
                     resolvePlatform(platformId);
-                    boolean deferSelection = resolveState.getModule(platformId.getModuleIdentifier()).getPendingDependencies().addIncomingHardEdge();
-                    visitVirtualPlatformEdge(discoveredEdges, platformId, ancestorsStrictVersions, resolutionFilter, deferSelection);
+
+                    boolean forced = hasStrongOpinion();
+                    final ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(platformId.getModuleIdentifier(), platformId.getVersion());
+                    DependencyMetadata dependencyMetadata = new LenientPlatformDependencyMetadata(resolveState, this, selector, platformId, platformId, forced, true, false);
+                    DependencyState dependencyState = resolveState.getDependencySubstitutionApplicator().applySubstitutions(dependencyMetadata);
+                    EdgeState virtualPlatformEdge = new EdgeState(this, dependencyState, resolveState);
+
+                    registerOutgoingEdge(
+                        resolutionFilter,
+                        ancestorsStrictVersions,
+                        discoveredEdges,
+                        virtualPlatformEdge
+                    );
                 }
             }
         }
@@ -590,28 +607,6 @@ public class NodeState implements DependencyGraphNode {
             // And now let's make sure we do not have another version of that virtual platform missing its metadata
             componentState.getModule().maybeCreateVirtualMetadata(resolveState);
         }
-    }
-
-    /**
-     * Creates a virtual edge to the given platform component.
-     * The platform may be a real component or a lenient platform component.
-     */
-    private void visitVirtualPlatformEdge(
-        Collection<EdgeState> discoveredEdges,
-        ModuleComponentIdentifier componentId,
-        StrictVersionConstraints ancestorsStrictVersions,
-        ExcludeSpec resolutionFilter,
-        boolean deferSelection
-    ) {
-        boolean forced = hasStrongOpinion();
-        final ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(componentId.getModuleIdentifier(), componentId.getVersion());
-        DependencyMetadata dependencyMetadata = new LenientPlatformDependencyMetadata(resolveState, this, selector, componentId, componentId, forced, true, false);
-        DependencyState dependencyState = resolveState.getDependencySubstitutionApplicator().applySubstitutions(dependencyMetadata);
-        EdgeState edge = new EdgeState(this, dependencyState, resolveState);
-        edge.updateTransitiveExcludes(resolutionFilter);
-        edge.computeSelector(ancestorsStrictVersions, deferSelection);
-        discoveredEdges.add(edge);
-        outgoingEdges.add(edge);
     }
 
     private boolean hasStrongOpinion() {
@@ -900,16 +895,16 @@ public class NodeState implements DependencyGraphNode {
         List<DependencyState> dependencies = dependencies(moduleResolutionFilter);
         PersistentSet<ModuleIdentifier> constraintsSet = PersistentSet.of();
         for (DependencyState dependencyState : dependencies) {
-            constraintsSet = maybeCollectStrictVersions(constraintsSet, dependencyState);
+            constraintsSet = maybeCollectStrictVersions(constraintsSet, dependencyState.getDependency().getSelector());
         }
         storeOwnStrictVersions(constraintsSet);
     }
 
-    private static PersistentSet<ModuleIdentifier> maybeCollectStrictVersions(PersistentSet<ModuleIdentifier> constraintsSet, DependencyState dependencyState) {
-        if (dependencyState.getDependency().getSelector() instanceof ModuleComponentSelector) {
-            ModuleComponentSelector selector = (ModuleComponentSelector) dependencyState.getDependency().getSelector();
-            if (!StringUtils.isEmpty(selector.getVersionConstraint().getStrictVersion())) {
-                constraintsSet = constraintsSet.plus(selector.getModuleIdentifier());
+    private static PersistentSet<ModuleIdentifier> maybeCollectStrictVersions(PersistentSet<ModuleIdentifier> constraintsSet, ComponentSelector selector) {
+        if (selector instanceof ModuleComponentSelector) {
+            ModuleComponentSelector mcs = (ModuleComponentSelector) selector;
+            if (!StringUtils.isEmpty(mcs.getVersionConstraint().getStrictVersion())) {
+                constraintsSet = constraintsSet.plus(mcs.getModuleIdentifier());
             }
         }
         return constraintsSet;
@@ -1085,7 +1080,7 @@ public class NodeState implements DependencyGraphNode {
     private StrictVersionConstraints computeEndorsedStrictVersions() {
         StrictVersionConstraints endorsedStrictVersions = StrictVersionConstraints.EMPTY;
         for (EdgeState edgeState : outgoingEdges) {
-            if (edgeState.getDependencyState().getDependency().isEndorsingStrictVersions()) {
+            if (edgeState.getDependencyMetadata().isEndorsingStrictVersions()) {
                 for (NodeState endorsedNode : edgeState.getTargetNodes()) {
                     if (endorsedNode.ownStrictVersions == null) {
                         // The node's dependencies were not yet visited. Compute them now.
