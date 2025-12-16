@@ -54,6 +54,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -298,6 +299,11 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     @Override
     public boolean isAllowInsecureProtocol() {
         return urlArtifactRepository.isAllowInsecureProtocol();
+    }
+
+    @Override
+    public Property<Boolean> getContinueOnConnectionFailure() {
+        return urlArtifactRepository.getContinueOnConnectionFailure();
     }
 
     @Override

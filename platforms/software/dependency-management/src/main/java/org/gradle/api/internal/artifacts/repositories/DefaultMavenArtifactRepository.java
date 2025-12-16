@@ -51,6 +51,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.action.InstantiatingAction;
@@ -189,6 +190,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     @Override
     public boolean isAllowInsecureProtocol() {
         return urlArtifactRepository.isAllowInsecureProtocol();
+    }
+
+    @Override
+    public Property<Boolean> getContinueOnConnectionFailure() {
+        return urlArtifactRepository.getContinueOnConnectionFailure();
     }
 
     @Override

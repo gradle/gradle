@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.artifacts.repositories.UrlArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.UrlArtifactRepository.getContinueOnConnectionFailure()",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to interface"
+            ]
+        }
+    ]
 }
