@@ -138,9 +138,9 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         """.stripIndent()
 
         and:
-        assert proxyServer.requestCount == 0
+        proxyServer.requestCount == 0
         prepareWrapper(getAuthenticatedBaseUrl()).run()
-        assert proxyServer.requestCount == 1
+        proxyServer.requestCount == 1
 
         when:
         def result = wrapperExecuter.withTasks('hello').run()
@@ -149,7 +149,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         assertThat(result.output, containsString('hello'))
 
         and:
-        assert proxyServer.requestCount == 2
+        proxyServer.requestCount == 2
     }
 
     @Issue('https://github.com/gradle/gradle/issues/5052')
@@ -181,7 +181,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         assertThat(result.output, containsString('hello'))
 
         and:
-        assert proxyServer.requestCount == 1
+        proxyServer.requestCount == 1
     }
 
     def "downloads wrapper via authenticated proxy and valid bearer token"() {
@@ -216,7 +216,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         assertThat(result.output, containsString('hello'))
 
         and:
-        assert proxyServer.requestCount == 1
+        proxyServer.requestCount == 1
     }
 
     def "download wrapper via proxy without proxy authentication but with bearer token"() {
@@ -248,7 +248,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         ExecutionFailure failure = wrapperExecuter.withTasks('hello').withStackTraceChecksDisabled().runWithFailure()
 
         then:
-        assert proxyServer.requestCount == 0
+        proxyServer.requestCount == 0
 
         and:
         failure.error.contains("Server returned HTTP response code: 407 for URL: ${server.uri(TEST_DISTRIBUTION_URL)}")
@@ -298,7 +298,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         ExecutionFailure failure = wrapperExecuter.withTasks('hello').withStackTraceChecksDisabled().runWithFailure()
 
         then:
-        assert proxyServer.requestCount == 1
+        proxyServer.requestCount == 1
 
         and:
         failure.error.contains("Server returned HTTP response code: 401 for URL: ${server.uri(TEST_DISTRIBUTION_URL)}")

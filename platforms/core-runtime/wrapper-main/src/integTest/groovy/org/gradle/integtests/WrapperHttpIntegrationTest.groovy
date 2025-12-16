@@ -36,9 +36,9 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     public static final String TEST_DISTRIBUTION_URL = "gradlew/dist"
 
-    private static final String HOST = "localhost";
-    private static final String USER = "jdoe";
-    private static final String PASSWORD = "changeit";
+    private static final String HOST = "localhost"
+    private static final String USER = "jdoe"
+    private static final String PASSWORD = "changeit"
     private static final String DEFAULT_TOKEN = "token"
 
     private String getDefaultBaseUrl() {
@@ -325,7 +325,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        outputContains('hello')
+        assertThat(result.output, containsString('hello'))
         and:
         proxyServer.requestCount == 2
     }
@@ -356,7 +356,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        outputContains('hello')
+        assertThat(result.output, containsString('hello'))
         and:
         proxyServer.requestCount == 2
     }
@@ -372,7 +372,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        outputContains('hello')
+        assertThat(result.output, containsString('hello'))
     }
 
     def "downloads wrapper from bearer authenticated server"() {
@@ -389,7 +389,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        outputContains('hello')
+        assertThat(result.output, containsString('hello'))
     }
 
     def "downloads wrapper from basic authenticated server using credentials from gradle.properties"() {
@@ -409,7 +409,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        outputContains('hello')
+        assertThat(result.output, containsString('hello'))
     }
 
     def "downloads wrapper from bearer token authenticated server using token from gradle.properties"() {
@@ -431,7 +431,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        outputContains('hello')
+        assertThat(result.output, containsString('hello'))
     }
 
     def "downloads wrapper from host specific bearer token authenticated server using token from gradle.properties"() {
@@ -454,7 +454,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        outputContains('hello')
+        assertThat(result.output, containsString('hello'))
     }
 
     def "warns about using basic authentication over insecure connection"() {
@@ -468,7 +468,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        outputContains('Please consider using HTTPS')
+        assertThat(result.output, containsString('Please consider using HTTPS'))
     }
 
     def "warns about using bearer token authentication over insecure connection"() {
@@ -490,7 +490,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        outputContains('Please consider using HTTPS')
+        assertThat(result.output, containsString('Please consider using HTTPS'))
     }
 
     def "does not leak basic authentication credentials in output"() {
