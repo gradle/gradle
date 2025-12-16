@@ -661,7 +661,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             Pair.of(".", ".*Execution failed for task ':build-logic:compileKotlin.*"))
     }
 
-    @ToBeImplemented
     def "resilient Kotlin DSL can be queried with null target"() {
         given:
         settingsKotlinFile << """
@@ -679,9 +678,28 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         }
 
         then:
-        model.scriptModels.isEmpty()
+        assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
         assertHasErrorsInScriptModels(model,
             Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+    }
+
+    def "no resilient Kotlin DSL model is returned if settings fails with null target"() {
+        given:
+        settingsKotlinFile << """
+            broken !!!
+        """
+
+        when:
+        def model = succeeds {
+            action(new KotlinModelOnNullTargetAction())
+                .withArguments("-Dorg.gradle.internal.resilient-model-building=true")
+                .run()
+        }
+
+        then:
+        model.scriptModels.isEmpty()
+        assertHasErrorsInScriptModels(model,
+            Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
     }
 
     void assertHasScriptModelForFiles(KotlinModel model, String... expectedFiles) {
@@ -873,7 +891,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         KotlinModel execute(BuildController controller) {
             GradleBuild build = controller.fetch(GradleBuild.class).model
             assert build != null
-
             Map<File, KotlinDslScriptModel> scriptModels = [:]
             Map<File, Failure> failures = [:]
             queryResilientKotlinDslScriptsModel(controller, build, null, scriptModels, failures)

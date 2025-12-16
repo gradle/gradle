@@ -60,9 +60,18 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
             return new BuildToolingScope(builder);
         }
 
-        // Force configuration of the build and locate builder for default project
-        ProjectState defaultProject = buildController.withProjectsConfigured(gradle -> gradle.getDefaultProject().getOwner());
-        Try<ToolingModelScope> toolingModelScope = doLocate(defaultProject, toolingModelContext, Try.successful(null));
+        // Force configuration of the containing build
+        Try<Void> buildConfiguration = configureBuild();
+        // Try to get the default project, but it may not be available if settings failed to load
+        Try<ProjectState> defaultProject = Try.ofFailable(() -> buildState.getMutableModel().getDefaultProject().getOwner());
+
+        // Locate a builder for the default project
+        Try<ToolingModelScope> toolingModelScope = defaultProject
+            // If getting the default project succeeded, let's try to locate a builder
+            .flatMap(project -> doLocate(checkNotNull(project), toolingModelContext, buildConfiguration))
+            // If getting the default project failed, we can't locate a builder,
+            // let's just fail but report build configuration failure
+            .mapFailure(failure -> buildConfiguration.getFailure().orElse(failure));
         return checkNotNull(toolingModelScope.get());
     }
 
