@@ -69,7 +69,7 @@ class ConfigurationCacheBuildCacheIntegrationTest extends AbstractIntegrationSpe
         fails "compileJava"
 
         then: "the task is still executed and fails"
-        failureDescriptionStartsWith("Execution failed for task ':compileJava' (created in build file 'build.gradle').")
+        failureDescriptionStartsWith("Execution failed for task ':compileJava' (created by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
         failureCauseContains("Invocation of 'Task.project' by task ':compileJava' at execution time is unsupported with the configuration cache.")
 
         and: "configuration cache is not reused"

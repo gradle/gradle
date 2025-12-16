@@ -62,7 +62,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         result.assertTasksNotScheduled(":other")
         result.assertTasksNotScheduled(":assemble")
         failure.assertHasFailures(1)
-        failure.assertHasDescription("Execution failed for task ':buildB:compileJava' (created in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':buildB:compileJava' (created by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5714")
@@ -82,7 +82,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         then:
         result.assertTaskScheduled(":buildB:broken")
         failure.assertHasFailures(1)
-        failure.assertHasDescription("Execution failed for task ':buildB:broken' (created in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':buildB:broken' (created in build file '../buildB/build.gradle').")
     }
 
     def "does not compile build script when build script classpath cannot be built"() {
@@ -102,7 +102,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         failure.assertHasFailures(1)
-        failure.assertHasDescription("Execution failed for task ':buildB:compileJava' (created in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':buildB:compileJava' (created by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
         failure.assertHasCause("Compilation failed; see the compiler output below.")
     }
 
@@ -142,7 +142,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         result.assertTaskScheduled(":buildB:broken")
         failure.assertHasFailures(2)
         failure.assertHasDescription("Execution failed for task ':broken' (created in build file 'build.gradle').")
-        failure.assertHasDescription("Execution failed for task ':buildB:broken' (created in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':buildB:broken' (created in build file '../buildB/build.gradle').")
     }
 
     def "build fails when task in root build fails"() {

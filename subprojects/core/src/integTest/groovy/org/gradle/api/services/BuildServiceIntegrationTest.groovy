@@ -945,7 +945,7 @@ Hello, subproject1
         outputContains """
 > Task :subproject2:hello FAILED
 """
-        failureDescriptionContains("Execution failed for task ':subproject2:hello' (created in build file 'build.gradle').")
+        failureDescriptionContains("Execution failed for task ':subproject2:hello' (created by plugin 'my.plugin1').")
         failureCauseContains("assert MyService == myService.type")
     }
 

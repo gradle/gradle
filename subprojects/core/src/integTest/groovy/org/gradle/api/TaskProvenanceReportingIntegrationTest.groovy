@@ -138,7 +138,7 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
         fails("foo")
 
         then:
-        failureDescriptionContains("Execution failed for task ':foo' (created by plugin class 'MyPlugin' (created in build file 'build.gradle').")
+        failureDescriptionContains("Execution failed for task ':foo' (created by plugin class 'MyPlugin').")
         failureCauseContains("Failure!")
     }
 
@@ -158,7 +158,7 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
         fails("foo")
 
         then:
-        failureDescriptionContains("Execution failed for task ':foo' (created in settings file 'settings.gradle' (created in build file 'build.gradle').")
+        failureDescriptionContains("Execution failed for task ':foo' (created in settings file 'settings.gradle').")
         failureCauseContains("Failure!")
     }
 

@@ -745,7 +745,7 @@ Required by:
         checkDependenciesFails()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':buildC:buildOutputs' (created in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':buildC:buildOutputs' (created in build file '../buildC/build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':buildC:buildInputs'.")
         failure.assertHasCause("Could not find test-1.2.jar (org.test:test:1.2).")
     }

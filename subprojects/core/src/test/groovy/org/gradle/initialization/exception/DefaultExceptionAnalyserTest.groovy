@@ -17,6 +17,7 @@ package org.gradle.initialization.exception
 
 import org.gradle.api.GradleScriptException
 import org.gradle.api.ProjectConfigurationException
+import org.gradle.api.Task
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.Describables
@@ -215,7 +216,7 @@ class DefaultExceptionAnalyserTest extends Specification {
     def 'prefers script exception over contextual exception'() {
         given:
         def cause = new GradleScriptException("broken", new ContextualException())
-        def failure = new TaskExecutionException(null, cause)
+        def failure = new TaskExecutionException(Mock(Task), cause)
         def result = []
 
         when:

@@ -24,6 +24,7 @@ import org.gradle.api.internal.TaskOutputsEnterpriseInternal
 import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionMode
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
@@ -83,7 +84,9 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 
 class ExecuteActionsTaskExecuterTest extends Specification {
     def problems = TestUtil.problemsService()
-    def task = Mock(TaskInternal)
+    def task = Mock(TaskInternal) {{
+        getTaskIdentity() >> Mock(TaskIdentity)
+    }}
     def taskOutputs = Mock(TaskOutputsEnterpriseInternal)
     def action1 = Mock(InputChangesAwareTaskAction) {
         getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action1", TestHashCodes.hashCodeFrom(1234))

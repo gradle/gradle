@@ -155,7 +155,17 @@ public interface TaskInternal extends Task, Configurable<Task> {
     default String buildFailureMessage() {
         UserCodeSource source = getTaskIdentity().getUserCodeSource();
         String sourceDesc = source.getDisplayName().getDisplayName();
-        String preposition = sourceDesc.contains("plugin") ? "by" : "in";
-        return String.format("Execution failed for %s (created %s %s).", this, preposition, sourceDesc);
+        boolean isUnknownSource = sourceDesc.equals(UserCodeSource.UNKNOWN.getDisplayName().getDisplayName());
+
+        String createdBy;
+        if (isUnknownSource) {
+            createdBy = "";
+        } else {
+            boolean isPluginSource = sourceDesc.contains("plugin");
+            String preposition = isPluginSource ? "by" : "in";
+            createdBy = String.format(" (created %s %s)", preposition, sourceDesc);
+        }
+
+        return String.format("Execution failed for %s%s.", this, createdBy);
     }
 }
