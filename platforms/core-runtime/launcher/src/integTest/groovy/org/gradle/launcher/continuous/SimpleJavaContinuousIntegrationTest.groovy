@@ -151,14 +151,14 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
 
         then:
         buildTriggeredAndFailed()
-        failureDescriptionStartsWith("Execution failed for task ':compileTestJava'.")
+        failureDescriptionStartsWith("Execution failed for task ':compileTestJava' (created in build file 'build.gradle').")
 
         when:
         sourceFile << " broken "
 
         then:
         buildTriggeredAndFailed()
-        failureDescriptionStartsWith("Execution failed for task ':compileJava'.")
+        failureDescriptionStartsWith("Execution failed for task ':compileJava' (created in build file 'build.gradle').")
 
         when:
         testSourceFile.text = "public class ThingTest { @org.junit.Test public void test() {} }"

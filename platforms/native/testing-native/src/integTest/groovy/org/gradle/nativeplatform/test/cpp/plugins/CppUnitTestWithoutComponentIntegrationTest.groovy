@@ -71,7 +71,7 @@ int main() {
 
         then:
         result.assertTasksScheduled(tasksToBuildAndRunUnitTest)
-        failure.assertHasDescription("Execution failed for task ':runTest'.")
+        failure.assertHasDescription("Execution failed for task ':runTest' (created in build file 'build.gradle').")
         failure.assertHasCause("There were failing tests. See the results at:")
     }
 

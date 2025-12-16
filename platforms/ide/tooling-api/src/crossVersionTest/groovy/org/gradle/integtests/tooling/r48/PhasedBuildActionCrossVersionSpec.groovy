@@ -276,12 +276,12 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         BuildException e = thrown()
         e.message.startsWith("Could not run phased build action using")
-        e.cause.message.contains("Execution failed for task ':broken'.")
+        e.cause.message.contains("Execution failed for task ':broken' (created in build file 'build.gradle').")
         projectsLoadedHandler.getResult() == "loading"
         buildFinishedHandler.getResult() == null
 
         and:
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasDescription("Execution failed for task ':broken' (created in build file 'build.gradle').")
     }
 
     def "build is interrupted immediately if action fails"() {

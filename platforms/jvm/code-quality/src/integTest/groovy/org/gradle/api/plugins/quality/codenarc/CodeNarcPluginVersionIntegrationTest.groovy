@@ -160,7 +160,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':codenarcTest'.")
+        failure.assertHasDescription("Execution failed for task ':codenarcTest' (created in build file 'build.gradle').")
         failure.assertThatCause(startsWith("CodeNarc rule violations were found. See the report at:"))
         failure.assertHasResolutions(SCAN)
         !report("main").text.contains("Class2")

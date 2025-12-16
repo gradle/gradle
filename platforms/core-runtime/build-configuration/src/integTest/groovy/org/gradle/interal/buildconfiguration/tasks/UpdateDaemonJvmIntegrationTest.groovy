@@ -152,7 +152,7 @@ tasks.named("updateDaemonJvm") {
         fails "updateDaemonJvm", "--jvm-version=7"
 
         then:
-        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
+        failureDescriptionContains("Execution failed for task ':updateDaemonJvm' (created in build file 'build.gradle').")
         failureHasCause("Unsupported Java version '7' provided for the 'jvm-version' option. Gradle can only run with Java 8 and above.")
     }
 
@@ -324,7 +324,7 @@ tasks.named("updateDaemonJvm") {
 
         then:
         // TODO The description is different with CC on
-//        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
+//        failureDescriptionContains("Execution failed for task ':updateDaemonJvm' (created in build file 'build.gradle').")
         failureHasCause("Invalid task configuration")
         failureCauseContains("Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20, vendor=vendor matching('FOO'), implementation=vendor-specific, nativeImageCapable=false} for any of the requested platforms")
     }

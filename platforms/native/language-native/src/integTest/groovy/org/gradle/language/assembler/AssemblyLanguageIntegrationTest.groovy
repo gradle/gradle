@@ -54,7 +54,7 @@ pushl
 
         expect:
         fails "mainExecutable"
-        failure.assertHasDescription("Execution failed for task ':assembleMainExecutableMainAsm'.")
+        failure.assertHasDescription("Execution failed for task ':assembleMainExecutableMainAsm' (created in build file 'build.gradle').")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("Assembler failed while compiling broken.s"))
     }
@@ -92,4 +92,3 @@ model {
         mainExecutable.exec().out == helloWorldApp.englishOutput
     }
 }
-

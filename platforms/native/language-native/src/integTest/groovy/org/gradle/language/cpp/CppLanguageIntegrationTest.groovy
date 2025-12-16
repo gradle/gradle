@@ -49,7 +49,7 @@ model {
 
         expect:
         fails "mainExecutable"
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp' (created in build file 'build.gradle').")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }
@@ -172,4 +172,3 @@ model {
         executable("build/exe/main/main").exec().out == app.expectedOutput(toolChain)
     }
 }
-

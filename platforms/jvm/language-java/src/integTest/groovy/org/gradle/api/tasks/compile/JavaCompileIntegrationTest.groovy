@@ -135,7 +135,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("compileJava")
-        failure.assertHasDescription("Execution failed for task ':b:compileJava'.")
+        failure.assertHasDescription("Execution failed for task ':b:compileJava' (created in build file 'build.gradle').")
 
         // This makes sure the test above is correct AND you can get back javac's default behavior if needed
         when:

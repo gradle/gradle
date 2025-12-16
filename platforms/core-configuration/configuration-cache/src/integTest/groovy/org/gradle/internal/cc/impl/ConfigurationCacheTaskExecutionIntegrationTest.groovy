@@ -218,7 +218,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCacheFails "broken"
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':broken'")
+        failureDescriptionStartsWith("Execution failed for task ':broken' (created in build file 'build.gradle').")
         failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
 
         configurationCache.assertStateStoredAndDiscarded {
@@ -243,7 +243,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCacheFails "broken"
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':broken'")
+        failureDescriptionStartsWith("Execution failed for task ':broken' (created in build file 'build.gradle').")
         failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
 
         configurationCache.assertStateStoredAndDiscarded {
@@ -268,7 +268,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCacheFails "broken", "-Dsome.property=value"
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':broken'")
+        failureDescriptionStartsWith("Execution failed for task ':broken' (created in build file 'build.gradle').")
         failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
 
         configurationCache.assertStateStoredAndDiscarded {
@@ -302,7 +302,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCacheFails "broken"
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':broken'")
+        failureDescriptionStartsWith("Execution failed for task ':broken' (created in build file 'build.gradle').")
         failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
 
         configurationCache.assertStateStoredAndDiscarded {

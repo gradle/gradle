@@ -39,7 +39,7 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
 
         expect:
         fails "assemble"
-        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
+        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask' (created in build file 'build.gradle').")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(Matchers.containsText("C++ compiler failed while compiling broken.cpp"))
     }

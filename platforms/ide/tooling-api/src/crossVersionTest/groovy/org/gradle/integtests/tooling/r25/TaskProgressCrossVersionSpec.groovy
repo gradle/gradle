@@ -176,7 +176,7 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         def test = events.operation("Task :test")
         test.failed
         test.failures.size() == 1
-        test.failures[0].message == "Execution failed for task ':test'."
+        test.failures[0].message == "Execution failed for task ':test' (created in build file 'build.gradle')."
 
         events.failed == [test]
     }

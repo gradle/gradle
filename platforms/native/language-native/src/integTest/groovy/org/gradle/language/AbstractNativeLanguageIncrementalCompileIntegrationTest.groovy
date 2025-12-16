@@ -436,7 +436,7 @@ model {
 
         then:
         executedAndNotSkipped compileTask
-        failure.assertHasDescription("Execution failed for task '${compileTask}'.")
+        failure.assertHasDescription("Execution failed for task '${compileTask}' (created in build file 'build.gradle').")
     }
 
     def "does not recompile any sources when unused header file is changed"() {

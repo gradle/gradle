@@ -55,7 +55,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
 
         expect:
         fails "assemble"
-        failure.assertHasDescription("Execution failed for task ':compileDebugSwift'.")
+        failure.assertHasDescription("Execution failed for task ':compileDebugSwift' (created in build file 'build.gradle').")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("Swift compiler failed while compiling swift file(s)"))
     }

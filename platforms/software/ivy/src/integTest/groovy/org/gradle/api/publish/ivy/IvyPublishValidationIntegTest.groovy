@@ -160,7 +160,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription "Execution failed for task ':publishIvyPublicationToIvyRepository'."
+        failure.assertHasDescription "Execution failed for task ':publishIvyPublicationToIvyRepository' (created in build file 'build.gradle')."
         failure.assertHasCause "Failed to publish publication 'ivy' to repository 'ivy'"
         failure.assertHasCause "Invalid publication 'ivy': organisation cannot be empty."
     }
@@ -189,7 +189,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
+        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository' (created in build file 'build.gradle').")
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
         failure.assertHasCause(message)
 

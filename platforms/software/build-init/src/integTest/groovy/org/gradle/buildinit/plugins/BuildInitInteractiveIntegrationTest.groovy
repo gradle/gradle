@@ -304,7 +304,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
         def result = handle.waitForFailure()
 
         then:
-        result.assertHasDescription("Execution failed for task ':init'.")
+        result.assertHasDescription("Execution failed for task ':init' (created in build file 'build.gradle').")
         result.assertHasCause("Build cancelled.")
 
         and:
@@ -335,7 +335,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
         def result = handle.waitForFailure()
 
         then:
-        result.assertHasDescription("Execution failed for task ':init'.")
+        result.assertHasDescription("Execution failed for task ':init' (created in build file 'build.gradle').")
         result.assertHasCause("Build cancelled.")
 
         and:

@@ -397,7 +397,7 @@ model {
         fails "runHelloTestCUnitExe"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':runHelloTestCUnitExe'.")
+        failure.assertHasDescription("Execution failed for task ':runHelloTestCUnitExe' (created in build file 'build.gradle').")
         failure.assertHasCause("There were failing tests. See the results at: ")
 
         and:

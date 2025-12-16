@@ -115,7 +115,7 @@ public interface ExecutionFailure extends ExecutionResult {
     ExecutionFailure assertHasNoCause();
 
     default ExecutionFailure assertTestsFailed() {
-        assertHasDescription("Execution failed for task ':test'.");
+        assertHasDescription("Execution failed for task ':test' (created in build file 'build.gradle').");
         assertThatCause(startsWith("There were failing tests"));
         return this;
     }

@@ -150,7 +150,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':generateDescriptorFileForIvyPublication'.")
+        failure.assertHasDescription("Execution failed for task ':generateDescriptorFileForIvyPublication' (created in build file 'build.gradle').")
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertHasLineNumber(23)
         failure.assertHasCause("Could not apply withXml() to Ivy module descriptor")
@@ -173,7 +173,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
+        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository' (created in build file 'build.gradle').")
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
         failure.assertHasCause("Invalid publication 'ivy': supplied revision does not match ivy descriptor (cannot edit revision directly in the ivy descriptor file).")
     }

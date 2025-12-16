@@ -81,7 +81,7 @@ class BuildInitSpecsInteractiveIntegrationTest extends AbstractInteractiveInitIn
         def result = handle.waitForFailure()
 
         then:
-        result.assertHasDescription("Execution failed for task ':init'.")
+        result.assertHasDescription("Execution failed for task ':init' (created in build file 'build.gradle').")
         result.assertHasCause("Build cancelled.")
         and:
         file("new-project/project.output").assertDoesNotExist()

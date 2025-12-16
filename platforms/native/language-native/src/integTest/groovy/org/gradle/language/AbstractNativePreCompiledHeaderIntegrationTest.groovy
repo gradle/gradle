@@ -413,7 +413,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
         then:
         fails "helloSharedLibrary"
-        failure.assertHasDescription("Execution failed for task ':${getPCHCompileTaskName("hello", "shared")}'.")
+        failure.assertHasDescription("Execution failed for task ':${getPCHCompileTaskName("hello", "shared")}' (created in build file 'build.gradle').")
         failure.assertThatCause(CoreMatchers.containsString("compiler failed while compiling prefix-headers"))
     }
 
