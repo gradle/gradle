@@ -18,6 +18,14 @@
         },
         {
             "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "member": "Class org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "acceptation": "Adding method to TaskInternal",
+            "changes": [
+                "Default method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getSoftwareTypeRegistry()",
             "acceptation": "Internal and unpublished API",
             "changes": [

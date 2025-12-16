@@ -27,6 +27,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Configurable;
@@ -142,4 +143,19 @@ public interface TaskInternal extends Task, Configurable<Task> {
      */
     @Internal
     TaskDependency getLifecycleDependencies();
+
+    /**
+     * Build a failure message for display when this task fails execution.
+     * <p>
+     * This includes task provenance information to help diagnose the source of the failing task.
+     *
+     * @return the constructed failure message
+     */
+    @Internal
+    default String buildFailureMessage() {
+        UserCodeSource source = getTaskIdentity().getUserCodeSource();
+        String sourceDesc = source.getDisplayName().getDisplayName();
+        String preposition = sourceDesc.contains("plugin") ? "by" : "in";
+        return String.format("Execution failed for %s (created %s %s).", this, preposition, sourceDesc);
+    }
 }

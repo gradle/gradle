@@ -15,9 +15,8 @@
  */
 package org.gradle.api.tasks;
 
-import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
-import org.gradle.internal.code.UserCodeSource;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
@@ -29,18 +28,11 @@ public class TaskExecutionException extends DefaultMultiCauseException {
     private final Task task;
 
     public TaskExecutionException(Task task, Throwable cause) {
-        super(buildFailureMessage(task), cause);
+        super(((TaskInternal) task).buildFailureMessage(), cause);
         this.task = task;
     }
 
     public Task getTask() {
         return task;
-    }
-
-    private static String buildFailureMessage(Task task) {
-        UserCodeSource source = ((DefaultTask) task).getUserCodeSource();
-        String sourceDesc = source.getDisplayName().getDisplayName();
-        String preposition = sourceDesc.contains("plugin") ? "by" : "in";
-        return String.format("Execution failed for %s (created %s %s).", task, preposition, sourceDesc);
     }
 }
