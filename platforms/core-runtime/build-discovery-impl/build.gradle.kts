@@ -31,5 +31,5 @@ dependencies {
 }
 
 errorprone {
-    nullawayEnabled = false
+    nullawayEnabled = true
 }

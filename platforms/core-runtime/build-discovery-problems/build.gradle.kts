@@ -33,5 +33,6 @@ dependencies {
 }
 
 errorprone {
+    // Cannot be enabled because the "problems-api" > "serialization" chain is not yet nullaway checked
     nullawayEnabled = false
 }
