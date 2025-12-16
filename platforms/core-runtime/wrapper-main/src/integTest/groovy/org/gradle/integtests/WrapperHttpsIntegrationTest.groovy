@@ -91,7 +91,7 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
             .expectUserAgent(matchesNameAndVersion("gradlew", Download.UNKNOWN_VERSION))
             .sendFile(distribution.binDistribution))
 
-        and: // prepareWrapper using basic auth is possible
+        and:
         prepareWrapper(getAuthenticatedBaseUrl()).run()
 
         when:
@@ -109,11 +109,10 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
             .expectUserAgent(matchesNameAndVersion("gradlew", Download.UNKNOWN_VERSION))
             .sendFile(distribution.binDistribution))
 
-        and: // configure wrapper with token
+        and:
         file("gradle.properties") << """
-    systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
-"""
-        // prepareWrapper using bearer auth is possible
+            systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
+        """.stripIndent()
         prepareWrapper(server.uri(TEST_DISTRIBUTION_URL), keyStore).run()
 
         when:
@@ -129,17 +128,16 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
-        and: // configure proxy
+        and:
         proxyServer.start()
 
-        // Note that the HTTPS protocol handler uses the same nonProxyHosts property as the HTTP protocol.
         file("gradle.properties") << """
-    systemProp.https.proxyHost=localhost
-    systemProp.https.proxyPort=${proxyServer.port}
-    systemProp.http.nonProxyHosts=
-"""
+            systemProp.https.proxyHost=localhost
+            systemProp.https.proxyPort=${proxyServer.port}
+            systemProp.http.nonProxyHosts=
+        """.stripIndent()
 
-        and: // prepareWrapper using proxy without auth is possible
+        and:
         assert proxyServer.requestCount == 0
         prepareWrapper(getAuthenticatedBaseUrl()).run()
         assert proxyServer.requestCount == 1
@@ -161,21 +159,20 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
-        and: // NOTE the gradle wrapper is downloaded here without proxy
+        and:
         prepareWrapper(getAuthenticatedBaseUrl()).run()
 
-        and: // configure proxy
+        and:
         proxyServer.start('my_user', 'my_password')
 
-        // Note that the HTTPS protocol handler uses the same nonProxyHosts property as the HTTP protocol.
         file("gradle.properties") << """
-    systemProp.https.proxyHost=localhost
-    systemProp.https.proxyPort=${proxyServer.port}
-    systemProp.http.nonProxyHosts=
-    systemProp.https.proxyUser=my_user
-    systemProp.https.proxyPassword=my_password
-    systemProp.jdk.http.auth.tunneling.disabledSchemes=
-"""
+            systemProp.https.proxyHost=localhost
+            systemProp.https.proxyPort=${proxyServer.port}
+            systemProp.http.nonProxyHosts=
+            systemProp.https.proxyUser=my_user
+            systemProp.https.proxyPassword=my_password
+            systemProp.jdk.http.auth.tunneling.disabledSchemes=
+        """.stripIndent()
 
         when:
         def result = wrapperExecuter.withTasks('hello').run()
@@ -193,27 +190,24 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
-        and: // prepare wrapper token
+        and:
         file("gradle.properties") << """
-    systemProp.gradle.wrapperToken=$DEFAULT_TOKEN
-"""
-        // preparing the wrapper is not possible using a proxy with auth,
-        // call prepare before proxy server is started/configured
+            systemProp.gradle.wrapperToken=$DEFAULT_TOKEN
+        """.stripIndent()
         prepareWrapper(server.uri(TEST_DISTRIBUTION_URL), keyStore).run()
 
-        and: // configure proxy
+        and:
         proxyServer.start('my_user', 'my_password')
 
-        // Note that the HTTPS protocol handler uses the same nonProxyHosts property as the HTTP protocol.
         file("gradle.properties") << """
-    systemProp.gradle.wrapperToken=$DEFAULT_TOKEN
-    systemProp.https.proxyHost=localhost
-    systemProp.https.proxyPort=${proxyServer.port}
-    systemProp.http.nonProxyHosts=
-    systemProp.https.proxyUser=my_user
-    systemProp.https.proxyPassword=my_password
-    systemProp.jdk.http.auth.tunneling.disabledSchemes=
-"""
+            systemProp.gradle.wrapperToken=$DEFAULT_TOKEN
+            systemProp.https.proxyHost=localhost
+            systemProp.https.proxyPort=${proxyServer.port}
+            systemProp.http.nonProxyHosts=
+            systemProp.https.proxyUser=my_user
+            systemProp.https.proxyPassword=my_password
+            systemProp.jdk.http.auth.tunneling.disabledSchemes=
+        """.stripIndent()
 
         when:
         def result = wrapperExecuter.withTasks('hello').run()
@@ -230,38 +224,33 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         startServer(false, true)
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
 
-        and: // prepare wrapper token before proxy setup
+        and:
         file("gradle.properties") << """
-    systemProp.gradle.wrapperToken=$DEFAULT_TOKEN
-"""
-        // preparing the wrapper is not possible using a proxy with auth,
-        // call prepare before proxy server is started/configured
+            systemProp.gradle.wrapperToken=$DEFAULT_TOKEN
+        """.stripIndent()
         prepareWrapper(server.uri(TEST_DISTRIBUTION_URL), keyStore).run()
 
-        and: // configure proxy
+        and:
         proxyServer.start('my_user', 'my_password')
 
-        // Note that the HTTPS protocol handler uses the same nonProxyHosts property as the HTTP protocol.
         file("gradle.properties") << """
-    systemProp.gradle.wrapperToken=$DEFAULT_TOKEN
-    systemProp.https.proxyHost=localhost
-    systemProp.https.proxyPort=${proxyServer.port}
-    systemProp.http.nonProxyHosts=
-    # without proxy auth
-    #systemProp.https.proxyUser=my_user
-    #systemProp.https.proxyPassword=my_password
-    systemProp.jdk.http.auth.tunneling.disabledSchemes=
-"""
+            systemProp.gradle.wrapperToken=$DEFAULT_TOKEN
+            systemProp.https.proxyHost=localhost
+            systemProp.https.proxyPort=${proxyServer.port}
+            systemProp.http.nonProxyHosts=
+            # without proxy auth
+            #systemProp.https.proxyUser=my_user
+            #systemProp.https.proxyPassword=my_password
+            systemProp.jdk.http.auth.tunneling.disabledSchemes=
+        """.stripIndent()
 
         when:
         ExecutionFailure failure = wrapperExecuter.withTasks('hello').withStackTraceChecksDisabled().runWithFailure()
 
         then:
-        // no requests
         assert proxyServer.requestCount == 0
 
         and:
-        // HTTP 407 Proxy Authentication Required
         failure.error.contains("Server returned HTTP response code: 407 for URL: ${server.uri(TEST_DISTRIBUTION_URL)}")
     }
 
@@ -269,13 +258,11 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         given:
         startServer(false, true)
 
-        and: // configure invalid wrapper token
+        and:
         file("gradle.properties") << """
-    systemProp.gradle.wrapperToken=invalidToken
-"""
+            systemProp.gradle.wrapperToken=invalidToken
+        """.stripIndent()
         when:
-        // preparing the wrapper is not possible using a proxy with auth,
-        // call prepare before proxy server is started/configured
         ExecutionFailure failure = prepareWrapper(server.uri(TEST_DISTRIBUTION_URL), keyStore).runWithFailure()
 
         then:
@@ -287,38 +274,33 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
         startServer(false, true)
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
 
-        and: // configure valid wrapper token before proxy setup
+        and:
         file("gradle.properties") << """
-    systemProp.gradle.wrapperToken=$DEFAULT_TOKEN
-"""
-        // preparing the wrapper is not possible using a proxy with auth,
-        // call prepare before proxy server is started/configured
+            systemProp.gradle.wrapperToken=$DEFAULT_TOKEN
+        """.stripIndent()
         prepareWrapper(server.uri(TEST_DISTRIBUTION_URL), keyStore).run()
 
-        and: // configure proxy
+        and:
         proxyServer.start('my_user', 'my_password')
 
-        // Note that the HTTPS protocol handler uses the same nonProxyHosts property as the HTTP protocol.
         file("gradle.properties") << """
-    # invalid token is used here
-    systemProp.gradle.wrapperToken=invalid
-    systemProp.https.proxyHost=localhost
-    systemProp.https.proxyPort=${proxyServer.port}
-    systemProp.http.nonProxyHosts=
-    systemProp.https.proxyUser=my_user
-    systemProp.https.proxyPassword=my_password
-    systemProp.jdk.http.auth.tunneling.disabledSchemes=
-"""
+            # invalid token is used here
+            systemProp.gradle.wrapperToken=invalid
+            systemProp.https.proxyHost=localhost
+            systemProp.https.proxyPort=${proxyServer.port}
+            systemProp.http.nonProxyHosts=
+            systemProp.https.proxyUser=my_user
+            systemProp.https.proxyPassword=my_password
+            systemProp.jdk.http.auth.tunneling.disabledSchemes=
+        """.stripIndent()
 
         when:
         ExecutionFailure failure = wrapperExecuter.withTasks('hello').withStackTraceChecksDisabled().runWithFailure()
 
         then:
-        // one failed request
         assert proxyServer.requestCount == 1
 
         and:
-        // HTTP 401 Unauthorized
         failure.error.contains("Server returned HTTP response code: 401 for URL: ${server.uri(TEST_DISTRIBUTION_URL)}")
     }
 
