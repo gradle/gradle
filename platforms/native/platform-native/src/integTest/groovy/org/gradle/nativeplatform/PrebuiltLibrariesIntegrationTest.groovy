@@ -259,7 +259,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.")
+        failure.assertHasDescription("Execution failed for task ':linkMainExecutable' (created in build file 'build.gradle').")
         failure.assertHasCause("Static library file not set for prebuilt static library 'hello:${NativePlatformsTestFixture.defaultPlatformName}DebugDefaultStatic'.")
     }
 
@@ -294,7 +294,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.")
+        failure.assertHasDescription("Execution failed for task ':linkMainExecutable' (created in build file 'build.gradle').")
         failure.assertHasCause("Static library file ${file("does_not_exist").absolutePath} does not exist for prebuilt static library 'hello:${NativePlatformsTestFixture.defaultPlatformName}DebugDefaultStatic'.")
     }
 

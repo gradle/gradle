@@ -60,7 +60,7 @@ class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainI
         fails('assemble')
 
         and:
-        failure.assertHasDescription("Execution failed for task ':compileDebugSwift'.")
+        failure.assertHasDescription("Execution failed for task ':compileDebugSwift' (created in build file 'build.gradle').")
         failure.assertHasCause("""No tool chain is available to build Swift for host operating system '${osName}' architecture '${archName}':
   - Tool chain '${toolChain.id}' (Swift Compiler):
       - Could not determine SwiftC metadata: swiftc produced unexpected output.""")

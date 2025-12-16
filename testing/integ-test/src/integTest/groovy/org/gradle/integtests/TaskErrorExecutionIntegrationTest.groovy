@@ -48,7 +48,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
         failure.assertHasLineNumber(3)
-        failure.assertHasDescription("Execution failed for task ':do-stuff'.")
+        failure.assertHasDescription("Execution failed for task ':do-stuff' (created in build file 'build.gradle').")
         failure.assertHasCause("broken")
     }
 
@@ -65,7 +65,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("Execution failed for task ':brokenClosure'.")
+        failure.assertHasDescription("Execution failed for task ':brokenClosure' (created in build file 'build.gradle').")
         failure.assertHasCause("broken closure")
     }
 
@@ -94,7 +94,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         expect:
         fails "brokenJavaTask"
 
-        failure.assertHasDescription("Execution failed for task ':brokenJavaTask'.")
+        failure.assertHasDescription("Execution failed for task ':brokenJavaTask' (created in build file 'build.gradle').")
         failure.assertHasCause("broken action")
     }
 
@@ -116,7 +116,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
         failure.assertHasLineNumber(5)
-        failure.assertHasDescription("Execution failed for task ':a:a'.")
+        failure.assertHasDescription("Execution failed for task ':a:a' (created in build file 'build.gradle').")
         failure.assertHasCause("broken")
     }
 

@@ -612,7 +612,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         failure
-            .assertHasDescription("Execution failed for task ':buildB:jar'")
+            .assertHasDescription("Execution failed for task ':buildB:jar' (created in build file 'build.gradle').")
             .assertHasCause("jar task failed")
     }
 
@@ -640,7 +640,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         failure
-            .assertHasDescription("Execution failed for task ':buildC:jar'")
+            .assertHasDescription("Execution failed for task ':buildC:jar' (created in build file 'build.gradle').")
             .assertHasCause("jar task failed")
     }
 

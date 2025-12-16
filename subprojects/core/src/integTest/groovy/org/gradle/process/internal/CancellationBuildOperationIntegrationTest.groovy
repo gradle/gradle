@@ -76,12 +76,12 @@ class CancellationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         then:
         operations.danglingChildren.empty
         failure.assertThatAllDescriptions(anyOf(
-            equalTo("Execution failed for task ':interrupting'."),
-            equalTo("Execution failed for task ':a0:parallelTask'."),
-            equalTo("Execution failed for task ':a1:parallelTask'."),
-            equalTo("Execution failed for task ':a2:parallelTask'."),
-            equalTo("Execution failed for task ':a3:parallelTask'."),
-            equalTo("Execution failed for task ':a4:parallelTask'.")
+            equalTo("Execution failed for task ':interrupting' (created in build file 'build.gradle')."),
+            equalTo("Execution failed for task ':a0:parallelTask' (created in build file 'build.gradle')."),
+            equalTo("Execution failed for task ':a1:parallelTask' (created in build file 'build.gradle')."),
+            equalTo("Execution failed for task ':a2:parallelTask' (created in build file 'build.gradle')."),
+            equalTo("Execution failed for task ':a3:parallelTask' (created in build file 'build.gradle')."),
+            equalTo("Execution failed for task ':a4:parallelTask' (created in build file 'build.gradle').")
         ))
     }
 }

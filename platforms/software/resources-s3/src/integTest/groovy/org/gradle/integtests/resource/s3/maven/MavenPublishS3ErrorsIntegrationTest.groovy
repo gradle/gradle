@@ -75,7 +75,7 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest 
         then:
         fails 'publish'
 
-        failure.assertHasDescription("Execution failed for task ':publishPubPublicationToMavenRepository'.")
+        failure.assertHasDescription("Execution failed for task ':publishPubPublicationToMavenRepository' (created in build file 'build.gradle').")
         failure.assertHasCause("Failed to publish publication 'pub' to repository 'maven'")
         failure.assertHasCause("Could not write to resource '${module.artifact.uri}'.")
         failure.assertHasCause("The AWS Access Key Id you provided does not exist in our records.")

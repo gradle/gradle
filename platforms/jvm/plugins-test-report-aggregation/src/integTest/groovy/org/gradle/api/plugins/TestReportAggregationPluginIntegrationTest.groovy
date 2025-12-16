@@ -374,7 +374,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         fails(":application:testAggregateTestReport")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':direct:test'.")
+        failure.assertHasDescription("Execution failed for task ':direct:test' (created in build file 'build.gradle').")
                .assertThatCause(startsWith("There were failing tests"))
         result.assertTasksNotScheduled(':application:testAggregateTestReport')
 

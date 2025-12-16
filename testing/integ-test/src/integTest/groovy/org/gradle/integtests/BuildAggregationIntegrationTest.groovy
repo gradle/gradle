@@ -99,7 +99,7 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
         fails()
 
         and:
-        failure.assertHasDescription("Execution failed for task ':buildSrc:compileJava'.")
+        failure.assertHasDescription("Execution failed for task ':buildSrc:compileJava' (created in build file 'build.gradle').")
     }
 
     @Issue("https://issues.gradle.org//browse/GRADLE-3052")

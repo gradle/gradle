@@ -111,7 +111,7 @@ toolChains {
         fails "compileMainExecutableMainC"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC' (created in build file 'build.gradle').")
         failure.assertHasCause("""No tool chain is available to build for platform '${NativePlatformsTestFixture.defaultPlatformName}':
   - ${toolChain.instanceDisplayName}:
       - Could not find C compiler 'does-not-exist'""")
@@ -133,7 +133,7 @@ toolChains {
         fails "compileMainExecutableMainC"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC' (created in build file 'build.gradle').")
         failure.assertThatCause(CoreMatchers.startsWith("Could not find C compiler 'does-not-exist'"))
     }
 
@@ -151,7 +151,7 @@ toolChains {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.")
+        failure.assertHasDescription("Execution failed for task ':linkMainExecutable' (created in build file 'build.gradle').")
         failure.assertThatCause(CoreMatchers.startsWith("Could not find Linker 'does-not-exist'"))
     }
 }

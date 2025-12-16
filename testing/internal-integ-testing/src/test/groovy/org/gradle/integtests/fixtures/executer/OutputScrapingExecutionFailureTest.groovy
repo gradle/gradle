@@ -353,7 +353,7 @@ Some.Failure
         failure.assertHasLineNumber(4)
 
         and:
-        failure.assertHasDescription("Execution failed for task ':broken'")
+        failure.assertHasDescription("Execution failed for task ':broken' (created in build file 'build.gradle').")
         failure.assertHasCause("broken")
 
         and:

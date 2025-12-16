@@ -333,7 +333,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
+        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp' (created in build file 'build.gradle').")
         failure.assertHasCause("""No tool chain is available to build for platform 'unavailable':
   - ${toolChain.instanceDisplayName}:
       - Don't know how to build for platform 'unavailable'.""")

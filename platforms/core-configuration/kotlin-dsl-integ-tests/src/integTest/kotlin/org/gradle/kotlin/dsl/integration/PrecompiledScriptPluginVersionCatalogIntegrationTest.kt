@@ -76,7 +76,7 @@ class PrecompiledScriptPluginVersionCatalogIntegrationTest : AbstractKotlinInteg
         )
 
         buildAndFail(":help").apply {
-            assertHasFailure("Execution failed for task ':buildSrc:compileKotlin'.") {
+            assertHasFailure("Execution failed for task ':buildSrc:compileKotlin' (created in build file 'build.gradle').") {
                 assertHasErrorOutput("buildSrc/src/main/kotlin/plugin-without-plugins.gradle.kts:1:9 Unresolved reference 'libs'")
                 assertHasErrorOutput("buildSrc/src/main/kotlin/plugin-with-plugins.gradle.kts:3:21 Unresolved reference 'libs'")
             }

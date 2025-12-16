@@ -66,7 +66,7 @@ class ResolveTaskMutationsBuildOperationTypeIntegrationTest extends AbstractInte
             failureDescriptionStartsWith("BOOM!")
         } else {
             assertResolveTaskMutationsBuildOperationEmitted(":t")
-            failureDescriptionStartsWith("Execution failed for task ':t'.")
+            failureDescriptionStartsWith("Execution failed for task ':t' (created in build file 'build.gradle').")
         }
     }
 

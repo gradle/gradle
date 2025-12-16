@@ -118,7 +118,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
         def result = handle.waitForFailure()
 
         then:
-        result.assertHasDescription("Execution failed for task ':init'")
+        result.assertHasDescription("Execution failed for task ':init' (created in build file 'build.gradle').")
         assertBuildAborted(handle)
         assertSuggestedResolutionsToExistingFilesProblem(handle)
     }
@@ -171,7 +171,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
         def result = handle.waitForFailure()
 
         then:
-        result.assertHasDescription("Execution failed for task ':init'")
+        result.assertHasDescription("Execution failed for task ':init' (created in build file 'build.gradle').")
         assertPromptedToOverwriteExistingFiles(handle)
         assertSuggestedResolutionsToExistingFilesProblem(handle)
 
