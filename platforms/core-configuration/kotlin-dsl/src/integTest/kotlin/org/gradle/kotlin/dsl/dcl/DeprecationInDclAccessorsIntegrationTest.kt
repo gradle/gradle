@@ -167,8 +167,8 @@ class DeprecationInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest()
 
                 @Suppress("deprecation")
                 @Deprecated("Deprecated model type", level = DeprecationLevel.WARNING)
-                abstract class MyExtension : ${Definition::class.java.simpleName}<Model> {
-                    abstract val myElements: NamedDomainObjectContainer<MyElement>
+                interface MyExtension : ${Definition::class.java.simpleName}<Model> {
+                    val myElements: NamedDomainObjectContainer<MyElement>
                 }
 
                 interface Model : ${BuildModel::class.java.simpleName} { }

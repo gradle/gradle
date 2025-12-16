@@ -19,6 +19,8 @@ package org.gradle.integtests.tooling.fixture
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.CommonTestFilesFixture
+import org.gradle.integtests.fixtures.LanguageSpecificTestFileFixture
 import org.gradle.integtests.fixtures.ProjectDirectoryCreator
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
@@ -78,7 +80,7 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @ToolingApiVersion('>=8.0')
 @TargetGradleVersion('>=4.0')
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
-abstract class ToolingApiSpecification extends Specification implements KotlinDslTestProjectInitiation, ProjectDirectoryCreator {
+abstract class ToolingApiSpecification extends Specification implements CommonTestFilesFixture, LanguageSpecificTestFileFixture, KotlinDslTestProjectInitiation, ProjectDirectoryCreator {
     /**
      * See https://github.com/gradle/gradle-private/issues/3216
      * To avoid flakiness when reusing daemons between CLI and TAPI
@@ -138,7 +140,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
 
         // this is to avoid the working directory to be the Gradle directory itself
         // which causes isolation problems for tests. This one is for _embedded_ mode
-        System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
+        System.setProperty("user.dir", projectDir.absolutePath)
 
         // Enable deprecation logging for all tests
         System.setProperty("org.gradle.warning.mode", "all")
@@ -152,6 +154,11 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
 
     TestFile getProjectDir() {
         temporaryFolder.testDirectory
+    }
+
+    @Override
+    TestFile getUserActionRootDir() {
+        projectDir
     }
 
     @Override

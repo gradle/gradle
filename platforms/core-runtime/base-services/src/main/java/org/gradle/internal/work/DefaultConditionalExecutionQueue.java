@@ -137,7 +137,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
             }
         }
 
-        private ConditionalExecution<?> waitForNextOperation() {
+        private @Nullable ConditionalExecution<?> waitForNextOperation() {
             lock.lock();
             try {
                 // Wait for work to be submitted if the queue is empty and our worker count is under max workers

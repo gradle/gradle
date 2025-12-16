@@ -820,3 +820,166 @@ NOTE: If you publish your library and use test fixtures, but do not want to publ
 include::sample[dir="snippets/java/fixtures/kotlin/lib",files="build.gradle.kts[tags=disable-test-fixtures-publishing]"]
 include::sample[dir="snippets/java/fixtures/groovy/lib",files="build.gradle[tags=disable-test-fixtures-publishing]"]
 ====
+
+[[sec:non-class-based-testing]]
+== Non-class based testing
+
+=== Overview
+
+Some testing frameworks do not use classes to define tests (for instance https://cucumber.io/[Cucumber]).
+Gradle supports non-class based testing via JUnit Platform https://docs.junit.org/current/user-guide/#test-engines[`TestEngine`]s.
+
+To use a non-class based testing framework, you need to:
+
+ * Add the appropriate `TestEngine` dependency to the test runtime classpath
+ * Configure the `Test` task to use JUnit Platform
+ * Tell the `TestEngine` where to find the tests using the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testDefinitionDirs[`testDefinitionDirs`] property of the Test task.
+
+This is all that is necessary to run non-class-based tests.
+The exact details of how to define these tests will depend on the specific `TestEngine` being used.
+
+NOTE: Though possible, it is not recommended to mix class-based and non-class-based tests in the same `Test` task.  Create a separate `Test` task for each type of test instead.  Using <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin, Java Test Suites>> makes this easy to do.
+
+=== Basic Example
+
+Here is an example project structure for a non-class based testing setup.
+Test Engines for non-class-based testing are commonly added as test `runtimeOnly` dependencies.
+
+Typically these would be added via a 3rd party library, but in this simple example the build defines a custom JUnit Platform `TestEngine` in the `test-engine` project and uses it to run tests in the `lib` project.
+
+This example uses <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin, Java Test Suites>>, but the same process can be applied to manually configured `Test` tasks as well.
+
+[.multi-language-sample]
+=====
+.An example non-class-based testing setup
+[source, kotlin]
+----
+├── test-engine
+│    ├── build.gradle.kts
+│    └── src                 // Source for an example JUnit Platform TestEngine implementation
+├── lib
+│    ├── build.gradle.kts
+│    └── src
+│        ├── main            // Production code to be tested
+│        └── test
+│            └── definitions // Non-class files that also define tests would go here
+├── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+.An example non-class-based testing setup
+[source, groovy]
+----
+├── test-engine
+│    ├── build.gradle
+│    └── src                 // Source for an example JUnit Platform TestEngine implementation
+├── lib
+│    ├── build.gradle
+│    └── src
+│        ├── main            // Production code to be tested
+│        └── test
+│            └── definitions // Non-class files that also define tests would go here
+├── settings.gradle
+----
+=====
+
+Note that the `src/test/java` directory is absent in this example, as no class-based tests are present.
+While you can mix class-based and non-class-based tests in the same test task, this is not recommended.
+It is better to separate class-based and non-class-based tests into different tasks so that they can be configured independently.
+Using Java Test Suites makes this easy to do.
+
+====
+include::sample[dir="snippets/testing/non-class-based-testing/kotlin/lib",files="build.gradle.kts[tags=test-setup]"]
+include::sample[dir="snippets/testing/non-class-based-testing/groovy/lib",files="build.gradle[tags=test-setup]"]
+====
+
+<1> Ensure the test task uses the JUnit Jupiter test framework.  When not using Test Suites, you should call `useJUnitPlatform()` on the `Test` task itself.
+<2> Add the `TestEngine` dependency to the test runtime classpath.
+<3> Tell the `Test` task which directories contain non-class-based test definitions.  These can be relative paths from the project dir or absolute paths.
+
+This example engine uses XML files with a very simple structure to define tests.
+These files are idiomatically located in the `src/test/definitions` directory.
+
+[.multi-language-sample]
+=====
+.Example test definitions
+[source, kotlin]
+----
+└── src
+    └── test
+        └── definitions
+            ├── sub
+            │   └── MoreTests.xml
+            └── ExampleTests.xml
+----
+=====
+[.multi-language-sample]
+=====
+.Example test definitions
+[source, groovy]
+----
+└── src
+    └── test
+        └── definitions
+            ├── sub
+            │   └── MoreTests.xml
+            └── ExampleTests.xml
+----
+=====
+
+The test definition files in this example are very simple and look like this:
+
+====
+include::sample[dir="snippets/testing/non-class-based-testing/kotlin/lib/src/test/definitions",files="ExampleTests.xml[]"]
+====
+
+====
+include::sample[dir="snippets/testing/non-class-based-testing/kotlin/lib/src/test/definitions/sub",files="MoreTests.xml[]"]
+====
+
+The custom engine in this example logs messages when discovering and executing tests.
+When `./gradlew test --info` is run, the output contains lines that confirm that the custom `TestEngine` is being used to discover and execute the tests defined in the XML files:
+
+[source,text]
+----
+    INFO: Discovering tests with engine: [engine:rbt-engine] using selectors:
+    	DirectorySelector [path = '/home/user/gradle/samples/lib/src/test/definitions']
+    INFO: Test specification file: /home/user/gradle/samples/lib/src/test/definitions/ExampleTests.xml
+    INFO: Test specification file: /home/user/gradle/samples/lib/src/test/definitions/sub/MoreTests.xml
+
+    INFO: Executing tests with engine: [engine:rbt-engine]
+    INFO: Executing resource-based test: Test[file=ExampleTests.xml, name=foo]
+    INFO: Executing resource-based test: Test[file=ExampleTests.xml, name=bar]
+    INFO: Executing resource-based test: Test[file=MoreTests.xml, name=baz]
+----
+
+=== Filtering
+
+Non-class-based tests can be filtered in a similar manner as class-based tests using the link:{javadocPath}/org/gradle/api/tasks/testing/TestFilter.html[`TestFilter`] API or `--tests` command line option.
+
+Non-class-based test filtering is performed using regex matching against the relative path from the project directory to the test definitions file.
+
+To apply a filter to non-class-based tests, that filter *must* include at least one `/` character to indicate that it is a file path filter rather than a class name filter.
+This forward slash can appear anywhere in the filter string, even at the start.
+If a filter does start with a `/`, it is still treated as a relative path from the project directory.
+
+NOTE: As the same filter properties are used for both class-based and non-class-based tests, care should be taken to ensure that the filter in the proper format for the given type of test definitions and only matches the intended tests.
+
+If the previous example was run with the filter: `./gradlew test --info --tests "src/test/definitions/ExampleTests.xml"` then only the tests in `ExampleTests.xml` would be executed.
+
+If it were run with the filter `/.gradlew test --info --tests ".*/sub/.*"` then only the tests in `MoreTests.xml` would be executed.
+
+Filtering is only supported at a file level granularity for non-class-based tests.
+There is no support for filtering individual tests within a test definition file.
+
+=== Parallel Execution
+
+Parallelism in non-class-based tests is controlled via the link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#getMaxParallelForks--[`Test.getMaxParallelForks()`] property of the `Test` task.
+If this property is set to a value greater than `1`, Gradle will attempt to distribute each test definition *directory* present in the `testDefinitionDirs` property across multiple test worker processes.
+
+Files within a single test definition directory will always be executed sequentially within the same test worker process.
+
+=== Tooling API
+
+Non-class-based tests can be run through the <<tooling_api.adoc#tooling_api,Tooling API>> in the same manner as class-based tests.

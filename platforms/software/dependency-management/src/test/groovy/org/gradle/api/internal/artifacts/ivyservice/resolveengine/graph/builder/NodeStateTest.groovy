@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
-import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints
 import org.gradle.api.specs.Specs
+import org.gradle.internal.collect.PersistentSet
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.VariantGraphResolveState
@@ -239,7 +239,7 @@ class NodeStateTest extends Specification {
     }
 
     private static StrictVersionConstraints modules(List<String> names) {
-        StrictVersionConstraints.of(ImmutableSet.copyOf(
+        StrictVersionConstraints.of(PersistentSet.copyOf(
             names.collect { DefaultModuleIdentifier.newId("org", it) }
         ))
     }

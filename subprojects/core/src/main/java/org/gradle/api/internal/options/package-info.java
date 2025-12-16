@@ -14,26 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing;
-
-import org.jspecify.annotations.NullMarked;
-
-import java.time.Instant;
-
-/**
- * Metadata captured during the execution of a test.
- *
- * @since 9.4.0
- */
-@NullMarked
-public interface TestMetadataEvent {
-    /**
-     * The time the message was logged.
-     * <p>
-     * Producers can supply the same value as the test start time to indicate that the metadata is "timeless", such
-     * as environment information that isn't tied to a specific point during test execution.
-     *
-     * @return log time
-     */
-    Instant getLogTime();
-}
+@org.jspecify.annotations.NullMarked
+package org.gradle.api.internal.options;

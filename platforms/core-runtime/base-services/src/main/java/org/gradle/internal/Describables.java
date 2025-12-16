@@ -16,9 +16,11 @@
 
 package org.gradle.internal;
 
-import com.google.common.base.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Describable;
+import org.jspecify.annotations.Nullable;
+
+import java.util.Objects;
 
 public class Describables {
     private Describables() {
@@ -176,7 +178,7 @@ public class Describables {
                 return false;
             }
             FixedDescribable that = (FixedDescribable) o;
-            return Objects.equal(displayName, that.displayName);
+            return Objects.equals(displayName, that.displayName);
         }
 
         @Override
@@ -221,13 +223,13 @@ public class Describables {
                 return false;
             }
             TwoPartDescribable that = (TwoPartDescribable) o;
-            return Objects.equal(part1, that.part1) &&
-                Objects.equal(part2, that.part2);
+            return Objects.equals(part1, that.part1) &&
+                Objects.equals(part2, that.part2);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(part1, part2);
+            return Objects.hash(part1, part2);
         }
     }
 
@@ -273,21 +275,21 @@ public class Describables {
                 return false;
             }
             ThreePartDescribable that = (ThreePartDescribable) o;
-            return Objects.equal(part1, that.part1) &&
-                Objects.equal(part2, that.part2) &&
-                Objects.equal(part3, that.part3);
+            return Objects.equals(part1, that.part1) &&
+                Objects.equals(part2, that.part2) &&
+                Objects.equals(part3, that.part3);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(part1, part2, part3);
+            return Objects.hash(part1, part2, part3);
         }
     }
 
     private static class MemoizingDescribable extends AbstractDescribable {
-        private Describable describable;
-        private String displayName;
-        private String capDisplayName;
+        private @Nullable Describable describable;
+        private @Nullable String displayName;
+        private @Nullable String capDisplayName;
 
         MemoizingDescribable(Describable describable) {
             this.describable = describable;
@@ -310,7 +312,8 @@ public class Describables {
         public String getDisplayName() {
             synchronized (this) {
                 if (displayName == null) {
-                    displayName = describable.getDisplayName();
+                    // we discard describable only when both displayName and capDisplayName get its values.
+                    displayName = Objects.requireNonNull(describable).getDisplayName();
                     if (capDisplayName != null || !(describable instanceof DisplayName)) {
                         describable = null;
                     }

@@ -47,7 +47,7 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
 
                 dependencies {
                     implementation("io.cucumber:cucumber-java:7.15.0")
-                    implementation("io.cucumber:cucumber-junit-platform-engine:7.15.0")
+                    runtimeOnly("io.cucumber:cucumber-junit-platform-engine:7.15.0")
                 }
 
                 targets.all {

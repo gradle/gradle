@@ -20,6 +20,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.code.DefaultUserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -113,8 +114,8 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     }
 
     @Provides
-    BuildOperationTrace createBuildOperationTrace(BuildOperationListenerManager buildOperationListenerManager, CrossBuildSessionParameters parameters) {
-        return new BuildOperationTrace(parameters.getUserActionRootDirectory(), parameters.getStartParameter(), buildOperationListenerManager);
+    BuildOperationTrace createBuildOperationTrace(InternalOptions internalOptions, CrossBuildSessionParameters parameters, BuildOperationListenerManager buildOperationListenerManager) {
+        return new BuildOperationTrace(parameters.getUserActionRootDirectory(), internalOptions, buildOperationListenerManager);
     }
 
     @Provides

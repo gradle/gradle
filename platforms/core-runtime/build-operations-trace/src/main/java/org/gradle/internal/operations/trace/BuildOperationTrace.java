@@ -33,13 +33,11 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.StartParameter;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalFlag;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
@@ -162,10 +160,9 @@ public class BuildOperationTrace implements Stoppable {
 
     private final BuildOperationListenerManager buildOperationListenerManager;
 
-    public BuildOperationTrace(File userActionRootDir, StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
+    public BuildOperationTrace(File userActionRootDir, InternalOptions internalOptions, BuildOperationListenerManager buildOperationListenerManager) {
         this.buildOperationListenerManager = buildOperationListenerManager;
 
-        InternalOptions internalOptions = new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
         Path basePath = resolveBasePath(internalOptions, userActionRootDir);
         if (basePath == null) {
             this.outputTree = false;

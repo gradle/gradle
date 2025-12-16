@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.Cast;
 import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -209,9 +210,10 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
             returnValue = buildOperation.call(context);
         }
 
-        @SuppressWarnings("NullAway") // Properly typing this is non-trivial even with a sentinel object.
         public T getReturnValue() {
-            return returnValue;
+            // Strictly speaking this isn't safe, as the method may be called without calling execute() first.
+            // But we don't want to do the sentinel dance here.
+            return Cast.unsafeStripNullable(returnValue);
         }
     }
 

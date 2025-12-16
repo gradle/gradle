@@ -41,6 +41,12 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== The `java-gradle-plugin` plugin now adds the `gradleApi()` dependency to the `compileOnlyApi` scope
+
+The dependency on `gradleApi()` added by the `java-gradle-plugin` will be added to the `compileOnlyApi` scope instead of `api`.
+
+For most plugin projects, this change should be transparent and without any side effects.
+
 ==== Stricter validation for published plugins
 
 For plugin builds that apply any of the `com.gradle.plugin-publish`, `ivy-publish`, or `maven-publish` plugins, Gradle now automatically enables stricter validation of plugin code.

@@ -147,7 +147,8 @@ public class LauncherServices extends AbstractGradleModuleServices {
             BuildLayoutValidator buildLayoutValidator,
             FileSystem fileSystem,
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
-            ValueSnapshotter valueSnapshotter
+            ValueSnapshotter valueSnapshotter,
+            InternalOptions options
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             return new SubscribableBuildActionExecutor(
@@ -171,7 +172,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
                     new RunAsWorkerThreadBuildActionExecutor(
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(
-                            new BuildTreeLifecycleBuildActionExecutor(buildModelParametersFactory, buildLayoutValidator, valueSnapshotter),
+                            new BuildTreeLifecycleBuildActionExecutor(buildModelParametersFactory, buildLayoutValidator, valueSnapshotter, options),
                             buildOperationRunner,
                             loggingBuildOperationProgressBroadcaster,
                             buildOperationNotificationValve
