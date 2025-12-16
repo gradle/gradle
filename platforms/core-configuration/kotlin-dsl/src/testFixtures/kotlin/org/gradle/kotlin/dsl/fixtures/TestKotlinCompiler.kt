@@ -31,7 +31,6 @@ import org.jetbrains.kotlin.config.Services
 import org.jetbrains.kotlin.utils.PathUtil
 import java.io.File
 
-internal
 fun compileToDirectory(
     outputDirectory: File,
     moduleName: String,
