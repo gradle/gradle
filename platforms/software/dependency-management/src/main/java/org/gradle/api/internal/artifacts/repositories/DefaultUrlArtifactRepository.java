@@ -20,6 +20,8 @@ import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.UrlArtifactRepository;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -40,15 +42,18 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
     private final String repositoryType;
     private final FileResolver fileResolver;
     private final Supplier<String> displayNameSupplier;
+    private final Property<Boolean> continueOnConnectionFailure;
 
     DefaultUrlArtifactRepository(
         final FileResolver fileResolver,
+        final PropertyFactory propertyFactory,
         final String repositoryType,
         final Supplier<String> displayNameSupplier
     ) {
         this.fileResolver = fileResolver;
         this.repositoryType = repositoryType;
         this.displayNameSupplier = displayNameSupplier;
+        this.continueOnConnectionFailure = propertyFactory.property(Boolean.class);
     }
 
     @Override
@@ -85,6 +90,11 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
     @Override
     public boolean isAllowInsecureProtocol() {
         return allowInsecureProtocol;
+    }
+
+    @Override
+    public Property<Boolean> getContinueOnConnectionFailure() {
+        return continueOnConnectionFailure;
     }
 
     @NonNull
@@ -140,14 +150,16 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
     @ServiceScope(Scope.Project.class)
     public static class Factory {
         private final FileResolver fileResolver;
+        private final PropertyFactory propertyFactory;
 
         @Inject
-        public Factory(FileResolver fileResolver) {
+        public Factory(FileResolver fileResolver, PropertyFactory propertyFactory) {
             this.fileResolver = fileResolver;
+            this.propertyFactory = propertyFactory;
         }
 
         DefaultUrlArtifactRepository create(String repositoryType, Supplier<String> displayNameSupplier) {
-            return new DefaultUrlArtifactRepository(fileResolver, repositoryType, displayNameSupplier);
+            return new DefaultUrlArtifactRepository(fileResolver, propertyFactory, repositoryType, displayNameSupplier);
         }
     }
 }

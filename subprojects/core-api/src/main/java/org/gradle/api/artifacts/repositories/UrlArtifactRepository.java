@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts.repositories;
 
+import org.gradle.api.provider.Property;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.net.URI;
@@ -73,4 +74,12 @@ public interface UrlArtifactRepository {
      * @see #isAllowInsecureProtocol()
      */
     void setAllowInsecureProtocol(boolean allowInsecureProtocol);
+
+    /**
+     * Specifies whether to continue downloading artifacts from other repositories if connection to this repository fails.
+     *
+     * @return A Gradle property for the continueOnConnectionFailure flag.
+     * @since 9.3
+     */
+    Property<Boolean> getContinueOnConnectionFailure();
 }
