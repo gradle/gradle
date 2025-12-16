@@ -102,6 +102,7 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
     private final InstantiatingAction<ComponentMetadataListerDetails> providedVersionLister;
     private final Instantiator injector;
     private final ChecksumService checksumService;
+    private final boolean continueOnConnectionFailure;
 
     private final String id;
     private ExternalResourceArtifactResolver cachedArtifactResolver;
@@ -118,7 +119,8 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
         @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
         @Nullable InstantiatingAction<ComponentMetadataListerDetails> providedVersionLister,
         Instantiator injector,
-        ChecksumService checksumService
+        ChecksumService checksumService,
+        boolean continueOnConnectionFailure
     ) {
         this.id = descriptor.getId();
         this.name = descriptor.getName();
@@ -135,6 +137,7 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
         this.providedVersionLister = providedVersionLister;
         this.injector = injector;
         this.checksumService = checksumService;
+        this.continueOnConnectionFailure = continueOnConnectionFailure;
     }
 
     @Override
@@ -150,6 +153,11 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
     @Override
     public boolean isDynamicResolveMode() {
         return false;
+    }
+
+    @Override
+    public boolean isContinueOnConnectionFailure() {
+        return continueOnConnectionFailure;
     }
 
     @Override

@@ -146,6 +146,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         return delegate.getComponentMetadataSupplier();
     }
 
+    @Override
+    public boolean isContinueOnConnectionFailure() {
+        return delegate.isContinueOnConnectionFailure();
+    }
+
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         @Override
         public String toString() {
