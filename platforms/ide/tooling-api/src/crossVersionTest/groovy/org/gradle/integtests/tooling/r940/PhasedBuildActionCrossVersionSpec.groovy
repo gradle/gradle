@@ -1,0 +1,232 @@
+/*
+ * Copyright 2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.integtests.tooling.r940
+
+import org.gradle.integtests.tooling.fixture.RelatedToolingAPITests
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.r48.CustomBuildFinishedModel
+import org.gradle.integtests.tooling.r48.CustomProjectsLoadedModel
+import org.gradle.integtests.tooling.r48.IntermediateResultHandlerCollector
+import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildController
+import org.gradle.tooling.BuildException
+import org.gradle.tooling.events.OperationType
+import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.task.TaskFailureResult
+import org.gradle.tooling.events.task.TaskFinishEvent
+
+@TargetGradleVersion(">=9.4.0")
+@RelatedToolingAPITests(
+    tests = org.gradle.integtests.tooling.r48.PhasedBuildActionCrossVersionSpec
+)
+class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
+
+    def setup() {
+        buildFile << """
+            import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
+            import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+            import javax.inject.Inject
+
+            allprojects {
+                apply plugin: CustomPlugin
+            }
+
+            class DefaultCustomModel implements Serializable {
+                private final String value;
+                DefaultCustomModel(String value) {
+                    this.value = value;
+                }
+                public String getValue() {
+                    return value;
+                }
+            }
+
+            interface CustomParameter {
+                void setTasks(List<String> tasks);
+                List<String> getTasks();
+            }
+
+            class CustomPlugin implements Plugin<Project> {
+                @Inject
+                CustomPlugin(ToolingModelBuilderRegistry registry) {
+                    registry.register(new CustomBuilder());
+                }
+
+                public void apply(Project project) {
+                }
+            }
+
+            class CustomBuilder implements ParameterizedToolingModelBuilder<CustomParameter> {
+                boolean canBuild(String modelName) {
+                    return modelName == '${CustomProjectsLoadedModel.name}' || modelName == '${CustomBuildFinishedModel.name}'
+                }
+
+                Class<CustomParameter> getParameterType() {
+                    return CustomParameter.class;
+                }
+
+                Object buildAll(String modelName, Project project) {
+                    if (modelName == '${CustomProjectsLoadedModel.name}') {
+                        return new DefaultCustomModel('loading');
+                    }
+                    if (modelName == '${CustomBuildFinishedModel.name}') {
+                        return new DefaultCustomModel('build');
+                    }
+                    return null
+                }
+
+                Object buildAll(String modelName, CustomParameter parameter, Project project) {
+                    if (modelName == '${CustomProjectsLoadedModel.name}') {
+                        StartParameter startParameter = project.getGradle().getStartParameter();
+                        Set<String> tasks = new HashSet(startParameter.getTaskNames());
+                        tasks.addAll(parameter.getTasks());
+                        startParameter.setTaskNames(tasks);
+                        return new DefaultCustomModel('loadingWithTasks');
+                    }
+                    return null
+                }
+            }
+        """
+    }
+
+    def "build finished action is run even if build fails"() {
+        def projectsLoadedHandler = new IntermediateResultHandlerCollector()
+        def buildFinishedHandler = new IntermediateResultHandlerCollector()
+
+        buildFile << """
+            task broken {
+                doLast { throw new RuntimeException("broken") }
+            }
+        """
+
+        when:
+        fails { connection ->
+            connection.action()
+                .projectsLoaded(new CustomProjectsLoadedAction(), projectsLoadedHandler)
+                .buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
+                .build()
+                .forTasks("broken")
+                .run()
+        }
+
+        then:
+        BuildException e = thrown()
+        e.message.startsWith("Could not run phased build action using")
+        e.cause.message.contains("Execution failed for task ':broken'.")
+        failure.output.contains("Running CustomProjectsLoadedAction")
+        failure.output.contains("Running CustomBuildFinishedAction")
+        failure.assertHasDescription("Execution failed for task ':broken'.")
+    }
+
+    def "build finished intermediate result handler is run even if build fails"() {
+        def projectsLoadedHandler = new IntermediateResultHandlerCollector()
+        def buildFinishedHandler = new IntermediateResultHandlerCollector()
+
+        buildFile << """
+            task broken {
+                doLast { throw new RuntimeException("broken") }
+            }
+        """
+
+        when:
+        fails { connection ->
+            connection.action()
+                .projectsLoaded(new CustomProjectsLoadedAction(), projectsLoadedHandler)
+                .buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
+                .build()
+                .forTasks("broken")
+                .run()
+        }
+
+        then:
+        BuildException e = thrown()
+        e.message.startsWith("Could not run phased build action using")
+        e.cause.message.contains("Execution failed for task ':broken'.")
+        projectsLoadedHandler.getResult() == "loading"
+        buildFinishedHandler.getResult() == "build"
+
+        and:
+        failure.assertHasDescription("Execution failed for task ':broken'.")
+    }
+
+    def "can listen to task failures with a phased build"() {
+        def projectsLoadedHandler = new IntermediateResultHandlerCollector()
+        def buildFinishedHandler = new IntermediateResultHandlerCollector()
+
+        buildFile << """
+            task broken {
+                doLast { throw new RuntimeException("broken") }
+            }
+        """
+        def failedTasks = []
+
+        when:
+        fails { connection ->
+            connection.action()
+                .projectsLoaded(new CustomProjectsLoadedAction(), projectsLoadedHandler)
+                .buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
+                .build()
+                .addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent e) {
+                        if (e instanceof TaskFinishEvent && e.getResult() instanceof TaskFailureResult) {
+                            failedTasks.add(e.descriptor.taskPath)
+                        }
+                    }
+                }, OperationType.TASK)
+                .forTasks("broken")
+                .run()
+        }
+
+        then:
+        BuildException e = thrown()
+        e.message.startsWith("Could not run phased build action using")
+        e.cause.message.contains("Execution failed for task ':broken'.")
+        failedTasks == [":broken"]
+
+        and:
+        failure.assertHasDescription("Execution failed for task ':broken'.")
+    }
+
+    static class CustomProjectsLoadedAction implements BuildAction<String> {
+
+        @Override
+        String execute(BuildController controller) {
+            println("Running CustomProjectsLoadedAction")
+            def result = controller.fetch(CustomProjectsLoadedModel.class)
+            assert result.failures.isEmpty()
+            return result.model.value
+        }
+    }
+
+    static class CustomBuildFinishedAction implements BuildAction<String> {
+        @Override
+        String execute(BuildController controller) {
+            println("Running CustomBuildFinishedAction")
+            def result = controller.fetch(CustomBuildFinishedModel.class)
+            if (result.model) {
+                assert result.failures.isEmpty()
+                return result.model.value
+            } else {
+                assert !result.failures.isEmpty()
+                return null
+            }
+        }
+    }
+}
