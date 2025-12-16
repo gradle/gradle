@@ -306,6 +306,17 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
+    PluginBuilder withKotlinProjectFeaturePluginsThatHasNoBuildModel() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
+        def projectFeatureDefinition = new ProjectFeatureDefinitionWithNoBuildModelClassBuilder()
+        def projectFeature = new KotlinReifiedProjectFeaturePluginClassBuilder(projectFeatureDefinition)
+        def settingsBuilder = new KotlinSettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
     static class ProjectFeaturePluginClassBuilder {
         final ProjectFeatureDefinitionClassBuilder definition
         String projectFeaturePluginClassName = "ProjectFeatureImplPlugin"
@@ -470,7 +481,58 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                         override fun bind(builder: ${ProjectFeatureBindingBuilder.class.simpleName}) {
                             builder.bindProjectFeatureToDefinition("${name}", ${definition.publicTypeClassName}::class, ${bindingTypeClassName}::class) { definition, model, parent  ->
                                 println("Binding ${definition.publicTypeClassName}")
-                                ${definition.buildModelMapping.replaceAll(':', '')}
+                                ${definition.buildModelMapping.replaceAll(';', '')}
+                                val projectName = project.name
+                                getProject().getTasks().register("print${definition.publicTypeClassName}Configuration") { task: Task ->
+                                    task.doLast { _: Task ->
+                                        ${definition.displayDefinitionPropertyValues().replaceAll(';', '')}
+                                        ${definition.displayModelPropertyValues().replaceAll(';', '')}
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    override fun apply(project: Project) {
+                    }
+                }
+            """
+            return content
+        }
+    }
+
+    static class KotlinReifiedProjectFeaturePluginClassBuilder extends KotlinProjectFeaturePluginClassBuilder {
+        KotlinReifiedProjectFeaturePluginClassBuilder(ProjectFeatureDefinitionClassBuilder definition) {
+            super(definition)
+        }
+
+        @Override
+        protected String getClassContent() {
+            String content = """
+                package org.gradle.test
+
+                import org.gradle.api.Plugin
+                import org.gradle.api.Project
+                import org.gradle.api.Task
+                import ${BindsProjectFeature.class.name}
+                import ${ProjectFeatureBindingBuilder.class.name}
+                import ${ProjectFeatureBinding.class.name}
+                import org.gradle.api.internal.plugins.features.dsl.bindProjectFeature
+
+                @${BindsProjectFeature.class.simpleName}(${projectFeaturePluginClassName}.Binding::class)
+                class ${projectFeaturePluginClassName} : Plugin<Project> {
+
+                    class Binding : ${ProjectFeatureBinding.class.simpleName} {
+                        override fun bind(builder: ${ProjectFeatureBindingBuilder.class.simpleName}) {
+                            builder.bindProjectFeature<
+                                ${definition.publicTypeClassName},
+                                ${bindingTypeClassName},
+                                ${definition.buildModelFullPublicClassName}
+                            >("${name}") { definition, model, parent  ->
+                                println("Binding ${definition.publicTypeClassName}")
+                                println("${name} model class: " + model::class.java.getSimpleName())
+                                println("${name} parent model class: " + getBuildModel(parent)::class.java.getSimpleName())
+                                ${definition.buildModelMapping.replaceAll(';', '')}
                                 val projectName = project.name
                                 getProject().getTasks().register("print${definition.publicTypeClassName}Configuration") { task: Task ->
                                     task.doLast { _: Task ->
@@ -934,8 +996,30 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         }
 
         @Override
+        String displayDefinitionPropertyValues() {
+            return """
+                ${displayProperty("definition", "text", "definition.getText().get()")}
+            """
+        }
+
+        @Override
         String displayModelPropertyValues() {
             return ""
+        }
+
+        @Override
+        String getBuildModelPublicTypeClassName() {
+            return "${BuildModel.class.simpleName}.None"
+        }
+
+        @Override
+        String getBuildModelFullPublicClassName() {
+            return "${BuildModel.class.name}.None"
+        }
+
+        @Override
+        String getBuildModelImplementationTypeClassName() {
+            return getBuildModelFullPublicClassName()
         }
     }
 
