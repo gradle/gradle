@@ -89,8 +89,6 @@ public class NodeState implements DependencyGraphNode {
     @Nullable
     ExcludeSpec previousTraversalExclusions;
 
-    // In opposite to outgoing edges, virtual edges are for now pretty rare, so they are created lazily
-    private @Nullable List<EdgeState> virtualEdges;
     private boolean queued;
     private @Nullable NodeState replacement;
     private int transitiveEdgeCount;
@@ -309,22 +307,12 @@ public class NodeState implements DependencyGraphNode {
                 for (EdgeState outgoingEdge : outgoingEdges) {
                     outgoingEdge.updateTransitiveExcludesAndRequeueTargetNodes(resolutionFilter);
                 }
-                if (virtualEdges != null) {
-                    for (EdgeState virtualEdge : virtualEdges) {
-                        virtualEdge.updateTransitiveExcludesAndRequeueTargetNodes(resolutionFilter);
-                    }
-                }
             }
 
             if (!ancestorsStrictVersions.equals(previousAncestorsStrictVersions)) {
                 // Our strict versions changed. Update our outgoing edges with the new strict versions.
                 for (EdgeState outgoingEdge : outgoingEdges) {
                     outgoingEdge.recomputeSelectorAndRequeueTargetNodes(ancestorsStrictVersions, discoveredEdges);
-                }
-                if (virtualEdges != null) {
-                    for (EdgeState virtualEdge : virtualEdges) {
-                        virtualEdge.recomputeSelectorAndRequeueTargetNodes(ancestorsStrictVersions, discoveredEdges);
-                    }
                 }
             }
 
@@ -613,10 +601,7 @@ public class NodeState implements DependencyGraphNode {
         edge.updateTransitiveExcludes(resolutionFilter);
         edge.computeSelector(ancestorsStrictVersions, false);
         discoveredEdges.add(edge);
-        if (virtualEdges == null) {
-            virtualEdges = new ArrayList<>();
-        }
-        virtualEdges.add(edge);
+        outgoingEdges.add(edge);
     }
 
     private boolean hasStrongOpinion() {
@@ -1141,12 +1126,6 @@ public class NodeState implements DependencyGraphNode {
                 disconnectOutgoingEdge(outgoingEdge);
             }
             outgoingEdges.clear();
-        }
-        if (virtualEdges != null) {
-            for (EdgeState virtualEdge : virtualEdges) {
-                disconnectOutgoingEdge(virtualEdge);
-            }
-            virtualEdges = null;
         }
         cleanupConstraints();
         previousTraversalExclusions = null;
