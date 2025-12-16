@@ -204,7 +204,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         def e = thrown(BuildException)
         normaliseLineSeparators(e.cause.causes[0].cause.message) == "Execution failed for task ':secondTest' (created in build file 'build.gradle')."
         normaliseLineSeparators(e.cause.causes[0].cause.cause.message).startsWith "There were failing tests. See the report at:"
-        normaliseLineSeparators(e.cause.causes[1].cause.message) == "Execution failed for task ':test' (created in build file 'build.gradle')."
+        normaliseLineSeparators(e.cause.causes[1].cause.message) == "Execution failed for task ':test' (created by plugin 'org.gradle.jvm-test-suite')."
         normaliseLineSeparators(e.cause.causes[1].cause.cause.message).startsWith "There were failing tests. See the report at:"
 
         when:

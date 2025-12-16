@@ -105,10 +105,10 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         assertTaskExecuted(':buildC', ':sub2:test')
         assertTaskExecuted(':buildC', ':sub3:test')
         failure.assertHasFailures(4)
-        failure.assertHasDescription("Execution failed for task ':test' (created in build file 'build.gradle').")
-        failure.assertHasDescription("Execution failed for task ':buildC:sub1:test' (created in build file 'build.gradle').")
-        failure.assertHasDescription("Execution failed for task ':buildC:sub2:test' (created in build file 'build.gradle').")
-        failure.assertHasDescription("Execution failed for task ':buildC:sub3:test' (created in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':test' (created by plugin 'org.gradle.jvm-test-suite').")
+        failure.assertHasDescription("Execution failed for task ':buildC:sub1:test' (created by plugin 'org.gradle.jvm-test-suite').")
+        failure.assertHasDescription("Execution failed for task ':buildC:sub2:test' (created by plugin 'org.gradle.jvm-test-suite').")
+        failure.assertHasDescription("Execution failed for task ':buildC:sub3:test' (created by plugin 'org.gradle.jvm-test-suite').")
     }
 
     private String javaProject() {

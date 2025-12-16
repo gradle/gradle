@@ -459,7 +459,7 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         when:
         fails(clean.path, classes.path, '--continue')
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava' (created in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':compileJava' (created by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
         failure.assertHasFailures(1)
         outputDoesNotContain('Unable to make progress running work.')
     }
