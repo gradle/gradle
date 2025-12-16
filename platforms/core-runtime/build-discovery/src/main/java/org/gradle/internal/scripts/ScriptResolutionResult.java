@@ -74,7 +74,6 @@ public class ScriptResolutionResult {
         return new ScriptResolutionResult(scriptFile.getParentFile(), basename, scriptFile, Collections.emptyList());
     }
 
-
     public String getBasename() {
         return basename;
     }

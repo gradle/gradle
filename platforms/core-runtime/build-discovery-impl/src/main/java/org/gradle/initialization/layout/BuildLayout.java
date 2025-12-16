@@ -46,12 +46,12 @@ public class BuildLayout extends SettingsLocation {
      * Was a build definition found?
      */
     public boolean isBuildDefinitionMissing() {
-        ScriptResolutionResult defaultSettingFileResolution = scriptFileResolver.resolveScriptFile(
-            getSettingsDir(),
-            BuildLogicFiles.SETTINGS_FILE_BASENAME
+        ScriptResolutionResult buildFileResolution = scriptFileResolver.resolveScriptFile(
+            getRootDirectory(),
+            BuildLogicFiles.BUILD_FILE_BASENAME
         );
 
-        return getSettingsFile() != null && !getSettingsFile().exists() && !defaultSettingFileResolution.isScriptFound();
+        return getSettingsFile() != null && !getSettingsFile().exists() && !buildFileResolution.isScriptFound();
     }
 
     /**

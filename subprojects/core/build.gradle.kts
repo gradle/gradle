@@ -53,7 +53,6 @@ dependencies {
     api(projects.buildCacheSpi)
     api(projects.buildDiscovery)
     api(projects.buildDiscoveryImpl)
-    api(projects.buildDiscoveryProblems)
     api(projects.buildInitSpecs)
     api(projects.buildOperations)
     api(projects.buildOption)
@@ -111,6 +110,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.nativePlatform)
 
+    implementation(projects.buildDiscoveryProblems)
     implementation(projects.buildOperationsTrace)
     implementation(projects.groovyLoader)
     implementation(projects.inputTracking)

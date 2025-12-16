@@ -38,7 +38,6 @@ import org.gradle.internal.scripts.ScriptResolutionResultReporter;
 import org.gradle.util.Path;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Handles locating and processing setting.gradle files.  Also deals with the buildSrc module, since that module is
