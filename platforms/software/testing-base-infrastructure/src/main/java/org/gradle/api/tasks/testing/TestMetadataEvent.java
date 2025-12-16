@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing;
+package org.gradle.api.tasks.testing;
 
-import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.jspecify.annotations.NullMarked;
 
 import java.time.Instant;
 
 /**
- * Base implementation of the {@code TestMetadataEvent} interface.
+ * Metadata captured during the execution of a test.
+ *
+ * @since 9.4.0
  */
 @NullMarked
-public abstract class AbstractTestDataEvent implements TestMetadataEvent {
-    private final Instant logTime;
-
-    public AbstractTestDataEvent(Instant logTime) {
-        this.logTime = logTime;
-    }
-
-    @Override
-    public Instant getLogTime() {
-        return logTime;
-    }
+public interface TestMetadataEvent {
+    /**
+     * The time the message was logged.
+     * <p>
+     * Producers can supply the same value as the test start time to indicate that the metadata is "timeless", such
+     * as environment information that isn't tied to a specific point during test execution.
+     *
+     * @return log time
+     */
+    Instant getLogTime();
 }
