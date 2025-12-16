@@ -125,7 +125,7 @@ Required by:
         fails(":assemble")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':${buildName}:classes'.")
+        failure.assertHasDescription("Execution failed for task ':${buildName}:classes' (created in build file 'build.gradle').")
         failure.assertHasCause("broken")
 
         where:

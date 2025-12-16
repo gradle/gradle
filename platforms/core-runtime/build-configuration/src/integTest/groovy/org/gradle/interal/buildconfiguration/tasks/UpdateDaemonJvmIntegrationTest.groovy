@@ -67,7 +67,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
 
         then:
         // TODO The description is different with CC on
-//        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'.")
+//        failureDescriptionContains("Execution failed for task ':updateDaemonJvm' (created in build file 'build.gradle').")
         failureHasCause("Invalid task configuration")
         failureCauseContains("Toolchain download repositories have not been configured.")
         failure.assertHasResolution("Learn more about toolchain repositories")

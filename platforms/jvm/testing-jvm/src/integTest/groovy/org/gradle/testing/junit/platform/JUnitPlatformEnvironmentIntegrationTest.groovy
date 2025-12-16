@@ -80,7 +80,7 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec im
         fails('test')
 
         then:
-        failureDescriptionContains("Execution failed for task ':test' (created in build file 'build.gradle').")
+        failureDescriptionContains("Execution failed for task ':test' (created by plugin 'org.gradle.jvm-test-suite').")
         failureHasCause(~/Could not start Gradle Test Executor \d+: Cannot create Launcher without at least one TestEngine; consider adding an engine implementation JAR to the classpath/)
 
         and: "No test class results created"

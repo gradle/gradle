@@ -47,7 +47,7 @@ class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec imple
         fails("show")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasDescription("Execution failed for task ':show' (created in build file 'build.gradle').")
         failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
 
         where:
@@ -82,7 +82,7 @@ class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec imple
         fails("show")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasDescription("Execution failed for task ':show' (created in build file 'build.gradle').")
         failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
 
         where:
@@ -153,7 +153,7 @@ task thing {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (created in build file 'build.gradle').")
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
 
         where:
@@ -185,7 +185,7 @@ task thing {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (created in build file 'build.gradle').")
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
 
         where:

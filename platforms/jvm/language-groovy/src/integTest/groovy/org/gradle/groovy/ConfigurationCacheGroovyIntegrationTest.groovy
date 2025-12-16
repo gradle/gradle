@@ -137,7 +137,7 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         result.assertTaskScheduled(":compileGroovy")
-        failureDescriptionStartsWith("Execution failed for task ':compileGroovy'.")
+        failureDescriptionStartsWith("Execution failed for task ':compileGroovy' (created in build file 'build.gradle').")
         failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")
 
         when:
@@ -146,7 +146,7 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractIntegrationSpec {
         then:
         configurationCache.assertStateLoaded()
         result.assertTaskScheduled(":compileGroovy")
-        failureDescriptionStartsWith("Execution failed for task ':compileGroovy'.")
+        failureDescriptionStartsWith("Execution failed for task ':compileGroovy' (created in build file 'build.gradle').")
         failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")
     }
 

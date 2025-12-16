@@ -74,11 +74,11 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         assertTaskExecuted(':buildC', ':sub3:test')
         assertTaskExecuted(':buildD', ':test')
         failure.assertHasFailures(5)
-        failure.assertHasDescription("Execution failed for task ':buildB:test'.")
-        failure.assertHasDescription("Execution failed for task ':buildC:sub1:test'.")
-        failure.assertHasDescription("Execution failed for task ':buildC:sub2:test'.")
-        failure.assertHasDescription("Execution failed for task ':buildC:sub3:test'.")
-        failure.assertHasDescription("Execution failed for task ':buildD:test'.")
+        failure.assertHasDescription("Execution failed for task ':buildB:test' (created in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':buildC:sub1:test' (created in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':buildC:sub2:test' (created in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':buildC:sub3:test' (created in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':buildD:test' (created in build file 'build.gradle').")
     }
 
     def "can collect build failure in root and included build"() {
@@ -105,10 +105,10 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         assertTaskExecuted(':buildC', ':sub2:test')
         assertTaskExecuted(':buildC', ':sub3:test')
         failure.assertHasFailures(4)
-        failure.assertHasDescription("Execution failed for task ':test'.")
-        failure.assertHasDescription("Execution failed for task ':buildC:sub1:test'.")
-        failure.assertHasDescription("Execution failed for task ':buildC:sub2:test'.")
-        failure.assertHasDescription("Execution failed for task ':buildC:sub3:test'.")
+        failure.assertHasDescription("Execution failed for task ':test' (created in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':buildC:sub1:test' (created in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':buildC:sub2:test' (created in build file 'build.gradle').")
+        failure.assertHasDescription("Execution failed for task ':buildC:sub3:test' (created in build file 'build.gradle').")
     }
 
     private String javaProject() {

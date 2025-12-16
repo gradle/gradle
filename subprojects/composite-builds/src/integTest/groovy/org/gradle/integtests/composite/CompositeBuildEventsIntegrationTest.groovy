@@ -401,7 +401,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         loggedOncePerBuild("gradle.buildFinished failure=[org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken'., java.lang.RuntimeException: build B broken, java.lang.RuntimeException: build C broken]", [':'])
 
         failure.assertHasFailures(4)
-        failure.assertHasDescription("Execution failed for task ':buildB:broken'.")
+        failure.assertHasDescription("Execution failed for task ':buildB:broken' (created in build file 'build.gradle').")
             .assertHasFileName("Build file '${buildB.buildFile}'")
             .assertHasLineNumber(11)
         failure.assertHasDescription("build A broken")

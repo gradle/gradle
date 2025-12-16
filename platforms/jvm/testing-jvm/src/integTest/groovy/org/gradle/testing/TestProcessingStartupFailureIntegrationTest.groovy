@@ -98,7 +98,7 @@ class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpe
 
         then: "Task failure is reported"
 
-        failure.assertHasFailure("Execution failed for task ':test'.") {
+        failure.assertHasFailure("Execution failed for task ':test' (created by plugin 'org.gradle.jvm-test-suite').") {
             it.assertHasCause("Could not execute test class 'MyOtherTest'.")
         }
         def testResults = new DefaultTestExecutionResult(testDirectory)
@@ -142,7 +142,7 @@ class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpe
 
         then: "Task failure is reported"
 
-        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasDescription("Execution failed for task ':test' (created by plugin 'org.gradle.jvm-test-suite').")
         failure.assertHasCause("Test process encountered an unexpected problem.")
         failure.assertThatCause(matchesRegexp(/Process 'Gradle Test Executor \d+' finished with non-zero exit value.*/))
     }
@@ -169,7 +169,7 @@ class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpe
         fails('test')
 
         then: "Task failure is reported"
-        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasDescription("Execution failed for task ':test' (created by plugin 'org.gradle.jvm-test-suite').")
         failure.assertHasCause("There are test sources present and no filters are applied, but the test task did not discover any tests to execute. This is likely due to a misconfiguration. Please check your test configuration. If this is not a misconfiguration, this error can be disabled by setting the 'failOnNoDiscoveredTests' property to false.")
 
         and: "No test class results are created"
