@@ -164,7 +164,8 @@ class ExternalModuleComponentResolverFactoryTest extends Specification {
                 componentMetadataSupplierFactory,
                 versionListerFactory,
                 Mock(Instantiator),
-                TestUtil.checksumService
+                TestUtil.checksumService,
+                false
             ]
         ) {
             appendId(_) >> {}

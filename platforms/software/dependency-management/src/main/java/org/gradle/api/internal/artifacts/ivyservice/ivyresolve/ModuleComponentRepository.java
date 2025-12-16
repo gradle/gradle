@@ -60,4 +60,14 @@ public interface ModuleComponentRepository<T> {
 
     @Nullable
     InstantiatingAction<ComponentMetadataSupplierDetails> getComponentMetadataSupplier();
+
+    /**
+     * Should resolution continue to the next repository if this repository is unavailable due to connection failure.
+     * <p>
+     * This can only return {@code true} if the repository is remote.
+     *
+     * @return {@code true} if resolution should continue on connection failure, {@code false} otherwise.
+     */
+    boolean isContinueOnConnectionFailure();
+
 }

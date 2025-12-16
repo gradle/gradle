@@ -88,7 +88,8 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
             null,
             null,
             injector,
-            checksumService);
+            checksumService,
+            false);
     }
 
     @Override

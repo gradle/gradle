@@ -85,6 +85,11 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         return delegate.getComponentMetadataSupplier();
     }
 
+    @Override
+    public boolean isContinueOnConnectionFailure() {
+        return delegate.isContinueOnConnectionFailure();
+    }
+
     private class FilteringAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         private final ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate;
 
