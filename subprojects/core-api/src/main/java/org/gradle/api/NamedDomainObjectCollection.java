@@ -75,6 +75,7 @@ import java.util.SortedSet;
  *
  * @param <T> The type of objects in this collection.
  */
+@HiddenInDeclarativeDsl
 public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T> {
 
     /**
@@ -84,7 +85,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @return {@code true} if the item was added, or {@code} false if an item with the same name already exists.
      */
     @Override
-    @HiddenInDeclarativeDsl
     boolean add(T e);
 
     /**
@@ -94,7 +94,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @return {@code true} if any item was added, or {@code} false if all items have non unique names within this collection.
      */
     @Override
-    @HiddenInDeclarativeDsl
     boolean addAll(Collection<? extends T> c);
 
     /**
@@ -102,7 +101,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      *
      * @return Object representing the naming strategy.
      */
-    @HiddenInDeclarativeDsl
     Namer<T> getNamer();
 
     /**
@@ -114,7 +112,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      *
      * @return The objects. Returns an empty map if this collection is empty.
      */
-    @HiddenInDeclarativeDsl
     SortedMap<String, T> getAsMap();
 
     /**
@@ -126,7 +123,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      *
      * @return The names. Returns an empty set if this collection is empty.
      */
-    @HiddenInDeclarativeDsl
     SortedSet<String> getNames();
 
     /**
@@ -138,7 +134,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @return The object with the given name, or null if there is no such object in this collection.
      */
     @Nullable
-    @HiddenInDeclarativeDsl
     T findByName(String name);
 
     /**
@@ -150,7 +145,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @return The object with the given name. Never returns null.
      * @throws UnknownDomainObjectException when there is no such object in this collection.
      */
-    @HiddenInDeclarativeDsl
     T getByName(String name) throws UnknownDomainObjectException;
 
     /**
@@ -164,7 +158,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @return The object with the given name, after the configure closure has been applied to it. Never returns null.
      * @throws UnknownDomainObjectException when there is no such object in this collection.
      */
-    @HiddenInDeclarativeDsl
     T getByName(String name, Closure configureClosure) throws UnknownDomainObjectException;
 
     /**
@@ -179,7 +172,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @throws UnknownDomainObjectException when there is no such object in this collection.
      * @since 3.1
      */
-    @HiddenInDeclarativeDsl
     T getByName(String name, Action<? super T> configureAction) throws UnknownDomainObjectException;
 
     /**
@@ -192,7 +184,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @return The object with the given name. Never returns null.
      * @throws UnknownDomainObjectException when there is no such object in this collection.
      */
-    @HiddenInDeclarativeDsl
     T getAt(String name) throws UnknownDomainObjectException;
 
     /**
@@ -201,7 +192,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @param rule The rule to add.
      * @return The added rule.
      */
-    @HiddenInDeclarativeDsl
     Rule addRule(Rule rule);
 
     /**
@@ -212,7 +202,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @param ruleAction The closure to execute to apply the rule.
      * @return The added rule.
      */
-    @HiddenInDeclarativeDsl
     Rule addRule(String description, Closure ruleAction);
 
     /**
@@ -224,7 +213,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @return The added rule.
      * @since 3.3
      */
-    @HiddenInDeclarativeDsl
     Rule addRule(String description, Action<String> ruleAction);
 
     /**
@@ -232,14 +220,12 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      *
      * @return The rules, in the order they will be applied.
      */
-    @HiddenInDeclarativeDsl
     List<Rule> getRules();
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @HiddenInDeclarativeDsl
     <S extends T> NamedDomainObjectCollection<S> withType(Class<S> type);
 
     /**
@@ -255,7 +241,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @since 8.6
      */
     @Incubating
-    @HiddenInDeclarativeDsl
     default NamedDomainObjectCollection<T> named(Spec<String> nameFilter) {
         // default implementation is a workaround for plugins having their own custom collection implementation, based on an older interface (i.e. missing an implementation for this method)
         throw new UnsupportedOperationException("Method not implemented by " + GeneratedSubclasses.unpack(this.getClass()).getName());
@@ -265,14 +250,12 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * {@inheritDoc}
      */
     @Override
-    @HiddenInDeclarativeDsl
     NamedDomainObjectCollection<T> matching(Spec<? super T> spec);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @HiddenInDeclarativeDsl
     NamedDomainObjectCollection<T> matching(Closure spec);
 
     /**
@@ -285,7 +268,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @throws UnknownDomainObjectException If a object with the given name is not defined.
      * @since 4.10
      */
-    @HiddenInDeclarativeDsl
     NamedDomainObjectProvider<T> named(String name) throws UnknownDomainObjectException;
 
     /**
@@ -299,7 +281,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @throws UnknownDomainObjectException If an object with the given name is not defined.
      * @since 5.0
      */
-    @HiddenInDeclarativeDsl
     NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownDomainObjectException;
 
     /**
@@ -313,7 +294,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @throws UnknownDomainObjectException If an object with the given name is not defined.
      * @since 5.0
      */
-    @HiddenInDeclarativeDsl
     <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type) throws UnknownDomainObjectException;
 
     /**
@@ -329,7 +309,6 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @throws UnknownDomainObjectException If an object with the given name is not defined.
      * @since 5.0
      */
-    @HiddenInDeclarativeDsl
     <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException;
 
     /**
@@ -338,6 +317,5 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @since 4.10
      */
     @Internal
-    @HiddenInDeclarativeDsl
     NamedDomainObjectCollectionSchema getCollectionSchema();
 }

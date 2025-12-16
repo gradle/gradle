@@ -55,6 +55,7 @@ import java.util.Set;
  */
 @ManagedType
 @NonExtensible
+@HiddenInDeclarativeDsl
 @SuppressWarnings("JavadocReference")
 public interface DependencyCollector {
     /**
@@ -107,7 +108,6 @@ public interface DependencyCollector {
      * @since 8.6
      */
     @Incubating
-    @HiddenInDeclarativeDsl
     void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule);
 
     /**
@@ -119,7 +119,6 @@ public interface DependencyCollector {
      * @since 8.6
      */
     @Incubating
-    @HiddenInDeclarativeDsl
     void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, Action<? super ExternalModuleDependency> configuration);
 
     /**
@@ -139,7 +138,6 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
-    @HiddenInDeclarativeDsl
     <D extends Dependency> void add(D dependency, Action<? super D> configuration);
 
     /**
@@ -149,7 +147,6 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
-    @HiddenInDeclarativeDsl
     void add(Provider<? extends Dependency> dependency);
 
     /**
@@ -160,7 +157,6 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
-    @HiddenInDeclarativeDsl
     <D extends Dependency> void add(Provider<? extends D> dependency, Action<? super D> configuration);
 
     /**
@@ -178,7 +174,6 @@ public interface DependencyCollector {
      * @param configuration an action to configure the dependency constraint
      * @since 8.7
      */
-    @HiddenInDeclarativeDsl
     void addConstraint(DependencyConstraint dependencyConstraint, Action<? super DependencyConstraint> configuration);
 
     /**
@@ -187,7 +182,6 @@ public interface DependencyCollector {
      * @param dependencyConstraint dependency constraint to add
      * @since 8.7
      */
-    @HiddenInDeclarativeDsl
     void addConstraint(Provider<? extends DependencyConstraint> dependencyConstraint);
 
     /**
@@ -197,7 +191,6 @@ public interface DependencyCollector {
      * @param configuration an action to configure the dependency constraint
      * @since 8.7
      */
-    @HiddenInDeclarativeDsl
     void addConstraint(Provider<? extends DependencyConstraint> dependencyConstraint, Action<? super DependencyConstraint> configuration);
 
     /**
@@ -208,7 +201,6 @@ public interface DependencyCollector {
      * @since 8.6
      */
     @Incubating
-    @HiddenInDeclarativeDsl
     <D extends Dependency> void bundle(Iterable<? extends D> bundle);
 
     /**
@@ -220,7 +212,6 @@ public interface DependencyCollector {
      * @since 8.6
      */
     @Incubating
-    @HiddenInDeclarativeDsl
     <D extends Dependency> void bundle(Iterable<? extends D> bundle, Action<? super D> configuration);
 
     /**
@@ -231,7 +222,6 @@ public interface DependencyCollector {
      * @since 8.6
      */
     @Incubating
-    @HiddenInDeclarativeDsl
     <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle);
 
     /**
@@ -243,7 +233,6 @@ public interface DependencyCollector {
      * @since 8.6
      */
     @Incubating
-    @HiddenInDeclarativeDsl
     <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
 
     /**
@@ -254,7 +243,6 @@ public interface DependencyCollector {
      * @since 8.6
      */
     @Incubating
-    @HiddenInDeclarativeDsl
     <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle);
 
     /**
@@ -266,7 +254,6 @@ public interface DependencyCollector {
      * @since 8.6
      */
     @Incubating
-    @HiddenInDeclarativeDsl
     <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
 
     /**
