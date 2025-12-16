@@ -30,7 +30,6 @@ import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
-import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndNotHidden
 import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
 import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -117,7 +116,7 @@ class AccessorTest {
     val schema = schemaFromTypes(
         MyReceiver::class,
         this::class.nestedClasses,
-        functionExtractor = DefaultFunctionExtractor(configureLambdas, isPublicAndNotHidden) + functionContributorWithCustomAccessor
+        functionExtractor = DefaultFunctionExtractor(configureLambdas) + functionContributorWithCustomAccessor
     )
 
     internal

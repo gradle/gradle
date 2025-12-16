@@ -84,8 +84,8 @@ class FunctionExtractorTest {
         assertFailsWith<DeclarativeDslSchemaBuildingException> { schemaFromTypes(HasMapSubtypeFactory::class, listOf(HasMapSubtypeFactory::class)) }.run {
             Assert.assertEquals(
                 """
-                    |Illegal type 'kotlin.collections.MutableMap<K, V>': functions returning Map types are not supported
-                    |  in return value type 'kotlin.collections.MutableMap<K, V>'
+                    |Illegal type 'kotlin.collections.Map<K, V>': functions returning Map types are not supported
+                    |  in return value type 'kotlin.collections.Map<K, V>'
                     |  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.HasMapSubtypeFactory.mapSubtypeFactory(): kotlin.collections.MutableMap<K, V>'
                     |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.HasMapSubtypeFactory'
                 """.trimMargin(), message

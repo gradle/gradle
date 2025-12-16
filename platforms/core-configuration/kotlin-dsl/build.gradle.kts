@@ -19,6 +19,7 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.concurrent)
+    api(projects.declarativeDslApi)
     api(projects.fileOperations)
     api(projects.hashing)
     api(projects.kotlinDslToolingModels)

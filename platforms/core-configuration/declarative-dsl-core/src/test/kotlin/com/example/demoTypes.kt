@@ -28,6 +28,8 @@ class Abc {
 
     internal
     val cItems = mutableListOf<C>()
+
+    fun newD(id: String): D = D().also { it.id = id }
 }
 
 
@@ -57,4 +59,3 @@ class D {
 }
 
 
-fun newD(id: String): D = D().also { it.id = id }

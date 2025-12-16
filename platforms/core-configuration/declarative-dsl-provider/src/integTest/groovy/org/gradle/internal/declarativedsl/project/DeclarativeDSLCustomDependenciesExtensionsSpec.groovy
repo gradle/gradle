@@ -606,6 +606,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                 }
 
                 @get:Inject
+                @get:HiddenInDeclarativeDsl
                 abstract val objectFactory: ObjectFactory
 
                 abstract class Model : BuildModel {

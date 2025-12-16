@@ -618,10 +618,7 @@ trait ProjectTypeFixture {
                     Property<String> getId();
 
                     @Nested
-                    public Foo getFoo() {
-                        isFooConfigured = true;
-                        return foo;
-                    }
+                    Foo getFoo();
 
                     @${HiddenInDeclarativeDsl.class.simpleName}
                     default void foo(Action<? super Foo> action) {
@@ -900,10 +897,13 @@ trait ProjectTypeFixture {
 
                 @${Restricted.class.simpleName}
                 public abstract class ${publicTypeClassName} implements ${interfaceName} {
+                    private final Bar bar;
                     private boolean isBarConfigured = false;
 
                     @Inject
-                    public ${publicTypeClassName}() { }
+                    public ${publicTypeClassName}(ObjectFactory objects) {
+                        bar = objects.newInstance(Bar.class);
+                    }
 
                     @Nested
                     abstract public LibraryDependencies getDependencies();
@@ -921,11 +921,13 @@ trait ProjectTypeFixture {
                     }
 
                     @Nested
-                    public abstract Bar getBar();
+                    public Bar getBar() {
+                        isBarConfigured = true; // TODO: get rid of the side effect in the getter
+                        return bar;
+                    }
 
                     @${HiddenInDeclarativeDsl.class.simpleName}
                     public void bar(Action<? super Bar> action) {
-                        isBarConfigured = true;
                         action.execute(getBar());
                     }
 
@@ -1034,12 +1036,12 @@ trait ProjectTypeFixture {
                     public abstract Property<String> getId();
 
                     public Foo getFoo() {
+                        isFooConfigured = true; // TODO: get rid of the side effect in the getter
                         return foo;
                     }
 
                     @${Configuring.class.simpleName}
                     public void foo(Action<? super Foo> action) {
-                        isFooConfigured = true;
                         action.execute(foo);
                     }
 
