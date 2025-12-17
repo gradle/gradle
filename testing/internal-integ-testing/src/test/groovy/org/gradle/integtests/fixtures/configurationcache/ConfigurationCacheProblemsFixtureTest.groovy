@@ -336,6 +336,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         def jsonData = """
 // begin-report-data
 {
+    "totalProblemCount": ${problemsAndStacktraces.size()},
     "diagnostics": [
         ${
             problemsAndStacktraces.collect { problemText, stacktraceParts ->

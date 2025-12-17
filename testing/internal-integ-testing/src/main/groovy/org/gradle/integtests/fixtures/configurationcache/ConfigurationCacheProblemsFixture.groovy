@@ -366,7 +366,7 @@ class HasConfigurationCacheProblemsSpec {
     Integer totalProblemsCount
 
     /**
-     * An expectation for the total number of reported problems with stack traces.
+     * An expectation for unique problems with stack traces.
      * {@code null} means that no expectation is defined.
      */
     @Nullable

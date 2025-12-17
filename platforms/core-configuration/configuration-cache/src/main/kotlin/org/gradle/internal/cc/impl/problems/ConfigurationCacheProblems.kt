@@ -239,14 +239,15 @@ class ConfigurationCacheProblems(
 
     private
     fun reportDegradingFeature(feature: String) {
+        // we report degrading features as problems
         val problem = problemFactory
             .problem {
                 // for now, we don't expect interesting information from degrading features, so only the feature name is displayed
                 text("Feature '$feature' is incompatible with the configuration cache.")
             }
             .build()
+        summarizer.onIncompatibleFeature(problem)
         report.onProblem(problem)
-        summarizer.onIncompatibleFeature()
     }
 
     override fun onProblem(problem: PropertyProblem) {
@@ -344,7 +345,7 @@ class ConfigurationCacheProblems(
         addNotReportedDegradingTasks()
         addDegradingFeatures()
         val summary = summarizer.get()
-        val hasNoProblemsForConsole = summary.reportableProblemCount == 0
+        val hasNoProblemsForConsole = summary.consoleProblemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
         val details = detailsFor(summary)
         val htmlReportFile = report.writeReportFileTo(outputDirectory, ProblemReportDetailsJsonSource(details))
@@ -421,12 +422,12 @@ class ConfigurationCacheProblems(
         @Suppress("CyclomaticComplexMethod")
         override fun beforeComplete(failure: Throwable?) {
             val summary = summarizer.get()
-            val reportableProblemCount = summary.reportableProblemCount
+            val consoleProblemCount = summary.consoleProblemCount
             val deferredProblemCount = summary.deferredProblemCount
-            val hasProblems = reportableProblemCount > 0
+            val hasProblems = consoleProblemCount > 0
             val discardStateDueToProblems = discardStateDueToProblems(summary)
             val hasTooManyProblems = hasTooManyProblems(summary)
-            val problemCountString = reportableProblemCount.counter("problem")
+            val problemCountString = consoleProblemCount.counter("problem")
             val reusedProjectsString = reusedProjects.counter("project")
             val updatedProjectsString = updatedProjects.counter("project")
             when {
@@ -487,7 +488,7 @@ class ConfigurationCacheProblems(
     private
     fun discardStateDueToProblems(summary: Summary) =
         incompatibleTasks.isNotEmpty() || shouldDegradeGracefully() ||
-            summary.reportableProblemCount > 0 && !isWarningMode
+            summary.consoleProblemCount > 0 && !isWarningMode
 
     private
     fun hasTooManyProblems(summary: Summary) =

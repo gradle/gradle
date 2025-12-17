@@ -205,8 +205,9 @@ abstract class ConfigurationCacheReportFixture {
         }
 
         private void assertProblemsHtmlReport(HasConfigurationCacheProblemsSpec spec) {
-            def totalProblemCount = spec.totalProblemsCount ?: spec.uniqueProblems.size()
-            def problemsWithStackTraceCount = spec.problemsWithStackTraceCount == null ? totalProblemCount : spec.problemsWithStackTraceCount
+            def uniqueProblemCount = spec.uniqueProblems.size()
+            def totalProblemCount = spec.totalProblemsCount == null ? uniqueProblemCount : spec.totalProblemsCount
+            def problemsWithStackTraceCount = spec.problemsWithStackTraceCount == null ? uniqueProblemCount : spec.problemsWithStackTraceCount
             assert (spec.totalProblemsCount != null ||
                 spec.problemsWithStackTraceCount != null ||
                 !spec.uniqueProblems.empty ||
@@ -216,7 +217,7 @@ abstract class ConfigurationCacheReportFixture {
 
             assertThat(
                 "HTML report JS model has wrong number of total problem(s)",
-                numberOfProblems(),
+                jsModel.totalProblemCount,
                 equalTo(totalProblemCount)
             )
             assertThat(
@@ -226,16 +227,12 @@ abstract class ConfigurationCacheReportFixture {
             )
 
             if (spec.checkReportProblems) {
-                def problemMessages = problemMessages().unique()
+                def problemMessages = problemMessages()
                 for (int i in spec.uniqueProblems.indices) {
                     // note that matchers for problem messages in report don't contain location prefixes
                     assert spec.uniqueProblems[i].matches(problemMessages[i]): "Expected problem at #$i to be ${spec.uniqueProblems[i]}, but was: ${problemMessages[i]}"
                 }
             }
-        }
-
-        private int numberOfProblems() {
-            return (jsModel.diagnostics as List<Object>).count { it['problem'] != null }
         }
 
         /**
