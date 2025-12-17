@@ -87,4 +87,8 @@ class ComponentMetaDataResolveState {
     boolean isContinueOnConnectionFailure() {
         return repository.isContinueOnConnectionFailure();
     }
+
+    public boolean isRepositoryDisabled() {
+        return repository.isRepositoryDisabled();
+    }
 }

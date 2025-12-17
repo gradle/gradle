@@ -90,6 +90,11 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         return delegate.isContinueOnConnectionFailure();
     }
 
+    @Override
+    public boolean isRepositoryDisabled() {
+        return delegate.isRepositoryDisabled();
+    }
+
     private class FilteringAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         private final ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate;
 

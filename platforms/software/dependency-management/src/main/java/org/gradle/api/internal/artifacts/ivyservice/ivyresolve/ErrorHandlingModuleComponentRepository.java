@@ -57,12 +57,14 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
 
     private final ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate;
     private final ErrorHandlingModuleComponentRepositoryAccess local;
+    private final RepositoryDisabler remoteRepositoryDisabler;
     private final ErrorHandlingModuleComponentRepositoryAccess remote;
 
     public ErrorHandlingModuleComponentRepository(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate, RepositoryDisabler remoteRepositoryDisabler) {
         this.delegate = delegate;
-        local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), RepositoryDisabler.NoOpDisabler.INSTANCE, getName(), false);
-        remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), getId(), remoteRepositoryDisabler, getName(), isContinueOnConnectionFailure());
+        this.remoteRepositoryDisabler = remoteRepositoryDisabler;
+        this.local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), RepositoryDisabler.NoOpDisabler.INSTANCE, getName(), false);
+        this.remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), getId(), remoteRepositoryDisabler, getName(), isContinueOnConnectionFailure());
     }
 
     @Override
@@ -103,6 +105,11 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
     @Override
     public boolean isContinueOnConnectionFailure() {
         return delegate.isContinueOnConnectionFailure();
+    }
+
+    @Override
+    public boolean isRepositoryDisabled() {
+        return remoteRepositoryDisabler.isDisabled(getId()) || delegate.isRepositoryDisabled();
     }
 
     private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
@@ -252,10 +259,13 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                     unexpectedFailure = throwable;
                     failure = onError.transform(throwable);
                 }
-                boolean doNotRetry = NetworkingIssueVerifier.isLikelyPermanentNetworkIssue(failure) || !NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure);
+                boolean transientNetworkingIssue = NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure);
+                boolean doNotRetry = NetworkingIssueVerifier.isLikelyPermanentNetworkIssue(failure) || !transientNetworkingIssue;
                 if (doNotRetry || retries == maxTentativesCount) {
                     if (unexpectedFailure != null) {
-                        repositoryDisabler.tryDisableRepository(repositoryId, failure);
+                        // TODO Think about disabling on failed retries but also have an option to allow to continue despite disabled repositories
+                        // Use case: I have my internal Central mirror in project setup, but outside of the company network it is not reachable. And thus I want to continue build with just Maven Central.
+                        repositoryDisabler.tryDisableRepository(repositoryId, failure, transientNetworkingIssue && retries == maxTentativesCount);
                     }
                     result.failed(failure);
                     break;

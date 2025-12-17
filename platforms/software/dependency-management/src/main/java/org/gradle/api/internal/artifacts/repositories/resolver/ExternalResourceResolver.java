@@ -161,6 +161,12 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
     }
 
     @Override
+    public boolean isRepositoryDisabled() {
+        // A repository is never disabled by default
+        return false;
+    }
+
+    @Override
     public void setComponentResolvers(ComponentResolvers resolver) {
         this.componentResolvers = resolver;
     }

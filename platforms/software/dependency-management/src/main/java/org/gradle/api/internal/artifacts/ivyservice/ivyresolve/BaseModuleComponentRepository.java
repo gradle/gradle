@@ -78,4 +78,9 @@ public class BaseModuleComponentRepository<T> implements ModuleComponentReposito
     public boolean isContinueOnConnectionFailure() {
         return delegate.isContinueOnConnectionFailure();
     }
+
+    @Override
+    public boolean isRepositoryDisabled() {
+        return delegate.isRepositoryDisabled();
+    }
 }

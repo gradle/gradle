@@ -70,4 +70,11 @@ public interface ModuleComponentRepository<T> {
      */
     boolean isContinueOnConnectionFailure();
 
+    /**
+     * Indicates whether a previous attempt at using this repository for resolution has resulted in disabling it due to unrecoverable errors.
+     *
+     * @return {@code true} if the repository is disabled, {@code false} otherwise.
+     */
+    boolean isRepositoryDisabled();
+
 }
