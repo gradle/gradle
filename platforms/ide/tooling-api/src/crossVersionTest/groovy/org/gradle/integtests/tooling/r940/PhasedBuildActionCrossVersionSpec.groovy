@@ -216,7 +216,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "BuildController.fetch() CAN"        | CallType.FETCH      | "build"
     }
 
-    def "buildFinished BuildAction failure is returned and buildFinishedHandler is not called even if a task failed"() {
+    def "buildAction and task failure error is reported if both fails and buildFinishedHandler is not called"() {
         buildFile << """
             task broken {
                 doLast { throw new RuntimeException("broken") }
@@ -238,6 +238,9 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.message.startsWith("The supplied phased action failed with an exception")
         e.cause.message.contains("Error from CustomFailingBuildFinishedAction")
         failure.output.contains("Running CustomFailingBuildFinishedAction")
+        failure.error.contains("FAILURE: Build completed with 2 failures.")
+        failure.error.contains("1: BuildAction failed with an exception.")
+        failure.error.contains("2: Task failed with an exception.")
         projectsLoadedHandler.getResult() == "loading"
         !buildFinishedHandler.wasOnCompleteCalled
     }
