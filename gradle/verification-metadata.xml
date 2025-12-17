@@ -232,6 +232,7 @@
          <trusted-key id="8E3A02905A1AE67E7B0F9ACD3967D4EDA591B991" group="org.jetbrains.kotlinx" name="kotlinx-html-jvm"/>
          <trusted-key id="98465301A4939C0279F2E847D89D05374952262B" group="org.jetbrains.dokka"/>
          <trusted-key id="9857C388D7D1D9D031274CD0A5DEF5A76F94A471" group="com.github.spotbugs"/>
+         <trusted-key id="9C60C6B3A5A9DF8FEDD299D65BE0BA8CB80602AE" group="org.apache.ivy"/>
          <trusted-key id="9E84765A7AA3E3D3D5598A408E3F0DE7AE354651" group="^com[.]squareup($|([.].*))" regex="true"/>
          <trusted-key id="A2570288E10932263E8326CBAA49C633B4734832">
             <trusting group="com.pinterest" name="ktlint"/>
@@ -287,7 +288,6 @@
             <trusting group="xmlunit"/>
             <trusting group="^org[.]apache($|([.].*))" regex="true"/>
          </trusted-key>
-         <trusted-key id="9C60C6B3A5A9DF8FEDD299D65BE0BA8CB80602AE" group="org.apache.ivy"/>
          <trusted-key id="CF17E92C9FFA55316B5DB83901D734EE5EE9C3F8" group="org.eclipse.sisu"/>
          <trusted-key id="CF4B3A3F53BEF9A2CE2CBFB895962C5E716C39AA" group="com.autonomousapps"/>
          <trusted-key id="D40633BFD9FDB773C896E9025DFB46C505B694FE" group="com.github.bbottema"/>
@@ -888,9 +888,9 @@
             <pgp value="7186BBF993566D8C2F4F7ED7D945E643368FEF62"/>
          </artifact>
       </component>
-      <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.10.2">
-         <artifact name="gradle-enterprise-conventions-plugin-0.10.2.jar">
-            <sha256 value="48d4b3bb8337998f191f2d2a5d7afbdeaed39dd248c7c2d2ab2fcdde76b365e9" origin="Verified" reason="Artifact is not signed"/>
+      <component group="io.github.gradle" name="gradle-org-conventions-plugin" version="0.13.0">
+         <artifact name="gradle-org-conventions-plugin-0.13.0.jar">
+            <sha256 value="effde7e5859e137c6bb2d127e2ce301f6ce56b744f301fa3656be6f8cbc202a0" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="io.github.java-diff-utils" name="java-diff-utils" version="4.12">
@@ -1442,11 +1442,6 @@
       <component group="org.iq80.snappy" name="snappy" version="0.5">
          <artifact name="snappy-0.5.jar">
             <pgp value="9E93DB1192CEE3D3B581AABB37E9D58EA4598641"/>
-         </artifact>
-      </component>
-      <component group="org.javassist" name="javassist" version="3.30.2-GA">
-         <artifact name="javassist-3.30.2-GA.jar">
-            <sha256 value="eba37290994b5e4868f3af98ff113f6244a6b099385d9ad46881307d3cb01aaf" origin="Verified" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
       <component group="org.jcommander" name="jcommander" version="1.85">
