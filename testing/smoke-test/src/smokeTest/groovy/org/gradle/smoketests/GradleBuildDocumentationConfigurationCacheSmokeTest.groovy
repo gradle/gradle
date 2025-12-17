@@ -90,6 +90,7 @@ class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradle
         result.task("':docs:docsTest'").outcome == TaskOutcome.SUCCESS
     }
 
+    @Ignore(":docs does not have cross version tests, find an alternative project")
     def "can resolve classpath for :docs:embeddedCrossVersionTest with configuration cache enabled"() {
         given:
         def tasks = [":docs:embeddedCrossVersionTest", "--dry-run"]
