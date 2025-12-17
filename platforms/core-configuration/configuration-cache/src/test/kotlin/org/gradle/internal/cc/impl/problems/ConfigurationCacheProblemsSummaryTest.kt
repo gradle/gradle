@@ -28,6 +28,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.File
 
@@ -42,13 +43,13 @@ class ConfigurationCacheProblemsSummaryTest {
     fun `keeps track of unique problems upto maxCollectedProblems`() {
         val subject = ConfigurationCacheProblemsSummary(maxCollectedProblems = 3)
 
-        // causes for unique problems are all collected
+        // causes for unique problems are collected
         assertTrue(
             "1st problem",
             subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Deferred)
         )
 
-        // non-unique problems don't count towards the limit
+        // non-unique problems are not collected and don't count towards the limit
         assertFalse(
             "1st problem (duplicate)",
             subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Deferred)
@@ -58,7 +59,7 @@ class ConfigurationCacheProblemsSummaryTest {
             equalTo(1)
         )
 
-        // hit limit but not overflow
+        // hit limit but did not overflow yet
         assertTrue(
             "2nd problem (same message as 1st but different location)",
             subject.onProblem(buildLogicProblem("build.gradle.kts", "failure"), ProblemSeverity.Deferred)
@@ -73,7 +74,7 @@ class ConfigurationCacheProblemsSummaryTest {
         )
         assertFalse(subject.get().overflowed)
 
-        // overflow
+        // now we do overflow
         assertFalse(
             "overflow",
             subject.onProblem(buildLogicProblem("build.gradle", "another failure"), ProblemSeverity.Deferred)
@@ -187,7 +188,7 @@ class ConfigurationCacheProblemsSummaryTest {
     }
 
     @Test
-    fun `console output for silently suppressed problems`() {
+    fun `console output for deferred and silently suppressed problems`() {
         val subject = ConfigurationCacheProblemsSummary()
         val problem0 = buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 1), "failure")
         val problem1 = buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 2), "failure")
@@ -202,6 +203,62 @@ class ConfigurationCacheProblemsSummaryTest {
             - Build.gradle.kts: line 1: failure
 
             See the complete report at $REPORT_URL
+            """
+        )
+    }
+
+    @Test
+    fun `console output includes up to MAX_CONSOLE_PROBLEMS non-suppressed problems`() {
+        val subject = ConfigurationCacheProblemsSummary()
+
+        // start with MAX_CONSOLE_PROBLEMS (deferred)
+        (1..MAX_CONSOLE_PROBLEMS).map { index ->
+            subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", index), "a deferred problem"), ProblemSeverity.Deferred)
+        }
+
+        // add a bunch of silently suppressed problems (should be ignored)
+        (100..200).map { index ->
+            subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", index), "a silently suppressed problem"), ProblemSeverity.SuppressedSilently)
+        }
+
+        // expect only MAX_CONSOLE_PROBLEMS (deferred)
+        val consoleReportableProblems = (1..MAX_CONSOLE_PROBLEMS)
+            .sortedBy {
+                // line numbers are sorted as strings, as the base implementation currently does
+                it.toString()
+            }.joinToString("\n") { index ->
+                "- Build.gradle.kts: line $index: a deferred problem"
+            }
+        checkConsoleText(subject.get(),
+            """
+$MAX_CONSOLE_PROBLEMS problems were found $ACTION the configuration cache.
+$consoleReportableProblems
+
+See the complete report at $REPORT_URL
+            """
+        )
+
+        // adding one should result in a "plus 1 more problem" message
+        subject.onProblem(buildLogicProblem(buildLogicUserCodeSourceTrace("somefile.gradle.kts"), "another deferred problem"), ProblemSeverity.Deferred)
+        checkConsoleText(subject.get(),
+            """
+${MAX_CONSOLE_PROBLEMS + 1} problems were found $ACTION the configuration cache.
+$consoleReportableProblems
+plus 1 more problem. Please see the report for details.
+
+See the complete report at $REPORT_URL
+            """
+        )
+
+        // adding another should result in a "plus 2 more problems" message
+        subject.onProblem(buildLogicProblem(buildLogicUserCodeSourceTrace("somefile.gradle.kts"), "yet another deferred problem"), ProblemSeverity.Deferred)
+        checkConsoleText(subject.get(),
+            """
+${MAX_CONSOLE_PROBLEMS + 2} problems were found $ACTION the configuration cache.
+$consoleReportableProblems
+plus 2 more problems. Please see the report for details.
+
+See the complete report at $REPORT_URL
             """
         )
     }
@@ -327,10 +384,9 @@ class ConfigurationCacheProblemsSummaryTest {
         val reportFile = File("report.html")
         val reportFileUrl = ConsoleRenderer().asClickableFileUrl(reportFile)
         val consoleText = summary.textForConsole(ACTION, reportFile)
-        assertThat(
-            consoleText.trimIndent(), equalTo(
-                expected.trimIndent().replace(REPORT_URL, reportFileUrl)
-            )
+        assertEquals(
+            expected.trimIndent().replace(REPORT_URL, reportFileUrl),
+            consoleText.trimIndent()
         )
     }
 }

@@ -31,7 +31,8 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 
-private
+@VisibleForTesting
+internal
 const val MAX_CONSOLE_PROBLEMS = 15
 
 
@@ -242,6 +243,9 @@ class Summary(
     val incompatibleFeatureCount: Int
 ) {
 
+    private
+    val consoleUniqueProblemCount = consoleProblemCauses.size
+
     /**
      * Builds the console feedback string for configuration cache problems.
      *
@@ -270,8 +274,10 @@ class Summary(
                         appendLine("  See ${documentationRegistry.getDocumentationFor(it.page, it.anchor)}")
                     }
                 }
-                if (uniqueProblemCount > MAX_CONSOLE_PROBLEMS) {
-                    appendLine("plus ${uniqueProblemCount - MAX_CONSOLE_PROBLEMS} more problems. Please see the report for details.")
+                val notShown = consoleUniqueProblemCount - MAX_CONSOLE_PROBLEMS
+                if (notShown > 0) {
+                    val problemStr = if (notShown > 1) "problems" else "problem"
+                    appendLine("plus $notShown more $problemStr. Please see the report for details.")
                 }
             }
             val hasIncompatibleTasks = incompatibleTasksCount > 0
@@ -309,7 +315,6 @@ class Summary(
             append(maxCollectedProblems)
             append(" were considered")
         }
-        val consoleUniqueProblemCount = consoleProblemCauses.size
         if (consoleUniqueProblemCount != consoleProblemCount) {
             append(", ")
             append(consoleUniqueProblemCount)
