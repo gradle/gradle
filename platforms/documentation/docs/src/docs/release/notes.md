@@ -42,6 +42,17 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
+### Bearer Token Authentication for Wrapper Download
+
+When downloading Gradle distributions from an HTTPS backend (or even from an HTTP one, but the secure version is preferred), the Wrapper now also supports Bearer token authentication.
+This is in addition to Basic authentication (username and password), which was the only supported method in previous versions.
+
+Bearer tokens can be specified via system properties and take precedence over Basic authentication, if both configured.
+
+Both Basic authentication and Bearer token authentication can now be configured on a per-host basis, which is the recommended approach for avoiding leaking credentials to unintended hosts.
+
+See the [Wrapper documentation](userguide/gradle_wrapper.html#sec:authenticated_download) for further details.  
+
 ### Problems HTML report refinements
 
 The incubating Problems HTML report has been refined to provide a more useful user experience.
