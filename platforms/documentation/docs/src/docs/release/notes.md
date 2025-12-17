@@ -61,8 +61,8 @@ Daemon logs older than 14 days are now automatically cleaned up when the daemon 
 ### POM exclusion importing
 
 When using the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion) to generate a Gradle build from an existing Maven project, Gradle now imports `<exclusion>` elements from the Maven POM and translates them into Gradle dependency exclusions.
-Below this, we can add the `pom.xml` version of your example to make it clear (please format and title this - it's tough to do as a suggestion):
 
+```xml
 <dependencies>
     <dependency>
         <groupId>sample.Project</groupId>
@@ -76,8 +76,11 @@ Below this, we can add the `pom.xml` version of your example to make it clear (p
         </exclusions>
     </dependency>
 </dependencies>
+```
+
 Due to differences in how Maven and Gradle handle dependency exclusions, some exclusions may not translate perfectly.
-Due to this, the generated exclusions will be marked with a comment noting they require manual verification:
+
+The generated exclusions will be marked with a comment noting they require manual verification:
 
 ```kotlin
 dependencies {
