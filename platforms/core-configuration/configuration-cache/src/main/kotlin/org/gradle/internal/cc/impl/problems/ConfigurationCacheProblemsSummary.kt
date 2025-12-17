@@ -250,8 +250,8 @@ class Summary(
      * Builds the console feedback string for configuration cache problems.
      *
      * Rules:
-     * - If there are reportable problems, print a summary header and a curated list of up to [MAX_CONSOLE_PROBLEMS].
-     * - If there are no reportable problems but there are incompatible tasks or features (graceful degradation),
+     * - If there are console-reportable problems, print a summary header and a curated list of up to [MAX_CONSOLE_PROBLEMS].
+     * - If there are no console-reportable problems but there are incompatible tasks or features (graceful degradation),
      *   do not list problems; emit a short notice and always print the report link.
      * - In all cases where an HTML report exists, append a link to it.
      */
