@@ -81,7 +81,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
     }
 
     @Override
-    public Property<Boolean> getContinueOnConnectionFailure() {
+    public Property<Boolean> getAllowInsecureContinueWhenDisabled() {
         return continueOnConnectionFailure;
     }
 

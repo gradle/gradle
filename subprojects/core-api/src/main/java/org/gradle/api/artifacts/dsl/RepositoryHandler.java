@@ -93,6 +93,8 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**
      * Adds a repository which looks in Gradle Central Plugin Repository for dependencies.
+     * <p>
+     * The return type of this method may be safely cast to {@link org.gradle.api.artifacts.repositories.UrlArtifactRepository}.
      *
      * @return The Gradle Central Plugin Repository
      * @since 4.4
@@ -102,6 +104,8 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**
      * Adds a repository which looks in Gradle Central Plugin Repository for dependencies.
+     * <p>
+     * The return type of this method may be safely cast to {@link org.gradle.api.artifacts.repositories.UrlArtifactRepository}.
      *
      * @param action a configuration action
      * @return the added resolver

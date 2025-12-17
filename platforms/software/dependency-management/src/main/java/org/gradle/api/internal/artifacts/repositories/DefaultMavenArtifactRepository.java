@@ -193,8 +193,8 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     @Override
-    public Property<Boolean> getContinueOnConnectionFailure() {
-        return urlArtifactRepository.getContinueOnConnectionFailure();
+    public Property<Boolean> getAllowInsecureContinueWhenDisabled() {
+        return urlArtifactRepository.getAllowInsecureContinueWhenDisabled();
     }
 
     @Override
@@ -265,7 +265,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), resourcesFileStore);
         InstantiatingAction<ComponentMetadataSupplierDetails> supplier = createComponentMetadataSupplierFactory(injector, isolatableFactory);
         InstantiatingAction<ComponentMetadataListerDetails> lister = createComponentMetadataVersionLister(injector, isolatableFactory);
-        return new MavenResolver(getDescriptor(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister, injector, checksumService, urlArtifactRepository.getContinueOnConnectionFailure().getOrElse(false));
+        return new MavenResolver(getDescriptor(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister, injector, checksumService, urlArtifactRepository.getAllowInsecureContinueWhenDisabled().getOrElse(false));
     }
 
     @Override
