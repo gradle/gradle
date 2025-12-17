@@ -45,10 +45,25 @@ public interface PluginRegistry {
     PluginRegistry createChild(ClassLoaderScope lookupScope);
 
     /**
-     * Finds the plugin id which corresponds to the supplied class name.
+     * Finds the plugin id which corresponds to the supplied class.
+     *
      * @param clazz the class to look for
-     * @return the plugin id for this class.
+     * @return the plugin id for this class, if it can be determined; else {@link Optional#empty()}
      */
     Optional<PluginId> findPluginForClass(Class<?> clazz);
 
+    /**
+     * Finds the plugin id which corresponds to the supplied class name.
+     *
+     * @param className the fully-qualified name of the class to look for
+     * @return the plugin id for this class, if it can be determined; else {@link Optional#empty()}
+     */
+    default Optional<PluginId> findPluginForClass(String className) {
+        try {
+            Class<?> pluginClass = Class.forName(className);
+            return findPluginForClass(pluginClass);
+        } catch (ClassNotFoundException e) {
+            return Optional.empty();
+        }
+    }
 }

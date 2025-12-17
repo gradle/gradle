@@ -18,6 +18,8 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskRequiredServices;
@@ -30,6 +32,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.resources.ResourceLock;
+import org.gradle.plugin.use.PluginId;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 
@@ -37,6 +40,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public interface TaskInternal extends Task, Configurable<Task> {
 
@@ -151,6 +155,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
      *
      * @return the constructed failure message
      */
+    @SuppressWarnings("D") // High Cognitive Complexity warning suppressed for improved readability in IDE - extract some logic to private interface method once we're on Java 9+
     @Internal
     default String buildFailureMessage() {
         UserCodeSource source = getTaskIdentity().getUserCodeSource();
@@ -161,7 +166,26 @@ public interface TaskInternal extends Task, Configurable<Task> {
         if (isUnknownSource) {
             createdBy = "";
         } else {
-            boolean isPluginSource = sourceDesc.contains("plugin");
+            boolean isPluginSource = sourceDesc.startsWith("plugin");
+            if (isPluginSource) {
+                // Best effort attempt to map from plugin class to plugin id for better error messages
+                // e.g. "plugin class 'com.example.MyPlugin'"  -> "plugin 'com.example.my-plugin'".
+                // Extract this to private interface method once we're on Java 9+.
+                boolean isPluginAppliedByClass = sourceDesc.startsWith("plugin class '");
+                if (isPluginAppliedByClass) {
+                    Pattern pluginClassNamePattern = Pattern.compile("plugin class '(.*)'");
+                    java.util.regex.Matcher matcher = pluginClassNamePattern.matcher(sourceDesc);
+                    if (matcher.find()) {
+                        // Project access is okay here, since the task is failing to execute anyway
+                        PluginRegistry pluginRegistry = ((ProjectInternal) getProject()).getServices().get(PluginRegistry.class);
+                        Optional<PluginId> pluginId = pluginRegistry.findPluginForClass(matcher.group(1));
+                        if (pluginId.isPresent()) {
+                            sourceDesc = String.format("plugin '%s'", pluginId.get());
+                        }
+                    }
+                }
+            }
+
             String preposition = isPluginSource ? "by" : "in";
             createdBy = String.format(" (created %s %s)", preposition, sourceDesc);
         }

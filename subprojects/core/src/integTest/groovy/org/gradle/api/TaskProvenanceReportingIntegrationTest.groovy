@@ -224,4 +224,33 @@ class TaskProvenanceReportingIntegrationTest extends AbstractIntegrationSpec {
         failureDescriptionContains("Execution failed for task ':help' (created by plugin 'org.gradle.help-tasks').")
         failureCauseContains("Failure!")
     }
+
+    def "when jar task fails and is reported by plugin id, not plugin class"() {
+        given:
+        buildFile """
+            plugins {
+                id 'java-library'
+            }
+
+            jar {
+                doLast {
+                    throw new RuntimeException("Failure!")
+                }
+            }
+        """
+        javaFile("src/main/java/Main.java", """
+            public class Main {
+                public static void main(String[] args) {
+                    System.out.println("Hello, World!");
+                }
+            }
+        """)
+
+        when:
+        fails("jar")
+
+        then:
+        failureDescriptionContains("Execution failed for task ':jar' (created by plugin 'java').")
+        failureCauseContains("Failure!")
+    }
 }
