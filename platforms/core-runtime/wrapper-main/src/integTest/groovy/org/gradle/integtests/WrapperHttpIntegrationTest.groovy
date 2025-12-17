@@ -176,7 +176,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         def failure = wrapperExecuter.runWithFailure()
 
         then:
-        failure.assertHasErrorOutput("Downloading from http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL failed: timeout (10000ms)")
+        failure.assertHasErrorOutput("Downloading from ${getDefaultBaseUrl()}/$TEST_DISTRIBUTION_URL failed: timeout (10000ms)")
         failure.assertHasErrorOutput('Read timed out')
         failure.assertNotOutput(USER)
         failure.assertNotOutput(PASSWORD)
@@ -346,10 +346,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         and:
         server.withBearerAuthentication(DEFAULT_TOKEN)
         file("gradle.properties") << """
-    systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
-"""
+            systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
+        """.stripIndent()
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getDefaultAuthenticatedBaseUrl()).run()
+        prepareWrapper(getDefaultBaseUrl()).run()
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
         when:
@@ -378,11 +378,11 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     def "downloads wrapper from bearer authenticated server"() {
         given:
         file("gradle.properties") << """
-    systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
-"""
+            systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
+        """.stripIndent()
         server.withBearerAuthentication(DEFAULT_TOKEN)
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getDefaultAuthenticatedBaseUrl()).run()
+        prepareWrapper(getDefaultBaseUrl()).run()
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
         when:
