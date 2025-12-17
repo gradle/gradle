@@ -70,6 +70,7 @@ class PerformanceTest(
                     allowEmpty = true,
                     description = "The baselines you want to run performance tests against. Empty means default baseline.",
                 )
+                param("env.PERFORMANCE_STAGE", stage.stageName.toString())
                 param("env.PERFORMANCE_CHANNEL", performanceTestBuildSpec.channel())
                 param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
                 when (os) {

@@ -70,7 +70,6 @@ class EdgeState implements DependencyGraphEdge {
 
     private @Nullable NodeState resolvedVariant;
     private boolean unattached;
-    private boolean used;
 
     EdgeState(NodeState from, DependencyState dependencyState, ResolveState resolveState) {
         this.from = from;
@@ -146,16 +145,8 @@ class EdgeState implements DependencyGraphEdge {
             return;
         }
 
-        if (isConstraint) {
-            // Need to double check that the target still has hard edges to it
-            ModuleResolveState module = targetComponent.getModule();
-            if (module.isPending()) {
-                selector.getTargetModule().removeUnattachedEdge(this);
-                from.makePending(this);
-                module.registerConstraintProvider(from);
-                return;
-            }
-        }
+        // We should never try to attach edges to a node in a module that has no incoming hard edges.
+        assert !targetComponent.getModule().isPending();
 
         calculateTargetNodes(targetComponent);
         for (NodeState targetNode : targetNodes) {
@@ -540,14 +531,6 @@ class EdgeState implements DependencyGraphEdge {
         return unattached;
     }
 
-    void markUsed() {
-        this.used = true;
-    }
-
-    void markUnused() {
-        this.used = false;
-    }
-
     /**
      * Indicates whether the edge is currently listed as outgoing in a node.
      * It can be either a full edge or an edge to a virtual platform.
@@ -555,7 +538,7 @@ class EdgeState implements DependencyGraphEdge {
      * @return true if used, false otherwise
      */
     boolean isUsed() {
-        return used;
+        return selector != null;
     }
 
     public boolean isArtifactOnlyEdge() {

@@ -136,7 +136,7 @@ The method on the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[W
 
 Use link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.DistributionType.html#values()[`Wrapper.DistributionType.values()`] to obtain the available distribution types instead.
 
-[[deprecate_unpublished_project_dependencies]]
+[[publishing_dependency_on_unpublished_project]]
 ==== Deprecation of publishing dependencies on unpublished projects
 
 When publishing a project, Gradle resolves project dependencies to the coordinates of the target project's publication.

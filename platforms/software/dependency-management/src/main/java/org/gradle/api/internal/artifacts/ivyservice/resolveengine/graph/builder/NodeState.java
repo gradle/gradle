@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -138,12 +139,14 @@ public class NodeState implements DependencyGraphNode {
     /**
      * The transitive strict versions from inherited from parents.
      */
-    private StrictVersionConstraints ancestorsStrictVersions = StrictVersionConstraints.EMPTY;
+    @VisibleForTesting
+    StrictVersionConstraints ancestorsStrictVersions = StrictVersionConstraints.EMPTY;
 
     /**
      * Our own strict version constraints, from the previous graph traversal.
      */
-    private @Nullable StrictVersionConstraints ownStrictVersions;
+    @VisibleForTesting
+    @Nullable StrictVersionConstraints ownStrictVersions;
 
     /**
      * Cached copy of all endorsed strict versions. Must be invalidated whenever
@@ -152,7 +155,6 @@ public class NodeState implements DependencyGraphNode {
      */
     private @Nullable StrictVersionConstraints cachedEndorsedStrictVersions;
 
-    private boolean removingOutgoingEdges;
     private boolean findingExternalVariants;
 
     public NodeState(long nodeId, ComponentState component, ResolveState resolveState, VariantGraphResolveState variant, boolean selectedByVariantAwareResolution) {
@@ -347,11 +349,17 @@ public class NodeState implements DependencyGraphNode {
     private void visitNewAndInvalidatedDependencies(ExcludeSpec resolutionFilter, StrictVersionConstraints ancestorsStrictVersions, Collection<EdgeState> discoveredEdges) {
         // Visit any constraints that were previously pending, but are no longer pending.
         if (upcomingNoLongerPendingConstraints != null && potentiallyActivatedConstraints != null) {
-            for (ModuleIdentifier module : upcomingNoLongerPendingConstraints) {
-                Collection<DependencyState> dependencyStates = potentiallyActivatedConstraints.get(module);
+            for (ModuleIdentifier moduleId : upcomingNoLongerPendingConstraints) {
+                Collection<DependencyState> dependencyStates = potentiallyActivatedConstraints.get(moduleId);
                 if (!dependencyStates.isEmpty()) {
-                    for (DependencyState dependencyState : dependencyStates) {
-                        createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, ancestorsStrictVersions, false);
+                    ModuleResolveState module = resolveState.getModule(moduleId);
+                    if (module.isPending()) {
+                        // The module went back to pending since we were notified that it was no longer pending.
+                        module.getPendingDependencies().registerConstraintProvider(this);
+                    } else {
+                        for (DependencyState dependencyState : dependencyStates) {
+                            createAndLinkEdgeState(dependencyState, discoveredEdges, resolutionFilter, ancestorsStrictVersions, false);
+                        }
                     }
                 }
             }
@@ -534,7 +542,6 @@ public class NodeState implements DependencyGraphNode {
         dependencyEdge.computeSelector(ancestorsStrictVersions, deferSelection);
         discoveredEdges.add(dependencyEdge);
         outgoingEdges.add(dependencyEdge);
-        dependencyEdge.markUsed();
     }
 
     /**
@@ -610,7 +617,6 @@ public class NodeState implements DependencyGraphNode {
             virtualEdges = new ArrayList<>();
         }
         virtualEdges.add(edge);
-        edge.markUsed();
     }
 
     private boolean hasStrongOpinion() {
@@ -853,7 +859,8 @@ public class NodeState implements DependencyGraphNode {
         return edgeExclusions;
     }
 
-    private void collectOwnStrictVersions(ExcludeSpec moduleResolutionFilter) {
+    @VisibleForTesting
+    void collectOwnStrictVersions(ExcludeSpec moduleResolutionFilter) {
         List<DependencyState> dependencies = dependencies(moduleResolutionFilter);
         PersistentSet<ModuleIdentifier> constraintsSet = PersistentSet.of();
         for (DependencyState dependencyState : dependencies) {
@@ -877,6 +884,13 @@ public class NodeState implements DependencyGraphNode {
 
         StrictVersionConstraints existingOwnStrictVersions = this.ownStrictVersions;
         this.ownStrictVersions = newStrictVersions;
+
+        if (existingOwnStrictVersions == null) {
+            // If our existing strict versions are null, nobody else has observed them,
+            // so their value being initialized for the first time will no invalidate
+            // any existing calculated strict versions.
+            return;
+        }
 
         if (!newStrictVersions.equals(existingOwnStrictVersions)) {
             for (EdgeState incomingEdge : incomingEdges) {
@@ -902,7 +916,8 @@ public class NodeState implements DependencyGraphNode {
      * Recompute the strict versions inherited from ancestors,
      * propagating the new value to all descendants.
      */
-    private void recomputeAncestorsStrictVersions() {
+    @VisibleForTesting
+    void recomputeAncestorsStrictVersions() {
         updateAncestorsStrictVersions(collectAncestorsStrictVersions());
     }
 
@@ -942,11 +957,19 @@ public class NodeState implements DependencyGraphNode {
         }
 
         if (incomingEdges.size() == 1) {
-            return getStrictVersionsForEdge(incomingEdges.get(0));
+            EdgeState dependencyEdge = incomingEdges.get(0);
+            if (dependencyEdge.getFrom().isSelected()) {
+                return getStrictVersionsForEdge(dependencyEdge);
+            } else {
+                return StrictVersionConstraints.EMPTY;
+            }
         }
 
         StrictVersionConstraints ancestorsStrictVersions = null;
         for (EdgeState dependencyEdge : incomingEdges) {
+            if (!dependencyEdge.getFrom().isSelected()) {
+                continue;
+            }
             StrictVersionConstraints allEdgeStrictVersions = getStrictVersionsForEdge(dependencyEdge);
 
             ancestorsStrictVersions = ancestorsStrictVersions == null
@@ -958,7 +981,7 @@ public class NodeState implements DependencyGraphNode {
                 break;
             }
         }
-        return ancestorsStrictVersions;
+        return ancestorsStrictVersions != null ?  ancestorsStrictVersions : StrictVersionConstraints.EMPTY;
     }
 
     /**
@@ -1003,7 +1026,7 @@ public class NodeState implements DependencyGraphNode {
 
         for (EdgeState outgoingEdge : outgoingEdges) {
             for (NodeState targetNode : outgoingEdge.getTargetNodes()) {
-                // The endorsed strict versions of this node contribute to the
+                // The endorsed strict versions of this node contributes to the
                 // ancestors strict versions of our children.
                 targetNode.recomputeAncestorsStrictVersions();
             }
@@ -1072,28 +1095,14 @@ public class NodeState implements DependencyGraphNode {
             return;
         }
 
-        boolean alreadyRemoving = removingOutgoingEdges;
-        removingOutgoingEdges = true;
-        if (!outgoingEdges.isEmpty() && !alreadyRemoving) {
+        if (!outgoingEdges.isEmpty()) {
             for (EdgeState outgoingEdge : outgoingEdges) {
-                outgoingEdge.markUnused(); // Track that these edges have been removed from outgoing but maybe not from incoming, in case we hit one of these continues and do not call disconnectOutgoingEdge
-                ComponentState targetComponent = outgoingEdge.getTargetComponent();
-                if (targetComponent == component) {
-                    // if the same component depends on itself: do not attempt to cleanup the same thing several times
-                    continue;
-                }
-                if (targetComponent != null && targetComponent.getModule().isChangingSelection()) {
-                    // don't requeue something which is already changing selection
-                    continue;
-                }
-
                 disconnectOutgoingEdge(outgoingEdge);
             }
             outgoingEdges.clear();
         }
-        if (virtualEdges != null /*&& !removingOutgoing*/) {
+        if (virtualEdges != null) {
             for (EdgeState virtualEdge : virtualEdges) {
-                virtualEdge.markUnused();
                 disconnectOutgoingEdge(virtualEdge);
             }
             virtualEdges = null;
@@ -1105,13 +1114,11 @@ public class NodeState implements DependencyGraphNode {
         cachedFilteredDependencyStates = null;
         edgesToRecompute = null;
         virtualPlatformNeedsRefresh = false;
-        removingOutgoingEdges = alreadyRemoving;
     }
 
     private void disconnectOutgoingEdge(EdgeState outgoingEdge) {
         outgoingEdge.detachFromTargetNodes();
         outgoingEdge.getSelector().getTargetModule().disconnectIncomingEdge(this, outgoingEdge);
-        outgoingEdge.clearSelector();
     }
 
     @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
@@ -1195,14 +1202,8 @@ public class NodeState implements DependencyGraphNode {
     }
 
     void removeOutgoingEdge(EdgeState edge) {
-        if (!removingOutgoingEdges) {
-            // don't try to remove an outgoing edge if we're already doing it
-            // because removeOutgoingEdges() will clear all of them so it's not required to do it twice
-            // and it can cause a concurrent modification exception
-            outgoingEdges.remove(edge);
-            edge.markUnused();
-            edge.clearSelector();
-        }
+        outgoingEdges.remove(edge);
+        edge.clearSelector();
     }
 
     /**
@@ -1247,15 +1248,6 @@ public class NodeState implements DependencyGraphNode {
     boolean isSelectedByVariantAwareResolution() {
         // the order is strange logically but here for performance optimization
         return selectedByVariantAwareResolution && isSelected();
-    }
-
-    void makePending(EdgeState edgeState) {
-        if (!removingOutgoingEdges) {
-            // We can ignore if we are already removing edges anyway
-            outgoingEdges.remove(edgeState);
-            edgeState.markUnused();
-            edgeState.clearSelector();
-        }
     }
 
     @Nullable
