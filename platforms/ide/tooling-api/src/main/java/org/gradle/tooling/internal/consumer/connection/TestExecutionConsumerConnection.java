@@ -34,7 +34,7 @@ public class TestExecutionConsumerConnection extends ShutdownAwareConsumerConnec
     }
 
     @Override
-    public void runTests(final TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {
+    protected void doRunTests(final TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {
         final BuildCancellationTokenAdapter cancellationTokenAdapter = new BuildCancellationTokenAdapter(operationParameters.getCancellationToken());
         ((InternalTestExecutionConnection) getDelegate()).runTests(testExecutionRequest, cancellationTokenAdapter, operationParameters);
     }
