@@ -103,6 +103,11 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
         return delegate.isContinueOnConnectionFailure();
     }
 
+    @Override
+    public boolean isRepositoryDisabled() {
+        return delegate.isRepositoryDisabled();
+    }
+
     private class VerifyingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         private final ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate;
         private final boolean verifySignatures;
