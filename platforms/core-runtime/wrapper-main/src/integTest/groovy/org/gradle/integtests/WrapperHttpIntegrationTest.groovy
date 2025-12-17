@@ -45,8 +45,8 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         "http://$HOST:${server.port}"
     }
 
-    private String getDefaultAuthenticatedBaseUrl() {
-        "http://$USER:$PASSWORD@$HOST:${server.port}"
+    private String getDefaultAuthenticatedBaseUrl(String user = USER, String password = PASSWORD) {
+        "http://$user:$password@$HOST:${server.port}"
     }
 
     def setup() {
@@ -412,6 +412,26 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         assertThat(result.output, containsString('hello'))
     }
 
+    def "basic authentication using credentials from gradle.properties take precedence over credentials included in the URL"() {
+        given:
+        file("gradle.properties") << """
+            systemProp.gradle.wrapperUser=$USER
+            systemProp.gradle.wrapperPassword=$PASSWORD
+        """.stripIndent()
+
+        and:
+        server.withBasicAuthentication(USER, PASSWORD)
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultAuthenticatedBaseUrl("badUser", "basPassword")).run()
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+
+        when:
+        result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        assertThat(result.output, containsString('hello'))
+    }
+
     def "downloads wrapper from bearer token authenticated server using token from gradle.properties"() {
         given:
         def token = "apiToken"
@@ -425,6 +445,30 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.withBearerAuthentication(token)
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
         prepareWrapper(getDefaultBaseUrl()).run()
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+
+        when:
+        result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        assertThat(result.output, containsString('hello'))
+    }
+
+    def "bearer token authentication takes precedence over password based authentication in all forms"() {
+        given:
+        def token = "apiToken"
+
+        and:
+        file("gradle.properties") << """
+            systemProp.gradle.wrapperUser=basUser
+            systemProp.gradle.wrapperPassword=badPassword
+            systemProp.gradle.wrapperToken=$token
+        """.stripIndent()
+
+        and:
+        server.withBearerAuthentication(token)
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultAuthenticatedBaseUrl("worseUser", "worsePassword")).run()
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
         when:
