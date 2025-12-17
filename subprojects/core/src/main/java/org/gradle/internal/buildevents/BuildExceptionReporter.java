@@ -34,6 +34,7 @@ import org.gradle.internal.exceptions.NonGradleCause;
 import org.gradle.internal.exceptions.NonGradleCauseExceptionsHolder;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.exceptions.StyledException;
+import org.gradle.internal.exceptions.WorkTypeAwareException;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -79,6 +80,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     public static final String RESOLUTION_LINE_PREFIX = "> ";
     public static final String LINE_PREFIX_LENGTH_SPACES = repeat(" ", RESOLUTION_LINE_PREFIX.length());
+
+    private static final int MAX_GRANULARITY_SEARCH_DEPTH = 3;
 
     @NullMarked
     private enum ExceptionStyle {
@@ -152,7 +155,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         for (int i = 0; i < flattenedFailures.size(); i++) {
             Failure cause = flattenedFailures.get(i);
-            FailureDetails details = constructFailureDetails("Task", cause);
+            FailureDetails details = constructFailureDetails(extractGranularity(cause), cause);
 
             output.println();
             output.withStyle(Failure).format("%s: ", i + 1);
@@ -164,6 +167,18 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
             output.println("==============================================================================");
         }
+    }
+
+    private static String extractGranularity(Failure failure) {
+        int depth = 0;
+        Throwable cause = failure.getOriginal();
+        while (cause != null && depth++ < MAX_GRANULARITY_SEARCH_DEPTH) {
+            if (cause instanceof WorkTypeAwareException) {
+                return ((WorkTypeAwareException) cause).getWorkType();
+            }
+            cause = cause.getCause();
+        }
+        return "Task";
     }
 
     private void renderSingleBuildException(Failure failure) {

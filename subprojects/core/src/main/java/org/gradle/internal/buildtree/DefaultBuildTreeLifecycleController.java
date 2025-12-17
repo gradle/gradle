@@ -21,9 +21,11 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.internal.Describables;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
+import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.buildtree.BuildTreeWorkController.TaskRunResult;
+import org.gradle.internal.exceptions.WorkTypeAwareException;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.jspecify.annotations.Nullable;
@@ -87,11 +89,17 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
                 taskRunResult = runTasks();
             }
             // Allow model action to run even if tasks failed
-            T model = modelCreator.fromBuildModel(action);
-            return taskRunResult.isSuccessful()
-                ? ExecutionResult.succeeded(model)
-                : taskRunResult.asFailure();
+            ExecutionResult<T> modelResult = runFromBuildModel(action);
+            return modelResult.withFailures(taskRunResult);
         });
+    }
+
+    @SuppressWarnings("DataFlowIssue")
+    private <T> ExecutionResult<T> runFromBuildModel(BuildTreeModelAction<? extends T> action) {
+        Try<T> model = Try.ofFailable(() -> modelCreator.fromBuildModel(action));
+        return model.getFailure().isPresent()
+            ? ExecutionResult.failed(new WorkTypeAwareException("BuildAction", model.getFailure().get()))
+            : ExecutionResult.succeeded(model.get());
     }
 
     private ExecutionResult<Void> runTasks() {
