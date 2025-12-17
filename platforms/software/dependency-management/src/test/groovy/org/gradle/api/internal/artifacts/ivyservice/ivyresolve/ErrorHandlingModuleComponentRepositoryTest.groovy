@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
+import org.apache.http.NoHttpResponseException
 import org.apache.http.conn.HttpHostConnectException
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
@@ -56,6 +57,8 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
     def connectTimeout = new SocketTimeoutException()
     @Shared
     def cannotConnect = new HttpHostConnectException(null, null)
+    @Shared
+    def noResponse = new NoHttpResponseException('No response from server')
     @Shared
     def missing = status(404)
     @Shared
@@ -303,12 +306,13 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
             retries << [ret, forbidden, 1, false]
             retries << [ret, unauthorized, 1, false]
             retries << [ret, unknownHost, 1, true]
-            // retries on connect timeouts, too many requests, client timeouts
+            // retries on connect timeouts, too many requests, client timeouts - ends up disabling the repository
             retries << [ret, connectTimeout, ret, true]
-            retries << [ret, cannotConnect, ret, false]
-            retries << [ret, tooManyRequests, ret, false]
-            retries << [ret, clientTimeout, ret, false]
-            retries << [ret, socketError, ret, false]
+            retries << [ret, cannotConnect, ret, true]
+            retries << [ret, tooManyRequests, ret, true]
+            retries << [ret, clientTimeout, ret, true]
+            retries << [ret, socketError, ret, true]
+            retries << [ret, noResponse, ret, true]
             // retries on server errors
             if (ret < 3) {
                 // testing 1 and 2 is good enough coverage

@@ -151,6 +151,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         return delegate.isContinueOnConnectionFailure();
     }
 
+    @Override
+    public boolean isRepositoryDisabled() {
+        return delegate.isRepositoryDisabled();
+    }
+
     private class LocateInCacheRepositoryAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         @Override
         public String toString() {

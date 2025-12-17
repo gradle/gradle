@@ -41,10 +41,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
-
-import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.hasCriticalFailure;
-import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
 
 public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDataResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(RepositoryChainComponentMetaDataResolver.class);
@@ -105,7 +101,7 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
     private BuildableComponentResolveResult resolveModule(ModuleComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata) {
         LOGGER.debug("Attempting to resolve component for {} using repositories {}", identifier, repositoryNames);
 
-        List<ResolveExceptionWrapper> errors = new ArrayList<>();
+        RepositoryFailureCollector errors = new RepositoryFailureCollector();
         BuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
 
         List<ComponentMetaDataResolveState> resolveStates = new ArrayList<>();
@@ -116,16 +112,16 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         final RepositoryChainModuleResolution latestResolved = findBestMatch(resolveStates, errors);
         if (latestResolved != null) {
             LOGGER.debug("Using {} from {}", latestResolved.component.getId(), latestResolved.repository);
-            for (ResolveExceptionWrapper error : errors) {
-                LOGGER.debug("Discarding resolve failure.", error.failure);
+            for (Throwable error : errors.getFailures()) {
+                LOGGER.debug("Discarding resolve failure.", error);
             }
 
             String repositoryName = latestResolved.repository.getName();
             result.resolved(latestResolved.component, new ModuleComponentGraphSpecificResolveState(repositoryName));
             return result;
         }
-        if (!errors.isEmpty()) {
-            result.failed(new ModuleVersionResolveException(identifier, errors.stream().map(ResolveExceptionWrapper::getFailure).collect(Collectors.toList())));
+        if (!errors.getFailures().isEmpty()) {
+            result.failed(new ModuleVersionResolveException(identifier, errors.getFailures()));
         } else {
             for (ComponentMetaDataResolveState resolveState : resolveStates) {
                 resolveState.applyTo(result);
@@ -137,14 +133,14 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
     }
 
     @Nullable
-    private RepositoryChainModuleResolution findBestMatch(List<ComponentMetaDataResolveState> resolveStates, Collection<ResolveExceptionWrapper> failures) {
+    private RepositoryChainModuleResolution findBestMatch(List<ComponentMetaDataResolveState> resolveStates, RepositoryFailureCollector failures) {
         LinkedList<ComponentMetaDataResolveState> queue = new LinkedList<>(resolveStates);
 
         LinkedList<ComponentMetaDataResolveState> missing = new LinkedList<>();
 
         // A first pass to do local resolves only
         RepositoryChainModuleResolution best = findBestMatch(queue, failures, missing);
-        if (containsCriticalFailures(failures)) {
+        if (failures.hasFatalError()) {
             return null;
         }
         if (best != null) {
@@ -157,12 +153,8 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
         return findBestMatch(queue, failures, missing);
     }
 
-    private static boolean containsCriticalFailures(Collection<ResolveExceptionWrapper> failures) {
-        return hasCriticalFailure(failures.stream().filter(rew -> !rew.isContinueOnConnectionFailure()).map(ResolveExceptionWrapper::getFailure).collect(Collectors.toList()));
-    }
-
     @Nullable
-    private RepositoryChainModuleResolution findBestMatch(LinkedList<ComponentMetaDataResolveState> queue, Collection<ResolveExceptionWrapper> failures, Collection<ComponentMetaDataResolveState> missing) {
+    private RepositoryChainModuleResolution findBestMatch(LinkedList<ComponentMetaDataResolveState> queue, RepositoryFailureCollector failures, Collection<ComponentMetaDataResolveState> missing) {
         RepositoryChainModuleResolution best = null;
         while (!queue.isEmpty()) {
             ComponentMetaDataResolveState request = queue.removeFirst();
@@ -172,10 +164,11 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
                 case Failed:
                     ModuleVersionResolveException failure = metaDataResolveResult.getFailure();
                     assert failure != null; // Failure cannot be null in Failed state
-                    failures.add(new ResolveExceptionWrapper(failure, request.isContinueOnConnectionFailure()));
-                    if (!request.isContinueOnConnectionFailure() && isCriticalFailure(failure)) {
-                        // Clear the queue only for a critical failure, if we cannot continue on connection failure
+                    failures.addFailure(failure);
+                    if (!request.isContinueOnConnectionFailure() && request.isRepositoryDisabled()) {
+                        // Clear the queue only if repo is now disabled, and we can't continue with it disabled
                         queue.clear();
+                        failures.markFatalError();
                     }
                     break;
                 case Missing:
@@ -214,23 +207,6 @@ public class RepositoryChainComponentMetaDataResolver implements ComponentMetaDa
                     return getDisplayName();
                 }
             };
-        }
-    }
-    private static class ResolveExceptionWrapper {
-        Throwable failure;
-        boolean continueOnConnectionFailure;
-
-        ResolveExceptionWrapper(Throwable failure, boolean continueOnConnectionFailure) {
-            this.failure = failure;
-            this.continueOnConnectionFailure = continueOnConnectionFailure;
-        }
-
-        Throwable getFailure() {
-            return failure;
-        }
-
-        boolean isContinueOnConnectionFailure() {
-            return continueOnConnectionFailure;
         }
     }
 }

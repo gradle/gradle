@@ -20,18 +20,8 @@ import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
 
 import java.io.InterruptedIOException;
 import java.net.UnknownHostException;
-import java.util.Collection;
 
 public class ResolveExceptionAnalyzer {
-
-    public static boolean hasCriticalFailure(Collection<? extends Throwable> failures) {
-        for (Throwable failure : failures) {
-            if (isCriticalFailure(failure)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     public static boolean isCriticalFailure(Throwable throwable) {
         Throwable rootCause = Throwables.getRootCause(throwable);
