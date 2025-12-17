@@ -91,7 +91,7 @@ public class Download implements IDownload {
         try {
             HttpURLConnection conn = (HttpURLConnection)safeUrl.openConnection();
             conn.setRequestMethod("HEAD");
-            addBasicAuthentication(uri, conn);
+            addAuthentication(uri, conn);
             conn.setRequestProperty("User-Agent", calculateUserAgent());
             conn.setConnectTimeout(networkTimeout);
             conn.connect();
@@ -122,7 +122,7 @@ public class Download implements IDownload {
             // No proxy is passed here as proxies are set globally using the HTTP(S) proxy system properties. The respective protocol handler implementation then makes use of these properties.
             conn = safeUrl.openConnection();
 
-            addBasicAuthentication(address, conn);
+            addAuthentication(address, conn);
             final String userAgentValue = calculateUserAgent();
             conn.setRequestProperty("User-Agent", userAgentValue);
             conn.setConnectTimeout(networkTimeout);
@@ -185,7 +185,16 @@ public class Download implements IDownload {
         }
     }
 
-    private void addBasicAuthentication(URI address, URLConnection connection) throws IOException {
+    private void addAuthentication(URI address, URLConnection connection) throws IOException {
+        String token = getWrapperProperty(address.getHost(), "wrapperToken");
+        if (token == null) {
+            addBasicAuthentication(address, connection);
+        } else {
+            addBearerTokenAuthentication(token, address, connection);
+        }
+    }
+
+    private void addBasicAuthentication(URI address, URLConnection connection) {
         String userInfo = calculateUserInfo(address);
         if (userInfo == null) {
             return;
@@ -194,6 +203,13 @@ public class Download implements IDownload {
             logger.log("WARNING Using HTTP Basic Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.");
         }
         connection.setRequestProperty("Authorization", "Basic " + base64Encode(userInfo));
+    }
+
+    private void addBearerTokenAuthentication(String token, URI address, URLConnection connection) {
+        if (!"https".equals(address.getScheme())) {
+            logger.log("WARNING Using HTTP Bearer Token Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.");
+        }
+        connection.setRequestProperty("Authorization", "Bearer " + token);
     }
 
     /**
@@ -225,9 +241,21 @@ public class Download implements IDownload {
         }
     }
 
+    private String getWrapperProperty(String host, String key) {
+        if (host != null) {
+            String hostEscaped = host.replace('.', '_');
+            String hostProperty = systemProperties.get("gradle." + hostEscaped + '.' + key);
+            if (hostProperty != null) {
+                return hostProperty;
+            }
+        }
+        return systemProperties.get("gradle." + key);
+    }
+
     private String calculateUserInfo(URI uri) {
-        String username = systemProperties.get("gradle.wrapperUser");
-        String password = systemProperties.get("gradle.wrapperPassword");
+        String host = uri.getHost();
+        String username = getWrapperProperty(host, "wrapperUser");
+        String password = getWrapperProperty(host, "wrapperPassword");
         if (username != null && password != null) {
             return username + ':' + password;
         }

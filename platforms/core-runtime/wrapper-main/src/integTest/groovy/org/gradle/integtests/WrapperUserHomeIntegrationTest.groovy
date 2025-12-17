@@ -24,7 +24,7 @@ import spock.lang.Issue
 class WrapperUserHomeIntegrationTest extends AbstractWrapperIntegrationSpec {
     void 'uses gradle user home set by -Dgradle.user.home'() {
         given:
-        prepareWrapper()
+        prepareWrapper().run()
         def gradleUserHome = testDirectory.file('some-custom-user-home')
 
         when:
@@ -39,7 +39,7 @@ class WrapperUserHomeIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Issue('https://issues.gradle.org/browse/GRADLE-2802')
     void 'uses gradle user home set by -g'() {
         given:
-        prepareWrapper()
+        prepareWrapper().run()
         def gradleUserHome = testDirectory.file('some-custom-user-home')
 
         when:
