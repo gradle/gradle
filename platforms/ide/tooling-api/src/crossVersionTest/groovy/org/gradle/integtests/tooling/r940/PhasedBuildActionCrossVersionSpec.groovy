@@ -21,15 +21,21 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.r48.CustomBuildFinishedModel
 import org.gradle.integtests.tooling.r48.CustomProjectsLoadedModel
-import org.gradle.integtests.tooling.r48.IntermediateResultHandlerCollector
 import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.BuildException
+import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskFailureResult
 import org.gradle.tooling.events.task.TaskFinishEvent
+
+import java.util.function.Supplier
+
+import static org.gradle.integtests.tooling.r940.PhasedBuildActionCrossVersionSpec.CustomBuildFinishedAction.CallType
+import static org.gradle.integtests.tooling.r940.PhasedBuildActionCrossVersionSpec.CustomBuildFinishedAction.FAILURE_RESULT
 
 @TargetGradleVersion(">=9.4.0")
 @RelatedToolingAPITests(
@@ -37,7 +43,12 @@ import org.gradle.tooling.events.task.TaskFinishEvent
 )
 class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
+    IntermediateResultHandlerCollector projectsLoadedHandler
+    IntermediateResultHandlerCollector buildFinishedHandler
+
     def setup() {
+        projectsLoadedHandler = new IntermediateResultHandlerCollector()
+        buildFinishedHandler = new IntermediateResultHandlerCollector()
         buildFile << """
             import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
             import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -105,10 +116,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
-    def "build finished action is run even if build fails"() {
-        def projectsLoadedHandler = new IntermediateResultHandlerCollector()
-        def buildFinishedHandler = new IntermediateResultHandlerCollector()
-
+    def "build finished action is run even if build fails with #method"() {
         buildFile << """
             task broken {
                 doLast { throw new RuntimeException("broken") }
@@ -119,7 +127,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         fails { connection ->
             connection.action()
                 .projectsLoaded(new CustomProjectsLoadedAction(), projectsLoadedHandler)
-                .buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
+                .buildFinished(new CustomBuildFinishedAction(callType), buildFinishedHandler)
                 .build()
                 .forTasks("broken")
                 .run()
@@ -132,12 +140,15 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         failure.output.contains("Running CustomProjectsLoadedAction")
         failure.output.contains("Running CustomBuildFinishedAction")
         failure.assertHasDescription("Execution failed for task ':broken'.")
+
+        where:
+        method                        | callType
+        "BuildController.getModel()"  | CallType.GET_MODEL
+        "BuildController.findModel()" | CallType.FIND_MODEL
+        "BuildController.fetch()"     | CallType.FETCH
     }
 
-    def "build finished intermediate result handler is run even if build fails"() {
-        def projectsLoadedHandler = new IntermediateResultHandlerCollector()
-        def buildFinishedHandler = new IntermediateResultHandlerCollector()
-
+    def "build finished intermediate result handler is run even if build fails with #method"() {
         buildFile << """
             task broken {
                 doLast { throw new RuntimeException("broken") }
@@ -148,7 +159,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         fails { connection ->
             connection.action()
                 .projectsLoaded(new CustomProjectsLoadedAction(), projectsLoadedHandler)
-                .buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
+                .buildFinished(new CustomBuildFinishedAction(callType), buildFinishedHandler)
                 .build()
                 .forTasks("broken")
                 .run()
@@ -158,17 +169,80 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         BuildException e = thrown()
         e.message.startsWith("Could not run phased build action using")
         e.cause.message.contains("Execution failed for task ':broken'.")
+        failure.output.contains("Running CustomBuildFinishedAction")
         projectsLoadedHandler.getResult() == "loading"
-        buildFinishedHandler.getResult() == "build"
+        buildFinishedHandler.wasOnCompleteCalled
 
         and:
         failure.assertHasDescription("Execution failed for task ':broken'.")
+
+        where:
+        method                        | callType
+        "BuildController.getModel()"  | CallType.GET_MODEL
+        "BuildController.findModel()" | CallType.FIND_MODEL
+        "BuildController.fetch()"     | CallType.FETCH
+    }
+
+    def "method #description query model if a task fails"() {
+        buildFile << """
+            task broken {
+                doLast { throw new RuntimeException("broken") }
+            }
+        """
+
+        when:
+        fails { connection ->
+            connection.action()
+                .projectsLoaded(new CustomProjectsLoadedAction(), projectsLoadedHandler)
+                .buildFinished(new CustomBuildFinishedAction(callType), buildFinishedHandler)
+                .build()
+                .forTasks("broken")
+                .run()
+        }
+
+        then:
+        BuildException e = thrown()
+        e.message.startsWith("Could not run phased build action using")
+        e.cause.message.contains("Execution failed for task ':broken'.")
+        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.output.contains("Running CustomBuildFinishedAction")
+        projectsLoadedHandler.getResult() == "loading"
+        buildFinishedHandler.getResult() == expectedResult
+
+        where:
+        description                          | callType            | expectedResult
+        "BuildController.getModel() CANNOT"  | CallType.GET_MODEL  | FAILURE_RESULT
+        "BuildController.findModel() CANNOT" | CallType.FIND_MODEL | FAILURE_RESULT
+        "BuildController.fetch() CAN"        | CallType.FETCH      | "build"
+    }
+
+    def "buildFinished BuildAction failure is returned and buildFinishedHandler is not called even if a task failed"() {
+        buildFile << """
+            task broken {
+                doLast { throw new RuntimeException("broken") }
+            }
+        """
+
+        when:
+        fails { connection ->
+            connection.action()
+                .projectsLoaded(new CustomProjectsLoadedAction(), projectsLoadedHandler)
+                .buildFinished(new CustomFailingBuildFinishedAction(), buildFinishedHandler)
+                .build()
+                .forTasks("broken")
+                .run()
+        }
+
+        then:
+        BuildActionFailureException e = thrown()
+        e.message.startsWith("The supplied phased action failed with an exception")
+        e.cause.message.contains("Error from CustomFailingBuildFinishedAction")
+        failure.output.contains("Running CustomFailingBuildFinishedAction")
+        projectsLoadedHandler.getResult() == "loading"
+        !buildFinishedHandler.wasOnCompleteCalled
     }
 
     def "can listen to task failures with a phased build"() {
-        def projectsLoadedHandler = new IntermediateResultHandlerCollector()
-        def buildFinishedHandler = new IntermediateResultHandlerCollector()
-
         buildFile << """
             task broken {
                 doLast { throw new RuntimeException("broken") }
@@ -180,7 +254,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         fails { connection ->
             connection.action()
                 .projectsLoaded(new CustomProjectsLoadedAction(), projectsLoadedHandler)
-                .buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
+                .buildFinished(new CustomBuildFinishedAction(CallType.FETCH), buildFinishedHandler)
                 .build()
                 .addProgressListener(new ProgressListener() {
                     @Override
@@ -198,10 +272,22 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         BuildException e = thrown()
         e.message.startsWith("Could not run phased build action using")
         e.cause.message.contains("Execution failed for task ':broken'.")
+        failure.output.contains("Running CustomBuildFinishedAction")
         failedTasks == [":broken"]
 
         and:
         failure.assertHasDescription("Execution failed for task ':broken'.")
+    }
+
+    static class IntermediateResultHandlerCollector implements IntermediateResultHandler<String> {
+        boolean wasOnCompleteCalled = false
+        String result = null
+
+        @Override
+        void onComplete(String result) {
+            wasOnCompleteCalled = true
+            this.result = result
+        }
     }
 
     static class CustomProjectsLoadedAction implements BuildAction<String> {
@@ -216,17 +302,57 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
     }
 
     static class CustomBuildFinishedAction implements BuildAction<String> {
+
+        static enum CallType {
+            GET_MODEL,
+            FIND_MODEL,
+            FETCH
+        }
+
+        static final String FAILURE_RESULT = "<failure>"
+
+        final CallType callType
+
+        CustomBuildFinishedAction(CallType callType) {
+            this.callType = callType
+        }
+
         @Override
         String execute(BuildController controller) {
             println("Running CustomBuildFinishedAction")
-            def result = controller.fetch(CustomBuildFinishedModel.class)
-            if (result.model) {
-                assert result.failures.isEmpty()
-                return result.model.value
+            if (callType == CallType.GET_MODEL) {
+                return tryGet(() -> controller.getModel(CustomBuildFinishedModel.class))
+            } else if (callType == CallType.FIND_MODEL) {
+                return tryGet(() -> controller.findModel(CustomBuildFinishedModel.class))
+            } else if (callType == CallType.FETCH) {
+                def result = controller.fetch(CustomBuildFinishedModel.class)
+                if (result.model) {
+                    assert result.failures.isEmpty()
+                    return result.model.value
+                } else {
+                    assert !result.failures.isEmpty()
+                    return FAILURE_RESULT
+                }
             } else {
-                assert !result.failures.isEmpty()
-                return null
+                throw new UnsupportedOperationException("Unknown callType: $callType")
             }
+        }
+
+        private static String tryGet(Supplier<String> tryGet) {
+            try {
+                return tryGet.get()
+            } catch (Exception ignored) {
+                return FAILURE_RESULT
+            }
+        }
+    }
+
+    static class CustomFailingBuildFinishedAction implements BuildAction<String> {
+
+        @Override
+        String execute(BuildController controller) {
+            println("Running CustomFailingBuildFinishedAction")
+            throw new RuntimeException("Error from CustomFailingBuildFinishedAction")
         }
     }
 }
