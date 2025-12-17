@@ -212,12 +212,12 @@ class ConfigurationCacheProblemsSummaryTest {
         val subject = ConfigurationCacheProblemsSummary()
 
         // start with MAX_CONSOLE_PROBLEMS (deferred)
-        (1..MAX_CONSOLE_PROBLEMS).map { index ->
+        (1..MAX_CONSOLE_PROBLEMS).forEach { index ->
             subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", index), "a deferred problem"), ProblemSeverity.Deferred)
         }
 
         // add a bunch of silently suppressed problems (should be ignored)
-        (100..200).map { index ->
+        (100..200).forEach { index ->
             subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", index), "a silently suppressed problem"), ProblemSeverity.SuppressedSilently)
         }
 
