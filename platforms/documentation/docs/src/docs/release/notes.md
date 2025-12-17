@@ -77,6 +77,39 @@ This addition enables support for additional JUnit Platform features, and allows
 
 Daemon logs older than 14 days are now automatically cleaned up when the daemon shuts down, eliminating the need for manual cleanup.
 
+### POM exclusion importing
+
+When using the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion) to generate a Gradle build from an existing Maven project, Gradle now imports `<exclusion>` elements from the Maven POM and translates them into Gradle dependency exclusions.
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>sample.Project</groupId>
+        <artifactId>Project</artifactId>
+        <version>1.0</version>
+        <exclusions>
+            <exclusion>
+                <groupId>excluded.group</groupId>
+                <artifactId>excluded-artifact</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+</dependencies>
+```
+
+Due to differences in how Maven and Gradle handle dependency exclusions, some exclusions may not translate perfectly.
+
+The generated exclusions will be marked with a comment noting they require manual verification:
+
+```kotlin
+dependencies {
+    implementation("some.group:some-artifact:1.0") {
+        // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent
+        exclude(group = "excluded.group", module = "excluded-artifact")
+    }
+}
+```
+
 ## Plugin development
 
 ### Stricter validation for published plugins
