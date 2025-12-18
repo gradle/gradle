@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
-import java.util.WeakHashMap;
 
 import static java.lang.System.arraycopy;
 
@@ -41,7 +40,6 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
     private final static CharMatcher INVALID_CHAR_MATCHER = CharMatcher.inRange('0', '9').or(VALID_FIRST_CHAR_MATCHER).or(CharMatcher.is('-')).negate().precomputed();
 
     public static final ModelPath ROOT;
-    private static final Cache BY_PATH;
 
     static {
         ROOT = new ModelPath("", new String[0]) {
@@ -50,12 +48,11 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
                 return "<root>";
             }
         };
-        BY_PATH = new Cache(ROOT);
     }
 
     private final String path;
     private final String[] components;
-    private final ModelPath parent;
+    private @Nullable ModelPath parent;
 
     public ModelPath(String path) {
         this(path, splitPath(path));
@@ -67,7 +64,6 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         // (and this can happen if a task name contains dots)
         this.path = path;
         this.components = components;
-        this.parent = doGetParent();
     }
 
     @Override
@@ -112,7 +108,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
     }
 
     public static ModelPath path(String path) {
-        return BY_PATH.get(path);
+        return new ModelPath(path);
     }
 
     @VisibleForTesting
@@ -128,7 +124,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
                 return new ModelPath(path, names);
             }
         }
-        return BY_PATH.get(path, names);
+        return new ModelPath(path, names);
     }
 
     public static String pathString(String... names) {
@@ -147,7 +143,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
 
     public ModelPath child(String child) {
         if (this.components.length == 0) {
-            return path(child, new String[] {child});
+            return path(child, new String[]{child});
         }
         String[] childComponents = new String[components.length + 1];
         arraycopy(components, 0, childComponents, 0, components.length);
@@ -161,6 +157,9 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
 
     @Nullable
     public ModelPath getParent() {
+        if (parent == null) {
+            parent = doGetParent();
+        }
         return parent;
     }
 
@@ -321,33 +320,5 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
             components.add(component);
         }
         return components.toArray(new String[components.size()]);
-    }
-
-    private static class Cache {
-        private final WeakHashMap<String, ModelPath> cache = new WeakHashMap<String, ModelPath>();
-
-        public Cache(ModelPath root) {
-            cache.put(root.path, root);
-        }
-
-        public synchronized ModelPath get(String path) {
-            ModelPath result = cache.get(path);
-            if (result != null) {
-                return result;
-            }
-            result = new ModelPath(path);
-            cache.put(path, result);
-            return result;
-        }
-
-        public synchronized ModelPath get(String path, String[] names) {
-            ModelPath result = cache.get(path);
-            if (result != null) {
-                return result;
-            }
-            result = new ModelPath(path, names);
-            cache.put(path, result);
-            return result;
-        }
     }
 }

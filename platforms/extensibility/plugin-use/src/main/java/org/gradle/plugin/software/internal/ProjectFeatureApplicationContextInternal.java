@@ -48,7 +48,7 @@ public interface ProjectFeatureApplicationContextInternal extends ProjectFeature
             );
         }
 
-        V buildModel = getObjectFactory().newInstance(implementationType);
+        V buildModel = ProjectFeatureSupportInternal.createBuildModelInstance(getObjectFactory(), implementationType);
         ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModel, getProjectFeatureApplicator(), getProjectFeatureRegistry(), getObjectFactory());
 
         return buildModel;
@@ -57,11 +57,8 @@ public interface ProjectFeatureApplicationContextInternal extends ProjectFeature
     @Override
     default <T extends Definition<V>, V extends BuildModel> V registerBuildModel(T definition) {
         @SuppressWarnings("rawtypes")
-        TypeParameterInspection<Definition, BuildModel> inspection = new DefaultTypeParameterInspection<>(Definition.class, BuildModel.class, BuildModel.NONE.class);
+        TypeParameterInspection<Definition, BuildModel> inspection = new DefaultTypeParameterInspection<>(Definition.class, BuildModel.class, BuildModel.None.class);
         Class<V> modelType = inspection.parameterTypeFor(definition.getClass());
-        if (modelType == null) {
-            throw new IllegalArgumentException("Cannot determine build model type for " + definition.getClass());
-        }
 
         return registerBuildModel(definition, modelType);
     }

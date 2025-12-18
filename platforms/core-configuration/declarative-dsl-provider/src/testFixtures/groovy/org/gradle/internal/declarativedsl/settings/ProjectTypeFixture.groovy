@@ -551,14 +551,11 @@ trait ProjectTypeFixture {
     static class ProjectTypeDefinitionClassBuilder {
         String publicTypeClassName = "TestProjectTypeDefinition"
         String implementationTypeClassName = "TestProjectTypeDefinitionImpl"
+        String buildModelTypeClassName = "ModelType"
 
         boolean hasImplementationType = false
         boolean hasInjectedServices = false
         boolean hasNestedInjectedServices = false
-
-        String getBuildModelClassName() {
-            return publicTypeClassName + ".ModelType"
-        }
 
         void build(PluginBuilder pluginBuilder) {
             pluginBuilder.file("src/main/java/org/gradle/test/${publicTypeClassName}.java") << getPublicTypeClassContent()
@@ -579,6 +576,10 @@ trait ProjectTypeFixture {
 
         String getFullyQualifiedPublicTypeClassName() {
             return "org.gradle.test." + publicTypeClassName
+        }
+
+        String getFullyQualifiedBuildModelClassName() {
+            return getFullyQualifiedPublicTypeClassName() + "." + buildModelTypeClassName
         }
 
         String getPublicTypeClassContent() {
@@ -607,7 +608,7 @@ trait ProjectTypeFixture {
                 import javax.inject.Inject;
 
                 @Restricted
-                public interface ${effectiveClassName} extends ${Definition.class.simpleName}<${effectiveClassName}.ModelType> {
+                public interface ${effectiveClassName} extends ${Definition.class.simpleName}<${effectiveClassName}.${buildModelTypeClassName}> {
                     @${Restricted.class.simpleName}
                     Property<String> getId();
 
@@ -632,7 +633,7 @@ trait ProjectTypeFixture {
                         Property<String> getBarProcessed();
                     }
 
-                    interface ModelType extends BuildModel {
+                    interface ${buildModelTypeClassName} extends BuildModel {
                         Property<String> getId();
                     }
                 }

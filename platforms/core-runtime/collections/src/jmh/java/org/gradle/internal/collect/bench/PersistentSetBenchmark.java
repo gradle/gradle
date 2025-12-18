@@ -150,9 +150,13 @@ public class PersistentSetBenchmark {
     }
 
     @Benchmark
-    public void randomLookup(Blackhole blackhole) {
-        blackhole.consume(protocol.contains(set, fixture.randomPresent()));
+    public void containsAbsent(Blackhole blackhole) {
         blackhole.consume(protocol.contains(set, fixture.randomAbsent()));
+    }
+
+    @Benchmark
+    public void containsPresent(Blackhole blackhole) {
+        blackhole.consume(protocol.contains(set, fixture.randomPresent()));
     }
 
     @Benchmark

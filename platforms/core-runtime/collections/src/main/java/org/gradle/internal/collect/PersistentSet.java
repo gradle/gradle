@@ -18,6 +18,7 @@ package org.gradle.internal.collect;
 
 import org.jspecify.annotations.Nullable;
 
+import javax.annotation.CheckReturnValue;
 import java.lang.reflect.Array;
 import java.util.Iterator;
 import java.util.function.Function;
@@ -81,6 +82,7 @@ public interface PersistentSet<K> extends Iterable<K> {
     /// in which case this set is returned.
     ///
     /// *~O(1)*
+    @CheckReturnValue
     PersistentSet<K> plus(K key);
 
     /// Returns a new persistent set with the given key removed from this set,
@@ -88,6 +90,7 @@ public interface PersistentSet<K> extends Iterable<K> {
     /// in which case this set is returned.
     ///
     /// *~O(1)*
+    @CheckReturnValue
     PersistentSet<K> minus(K key);
 
     /// Returns a new persistent set with the given keys removed from this set or:
@@ -97,6 +100,7 @@ public interface PersistentSet<K> extends Iterable<K> {
     /// *~O(N)*
     ///
     /// @see #except(PersistentSet)
+    @CheckReturnValue
     PersistentSet<K> minusAll(Iterable<K> keys);
 
     /// Returns whether the given key is present in this set.
@@ -118,12 +122,14 @@ public interface PersistentSet<K> extends Iterable<K> {
     ///
     /// If this set already contains all keys from the other set, then this set is returned.
     /// If the other set already contains all keys from this set, then the other set is returned.
+    @CheckReturnValue
     <S extends K> PersistentSet<K> union(PersistentSet<S> other);
 
     /// Returns a new persistent set containing only the keys that are present in both sets.
     ///
     /// If the sets are equal, this set is returned.
     /// If either set is the [empty set][#of], the [empty set][#of] is returned.
+    @CheckReturnValue
     PersistentSet<K> intersect(PersistentSet<K> other);
 
     /// Returns a new persistent set with all keys from this set that are also not present in the other set or:
@@ -131,24 +137,29 @@ public interface PersistentSet<K> extends Iterable<K> {
     /// - this set when all keys from the other set are already absent from this set.
     ///
     /// @see #minusAll(Iterable)
+    @CheckReturnValue
     PersistentSet<K> except(PersistentSet<K> other);
 
     /// Returns a new persistent set with all keys from this set for which `predicate(key) == true`.
     ///
     /// Unless `predicate(key) == true` for every key or this is the [empty set][#of], in which case this set is returned.
+    @CheckReturnValue
     PersistentSet<K> filter(Predicate<? super K> predicate);
 
     /// Returns a new persistent set containing `mapper(key)` for every key in this set.
     ///
     /// The resulting keys are unique, according to their [Object#equals] and [Object#hashCode].
+    @CheckReturnValue
     <R> PersistentSet<R> map(Function<? super K, ? extends R> mapper);
 
     /// Returns a new persistent set containing the union of all sets returned by `mapper(key)` for keys in this set.
+    @CheckReturnValue
     <R> PersistentSet<R> flatMap(Function<? super K, PersistentSet<R>> mapper);
 
     /// Groups the keys of this set by `group(key)` and returns a persistent map from group to set of keys.
     ///
     /// Keys for which `group(key)` is `null` are ignored.
+    @CheckReturnValue
     <G> PersistentMap<G, PersistentSet<K>> groupBy(Function<? super K, ? extends @Nullable G> group);
 
     /// Returns whether `predicate(key) == true` for at least one key in this set.

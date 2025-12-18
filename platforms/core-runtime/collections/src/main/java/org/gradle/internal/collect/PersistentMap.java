@@ -18,6 +18,7 @@ package org.gradle.internal.collect;
 
 import org.jspecify.annotations.Nullable;
 
+import javax.annotation.CheckReturnValue;
 import java.util.Map;
 import java.util.function.BiFunction;
 
@@ -61,11 +62,13 @@ public interface PersistentMap<K, V> extends Iterable<Map.Entry<K, V>> {
     ///
     /// Unless the given key is already mapped to an [equal][Object#equals] value,
     /// then this map is returned.
+    @CheckReturnValue
     PersistentMap<K, V> assoc(K key, V value);
 
     /// Returns a new persistent map with no mapping for the given key.
     ///
     /// Unless the given key has no mapping, then this map is returned.
+    @CheckReturnValue
     PersistentMap<K, V> dissoc(K key);
 
     /// Returns a new persistent map with the mapping for the given key modified by the given function.
@@ -76,6 +79,7 @@ public interface PersistentMap<K, V> extends Iterable<Map.Entry<K, V>> {
     /// for the given key will be preserved.
     ///
     /// As an optimization, this map is returned whenever the new mapping is the same or [equal][Object#equals] to the previous mapping.
+    @CheckReturnValue
     PersistentMap<K, V> modify(K key, BiFunction<? super K, ? super @Nullable V, ? extends @Nullable V> function);
 
     /// Returns the current mapping for the given key or `null` when there's none.

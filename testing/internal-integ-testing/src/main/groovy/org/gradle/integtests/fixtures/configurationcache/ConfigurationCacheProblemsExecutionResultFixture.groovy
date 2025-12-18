@@ -33,25 +33,6 @@ final class ConfigurationCacheProblemsExecutionResultFixture extends Configurati
         super(rootDir)
     }
 
-    ConfigurationCacheReportFixture htmlReport(ExecutionResult result) {
-        return super.htmlReport(result.output)
-    }
-
-    ConfigurationCacheReportFixture htmlReport(ExecutionFailure failure) {
-        return super.htmlReport(failure.error)
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated use {@link #htmlReport(ExecutionResult)} or {@link #htmlReport(ExecutionFailure)}
-     */
-    @Override
-    @Deprecated
-    ConfigurationCacheReportFixture htmlReport(String output) {
-        return super.htmlReport(output)
-    }
-
     void assertFailureHasProblems(
         ExecutionFailure failure,
         @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
@@ -66,7 +47,7 @@ final class ConfigurationCacheProblemsExecutionResultFixture extends Configurati
         assertNoProblemsSummary(failure.output)
         assertFailureDescription(failure, failureDescriptionMatcherForProblems(spec))
 
-        htmlReport(failure).assertContents(spec)
+        htmlReport(failure.error).assertContents(spec)
     }
 
     void assertFailureHasTooManyProblems(
@@ -83,7 +64,7 @@ final class ConfigurationCacheProblemsExecutionResultFixture extends Configurati
         assertNoProblemsSummary(failure.output)
         assertFailureDescription(failure, failureDescriptionMatcherForTooManyProblems(spec))
 
-        htmlReport(failure).assertContents(spec)
+        htmlReport(failure.error).assertContents(spec)
     }
 
     void assertResultHasProblems(
@@ -103,8 +84,7 @@ final class ConfigurationCacheProblemsExecutionResultFixture extends Configurati
             assertNoProblemsSummary(result.output)
         }
 
-        // Don't let Groovy to pick up more precise overload, we don't want to use htmlReport(ExecutionFailure) here.
-        htmlReport(result as ExecutionResult).assertContents(spec)
+        htmlReport(result.output).assertContents(spec)
     }
 
     void assertResultConsoleSummaryHasNoProblems(ExecutionResult result) {

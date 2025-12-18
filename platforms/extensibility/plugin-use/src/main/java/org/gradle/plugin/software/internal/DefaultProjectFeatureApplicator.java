@@ -88,7 +88,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
 
     private <T extends Definition<V>, V extends BuildModel> T instantiateBoundFeatureObjectsAndApply(Object parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
         T definition = instantiateDefinitionObject(parentDefinition, projectFeature);
-        V buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(objectFactory, definition, projectFeature);
+        V buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(objectFactory, projectFeature);
         ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, projectFeatureDeclarations, objectFactory);
 
         ProjectFeatureApplicationContext applyActionContext =
