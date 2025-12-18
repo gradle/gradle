@@ -35,15 +35,18 @@ class TabsRendererTest extends Specification {
 
         and:
         renderer.add('tab 1', contentRenderer)
-        renderer.add('tab 2', contentRenderer)
+        renderer.add('tab 2', 'tabClass', contentRenderer)
 
         when:
         renderer.render("test", htmlBuilder)
 
         def html = html(writer.toString());
         then:
-        html.select("div.tab-container > ul > li > a").find { it.text() == "tab 1" }
-        html.select("div.tab-container > ul > li > a").find { it.text() == "tab 2" }
+        def tab1 = html.select("div.tab-container > ul > li > a").find { it.text() == "tab 1" }
+        tab1.attr("class") == ""
+
+        def tab2 = html.select("div.tab-container > ul > li > a").find { it.text() == "tab 2" }
+        tab2.attr("class") == "tabClass"
 
         // There is a <ul> for the tabs above, so this starts from 2 and not 1 for the :nth-child selector
         html.select("div.tab-container > div:nth-child(2) > h2").find { it.text() == "tab 1" }

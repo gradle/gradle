@@ -79,7 +79,7 @@ public class ModuleResolveState implements CandidateModule {
     private final boolean rootModule;
     private SelectorStateResolver<ComponentState> selectorStateResolver;
     private final PendingDependencies pendingDependencies;
-    private ComponentState selected;
+    private @Nullable ComponentState selected;
     private ImmutableAttributes mergedConstraintAttributes = ImmutableAttributes.EMPTY;
 
     private @Nullable AttributeMergingException attributeMergingError;
@@ -87,7 +87,6 @@ public class ModuleResolveState implements CandidateModule {
     private boolean overriddenSelection;
     private Set<VirtualPlatformState> platformOwners;
     private boolean replaced = false;
-    private boolean changingSelection;
     private int selectionChangedCounter;
 
     ModuleResolveState(
@@ -203,10 +202,6 @@ public class ModuleResolveState implements CandidateModule {
         selected.select();
     }
 
-    public boolean isChangingSelection() {
-        return changingSelection;
-    }
-
     /**
      * Changes the selected target component for this module due to version conflict resolution.
      */
@@ -217,16 +212,10 @@ public class ModuleResolveState implements CandidateModule {
         assert this.selected != newSelection;
         assert newSelection.getModule() == this;
 
-        changingSelection = true;
-
-        // Remove any outgoing edges for the current selection
-        selected.removeOutgoingEdges();
-
         this.selected = newSelection;
         this.replaced = false;
 
         doRestart(newSelection);
-        changingSelection = false;
     }
 
     /**
@@ -236,7 +225,9 @@ public class ModuleResolveState implements CandidateModule {
      */
     public void clearSelection() {
         if (selected != null) {
-            selected.removeOutgoingEdges();
+            for (NodeState node : selected.getNodes()) {
+                node.deselect();
+            }
         }
         for (ComponentState version : versions.values()) {
             if (version.isSelected()) {
@@ -254,13 +245,6 @@ public class ModuleResolveState implements CandidateModule {
      */
     @Override
     public void replaceWith(ComponentState selected) {
-        if (this.selected != null) {
-            clearSelection();
-        }
-
-        assert this.selected == null;
-        assert selected != null;
-
         if (!selected.getModule().getId().equals(getId())) {
             this.overriddenSelection = true;
         }
@@ -419,6 +403,7 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     void disconnectIncomingEdge(NodeState removalSource, EdgeState incomingEdge) {
+        incomingEdge.clearSelector();
         removeUnattachedEdge(incomingEdge);
         if (!incomingEdge.isConstraint()) {
             pendingDependencies.decreaseHardEdgeCount();

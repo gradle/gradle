@@ -124,7 +124,7 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
 
     public void release() {
         outgoingEdgeCount--;
-        assert outgoingEdgeCount >= 0 : "Inconsistent selector state detected: outgoing edge count cannot be negative";
+        assert outgoingEdgeCount >= 0 : "Inconsistent selector state detected for '" + this + "': outgoing edge count cannot be negative";
         if (outgoingEdgeCount == 0) {
             removeAndMarkSelectorForReuse();
         }
