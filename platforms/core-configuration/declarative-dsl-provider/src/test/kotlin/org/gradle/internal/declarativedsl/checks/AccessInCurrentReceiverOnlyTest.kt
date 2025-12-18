@@ -41,10 +41,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 
 private
 class TopLevelForTest {
-    @Configuring
-    fun inner(f: HasAnnotatedMembers.() -> Unit) = Unit
-
-    @get:Restricted
     val inner: HasAnnotatedMembers
         get() = TODO()
 }

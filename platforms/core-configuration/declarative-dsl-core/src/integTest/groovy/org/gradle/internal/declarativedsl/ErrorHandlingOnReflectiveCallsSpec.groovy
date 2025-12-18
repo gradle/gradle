@@ -50,22 +50,17 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             package com.example.restricted;
 
             import org.gradle.api.provider.Property
-            import org.gradle.declarative.dsl.model.annotations.Restricted
             import ${BuildModel.class.name}
             import ${Definition.class.name}
 
-            @Restricted
             abstract class Extension : ${Definition.class.simpleName}<Extension.Model> {
 
-                @get:Restricted
                 abstract val prop: Property<String>
 
-                @Restricted
                 fun print(data: Int): String {
                     throw RuntimeException("Boom Int")
                 }
 
-                @Restricted
                 fun print(data: String): String {
                     throw RuntimeException("Boom String")
                 }
@@ -111,14 +106,13 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             import org.gradle.api.model.ObjectFactory
             import org.gradle.api.provider.Property
             import org.gradle.declarative.dsl.model.annotations.Configuring
-            import org.gradle.declarative.dsl.model.annotations.Restricted
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
             import javax.inject.Inject
             import ${BuildModel.class.name}
             import ${Definition.class.name};
 
-
-            @Restricted
             abstract class Extension @Inject constructor(private val objects: ObjectFactory) : ${Definition.class.simpleName}<Extension.Model> {
+                @get:HiddenInDeclarativeDsl
                 val access: Access
 
                 init {
@@ -130,13 +124,13 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                     throw RuntimeException("Boom Action")
                 }
 
+                @HiddenInDeclarativeDsl
                 fun access(configure: (Access) -> Unit) {
                     throw RuntimeException("Boom Lambda")
                 }
 
                 abstract class Access {
-                    @get:Restricted
-                    abstract val name: Property<String>?
+                    abstract val name: Property<String>
                 }
 
                 interface Model : ${BuildModel.class.simpleName} {
@@ -181,14 +175,13 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             import org.gradle.api.model.ObjectFactory
             import org.gradle.api.provider.Property
             import org.gradle.declarative.dsl.model.annotations.Configuring
-            import org.gradle.declarative.dsl.model.annotations.Restricted
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
             import javax.inject.Inject
             import ${BuildModel.class.name}
             import ${Definition.class.name}
 
-
-            @Restricted
             abstract class Extension @Inject constructor(private val objects: ObjectFactory) : ${Definition.class.simpleName}<Extension.Model> {
+                @get:HiddenInDeclarativeDsl
                 val access: Access
 
                 init {
@@ -206,8 +199,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                 }
 
                 abstract class Access {
-                    @get:Restricted
-                    abstract val name: Property<String>?
+                    abstract val name: Property<String>
                 }
 
                 interface Model : ${BuildModel.class.simpleName} {
@@ -248,7 +240,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             package com.example.restricted;
 
             import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.Property;
@@ -257,11 +249,11 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
 
             import javax.inject.Inject;
 
-            @Restricted
             public abstract class Extension implements ${Definition.class.simpleName}<Extension.Model> {
                 private final Access access;
                 private final ObjectFactory objects;
 
+                @HiddenInDeclarativeDsl
                 public Access getAccess() {
                     return access;
                 }
@@ -278,7 +270,6 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                 }
 
                 public abstract static class Access {
-                    @Restricted
                     public abstract Property<String> getName();
                 }
 

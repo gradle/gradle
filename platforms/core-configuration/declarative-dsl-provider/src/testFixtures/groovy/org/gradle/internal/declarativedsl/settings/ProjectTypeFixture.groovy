@@ -612,9 +612,7 @@ trait ProjectTypeFixture {
 
                 import javax.inject.Inject;
 
-                @Restricted
                 public interface ${effectiveClassName} extends ${Definition.class.simpleName}<${effectiveClassName}.${buildModelTypeClassName}> {
-                    @${Restricted.class.simpleName}
                     Property<String> getId();
 
                     @Nested
@@ -1011,7 +1009,7 @@ trait ProjectTypeFixture {
                 package org.gradle.test;
 
                 import ${Configuring.class.name};
-                import ${Restricted.class.name};
+                import ${HiddenInDeclarativeDsl.class.name};
 
                 import org.gradle.api.Action;
                 import org.gradle.api.model.ObjectFactory;
@@ -1022,7 +1020,6 @@ trait ProjectTypeFixture {
 
                 import javax.inject.Inject;
 
-                @${Restricted.class.simpleName}
                 public abstract class ${publicTypeClassName} implements ${Definition.class.simpleName}<${publicTypeClassName}.ModelType> {
                     private final Foo foo;
                     private boolean isFooConfigured = false;
@@ -1032,7 +1029,6 @@ trait ProjectTypeFixture {
                         this.foo = objects.newInstance(Foo.class);
                     }
 
-                    @${Restricted.class.simpleName}
                     public abstract Property<String> getId();
 
                     public Foo getFoo() {
@@ -1040,7 +1036,7 @@ trait ProjectTypeFixture {
                         return foo;
                     }
 
-                    @${Configuring.class.simpleName}
+                    @${HiddenInDeclarativeDsl.class.simpleName}
                     public void foo(Action<? super Foo> action) {
                         action.execute(foo);
                     }

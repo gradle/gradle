@@ -21,6 +21,7 @@ import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
 import org.gradle.api.internal.plugins.ProjectFeatureBinding
 import org.gradle.declarative.dsl.model.annotations.Configuring
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.api.internal.plugins.BindsProjectFeature
@@ -689,16 +690,14 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${Definition.class.name};
                 import ${BuildModel.class.name};
                 import org.gradle.api.provider.Property;
-                import ${Restricted.class.name};
                 import ${Configuring.class.name};
+                import ${HiddenInDeclarativeDsl.class.name};
                 import org.gradle.api.Action;
                 import org.gradle.api.tasks.Nested;
                 import javax.inject.Inject;
                 import org.gradle.api.model.ObjectFactory;
 
-                @${Restricted.class.simpleName}
                 public interface ${className} extends ${Definition.class.simpleName}<${className}.${buildModelPublicTypeClassName}> {
-                    @${Restricted.class.simpleName}
                     Property<String> getText();
 
                     ${getMaybeInjectedServiceDeclaration()}
@@ -706,7 +705,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                     @Nested
                     Fizz getFizz();
 
-                    @${Configuring.class.simpleName}
+                    @${HiddenInDeclarativeDsl.class.simpleName}
                     default void fizz(Action<? super Fizz> action) {
                         action.execute(getFizz());
                     }
@@ -717,7 +716,6 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
                     interface Fizz {
                         ${getMaybeNestedInjectedServiceDeclaration()}
-                        @${Restricted.class.simpleName}
                         Property<String> getBuzz();
                     }
                 }
