@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -41,10 +40,8 @@ class DefaultValueTest {
 
     class Receiver {
 
-        @get:Restricted
         var e1: Enum = Enum.A
 
-        @get:Restricted
         val e2: Enum = Enum.B
     }
 

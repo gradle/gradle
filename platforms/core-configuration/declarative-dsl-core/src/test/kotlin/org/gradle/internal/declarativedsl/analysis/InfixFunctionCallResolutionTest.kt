@@ -17,7 +17,6 @@
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.TopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -42,10 +41,8 @@ class InfixFunctionCallResolutionTest {
 
     @Suppress("unused")
     class TopLevel {
-        @get:Restricted
         var myStringPair: MyStringPair = MyStringPair("", "")
 
-        @Restricted
         fun str(): String = "s" + "tr"
     }
 

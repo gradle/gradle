@@ -20,9 +20,7 @@ import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
 import org.gradle.api.internal.plugins.ProjectFeatureBinding
-import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.api.internal.plugins.BindsProjectFeature
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
@@ -690,7 +688,6 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${Definition.class.name};
                 import ${BuildModel.class.name};
                 import org.gradle.api.provider.Property;
-                import ${Configuring.class.name};
                 import ${HiddenInDeclarativeDsl.class.name};
                 import org.gradle.api.Action;
                 import org.gradle.api.tasks.Nested;
@@ -794,11 +791,8 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 package org.gradle.test;
 
                 import org.gradle.api.provider.Property;
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-                @Restricted
                 public interface ${implementationTypeClassName} extends ${publicTypeClassName} {
-                    @Restricted
                     Property<String> getNonPublicProperty();
                 }
             """
@@ -817,13 +811,10 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 package org.gradle.test;
 
                 import org.gradle.api.provider.Property;
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
                 import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
-                @Restricted
                 public interface ${publicTypeClassName} extends Definition<${publicTypeClassName}.${buildModelPublicTypeClassName}> {
-                    @Restricted
                     Property<String> getText();
 
                     interface ${buildModelPublicTypeClassName} extends BuildModel {
@@ -868,16 +859,12 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${Definition.class.name};
                 import ${BuildModel.class.name};
                 import org.gradle.api.provider.Property;
-                import ${Restricted.class.name};
-                import ${Configuring.class.name};
                 import org.gradle.api.model.ObjectFactory;
                 import org.gradle.api.Action;
                 import org.gradle.api.tasks.Nested;
                 import javax.inject.Inject;
 
-                @${Restricted.class.simpleName}
                 public abstract class ${publicTypeClassName} implements ${Definition.class.simpleName}<${publicTypeClassName}.FeatureModel> {
-                    @${Restricted.class.simpleName}
                     public abstract Property<String> getText();
 
                     ${maybeInjectedServiceDeclaration}
@@ -885,7 +872,6 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                     @Nested
                     abstract Fizz getFizz();
 
-                    @${Configuring.class.simpleName}
                     public void fizz(Action<? super Fizz> action) {
                         action.execute(getFizz());
                     }
@@ -947,11 +933,8 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 package org.gradle.test;
 
                 import org.gradle.api.provider.Property;
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-                @Restricted
                 public interface ${publicTypeClassName} extends ${parentTypeClassName} {
-                    @Restricted
                     Property<String> getNonPublicProperty();
                 }
             """
@@ -973,16 +956,12 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${Definition.class.name};
                 import ${BuildModel.class.name};
                 import org.gradle.api.provider.Property;
-                import ${Restricted.class.name};
-                import ${Configuring.class.name};
                 import org.gradle.api.Action;
                 import org.gradle.api.tasks.Nested;
                 import javax.inject.Inject;
                 import org.gradle.api.model.ObjectFactory;
 
-                @${Restricted.class.simpleName}
                 public interface ${publicTypeClassName} extends ${Definition.class.simpleName}<${BuildModel.class.simpleName}.None> {
-                    @${Restricted.class.simpleName}
                     Property<String> getText();
                 }
             """

@@ -17,7 +17,7 @@
 package org.gradle.internal.declarativedsl.project
 
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
@@ -44,7 +44,7 @@ import kotlin.reflect.KFunction
 /**
  * Introduces schema representations of Gradle extensions registered on an [ExtensionAware] object.
  *
- * Inspects a given [extensionContainer] extension owner and checks for its extensions which have types annotated with [Restricted] (maybe in supertypes).
+ * Inspects a given [extensionContainer] extension owner and checks for its extensions which have types annotated with [org.gradle.declarative.dsl.model.annotations.VisibleInDefinition] (maybe in supertypes).
  *
  * Given that, introduces the following features in the schema:
  * * Type discovery ensuring that the types of the extensions get discovered and included in the schema (but just those types, not recursing)
@@ -91,7 +91,7 @@ class ThirdPartyExtensionsConversionComponent(private val extensions: List<Exten
 
 private
 fun getExtensionInfo(target: ExtensionAware): List<ExtensionInfo> {
-    val annotationChecker = CachedHierarchyAnnotationChecker(Restricted::class)
+    val annotationChecker = CachedHierarchyAnnotationChecker(VisibleInDefinition::class)
     return target.extensions.extensionsSchema.elements.mapNotNull {
         val type = it.publicType.concreteClass.kotlin
         if (annotationChecker.isAnnotatedMaybeInSupertypes(type))
@@ -155,7 +155,7 @@ private
 class CachedHierarchyAnnotationChecker(private val annotationType: KClass<out Annotation>) {
     fun isAnnotatedMaybeInSupertypes(kClass: KClass<*>): Boolean {
         // Can't use computeIfAbsent because of recursive calls
-        hasRestrictedAnnotationWithSuperTypesCache[kClass]?.let { return it }
+        hasAnnotationWithSuperTypesCache[kClass]?.let { return it }
         return hasRestrictedAnnotationWithSuperTypes(kClass).also { hasRestrictedAnnotationCache[kClass] = it }
     }
 
@@ -164,7 +164,7 @@ class CachedHierarchyAnnotationChecker(private val annotationType: KClass<out An
         hasRestrictedAnnotationCached(kClass) || kClass.supertypes.any { (it.classifier as? KClass<*>)?.let { isAnnotatedMaybeInSupertypes(it) } ?: false }
 
     private
-    val hasRestrictedAnnotationWithSuperTypesCache = mutableMapOf<KClass<*>, Boolean>()
+    val hasAnnotationWithSuperTypesCache = mutableMapOf<KClass<*>, Boolean>()
 
     private
     val hasRestrictedAnnotationCache = mutableMapOf<KClass<*>, Boolean>()

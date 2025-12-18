@@ -26,7 +26,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jspecify.annotations.Nullable;
 
@@ -93,7 +92,6 @@ public interface Dependencies {
      *
      * @see org.gradle.api.Project#project(String)
      */
-    @Restricted
     default ProjectDependency project(String projectPath) {
         return getDependencyFactory().create(getProject().project(projectPath));
     }

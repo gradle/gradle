@@ -18,15 +18,13 @@ package org.gradle.api.plugins.java;
 
 import org.gradle.api.Action;
 import org.gradle.api.tasks.Nested;
-import org.gradle.declarative.dsl.model.annotations.Configuring;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
 
-@Restricted
 public interface HasLibraryDependencies {
     @Nested
     LibraryDependencies getDependencies();
 
-    @Configuring
+    @HiddenInDeclarativeDsl
     default void dependencies(Action<? super LibraryDependencies> action) {
         action.execute(getDependencies());
     }

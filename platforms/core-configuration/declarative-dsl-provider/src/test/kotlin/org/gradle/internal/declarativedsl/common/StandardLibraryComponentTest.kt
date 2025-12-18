@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.common
 
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
@@ -110,19 +109,14 @@ class StandardLibraryComponentTest {
 }
 
 internal class TopLevel {
-    @get:Restricted
     var myStrIntMap: Map<String, Int> = mapOf()
 
-    @get:Restricted
     var myIntSuperMap: Map<Int, Super> = mapOf()
 
-    @Restricted
     fun opaqueString() = String()
 
-    @Restricted
     fun sup() = Super()
 
-    @Restricted
     fun sub() = Sub()
 }
 

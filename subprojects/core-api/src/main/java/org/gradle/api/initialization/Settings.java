@@ -34,7 +34,6 @@ import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.declarative.dsl.model.annotations.Configuring;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.vcs.SourceControl;
@@ -250,7 +249,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @return The root project. Never returns null.
      */
-    @Restricted
     ProjectDescriptor getRootProject();
 
     /**
@@ -399,7 +397,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
-    @Configuring
+    @HiddenInDeclarativeDsl
     void dependencyResolutionManagement(Action<? super DependencyResolutionManagement> dependencyResolutionConfiguration);
 
     /**
@@ -407,7 +405,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
-    @HiddenInDeclarativeDsl
     DependencyResolutionManagement getDependencyResolutionManagement();
 
     /**

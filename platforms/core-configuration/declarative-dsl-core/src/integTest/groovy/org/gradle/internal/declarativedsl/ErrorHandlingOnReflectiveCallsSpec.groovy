@@ -119,7 +119,6 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                     this.access = objects.newInstance(Access::class.java)
                 }
 
-                @Configuring
                 fun access(configure: Action<Access>) {
                     throw RuntimeException("Boom Action")
                 }
@@ -188,12 +187,10 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                     this.access = objects.newInstance(Access::class.java)
                 }
 
-                @Configuring
                 fun access(configure: Action<Access>) {
                     throw RuntimeException("Boom Action")
                 }
 
-                @Configuring
                 fun access(configure: (Access) -> Unit) {
                     throw RuntimeException("Boom Lambda")
                 }
@@ -264,7 +261,6 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                     this.access = objects.newInstance(Access.class);
                 }
 
-                @Configuring
                 public void access(Action<? super Access> configure) {
                     throw new RuntimeException("Boom");
                 }

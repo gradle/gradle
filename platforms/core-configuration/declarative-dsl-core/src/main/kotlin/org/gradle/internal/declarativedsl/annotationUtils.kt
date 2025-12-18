@@ -20,8 +20,9 @@ import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Builder
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.HasDefaultValue
-import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition
 
+@Suppress("DEPRECATION")
 val hasDeclarativeAnnotation: (Annotation) -> Boolean = {
-    it is Builder || it is Configuring || it is Adding || it is Restricted || it is HasDefaultValue
+    it is Builder || it is Configuring || it is Adding || it is HasDefaultValue || it is VisibleInDefinition
 }

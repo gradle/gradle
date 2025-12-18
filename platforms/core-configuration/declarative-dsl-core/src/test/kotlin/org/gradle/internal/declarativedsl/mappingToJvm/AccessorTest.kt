@@ -17,7 +17,6 @@
 package org.gradle.internal.declarativedsl.mappingToJvm
 
 import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
@@ -124,13 +123,11 @@ class AccessorTest {
         val myLambdaReceiver = Configured()
 
         @Suppress("unused")
-        @Configuring
         fun configureLambdaArgument(configure: Configured.() -> Unit) {
             configure(myLambdaReceiver)
         }
 
         @Suppress("unused")
-        @Configuring
         fun configureLambdaArgumentWithCustomInterface(configure: MyFunctionalInterface<Configured>) {
             configure.action(myLambdaReceiver)
         }
@@ -145,13 +142,8 @@ class AccessorTest {
 
     internal
     class Configured {
-        @get:Restricted
         var x: Int = 0
-
-        @get:Restricted
         var y: String = ""
-
-        @get:Restricted
         var enum: Enum = Enum.A
     }
 

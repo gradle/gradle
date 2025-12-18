@@ -26,7 +26,6 @@ import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.ProjectDescriptorInternal;
@@ -114,7 +113,6 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
      *
      * @see FileOperations#uri
      */
-    @Restricted
     @Incubating
     default URI uri(String path) {
         return getServices().get(FileOperations.class).uri(path);

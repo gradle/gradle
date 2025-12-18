@@ -18,7 +18,6 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.Assert
@@ -88,15 +87,12 @@ class EnumResolutionTest {
     val schema = schemaFromTypes(Receiver::class, listOf(Receiver::class, Enum::class, Box::class))
 
     class Receiver {
-        @get:Restricted
         var enum: Enum = Enum.FOO
 
         @Suppress("unused")
-        @get:Restricted
         var boxOfEnum: Box<Enum> = Box(Enum.FOO)
 
         @Suppress("unused")
-        @get:Restricted
         var myListOfMyListOfEnum: MyList<MyList<Enum>> = MyList(listOf())
 
         @Adding
@@ -110,10 +106,8 @@ class EnumResolutionTest {
             println(boxOfEnum)
         }
 
-        @Restricted
         fun <T> boxOf(t: T) = Box(t)
 
-        @Restricted
         fun <T> myListOf(vararg t: T) = MyList(listOf(*t))
     }
 

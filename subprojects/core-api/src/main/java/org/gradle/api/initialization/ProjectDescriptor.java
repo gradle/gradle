@@ -16,7 +16,6 @@
 package org.gradle.api.initialization;
 
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.jspecify.annotations.Nullable;
 
@@ -38,7 +37,6 @@ public interface ProjectDescriptor {
      *
      * @return The name of the project. Never returns null.
      */
-    @Restricted
     String getName();
 
     /**

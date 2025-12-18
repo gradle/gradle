@@ -22,10 +22,8 @@ import org.gradle.api.Namer
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.tasks.Internal
-import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
@@ -159,7 +157,6 @@ class ContainersSchemaComponentTest {
     }
 
     class One(private val name: String) : Named {
-        @get:Restricted
         var x: Int = 0
 
         override fun getName(): String = name
@@ -170,7 +167,6 @@ class ContainersSchemaComponentTest {
 
         val containerSubtype: NdocSubtype = NdocSubtype()
 
-        @get:Restricted
         var y: Int = 0
 
         @HiddenInDeclarativeDsl
@@ -179,7 +175,6 @@ class ContainersSchemaComponentTest {
 
     @ElementFactoryName("customFactoryName")
     class Three(private val name: String) : Named {
-        @get:Restricted
         var z: Int = 0
 
         override fun getName(): String = name
@@ -195,11 +190,9 @@ class ContainersSchemaComponentTest {
         Namer(Three::getName),
         CollectionCallbackActionDecorator.NOOP
     ) {
-        @get:Restricted
         var w: Int = 0
 
         @Suppress("unused")
-        @Configuring
         fun configuringInSubtype(configure: Three.() -> Unit) {
             maybeCreate("configuringInSubtype").let(configure)
         }

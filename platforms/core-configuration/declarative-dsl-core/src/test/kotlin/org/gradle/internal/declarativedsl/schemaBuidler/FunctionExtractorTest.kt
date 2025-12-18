@@ -17,8 +17,6 @@
 package org.gradle.internal.declarativedsl.schemaBuidler
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.ParameterSemantics
@@ -131,17 +129,14 @@ class FunctionExtractorTest {
     }
 
     abstract class ReceiverFour {
-        @Configuring
         abstract fun configuring(item: Int, configure: ReceiverFour.() -> Unit)
     }
 
     abstract class HasMapFactory {
-        @Restricted
         abstract fun mapFactory(): Map<String, String>
     }
 
     abstract class HasMapSubtypeFactory {
-        @Restricted
         abstract fun <K, V> mapSubtypeFactory(): MutableMap<K, V>
     }
 

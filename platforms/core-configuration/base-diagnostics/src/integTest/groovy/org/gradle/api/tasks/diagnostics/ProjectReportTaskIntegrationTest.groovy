@@ -230,13 +230,10 @@ Root project 'my-root-project'
             package com.example.restricted;
 
             import org.gradle.api.provider.Property;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
             import ${Definition.class.name};
             import ${BuildModel.class.name};
 
-            @Restricted
             public abstract interface LibraryExtension extends ${Definition.class.simpleName}<LibraryExtension.Model> {
-                @Restricted
                 Property<String> getName();
 
                 interface Model extends ${BuildModel.class.simpleName} { }
@@ -246,13 +243,10 @@ Root project 'my-root-project'
             package com.example.restricted;
 
             import org.gradle.api.provider.Property;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
             import ${Definition.class.name};
             import ${BuildModel.class.name};
 
-            @Restricted
             public abstract interface ApplicationExtension extends ${Definition.class.simpleName}<ApplicationExtension.Model> {
-                @Restricted
                 Property<String> getName();
 
                 interface Model extends ${BuildModel.class.simpleName} { }
@@ -262,13 +256,10 @@ Root project 'my-root-project'
             package com.example.restricted;
 
             import org.gradle.api.provider.Property;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
             import ${Definition.class.name};
             import ${BuildModel.class.name};
 
-            @Restricted
             public abstract interface UtilityExtension extends ${Definition.class.simpleName}<UtilityExtension.Model> {
-                @Restricted
                 Property<String> getName();
 
                 interface Model extends ${BuildModel.class.simpleName} { }

@@ -270,7 +270,7 @@ secondaryAccess { three, true, true}"""
         import java.util.List;
         import org.gradle.api.internal.plugins.Definition;import org.gradle.declarative.dsl.model.annotations.Adding;
         import org.gradle.declarative.dsl.model.annotations.Configuring;
-        import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;import org.gradle.declarative.dsl.model.annotations.Restricted;
+        import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
         import org.gradle.api.Action;
         import org.gradle.api.model.ObjectFactory;
         import org.gradle.api.provider.ListProperty;
@@ -281,7 +281,6 @@ secondaryAccess { three, true, true}"""
 
         import javax.inject.Inject;
 
-        @Restricted
         public abstract class Extension implements Definition<Extension.Model>{
             private final Access primaryAccess;
             public abstract ListProperty<Access> getSecondaryAccess();
@@ -301,21 +300,16 @@ secondaryAccess { three, true, true}"""
                 getReferencePoint().convention(point(-1, -1));
             }
 
-            @Restricted
             public abstract Property<String> getId();
 
-            @Restricted
             public abstract Property<Point> getReferencePoint();
 
-            @Restricted
             public abstract ListProperty<String> getArguments();
 
-            @Restricted
             public abstract MapProperty<String, Integer> getMapProperty();
 
             private List<Integer> flags = new ArrayList<>();
 
-            @Restricted
             public List<Integer> getFlags() {
                 return flags;
             }
@@ -333,7 +327,6 @@ secondaryAccess { three, true, true}"""
                 return newAccess;
             }
 
-            @Restricted
             public Point point(int x, int y) {
                 return new Point(x, y);
             }
@@ -345,13 +338,10 @@ secondaryAccess { three, true, true}"""
                     getWrite().convention(false);
                 }
 
-                @Restricted
                 public abstract Property<String> getName();
 
-                @Restricted
                 public abstract Property<Boolean> getRead();
 
-                @Restricted
                 public abstract Property<Boolean> getWrite();
             }
 
@@ -387,12 +377,10 @@ secondaryAccess { three, true, true}"""
         import org.gradle.api.provider.Property
         import org.gradle.declarative.dsl.model.annotations.Adding
         import org.gradle.declarative.dsl.model.annotations.Configuring
-        import org.gradle.declarative.dsl.model.annotations.Restricted
         import javax.inject.Inject
         import org.gradle.api.internal.plugins.Definition
         import org.gradle.api.internal.plugins.BuildModel
 
-        @Restricted
         abstract class Extension @Inject constructor(private val objects: ObjectFactory) : Definition<Extension.Model> {
             val primaryAccess: Access
             abstract val secondaryAccess: ListProperty<Access>
@@ -405,19 +393,14 @@ secondaryAccess { three, true, true}"""
                 referencePoint.convention(point(-1, -1))
             }
 
-            @get:Restricted
             abstract val id: Property<String>
 
-            @get:Restricted
             abstract val referencePoint: Property<Point>
 
-            @get:Restricted
             abstract val arguments: ListProperty<String>
 
-            @get:Restricted
             abstract val mapProperty: MapProperty<String, Int>
 
-            @get:Restricted
             var flags: List<Int> = emptyList()
 
             @Adding
@@ -429,7 +412,6 @@ secondaryAccess { three, true, true}"""
                 return newAccess
             }
 
-            @Restricted
             fun point(x: Int, y: Int): Point {
                 return Point(x, y)
             }
@@ -441,13 +423,10 @@ secondaryAccess { three, true, true}"""
                     write.convention(false)
                 }
 
-                @get:Restricted
                 abstract val name: Property<String>
 
-                @get:Restricted
                 abstract val read: Property<Boolean>
 
-                @get:Restricted
                 abstract val write: Property<Boolean>
             }
 

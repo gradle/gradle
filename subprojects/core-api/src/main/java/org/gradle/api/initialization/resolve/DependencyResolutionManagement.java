@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.provider.Property;
 import org.gradle.declarative.dsl.model.annotations.Configuring;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -48,7 +47,6 @@ public interface DependencyResolutionManagement {
     RepositoryHandler getRepositories();
 
     @Incubating
-    @Restricted
     Property<RepositoriesMode> getRepositoriesMode();
 
     /**

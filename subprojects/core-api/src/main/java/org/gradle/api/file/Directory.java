@@ -18,7 +18,6 @@ package org.gradle.api.file;
 
 import org.gradle.api.provider.Provider;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -53,7 +52,6 @@ public interface Directory extends FileSystemLocation {
      * @param path The path. Can be absolute.
      * @return The directory.
      */
-    @Restricted
     Directory dir(String path);
 
     /**
@@ -73,7 +71,6 @@ public interface Directory extends FileSystemLocation {
      * @param path The path. Can be absolute.
      * @return The file.
      */
-    @Restricted
     RegularFile file(String path);
 
     /**

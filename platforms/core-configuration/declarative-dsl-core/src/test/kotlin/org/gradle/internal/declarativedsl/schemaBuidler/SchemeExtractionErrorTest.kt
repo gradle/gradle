@@ -17,8 +17,6 @@
 package org.gradle.internal.declarativedsl.schemaBuidler
 
 import org.gradle.api.provider.ListProperty
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationException
 import org.gradle.internal.declarativedsl.assertFailsWith
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -48,7 +46,6 @@ class SchemeExtractionErrorTest {
 
     @Suppress("unused")
     abstract class ReceiverGetterReturn<T> {
-        @Restricted
         abstract fun getList(): MutableList<in String>
     }
 
@@ -69,7 +66,6 @@ class SchemeExtractionErrorTest {
 
     abstract class ReceiverPropertyReturn {
 
-        @get:Restricted
         var x: MutableList<out String> = mutableListOf()
     }
 
@@ -94,7 +90,6 @@ class SchemeExtractionErrorTest {
     }
 
     abstract class ReceiverFunctionParam {
-        @Restricted
         abstract fun size(list: ListProperty<in String>): Int
     }
 
@@ -121,7 +116,6 @@ class SchemeExtractionErrorTest {
     @Suppress("unused")
     abstract class ReceiverFunctionReturn {
 
-        @Restricted
         abstract fun mood(): ListProperty<in String>
     }
 
@@ -147,7 +141,6 @@ class SchemeExtractionErrorTest {
     }
 
     interface UsageOfTypeOutsideSchema {
-        @Configuring
         fun configure(fn: File.() -> Unit)
     }
 }

@@ -19,7 +19,6 @@ package org.gradle.api.file;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -41,7 +40,6 @@ public interface ProjectLayout {
     /**
      * Returns the project directory.
      */
-    @Restricted
     @VisibleInDefinition
     Directory getProjectDirectory();
 
@@ -58,7 +56,6 @@ public interface ProjectLayout {
      *
      * @since 8.13
      */
-    @Restricted
     @VisibleInDefinition
     Directory getSettingsDirectory();
 
