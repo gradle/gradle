@@ -85,7 +85,7 @@ class PropertyTest {
                         DataTypeInternal.DefaultIntDataType.ref,
                         DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
                         hasDefaultValue = false,
-                        isHiddenInDeclarativeDsl = false,
+                        isHiddenInDefinition = false,
                         isDirectAccessOnly = false,
                         claimedFunctions = emptyList()
                     )

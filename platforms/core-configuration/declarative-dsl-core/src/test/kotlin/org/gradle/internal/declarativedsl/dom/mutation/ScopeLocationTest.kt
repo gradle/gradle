@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.dom.mutation
 
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
@@ -159,21 +159,21 @@ class ScopeLocationTest {
 
             fun a(configure: A.() -> Unit) = configure(a)
 
-            @get:HiddenInDeclarativeDsl
+            @get:HiddenInDefinition
             val a = A()
         }
 
         class A {
             fun b(configure: B.() -> Unit) = configure(b)
 
-            @get:HiddenInDeclarativeDsl
+            @get:HiddenInDefinition
             val b = B()
         }
 
         class B {
             fun c(configure: C.() -> Unit) = configure(c)
 
-            @get:HiddenInDeclarativeDsl
+            @get:HiddenInDefinition
             val c = C()
         }
 

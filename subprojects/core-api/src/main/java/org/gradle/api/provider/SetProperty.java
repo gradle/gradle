@@ -17,7 +17,7 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.model.ManagedType;
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
@@ -39,7 +39,7 @@ import java.util.Set;
  * @see org.gradle.api.model.ObjectFactory#setProperty(Class) Create an instance of this manually.
  */
 @ManagedType
-@HiddenInDeclarativeDsl
+@HiddenInDefinition
 public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
     /**
      * {@inheritDoc}

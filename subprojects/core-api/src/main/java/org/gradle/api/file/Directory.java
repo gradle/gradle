@@ -17,7 +17,7 @@
 package org.gradle.api.file;
 
 import org.gradle.api.provider.Provider;
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -37,13 +37,13 @@ public interface Directory extends FileSystemLocation {
      * @since 4.2
      */
     @Override
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     File getAsFile();
 
     /**
      * Returns a {@link FileTree} that allows the files and directories contained in this directory to be queried.
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     FileTree getAsFileTree();
 
     /**
@@ -62,7 +62,7 @@ public interface Directory extends FileSystemLocation {
      * @param path The path provider. Can have value that is an absolute path.
      * @return The provider.
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     Provider<Directory> dir(Provider<? extends CharSequence> path);
 
     /**
@@ -81,7 +81,7 @@ public interface Directory extends FileSystemLocation {
      * @param path The path provider. Can have value that is an absolute path.
      * @return The file.
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     Provider<RegularFile> file(Provider<? extends CharSequence> path);
 
     /**
@@ -95,6 +95,6 @@ public interface Directory extends FileSystemLocation {
      * @return The file collection.
      * @since 6.0
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     FileCollection files(@Nullable Object... paths);
 }

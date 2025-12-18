@@ -34,7 +34,7 @@ package org.gradle.internal.declarativedsl.plugins
 
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Builder
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 
 
 class PluginsTopLevelReceiver {
@@ -60,7 +60,7 @@ class PluginsCollectingPluginsBlock {
 class MutablePluginDependencySpec(
     val id: String
 ) {
-    @get:HiddenInDeclarativeDsl
+    @get:HiddenInDefinition
     var versionIsSet = false
         private set
 

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -29,7 +29,7 @@ private
 class HasHiddenProperty {
     var x: Int = 0
 
-    @get:HiddenInDeclarativeDsl
+    @get:HiddenInDefinition
     var y: Int = 0
 }
 

@@ -20,7 +20,7 @@ import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
 import org.gradle.api.internal.plugins.ProjectFeatureBinding
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.api.internal.plugins.BindsProjectFeature
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
@@ -688,7 +688,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${Definition.class.name};
                 import ${BuildModel.class.name};
                 import org.gradle.api.provider.Property;
-                import ${HiddenInDeclarativeDsl.class.name};
+                import ${HiddenInDefinition.class.name};
                 import org.gradle.api.Action;
                 import org.gradle.api.tasks.Nested;
                 import javax.inject.Inject;
@@ -702,7 +702,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                     @Nested
                     Fizz getFizz();
 
-                    @${HiddenInDeclarativeDsl.class.simpleName}
+                    @${HiddenInDefinition.class.simpleName}
                     default void fizz(Action<? super Fizz> action) {
                         action.execute(getFizz());
                     }

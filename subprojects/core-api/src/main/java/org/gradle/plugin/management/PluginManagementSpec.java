@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.ConfigurableIncludedPluginBuild;
 import org.gradle.declarative.dsl.model.annotations.Adding;
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -38,7 +38,7 @@ public interface PluginManagementSpec {
     /**
      * Defines the plugin repositories to use.
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     void repositories(Action<? super RepositoryHandler> repositoriesAction);
 
     /**
@@ -49,27 +49,27 @@ public interface PluginManagementSpec {
     /**
      * Configure the plugin resolution strategy.
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     void resolutionStrategy(Action<? super PluginResolutionStrategy> action);
 
     /**
      * The plugin resolution strategy.
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     PluginResolutionStrategy getResolutionStrategy();
 
     /**
      * Configure the default plugin versions.
      * @since 5.6
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     void plugins(Action<? super PluginDependenciesSpec> action);
 
     /**
      * The Plugin dependencies, permitting default plugin versions to be configured.
      * @since 5.6
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     PluginDependenciesSpec getPlugins();
 
     /**
@@ -90,6 +90,6 @@ public interface PluginManagementSpec {
      *
      * @since 7.0
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     void includeBuild(String rootProject, Action<ConfigurableIncludedPluginBuild> configuration);
 }

@@ -70,7 +70,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.api.artifacts.DependencyScopeConfiguration;
-            import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
             import ${Definition.class.name};
             import ${BuildModel.class.name};
 
@@ -88,7 +88,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                     return sub;
                 }
 
-                @HiddenInDeclarativeDsl
+                @HiddenInDefinition
                 public void sub(Action<? super SubDependencies> configure) {
                     configure.execute(getSub());
                 }
@@ -471,7 +471,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.api.artifacts.DependencyScopeConfiguration;
-            import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
             import ${Definition.class.name};
             import ${BuildModel.class.name};
 
@@ -489,7 +489,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                     return dependencies;
                 }
 
-                @HiddenInDeclarativeDsl
+                @HiddenInDefinition
                 public void dependencies(Action<? super DependenciesExtension> configure) {
                     configure.execute(dependencies);
                 }
@@ -576,7 +576,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import org.gradle.api.model.ObjectFactory
             import org.gradle.declarative.dsl.model.annotations.Configuring
             import org.gradle.declarative.dsl.model.annotations.Restricted
-            import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
             import org.gradle.api.internal.plugins.Definition
             import org.gradle.api.internal.plugins.BuildModel
 
@@ -585,13 +585,13 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             abstract class LibraryExtension : Definition<LibraryExtension.Model> {
                 val dependencies: DependenciesExtension = objectFactory.newInstance(DependenciesExtension::class.java)
 
-                @HiddenInDeclarativeDsl
+                @HiddenInDefinition
                 fun dependencies(configure: Action<DependenciesExtension>) {
                     configure.execute(dependencies)
                 }
 
                 @get:Inject
-                @get:HiddenInDeclarativeDsl
+                @get:HiddenInDefinition
                 abstract val objectFactory: ObjectFactory
 
                 abstract class Model : BuildModel {

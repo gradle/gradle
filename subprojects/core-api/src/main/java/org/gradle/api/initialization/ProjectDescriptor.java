@@ -15,7 +15,7 @@
  */
 package org.gradle.api.initialization;
 
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.jspecify.annotations.Nullable;
 
@@ -51,7 +51,7 @@ public interface ProjectDescriptor {
      *
      * @return The project directory. Never returns null.
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     File getProjectDir();
 
     /**
@@ -62,7 +62,7 @@ public interface ProjectDescriptor {
      *
      * @param dir The new project directory. Should not be null, and it is expected to exist and be writable.
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     void setProjectDir(File dir);
 
     /**
@@ -85,7 +85,7 @@ public interface ProjectDescriptor {
      *
      * @return The build file. Never returns null.
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     File getBuildFile();
 
     /**
@@ -94,7 +94,7 @@ public interface ProjectDescriptor {
      * @return The parent, or null if this is the root project.
      */
     @Nullable
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     ProjectDescriptor getParent();
 
     /**
@@ -102,7 +102,7 @@ public interface ProjectDescriptor {
      *
      * @return The children. Returns an empty set if this project does not have any children.
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     Set<ProjectDescriptor> getChildren();
 
     /**
@@ -110,6 +110,6 @@ public interface ProjectDescriptor {
      *
      * @return The path. Never returns null.
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     String getPath();
 }

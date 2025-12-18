@@ -19,7 +19,7 @@ package org.gradle.api.file;
 import org.gradle.api.model.ManagedType;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -39,7 +39,7 @@ import java.io.File;
  * @see org.gradle.api.model.ObjectFactory#fileProperty() Create an instance of this manually.
  */
 @ManagedType
-@HiddenInDeclarativeDsl
+@HiddenInDefinition
 public interface RegularFileProperty extends FileSystemLocationProperty<RegularFile> {
     /**
      * {@inheritDoc}

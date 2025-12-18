@@ -68,7 +68,7 @@ data class CollectedPropertyInformation(
     val returnType: DataTypeRef,
     val propertyMode: PropertyMode,
     val hasDefaultValue: Boolean,
-    val isHiddenInDeclarativeDsl: Boolean,
+    val isHiddenInDefinition: Boolean,
     val isDirectAccessOnly: Boolean,
     val claimedFunctions: List<KCallable<*>>
 )
@@ -104,7 +104,7 @@ class DefaultPropertyExtractor : PropertyExtractor {
                     type,
                     if (setter != null) DefaultPropertyMode.DefaultReadWrite else DefaultPropertyMode.DefaultReadOnly,
                     hasDefaultValue = true,
-                    isHiddenInDeclarativeDsl = false,
+                    isHiddenInDefinition = false,
                     isDirectAccessOnly = isDirectAccessOnly,
                     claimedFunctions = listOfNotNull(getter.kCallable, setter?.kCallable)
                 )
@@ -135,7 +135,7 @@ class DefaultPropertyExtractor : PropertyExtractor {
             hasDefaultValue = run {
                 isReadOnly || annotationsWithGetters.none { it is HasDefaultValue && !it.value }
             },
-            isHiddenInDeclarativeDsl = false,
+            isHiddenInDefinition = false,
             isDirectAccessOnly = isDirectAccessOnly,
             claimedFunctions = emptyList()
         )

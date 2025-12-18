@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.schemaBuidler
 
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition
 import org.gradle.internal.declarativedsl.schemaBuilder.DeclarativeDslSchemaBuildingException
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -57,7 +57,7 @@ class SchemaSupertypeMemberVisibilityTest {
 
         Assert.assertTrue(
             error.message!!.contains(VisibleInDefinition::class.simpleName!!)
-                && error.message!!.contains(HiddenInDeclarativeDsl::class.simpleName!!)
+                && error.message!!.contains(HiddenInDefinition::class.simpleName!!)
                 && error.message!!.contains(VisibleHidden::class.qualifiedName!!)
         )
     }
@@ -68,7 +68,7 @@ class SchemaSupertypeMemberVisibilityTest {
 
         Assert.assertTrue(
             error.message!!.contains(VisibleInDefinition::class.simpleName!!)
-                && error.message!!.contains(HiddenInDeclarativeDsl::class.simpleName!!)
+                && error.message!!.contains(HiddenInDefinition::class.simpleName!!)
                 && error.message!!.contains(VisibleHiddenMember::class.qualifiedName!!)
         )
     }
@@ -90,7 +90,7 @@ class SchemaSupertypeMemberVisibilityTest {
 }
 
 
-@HiddenInDeclarativeDsl
+@HiddenInDefinition
 interface HiddenSupSup {
     fun hiddenSupSup(): String = "".reversed()
 }
@@ -99,7 +99,7 @@ interface SupSup {
     fun supSup(): String = "".reversed()
 }
 
-@HiddenInDeclarativeDsl
+@HiddenInDefinition
 open class HiddenSup {
     fun hiddenSup(): String = "".reversed()
 
@@ -114,7 +114,7 @@ class Sub : HiddenSup() {
 class OtherSub : HiddenSup(), SupSup {
     fun otherSub(): String = "".reversed()
 
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     fun hiddenInOtherSub(): String = "".reversed()
 }
 
@@ -123,19 +123,19 @@ interface VisibleOtherSup {
     fun visibleOtherSup(): String = "".reversed()
 }
 
-@HiddenInDeclarativeDsl
+@HiddenInDefinition
 interface HiddenSupWithVisibleOtherSup : VisibleOtherSup {
     fun hiddenSupWithVisibleOtherSup(): String = "".reversed()
 }
 
 class SubWithVisibleOtherSup : HiddenSupWithVisibleOtherSup
 
-@HiddenInDeclarativeDsl
+@HiddenInDefinition
 @VisibleInDefinition
 class VisibleHidden
 
 class VisibleHiddenMember {
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     @VisibleInDefinition
     fun visibleHiddenMember(): String = "".reversed()
 }

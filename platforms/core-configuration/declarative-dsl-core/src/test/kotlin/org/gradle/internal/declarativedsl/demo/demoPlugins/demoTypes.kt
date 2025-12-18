@@ -3,13 +3,13 @@ package org.gradle.internal.declarativedsl.demo.demoPlugins
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Builder
 import org.gradle.declarative.dsl.model.annotations.HasDefaultValue
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 
 
 class TopLevelScope {
     val plugins = PluginsBlock()
 
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     fun plugins(configure: PluginsBlock.() -> Unit) {
         configure(plugins)
     }

@@ -16,7 +16,7 @@
 
 package org.gradle.internal;
 
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 
 /**
  * Mutable value type for which mutation can be disabled at a certain point in time,
@@ -25,7 +25,7 @@ import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
  * After {@code disableFurtherMutations()} has been called, any subsequent calls to methods that mutate
  * the value in any way will fail by throwing an {@code IllegalStateException}.
  */
-@HiddenInDeclarativeDsl
+@HiddenInDefinition
 public interface FinalizableValue {
 
     /**

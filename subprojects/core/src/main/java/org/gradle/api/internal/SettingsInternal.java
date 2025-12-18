@@ -25,7 +25,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.declarative.dsl.model.annotations.Adding;
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.ProjectDescriptorInternal;
@@ -43,26 +43,26 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
     String BUILD_SRC = BuildLogicFiles.BUILD_SOURCE_DIRECTORY;
 
     @Override
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     StartParameter getStartParameter();
 
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     ScriptSource getSettingsScript();
 
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     ProjectDescriptorRegistry getProjectRegistry();
 
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     ProjectDescriptorInternal getDefaultProject();
 
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     void setDefaultProject(ProjectDescriptorInternal defaultProject);
 
     @Override
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     GradleInternal getGradle();
 
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     List<IncludedBuildSpec> getIncludedBuilds();
 
     /**
@@ -70,7 +70,7 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
      *
      * Gradle runtime.
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     ClassLoaderScope getBaseClassLoaderScope();
 
     /**
@@ -78,22 +78,22 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
      *
      * Gradle runtime + this object's script's additions.
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     ClassLoaderScope getClassLoaderScope();
 
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     ServiceRegistry getServices();
 
     @Override
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     BuildCacheConfigurationInternal getBuildCache();
 
     @Override
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     DependencyResolutionManagementInternal getDependencyResolutionManagement();
 
     @Override
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     CacheConfigurationsInternal getCaches();
 
     /**

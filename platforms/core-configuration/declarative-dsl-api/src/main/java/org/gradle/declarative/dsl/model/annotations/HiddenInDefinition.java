@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.java;
+package org.gradle.declarative.dsl.model.annotations;
 
-import org.gradle.api.Action;
-import org.gradle.api.tasks.Nested;
-import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface HasLibraryDependencies {
-    @Nested
-    LibraryDependencies getDependencies();
-
-    @HiddenInDefinition
-    default void dependencies(Action<? super LibraryDependencies> action) {
-        action.execute(getDependencies());
-    }
-}
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface HiddenInDefinition {}

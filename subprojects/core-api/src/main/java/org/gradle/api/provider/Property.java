@@ -18,7 +18,7 @@ package org.gradle.api.provider;
 
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 import org.gradle.api.model.ManagedType;
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -54,7 +54,7 @@ import org.jspecify.annotations.Nullable;
  */
 @ManagedType
 @SupportsKotlinAssignmentOverloading
-@HiddenInDeclarativeDsl
+@HiddenInDefinition
 public interface Property<T> extends Provider<T>, HasConfigurableValue, SupportsConvention {
     /**
      * Sets the value of the property to the given value, replacing whatever value the property already had.

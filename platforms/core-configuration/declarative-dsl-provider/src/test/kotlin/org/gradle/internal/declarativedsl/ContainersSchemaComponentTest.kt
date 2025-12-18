@@ -23,7 +23,7 @@ import org.gradle.api.internal.AbstractNamedDomainObjectContainer
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.tasks.Internal
 import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
@@ -169,7 +169,7 @@ class ContainersSchemaComponentTest {
 
         var y: Int = 0
 
-        @HiddenInDeclarativeDsl
+        @HiddenInDefinition
         override fun getName(): String = name
     }
 

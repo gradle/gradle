@@ -18,7 +18,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.internal.HasInternalProtocol;
 import org.jspecify.annotations.Nullable;
 
@@ -34,7 +34,7 @@ import java.io.File;
  * @since 5.6
  */
 @HasInternalProtocol
-@HiddenInDeclarativeDsl
+@HiddenInDefinition
 public interface FileSystemLocationProperty<T extends FileSystemLocation> extends Property<T> {
     /**
      * Views the location of this file as a {@link File}.

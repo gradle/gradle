@@ -512,7 +512,7 @@ class DataSchemaBuilder(
                         it.claimedFunctions.forEach { f -> claimFunction(type, f) }
                         addProperty(
                             type,
-                            DefaultDataProperty(it.name, it.returnType, it.propertyMode, it.hasDefaultValue, it.isHiddenInDeclarativeDsl, it.isDirectAccessOnly),
+                            DefaultDataProperty(it.name, it.returnType, it.propertyMode, it.hasDefaultValue, it.isHiddenInDefinition, it.isDirectAccessOnly),
                             it.originalReturnType
                         )
                     }

@@ -18,7 +18,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -35,7 +35,7 @@ import java.io.File;
  * @since 4.1
  */
 @ServiceScope(Scope.Project.class)
-@HiddenInDeclarativeDsl
+@HiddenInDefinition
 public interface ProjectLayout {
     /**
      * Returns the project directory.

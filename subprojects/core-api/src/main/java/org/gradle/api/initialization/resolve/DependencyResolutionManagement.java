@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.provider.Property;
 import org.gradle.declarative.dsl.model.annotations.Configuring;
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -37,7 +37,7 @@ public interface DependencyResolutionManagement {
      * @param repositoryConfiguration the repositories configuration
      */
     @Incubating
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     void repositories(Action<? super RepositoryHandler> repositoryConfiguration);
 
     /**
@@ -53,16 +53,16 @@ public interface DependencyResolutionManagement {
      * Registers component metadata rules used by all projects
      * @param registration the registration action
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     void components(Action<? super ComponentMetadataHandler> registration);
 
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     Property<RulesMode> getRulesMode();
 
     /**
      * Returns the shared component metadata handler
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     ComponentMetadataHandler getComponents();
 
     /**
@@ -71,7 +71,7 @@ public interface DependencyResolutionManagement {
      *
      * @since 7.0
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     void versionCatalogs(Action<? super MutableVersionCatalogContainer> spec);
 
     /**
@@ -79,7 +79,7 @@ public interface DependencyResolutionManagement {
      *
      * @since 7.0
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     MutableVersionCatalogContainer getVersionCatalogs();
 
     /**
@@ -88,7 +88,7 @@ public interface DependencyResolutionManagement {
      *
      * @since 7.0
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     Property<String> getDefaultProjectsExtensionName();
 
     /**
@@ -97,6 +97,6 @@ public interface DependencyResolutionManagement {
      *
      * @since 7.0
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     Property<String> getDefaultLibrariesExtensionName();
 }

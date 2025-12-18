@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition
 import org.gradle.internal.declarativedsl.schemaBuilder.MaybeDeclarativeClassInHierarchy.SuperclassWithMapping
 import org.gradle.internal.declarativedsl.schemaBuilder.MaybeDeclarativeClassInHierarchy.VisibleSuperclassInHierarchy
@@ -101,8 +101,8 @@ private fun handleMember(
     addAsSupported: (SupportedCallable) -> Unit,
     addAsUnsupported: (ClassMembersForSchema.NonDeclarativeMember) -> Unit
 ) {
-    if (member.annotationsWithGetters.run { any { it is VisibleInDefinition } && any { it is HiddenInDeclarativeDsl} }) {
-        host.schemaBuildingFailure("Conflicting annotations on $member: both @${VisibleInDefinition::class.simpleName} and @${HiddenInDeclarativeDsl::class.simpleName} are present")
+    if (member.annotationsWithGetters.run { any { it is VisibleInDefinition } && any { it is HiddenInDefinition} }) {
+        host.schemaBuildingFailure("Conflicting annotations on $member: both @${VisibleInDefinition::class.simpleName} and @${HiddenInDefinition::class.simpleName} are present")
     }
 
     if (member.visibility != KVisibility.PUBLIC) {
@@ -116,7 +116,7 @@ private fun handleMember(
 
     val isInHiddenType = supertype is MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy
     val isExposedByAnnotation = member.annotations.any { it is VisibleInDefinition } || (member is KProperty<*> && member.getter.annotations.any { it is VisibleInDefinition })
-    val isHiddenByAnnotation = member.annotations.any { it is HiddenInDeclarativeDsl } || (member is KProperty<*> && member.getter.annotations.any { it is HiddenInDeclarativeDsl })
+    val isHiddenByAnnotation = member.annotations.any { it is HiddenInDefinition } || (member is KProperty<*> && member.getter.annotations.any { it is HiddenInDefinition })
     if (isHiddenByAnnotation || isInHiddenType && !isExposedByAnnotation) {
         return
     }
@@ -297,12 +297,12 @@ private fun checkDefinitionVisibilityInHierarchy(
         if (from in invisible) return false
 
         val annotatedVisible = from.superClass.annotations.any { it is VisibleInDefinition }
-        val annotatedHidden = from.superClass.annotations.any { it is HiddenInDeclarativeDsl }
+        val annotatedHidden = from.superClass.annotations.any { it is HiddenInDefinition }
 
         return when {
             annotatedHidden && annotatedVisible -> {
                 // TODO: properly collect this error and report in a batch
-                error("Conflicting annotations on ${from.superClass.qualifiedName}: both @${HiddenInDeclarativeDsl::class.simpleName} and @${VisibleInDefinition::class.simpleName} are present")
+                error("Conflicting annotations on ${from.superClass.qualifiedName}: both @${HiddenInDefinition::class.simpleName} and @${VisibleInDefinition::class.simpleName} are present")
             }
 
             annotatedVisible -> {
@@ -330,7 +330,7 @@ private fun checkDefinitionVisibilityInHierarchy(
 private fun isVisibleDeclarativeDefinitionClass(kClass: KClass<*>): Boolean = when {
     kClass == Any::class -> false
     kClass == Iterable::class -> false
-    kClass.annotations.any { it is HiddenInDeclarativeDsl } -> false
+    kClass.annotations.any { it is HiddenInDefinition } -> false
     kClass.java.name.startsWith("java.") || kClass.java.name.startsWith("kotlin.") -> false
     else -> true
 }

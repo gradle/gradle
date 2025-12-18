@@ -62,7 +62,7 @@ class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : ObjectC
             returnType = DataTypeRefInternal.DefaultName(DefaultFqName.parse(projectAccessorsClass.qualifiedName!!)),
             propertyMode = DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly,
             hasDefaultValue = true,
-            isHiddenInDeclarativeDsl = false,
+            isHiddenInDefinition = false,
             isDirectAccessOnly = false,
             claimedFunctions = emptyList()
         )

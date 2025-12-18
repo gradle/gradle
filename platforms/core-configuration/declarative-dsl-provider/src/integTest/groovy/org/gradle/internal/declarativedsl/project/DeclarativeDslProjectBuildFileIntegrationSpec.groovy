@@ -270,7 +270,7 @@ secondaryAccess { three, true, true}"""
         import java.util.List;
         import org.gradle.api.internal.plugins.Definition;import org.gradle.declarative.dsl.model.annotations.Adding;
         import org.gradle.declarative.dsl.model.annotations.Configuring;
-        import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
+        import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
         import org.gradle.api.Action;
         import org.gradle.api.model.ObjectFactory;
         import org.gradle.api.provider.ListProperty;

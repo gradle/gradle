@@ -16,7 +16,7 @@
 
 package org.gradle.api.attributes;
 
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 
 /**
  * Represents something that carries attributes by utilizing an
@@ -29,6 +29,6 @@ public interface HasAttributes {
     /**
      * Returns the attributes
      */
-    @HiddenInDeclarativeDsl
+    @HiddenInDefinition
     AttributeContainer getAttributes();
 }

@@ -22,7 +22,7 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
@@ -76,7 +76,7 @@ class GradlePropertyApiPropertyExtractor : PropertyExtractor {
                         },
                         DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
                         hasDefaultValue = true,
-                        isHiddenInDeclarativeDsl = false,
+                        isHiddenInDefinition = false,
                         isDirectAccessOnly = isDirectAccessOnly,
                         claimedFunctions = emptyList()
                     )
@@ -103,7 +103,7 @@ class GradlePropertyApiPropertyExtractor : PropertyExtractor {
                     propertyValueType(getter.returnType.toKType()).asSupported()
                         ?: host.schemaBuildingFailure("Unsupported property type: ${getter.returnType.toKType()}")
                 }
-                val isHidden = getter.kCallable.annotations.any { it is HiddenInDeclarativeDsl }
+                val isHidden = getter.kCallable.annotations.any { it is HiddenInDefinition }
                 val isDirectAccessOnly = getter.kCallable.annotations.any { it is AccessFromCurrentReceiverOnly }
                 CollectedPropertyInformation(
                     propertyName,

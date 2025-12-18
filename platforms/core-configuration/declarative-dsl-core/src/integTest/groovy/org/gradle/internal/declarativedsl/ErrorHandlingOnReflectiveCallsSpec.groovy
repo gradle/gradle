@@ -106,13 +106,13 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             import org.gradle.api.model.ObjectFactory
             import org.gradle.api.provider.Property
             import org.gradle.declarative.dsl.model.annotations.Configuring
-            import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
             import javax.inject.Inject
             import ${BuildModel.class.name}
             import ${Definition.class.name};
 
             abstract class Extension @Inject constructor(private val objects: ObjectFactory) : ${Definition.class.simpleName}<Extension.Model> {
-                @get:HiddenInDeclarativeDsl
+                @get:HiddenInDefinition
                 val access: Access
 
                 init {
@@ -123,7 +123,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                     throw RuntimeException("Boom Action")
                 }
 
-                @HiddenInDeclarativeDsl
+                @HiddenInDefinition
                 fun access(configure: (Access) -> Unit) {
                     throw RuntimeException("Boom Lambda")
                 }
@@ -174,13 +174,13 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             import org.gradle.api.model.ObjectFactory
             import org.gradle.api.provider.Property
             import org.gradle.declarative.dsl.model.annotations.Configuring
-            import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
             import javax.inject.Inject
             import ${BuildModel.class.name}
             import ${Definition.class.name}
 
             abstract class Extension @Inject constructor(private val objects: ObjectFactory) : ${Definition.class.simpleName}<Extension.Model> {
-                @get:HiddenInDeclarativeDsl
+                @get:HiddenInDefinition
                 val access: Access
 
                 init {
@@ -237,7 +237,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             package com.example.restricted;
 
             import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.Property;
@@ -250,7 +250,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                 private final Access access;
                 private final ObjectFactory objects;
 
-                @HiddenInDeclarativeDsl
+                @HiddenInDefinition
                 public Access getAccess() {
                     return access;
                 }
