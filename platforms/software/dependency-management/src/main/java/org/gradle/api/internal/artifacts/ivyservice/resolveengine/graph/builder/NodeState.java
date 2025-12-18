@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -37,6 +36,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Resolved
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
+import org.gradle.internal.collect.PersistentSet;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
@@ -431,7 +431,7 @@ public class NodeState implements DependencyGraphNode {
         this.upcomingNoLongerPendingConstraints = null;
 
         PendingDependenciesVisitor pendingDepsVisitor = resolveState.newPendingDependenciesVisitor();
-        Set<ModuleIdentifier> strictVersionsSet = null;
+        PersistentSet<ModuleIdentifier> strictVersionsSet = PersistentSet.of();
         for (DependencyState dependencyState : dependencies(resolutionFilter)) {
             PendingDependenciesVisitor.PendingState pendingState = pendingDepsVisitor.maybeAddAsPendingDependency(this, dependencyState);
             if (dependencyState.getDependency().isConstraint()) {
@@ -855,31 +855,25 @@ public class NodeState implements DependencyGraphNode {
 
     private void collectOwnStrictVersions(ExcludeSpec moduleResolutionFilter) {
         List<DependencyState> dependencies = dependencies(moduleResolutionFilter);
-        Set<ModuleIdentifier> constraintsSet = null;
+        PersistentSet<ModuleIdentifier> constraintsSet = PersistentSet.of();
         for (DependencyState dependencyState : dependencies) {
             constraintsSet = maybeCollectStrictVersions(constraintsSet, dependencyState);
         }
         storeOwnStrictVersions(constraintsSet);
     }
 
-    @Nullable
-    private Set<ModuleIdentifier> maybeCollectStrictVersions(@Nullable Set<ModuleIdentifier> constraintsSet, DependencyState dependencyState) {
+    private static PersistentSet<ModuleIdentifier> maybeCollectStrictVersions(PersistentSet<ModuleIdentifier> constraintsSet, DependencyState dependencyState) {
         if (dependencyState.getDependency().getSelector() instanceof ModuleComponentSelector) {
             ModuleComponentSelector selector = (ModuleComponentSelector) dependencyState.getDependency().getSelector();
             if (!StringUtils.isEmpty(selector.getVersionConstraint().getStrictVersion())) {
-                if (constraintsSet == null) {
-                    constraintsSet = new HashSet<>();
-                }
-                constraintsSet.add(selector.getModuleIdentifier());
+                constraintsSet = constraintsSet.plus(selector.getModuleIdentifier());
             }
         }
         return constraintsSet;
     }
 
-    private void storeOwnStrictVersions(@Nullable Set<ModuleIdentifier> constraintsSet) {
-        StrictVersionConstraints newStrictVersions = constraintsSet == null
-            ? StrictVersionConstraints.EMPTY
-            : StrictVersionConstraints.of(ImmutableSet.copyOf(constraintsSet));
+    private void storeOwnStrictVersions(PersistentSet<ModuleIdentifier> constraintsSet) {
+        StrictVersionConstraints newStrictVersions = StrictVersionConstraints.of(constraintsSet);
 
         StrictVersionConstraints existingOwnStrictVersions = this.ownStrictVersions;
         this.ownStrictVersions = newStrictVersions;

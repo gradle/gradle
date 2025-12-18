@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
-import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.tasks.testing.TestResult;
 import org.jspecify.annotations.Nullable;

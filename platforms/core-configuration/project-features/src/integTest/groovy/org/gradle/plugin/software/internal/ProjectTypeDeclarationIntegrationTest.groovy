@@ -135,6 +135,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         when:
         buildFile().text = """
             anotherProjectType {
+                id = "another"
                 foo = "test2"
 
                 bar {
@@ -146,7 +147,9 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
 
         then:
         outputContains("Applying AnotherProjectTypeImplPlugin")
-        outputContains("""foo = test2\nbaz = fizz""")
+        outputContains("definition foo = test2")
+        outputContains("definition bar.baz = fizz")
+        outputContains("model id = another")
     }
 
     def 'can declare multiple custom project types from a single settings plugin but apply only one'() {
@@ -171,14 +174,14 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy has no problem with finding non-public methods/types ...")
     def 'can declare and configure a custom project type with different public and implementation model types'() {
         given:
-        withProjectTypeThatHasDifferentPublicAndImplementationModelTypes().prepareToExecute()
+        withProjectTypeThatHasDifferentPublicAndImplementationTypes().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
         buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
 
         when:
-        run(":printTestProjectTypeDefinitionImplConfiguration")
+        run(":printTestProjectTypeDefinitionConfiguration")
 
         then:
         assertThatDeclaredValuesAreSetProperly()
@@ -189,7 +192,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                 nonPublic = "foo"
             }
         """
-        fails(":printTestProjectTypeDefinitionImplConfiguration")
+        fails(":printTestProjectTypeDefinitionConfiguration")
 
         then:
         if (GradleDsl.KOTLIN == currentDsl()) {
@@ -256,6 +259,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         when:
         buildFile().text = """
             anotherProjectType {
+                id = "another"
                 foo = "test"
                 bar {
                     baz = "fizz"
@@ -265,7 +269,9 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         succeeds(":printAnotherProjectTypeDefinitionConfiguration")
 
         then:
-        outputContains("""foo = test\nbaz = fizz""")
+        outputContains("definition foo = test")
+        outputContains("definition bar.baz = fizz")
+        outputContains("model id = another")
     }
 
     def 'sensible error when a script applies multiple project types'() {
@@ -329,7 +335,9 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
     }
 
     void assertThatDeclaredValuesAreSetProperly() {
-        outputContains("""id = test\nbar = baz""")
+        outputContains("definition id = test")
+        outputContains("definition foo.bar = baz")
+        outputContains("model id = test")
     }
 
     void assertDescriptionOrCause(ExecutionFailure failure, String expectedMessage) {

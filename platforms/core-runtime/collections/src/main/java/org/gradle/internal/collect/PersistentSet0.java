@@ -19,6 +19,8 @@ package org.gradle.internal.collect;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static org.gradle.internal.collect.Preconditions.keyCannotBeNull;
 
@@ -53,6 +55,36 @@ final class PersistentSet0 implements PersistentSet<Object> {
     }
 
     @Override
+    public PersistentSet<Object> filter(Predicate<? super Object> predicate) {
+        return this;
+    }
+
+    @Override
+    public <R> PersistentSet<R> map(Function<? super Object, ? extends R> mapper) {
+        return PersistentSet.of();
+    }
+
+    @Override
+    public <R> PersistentSet<R> flatMap(Function<? super Object, PersistentSet<R>> mapper) {
+        return PersistentSet.of();
+    }
+
+    @Override
+    public boolean anyMatch(Predicate<? super Object> predicate) {
+        return false;
+    }
+
+    @Override
+    public boolean noneMatch(Predicate<? super Object> predicate) {
+        return true;
+    }
+
+    @Override
+    public <G> PersistentMap<G, PersistentSet<Object>> groupBy(Function<? super Object, ? extends G> group) {
+        return PersistentMap.of();
+    }
+
+    @Override
     public boolean contains(Object key) {
         return false;
     }
@@ -62,9 +94,10 @@ final class PersistentSet0 implements PersistentSet<Object> {
         return 0;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public PersistentSet<Object> union(PersistentSet<Object> other) {
-        return other;
+    public <R> PersistentSet<Object> union(PersistentSet<R> other) {
+        return (PersistentSet<Object>) other;
     }
 
     @Override

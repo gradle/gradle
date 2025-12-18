@@ -42,7 +42,7 @@ import java.util.stream.Collectors
 import static org.gradle.integtests.tooling.r940.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.INCLUDED_BUILDS_FIRST
 import static org.gradle.integtests.tooling.r940.ResilientKotlinDslScriptsModelBuilderCrossVersionSpec.KotlinModelAction.QueryStrategy.ROOT_PROJECT_FIRST
 
-@ToolingApiVersion('>=9.4.0')
+@ToolingApiVersion('>=9.3.0')
 @TargetGradleVersion('>=9.4.0')
 class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSpecification {
 
@@ -93,7 +93,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             """.stripIndent()
     }
 
-    def "basic build - nothing broken"() {
+    def "no failure build: resilient model is equal to non-resilient model"() {
         given:
         settingsKotlinFile << """
             dependencyResolutionManagement {
@@ -133,176 +133,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         resilientModels.failures.isEmpty()
     }
 
-    @ToBeImplemented
-    def "basic build - broken settings file"() {
-        given:
-        settingsKotlinFile << """
-            blow up !!!
-        """
-
-        when:
-        fails {
-            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST, initScriptFile)
-        }
-
-        then:
-        def e = thrown(BuildActionFailureException)
-        e.cause.message.contains(settingsKotlinFile.absolutePath)
-        failure.assertHasDescription("Script compilation error")
-
-        when:
-        def model = succeeds {
-            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
-        }
-
-        then:
-        assertHasScriptModelForFiles(model/*, "settings.gradle.kts"*/)
-        assertHasErrorsInScriptModels(model,
-            Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
-        // assertHasJarsInScriptModelClasspath(model, "settings.gradle.kts", "gradle-kotlin-dsl-plugins")
-    }
-
-    def "basic build - broken build file - intact plugins block"() {
-        given:
-        settingsKotlinFile << """
-            dependencyResolutionManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
-            }
-            rootProject.name = "root"
-        """
-        buildKotlinFile << """
-            plugins { `kotlin-dsl` }
-
-            blow up !!!
-        """
-
-        when:
-        def model = succeeds {
-            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
-        }
-
-        then:
-        assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
-        assertHasErrorsInScriptModels(model,
-            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
-        assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-kotlin-dsl-plugins")
-    }
-
-    def "basic build - broken build file - broken plugins block"() {
-        given:
-        settingsKotlinFile << """
-            rootProject.name = "root"
-        """
-        buildKotlinFile << """
-            plugins { blow up !!! }
-        """
-
-        when:
-        def model = succeeds {
-            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
-        }
-
-        then:
-        assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
-        assertHasErrorsInScriptModels(model,
-            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
-        assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-api")
-    }
-
-    def "basic build with included build - broken build file in included build - intact plugins block"() {
-        given:
-        settingsKotlinFile << """
-            rootProject.name = "root"
-            includeBuild("included")
-        """
-
-        def included = file("included")
-        included.file("settings.gradle.kts") << """
-            dependencyResolutionManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
-            }
-            rootProject.name = "included"
-        """
-        included.file("build.gradle.kts") << """
-            plugins { `kotlin-dsl` }
-            blow up !!!
-        """
-
-        when:
-        def model = succeeds {
-            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
-        }
-
-        then:
-        assertHasScriptModelForFiles(model, "settings.gradle.kts", "included/settings.gradle.kts", "included/build.gradle.kts")
-        assertHasErrorsInScriptModels(model,
-            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
-            Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
-        assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-kotlin-dsl-plugins")
-    }
-
-    def "basic build with included build - broken build file in included build - broken plugins block"() {
-        given:
-        settingsKotlinFile << """
-            rootProject.name = "root"
-            includeBuild("included")
-        """
-
-        def included = file("included")
-        included.file("settings.gradle.kts") << """
-            rootProject.name = "included"
-        """
-        included.file("build.gradle.kts") << """
-            plugins { blow up !!! }
-        """
-
-        when:
-        def model = succeeds {
-            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
-        }
-
-        then:
-        assertHasScriptModelForFiles(model, "settings.gradle.kts", "included/settings.gradle.kts", "included/build.gradle.kts")
-        assertHasErrorsInScriptModels(model,
-            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
-            Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
-        assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-api")
-    }
-
-    @ToBeImplemented
-    def "basic build with included build - broken settings and build file in included build"() {
-        given:
-        settingsKotlinFile << """
-            rootProject.name = "root"
-            includeBuild("included")
-        """
-
-        def included = file("included")
-        included.file("settings.gradle.kts") << """
-            boom !!!
-        """
-        included.file("build.gradle.kts") << """
-            blow up !!!
-        """
-
-        when:
-        def model = succeeds {
-            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
-        }
-
-        then:
-        assertHasScriptModelForFiles(model, /*"settings.gradle.kts"*/)
-        assertHasErrorsInScriptModels(model,
-            Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"),
-            Pair.of("included", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
-        // assertHasJarsInScriptModelClasspath(model, "settings.gradle.kts", "gradle-kotlin-dsl-plugins")
-    }
-
-    def "bigger build - nothing broken"() {
+    def "no failure in multi-project build: resilient model is equal to non-resilient model"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -356,7 +187,118 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         resilientModels.failures.isEmpty()
     }
 
-    def "bigger build - broken build file in included build - #description with #queryStrategy"() {
+    def "compilation failure in project build script: settings and project scripts model is returned"() {
+        given:
+        settingsKotlinFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+            rootProject.name = "root"
+        """
+        buildKotlinFile << """
+            plugins { `kotlin-dsl` }
+
+            blow up !!!
+        """
+
+        when:
+        def model = succeeds {
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
+        }
+
+        then:
+        assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
+        assertHasErrorsInScriptModels(model,
+            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+        assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-kotlin-dsl-plugins")
+    }
+
+    def "compilation failure in project plugins block: settings and project scripts model is returned"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+        """
+        buildKotlinFile << """
+            plugins { blow up !!! }
+        """
+
+        when:
+        def model = succeeds {
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
+        }
+
+        then:
+        assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
+        assertHasErrorsInScriptModels(model,
+            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+        assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-api")
+    }
+
+    def "compilation failure in included build project script body: root build and included build model is returned"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            includeBuild("included")
+        """
+
+        def included = file("included")
+        included.file("settings.gradle.kts") << """
+            dependencyResolutionManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+            rootProject.name = "included"
+        """
+        included.file("build.gradle.kts") << """
+            plugins { `kotlin-dsl` }
+            blow up !!!
+        """
+
+        when:
+        def model = succeeds {
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
+        }
+
+        then:
+        assertHasScriptModelForFiles(model, "settings.gradle.kts", "included/settings.gradle.kts", "included/build.gradle.kts")
+        assertHasErrorsInScriptModels(model,
+            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
+            Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+        assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-kotlin-dsl-plugins")
+    }
+
+    def "compilation failure in included build project plugins block: root build and included build model is returned"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            includeBuild("included")
+        """
+
+        def included = file("included")
+        included.file("settings.gradle.kts") << """
+            rootProject.name = "included"
+        """
+        included.file("build.gradle.kts") << """
+            plugins { blow up !!! }
+        """
+
+        when:
+        def model = succeeds {
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
+        }
+
+        then:
+        assertHasScriptModelForFiles(model, "settings.gradle.kts", "included/settings.gradle.kts", "included/build.gradle.kts")
+        assertHasErrorsInScriptModels(model,
+            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
+            Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+        assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-api")
+    }
+
+    def "#description failure in main build subproject: resilient model is equal to non-resilient model except accessors with #queryStrategy"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -427,7 +369,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         "script compilation fails" | "broken !!!"                                 | "broken !!!"     | INCLUDED_BUILDS_FIRST
     }
 
-    def "build with convention plugins - broken project convention plugin - exception - #queryStrategy"() {
+    def "runtime failure in project convention plugin: resilient model is equal to non-resilient model except accessors and build-logic jar #queryStrategy\""() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -518,7 +460,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         queryStrategy << [ROOT_PROJECT_FIRST, INCLUDED_BUILDS_FIRST]
     }
 
-    def "build with convention plugins - broken project convention - compile error - #queryStrategy"() {
+    def "compilation failure in project convention plugin: resilient model is equal to non-resilient model except accessors and build-logic jar #queryStrategy"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -608,7 +550,63 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         queryStrategy << [ROOT_PROJECT_FIRST, INCLUDED_BUILDS_FIRST]
     }
 
-    def "build with convention plugins - broken settings convention"() {
+    @ToBeImplemented
+    def "compilation failure in root settings: no model is returned"() {
+        given:
+        settingsKotlinFile << """
+            blow up !!!
+        """
+
+        when:
+        fails {
+            KotlinModelAction.originalModel(it, ROOT_PROJECT_FIRST, initScriptFile)
+        }
+
+        then:
+        def e = thrown(BuildActionFailureException)
+        e.cause.message.contains(settingsKotlinFile.absolutePath)
+        failure.assertHasDescription("Script compilation error")
+
+        when:
+        def model = succeeds {
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
+        }
+
+        then:
+        model.scriptModels.isEmpty()
+        assertHasErrorsInScriptModels(model,
+            Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
+    }
+
+    @ToBeImplemented
+    def "compilation failure in included build settings script: no model is returned"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+            includeBuild("included")
+        """
+
+        def included = file("included")
+        included.file("settings.gradle.kts") << """
+            boom !!!
+        """
+        included.file("build.gradle.kts") << """
+            blow up !!!
+        """
+
+        when:
+        def model = succeeds {
+            KotlinModelAction.resilientModel(it, ROOT_PROJECT_FIRST, initScriptFile)
+        }
+
+        then:
+        model.scriptModels.isEmpty()
+        assertHasErrorsInScriptModels(model,
+            Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"),
+            Pair.of("included", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
+    }
+
+    def "compilation failure in settings convention plugin: model is returned for included build but not for main build"() {
         given:
         settingsKotlinFile << """
             pluginManagement {
@@ -681,10 +679,9 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         }
 
         then:
-        assertHasScriptModelForFiles(model/*, "settings.gradle.kts", "build.gradle.kts"*/)
+        model.scriptModels.isEmpty()
         assertHasErrorsInScriptModels(model,
             Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
-        // assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-kotlin-dsl-plugins")
     }
 
     void assertHasScriptModelForFiles(KotlinModel model, String... expectedFiles) {

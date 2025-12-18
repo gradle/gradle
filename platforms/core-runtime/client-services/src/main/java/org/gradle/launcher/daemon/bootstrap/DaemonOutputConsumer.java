@@ -53,8 +53,11 @@ public class DaemonOutputConsumer implements StreamsHandler {
             PrintWriter printer = new PrintWriter(output);
             while (scanner.hasNext()) {
                 String line = scanner.nextLine();
-                LOGGER.debug("daemon out: {}", line);
+                LOGGER.debug("Daemon output: {}", line);
                 printer.println(line);
+                if (startupCommunication.containsDebugMessage(line)) {
+                    LOGGER.lifecycle(line);
+                }
                 if (startupCommunication.containsGreeting(line)) {
                     break;
                 }

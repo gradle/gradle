@@ -28,6 +28,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.Matchers
 import org.junit.Rule
 
@@ -169,19 +170,31 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
 
                 feature {
                     text = "foo"
+                    fizz {
+                        buzz = "baz"
+                    }
                 }
                 anotherFeature {
                     text = "bar"
+                    fizz {
+                        buzz = "baz"
+                    }
                 }
             }
         """ << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
-        run(":printProjectTypeDefinitionConfiguration",":printFeatureDefinitionConfiguration",":printAnotherFeatureDefinitionConfiguration")
+        run(":printProjectTypeDefinitionConfiguration",":printFeatureDefinitionConfiguration")
 
         then:
         assertThatDeclaredValuesAreSetProperly()
-        outputContains("anotherFeature text = bar")
+
+        when:
+        run(":printAnotherFeatureDefinitionConfiguration")
+
+        then:
+        outputContains("definition text = bar")
+        outputContains("definition fizz.buzz = baz")
 
         and:
         outputContains("Applying ProjectTypeImplPlugin")
@@ -302,13 +315,16 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeatureTextProperty << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
         run(":printProjectTypeDefinitionConfiguration",":printFeatureDefinitionConfiguration")
 
         then:
-        assertThatDeclaredValuesAreSetProperly()
+        outputContains("definition id = test")
+        outputContains("definition foo.bar = baz")
+        outputContains("definition text = foo")
+        outputContains("model text = foo")
 
         and:
         outputContains("Applying ProjectTypeImplPlugin")
@@ -331,9 +347,26 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         run(":printFeatureDefinitionConfiguration")
 
         then:
-        outputContains("feature text = foo BAR")
+        outputContains("model text = foo BAR")
     }
 
+    @ToBeImplemented
+    def 'can declare a custom project feature with no build model'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeatureThatHasNoBuildModel()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeatureTextProperty << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        fails(":printProjectTypeDefinitionConfiguration")
+
+        then:
+        assertDescriptionOrCause(failure, "Cannot determine build model type for interface org.gradle.test.FeatureDefinition")
+    }
 
     private String getPluginBuildScriptForJava() {
         return """
@@ -374,6 +407,25 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
 
                 feature {
                     text = "foo"
+                    fizz {
+                        buzz = "baz"
+                    }
+                }
+            }
+        """
+    }
+
+    static String getDeclarativeScriptThatConfiguresOnlyTestProjectFeatureTextProperty() {
+        return """
+            testProjectType {
+                id = "test"
+
+                foo {
+                    bar = "baz"
+                }
+
+                feature {
+                    text = "foo"
                 }
             }
         """
@@ -387,6 +439,9 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     bar = "bar"
                     feature {
                         text = "foo"
+                        fizz {
+                            buzz = "baz"
+                        }
                     }
                 }
             }
@@ -394,8 +449,12 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
     }
 
     void assertThatDeclaredValuesAreSetProperly() {
-        outputContains("""id = test\nbar = baz""")
-        outputContains("feature text = foo")
+        outputContains("definition id = test")
+        outputContains("definition foo.bar = baz")
+        outputContains("definition text = foo")
+        outputContains("definition fizz.buzz = baz")
+        outputContains("model id = test")
+        outputContains("model text = foo")
     }
 
     void assertDescriptionOrCause(ExecutionFailure failure, String expectedMessage) {

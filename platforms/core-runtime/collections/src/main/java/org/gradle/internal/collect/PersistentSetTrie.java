@@ -16,8 +16,12 @@
 
 package org.gradle.internal.collect;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Iterator;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static org.gradle.internal.collect.ChampDeletion.deleteFrom;
 import static org.gradle.internal.collect.ChampNode.BITS;
@@ -99,6 +103,67 @@ final class PersistentSetTrie<K> implements PersistentSet<K> {
     }
 
     @Override
+    public PersistentSet<K> filter(Predicate<? super K> predicate) {
+        PersistentSet<K> ks = this;
+        for (K k : this) {
+            if (!predicate.test(k)) {
+                ks = ks.minus(k);
+            }
+        }
+        return ks;
+    }
+
+    @Override
+    public <R> PersistentSet<R> map(Function<? super K, ? extends R> mapper) {
+        PersistentSet<R> rs = PersistentSet.of();
+        for (K k : this) {
+            rs = rs.plus(mapper.apply(k));
+        }
+        return rs;
+    }
+
+    @Override
+    public <R> PersistentSet<R> flatMap(Function<? super K, PersistentSet<R>> mapper) {
+        PersistentSet<R> rs = PersistentSet.of();
+        for (K k : this) {
+            rs = rs.union(mapper.apply(k));
+        }
+        return rs;
+    }
+
+    @Override
+    public <G> PersistentMap<G, PersistentSet<K>> groupBy(Function<? super K, ? extends @Nullable G> group) {
+        PersistentMap<G, PersistentSet<K>> rs = PersistentMap.of();
+        for (K k : this) {
+            G g = group.apply(k);
+            if (g != null) {
+                rs = rs.modify(g, (g1, set) -> set == null ? PersistentSet.of(k) : set.plus(k));
+            }
+        }
+        return rs;
+    }
+
+    @Override
+    public boolean anyMatch(Predicate<? super K> predicate) {
+        for (K k : this) {
+            if (predicate.test(k)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean noneMatch(Predicate<? super K> predicate) {
+        for (K k : this) {
+            if (predicate.test(k)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
     public boolean contains(K key) {
         return ChampLookup.containsKey(root, key, 0);
     }
@@ -113,12 +178,13 @@ final class PersistentSetTrie<K> implements PersistentSet<K> {
         return false;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public PersistentSet<K> union(PersistentSet<K> other) {
+    public <S extends K> PersistentSet<K> union(PersistentSet<S> other) {
         if (other.isEmpty()) {
             return this;
         }
-        return join(other, (smaller, larger) -> {
+        return join((PersistentSet<K>) other, (smaller, larger) -> {
             for (K key : smaller) {
                 larger = larger.plus(key);
             }

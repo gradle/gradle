@@ -339,7 +339,7 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
 
                                 context.getProject().getPlugins().apply(ApplicationPlugin.class);
                             }
-                        );
+                        ).withUnsafeDefinition();
                     }
                 }
 

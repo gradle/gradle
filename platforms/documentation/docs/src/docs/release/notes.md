@@ -54,9 +54,61 @@ Problem details are displayed with a monospaced font to preserve the alignment o
 Duplicate information is reduced across the board for a better readability.
 The size of the report file is reduced.
 
+### Test Metadata Logging
+
+Gradle now allows listening for test metadata events during test execution.
+In the exact same manner as [`TestOutputListener`](javadoc/org/gradle/api/tasks/testing/TestOutputListener.html), a [`TestMetadataListener`](javadoc/org/gradle/api/tasks/testing/TestMetadataListener.html) can be registered to receive metadata events emitted by the test framework during via the new [`Test#addTestMetadataListener(TestMetadataListener)`](dsl/org.gradle.api.tasks.testing.Test.html#addTestMetadataListener(TestMetadataListener)) method.
+
+```kotlin
+class LoggingListener(val logger: Logger) : TestMetadataListener {
+    override fun onMetadata(descriptor: TestDescriptor , event: TestMetadataEvent) {
+        logger.lifecycle("Got metadata event: " + event.toString())
+    }
+}
+
+tasks.named<Test>("test").configure {
+    addTestMetadataListener(LoggingListener())
+}
+```
+
+This addition enables support for additional JUnit Platform features, and allows tests to communicate additional information back to the process running the tests in a more structured manner than just logging to the standard output or error streams.
+
 ### Daemon logging improvements
 
 Daemon logs older than 14 days are now automatically cleaned up when the daemon shuts down, eliminating the need for manual cleanup.
+
+### POM exclusion importing
+
+When using the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion) to generate a Gradle build from an existing Maven project, Gradle now imports `<exclusion>` elements from the Maven POM and translates them into Gradle dependency exclusions.
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>sample.Project</groupId>
+        <artifactId>Project</artifactId>
+        <version>1.0</version>
+        <exclusions>
+            <exclusion>
+                <groupId>excluded.group</groupId>
+                <artifactId>excluded-artifact</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+</dependencies>
+```
+
+Due to differences in how Maven and Gradle handle dependency exclusions, some exclusions may not translate perfectly.
+
+The generated exclusions will be marked with a comment noting they require manual verification:
+
+```kotlin
+dependencies {
+    implementation("some.group:some-artifact:1.0") {
+        // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent
+        exclude(group = "excluded.group", module = "excluded-artifact")
+    }
+}
+```
 
 ## Plugin development
 
@@ -91,7 +143,7 @@ import java.io.File;
 
 void main() {
     var projectDir = new File("/path/to/project");
-    try (var conn = GradleConnector.newConnector().forProjectDirectory(projectDir).connect()) { 
+    try (var conn = GradleConnector.newConnector().forProjectDirectory(projectDir).connect()) {
         System.out.println("--version:\n + " + conn.getModel(BuildEnvironment.class).getVersionInfo());
         System.out.println("--help:\n" + conn.getModel(Help.class).getRenderedText());
     }

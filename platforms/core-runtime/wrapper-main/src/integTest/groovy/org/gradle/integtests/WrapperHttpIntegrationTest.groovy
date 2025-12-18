@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.test.precondition.Requires
@@ -35,32 +36,37 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     public static final String TEST_DISTRIBUTION_URL = "gradlew/dist"
 
+    private static final String HOST = "localhost"
+    private static final String USER = "jdoe"
+    private static final String PASSWORD = "changeit"
+    private static final String DEFAULT_TOKEN = "token"
+
     private String getDefaultBaseUrl() {
-        "http://localhost:${server.port}"
+        "http://$HOST:${server.port}"
     }
 
     private String getDefaultAuthenticatedBaseUrl() {
-        "http://jdoe:changeit@localhost:${server.port}"
+        "http://$USER:$PASSWORD@$HOST:${server.port}"
     }
 
     def setup() {
         server.start()
         file("build.gradle") << """
-    task hello {
-        doLast {
-            println 'hello'
-        }
+            task hello {
+                doLast {
+                    println 'hello'
+                }
+            }
+        
+            task echoProperty {
+                doLast {
+                    println "fooD=" + project.findProperty("fooD")
+                }
+            }
+        """.stripIndent()
     }
 
-    task echoProperty {
-        doLast {
-            println "fooD=" + project.findProperty("fooD")
-        }
-    }
-"""
-    }
-
-    private prepareWrapper(String baseUrl) {
+    private GradleExecuter prepareWrapper(String baseUrl) {
         prepareWrapper(new URI("${baseUrl}/$TEST_DISTRIBUTION_URL"))
     }
 
@@ -82,10 +88,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle-private/issues/1537')
-    def "downloads wrapper from http server and caches"() {
+    def "downloads wrapper from http server"() {
         given:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getDefaultBaseUrl())
+        prepareWrapper(getDefaultBaseUrl()).run()
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
         when:
@@ -106,7 +112,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     def "recovers from failed download"() {
         given:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getDefaultBaseUrl())
+        prepareWrapper(getDefaultBaseUrl()).run()
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
 
         when:
@@ -130,7 +136,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     def "fails fast when server returns 404 Not Found"() {
         given:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getDefaultBaseUrl())
+        prepareWrapper(getDefaultBaseUrl()).run()
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").missing())
 
         when:
@@ -146,7 +152,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     def "fails with reasonable message when download times out"() {
         given:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getDefaultBaseUrl())
+        prepareWrapper(getDefaultBaseUrl()).run()
         server.expectAndBlock(server.get("/$TEST_DISTRIBUTION_URL"))
 
         when:
@@ -159,10 +165,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle-private/issues/3032')
-    def "does not leak credentials when download times out"() {
+    def "does not leak credentials when download times out with basic auth"() {
         given:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper("http://username:password@localhost:${server.port}")
+        prepareWrapper(getDefaultAuthenticatedBaseUrl()).run()
         server.expectAndBlock(server.get("/$TEST_DISTRIBUTION_URL"))
 
         when:
@@ -170,16 +176,36 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         def failure = wrapperExecuter.runWithFailure()
 
         then:
-        failure.assertHasErrorOutput("Downloading from http://localhost:${server.port}/$TEST_DISTRIBUTION_URL failed: timeout (10000ms)")
+        failure.assertHasErrorOutput("Downloading from http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL failed: timeout (10000ms)")
         failure.assertHasErrorOutput('Read timed out')
-        failure.assertNotOutput("username")
-        failure.assertNotOutput("password")
+        failure.assertNotOutput(USER)
+        failure.assertNotOutput(PASSWORD)
+    }
+
+    def "does not leak credentials when download times out with bearer auth"() {
+        given:
+        server.withBearerAuthentication(DEFAULT_TOKEN)
+        file("gradle.properties") << """
+    systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
+"""
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultBaseUrl()).run()
+        server.expectAndBlock(server.get("/$TEST_DISTRIBUTION_URL"))
+
+        when:
+        wrapperExecuter.withStackTraceChecksDisabled()
+        def failure = wrapperExecuter.runWithFailure()
+
+        then:
+        failure.assertHasErrorOutput("Downloading from http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL failed: timeout (10000ms)")
+        failure.assertHasErrorOutput('Read timed out')
+        failure.assertNotOutput(DEFAULT_TOKEN)
     }
 
     def "reads timeout from wrapper properties"() {
         given:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getDefaultBaseUrl())
+        prepareWrapper(getDefaultBaseUrl()).run()
         server.expectAndBlock(server.get("/$TEST_DISTRIBUTION_URL"))
 
         and:
@@ -190,7 +216,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         def failure = wrapperExecuter.runWithFailure()
 
         then:
-        failure.assertHasErrorOutput("Downloading from http://localhost:${server.port}/$TEST_DISTRIBUTION_URL failed: timeout (5000ms)")
+        failure.assertHasErrorOutput("Downloading from http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL failed: timeout (5000ms)")
     }
 
     def "downloads wrapper via proxy"() {
@@ -199,14 +225,14 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         and:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(server.uri.toString())
+        prepareWrapper(getDefaultBaseUrl()).run()
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
         file("gradle.properties") << """
-    systemProp.http.proxyHost=localhost
-    systemProp.http.proxyPort=${proxyServer.port}
-    systemProp.http.nonProxyHosts=
-"""
+            systemProp.http.proxyHost=$HOST
+            systemProp.http.proxyPort=${proxyServer.port}
+            systemProp.http.nonProxyHosts=
+        """.stripIndent()
         when:
         def result = wrapperExecuter.withTasks('hello').run()
 
@@ -223,16 +249,17 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         and:
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(server.uri.toString())
+        prepareWrapper(getDefaultBaseUrl()).run()
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
         file("gradle.properties") << """
-    systemProp.http.proxyHost=localhost
-    systemProp.http.proxyPort=${proxyServer.port}
-    systemProp.http.nonProxyHosts=
-    systemProp.http.proxyUser=my_user
-    systemProp.http.proxyPassword=my_password
-"""
+            systemProp.http.proxyHost=$HOST
+            systemProp.http.proxyPort=${proxyServer.port}
+            systemProp.http.nonProxyHosts=
+            systemProp.http.proxyUser=my_user
+            systemProp.http.proxyPassword=my_password
+        """.stripIndent()
+
         when:
         def result = wrapperExecuter.withTasks('hello').run()
 
@@ -243,86 +270,36 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         proxyServer.requestCount == 1
     }
 
-    def "downloads wrapper from basic authenticated server and caches"() {
+    def "downloads wrapper via authenticated proxy with bearer token"() {
         given:
-        server.withBasicAuthentication("jdoe", "changeit")
+        proxyServer.start('my_user', 'my_password')
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getDefaultAuthenticatedBaseUrl())
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
-
-        when:
-        result = wrapperExecuter.withTasks('hello').run()
-
-        then:
-        outputContains('hello')
-
-        when:
-        result = wrapperExecuter.withTasks('hello').run()
-
-        then:
-        outputContains('hello')
-    }
-
-    def "downloads wrapper from basic authenticated server using credentials from gradle.properties"() {
-        given:
-        file("gradle.properties") << '''
-            systemProp.gradle.wrapperUser=jdoe
-            systemProp.gradle.wrapperPassword=changeit
-        '''.stripIndent()
 
         and:
-        server.withBasicAuthentication("jdoe", "changeit")
-        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getDefaultBaseUrl())
-        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+        server.withBearerAuthentication(DEFAULT_TOKEN)
+        file("gradle.properties") << """
+    systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
+"""
+        and:
+        prepareWrapper(getDefaultBaseUrl()).run()
 
-        when:
-        result = wrapperExecuter.withTasks('hello').run()
-
-        then:
-        outputContains('hello')
-    }
-
-    def "warns about using basic authentication over insecure connection"() {
-        given:
-        server.withBasicAuthentication("jdoe", "changeit")
-        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getDefaultAuthenticatedBaseUrl())
-        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
-
-        when:
-        result = wrapperExecuter.withTasks('hello').run()
-
-        then:
-        outputContains('Please consider using HTTPS')
-    }
-
-    def "does not leak basic authentication credentials in output"() {
-        given:
-        server.withBasicAuthentication("jdoe", "changeit")
-        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getDefaultAuthenticatedBaseUrl())
-        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+        file("gradle.properties") << """
+            systemProp.http.proxyHost=$HOST
+            systemProp.http.proxyPort=${proxyServer.port}
+            systemProp.http.nonProxyHosts=
+            systemProp.http.proxyUser=my_user
+            systemProp.http.proxyPassword=my_password
+        """.stripIndent()
 
         when:
         def result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        result.assertNotOutput('changeit')
-    }
+        assertThat(result.output, containsString('hello'))
 
-    def "does not leak basic authentication credentials in exception messages"() {
-        given:
-        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getDefaultAuthenticatedBaseUrl())
-        server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
-
-        when:
-        wrapperExecuter.withTasks('hello').run()
-
-        then:
-        def exception = thrown(Exception)
-        !exception.message.contains('changeit')
+        and:
+        proxyServer.requestCount == 1
     }
 
     def "downloads wrapper from basic authenticated http server via authenticated proxy"() {
@@ -331,25 +308,291 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         def proxyPassword = 'proxy_password'
         proxyServer.start(proxyUsername, proxyPassword)
         file("gradle.properties").writeProperties(
-            'systemProp.http.proxyHost': 'localhost',
-            'systemProp.http.proxyPort': proxyServer.port as String,
-            'systemProp.http.nonProxyHosts': '',
-            'systemProp.http.proxyUser': proxyUsername,
-            'systemProp.http.proxyPassword': proxyPassword
+                'systemProp.http.proxyHost': HOST as String,
+                'systemProp.http.proxyPort': proxyServer.port as String,
+                'systemProp.http.nonProxyHosts': '',
+                'systemProp.http.proxyUser': proxyUsername,
+                'systemProp.http.proxyPassword': proxyPassword
         )
 
         and:
-        server.withBasicAuthentication("jdoe", "changeit")
+        server.withBasicAuthentication(USER, PASSWORD)
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getDefaultAuthenticatedBaseUrl())
+        prepareWrapper(getDefaultAuthenticatedBaseUrl()).run()
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
         when:
         result = wrapperExecuter.withTasks('hello').run()
 
         then:
-        outputContains('hello')
+        assertThat(result.output, containsString('hello'))
         and:
         proxyServer.requestCount == 2
+    }
+
+    def "downloads wrapper from bearer authenticated http server via authenticated proxy"() {
+        given:
+        def proxyUsername = 'proxy_user'
+        def proxyPassword = 'proxy_password'
+        proxyServer.start(proxyUsername, proxyPassword)
+        file("gradle.properties").writeProperties(
+                'systemProp.http.proxyHost': HOST as String,
+                'systemProp.http.proxyPort': proxyServer.port as String,
+                'systemProp.http.nonProxyHosts': '',
+                'systemProp.http.proxyUser': proxyUsername,
+                'systemProp.http.proxyPassword': proxyPassword
+        )
+
+        and:
+        server.withBearerAuthentication(DEFAULT_TOKEN)
+        file("gradle.properties") << """
+    systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
+"""
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultAuthenticatedBaseUrl()).run()
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+
+        when:
+        result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        assertThat(result.output, containsString('hello'))
+        and:
+        proxyServer.requestCount == 2
+    }
+
+    def "downloads wrapper from basic authenticated server"() {
+        given:
+        server.withBasicAuthentication(USER, PASSWORD)
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultAuthenticatedBaseUrl()).run()
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+
+        when:
+        result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        assertThat(result.output, containsString('hello'))
+    }
+
+    def "downloads wrapper from bearer authenticated server"() {
+        given:
+        file("gradle.properties") << """
+    systemProp.gradle.localhost.wrapperToken=$DEFAULT_TOKEN
+"""
+        server.withBearerAuthentication(DEFAULT_TOKEN)
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultAuthenticatedBaseUrl()).run()
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+
+        when:
+        result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        assertThat(result.output, containsString('hello'))
+    }
+
+    def "downloads wrapper from basic authenticated server using credentials from gradle.properties"() {
+        given:
+        file("gradle.properties") << """
+            systemProp.gradle.wrapperUser=$USER
+            systemProp.gradle.wrapperPassword=$PASSWORD
+        """.stripIndent()
+
+        and:
+        server.withBasicAuthentication(USER, PASSWORD)
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultBaseUrl()).run()
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+
+        when:
+        result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        assertThat(result.output, containsString('hello'))
+    }
+
+    def "downloads wrapper from bearer token authenticated server using token from gradle.properties"() {
+        given:
+        def token = "apiToken"
+
+        and:
+        file("gradle.properties") << """
+            systemProp.gradle.wrapperToken=$token
+        """.stripIndent()
+
+        and:
+        server.withBearerAuthentication(token)
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultBaseUrl()).run()
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+
+        when:
+        result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        assertThat(result.output, containsString('hello'))
+    }
+
+    def "downloads wrapper from host specific bearer token authenticated server using token from gradle.properties"() {
+        given:
+        def token = "apiToken"
+
+        and:
+        file("gradle.properties") << """
+            systemProp.gradle.wrapperToken=INVALID
+            systemProp.gradle.${HOST}.wrapperToken=$token
+        """.stripIndent()
+
+        and:
+        server.withBearerAuthentication(token)
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultBaseUrl()).run()
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+
+        when:
+        result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        assertThat(result.output, containsString('hello'))
+    }
+
+    def "warns about using basic authentication over insecure connection"() {
+        given:
+        server.withBasicAuthentication(USER, PASSWORD)
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultAuthenticatedBaseUrl()).run()
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+
+        when:
+        result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        assertThat(result.output, containsString('Please consider using HTTPS'))
+    }
+
+    def "warns about using bearer token authentication over insecure connection"() {
+        given:
+        def token = "apiToken"
+
+        and:
+        file("gradle.properties") << """
+            systemProp.gradle.wrapperToken=$token
+        """.stripIndent()
+
+        and:
+        server.withBearerAuthentication(token)
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultBaseUrl()).run()
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+
+        when:
+        result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        assertThat(result.output, containsString('Please consider using HTTPS'))
+    }
+
+    def "does not leak basic authentication credentials in output"() {
+        given:
+        server.withBasicAuthentication(USER, PASSWORD)
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultAuthenticatedBaseUrl()).run()
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+
+        when:
+        def result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        result.assertNotOutput(PASSWORD)
+    }
+
+    def "does not leak bearer token authentication credentials in output"() {
+        given:
+        def token = "apiToken"
+
+        and:
+        file("gradle.properties") << """
+            systemProp.gradle.wrapperToken=$token
+        """.stripIndent()
+
+        and:
+        server.withBearerAuthentication(token)
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultBaseUrl()).run()
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
+
+        when:
+        def result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        result.assertNotOutput('apiToken')
+    }
+
+    def "does not leak basic authentication credentials in exception messages"() {
+        given:
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultAuthenticatedBaseUrl()).run()
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
+
+        when:
+        wrapperExecuter.withTasks('hello').run()
+
+        then:
+        def exception = thrown(Exception)
+        !exception.message.contains(PASSWORD)
+    }
+
+    def "does not leak bearer token authentication credentials in exception messages"() {
+        given:
+        def token = "apiToken"
+
+        and:
+        file("gradle.properties") << """
+            systemProp.gradle.wrapperToken=$token
+        """.stripIndent()
+
+        and:
+        server.withBearerAuthentication(token)
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        prepareWrapper(getDefaultBaseUrl()).run()
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
+
+        when:
+        wrapperExecuter.withTasks('hello').run()
+
+        then:
+        def exception = thrown(Exception)
+        !exception.message.contains('apiToken')
+    }
+
+    def "fails when basic authentication credentials incorrect"() {
+        given:
+        server.withBasicAuthentication("otherUser", "otherPassword")
+
+        when:
+        def failure = prepareWrapper(getDefaultAuthenticatedBaseUrl()).runWithFailure()
+
+        then:
+        failure.assertHasCause("Test of distribution url ${getDefaultAuthenticatedBaseUrl()}/$TEST_DISTRIBUTION_URL failed.")
+    }
+
+    def "fails when bearer token authentication credentials incorrect"() {
+        given:
+        def token = "apiToken"
+
+        and:
+        file("gradle.properties") << """
+            systemProp.gradle.wrapperToken=$token
+        """.stripIndent()
+
+        and:
+        server.withBearerAuthentication("otherToken")
+
+        when:
+        def failure = prepareWrapper(getDefaultAuthenticatedBaseUrl()).runWithFailure()
+
+        then:
+        failure.assertHasCause("Test of distribution url ${getDefaultAuthenticatedBaseUrl()}/$TEST_DISTRIBUTION_URL failed.")
     }
 }

@@ -98,7 +98,7 @@ class ConfigurationCacheDevelocityPluginIntegrationTest extends AbstractIntegrat
         configurationCache.assertStateStored()
         configurationCache.problems.assertResultHasProblems(result) {
             // TODO:configuration-cache check problem details
-            withTotalProblemsCount(1)
+            totalProblemsCount = 1
         }
         postBuildOutputContains 'Build scan written to'
     }
@@ -131,7 +131,7 @@ class ConfigurationCacheDevelocityPluginIntegrationTest extends AbstractIntegrat
         then:
         configurationCache.assertStateStored()
         configurationCache.problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(0)
+            totalProblemsCount = 0
         }
         postBuildOutputContains 'Build scan written to'
 

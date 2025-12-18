@@ -351,4 +351,77 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         then:
         sourcesPresentAndNoTestsFound()
     }
+
+    def "when given class-based filters with no class-based tests, task fails (filter: #filterType)"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+
+                        filter {
+                            ${filterType}TestsMatching "ClassBasedFilter.methodName"
+                        }
+                    }
+                }
+            }
+        """
+
+        // Add non-class-based tests so that the task runs
+        writeTestDefinitions(DEFAULT_DEFINITIONS_LOCATION)
+
+        when:
+        fails("test")
+
+        then:
+        failureDescriptionContains("Execution failed for task ':test'.")
+        failureCauseContains("${filterType.capitalize()} pattern 'ClassBasedFilter.methodName' is class-based, but no class-based tests were found. Please remove class-based $filterType patterns when running only non-class-based tests.")
+
+        where:
+        filterType << ["include", "exclude"]
+    }
+
+    def "when given non-class-based filters with no non-class-based tests, task fails (filter: #filterType)"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        filter {
+                            ${filterType}TestsMatching "/PathBasedFilter/.*/myTest.xml"
+                        }
+                    }
+                }
+            }
+        """
+
+        writeTestClasses()
+
+        when:
+        fails("test")
+
+        then:
+        failureDescriptionContains("Execution failed for task ':test'.")
+        failureCauseContains("${filterType.capitalize()} pattern '/PathBasedFilter/.*/myTest.xml' is path-based, but no non-class-based tests were found. Please remove path-based $filterType patterns when running only class-based tests.")
+
+        where:
+        filterType << ["include", "exclude"]
+    }
 }

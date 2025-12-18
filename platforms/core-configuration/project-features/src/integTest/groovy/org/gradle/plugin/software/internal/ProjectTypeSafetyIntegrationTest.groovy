@@ -224,6 +224,8 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
     }
 
     void assertThatDeclaredValuesAreSetProperly() {
-        outputContains("""id = test\nbar = baz""")
+        outputContains("definition id = test")
+        outputContains("definition foo.bar = baz")
+        outputContains("model id = test")
     }
 }

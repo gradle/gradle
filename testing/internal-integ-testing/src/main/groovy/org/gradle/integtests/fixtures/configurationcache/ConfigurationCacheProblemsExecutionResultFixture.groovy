@@ -33,20 +33,23 @@ final class ConfigurationCacheProblemsExecutionResultFixture extends Configurati
         super(rootDir)
     }
 
-    void assertFailureHasError(
-        ExecutionFailure failure,
-        String error,
-        @DelegatesTo(value = HasConfigurationCacheErrorSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
-    ) {
-        assertFailureHasError(failure, newErrorSpec(error, ConfigureUtil.configureUsing(specClosure)))
+    ConfigurationCacheReportFixture htmlReport(ExecutionResult result) {
+        return super.htmlReport(result.output)
     }
 
-    void assertFailureHasError(
-        ExecutionFailure failure,
-        HasConfigurationCacheErrorSpec spec
-    ) {
-        assertOutputHasError(failure.output, spec)
-        assertFailureDescription(failure, failureDescriptionMatcherForError(spec))
+    ConfigurationCacheReportFixture htmlReport(ExecutionFailure failure) {
+        return super.htmlReport(failure.error)
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated use {@link #htmlReport(ExecutionResult)} or {@link #htmlReport(ExecutionFailure)}
+     */
+    @Override
+    @Deprecated
+    ConfigurationCacheReportFixture htmlReport(String output) {
+        return super.htmlReport(output)
     }
 
     void assertFailureHasProblems(
@@ -62,7 +65,8 @@ final class ConfigurationCacheProblemsExecutionResultFixture extends Configurati
     ) {
         assertNoProblemsSummary(failure.output)
         assertFailureDescription(failure, failureDescriptionMatcherForProblems(spec))
-        assertProblemsHtmlReport(failure.error, rootDir, spec)
+
+        htmlReport(failure).assertContents(spec)
     }
 
     void assertFailureHasTooManyProblems(
@@ -78,12 +82,13 @@ final class ConfigurationCacheProblemsExecutionResultFixture extends Configurati
     ) {
         assertNoProblemsSummary(failure.output)
         assertFailureDescription(failure, failureDescriptionMatcherForTooManyProblems(spec))
-        assertProblemsHtmlReport(failure.error, rootDir, spec)
+
+        htmlReport(failure).assertContents(spec)
     }
 
     void assertResultHasProblems(
         ExecutionResult result,
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure = {}
+        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
         assertResultHasProblems(result, newProblemsSpec(ConfigureUtil.configureUsing(specClosure)))
     }
@@ -94,27 +99,12 @@ final class ConfigurationCacheProblemsExecutionResultFixture extends Configurati
     ) {
         if (spec.hasProblems()) {
             assertHasConsoleSummary(result.output, spec)
-            assertProblemsHtmlReport(result.output, rootDir, spec)
         } else {
             assertNoProblemsSummary(result.output)
         }
-        // TODO:bamboo avoid reading jsModel more than once when asserting on problems AND inputs AND incompatible tasks
-        assertInputs(result.output, rootDir, spec)
-        assertIncompatibleTasks(result.output, rootDir, spec)
-    }
 
-    void assertFailureHtmlReportHasProblems(
-        ExecutionFailure failure,
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
-    ) {
-        assertHtmlReportHasProblems(failure.error, newProblemsSpec(ConfigureUtil.configureUsing(specClosure)))
-    }
-
-    void assertResultHtmlReportHasProblems(
-        ExecutionResult result,
-        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
-    ) {
-        assertHtmlReportHasProblems(result.output, newProblemsSpec(ConfigureUtil.configureUsing(specClosure)))
+        // Don't let Groovy to pick up more precise overload, we don't want to use htmlReport(ExecutionFailure) here.
+        htmlReport(result as ExecutionResult).assertContents(spec)
     }
 
     void assertResultConsoleSummaryHasNoProblems(ExecutionResult result) {

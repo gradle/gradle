@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing;
+package org.gradle.api.tasks.testing;
 
+import org.gradle.api.Incubating;
 import org.jspecify.annotations.NullMarked;
 
-import java.time.Instant;
+import java.util.Map;
 
 /**
- * Metadata captured during the execution of a test.
+ * Key-value data published by a test.
  *
  * @since 9.4.0
  */
+@Incubating
 @NullMarked
-public interface TestMetadataEvent {
+public interface TestKeyValueDataEvent extends TestMetadataEvent {
     /**
-     * The time the message was logged.
-     * <p>
-     * Producers can supply the same value as the test start time to indicate that the metadata is "timeless", such
-     * as environment information that isn't tied to a specific point during test execution.
+     * Returns the key-value pairs.
      *
-     * @return log time
+     * @return key-value pairs
+     * @since 9.4.0
      */
-    Instant getLogTime();
+    Map<String, String> getValues();
 }
