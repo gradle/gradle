@@ -32,7 +32,7 @@ internal
 class SupertypeTypeDiscovery : AnalysisSchemaComponent {
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
         object : TypeDiscovery {
-            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
+            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
                 withAllPotentiallyDeclarativeSupertypes(typeDiscoveryServices.host, kClass)
         }
     )
@@ -40,8 +40,8 @@ class SupertypeTypeDiscovery : AnalysisSchemaComponent {
 
 
 internal
-fun withAllPotentiallyDeclarativeSupertypes(host: SchemaBuildingHost, kClass: KClass<*>) =
+fun withAllPotentiallyDeclarativeSupertypes(host: SchemaBuildingHost, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
     host.declarativeSupertypesHierarchy(kClass)
         // Include visible as well as hidden types, as we might still need explicitly exposed members of the hidden types. Just exclude incompatible types.
         .filter { it !is MaybeDeclarativeClassInHierarchy.NonDeclarativeSuperclassInHierarchy }
-        .map { it.superClass }
+        .map { TypeDiscovery.DiscoveredClass(it.superClass, it is MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy) }

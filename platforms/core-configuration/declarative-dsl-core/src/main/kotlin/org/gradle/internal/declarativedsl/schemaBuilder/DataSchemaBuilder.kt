@@ -492,7 +492,12 @@ class DataSchemaBuilder(
         val allTypesToVisit = buildSet {
             fun visit(type: KClass<*>) {
                 if (add(type)) {
-                    typeDiscovery.getClassesToVisitFrom(typeDiscoveryServices, type).forEach(::visit)
+                    typeDiscovery.getClassesToVisitFrom(typeDiscoveryServices, type)
+                        .forEach {
+                            if (!it.isHidden) {
+                                visit(it.kClass)
+                            }
+                        }
                 }
             }
             types.forEach(::visit)

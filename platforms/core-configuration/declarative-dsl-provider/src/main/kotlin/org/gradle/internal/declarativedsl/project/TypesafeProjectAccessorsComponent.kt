@@ -103,9 +103,9 @@ class ProjectPropertyAccessorRuntimeResolver : RuntimePropertyResolver {
 
 private
 class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> {
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> {
         return if (kClass.isGeneratedAccessors()) {
-            allClassesReachableFromGetters(typeDiscoveryServices.host, kClass)
+            allClassesReachableFromGetters(typeDiscoveryServices.host, kClass).map { TypeDiscovery.DiscoveredClass(it, false) }
         } else {
             emptyList()
         }

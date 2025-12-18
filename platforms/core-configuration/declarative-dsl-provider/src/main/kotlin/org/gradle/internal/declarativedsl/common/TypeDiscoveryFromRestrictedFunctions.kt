@@ -46,12 +46,15 @@ class FunctionLambdaTypeDiscovery(
      * Collect everything that potentially looks like types configured by the lambdas.
      * TODO: this may be excessive
      */
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
         typeDiscoveryServices.host.classMembers(kClass).potentiallyDeclarativeMembers
             .filter { it.kind == MemberKind.FUNCTION }
             .mapNotNullTo(mutableSetOf()) { fn ->
-                fn.parameters.lastOrNull()?.let {
-                    configureLambdas.getTypeConfiguredByLambda(it.type.toKType())?.classifier as? KClass<*>
+                (fn.parameters.lastOrNull()?.type?.toKType())
+                    ?.let(configureLambdas::getTypeConfiguredByLambda)
+                    ?.classifier
+                    ?.let { it as? KClass<*> }
+                    ?.let { TypeDiscovery.DiscoveredClass(it, isHidden = false)
                 }
             }
 }
@@ -62,9 +65,10 @@ class FunctionReturnTypeDiscovery : TypeDiscovery {
     /**
      * Collects everything that restricted functions mention as return values.
      */
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
         typeDiscoveryServices.host.classMembers(kClass).potentiallyDeclarativeMembers
             .mapNotNullTo(mutableSetOf()) { fn ->
-                fn.returnType.classifier as? KClass<*>
+                (fn.returnType.classifier as? KClass<*>)
+                    ?.let { TypeDiscovery.DiscoveredClass(it, isHidden = false) }
             }
 }

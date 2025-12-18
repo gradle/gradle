@@ -129,13 +129,13 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
 
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
         object : TypeDiscovery {
-            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
+            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
                 containerProperties(typeDiscoveryServices.host, kClass).flatMap { property ->
                     listOfNotNull(
                         property.elementType.classifier, // the element type
                         property.containerType.classifier.takeIf { it != NamedDomainObjectContainer::class } // the container type, if it is a proper subtype of NDOC<T>
                     )
-                }.filterIsInstance<KClass<*>>()
+                }.filterIsInstance<KClass<*>>().map { TypeDiscovery.DiscoveredClass(it, false) }
         }
     )
 

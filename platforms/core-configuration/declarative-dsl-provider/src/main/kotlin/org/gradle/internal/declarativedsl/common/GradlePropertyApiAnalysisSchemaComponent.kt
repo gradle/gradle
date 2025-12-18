@@ -123,9 +123,10 @@ class GradlePropertyApiPropertyExtractor : PropertyExtractor {
 
 private
 class PropertyReturnTypeDiscovery : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
         typeDiscoveryServices.propertyExtractor.extractProperties(typeDiscoveryServices.host, kClass).mapNotNullTo(mutableSetOf()) {
-            propertyValueType(it.originalReturnType).classifier as? KClass<*>
+            (propertyValueType(it.originalReturnType).classifier as? KClass<*>)
+                ?.let { kClass -> TypeDiscovery.DiscoveredClass(kClass, false) }
         }
 }
 
