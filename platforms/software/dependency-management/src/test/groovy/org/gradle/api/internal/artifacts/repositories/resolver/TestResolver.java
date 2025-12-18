@@ -37,7 +37,7 @@ public class TestResolver extends ExternalResourceResolver {
     ExternalResourceArtifactResolver artifactResolver;
 
     protected TestResolver(UrlRepositoryDescriptor descriptor, boolean local, ExternalResourceRepository repository, CacheAwareExternalResourceAccessor cachingResourceAccessor, LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, FileStore<ModuleComponentArtifactIdentifier> artifactFileStore, ImmutableMetadataSources metadataSources, MetadataArtifactProvider metadataArtifactProvider) {
-        super(descriptor, local, repository, cachingResourceAccessor, locallyAvailableResourceFinder, artifactFileStore, metadataSources, metadataArtifactProvider, null, null, null, TestUtil.getChecksumService());
+        super(descriptor, local, repository, cachingResourceAccessor, locallyAvailableResourceFinder, artifactFileStore, metadataSources, metadataArtifactProvider, null, null, null, TestUtil.getChecksumService(), false);
     }
 
     @Override

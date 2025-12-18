@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
+import org.apache.http.NoHttpResponseException
 import org.apache.http.conn.HttpHostConnectException
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
@@ -46,7 +47,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
     private static final String REPOSITORY_ID = 'abc'
     def delegate = Mock(ModuleComponentRepositoryAccess)
-    def repositoryBlacklister = Mock(RepositoryDisabler)
+    def repositoryBlacklister = new ConnectionFailureRepositoryDisabler()
 
     @Shared
     def runtimeError = new RuntimeException('Something went wrong')
@@ -57,6 +58,8 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
     @Shared
     def cannotConnect = new HttpHostConnectException(null, null)
     @Shared
+    def noResponse = new NoHttpResponseException('No response from server')
+    @Shared
     def missing = status(404)
     @Shared
     def clientTimeout = status(408)
@@ -66,12 +69,14 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
     def forbidden = status(403)
     @Shared
     def unauthorized = status(401)
+    @Shared
+    def unknownHost = new UnknownHostException()
 
     @Subject
     ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess access
 
     private ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess createAccess(int maxRetries = 1, int backoff = 0) {
-        new ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess(delegate, 'abc', repositoryBlacklister, maxRetries, backoff, 'abc')
+        new ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess(delegate, 'abc', repositoryBlacklister, maxRetries, backoff, 'abc', false)
     }
 
     private static HttpErrorStatusCodeException status(int statusCode) {
@@ -92,24 +97,23 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         def result = Mock(BuildableModuleVersionListingResolveResult)
 
         when: 'repo is not disabled'
-        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
         access.listModuleVersions(selector, DefaultComponentOverrideMetadata.EMPTY, result)
 
         then: 'work is delegated'
         1 * delegate.listModuleVersions(selector, _, result)
 
         when: 'exception is thrown in resolution'
-        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         effectiveRetries * delegate.listModuleVersions(selector, _, result) >> { throw exception }
         access.listModuleVersions(selector, DefaultComponentOverrideMetadata.EMPTY, result)
 
-        then: 'resolution fails and repo is disabled'
-        1 * repositoryBlacklister.tryDisableRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        then: 'resolution fails and repo may be disabled'
         1 * result.failed(_ as ModuleVersionResolveException)
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) == disablesRepo
+
+        // Continue only if repo is marked disabled
+        if (!disablesRepo) { return }
 
         when: 'repo is already disabled'
-        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
-        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         access.listModuleVersions(selector, DefaultComponentOverrideMetadata.EMPTY, result)
 
         then: 'resolution fails directly'
@@ -117,7 +121,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         0 * delegate._
 
         where:
-        [maxRetries, exception, effectiveRetries] << retryCombinations()
+        [maxRetries, exception, effectiveRetries, disablesRepo] << retryCombinations()
     }
 
     @Unroll("can resolve component meta data (max retries = #maxRetries, exception=#exception)")
@@ -130,24 +134,23 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         def result = Mock(BuildableModuleComponentMetaDataResolveResult)
 
         when: 'repo is not disabled'
-        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
         access.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
 
         then: 'work is delegated'
         1 * delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
 
         when: 'exception is thrown in resolution'
-        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         effectiveRetries * delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result) >> { throw exception }
         access.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
 
-        then: 'resolution fails and repo is disabled'
-        1 * repositoryBlacklister.tryDisableRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        then: 'resolution fails and repo may be disabled'
         1 * result.failed(_ as ModuleVersionResolveException)
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) == disablesRepo
+
+        // Continue only if repo is marked disabled
+        if (!disablesRepo) { return }
 
         when: 'repo is already disabled'
-        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
-        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         access.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result)
 
         then: 'resolution fails directly'
@@ -155,7 +158,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         0 * delegate._
 
         where:
-        [maxRetries, exception, effectiveRetries] << retryCombinations()
+        [maxRetries, exception, effectiveRetries, disablesRepo] << retryCombinations()
     }
 
     @Unroll("can resolve artifacts with type (max retries = #maxRetries, exception=#exception)")
@@ -170,24 +173,23 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         component.getId() >> componentId
 
         when: 'repo is not disabled'
-        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
         access.resolveArtifactsWithType(component, artifactType, result)
 
         then: 'work is delegated'
         1 * delegate.resolveArtifactsWithType(component, artifactType, result)
 
         when: 'exception is thrown in resolution'
-        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         effectiveRetries * delegate.resolveArtifactsWithType(component, artifactType, result) >> { throw exception }
         access.resolveArtifactsWithType(component, artifactType, result)
 
-        then: 'resolution fails and repo is disabled'
-        1 * repositoryBlacklister.tryDisableRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        then: 'resolution fails and repo may be disabled'
         1 * result.failed(_ as ArtifactResolveException)
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) == disablesRepo
+
+        // Continue only if repo is marked disabled
+        if (!disablesRepo) { return }
 
         when: 'repo is already disabled'
-        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
-        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         access.resolveArtifactsWithType(component, artifactType, result)
 
         then: 'resolution fails directly'
@@ -195,7 +197,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         0 * delegate._
 
         where:
-        [maxRetries, exception, effectiveRetries] << retryCombinations()
+        [maxRetries, exception, effectiveRetries, disablesRepo] << retryCombinations()
     }
 
     @Unroll("can resolve artifact (max retries = #maxRetries, exception=#exception)")
@@ -210,25 +212,23 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         artifact.getId() >> artifactId
 
         when: 'repo is not disabled'
-        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
         access.resolveArtifact(artifact, moduleSources, result)
-        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
 
         then: 'work is delegated'
         1 * delegate.resolveArtifact(artifact, moduleSources, result)
 
         when: 'exception is thrown in resolution'
-        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         effectiveRetries * delegate.resolveArtifact(artifact, moduleSources, result) >> { throw exception }
         access.resolveArtifact(artifact, moduleSources, result)
 
-        then: 'resolution fails and repo is disabled'
-        1 * repositoryBlacklister.tryDisableRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        then: 'resolution fails and repo may be disabled'
         1 * result.failed(_ as ArtifactResolveException)
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) == disablesRepo
+
+        // Continue only if repo is marked disabled
+        if (!disablesRepo) { return }
 
         when: 'repo is already disabled'
-        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
-        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         access.resolveArtifact(artifact, moduleSources, result)
 
         then: 'resolution fails directly'
@@ -236,7 +236,32 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         0 * delegate._
 
         where:
-        [maxRetries, exception, effectiveRetries] << retryCombinations()
+        [maxRetries, exception, effectiveRetries, disablesRepo] << retryCombinations()
+    }
+
+    @Unroll
+    def "does not block repo immediately when receives #desc"() {
+        access = createAccess(1)
+
+        given:
+        def artifact = Mock(ComponentArtifactMetadata)
+        def artifactId = Mock(ComponentArtifactIdentifier)
+        def moduleSources = ImmutableModuleSources.of(Mock(ModuleSource))
+        def result = Mock(BuildableArtifactFileResolveResult)
+        artifact.getId() >> artifactId
+        delegate.resolveArtifact(artifact, moduleSources, result) >> { throw exception }
+
+        when: 'repo is not disabled'
+        access.resolveArtifact(artifact, moduleSources, result)
+
+        then: 'resolution fails and repo is not disabled'
+        1 * result.failed(_ as ArtifactResolveException)
+        !repositoryBlacklister.isDisabled(REPOSITORY_ID)
+
+        where:
+        desc | exception
+        "unauthorized (401)" | unauthorized
+        "forbidden (403)" | forbidden
     }
 
     @Unroll
@@ -249,20 +274,15 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         def moduleSources = ImmutableModuleSources.of(Mock(ModuleSource))
         def result = Mock(BuildableArtifactFileResolveResult)
         artifact.getId() >> artifactId
-        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         delegate.resolveArtifact(artifact, moduleSources, result) >> { throw exception }
-        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
 
         when: 'repo is not disabled'
         access.resolveArtifact(artifact, moduleSources, result)
 
         then: 'resolution fails and repo is disabled'
-        1 * repositoryBlacklister.tryDisableRepository(REPOSITORY_ID, { hasCause(it, exception) })
         1 * result.failed(_ as ArtifactResolveException)
 
         when: 'repo is already disabled'
-        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
-        repositoryBlacklister.getDisabledReason(REPOSITORY_ID) >> Optional.of(exception)
         access.resolveArtifact(artifact, moduleSources, result)
 
         then: 'resolution fails directly'
@@ -271,33 +291,37 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
         where:
         desc | exception
-        "unauthorized (401)" | unauthorized
-        "forbidden (403)" | forbidden
+        "unknown host" | unknownHost
     }
 
+    /**
+     * Generates combinations of maxRetries, exception, effectiveRetries and whether the repository is disabled for testing.
+     */
     List<List<?>> retryCombinations() {
         def retries = []
         (1..3).each { ret ->
             // no retries on runtime errors, missing resources, authentication errors
-            retries << [ret, runtimeError, 1]
-            retries << [ret, missing, 1]
-            retries << [ret, forbidden, 1]
-            retries << [ret, unauthorized, 1]
-            // retries on connect timeouts, too many requests, client timeouts
-            retries << [ret, connectTimeout, ret]
-            retries << [ret, cannotConnect, ret]
-            retries << [ret, tooManyRequests, ret]
-            retries << [ret, clientTimeout, ret]
-            retries << [ret, socketError, ret]
+            retries << [ret, runtimeError, 1, false]
+            retries << [ret, missing, 1, false]
+            retries << [ret, forbidden, 1, false]
+            retries << [ret, unauthorized, 1, false]
+            retries << [ret, unknownHost, 1, true]
+            // retries on connect timeouts, too many requests, client timeouts - ends up disabling the repository
+            retries << [ret, connectTimeout, ret, true]
+            retries << [ret, cannotConnect, ret, true]
+            retries << [ret, tooManyRequests, ret, true]
+            retries << [ret, clientTimeout, ret, true]
+            retries << [ret, socketError, ret, true]
+            retries << [ret, noResponse, ret, true]
             // retries on server errors
             if (ret < 3) {
                 // testing 1 and 2 is good enough coverage
                 (500..<600).each { code ->
-                    retries << [ret, status(code), ret]
+                    retries << [ret, status(code), ret, true]
                 }
                 // no retries on arbitrary codes
                 (100..<200).each { code ->
-                    retries << [ret, status(code), 1]
+                    retries << [ret, status(code), 1, false]
                 }
             }
         }

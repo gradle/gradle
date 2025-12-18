@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.artifacts.repositories.UrlArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.UrlArtifactRepository.getAllowInsecureContinueWhenDisabled()",
+            "acceptation": "No need to incubate",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.JavaPluginExtension",
             "member": "Method org.gradle.api.plugins.JavaPluginExtension.sourceSets(org.gradle.api.Action)",
             "acceptation": "faulty @since detection",
