@@ -51,7 +51,6 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.action.InstantiatingAction;
@@ -72,6 +71,7 @@ import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.jspecify.annotations.NonNull;
 
+import javax.inject.Inject;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -79,7 +79,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository<MavenRepositoryDescriptor> implements MavenArtifactRepository, ResolutionAwareRepository {
+public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository<MavenRepositoryDescriptor> implements MavenArtifactRepository, ResolutionAwareRepository {
     private static final DefaultMavenPomMetadataSource.MavenMetadataValidator NO_OP_VALIDATION_SERVICES = (repoName, metadata, artifactResolver) -> true;
 
     private final Transformer<String, MavenArtifactRepository> describer;
@@ -99,29 +99,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final MavenMetadataSources metadataSources = new MavenMetadataSources();
     private final InstantiatorFactory instantiatorFactory;
 
-    public DefaultMavenArtifactRepository(FileResolver fileResolver,
-                                          RepositoryTransportFactory transportFactory,
-                                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                          InstantiatorFactory instantiatorFactory,
-                                          FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                          MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
-                                          GradleModuleMetadataParser metadataParser,
-                                          AuthenticationContainer authenticationContainer,
-                                          FileStore<String> resourcesFileStore,
-                                          FileResourceRepository fileResourceRepository,
-                                          MavenMutableModuleMetadataFactory metadataFactory,
-                                          IsolatableFactory isolatableFactory,
-                                          ObjectFactory objectFactory,
-                                          DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
-                                          ChecksumService checksumService,
-                                          ProviderFactory providerFactory,
-                                          VersionParser versionParser
-    ) {
-        this(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory,
-            artifactFileStore, pomParser, metadataParser, authenticationContainer,
-            resourcesFileStore, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, providerFactory, versionParser);
-    }
-
+    @Inject
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
                                           FileResolver fileResolver,
                                           RepositoryTransportFactory transportFactory,
@@ -193,11 +171,6 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     @Override
-    public Property<Boolean> getAllowInsecureContinueWhenDisabled() {
-        return urlArtifactRepository.getAllowInsecureContinueWhenDisabled();
-    }
-
-    @Override
     public Set<URI> getArtifactUrls() {
         Set<URI> result = new LinkedHashSet<>();
         for (Object additionalUrl : additionalUrls) {
@@ -265,7 +238,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), resourcesFileStore);
         InstantiatingAction<ComponentMetadataSupplierDetails> supplier = createComponentMetadataSupplierFactory(injector, isolatableFactory);
         InstantiatingAction<ComponentMetadataListerDetails> lister = createComponentMetadataVersionLister(injector, isolatableFactory);
-        return new MavenResolver(getDescriptor(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister, injector, checksumService, urlArtifactRepository.getAllowInsecureContinueWhenDisabled().getOrElse(false));
+        return new MavenResolver(getDescriptor(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister, injector, checksumService, getAllowInsecureContinueWhenDisabled().get());
     }
 
     @Override
@@ -351,7 +324,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return new DefaultMavenRepositoryContentDescriptor(this::getDisplayName, versionParser);
     }
 
-    private static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {
+    static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {
         @Override
         public String transform(MavenArtifactRepository repository) {
             URI url = repository.getUrl();
