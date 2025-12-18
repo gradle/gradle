@@ -102,7 +102,6 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "%s: A plugin descriptor was found for %s but it was invalid.";
     static final String NO_DESCRIPTOR_WARNING_MESSAGE = "%s: No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS;
     static final String DECLARED_PLUGIN_MISSING_MESSAGE = "%s: Could not find plugin descriptor of %s at META-INF/" + GRADLE_PLUGINS + "/%s.properties";
-    static final String DECLARATION_MISSING_ID_MESSAGE = "Missing id for %s";
     static final String DECLARATION_MISSING_IMPLEMENTATION_MESSAGE = "Missing implementationClass for %s";
     static final String EXTENSION_NAME = "gradlePlugin";
     static final String PLUGIN_UNDER_TEST_METADATA_TASK_NAME = "pluginUnderTestMetadata";
@@ -260,9 +259,6 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     private void validatePluginDeclarations(Project project, GradlePluginDevelopmentExtension extension) {
         project.afterEvaluate(evaluatedProject -> {
             for (PluginDeclaration declaration : extension.getPlugins()) {
-                if (declaration.getId() == null) {
-                    throw new IllegalArgumentException(String.format(DECLARATION_MISSING_ID_MESSAGE, declaration.getName()));
-                }
                 if (declaration.getImplementationClass() == null) {
                     throw new IllegalArgumentException(String.format(DECLARATION_MISSING_IMPLEMENTATION_MESSAGE, declaration.getName()));
                 }

@@ -20,6 +20,7 @@ import org.gradle.api.Named;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.NonNull;
 
 /**
  * Describes a Gradle plugin under development.
@@ -44,9 +45,14 @@ public abstract class PluginDeclaration implements Named {
         return name;
     }
 
+    /**
+     * Returns the plugin ID.
+     * Defaults to the name of this plugin declaration.
+     */
     @ToBeReplacedByLazyProperty
+    @NonNull
     public String getId() {
-        return id;
+        return id != null ? id : name;
     }
 
     public void setId(String id) {
