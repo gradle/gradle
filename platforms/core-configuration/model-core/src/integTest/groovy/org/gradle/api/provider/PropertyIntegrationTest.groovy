@@ -156,7 +156,7 @@ task thing(type: SomeTask) {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
 

@@ -44,7 +44,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         then:
         failure.assertHasFileName("Build file '$buildFile'")
         failure.assertHasLineNumber(5)
-        failure.assertHasFailure("Execution failed for task ':some'.") {
+        failure.assertHasFailure("Execution failed for task ':some' (registered in build file 'build.gradle').") {
             it.assertHasCause("Invocation of 'buildDir' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
         }
         outputDoesNotContain("UNREACHABLE")
@@ -80,7 +80,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         then:
         failure.assertHasFileName("Build file '$buildFile'")
         failure.assertHasLineNumber(5)
-        failure.assertHasFailure("Execution failed for task ':some'.") {
+        failure.assertHasFailure("Execution failed for task ':some' (registered in build file 'build.gradle').") {
             it.assertHasCause("Invocation of 'version' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
         }
         outputDoesNotContain("UNREACHABLE")
@@ -115,7 +115,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         then:
         failure.assertHasFileName("Build file '$buildFile'")
         failure.assertHasLineNumber(4)
-        failure.assertHasFailure("Execution failed for task ':some'.") {
+        failure.assertHasFailure("Execution failed for task ':some' (registered in build file 'build.gradle').") {
             it.assertHasCause("Invocation of 'file' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
         }
         outputDoesNotContain("UNREACHABLE")
@@ -148,7 +148,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         then:
         failure.assertHasFileName("Build file '$buildFile'")
         failure.assertHasLineNumber(6)
-        failure.assertHasFailure("Execution failed for task ':some'.") {
+        failure.assertHasFailure("Execution failed for task ':some' (registered in build file 'build.gradle').") {
             it.assertHasCause("Invocation of 'buildDir' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
         }
         outputDoesNotContain("UNREACHABLE")
@@ -180,7 +180,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         then:
         failure.assertHasFileName("Settings file '$settingsFile'")
         failure.assertHasLineNumber(6)
-        failure.assertHasFailure("Execution failed for task ':some'.") {
+        failure.assertHasFailure("Execution failed for task ':some' (registered in settings file 'settings.gradle').") {
             it.assertHasCause("Invocation of 'rootProject' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
         }
         outputDoesNotContain("UNREACHABLE")
@@ -214,7 +214,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         then:
         failure.assertHasFileName("Initialization script '$initScript'")
         failure.assertHasLineNumber(6)
-        failure.assertHasFailure("Execution failed for task ':some'.") {
+        failure.assertHasFailure("Execution failed for task ':some' (registered in initialization script 'init.gradle').") {
             it.assertHasCause("Invocation of 'gradleVersion' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
         }
         outputDoesNotContain("UNREACHABLE")
@@ -275,7 +275,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         then:
         failure.assertHasFileName("Build file '$buildFile'")
         failure.assertHasLineNumber(4)
-        failure.assertHasFailure("Execution failed for task ':some'.") {
+        failure.assertHasFailure("Execution failed for task ':some' (registered in build file 'build.gradle').") {
             it.assertHasCause("Invocation of 'buildDir' references a Gradle script object from a Groovy closure at execution time, which is unsupported with the configuration cache.")
         }
         outputDoesNotContain("UNREACHABLE")

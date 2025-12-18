@@ -77,26 +77,26 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
         }
 
         where:
-        filtering                           | configAction        | realizesBuiltInTasks  | realizesExplicitTasks
+        filtering                           | configAction       | realizesBuiltInTasks | realizesExplicitTasks
 
-        "named { it == \"help\" }"          | "all {}"            | true                  | true
-        "named { it == \"help\" }"          | "forEach {}"        | true                  | false
-        "named { it == \"help\" }"          | "configureEach {}"  | false                 | false
-        "named { it == \"help\" }"          | "toList()"          | true                  | false
-        "named { it == \"help\" }"          | "iterator()"        | true                  | false
+        "named { it == \"help\" }"          | "all {}"           | true                 | true
+        "named { it == \"help\" }"          | "forEach {}"       | true                 | false
+        "named { it == \"help\" }"          | "configureEach {}" | false                | false
+        "named { it == \"help\" }"          | "toList()"         | true                 | false
+        "named { it == \"help\" }"          | "iterator()"       | true                 | false
         // TODO: no other tasks should be realized, that was the intent of having the new `named()` method
 
-        "matching { it.name == \"help\" }"  | "all {}"            | true                  | true
-        "matching { it.name == \"help\" }"  | "forEach {}"        | true                  | false
-        "matching { it.name == \"help\" }"  | "configureEach {}"  | false                 | false
-        "matching { it.name == \"help\" }"  | "toList()"          | true                  | false
-        "matching { it.name == \"help\" }"  | "iterator()"        | true                  | false
+        "matching { it.name == \"help\" }"  | "all {}"           | true                 | true
+        "matching { it.name == \"help\" }"  | "forEach {}"       | true                 | false
+        "matching { it.name == \"help\" }"  | "configureEach {}" | false                | false
+        "matching { it.name == \"help\" }"  | "toList()"         | true                 | false
+        "matching { it.name == \"help\" }"  | "iterator()"       | true                 | false
 
-        "matching { it.group == \"help\" }" | "all {}"            | true                  | true
-        "matching { it.group == \"help\" }" | "forEach {}"        | true                  | false
-        "matching { it.group == \"help\" }" | "configureEach {}"  | false                 | false
-        "matching { it.group == \"help\" }" | "toList()"          | true                  | false
-        "matching { it.group == \"help\" }" | "iterator()"        | true                  | false
+        "matching { it.group == \"help\" }" | "all {}"           | true                 | true
+        "matching { it.group == \"help\" }" | "forEach {}"       | true                 | false
+        "matching { it.group == \"help\" }" | "configureEach {}" | false                | false
+        "matching { it.group == \"help\" }" | "toList()"         | true                 | false
+        "matching { it.group == \"help\" }" | "iterator()"       | true                 | false
 
     }
 

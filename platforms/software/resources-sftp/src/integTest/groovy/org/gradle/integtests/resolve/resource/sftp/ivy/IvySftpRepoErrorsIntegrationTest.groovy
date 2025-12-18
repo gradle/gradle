@@ -266,4 +266,14 @@ task retrieve(type: Sync) {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 'sftp'")
     }
+
+    private void assertTaskFailureDescription(String taskSelector) {
+        if (GradleContextualExecuter.configCache) {
+            failureDescriptionContains("Configuration cache state could not be cached:")
+            failureDescriptionContains(taskSelector)
+        } else {
+            def description = "Execution failed for task '${taskSelector}' (registered in build file 'build.gradle')."
+            failure.assertHasDescription(description)
+        }
+    }
 }

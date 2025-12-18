@@ -160,7 +160,7 @@ afterEvaluate {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (registered in build file 'build.gradle').")
         failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
@@ -225,7 +225,7 @@ task thing {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (registered in build file 'build.gradle').")
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
@@ -387,42 +387,42 @@ task wrongPropertyElementTypeApi(type: MyTask) {
         fails("wrongValueTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of a property of type java.util.List using an instance of type java.lang.Integer.")
 
         when:
         fails("wrongRuntimeElementType")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeElementType'.")
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeElementType' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot get the value of a property of type java.util.List with element type java.lang.String as the source value contains an element of type java.lang.Integer.")
 
         when:
         fails("wrongPropertyTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of a property of type java.util.List using a provider of type java.lang.Integer.")
 
         when:
         fails("wrongPropertyTypeApi")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi'.")
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of a property of type java.util.List using a provider of type java.lang.Integer.")
 
         when:
         fails("wrongPropertyElementTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyElementTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyElementTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of a property of type java.util.List with element type java.lang.String using a provider with element type java.lang.Integer.")
 
         when:
         fails("wrongPropertyElementTypeApi")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyElementTypeApi'.")
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyElementTypeApi' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of a property of type java.util.List with element type java.lang.String using a provider with element type java.lang.Integer.")
     }
 
@@ -522,7 +522,7 @@ task wrongPropertyElementTypeApi(type: MyTask) {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
 

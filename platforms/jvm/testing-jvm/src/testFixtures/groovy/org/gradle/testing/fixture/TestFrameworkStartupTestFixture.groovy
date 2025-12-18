@@ -23,7 +23,7 @@ import org.gradle.util.GradleVersion
 import static org.gradle.util.Matchers.matchesRegexp
 
 /**
- * A fixture for tests that testt the behavior of the test task when there are problems starting test processing.
+ * A fixture for tests that test the behavior of the test task when there are problems starting test processing.
  * <p>
  * The class provides methods to insert a test listener that logs the test execution lifecycle,
  * and assertions to verify the behavior of the test task when it fails due to testing framework or test worker
@@ -32,7 +32,7 @@ import static org.gradle.util.Matchers.matchesRegexp
 @SelfType(AbstractIntegrationSpec)
 trait TestFrameworkStartupTestFixture {
     void assertTestWorkerFailedToStart(String taskName = ":test") {
-        failure.assertHasDescription("Execution failed for task '$taskName'.")
+        failure.assertHasDescription("Execution failed for task '$taskName' (registered by plugin 'org.gradle.jvm-test-suite').")
 
         def taskOutput = result.groupedOutput.task(taskName).output
         assert !(taskOutput =~ /beforeSuite Gradle Test Executor \d+/)
@@ -40,7 +40,7 @@ trait TestFrameworkStartupTestFixture {
     }
 
     void assertTestWorkerStartedAndTestFrameworkFailedToStart(String rootCause, String taskName = ":test", int expectedWorkerFailures = 1) {
-        failure.assertHasFailure("Execution failed for task '$taskName'.") {
+        failure.assertHasFailure("Execution failed for task '$taskName' (registered by plugin 'org.gradle.jvm-test-suite').") {
             // One for "Test process encountered an unexpected problem."
             // One per worker for "Could not start Gradle Test Executor \d+."
             // One per worker for the root cause of the failure

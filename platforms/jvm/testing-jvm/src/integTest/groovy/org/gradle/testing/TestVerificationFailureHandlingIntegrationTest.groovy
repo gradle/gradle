@@ -61,7 +61,7 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
         fails('customTask')
         result.assertTaskScheduled(':test')
         result.assertTasksNotScheduled(':customTask')
-        failure.assertTestsFailed()
+        failure.assertTestsFailed("registered by plugin 'org.gradle.jvm-test-suite'")
     }
 
     def 'task executes when it has a test task output dependency with failing test(s) and --continue'() {
@@ -73,7 +73,7 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
         fails('customTask', '--continue')
         result.assertTaskScheduled(':test')
         result.assertTaskScheduled(':customTask')
-        failure.assertTestsFailed()
+        failure.assertTestsFailed("registered by plugin 'org.gradle.jvm-test-suite'")
     }
 
     def 'task does not execute when it dependsOn test with failing test(s) and --continue'() {
@@ -85,7 +85,7 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
         fails('customTask', '--continue')
         result.assertTaskScheduled(':test')
         result.assertTasksNotScheduled(':customTask')
-        failure.assertTestsFailed()
+        failure.assertTestsFailed("registered by plugin 'org.gradle.jvm-test-suite'")
     }
 
     def 'task does not execute when it has a test task output dependency and redundant dependsOn test with failing test(s) and --continue'() {
@@ -97,7 +97,7 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
         fails('customTask', '--continue')
         result.assertTaskScheduled(':test')
         result.assertTasksNotScheduled(':customTask')
-        failure.assertTestsFailed()
+        failure.assertTestsFailed("registered by plugin 'org.gradle.jvm-test-suite'")
     }
 
     // helpers

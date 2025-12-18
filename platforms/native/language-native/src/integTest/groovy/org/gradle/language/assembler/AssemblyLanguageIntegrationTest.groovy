@@ -92,4 +92,3 @@ model {
         mainExecutable.exec().out == helloWorldApp.englishOutput
     }
 }
-

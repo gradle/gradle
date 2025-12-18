@@ -492,7 +492,7 @@ Cannot publish module metadata because an artifact from the 'java' component has
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':publishMavenCustomPublicationToMavenRepository'.")
+        failure.assertHasDescription("Execution failed for task ':publishMavenCustomPublicationToMavenRepository' (registered by plugin 'org.gradle.maven-publish').")
         failure.assertHasCause("Failed to publish publication 'mavenCustom' to repository 'maven'")
         failure.assertHasCause("Invalid publication 'mavenCustom': artifact file is a directory")
     }

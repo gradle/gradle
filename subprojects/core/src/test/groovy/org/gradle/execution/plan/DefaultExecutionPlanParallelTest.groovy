@@ -1729,7 +1729,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         failures.size() == 1
         def e = failures.first()
-        e.message.contains("Execution failed for task :finalizer")
+        e.message.contains("Execution failed for task ':finalizer' (registered in mock).")
 
         then:
         coordinator.withStateLock {

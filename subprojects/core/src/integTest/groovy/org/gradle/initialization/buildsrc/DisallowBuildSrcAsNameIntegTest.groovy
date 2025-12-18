@@ -100,7 +100,7 @@ class DisallowBuildSrcAsNameIntegTest extends AbstractIntegrationSpec {
         fails "t"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':t'.")
+        failure.assertHasDescription("Execution failed for task ':t' (registered in build file 'build.gradle').")
         failure.assertHasCause("Included build $b has build name 'buildSrc' which cannot be used as it is a reserved name.")
     }
 

@@ -279,12 +279,16 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         BuildException e = thrown()
         e.message.startsWith("Could not run phased build action using")
-        e.cause.message.contains("Execution failed for task ':broken'.")
+        e.cause.message.contains("Execution failed for task ':broken'")
         projectsLoadedHandler.getResult() == "loading"
         buildFinishedHandler.getResult() == null
 
         and:
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        if (targetVersion >= GradleVersion.version("9.4.0")) {
+            failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
+        } else {
+            failure.assertHasDescription("Execution failed for task ':broken'.")
+        }
     }
 
     def "build is interrupted immediately if action fails"() {

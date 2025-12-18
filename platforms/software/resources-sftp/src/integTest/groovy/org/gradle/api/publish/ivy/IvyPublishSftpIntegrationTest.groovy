@@ -209,7 +209,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
 
         then:
         fails 'publish'
-        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
+        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository' (registered by plugin 'org.gradle.ivy-publish').")
             .assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
             .assertHasCause("Could not create resource '${ivySftpRepo.uri}'.")
     }
@@ -226,7 +226,7 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
 
         then:
         fails 'publish'
-        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
+        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository' (registered by plugin 'org.gradle.ivy-publish').")
             .assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
             .assertHasCause("Could not write to resource '${module.jar.uri}'.")
 

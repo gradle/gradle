@@ -324,7 +324,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
 
         then:
         configurationCache.assertStateStored()
-        failureDescriptionContains("Execution failed for task ':failedCount'.")
+        failureDescriptionContains("Execution failed for task ':failedCount' (registered in build file 'build.gradle').")
         failureCauseContains("Cannot query the value of task ':failedCount' property 'countingService' because it has no value available.")
 
         when:
@@ -332,7 +332,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
 
         then:
         configurationCache.assertStateLoaded()
-        failureDescriptionContains("Execution failed for task ':failedCount'.")
+        failureDescriptionContains("Execution failed for task ':failedCount' (registered in build file 'build.gradle').")
         failureCauseContains("Cannot query the value of task ':failedCount' property 'countingService' because it has no value available.")
     }
 

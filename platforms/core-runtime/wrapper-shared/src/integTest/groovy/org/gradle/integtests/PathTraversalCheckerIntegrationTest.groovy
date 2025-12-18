@@ -69,7 +69,7 @@ class PathTraversalCheckerIntegrationTest extends AbstractIntegrationSpec {
         fails 'copyEvilZip'
 
         then:
-        failureDescriptionContains "Execution failed for task ':copyEvilZip'"
+        failureDescriptionContains "Execution failed for task ':copyEvilZip' (registered in build file 'build.gradle')."
         failure.assertHasErrorOutput "'../../tmp/evil.sh' is not a safe archive entry or path name"
     }
 
