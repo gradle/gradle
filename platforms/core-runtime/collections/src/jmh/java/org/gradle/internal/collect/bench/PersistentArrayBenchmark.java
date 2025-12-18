@@ -18,6 +18,7 @@ package org.gradle.internal.collect.bench;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.collect.PersistentArray;
+import org.gradle.internal.collect.PersistentList;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
@@ -52,7 +53,8 @@ public class PersistentArrayBenchmark {
 //        capsule(false, new CapsuleArrayProtocol()),
 //        clojure(false, new ClojureArrayProtocol()),
 //        scala(false, new ScalaArrayProtocol()),
-        gradle(false, new GradleArrayProtocol());
+        gradle(false, new GradleArrayProtocol()),
+        cons(false, new ConsArrayProtocol());
 
         final boolean mutable;
         final ArrayProtocol protocol;
@@ -118,7 +120,7 @@ public class PersistentArrayBenchmark {
     }
 
     @Benchmark
-    public void iteration(Blackhole blackhole) {
+    public void iterator(Blackhole blackhole) {
         for (Object value : protocol.iterable(array)) {
             blackhole.consume(value);
         }
@@ -161,6 +163,25 @@ public class PersistentArrayBenchmark {
         @Override
         public Object get(Object array, int index) {
             return ((PersistentArray<Object>) array).get(index);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    static class ConsArrayProtocol implements ArrayProtocol {
+
+        @Override
+        public Object newInstance() {
+            return PersistentList.of();
+        }
+
+        @Override
+        public Object append(Object array, Object key) {
+            return ((PersistentList<Object>) array).plus(key);
+        }
+
+        @Override
+        public Object get(Object array, int index) {
+            throw new UnsupportedOperationException();
         }
     }
 
