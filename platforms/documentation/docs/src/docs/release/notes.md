@@ -327,6 +327,15 @@ These PGP signatures allow users and build systems to verify that a downloaded G
 
 For details on verifying Gradle distributions and JARs, see the [Signing key for Gradle artifacts](https://gradle.org/keys/) page.
 
+### Dependency repositories can be disabled for more reasons
+
+When Gradle fails to retrieve information from a repository, it disables the repository for the remainder of the build and fails all dependency resolution.
+This behavior ensures reproducibility.
+
+In this release, more failures will cause the repository to be disabled.
+
+See [the documentation](/userguide/graph_resolution.html#sec:repository-disabling) for details, including ways to continue resolution even if a repository is disabled.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
