@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.ndoc
 
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.tasks.Internal
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataMemberFunction
@@ -52,6 +53,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.MemberKind
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingTags
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.annotationsWithGetters
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelMember
 import org.gradle.internal.declarativedsl.schemaBuilder.toKType
 import org.gradle.internal.declarativedsl.schemaBuilder.withTag
@@ -222,6 +224,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
 
     private fun containerProperties(host: SchemaBuildingHost, kClass: KClass<*>): List<ContainerProperty> {
         val members = host.classMembers(kClass).potentiallyDeclarativeMembers
+            .filter { member -> member.kCallable.annotationsWithGetters.none { it is Internal } }
 
         val propertiesFromMemberProperties = members.mapNotNull {
             if (it.kind != MemberKind.READ_ONLY_PROPERTY) return@mapNotNull null
