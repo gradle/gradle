@@ -99,6 +99,7 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
@@ -389,7 +390,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
             ChecksumService checksumService,
             ProviderFactory providerFactory,
-            VersionParser versionParser
+            VersionParser versionParser,
+            ModuleRegistry moduleRegistry
         ) {
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
@@ -414,7 +416,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 urlArtifactRepositoryFactory,
                 checksumService,
                 providerFactory,
-                versionParser
+                versionParser,
+                moduleRegistry
             );
         }
 

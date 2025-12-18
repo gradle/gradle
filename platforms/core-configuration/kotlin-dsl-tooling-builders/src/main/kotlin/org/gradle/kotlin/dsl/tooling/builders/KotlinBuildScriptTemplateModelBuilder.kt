@@ -34,20 +34,16 @@ internal
 object KotlinBuildScriptTemplateModelBuilder : BuildScopeModelBuilder {
 
     private
-    val gradleModules = listOf("gradle-core", "gradle-tooling-api")
+    val gradleModuleNames = listOf("gradle-core", "gradle-tooling-api")
 
     override fun canBuild(modelName: String): Boolean =
         modelName == "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel"
 
     override fun create(target: BuildState): KotlinBuildScriptTemplateModel =
         target.mutableModel.serviceOf<ModuleRegistry>().run {
-            StandardKotlinBuildScriptTemplateModel(
-                gradleModules
-                    .map { getModule(it) }
-                    .flatMap { it.allRequiredModules }
-                    .fold(ClassPath.EMPTY) { classPath, module -> classPath + module.classpath }
-                    .asFiles
-            )
+            val classpath = getRuntimeModules(gradleModuleNames.map { getModule(it) })
+                .fold(ClassPath.EMPTY) { classPath, module -> classPath + module.implementationClasspath }
+            StandardKotlinBuildScriptTemplateModel(classpath.asFiles)
         }.also {
             DeprecationLogger.deprecateType(KotlinBuildScriptTemplateModel::class.java)
                 .replaceWith(GradleDslBaseScriptModel::class.java.name)

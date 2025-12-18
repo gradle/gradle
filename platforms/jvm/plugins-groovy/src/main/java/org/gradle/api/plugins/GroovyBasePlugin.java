@@ -170,7 +170,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
             groovydoc.getConventionMapping().map("groovyClasspath", () -> {
                 FileCollection groovyClasspath = groovyRuntime.inferGroovyClasspath(groovydoc.getClasspath());
                 // Jansi is required to log errors when generating Groovydoc
-                ConfigurableFileCollection jansi = project.getObjects().fileCollection().from(moduleRegistry.getExternalModule("jansi").getImplementationClasspath().getAsFiles());
+                ConfigurableFileCollection jansi = project.getObjects().fileCollection().from(moduleRegistry.getModule("jansi").getImplementationClasspath().getAsFiles());
                 return groovyClasspath.plus(jansi);
             });
             groovydoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension(project).getDocsDir().dir("groovydoc").get().getAsFile());

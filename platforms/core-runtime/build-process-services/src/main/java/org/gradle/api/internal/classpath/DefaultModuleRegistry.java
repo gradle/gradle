@@ -23,18 +23,13 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
-import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Determines the classpath for a module by looking for a '${module}-classpath.properties' resource with 'name' set to the name of the module.
@@ -43,8 +38,7 @@ import java.util.zip.ZipFile;
 public class DefaultModuleRegistry implements ModuleRegistry {
 
     private final GradleInstallation gradleInstallation;
-    private final Map<String, Module> modules = new HashMap<>();
-    private final Map<String, Module> externalModules = new HashMap<>();
+    private final Map<String, Optional<Module>> modules = new ConcurrentHashMap<>();
 
     public DefaultModuleRegistry(@Nullable GradleInstallation gradleInstallation) {
         if (gradleInstallation == null) {
@@ -55,164 +49,98 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     }
 
     @Override
-    public Module getExternalModule(String name) {
-        Module module = externalModules.get(name);
-        if (module == null) {
-            module = loadExternalModule(name);
-            externalModules.put(name, module);
-        }
-        return module;
-    }
-
-    private Module loadExternalModule(String name) {
-        File externalJar = findJar(name);
-        if (externalJar == null) {
-            throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", name, gradleInstallation.getGradleHome()));
-        }
-        return new DefaultModule(name, Collections.singleton(externalJar), Collections.emptySet());
-    }
-
-    @Override
-    public Module getModule(String name) {
-        Module module = modules.get(name);
-        if (module == null) {
-            module = loadModule(name);
-            modules.put(name, module);
-        }
-        return module;
-    }
-
-    @Override
     @Nullable
-    public Module findModule(String name) {
-        Module module = modules.get(name);
-        if (module == null) {
-            module = loadOptionalModule(name);
-            if (module != null) {
-                modules.put(name, module);
+    public Module findModule(String moduleName) {
+        return modules.computeIfAbsent(moduleName, n -> {
+            File propertiesFile = findPropertiesFile(moduleName);
+            if (propertiesFile != null) {
+                return Optional.of(createModule(moduleName, propertiesFile));
+            } else {
+                return Optional.empty();
             }
-        }
-        return module;
+        }).orElse(null);
     }
 
-    private Module loadModule(String moduleName) {
-        Module module = loadOptionalModule(moduleName);
+    @Override
+    public Module getModule(String name) throws UnknownModuleException {
+        Module module = findModule(name);
         if (module != null) {
             return module;
         }
-        throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", moduleName, gradleInstallation.getGradleHome()));
+        throw new UnknownModuleException(String.format("Cannot find module '%s' in distribution directory '%s'.", name, gradleInstallation.getGradleHome()));
     }
 
-    private @Nullable Module loadOptionalModule(final String moduleName) {
-        File jarFile = findJar(moduleName);
-        if (jarFile != null) {
-            Set<File> implementationClasspath = new LinkedHashSet<>();
-            implementationClasspath.add(jarFile);
-            Properties properties = loadModuleProperties(moduleName, jarFile);
-            return module(moduleName, properties, implementationClasspath);
+    private @Nullable File findPropertiesFile(String name) {
+        for (File libDir : gradleInstallation.getLibDirs()) {
+            File propertiesFile = new File(libDir, name + ".properties");
+            if (propertiesFile.isFile()) {
+                return propertiesFile;
+            }
         }
+
         return null;
     }
 
-    private Module module(String moduleName, Properties properties, Set<File> implementationClasspath) {
-        String[] runtimeJarNames = split(properties.getProperty("runtime"));
-        Set<File> runtimeClasspath = findDependencyJars(moduleName, runtimeJarNames);
-
-        String[] projects = split(properties.getProperty("projects"));
-        String[] optionalProjects = split(properties.getProperty("optional"));
-        return new DefaultModule(moduleName, implementationClasspath, runtimeClasspath, projects, optionalProjects);
-    }
-
-    private Set<File> findDependencyJars(String moduleName, String[] jarNames) {
-        Set<File> runtimeClasspath = new LinkedHashSet<>();
-        for (String jarName : jarNames) {
-            runtimeClasspath.add(findDependencyJar(moduleName, jarName));
+    private DefaultModule createModule(String moduleName, File propertiesFile) {
+        Properties properties = GUtil.loadProperties(propertiesFile);
+        List<String> dependencies = split(properties.getProperty("dependencies"));
+        String jarFileName = properties.getProperty("jarFile");
+        if (jarFileName == null) {
+            throw new IllegalArgumentException("Missing required property 'jarFile' in module properties file ' " + propertiesFile.getAbsolutePath() + "'.");
         }
-        return runtimeClasspath;
-    }
 
-    private Set<Module> getModules(String[] projectNames) {
-        Set<Module> modules = new LinkedHashSet<>();
-        for (String project : projectNames) {
-            modules.add(getModule(project));
+        String group = properties.getProperty("alias.group");
+        String name = properties.getProperty("alias.name");
+        String version = properties.getProperty("alias.version");
+        Module.ModuleAlias alias = null;
+        if (group != null && name != null && version != null) {
+            alias = new DefaultModuleAlias(group, name, version);
         }
-        return modules;
+        File jarFile = new File(propertiesFile.getParent(), jarFileName);
+        if (!jarFile.exists()) {
+            throw new IllegalArgumentException(String.format("Cannot find JAR '%s' required by module '%s' using classpath or distribution directory '%s'", name, moduleName, gradleInstallation.getGradleHome()));
+        }
+        return new DefaultModule(moduleName, jarFile, dependencies, alias);
     }
 
-    private String[] split(@Nullable String value) {
+    private static List<String> split(@Nullable String value) {
         if (value == null) {
-            return new String[0];
+            return Collections.emptyList();
         }
         value = value.trim();
-        if (value.length() == 0) {
-            return new String[0];
+        if (value.isEmpty()) {
+            return Collections.emptyList();
         }
-        return value.split(",");
+        return Arrays.asList(value.split(","));
     }
 
-    private static Properties loadModuleProperties(String name, File jarFile) {
-        try (ZipFile zipFile = new ZipFile(jarFile)) {
-            String entryName = name + "-classpath.properties";
-            ZipEntry entry = zipFile.getEntry(entryName);
-            if (entry == null) {
-                throw new IllegalStateException("Did not find " + entryName + " in " + jarFile.getAbsolutePath());
-            }
-            try (InputStream is = zipFile.getInputStream(entry)) {
-                return GUtil.loadProperties(is);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not load properties for module '%s' from %s", name, jarFile), e);
-        }
-    }
-
-    private @Nullable File findJar(String name) {
-        Pattern pattern = Pattern.compile(Pattern.quote(name) + "-\\d.*\\.jar");
-        for (File libDir : gradleInstallation.getLibDirs()) {
-            File[] files = libDir.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (pattern.matcher(file.getName()).matches()) {
-                        return file;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private File findDependencyJar(String module, String name) {
-        for (File libDir : gradleInstallation.getLibDirs()) {
-            File jarFile = new File(libDir, name);
-            if (jarFile.isFile()) {
-                return jarFile;
-            }
-        }
-        throw new IllegalArgumentException(String.format("Cannot find JAR '%s' required by module '%s' using classpath or distribution directory '%s'", name, module, gradleInstallation.getGradleHome()));
-    }
-
-    private class DefaultModule implements Module {
+    private static class DefaultModule implements Module {
 
         private final String name;
-        private final String[] projects;
-        private final String[] optionalProjects;
+        private final List<String> projects;
         private final ClassPath implementationClasspath;
-        private final ClassPath runtimeClasspath;
-        private final ClassPath classpath;
+        private final Module.@Nullable ModuleAlias alias;
 
-        public DefaultModule(String name, Set<File> implementationClasspath, Set<File> runtimeClasspath, String[] projects, String[] optionalProjects) {
+        public DefaultModule(
+            String name,
+            File implementationClasspath,
+            List<String> projects,
+            @Nullable ModuleAlias alias
+        ) {
             this.name = name;
             this.projects = projects;
-            this.optionalProjects = optionalProjects;
             this.implementationClasspath = DefaultClassPath.of(implementationClasspath);
-            this.runtimeClasspath = DefaultClassPath.of(runtimeClasspath);
-            Set<File> classpath = new LinkedHashSet<>();
-            classpath.addAll(implementationClasspath);
-            classpath.addAll(runtimeClasspath);
-            this.classpath = DefaultClassPath.of(classpath);
+            this.alias = alias;
         }
 
-        public DefaultModule(String name, Set<File> singleton, Set<File> files) {
-            this(name, singleton, files, NO_PROJECTS, NO_PROJECTS);
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public List<String> getDependencyNames() {
+            return projects;
         }
 
         @Override
@@ -221,68 +149,43 @@ public class DefaultModuleRegistry implements ModuleRegistry {
         }
 
         @Override
-        public Set<Module> getRequiredModules() {
-            return getModules(projects);
-        }
-
-        @Override
         public ClassPath getImplementationClasspath() {
             return implementationClasspath;
         }
 
         @Override
-        public ClassPath getRuntimeClasspath() {
-            return runtimeClasspath;
-        }
-
-        @Override
-        public ClassPath getClasspath() {
-            return classpath;
-        }
-
-        @Override
-        public Set<Module> getAllRequiredModules() {
-            Set<Module> modules = new LinkedHashSet<>();
-            collectRequiredModules(modules);
-            return modules;
-        }
-
-        @Override
-        public ClassPath getAllRequiredModulesClasspath() {
-            ClassPath classPath = ClassPath.EMPTY;
-            for (Module module : getAllRequiredModules()) {
-                classPath = classPath.plus(module.getClasspath());
-            }
-            return classPath;
-        }
-
-        private void collectRequiredModules(Set<Module> modules) {
-            if (!modules.add(this)) {
-                return;
-            }
-            for (Module module : getRequiredModules()) {
-                collectDependenciesOf(module, modules);
-            }
-            for (String optionalProject : optionalProjects) {
-                Module module = findModule(optionalProject);
-                if (module != null) {
-                    collectDependenciesOf(module, modules);
-                }
-            }
-        }
-
-        private void collectDependenciesOf(Module module, Set<Module> modules) {
-            ((DefaultModule) module).collectRequiredModules(modules);
-        }
-
-        private @Nullable Module findModule(String optionalProject) {
-            try {
-                return getModule(optionalProject);
-            } catch (UnknownModuleException ex) {
-                return null;
-            }
+        public @Nullable ModuleAlias getAlias() {
+            return alias;
         }
     }
 
-    private static final String[] NO_PROJECTS = new String[0];
+    public static class DefaultModuleAlias implements Module.ModuleAlias {
+
+        private final String group;
+        private final String name;
+        private final String version;
+
+        private DefaultModuleAlias(String group, String name, String version) {
+            this.group = group;
+            this.name = name;
+            this.version = version;
+        }
+
+        @Override
+        public String getGroup() {
+            return group;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String getVersion() {
+            return version;
+        }
+
+    }
+
 }

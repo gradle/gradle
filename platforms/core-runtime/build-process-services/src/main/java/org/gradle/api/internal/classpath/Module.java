@@ -16,40 +16,49 @@
 package org.gradle.api.internal.classpath;
 
 import org.gradle.internal.classpath.ClassPath;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import java.util.Set;
+import java.util.List;
 
 /**
- * Meta-data about a dynamically loadable module.
+ * Metadata about a module of the Gradle distribution.
  */
+@NullMarked
 public interface Module {
+
+    /**
+     * Get the name of this module.
+     */
+    String getName();
+
+    /**
+     * Gets the names of all modules that this module depends on.
+     */
+    List<String> getDependencyNames();
+
     /**
      * Returns the classpath for the module implementation. This is the classpath of the module itself. Does not include any dependencies.
      */
     ClassPath getImplementationClasspath();
 
     /**
-     * Returns the classpath containing the runtime dependencies of the module. Does not include any other modules.
+     * An optional set of coordinates, which if present, allows this module to be loaded by
+     * dependency resolution directly from the distribution.
      */
-    ClassPath getRuntimeClasspath();
+    @Nullable ModuleAlias getAlias();
 
     /**
-     * Returns implementation + runtime.
+     * The module identity that this distribution module implements
      */
-    ClassPath getClasspath();
+    interface ModuleAlias {
 
-    /**
-     * Returns the modules required by this module.
-     */
-    Set<Module> getRequiredModules();
+        String getGroup();
 
-    /**
-     * Returns the transitive closure of all modules required by this module, including the module itself.
-     */
-    Set<Module> getAllRequiredModules();
+        String getName();
 
-    /**
-     * Returns the implementation + runtime classpath of the transitive closure of all modules required by this module, including the module itself.
-     */
-    ClassPath getAllRequiredModulesClasspath();
+        String getVersion();
+
+    }
+
 }

@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
@@ -61,13 +62,30 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final ProviderFactory providerFactory = Mock()
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
-            localMavenRepoLocator, fileResolver, fileCollectionFactory, transportFactory, locallyAvailableResourceFinder,
-            artifactIdentifierFileStore, externalResourceFileStore, pomParser, metadataParser, authenticationSchemeRegistry, ivyContextManager, moduleIdentifierFactory,
-            TestUtil.instantiatorFactory(), Mock(FileResourceRepository), mavenMetadataFactory, ivyMetadataFactory, SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory(),
-            CollectionCallbackActionDecorator.NOOP,
-            urlArtifactRepositoryFactory,
-            TestUtil.checksumService,
-            providerFactory, new VersionParser()
+        localMavenRepoLocator,
+        fileResolver,
+        fileCollectionFactory,
+        transportFactory,
+        locallyAvailableResourceFinder,
+        artifactIdentifierFileStore,
+        externalResourceFileStore,
+        pomParser,
+        metadataParser,
+        authenticationSchemeRegistry,
+        ivyContextManager,
+        moduleIdentifierFactory,
+        TestUtil.instantiatorFactory(),
+        Mock(FileResourceRepository),
+        mavenMetadataFactory,
+        ivyMetadataFactory,
+        SnapshotTestUtil.isolatableFactory(),
+        TestUtil.objectFactory(),
+        CollectionCallbackActionDecorator.NOOP,
+        urlArtifactRepositoryFactory,
+        TestUtil.checksumService,
+        providerFactory,
+        new VersionParser(),
+        Mock(ModuleRegistry)
     )
 
     def testCreateFlatDirResolver() {

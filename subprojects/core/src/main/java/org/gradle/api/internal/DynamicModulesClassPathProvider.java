@@ -27,8 +27,6 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-import static java.util.Collections.emptySet;
-
 public class DynamicModulesClassPathProvider implements ClassPathProvider {
     private final ModuleRegistry moduleRegistry;
     private final PluginModuleRegistry pluginModuleRegistry;
@@ -61,19 +59,18 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
     private ClassPath gradleExtensionsWithout(String... modulesToExclude) {
         Set<Module> coreModules = allRequiredModulesOf(modulesToExclude);
         ClassPath classpath = ClassPath.EMPTY;
-        for (String moduleName : GRADLE_EXTENSION_MODULES) {
-            Set<Module> extensionModules = allRequiredModulesOf(moduleName);
-            classpath = plusExtensionModules(classpath, extensionModules, coreModules);
-        }
-        for (String moduleName : GRADLE_OPTIONAL_EXTENSION_MODULES) {
-            Set<Module> optionalExtensionModules = allRequiredModulesOfOptional(moduleName);
-            classpath = plusExtensionModules(classpath, optionalExtensionModules, coreModules);
-        }
+
+        Set<Module> extensionModules = allRequiredModulesOf(GRADLE_EXTENSION_MODULES);
+        classpath = plusExtensionModules(classpath, extensionModules, coreModules);
+
+        Set<Module> optionalExtensionModules = allRequiredModulesOfOptional(GRADLE_OPTIONAL_EXTENSION_MODULES);
+        classpath = plusExtensionModules(classpath, optionalExtensionModules, coreModules);
+
         for (Module pluginModule : pluginModuleRegistry.getApiModules()) {
-            classpath = classpath.plus(pluginModule.getClasspath());
+            classpath = classpath.plus(pluginModule.getImplementationClasspath());
         }
         for (Module pluginModule : pluginModuleRegistry.getImplementationModules()) {
-            classpath = classpath.plus(pluginModule.getClasspath());
+            classpath = classpath.plus(pluginModule.getImplementationClasspath());
         }
         return removeJaxbIfIncludedInCurrentJdk(classpath);
     }
@@ -93,23 +90,26 @@ public class DynamicModulesClassPathProvider implements ClassPathProvider {
     private Set<Module> allRequiredModulesOf(String... names) {
         Set<Module> modules = new HashSet<>();
         for (String name : names) {
-            modules.addAll(moduleRegistry.getModule(name).getAllRequiredModules());
+            modules.add(moduleRegistry.getModule(name));
         }
-        return modules;
+        return moduleRegistry.getRuntimeModules(modules);
     }
 
-    private Set<Module> allRequiredModulesOfOptional(String moduleName) {
-        Module optionalModule = moduleRegistry.findModule(moduleName);
-        if (optionalModule != null) {
-            return optionalModule.getAllRequiredModules();
+    private Set<Module> allRequiredModulesOfOptional(String... names) {
+        Set<Module> modules = new HashSet<>();
+        for (String name : names) {
+            Module optionalModule = moduleRegistry.findModule(name);
+            if (optionalModule != null) {
+                modules.add(optionalModule);
+            }
         }
-        return emptySet();
+        return moduleRegistry.getRuntimeModules(modules);
     }
 
     private ClassPath plusExtensionModules(ClassPath classpath, Set<Module> extensionModules, Set<Module> coreModules) {
         for (Module module : extensionModules) {
             if (!coreModules.contains(module)) {
-                classpath = classpath.plus(module.getClasspath());
+                classpath = classpath.plus(module.getImplementationClasspath());
             }
         }
         return classpath;

@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
@@ -104,7 +105,8 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                                         ChecksumService checksumService,
                                         ProviderFactory providerFactory,
-                                        VersionParser versionParser
+                                        VersionParser versionParser,
+                                        ModuleRegistry ignored
     ) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
@@ -135,6 +137,11 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     @Override
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
         return objectFactory.newInstance(DefaultFlatDirArtifactRepository.class, fileCollectionFactory, transportFactory, locallyAvailableResourceFinder, artifactFileStore, ivyMetadataFactory, instantiatorFactory, objectFactory, checksumService, versionParser);
+    }
+
+    @Override
+    public ArtifactRepository createGradleDistributionRepository() {
+        return null;
     }
 
     @Override

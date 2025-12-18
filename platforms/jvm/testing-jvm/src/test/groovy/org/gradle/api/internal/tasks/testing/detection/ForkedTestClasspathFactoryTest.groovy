@@ -26,13 +26,11 @@ import spock.lang.Specification
  */
 class ForkedTestClasspathFactoryTest extends Specification {
 
-    // The number of internal and external implementation jars loaded from the distribution regardless of framework.
-    private static final int NUM_INTERNAL_JARS = 30
-    private static final int NUM_EXTERNAL_JARS = 6
+    // The number of implementation jars loaded from the distribution regardless of framework.
+    private static final int NUM_JARS = 36
 
     ModuleRegistry moduleRegistry = Mock(ModuleRegistry) {
-        getModule(_) >> { module(it[0], false) }
-        getExternalModule(_) >> { module(it[0], true) }
+        getModule(_ as String) >> { module(it[0]) }
     }
 
     ForkedTestClasspathFactory underTest = new ForkedTestClasspathFactory(moduleRegistry)
@@ -44,9 +42,7 @@ class ForkedTestClasspathFactoryTest extends Specification {
         then:
         classpath.applicationClasspath == [new File("cls.jar")]
         classpath.applicationModulepath == [new File("mod.jar")]
-        classpath.implementationClasspath.size() == NUM_INTERNAL_JARS + NUM_EXTERNAL_JARS
-        classpath.implementationClasspath.findAll { it.toString().endsWith("-internal.jar") }.size() == NUM_INTERNAL_JARS
-        classpath.implementationClasspath.findAll { it.toString().endsWith("-external.jar") }.size() == NUM_EXTERNAL_JARS
+        classpath.implementationClasspath.size() == NUM_JARS
     }
 
     def "input classpath classes are added to the application classpath"() {
@@ -58,9 +54,7 @@ class ForkedTestClasspathFactoryTest extends Specification {
         then:
         classpath.applicationClasspath == [new File("app-cls-1.0.jar"), new File("app-mod-1.0.jar"), new File("impl-cls-1.0.jar"), new File("impl-mod-1.0.jar")]
         classpath.applicationModulepath.isEmpty()
-        classpath.implementationClasspath.size() == NUM_INTERNAL_JARS + NUM_EXTERNAL_JARS
-        classpath.implementationClasspath.findAll { it.toString().endsWith("-internal.jar") }.size() == NUM_INTERNAL_JARS
-        classpath.implementationClasspath.findAll { it.toString().endsWith("-external.jar") }.size() == NUM_EXTERNAL_JARS
+        classpath.implementationClasspath.size() == NUM_JARS
     }
 
     def "input modulepath classes are added to the application modulepath"() {
@@ -72,18 +66,15 @@ class ForkedTestClasspathFactoryTest extends Specification {
         then:
         classpath.applicationClasspath.isEmpty()
         classpath.applicationModulepath == [new File("app-cls-1.0.jar"), new File("app-mod-1.0.jar"), new File("impl-cls-1.0.jar"), new File("impl-mod-1.0.jar")]
-        classpath.implementationClasspath.size() == NUM_INTERNAL_JARS + NUM_EXTERNAL_JARS
-        classpath.implementationClasspath.findAll { it.toString().endsWith("-internal.jar") }.size() == NUM_INTERNAL_JARS
-        classpath.implementationClasspath.findAll { it.toString().endsWith("-external.jar") }.size() == NUM_EXTERNAL_JARS
+        classpath.implementationClasspath.size() == NUM_JARS
     }
 
-    def module(String module, boolean external) {
-        String extra = external ? "external" : "internal"
+    def module(String module) {
         return Mock(Module) {
             getImplementationClasspath() >> {
                 Mock(ClassPath) {
-                    getAsURLs() >> { [new URL("file://${module}-${extra}.jar")] }
-                    getAsFiles() >> { [new File("${module}-${extra}.jar")] }
+                    getAsURLs() >> { [new URL("file://${module}-1.0.jar")] }
+                    getAsFiles() >> { [new File("${module}-1.0.jar")] }
                 }
             }
         }

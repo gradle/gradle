@@ -16,21 +16,22 @@
 package org.gradle.api.internal
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.classpath.Module
+import org.gradle.api.internal.classpath.DefaultModuleRegistry
+import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
+import org.gradle.api.internal.classpath.RuntimeApiInfo
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.installation.GradleInstallation
 import spock.lang.Specification
 
 class DynamicModulesClassPathProviderTest extends Specification {
 
-    def moduleRegistry = Mock(ModuleRegistry) {
-        getModule(_) >> { args -> module(args[0]) }
-    }
-    def pluginModuleRegistry = Mock(PluginModuleRegistry) {
-        getImplementationModules() >> []
-    }
+    final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(new GradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir))
+    final ClassPath apiInfoClasspath = moduleRegistry.getModule("gradle-runtime-api-info").getImplementationClasspath()
+    final RuntimeApiInfo runtimeApiInfo = RuntimeApiInfo.create(apiInfoClasspath)
+    final PluginModuleRegistry pluginModuleRegistry = new DefaultPluginModuleRegistry(moduleRegistry, runtimeApiInfo)
 
     def "uses plugins and extension plugins to determine gradle extensions classpath"() {
         given:
@@ -46,23 +47,14 @@ class DynamicModulesClassPathProviderTest extends Specification {
             "gradle-software-diagnostics.jar",
             "gradle-plugin-use.jar",
             "gradle-instrumentation-declarations.jar",
-            "plugin1.jar", "plugin2.jar",
-            "extension1.jar", "extension2.jar"
+            "plugin1.jar",
+            "plugin2.jar",
+            "extension1.jar",
+            "extension2.jar"
         ]
-
-        and:
-        1 * moduleRegistry.getModule("gradle-core") >> module("gradle-core", module("gradle-cli"))
-        1 * moduleRegistry.getModule("gradle-workers") >> module("gradle-workers")
-        1 * moduleRegistry.getModule("gradle-dependency-management") >> module("gradle-dependency-management")
-        1 * moduleRegistry.getModule("gradle-plugin-use") >> module("gradle-plugin-use")
-        1 * pluginModuleRegistry.getApiModules() >> ([module("plugin1"), module("plugin2")] as LinkedHashSet)
-        1 * pluginModuleRegistry.getImplementationModules() >> ([module("extension1"), module("extension2")] as LinkedHashSet)
     }
 
     def "removes JAXB from classpath on Java #javaVersion"() {
-        given:
-        pluginModuleRegistry.getApiModules() >> ([module("gradle-resources-s3", ["jaxb-impl-2.3.1.jar"])] as Set)
-
         when:
         List<String> classpath = findClassPath(javaVersion)
 
@@ -74,9 +66,6 @@ class DynamicModulesClassPathProviderTest extends Specification {
     }
 
     def "keeps JAXB on classpath on Java #javaVersion"() {
-        given:
-        pluginModuleRegistry.getApiModules() >> ([module("gradle-resources-s3", ["jaxb-impl-2.3.1.jar"])] as Set)
-
         when:
         List<String> classpath = findClassPath(javaVersion)
 
@@ -92,12 +81,4 @@ class DynamicModulesClassPathProviderTest extends Specification {
         provider.findClassPath("GRADLE_EXTENSIONS").asFiles.collect { it.name }
     }
 
-    def module(String name, List<String> additionalClasspathEntries = [], Module... requiredModules) {
-        def module = Stub(Module)
-        _ * module.classpath >> DefaultClassPath.of([new File("${name}.jar")] + additionalClasspathEntries.collect { new File(it) })
-        _ * module.implementationClasspath >> DefaultClassPath.of(new File("${name}.jar"))
-        _ * module.allRequiredModules >> (([module] + (requiredModules as List)) as LinkedHashSet)
-        _ * module.allRequiredModulesClasspath >> module.allRequiredModules.collect { it.classpath }.inject(ClassPath.EMPTY) { r, i -> r + i }
-        return module
-    }
 }
