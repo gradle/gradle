@@ -16,12 +16,10 @@
 
 package org.gradle.internal.collect;
 
-import com.google.common.collect.AbstractIterator;
-import org.jspecify.annotations.Nullable;
-
 import javax.annotation.CheckReturnValue;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -91,7 +89,7 @@ public abstract class PersistentList<T> implements Iterable<T> {
         }
     };
 
-    private static class Cons<T> extends PersistentList<T> {
+    private static final class Cons<T> extends PersistentList<T> {
         private final T head;
         private final PersistentList<T> tail;
 
@@ -147,22 +145,26 @@ public abstract class PersistentList<T> implements Iterable<T> {
             return new PersistentListIterator<>(this);
         }
 
-        private static class PersistentListIterator<T> extends AbstractIterator<T> {
-            PersistentList<T> next;
+        private static final class PersistentListIterator<T> implements Iterator<T> {
+            private PersistentList<T> next;
 
             public PersistentListIterator(Cons<T> next) {
                 this.next = next;
             }
 
-            @Nullable
             @Override
-            protected T computeNext() {
-                if (next.isEmpty()) {
-                    return endOfData();
+            public boolean hasNext() {
+                return !next.isEmpty();
+            }
+
+            @Override
+            public T next() {
+                if (next instanceof Cons<?>) {
+                    Cons<T> cons = (Cons<T>) next;
+                    next = cons.tail;
+                    return cons.head;
                 }
-                Cons<T> current = (Cons<T>) next;
-                next = current.tail;
-                return current.head;
+                throw new NoSuchElementException();
             }
         }
     }

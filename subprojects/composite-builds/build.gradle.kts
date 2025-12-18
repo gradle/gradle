@@ -23,13 +23,13 @@ dependencies {
 
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.classloaders)
-    implementation(projects.time)
+    implementation(projects.collections)
+    implementation(projects.daemonServices)
     implementation(projects.enterpriseLogging)
     implementation(projects.enterpriseOperations)
-    implementation(projects.daemonServices)
     implementation(projects.problemsApi)
     implementation(projects.serviceLookup)
-    implementation(projects.functional)
+    implementation(projects.time)
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
