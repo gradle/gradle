@@ -605,7 +605,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
             TestUtil.checksumService, providerFactory, new VersionParser()
         )
         repo.name = 'repo'
-        repo.allowInsecureContinueOnConnectionFailure.convention(false)
+        repo.allowInsecureContinueWhenDisabled.convention(false)
         return repo
     }
 
