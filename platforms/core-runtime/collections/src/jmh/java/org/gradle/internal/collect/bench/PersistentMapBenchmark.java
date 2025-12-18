@@ -32,7 +32,9 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Fork(1)
 @Warmup(iterations = 3)
@@ -42,6 +44,7 @@ public class PersistentMapBenchmark {
 
     public enum MapType {
         HashMap(true, new HashMapMapProtocol()),
+        ConcurrentHashMap(true, new HashMapMapProtocol()),
         TreeMap(true, new TreeMapMapProtocol()),
         fastutil(true, new FastutilMapProtocol()),
         guava(false, new GuavaMapProtocol()),
@@ -154,8 +157,12 @@ public class PersistentMapBenchmark {
     }
 
     @Benchmark
-    public void randomLookup(Blackhole blackhole) {
+    public void getPresent(Blackhole blackhole) {
         blackhole.consume(protocol.get(map, fixture.randomPresent()));
+    }
+
+    @Benchmark
+    public void getAbsent(Blackhole blackhole) {
         blackhole.consume(protocol.get(map, fixture.randomAbsent()));
     }
 
@@ -260,18 +267,26 @@ public class PersistentMapBenchmark {
 
         @Override
         public Object put(Object map, Object key, Object val) {
-            ((HashMap<Object, Object>) map).put(key, val);
+            ((Map<Object, Object>) map).put(key, val);
             return map;
         }
 
         @Override
         public boolean containsKey(Object map, Object key) {
-            return ((HashMap<Object, Object>) map).containsKey(key);
+            return ((Map<Object, Object>) map).containsKey(key);
         }
 
         @Override
         public Object get(Object map, Object key) {
-            return ((HashMap<Object, Object>) map).get(key);
+            return ((Map<Object, Object>) map).get(key);
+        }
+    }
+
+    static class ConcurrentHashMapMapProtocol extends HashMapMapProtocol {
+
+        @Override
+        public Object newInstance() {
+            return new ConcurrentHashMap<>();
         }
     }
 
