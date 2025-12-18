@@ -17,20 +17,14 @@
 package org.gradle.internal.exceptions;
 
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
- * Wraps an exception thrown by a work type.
+ * Enhancement interface that exceptions can implement to provide additional information on what kind of work failed.
  */
 @NullMarked
-public class WorkTypeAwareException extends RuntimeException {
-    private final String workType;
+public interface WorkTypeAware {
 
-    public WorkTypeAwareException(String workType, Throwable originalException) {
-        super(originalException);
-        this.workType = workType;
-    }
-
-    public String getWorkType() {
-        return workType;
-    }
+    @Nullable
+    String getWorkType();
 }

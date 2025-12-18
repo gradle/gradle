@@ -34,7 +34,7 @@ import org.gradle.internal.exceptions.NonGradleCause;
 import org.gradle.internal.exceptions.NonGradleCauseExceptionsHolder;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.exceptions.StyledException;
-import org.gradle.internal.exceptions.WorkTypeAwareException;
+import org.gradle.internal.exceptions.WorkTypeAware;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -81,7 +81,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
     public static final String RESOLUTION_LINE_PREFIX = "> ";
     public static final String LINE_PREFIX_LENGTH_SPACES = repeat(" ", RESOLUTION_LINE_PREFIX.length());
 
-    private static final int MAX_GRANULARITY_SEARCH_DEPTH = 3;
+    private static final int MAX_WORK_TYPE_SEARCH_DEPTH = 3;
 
     @NullMarked
     private enum ExceptionStyle {
@@ -155,7 +155,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         for (int i = 0; i < flattenedFailures.size(); i++) {
             Failure cause = flattenedFailures.get(i);
-            FailureDetails details = constructFailureDetails(extractGranularity(cause), cause);
+            FailureDetails details = constructFailureDetails(extractWorkType(cause), cause);
 
             output.println();
             output.withStyle(Failure).format("%s: ", i + 1);
@@ -169,16 +169,18 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private static String extractGranularity(Failure failure) {
+    private static String extractWorkType(Failure failure) {
         int depth = 0;
         Throwable cause = failure.getOriginal();
-        while (cause != null && depth++ < MAX_GRANULARITY_SEARCH_DEPTH) {
-            if (cause instanceof WorkTypeAwareException) {
-                return ((WorkTypeAwareException) cause).getWorkType();
+        String workType = null;
+        while (cause != null && depth++ < MAX_WORK_TYPE_SEARCH_DEPTH) {
+            if (cause instanceof WorkTypeAware) {
+                workType = ((WorkTypeAware) cause).getWorkType();
+                break;
             }
             cause = cause.getCause();
         }
-        return "Task";
+        return workType != null ? workType : "Task";
     }
 
     private void renderSingleBuildException(Failure failure) {
