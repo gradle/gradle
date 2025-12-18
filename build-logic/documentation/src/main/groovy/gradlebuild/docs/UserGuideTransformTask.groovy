@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package gradlebuild.docs
 
 import org.gradle.api.DefaultTask
@@ -34,15 +33,18 @@ import gradlebuild.docs.model.ClassMetaDataRepository
 import gradlebuild.docs.model.SimpleClassMetaDataRepository
 import org.w3c.dom.Document
 import org.w3c.dom.Element
+
 /**
- * Transforms userguide source into docbook, replacing custom XML elements.
+ * Gradle task that post-processes the generated DocBook for the User Manual.
  *
  * Takes the following as input:
  * <ul>
- * <li>A source docbook XML file.</li>
- * <li>Meta-info about the canonical documentation for each class referenced in the document, as produced by {@link gradlebuild.docs.dsl.docbook.AssembleDslDocTask}.</li>
+ *   <li>A source docbook XML file.</li>
+ *   <li>Meta-info about the canonical documentation for each class referenced in the document,
+ *   as produced by {@link gradlebuild.docs.dsl.docbook.AssembleDslDocTask}.</li>
  * </ul>
  *
+ * The task uses an XInclude-aware DOM parser so included fragments are resolved before transformation.
  */
 @CacheableTask
 abstract class UserGuideTransformTask extends DefaultTask {
