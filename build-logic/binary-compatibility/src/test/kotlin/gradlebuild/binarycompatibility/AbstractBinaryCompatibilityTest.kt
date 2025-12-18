@@ -324,26 +324,26 @@ abstract class AbstractBinaryCompatibilityTest {
 
                         txtOutputFile.set(file("build/japi-report.txt"))
 
-                        richReport {
-
-                            title.set("Gradle Binary Compatibility Check")
-                            destinationDir.set(file("build/japi"))
-                            reportName.set("japi.html")
-
-                            includedClasses.set(listOf(".*"))
-                            excludedClasses.set(emptyList())
-
-                        }
-
                         BinaryCompatibilityHelper.setupJApiCmpRichReportRules(
                             this,
-                            AcceptedApiChanges.parse(listOf("{acceptedApiChanges:[]}")),
+                            project,
+                            provider { AcceptedApiChanges.parse(listOf("{acceptedApiChanges:[]}")) },
                             rootProject.files("$sourceRoots"),
                             "2.0",
                             file("test-api-changes.json"),
                             rootProject.layout.projectDirectory,
                             newUpgradedPropertiesFile.get().asFile,
-                            oldUpgradedPropertiesFile.get().asFile
+                            oldUpgradedPropertiesFile.get().asFile,
+                            object : Action<me.champeau.gradle.japicmp.report.RichReport> {
+                                override fun execute(report: me.champeau.gradle.japicmp.report.RichReport) {
+                                    report.title.set("Gradle Binary Compatibility Check")
+                                    report.destinationDir.set(file("build/japi"))
+                                    report.reportName.set("japi.html")
+
+                                    report.includedClasses.set(listOf(".*"))
+                                    report.excludedClasses.set(emptyList())
+                                }
+                            }
                         )
                     }
                     """
