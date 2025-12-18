@@ -2563,7 +2563,6 @@ Class <org.gradle.model.internal.core.ModelMaps> is not annotated (directly or v
 Class <org.gradle.model.internal.core.ModelNode$State> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ModelNode.java:0)
 Class <org.gradle.model.internal.core.ModelNode> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ModelNode.java:0)
 Class <org.gradle.model.internal.core.ModelNodes> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ModelNodes.java:0)
-Class <org.gradle.model.internal.core.ModelPath$Cache> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ModelPath.java:0)
 Class <org.gradle.model.internal.core.ModelPath$InvalidNameException> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ModelPath.java:0)
 Class <org.gradle.model.internal.core.ModelPath$InvalidPathException> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ModelPath.java:0)
 Class <org.gradle.model.internal.core.ModelPath> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ModelPath.java:0)
