@@ -16,6 +16,7 @@
 package org.gradle.internal.service;
 
 import org.gradle.internal.collect.PersistentArray;
+import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.collect.PersistentMap;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -499,10 +500,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         void annotationHandlerCreated(AnnotatedServiceLifecycleHandler annotationHandler) {
             ServicesSnapshot snapshot = services.updateAndGet(it -> it.addLifecycleHandler(annotationHandler));
-            ServiceList list = snapshot.services;
-            while (list != null) {
-                notifyAnnotationHandler(annotationHandler, list.service);
-                list = list.next;
+            for (SingletonService service : snapshot.services) {
+                notifyAnnotationHandler(annotationHandler, service);
             }
         }
 
@@ -1420,25 +1419,25 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
      * Lifecycle handlers are maintained in a persistent array since there are at most 3 lifecycle handler instances
      * per registry, and they are iterated frequently (for every service registration).
      *
-     * Services are maintained in a linked list since there are many, they are frequently written and iterated very
+     * Services are maintained in a persistent list since there are many, they are frequently written and iterated very
      * rarely (once per lifecycle handler).
      */
     private static class ServicesSnapshot {
 
         public static ServicesSnapshot of(PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType) {
             return new ServicesSnapshot(
-                null,
+                PersistentList.of(),
                 PersistentArray.of(),
                 providersByType
             );
         }
 
-        final @Nullable ServiceList services;
+        final PersistentList<SingletonService> services;
         final PersistentArray<AnnotatedServiceLifecycleHandler> lifecycleHandlers;
         final PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType;
 
         private ServicesSnapshot(
-            @Nullable ServiceList services,
+            PersistentList<SingletonService> services,
             PersistentArray<AnnotatedServiceLifecycleHandler> lifecycleHandlers,
             PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType
         ) {
@@ -1449,7 +1448,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         ServicesSnapshot addService(SingletonService service, ClassInspector inspector) {
             return new ServicesSnapshot(
-                new ServiceList(service, services),
+                services.plus(service),
                 lifecycleHandlers,
                 collectProvidersForClassHierarchyOf(service, inspector, providersByType)
             );
@@ -1490,16 +1489,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 }
             }
             return providersByType;
-        }
-    }
-
-    private static class ServiceList {
-        final SingletonService service;
-        final @Nullable ServiceList next;
-
-        ServiceList(SingletonService head, @Nullable ServiceList next) {
-            this.service = head;
-            this.next = next;
         }
     }
 }
