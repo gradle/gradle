@@ -191,7 +191,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
             FunctionSemanticsInternal.DefaultAccessAndConfigure(
                 ConfigureAccessorInternal.DefaultCustom(containerTypeRef, accessorId(host)),
                 DefaultUnit,
-                host.modelTypeRef(elementType),
+                containerTypeRef,
                 DefaultRequired
             )
         )
