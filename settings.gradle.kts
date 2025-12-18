@@ -29,9 +29,9 @@ pluginManagement {
 plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.configuration-cache-compatibility")
-    id("com.gradle.develocity").version("3.19.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
-    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.2")
-    id("org.gradle.toolchains.foojay-resolver-convention").version("0.10.0")
+    id("com.gradle.develocity").version("4.3") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+    id("io.github.gradle.develocity-conventions-plugin").version("0.13.0")
+    id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }
 
 includeBuild("build-logic-commons")
