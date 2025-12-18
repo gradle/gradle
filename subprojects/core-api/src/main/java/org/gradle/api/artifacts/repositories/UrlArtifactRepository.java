@@ -76,12 +76,13 @@ public interface UrlArtifactRepository {
     void setAllowInsecureProtocol(boolean allowInsecureProtocol);
 
     /**
-     * Specifies whether to continue downloading artifacts from other repositories if connection to this repository gets disabled.
+     * Specifies whether to continue checking other repositories if this repository is disabled due to connection or communication errors.
      * <p>
-     * The default value for this property is {@code false}.
+     * The conventional value for this property is {@code false}, which means to not continue to check other repositories after this one.
      *
-     * @return A Gradle property for the allowInsecureContinueWhenDisabled flag.
+     * @return a property that control the behavior to continue or not
      * @since 9.3.0
+     * @see <a href="https://docs.gradle.org/current/userguide/graph_resolution.html#sec:repository-disabling">Disabled repositories</a>
      */
     Property<Boolean> getAllowInsecureContinueWhenDisabled();
 }
