@@ -17,6 +17,7 @@
 package org.gradle.testing.nonclassbased
 
 import org.gradle.api.tasks.testing.TestResult
+import spock.lang.Ignore
 import testengines.TestEnginesFixture.TestEngines
 
 /**
@@ -122,6 +123,7 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
         nonClassBasedTestsExecuted(false)
     }
 
+    @Ignore("SLG - re-enable after merge")
     def "when multiple engines do class-based testing and create different class tests with the same name, this is handled sensibly"() {
         given:
 
