@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.repositories.InclusiveRepositoryContentDescripto
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
+import org.gradle.api.artifacts.repositories.UrlArtifactRepository;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConfigureByMapAction;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
@@ -63,6 +64,11 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         super(instantiator, decorator);
         this.repositoryFactory = repositoryFactory;
         this.instantiator = instantiator;
+        this.configureEach(repo -> {
+            if (repo instanceof UrlArtifactRepository) {
+                ((UrlArtifactRepository) repo).getAllowInsecureContinueWhenDisabled().convention(false);
+            }
+        });
     }
 
     @Override

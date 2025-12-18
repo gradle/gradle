@@ -49,6 +49,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
@@ -58,7 +59,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArtifactRepository<FlatDirRepositoryDescriptor> implements FlatDirectoryArtifactRepository, ResolutionAwareRepository {
+public abstract class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArtifactRepository<FlatDirRepositoryDescriptor> implements FlatDirectoryArtifactRepository, ResolutionAwareRepository {
     private final FileCollectionFactory fileCollectionFactory;
     private final List<Object> dirs = new ArrayList<>();
     private final RepositoryTransportFactory transportFactory;
@@ -68,6 +69,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
     private final InstantiatorFactory instantiatorFactory;
     private final ChecksumService checksumService;
 
+    @Inject
     public DefaultFlatDirArtifactRepository(FileCollectionFactory fileCollectionFactory,
                                             RepositoryTransportFactory transportFactory,
                                             LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,

@@ -37,7 +37,6 @@ import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
 import org.gradle.api.internal.model.NamedObjectInstantiator
-import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore
@@ -50,7 +49,7 @@ import spock.lang.Specification
 import javax.inject.Inject
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
-    final instantiator = TestUtil.instantiatorFactory().decorateLenient()
+    final instantiator = TestUtil.objectFactory()
     final FileResolver fileResolver = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
@@ -62,8 +61,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     final GradleModuleMetadataParser moduleMetadataParser = new GradleModuleMetadataParser(Mock(AttributesFactory), moduleIdentifierFactory, Mock(NamedObjectInstantiator))
     final IvyMutableModuleMetadataFactory metadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
-    final PropertyFactory propertyFactory = TestUtil.propertyFactory()
-    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver, propertyFactory)
+    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver)
     final ProviderFactory providerFactory = Mock()
 
     final DefaultIvyArtifactRepository repository = newRepo()
@@ -607,6 +605,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
             TestUtil.checksumService, providerFactory, new VersionParser()
         )
         repo.name = 'repo'
+        repo.allowInsecureContinueOnConnectionFailure.convention(false)
         return repo
     }
 
