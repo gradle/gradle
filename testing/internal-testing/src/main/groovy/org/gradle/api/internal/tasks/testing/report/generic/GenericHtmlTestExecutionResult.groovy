@@ -26,6 +26,7 @@ import com.google.common.collect.Multimaps
 import com.google.common.collect.Multisets
 import com.google.common.collect.Sets
 import com.google.common.collect.Streams
+import org.gradle.api.Action
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.lazy.Lazy
 import org.gradle.util.Path
@@ -53,7 +54,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         try (Stream<java.nio.file.Path> paths = Files.walk(reportPath)) {
             return paths.filter {
                 it.getFileName().toString().endsWith(".html")
-            }.map {
+            }.collect {
                 def html = Jsoup.parse(it.toFile(), null)
                 def breadcrumbs = html.selectFirst(".breadcrumbs")
                 if (breadcrumbs == null) {
@@ -67,8 +68,9 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
                 for (int i = 1; i < elements.size(); i++) {
                     path = path.child(elements[i])
                 }
-                return path
-            }.collect(Collectors.toSet())
+                def childrenWithoutFiles = html.select("td.path").collect { path.child(it.text()) }
+                return [path] + childrenWithoutFiles
+            }.flatten().toSet()
         }
     })
     private final File htmlReportDirectory
@@ -89,6 +91,14 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
      */
     Set<Path> getExecutedTestPaths() {
         return executedTestPathsLazy.get()
+    }
+
+    GenericTestExecutionResult assertHtml(String cssQuery, Action<Collection<?>> action) {
+        def parsedHtml = Jsoup.parse(htmlReportDirectory.toPath().resolve("index.html").toFile(), null)
+        def matched = parsedHtml.select(cssQuery)
+        assert matched : "Queried HTML report for $cssQuery"
+        action.execute(matched)
+        return this
     }
 
     @SuppressWarnings('GroovyAssignabilityCheck')
@@ -157,7 +167,147 @@ Unexpected paths: ${unexpectedPaths}""")
     @Override
     TestPathExecutionResult testPath(String rootTestPath) {
         assertAtLeastTestPathsExecuted(rootTestPath)
-        return new HtmlTestPathExecutionResult(testFramework, diskPathForTestPath(frameworkTestPath(rootTestPath)).toFile())
+
+        def reportPath = diskPathForTestPath(frameworkTestPath(rootTestPath))
+        if (Files.exists(reportPath)) {
+            return new HtmlTestPathExecutionResult(testFramework, reportPath.toFile())
+        } else {
+            return new TestPathExecutionResult() {
+                private final TestPathRootExecutionResult doesNotExist = new TestPathRootExecutionResult() {
+                    @Override
+                    TestPathRootExecutionResult assertOnlyChildrenExecuted(String... testNames) {
+                        assert !testNames.empty
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildrenExecuted(String... testNames) {
+                        assert !testNames.empty
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildCount(int tests, int failures) {
+                        assert tests == 0
+                        return this
+                    }
+
+                    @Override
+                    int getExecutedChildCount() {
+                        return 0
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildrenSkipped(String... testNames) {
+                        assert !testNames.empty
+                        return this
+                    }
+
+                    @Override
+                    int getSkippedChildCount() {
+                        return 0
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildrenFailed(String... testNames) {
+                        assert !testNames.empty
+                        return this
+                    }
+
+                    @Override
+                    int getFailedChildCount() {
+                        return 0
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertStdout(Matcher<? super String> matcher) {
+                        matcher.matches("")
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertStderr(Matcher<? super String> matcher) {
+                        matcher.matches("")
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertHasResult(TestResult.ResultType resultType) {
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertDisplayName(Matcher<? super String> matcher) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertFailureMessages(Matcher<? super String> matcher) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    String getFailureMessages() {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertMetadataKeys(List<String> keys) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertMetadata(List<Map.Entry<String, String>> metadata) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertFileAttachments(Map<String, TestPathRootExecutionResult.ShowAs> expectedAttachments) {
+                        assert false
+                        return this
+                    }
+                }
+
+                @Override
+                TestPathRootExecutionResult onlyRoot() {
+                    return doesNotExist
+                }
+
+                @Override
+                TestPathRootExecutionResult singleRootWithRun(int runNumber) {
+                    assert false
+                    return doesNotExist
+                }
+
+                @Override
+                TestPathRootExecutionResult root(String rootName) {
+                    assert false
+                    return doesNotExist
+                }
+
+                @Override
+                TestPathRootExecutionResult rootAndRun(String rootName, int runNumber) {
+                    assert false
+                    return doesNotExist
+                }
+
+                @Override
+                List<String> getRootNames() {
+                    return [rootTestPath]
+                }
+
+                @Override
+                int getRunCount(String rootName) {
+                    assert false
+                    return 0
+                }
+            }
+        }
     }
 
     TestPathExecutionResult testPathPreNormalized(String rootTestPath) {
