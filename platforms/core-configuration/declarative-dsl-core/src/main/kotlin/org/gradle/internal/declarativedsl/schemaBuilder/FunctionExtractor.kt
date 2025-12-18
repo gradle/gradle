@@ -393,7 +393,6 @@ fun isValidNestedModelType(type: SupportedTypeProjection.SupportedType): Boolean
     val classifier = type.classifier
     return when {
         (classifier as? KClass<*>)?.javaPrimitiveType != null -> false
-        (classifier as? KClass<*>)?.isSubclassOf(Iterable::class) == true -> false
         classifier == Unit::class -> false
         else -> true
     }

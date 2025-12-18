@@ -38,7 +38,7 @@ public interface DependencyResolutionManagement {
      * @param repositoryConfiguration the repositories configuration
      */
     @Incubating
-    @Configuring
+    @HiddenInDeclarativeDsl
     void repositories(Action<? super RepositoryHandler> repositoryConfiguration);
 
     /**

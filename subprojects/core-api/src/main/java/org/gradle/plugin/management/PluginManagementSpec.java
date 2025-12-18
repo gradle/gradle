@@ -39,7 +39,7 @@ public interface PluginManagementSpec {
     /**
      * Defines the plugin repositories to use.
      */
-    @Configuring
+    @HiddenInDeclarativeDsl
     void repositories(Action<? super RepositoryHandler> repositoriesAction);
 
     /**
