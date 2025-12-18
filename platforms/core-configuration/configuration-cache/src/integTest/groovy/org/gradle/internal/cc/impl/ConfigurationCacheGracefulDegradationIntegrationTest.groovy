@@ -127,7 +127,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.htmlReport(result).assertContents {
+        problems.htmlReport(result.output).assertContents {
             totalProblemsCount = 1
             withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":a", "Project access.")
@@ -174,7 +174,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.htmlReport(result).assertContents {
+        problems.htmlReport(result.output).assertContents {
             totalProblemsCount = expectedProblems.size()
             expectedProblems.forEach { withProblem(it) }
             withIncompatibleTask(":a", degradationReason)
@@ -202,7 +202,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         and:
         // feature degradation is reported as a report problem, but it is silently suppressed from the console
         problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.htmlReport(result).assertContents {
+        problems.htmlReport(result.output).assertContents {
             totalProblemsCount = 1
             withProblem("Feature 'source dependencies' is incompatible with the configuration cache.")
         }
@@ -239,7 +239,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
             totalProblemsCount = 1
             withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported with the configuration cache.")
         }
-        problems.htmlReport(result).assertContents {
+        problems.htmlReport(result.output).assertContents {
             // gracefully degraded task appears in the report
             withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
@@ -269,7 +269,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.htmlReport(result).assertContents {
+        problems.htmlReport(result.output).assertContents {
             totalProblemsCount = 1
             withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":included:foo", "Project access.")
@@ -335,7 +335,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.htmlReport(result).assertContents {
+        problems.htmlReport(result.output).assertContents {
             totalProblemsCount = 1
             withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":included:foo", "Project access.")
@@ -371,7 +371,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.htmlReport(result).assertContents {
+        problems.htmlReport(result.output).assertContents {
             totalProblemsCount = 0
             withIncompatibleTask(":$build:foo", "Because reasons.")
         }
@@ -546,7 +546,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
         // no problems on the console
         problems.assertResultConsoleSummaryHasNoProblems(result)
         // but problems should be in CC report
-        problems.htmlReport(result).assertContents {
+        problems.htmlReport(result.output).assertContents {
             totalProblemsCount = 1
             withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":foo", "Because reasons.")
@@ -580,7 +580,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
 
         and:
         problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.htmlReport(result).assertContents {
+        problems.htmlReport(result.output).assertContents {
             totalProblemsCount = 0
             withIncompatibleTask(":foo", "Because reasons.")
         }
@@ -648,7 +648,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
             totalProblemsCount = 1
             withProblem("Build file 'build.gradle': line 17: invocation of 'Task.project' at execution time is unsupported with the configuration cache")
         }
-        problems.htmlReport(result).assertContents {
+        problems.htmlReport(result.output).assertContents {
             totalProblemsCount = 1
             withProblem(INVOCATION_OF_TASK_PROJECT_AT_EXECUTION_TIME)
             withIncompatibleTask(":bar", "Project access.")
