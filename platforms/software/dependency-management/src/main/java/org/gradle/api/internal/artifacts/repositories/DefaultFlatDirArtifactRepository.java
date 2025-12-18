@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryDisabler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.repositories.descriptor.FlatDirRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
@@ -162,7 +163,7 @@ public abstract class DefaultFlatDirArtifactRepository extends AbstractResolutio
 
         RepositoryTransport transport = transportFactory.createFileTransport(getName());
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, null, null);
-        return new IvyResolver(descriptor.getBackingDescriptor(), transport, locallyAvailableResourceFinder, false, artifactFileStore, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector, checksumService, false);
+        return new IvyResolver(descriptor.getBackingDescriptor(), transport, locallyAvailableResourceFinder, false, artifactFileStore, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector, checksumService, false, RepositoryDisabler.NoOpDisabler.INSTANCE);
     }
 
     private ImmutableMetadataSources createMetadataSources() {

@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryDisabler;
 import org.gradle.api.internal.artifacts.repositories.descriptor.MavenRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadata;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
@@ -71,7 +72,8 @@ public class MavenResolver extends ExternalResourceResolver {
         @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory,
         Instantiator injector,
         ChecksumService checksumService,
-        boolean continueOnConnectionFailure
+        boolean continueOnConnectionFailure,
+        RepositoryDisabler remoteRepositoryDisabler
     ) {
         super(descriptor, transport.isLocal(),
             transport.getRepository(),
@@ -84,7 +86,8 @@ public class MavenResolver extends ExternalResourceResolver {
             versionListerFactory,
             injector,
             checksumService,
-            continueOnConnectionFailure);
+            continueOnConnectionFailure,
+            remoteRepositoryDisabler);
         this.mavenMetaDataLoader = mavenMetaDataLoader;
         this.root = rootUri;
     }

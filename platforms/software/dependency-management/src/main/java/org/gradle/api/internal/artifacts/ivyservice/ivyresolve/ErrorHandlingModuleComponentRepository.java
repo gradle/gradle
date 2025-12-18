@@ -57,12 +57,10 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
 
     private final ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate;
     private final ErrorHandlingModuleComponentRepositoryAccess local;
-    private final RepositoryDisabler remoteRepositoryDisabler;
     private final ErrorHandlingModuleComponentRepositoryAccess remote;
 
     public ErrorHandlingModuleComponentRepository(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate, RepositoryDisabler remoteRepositoryDisabler) {
         this.delegate = delegate;
-        this.remoteRepositoryDisabler = remoteRepositoryDisabler;
         this.local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), RepositoryDisabler.NoOpDisabler.INSTANCE, getName(), false);
         this.remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), getId(), remoteRepositoryDisabler, getName(), isContinueOnConnectionFailure());
     }
@@ -109,7 +107,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
 
     @Override
     public boolean isRepositoryDisabled() {
-        return remoteRepositoryDisabler.isDisabled(getId()) || delegate.isRepositoryDisabled();
+        return delegate.isRepositoryDisabled();
     }
 
     private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
@@ -143,7 +141,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
 
         @Override
         public String toString() {
-            return "error handling > " + delegate.toString();
+            return "error handling > " + delegate;
         }
 
         @Override

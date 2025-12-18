@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryDisabler;
 import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider;
@@ -58,7 +59,8 @@ public class IvyResolver extends ExternalResourceResolver {
         MetadataArtifactProvider metadataArtifactProvider,
         Instantiator injector,
         ChecksumService checksumService,
-        boolean continueOnConnectionFailure
+        boolean continueOnConnectionFailure,
+        RepositoryDisabler remoteRepositoryDisabler
     ) {
         super(
             descriptor,
@@ -73,7 +75,8 @@ public class IvyResolver extends ExternalResourceResolver {
             componentMetadataVersionListerFactory,
             injector,
             checksumService,
-            continueOnConnectionFailure);
+            continueOnConnectionFailure,
+            remoteRepositoryDisabler);
         this.dynamicResolve = dynamicResolve;
         this.m2Compatible = descriptor.isM2Compatible();
         this.localRepositoryAccess = new IvyLocalRepositoryAccess();

@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryDisabler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.descriptor.UrlRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources;
@@ -103,6 +104,7 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
     private final Instantiator injector;
     private final ChecksumService checksumService;
     private final boolean continueOnConnectionFailure;
+    private final RepositoryDisabler remoteRepositoryDisabler;
 
     private final String id;
     private ExternalResourceArtifactResolver cachedArtifactResolver;
@@ -120,7 +122,8 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
         @Nullable InstantiatingAction<ComponentMetadataListerDetails> providedVersionLister,
         Instantiator injector,
         ChecksumService checksumService,
-        boolean continueOnConnectionFailure
+        boolean continueOnConnectionFailure,
+        RepositoryDisabler remoteRepositoryDisabler
     ) {
         this.id = descriptor.getId();
         this.name = descriptor.getName();
@@ -138,6 +141,7 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
         this.injector = injector;
         this.checksumService = checksumService;
         this.continueOnConnectionFailure = continueOnConnectionFailure;
+        this.remoteRepositoryDisabler = remoteRepositoryDisabler;
     }
 
     @Override
@@ -162,8 +166,7 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
 
     @Override
     public boolean isRepositoryDisabled() {
-        // A repository is never disabled by default
-        return false;
+        return remoteRepositoryDisabler.isDisabled(getId());
     }
 
     @Override

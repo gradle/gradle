@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryDisabler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -91,7 +92,8 @@ public abstract class DefaultMavenLocalArtifactRepository extends DefaultMavenAr
             null,
             injector,
             checksumService,
-            false);
+            false,
+            RepositoryDisabler.NoOpDisabler.INSTANCE);
     }
 
     @Override
