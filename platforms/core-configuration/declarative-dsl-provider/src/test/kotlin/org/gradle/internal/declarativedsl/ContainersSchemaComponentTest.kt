@@ -18,11 +18,13 @@ package org.gradle.internal.declarativedsl
 
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.Namer
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.tasks.Internal
 import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
+import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.FunctionSemantics
@@ -166,11 +168,12 @@ class ContainersSchemaComponentTest {
     class Two(private val name: String) : Named {
         val containerThree: NamedDomainObjectContainer<Three> = container(Three::class.java)
 
-        val containerSubtype: NdocSubtype = NdocSubtype(container(Three::class.java))
+        val containerSubtype: NdocSubtype = NdocSubtype()
 
         @get:Restricted
         var y: Int = 0
 
+        @HiddenInDeclarativeDsl
         override fun getName(): String = name
     }
 
@@ -182,7 +185,16 @@ class ContainersSchemaComponentTest {
         override fun getName(): String = name
     }
 
-    class NdocSubtype(container: NamedDomainObjectContainer<Three>) : NamedDomainObjectContainer<Three> by container {
+    class NdocSubtype : AbstractNamedDomainObjectContainer<Three>(
+        Three::class.java,
+        object : Instantiator {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : Any> newInstance(type: Class<out T>, vararg parameters: Any?): T =
+                type.constructors.single().newInstance(*parameters) as T
+        },
+        Namer(Three::getName),
+        CollectionCallbackActionDecorator.NOOP
+    ) {
         @get:Restricted
         var w: Int = 0
 
@@ -191,6 +203,8 @@ class ContainersSchemaComponentTest {
         fun configuringInSubtype(configure: Three.() -> Unit) {
             maybeCreate("configuringInSubtype").let(configure)
         }
+
+        override fun doCreate(name: String): Three = Three(name)
     }
 }
 
