@@ -151,7 +151,7 @@ toolChains {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.")
+        failure.assertHasDescription("Execution failed for task ':linkMainExecutable' (registered by Rule).")
         failure.assertThatCause(CoreMatchers.startsWith("Could not find Linker 'does-not-exist'"))
     }
 }

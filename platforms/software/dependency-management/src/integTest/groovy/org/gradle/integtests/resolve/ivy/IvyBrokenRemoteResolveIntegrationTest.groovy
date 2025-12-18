@@ -55,7 +55,7 @@ task showMissing { doLast { println configurations.missing.files } }
 
         then:
         fails("showMissing")
-        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+        failure.assertHasDescription('Execution failed for task \':showMissing\' (registered in build file \'build.gradle\').')
             .assertResolutionFailure(':missing')
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
@@ -68,7 +68,7 @@ Required by:
 
         then:
         fails("showMissing")
-        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+        failure.assertHasDescription('Execution failed for task \':showMissing\' (registered in build file \'build.gradle\').')
             .assertResolutionFailure(':missing')
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
@@ -122,7 +122,7 @@ task showMissing { doLast { println configurations.missing.files } }
 
         then:
         fails("showMissing")
-        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+        failure.assertHasDescription('Execution failed for task \':showMissing\' (registered in build file \'build.gradle\').')
             .assertResolutionFailure(':missing')
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
@@ -217,7 +217,7 @@ Required by:
 
         then:
         fails("showMissing")
-        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+        failure.assertHasDescription('Execution failed for task \':showMissing\' (registered in build file \'build.gradle\').')
             .assertResolutionFailure(':compile')
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
@@ -278,7 +278,7 @@ task showMissing { doLast { println configurations.missing.files } }
 
         then:
         fails("showMissing")
-        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+        failure.assertHasDescription('Execution failed for task \':showMissing\' (registered in build file \'build.gradle\').')
             .assertHasCause('Could not resolve all files for configuration \':missing\'.')
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
@@ -332,7 +332,7 @@ task showMissing { doLast { println configurations.missing.files } }
 
         then:
         fails("showMissing")
-        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+        failure.assertHasDescription('Execution failed for task \':showMissing\' (registered in build file \'build.gradle\').')
             .assertHasCause('Could not resolve all files for configuration \':missing\'.')
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
@@ -369,7 +369,7 @@ task showMissing { doLast { println configurations.missing.files } }
 
         expect:
         fails("showMissing")
-        failure.assertHasDescription('Execution failed for task \':showMissing\'.')
+        failure.assertHasDescription('Execution failed for task \':showMissing\' (registered in build file \'build.gradle\').')
             .assertResolutionFailure(':missing')
             .assertHasCause("Cannot resolve external dependency group:projectA:1.2 because no repositories are defined.")
 
@@ -416,7 +416,7 @@ task showBroken { doLast { println configurations.broken.files } }
 
         then:
         failure
-            .assertHasDescription('Execution failed for task \':showBroken\'.')
+            .assertHasDescription('Execution failed for task \':showBroken\' (registered in build file \'build.gradle\').')
             .assertResolutionFailure(':broken')
             .assertHasCause('Could not resolve group:projectA:1.3.')
             .assertHasCause("Could not GET '${module.ivy.uri}'. Received status code 500 from server: broken")

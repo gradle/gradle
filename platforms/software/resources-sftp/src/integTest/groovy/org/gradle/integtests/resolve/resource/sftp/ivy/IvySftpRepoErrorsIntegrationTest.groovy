@@ -272,7 +272,7 @@ task retrieve(type: Sync) {
             failureDescriptionContains("Configuration cache state could not be cached:")
             failureDescriptionContains(taskSelector)
         } else {
-            def description = "Execution failed for task '${taskSelector}'."
+            def description = "Execution failed for task '${taskSelector}' (registered in build file 'build.gradle')."
             failure.assertHasDescription(description)
         }
     }

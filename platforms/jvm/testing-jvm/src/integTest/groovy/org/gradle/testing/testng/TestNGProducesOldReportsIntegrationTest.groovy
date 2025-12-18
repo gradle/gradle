@@ -51,7 +51,7 @@ test {
 }
 """
         when:
-        executer.withTasks('test').runWithFailure().assertTestsFailed()
+        executer.withTasks('test').runWithFailure().assertTestsFailed("registered by plugin 'org.gradle.jvm-test-suite'")
 
         then:
         !new TestNGExecutionResult(file(".")).hasTestNGXmlResults()

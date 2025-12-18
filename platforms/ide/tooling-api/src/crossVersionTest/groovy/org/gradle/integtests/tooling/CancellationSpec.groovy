@@ -127,14 +127,18 @@ latch.await()
             if (targetDist.toolingApiDoesNotAddCausesOnTaskCancel) {
                 // Verify the cause exception gives some context about the cancellation
                 // Some versions either do not included this, or provide a pointless wrapper, or include multiple 'build cancelled' failures
-                assert resultHandler.failure.cause.message == "Execution failed for task '${taskPath}'." // wrapper exception, could probably suppress this
-                assert resultHandler.failure.cause.cause.message == "Execution failed for task '${taskPath}'."
+                assert resultHandler.failure.cause.message.startsWith("Execution failed for task '${taskPath}'") // wrapper exception, could probably suppress this
+                assert resultHandler.failure.cause.cause.message.startsWith("Execution failed for task '${taskPath}'")
                 assert cancelledMessageMatcher(taskPath).matches(resultHandler.failure.cause.cause.cause.message)
             }
 
             // Verify that there is some logging output that explains that the build was cancelled
             def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
-            failure.assertHasDescription("Execution failed for task '${taskPath}'.")
+            if (targetVersion >= GradleVersion.version("9.4.0")) {
+                failure.assertHasDescription("Execution failed for task '${taskPath}' (registered in build file 'build.gradle').")
+            } else {
+                failure.assertHasDescription("Execution failed for task '${taskPath}'.")
+            }
             failure.assertThatCause(cancelledMessageMatcher(taskPath))
         } else {
             // Verify that there is some logging output that explains that the build was cancelled, for versions that do not include any context in the message

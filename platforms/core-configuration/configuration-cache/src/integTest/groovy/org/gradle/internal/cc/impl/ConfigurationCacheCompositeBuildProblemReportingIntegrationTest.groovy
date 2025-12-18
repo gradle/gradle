@@ -41,7 +41,7 @@ class ConfigurationCacheCompositeBuildProblemReportingIntegrationTest extends Ab
 
         then:
         failure.assertHasFailures(2)
-        failure.assertHasDescription("Execution failed for task ':inc:sub:broken'.")
+        failure.assertHasDescription("Execution failed for task ':inc:sub:broken' (registered in build file 'inc/sub/build.gradle').")
         failure.assertHasCause("Invocation of 'Task.project' by task ':inc:sub:broken' at execution time is unsupported with the configuration cache.")
 
         outputContains "Configuration cache entry discarded with 3 problems."

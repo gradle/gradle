@@ -52,7 +52,7 @@ class TestTaskJavaVersionIntegrationTest extends AbstractIntegrationSpec impleme
         fails(":test")
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':test'.")
+        failureDescriptionStartsWith("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javaLauncher` property")
 
         where:
