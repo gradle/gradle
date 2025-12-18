@@ -179,8 +179,9 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
             return new File(getProjectDir(), buildFileName);
         }
         ScriptResolutionResult buildScriptFileResolution = scriptFileResolver.resolveScriptFile(getProjectDir(), BUILD_SCRIPT_BASENAME);
-        if (buildScriptFileResolution.isScriptFound()) {
-            return buildScriptFileResolution.getSelectedCandidate();
+        File selectedCandidate = buildScriptFileResolution.getSelectedCandidate();
+        if (selectedCandidate != null) {
+            return selectedCandidate;
         } else {
             return new File(getProjectDir(), Project.DEFAULT_BUILD_FILE);
         }
