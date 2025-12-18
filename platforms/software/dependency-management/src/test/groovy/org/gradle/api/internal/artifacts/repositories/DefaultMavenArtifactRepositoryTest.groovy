@@ -33,7 +33,6 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
-import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore
@@ -56,8 +55,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final GradleModuleMetadataParser metadataParser = Stub()
     final AuthenticationContainer authenticationContainer = Stub()
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
-    final PropertyFactory propertyFactory = TestUtil.propertyFactory()
-    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(resolver, propertyFactory)
+    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(resolver)
     final ProviderFactory providerFactory = Mock()
 
     final DefaultMavenArtifactRepository repository = newRepo()
@@ -356,12 +354,13 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     }
 
     private DefaultMavenArtifactRepository newRepo() {
-        def repo = new DefaultMavenArtifactRepository(
+        def repo = TestUtil.objectFactory().newInstance(DefaultMavenArtifactRepository, new DefaultMavenArtifactRepository.DefaultDescriber(),
             resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(),
             artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, externalResourceFileStore,
             Mock(FileResourceRepository), mavenMetadataFactory, SnapshotTestUtil.isolatableFactory(),
             TestUtil.objectFactory(), urlArtifactRepositoryFactory, TestUtil.checksumService, providerFactory, new VersionParser())
         repo.name = 'repo'
+        repo.allowInsecureContinueOnConnectionFailure.convention(false)
         return repo
     }
 

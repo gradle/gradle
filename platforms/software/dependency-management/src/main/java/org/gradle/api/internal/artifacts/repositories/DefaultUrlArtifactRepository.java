@@ -20,8 +20,6 @@ import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.UrlArtifactRepository;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -34,55 +32,42 @@ import javax.inject.Inject;
 import java.net.URI;
 import java.util.function.Supplier;
 
-public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
+public class DefaultUrlArtifactRepository {
 
     private Object url;
     private boolean allowInsecureProtocol;
-    private final String repositoryType;
     private final FileResolver fileResolver;
+    private final String repositoryType;
     private final Supplier<String> displayNameSupplier;
-    private final Property<Boolean> continueOnConnectionFailure;
 
     DefaultUrlArtifactRepository(
-        final FileResolver fileResolver,
-        final PropertyFactory propertyFactory,
+        FileResolver fileResolver,
         final String repositoryType,
         final Supplier<String> displayNameSupplier
     ) {
         this.fileResolver = fileResolver;
         this.repositoryType = repositoryType;
         this.displayNameSupplier = displayNameSupplier;
-        this.continueOnConnectionFailure = propertyFactory.property(Boolean.class);
     }
 
-    @Override
     public URI getUrl() {
         return url == null ? null : fileResolver.resolveUri(url);
     }
 
-    @Override
     public void setUrl(URI url) {
         this.url = url;
     }
 
-    @Override
     public void setUrl(Object url) {
         this.url = url;
     }
 
-    @Override
     public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
         this.allowInsecureProtocol = allowInsecureProtocol;
     }
 
-    @Override
     public boolean isAllowInsecureProtocol() {
         return allowInsecureProtocol;
-    }
-
-    @Override
-    public Property<Boolean> getAllowInsecureContinueWhenDisabled() {
-        return continueOnConnectionFailure;
     }
 
     @Nonnull
@@ -138,16 +123,14 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
     @ServiceScope(Scope.Project.class)
     public static class Factory {
         private final FileResolver fileResolver;
-        private final PropertyFactory propertyFactory;
 
         @Inject
-        public Factory(FileResolver fileResolver, PropertyFactory propertyFactory) {
+        public Factory(FileResolver fileResolver) {
             this.fileResolver = fileResolver;
-            this.propertyFactory = propertyFactory;
         }
 
         DefaultUrlArtifactRepository create(String repositoryType, Supplier<String> displayNameSupplier) {
-            return new DefaultUrlArtifactRepository(fileResolver, propertyFactory, repositoryType, displayNameSupplier);
+            return new DefaultUrlArtifactRepository(fileResolver, repositoryType, displayNameSupplier);
         }
     }
 }
