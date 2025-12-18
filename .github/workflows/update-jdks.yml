@@ -39,7 +39,7 @@ jobs:
           mv .teamcity/jdks.yaml.tmp .teamcity/jdks.yaml
       - name: Create Pull Request
         id: create-pull-request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           signoff: true
           sign-commits: true

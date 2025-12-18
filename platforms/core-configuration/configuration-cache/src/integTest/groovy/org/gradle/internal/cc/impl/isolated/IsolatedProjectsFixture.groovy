@@ -54,6 +54,7 @@ class IsolatedProjectsFixture {
         closure()
 
         configurationCache.assertStateStored(details)
+        configurationCache.assertHasNoProblems()
 
         assertHasWarningThatIncubatingFeatureUsed()
         assertProjectsConfigured(details)
@@ -72,6 +73,7 @@ class IsolatedProjectsFixture {
         closure()
 
         configurationCache.assertStateStored(details)
+        configurationCache.assertHasNoProblems()
 
         assertHasWarningThatIncubatingFeatureUsed()
         assertProjectsConfigured(details)

@@ -30,7 +30,7 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
 
     def "can run the wrapper with java #jdk.javaVersion"() {
         given:
-        prepareWrapper()
+        prepareWrapper().run()
 
         // Run the wrapper with the JVM under test
         wrapperExecuter.withJvm(jdk)

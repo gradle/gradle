@@ -22,6 +22,7 @@ description = "Public types for unit testing plugins"
 
 dependencies {
     api(projects.buildOperations)
+    api(projects.buildProcessServices)
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
@@ -35,7 +36,7 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.buildDiscoveryImpl)
-    implementation(projects.buildProcessServices)
+    implementation(projects.buildOption)
     implementation(projects.buildState)
     implementation(projects.classloaders)
     implementation(projects.daemonServices)
@@ -46,9 +47,9 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
     implementation(projects.native)
+    implementation(projects.problemsApi)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibJavaExtensions)
-    implementation(projects.problemsApi)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(projects.testingBase)

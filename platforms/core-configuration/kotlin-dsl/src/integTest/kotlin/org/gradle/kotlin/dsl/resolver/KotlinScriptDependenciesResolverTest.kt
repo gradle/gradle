@@ -355,6 +355,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     fun environment(vararg entries: Pair<String, Any?>) =
         mapOf(
             "projectRoot" to projectRoot,
+            "gradleHome" to buildContext.gradleHomeDir,
             "gradleUserHome" to buildContext.gradleUserHomeDir.canonicalPath
         ) + (
             if (IntegrationTestBuildContext.isEmbedded()) emptyMap() else mapOf("gradleHome" to distribution.gradleHomeDir)

@@ -20,7 +20,6 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOption
 import org.gradle.internal.buildoption.InternalOptions
@@ -44,9 +43,6 @@ object BuildModelParametersProvider {
 
     private
     val configurationCacheParallelLoad = InternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
-
-    @JvmStatic
-    val parallelBuilding = InternalFlag("org.gradle.internal.tooling.parallel", true)
 
     private
     val invalidateCoupledProjects = InternalFlag("org.gradle.internal.invalidate-coupled-projects", true)
@@ -75,6 +71,16 @@ object BuildModelParametersProvider {
         InternalFlag("org.gradle.internal.resilient-model-building", false)
 
     /**
+     * A public *system property* that allows removing the implication that
+     * `org.gradle.parallel` also controls parallel model building for Vintage.
+     *
+     * It exists as a transitionary measure to allow IDEs to effectively require a separate user opt-in
+     * into parallel model building via the explicit `org.gradle.tooling.parallel` property.
+     */
+    @JvmStatic
+    val parallelModelBuildingIgnoreLegacyDefault = "org.gradle.tooling.parallel.ignore-legacy-default"
+
+    /**
      * Determines Gradle features and behaviors that are required or requested by the build action.
      *
      * This includes features like Configuration Cache, Isolated Projects
@@ -83,9 +89,8 @@ object BuildModelParametersProvider {
      * @throws org.gradle.api.GradleException if the requirements are contradictory
      */
     @JvmStatic
-    fun parameters(requirements: BuildActionModelRequirements): BuildModelParameters {
+    fun parameters(requirements: BuildActionModelRequirements, options: InternalOptions): BuildModelParameters {
         val startParameter = requirements.startParameter
-        val options = DefaultInternalOptions(startParameter.systemPropertiesArgs)
         warnOnPreviouslyExistingOptions(options)
 
         val ccDisabledReason = getConfigurationCacheDisabledReason(startParameter)
@@ -132,14 +137,15 @@ object BuildModelParametersProvider {
         ccDisabledReason: String? = null
     ): GradleVintageMode {
 
-        val parallelProjectExecution = requirements.startParameter.isParallelProjectExecutionEnabled
+        val parallelProjectExecution = startParameter.isParallelProjectExecutionEnabled
+        val parallelModelBuilding = parallelModelBuildingForVintage(startParameter)
         return if (requirements.isCreatesModel) {
             GradleVintageMode(
                 modelBuilding = true,
-                parallelProjectExecution = parallelProjectExecution,
+                parallelProjectExecution = parallelProjectExecution || parallelModelBuilding,
                 configureOnDemand = false,
                 configurationCacheDisabledReason = ccDisabledReason,
-                parallelModelBuilding = parallelProjectExecution && options[parallelBuilding],
+                parallelModelBuilding = parallelModelBuilding,
                 resilientModelBuilding = options[resilientModelBuilding],
             )
         } else {
@@ -152,6 +158,19 @@ object BuildModelParametersProvider {
                 resilientModelBuilding = false,
             )
         }
+    }
+
+    private
+    fun parallelModelBuildingForVintage(startParameter: StartParameterInternal): Boolean {
+        val parallelModelBuildingOption = startParameter.parallelToolingModelBuilding
+        val parallelModelBuildingIgnoreLegacyDefault =
+            java.lang.Boolean.parseBoolean(startParameter.systemPropertiesArgs[parallelModelBuildingIgnoreLegacyDefault])
+        val parallelModelBuilding = when {
+            parallelModelBuildingOption.isExplicit -> parallelModelBuildingOption.get()
+            parallelModelBuildingIgnoreLegacyDefault -> false
+            else -> startParameter.isParallelProjectExecutionEnabled
+        }
+        return parallelModelBuilding
     }
 
     private
@@ -194,7 +213,7 @@ object BuildModelParametersProvider {
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
                 parallelProjectConfiguration = parallelIsolatedProjects,
                 cachingModelBuilding = options[isolatedProjectsCaching].buildingModels,
-                parallelModelBuilding = parallelIsolatedProjects && options[parallelBuilding],
+                parallelModelBuilding = parallelIsolatedProjects,
                 invalidateCoupledProjects = invalidateCoupledProjects,
                 modelAsProjectDependency = options[modelProjectDependencies],
                 resilientModelBuilding = options[resilientModelBuilding]

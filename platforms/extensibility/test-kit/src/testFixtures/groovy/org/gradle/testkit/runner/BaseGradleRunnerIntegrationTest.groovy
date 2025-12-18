@@ -82,7 +82,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     // Context set by multi run infrastructure
     public static GradleVersion gradleVersion
     public static GradleProvider gradleProvider
-    public static boolean debug
+    public static boolean embedded
     public static boolean crossVersion
 
     @Rule
@@ -112,11 +112,11 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     GradleRunner runner(String... arguments) {
         def changesUserHome = arguments.contains("-g")
-        if (changesUserHome && !debug) {
+        if (changesUserHome && !embedded) {
             // A separate daemon be started operating on the changed user home - lets isolate it so that we kill it in the end
             requireIsolatedTestKitDir = true
         }
-        boolean closeServices = (debug && requireIsolatedTestKitDir) || changesUserHome
+        boolean closeServices = (embedded && requireIsolatedTestKitDir) || changesUserHome
         List<String> allArgs = arguments as List
         if (closeServices) {
             // Do not keep user home dir services open when running embedded or when using a custom user home dir
@@ -127,7 +127,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             .withTestKitDir(testKitDir)
             .withProjectDir(testDirectory)
             .withArguments(allArgs)
-            .withDebug(debug)
+            .withDebug(embedded)
 
         gradleProvider.applyTo(gradleRunner)
         gradleRunner
@@ -241,7 +241,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
         private Set<TestedGradleDistribution> determineTestedGradleDistributions() {
             if (target.getAnnotation(NonCrossVersion)) {
-                return [underDevelopmentDistribution()] as Set
+                return [TestedGradleDistribution.UNDER_DEVELOPMENT] as Set
             }
 
             String version = System.getProperty(COMPATIBILITY_SYSPROP_NAME, 'current')
@@ -250,24 +250,20 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                     crossVersion = true
                     return (getMinCompatibleVersions().collect { TestedGradleDistribution.forVersion(it) } +
                         TestedGradleDistribution.mostRecentFinalRelease() +
-                        underDevelopmentDistribution()) as SortedSet
+                        TestedGradleDistribution.UNDER_DEVELOPMENT) as SortedSet
                 case 'current': return [
-                    underDevelopmentDistribution()
+                    TestedGradleDistribution.UNDER_DEVELOPMENT
                 ] as Set
                 default:
                     throw new IllegalArgumentException("Invalid value for $COMPATIBILITY_SYSPROP_NAME system property: $version (valid values: 'all', 'current')")
             }
         }
 
-        private static TestedGradleDistribution underDevelopmentDistribution() {
-            if (IntegrationTestBuildContext.embedded) {
-                TestedGradleDistribution.EMBEDDED_UNDER_DEVELOPMENT
-            } else {
-                TestedGradleDistribution.UNDER_DEVELOPMENT
-            }
-        }
-
         private void addExecutions(@Nullable GradleDistribution releasedDist, TestedGradleDistribution testedGradleDistribution) {
+            // TODO: It would probably make more sense to control the embedded mode of execution based on the
+            // value of `IntegrationTestBuildContext.embedded`. This way, we don't run non-embedded on the
+            // embedded executor and embedded on the non-embedded executor. However, before we do this we
+            // would need to ensure that the embedded test suite is executed on CI to avoid losing coverage.
             if (target.getAnnotation(NoDebug)) {
                 add(new GradleRunnerExecution(releasedDist, testedGradleDistribution, false))
             } else if (target.getAnnotation(Debug)) {
@@ -307,14 +303,6 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            private static
-            final TestedGradleDistribution EMBEDDED_UNDER_DEVELOPMENT = new TestedGradleDistribution(BUILD_CONTEXT.version, GradleProvider.embedded()) {
-                @Override
-                String getDisplayName() {
-                    return "current embedded"
-                }
-            }
-
             final GradleVersion gradleVersion
             final GradleProvider gradleProvider
 
@@ -342,21 +330,21 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
             private final @Nullable GradleDistribution releasedDistribution
             private final TestedGradleDistribution testedGradleDistribution
-            private final boolean debug
+            private final boolean embedded
 
             GradleRunnerExecution(
                 @Nullable GradleDistribution releasedDistribution,
                 TestedGradleDistribution testedGradleDistribution,
-                boolean debug
+                boolean embedded
             ) {
                 this.releasedDistribution = releasedDistribution
                 this.testedGradleDistribution = testedGradleDistribution
-                this.debug = debug
+                this.embedded = embedded
             }
 
             @Override
             protected String getDisplayName() {
-                "version = $testedGradleDistribution.displayName, debug = $debug"
+                "version = $testedGradleDistribution.displayName, embedded = $embedded"
             }
 
             @Override
@@ -367,7 +355,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             @Override
             protected void before(IMethodInvocation invocation) {
                 super.before(invocation)
-                BaseGradleRunnerIntegrationTest.debug = debug
+                BaseGradleRunnerIntegrationTest.embedded = embedded
                 gradleVersion = testedGradleDistribution.gradleVersion
                 gradleProvider = testedGradleDistribution.gradleProvider
             }
@@ -394,7 +382,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                     return false
                 }
 
-                if (testDetails.getAnnotation(InspectsBuildOutput) && debug && gradleVersion < MINIMUM_VERSIONS_BY_ANNOTATIONS[InspectsBuildOutput]) {
+                if (testDetails.getAnnotation(InspectsBuildOutput) && embedded && gradleVersion < MINIMUM_VERSIONS_BY_ANNOTATIONS[InspectsBuildOutput]) {
                     return false
                 }
 
@@ -402,11 +390,11 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                     return false
                 }
 
-                if (testDetails.getAnnotation(NoDebug) && debug) {
+                if (testDetails.getAnnotation(NoDebug) && embedded) {
                     return false
                 }
 
-                if (testDetails.getAnnotation(Debug) && !debug) {
+                if (testDetails.getAnnotation(Debug) && !embedded) {
                     return false
                 }
 

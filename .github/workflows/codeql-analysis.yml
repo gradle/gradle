@@ -31,7 +31,7 @@ jobs:
       # Checkout must run before the caching key is computed using the `hashFiles` method
 
     - name: Cache Gradle Modules
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.gradle/caches/modules-2/

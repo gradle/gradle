@@ -167,6 +167,7 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isProblemReportGenerationEnabled());
             encoder.writeBoolean(startParameter.isTaskGraph());
             encoder.writeBoolean(startParameter.isDaemonJvmCriteriaConfigured());
+            valueSerializer.write(encoder, startParameter.getParallelToolingModelBuilding());
         }
 
         private void writeTaskRequests(Encoder encoder, List<TaskExecutionRequest> taskRequests) throws Exception {
@@ -265,6 +266,7 @@ public class BuildActionSerializer {
             startParameter.enableProblemReportGeneration(decoder.readBoolean());
             startParameter.setTaskGraph(decoder.readBoolean());
             startParameter.setDaemonJvmCriteriaConfigured(decoder.readBoolean());
+            startParameter.setParallelToolingModelBuilding(valueSerializer.read(decoder));
 
             return startParameter;
         }

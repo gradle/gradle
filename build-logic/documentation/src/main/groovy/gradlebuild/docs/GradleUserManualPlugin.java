@@ -244,6 +244,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             task.sources(patternSet -> {
                 patternSet.include("**/*.adoc");
+                patternSet.include("**/*.js");
                 patternSet.exclude("javaProject*Layout.adoc");
                 patternSet.exclude("userguide_single.adoc");
                 patternSet.exclude("snippets/**/*.adoc");
@@ -281,6 +282,10 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.from(extension.getUserManual().getRoot().dir("img"), sub -> {
                 sub.include("**/*.png", "**/*.gif", "**/*.jpg", "**/*.svg");
                 sub.into("img");
+            });
+            task.from(extension.getUserManual().getRoot().dir("js"), sub -> {
+                sub.include("**/*.js");
+                sub.into("js");
             });
         });
 

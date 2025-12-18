@@ -437,6 +437,13 @@ _Default is `.gradle`._
 Enable (`true`) or disable (`false`) the generation of `build/reports/problems-report.html`. `true` is the default.
 The report is generated with problems provided to the <<reporting_problems.adoc#sec:reporting_problems,Problems API>>.
 
+`org.gradle.tooling.parallel=(true,false)` since-gradle-label:9.4.0[]::
+
+Allows running <<service_injection.adoc#toolingmodelbuilderregistry,Tooling Model Builders>> in parallel, which can improve IDE Sync times.
+An explicit value will override `org.gradle.parallel` in this context.
++
+_Default is the value of `org.gradle.parallel`._
+
 `org.gradle.unsafe.isolated-projects=(true,false)`::
 Enables project isolation, which enables configuration caching.
 +
