@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Task;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -67,5 +68,5 @@ public interface TaskContainerInternal extends TaskContainer, PolymorphicDomainO
      *
      * TODO:configuration-cache - review this
      */
-    <T extends Task> T createWithoutConstructor(String name, Class<T> type, long uniqueId);
+    <T extends Task> T createWithoutConstructor(String name, Class<T> type, long uniqueId, UserCodeSource userCodeSource);
 }
