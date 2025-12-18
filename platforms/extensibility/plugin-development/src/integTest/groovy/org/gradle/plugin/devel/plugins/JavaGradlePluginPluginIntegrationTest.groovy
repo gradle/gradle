@@ -155,7 +155,25 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         output.count(INVALID_DESCRIPTOR_WARNING_PREFIX) == 1
     }
 
-    def "Uses plugin declaration name if plugin declaration has no id"() {
+    def "Fails if plugin declaration has null id"() {
+        given:
+        buildFile()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    helloPlugin {
+                        id = null
+                        implementationClass = 'com.foo.Bar'
+                    }
+                }
+            }
+        """
+        expect:
+        fails "jar"
+        failureCauseContains(String.format(JavaGradlePluginPlugin.DECLARATION_MISSING_ID_MESSAGE, 'helloPlugin'))
+    }
+
+    def "Uses plugin declaration name if plugin declaration id has not been set"() {
         given:
         buildFile()
         buildFile << """
