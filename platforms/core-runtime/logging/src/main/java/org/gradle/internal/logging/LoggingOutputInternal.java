@@ -17,7 +17,7 @@
 package org.gradle.internal.logging;
 
 import org.gradle.api.logging.LoggingOutput;
-import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -40,7 +40,7 @@ public interface LoggingOutputInternal extends LoggingOutput {
      *
      * <p>Removes standard output and/or error as a side-effect.
      */
-    void attachProcessConsole(ConsoleOutput consoleOutput);
+    void attachProcessConsole(LoggingConfiguration loggingConfiguration);
 
     /**
      * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout and stderr logging formatted according to the current logging settings and encoded using the system character encoding. The output also includes color and dynamic text encoded using ANSI control sequences, depending on the requested output format.
@@ -51,9 +51,9 @@ public interface LoggingOutputInternal extends LoggingOutput {
      *
      * @param outputStream Receives formatted output.
      * @param errorStream Receives formatted error output. Note that this steam may not necessarily be used, depending on the console mode requested.
-     * @param consoleOutput The output format.
+     * @param loggingConfiguration The logging configuration
      */
-    void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput);
+    void attachConsole(OutputStream outputStream, OutputStream errorStream, LoggingConfiguration loggingConfiguration);
 
     /**
      * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout and stderr logging formatted according to the current logging settings and encoded using the system character encoding. The output also includes color and dynamic text encoded using ANSI control sequences, depending on the requested output format.
@@ -63,9 +63,9 @@ public interface LoggingOutputInternal extends LoggingOutput {
      * @param outputStream Receives formatted output.
      * @param errorStream Receives formatted error output. Note that this steam may not necessarily be used, depending on the console mode requested.
      * @param consoleMetadata The metadata associated with this console
-     * @param consoleOutput The output format.
+     * @param loggingConfiguration The logging configuration
      */
-    void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, @Nullable ConsoleMetaData consoleMetadata);
+    void attachConsole(OutputStream outputStream, OutputStream errorStream, LoggingConfiguration loggingConfiguration, @Nullable ConsoleMetaData consoleMetadata);
 
     /**
      * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout logging formatted according to the current logging settings and

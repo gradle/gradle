@@ -72,7 +72,6 @@ class LoggingCommandLineConverterTest extends Specification {
         where:
         arg                             | consoleOutput
         "--console=plain"               | ConsoleOutput.Plain
-        "--console=colored"             | ConsoleOutput.Colored
         "--console=auto"                | ConsoleOutput.Auto
         "--console=AUTO"                | ConsoleOutput.Auto
         "--console=rich"                | ConsoleOutput.Rich

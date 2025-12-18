@@ -18,7 +18,7 @@ package org.gradle.internal.logging.services;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -212,18 +212,18 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     }
 
     @Override
-    public void attachProcessConsole(ConsoleOutput consoleOutput) {
-        loggingRouter.attachProcessConsole(consoleOutput);
+    public void attachProcessConsole(LoggingConfiguration loggingConfiguration) {
+        loggingRouter.attachProcessConsole(loggingConfiguration);
     }
 
     @Override
-    public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput) {
-        loggingRouter.attachConsole(outputStream, errorStream, consoleOutput, null);
+    public void attachConsole(OutputStream outputStream, OutputStream errorStream, LoggingConfiguration loggingConfiguration) {
+        loggingRouter.attachConsole(outputStream, errorStream, loggingConfiguration, null);
     }
 
     @Override
-    public void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata) {
-        loggingRouter.attachConsole(outputStream, errorStream, consoleOutput, consoleMetadata);
+    public void attachConsole(OutputStream outputStream, OutputStream errorStream, LoggingConfiguration loggingConfiguration, ConsoleMetaData consoleMetadata) {
+        loggingRouter.attachConsole(outputStream, errorStream, loggingConfiguration, consoleMetadata);
     }
 
     @Override
@@ -271,12 +271,12 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             this.consoleAttachment = consoleAttachment;
         }
 
-        void attachProcessConsole(ConsoleOutput consoleOutput) {
-            addConsoleAttachement(new ProcessConsoleAttachment(loggingRouter, consoleOutput));
+        void attachProcessConsole(LoggingConfiguration loggingConfiguration) {
+            addConsoleAttachement(new ProcessConsoleAttachment(loggingRouter, loggingConfiguration));
         }
 
-        void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata) {
-            addConsoleAttachement(new ConsoleAttachment(loggingRouter, outputStream, errorStream, consoleOutput, consoleMetadata));
+        void attachConsole(OutputStream outputStream, OutputStream errorStream, LoggingConfiguration loggingConfiguration, ConsoleMetaData consoleMetadata) {
+            addConsoleAttachement(new ConsoleAttachment(loggingRouter, outputStream, errorStream, loggingConfiguration, consoleMetadata));
         }
 
         public void setLevel(LogLevel logLevel) {
@@ -379,16 +379,16 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
     private static class ProcessConsoleAttachment implements Runnable {
         private final LoggingRouter loggingRouter;
-        private final ConsoleOutput consoleOutput;
+        private final LoggingConfiguration loggingConfiguration;
 
-        ProcessConsoleAttachment(LoggingRouter loggingRouter, ConsoleOutput consoleOutput) {
+        ProcessConsoleAttachment(LoggingRouter loggingRouter, LoggingConfiguration loggingConfiguration) {
             this.loggingRouter = loggingRouter;
-            this.consoleOutput = consoleOutput;
+            this.loggingConfiguration = loggingConfiguration;
         }
 
         @Override
         public void run() {
-            loggingRouter.attachProcessConsole(consoleOutput);
+            loggingRouter.attachProcessConsole(loggingConfiguration);
         }
 
         @Override
@@ -402,12 +402,12 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
             ProcessConsoleAttachment that = (ProcessConsoleAttachment) o;
 
-            return consoleOutput == that.consoleOutput;
+            return loggingConfiguration.equals(that.loggingConfiguration);
         }
 
         @Override
         public int hashCode() {
-            return consoleOutput.hashCode();
+            return loggingConfiguration.hashCode();
         }
     }
 
@@ -415,20 +415,20 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         private final LoggingRouter loggingRouter;
         private final OutputStream outputStream;
         private final OutputStream errorStream;
-        private final ConsoleOutput consoleOutput;
+        private final LoggingConfiguration loggingConfiguration;
         private final ConsoleMetaData consoleMetadata;
 
-        ConsoleAttachment(LoggingRouter loggingRouter, OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata) {
+        ConsoleAttachment(LoggingRouter loggingRouter, OutputStream outputStream, OutputStream errorStream, LoggingConfiguration loggingConfiguration, ConsoleMetaData consoleMetadata) {
             this.loggingRouter = loggingRouter;
             this.outputStream = outputStream;
             this.errorStream = errorStream;
-            this.consoleOutput = consoleOutput;
+            this.loggingConfiguration = loggingConfiguration;
             this.consoleMetadata = consoleMetadata;
         }
 
         @Override
         public void run() {
-            loggingRouter.attachConsole(outputStream, errorStream, consoleOutput, consoleMetadata);
+            loggingRouter.attachConsole(outputStream, errorStream, loggingConfiguration, consoleMetadata);
         }
 
         @Override
@@ -442,7 +442,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
             ConsoleAttachment that = (ConsoleAttachment) o;
 
-            return outputStream == that.outputStream && errorStream == that.errorStream && consoleOutput == that.consoleOutput && consoleMetadata == that.consoleMetadata;
+            return outputStream == that.outputStream && errorStream == that.errorStream && loggingConfiguration .equals(that.loggingConfiguration) && consoleMetadata == that.consoleMetadata;
         }
 
         @Override

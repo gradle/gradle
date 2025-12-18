@@ -25,7 +25,9 @@ import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.configuration.ConsoleColor;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleVerbose;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
@@ -151,6 +153,26 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Override
     public void setConsoleOutput(ConsoleOutput consoleOutput) {
         loggingConfiguration.setConsoleOutput(consoleOutput);
+    }
+
+    @Override
+    public ConsoleColor getConsoleColor() {
+        return loggingConfiguration.getConsoleColor();
+    }
+
+    @Override
+    public void setConsoleColor(ConsoleColor consoleColor) {
+        loggingConfiguration.setConsoleColor(consoleColor);
+    }
+
+    @Override
+    public ConsoleVerbose getConsoleVerbose() {
+        return loggingConfiguration.getConsoleVerbose();
+    }
+
+    @Override
+    public void setConsoleVerbose(ConsoleVerbose consoleVerbose) {
+        loggingConfiguration.setConsoleVerbose(consoleVerbose);
     }
 
     /**
