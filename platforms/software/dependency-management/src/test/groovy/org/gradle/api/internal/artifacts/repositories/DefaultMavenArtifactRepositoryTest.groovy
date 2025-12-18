@@ -360,7 +360,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
             Mock(FileResourceRepository), mavenMetadataFactory, SnapshotTestUtil.isolatableFactory(),
             TestUtil.objectFactory(), urlArtifactRepositoryFactory, TestUtil.checksumService, providerFactory, new VersionParser())
         repo.name = 'repo'
-        repo.allowInsecureContinueOnConnectionFailure.convention(false)
+        repo.allowInsecureContinueWhenDisabled.convention(false)
         return repo
     }
 
