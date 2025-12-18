@@ -30,6 +30,7 @@ gradleModule {
 
 dependencies {
     api(libs.jspecify)
+    api(libs.jsr305)
 
     implementation(projects.stdlibJavaExtensions)
 

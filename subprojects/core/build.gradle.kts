@@ -59,6 +59,7 @@ dependencies {
     api(projects.buildProcessServices)
     api(projects.classloaders)
     api(projects.cli)
+    api(projects.collections)
     api(projects.concurrent)
     api(projects.coreApi)
     api(projects.declarativeDslApi)
