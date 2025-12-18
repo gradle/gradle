@@ -20,6 +20,8 @@ import org.gradle.cache.FileLockManager
 import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.test.fixtures.file.TestFile
 
+import static org.gradle.cache.FileLockManager.LockMode.Exclusive
+
 class DefaultFileLockManagerWithCrossVersionProtocolTest extends AbstractFileLockManagerTest {
     @Override
     protected DefaultLockOptions options() {
@@ -52,4 +54,15 @@ class DefaultFileLockManagerWithCrossVersionProtocolTest extends AbstractFileLoc
         }
     }
 
+    def "does NOT support FileLock.isValid()"() {
+        given:
+        def lock = createLock(Exclusive)
+
+        when:
+        lock.isValid()
+
+        then:
+        def e = thrown(UnsupportedOperationException)
+        e.message == "FileLock.isValid() is not supported for cross-version FileLocks."
+    }
 }

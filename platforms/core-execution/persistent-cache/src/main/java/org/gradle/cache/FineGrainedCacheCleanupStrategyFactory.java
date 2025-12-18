@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 public interface FineGrainedCacheCleanupStrategyFactory {
 
     /**
-     * Creates a CacheCleanupStrategy that cleans up the cache entry with mark&sweep algorithm with the least recently used (LRU) algorithm.
+     * Creates a CacheCleanupStrategy that cleans up the cache entry with mark and sweep algorithm with the least recently used (LRU) algorithm.
      *
      * The entry is first marked as stale if older than 'cacheEntryRetentionTimestamp' and only then deleted after a certain period of time.
      */

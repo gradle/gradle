@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
@@ -132,6 +133,8 @@ public class DefaultFileLockManager implements FileLockManager {
     static File determineLockTargetFile(File target) {
         if (target.isDirectory()) {
             return new File(target, target.getName() + ".lock");
+        } else if (target.getName().endsWith(".lock")) {
+            return target;
         } else {
             return new File(target.getParentFile(), target.getName() + ".lock");
         }
@@ -143,11 +146,13 @@ public class DefaultFileLockManager implements FileLockManager {
         private final LockMode mode;
         private final String displayName;
         private final String operationDisplayName;
+        private final LockStateAccess lockStateAccess;
         private java.nio.channels.FileLock lock;
         private LockFileAccess lockFileAccess;
         private LockState lockState;
         private final int port;
         private final long lockId;
+        private final boolean isUseCrossVersionImplementation;
 
         public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port, @Nullable Consumer<FileLockReleasedSignal> whenContended) throws Throwable {
             this.port = port;
@@ -172,7 +177,8 @@ public class DefaultFileLockManager implements FileLockManager {
             }
 
             LockStateSerializer stateProtocol = options.isUseCrossVersionImplementation() ? new Version1LockStateSerializer() : new DefaultLockStateSerializer();
-            lockFileAccess = new LockFileAccess(lockFile, new LockStateAccess(stateProtocol));
+            this.lockStateAccess = new LockStateAccess(stateProtocol);
+            lockFileAccess = new LockFileAccess(lockFile, lockStateAccess);
             try {
                 if (whenContended != null) {
                     fileLockContentionHandler.start(lockId, whenContended);
@@ -185,6 +191,7 @@ public class DefaultFileLockManager implements FileLockManager {
             }
 
             this.mode = lock.isShared() ? LockMode.Shared : LockMode.Exclusive;
+            this.isUseCrossVersionImplementation = options.isUseCrossVersionImplementation();
         }
 
         @Override
@@ -300,6 +307,43 @@ public class DefaultFileLockManager implements FileLockManager {
         @Override
         public LockMode getMode() {
             return mode;
+        }
+
+        @Override
+        public boolean isValid() {
+            if (isUseCrossVersionImplementation) {
+                throw new UnsupportedOperationException("FileLock.isValid() is not supported for cross-version FileLocks.");
+            }
+
+            if (lock == null || !lockFile.exists()) {
+                return false;
+            }
+            Long openedLockId = readLockIdFromFileAccess();
+            Long lockIdFromFile = readLockIdFromLockFile();
+            // If the lock id cannot be read from lock file access,
+            // something is wrong with lock file access, assume lock is not valid
+            return openedLockId != null && openedLockId.equals(lockIdFromFile);
+        }
+
+        @Nullable
+        private Long readLockIdFromFileAccess() {
+            try {
+                return lockFileAccess.readLockId();
+            } catch (IOException e) {
+                // We expect that already opened file descriptor should not be in a bad state,
+                // so when exception is thrown lock is not valid
+                return null;
+            }
+        }
+
+        @Nullable
+        private Long readLockIdFromLockFile() {
+            try(RandomAccessFile randomAccessFile = new RandomAccessFile(lockFile, "r")) {
+                return lockStateAccess.readLockId(randomAccessFile);
+            } catch (IOException e) {
+                // File may not exist or may be corrupted.
+                return null;
+            }
         }
 
         /**

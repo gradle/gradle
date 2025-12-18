@@ -99,6 +99,11 @@ public class LockStateAccess {
         }
     }
 
+    public long readLockId(RandomAccessFile lockFileAccess) throws IOException {
+        lockFileAccess.seek(STATE_CONTENT_START);
+        return protocol.readLockId(lockFileAccess);
+    }
+
     public int getRegionEnd() {
         return stateRegionSize;
     }

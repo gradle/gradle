@@ -51,6 +51,11 @@ public class Version1LockStateSerializer implements LockStateSerializer {
         return new DirtyFlagLockState(!dataInput.readBoolean());
     }
 
+    @Override
+    public long readLockId(DataInput dataInput) {
+        throw new UnsupportedOperationException("Reading lock id is not supported for Version1 lock state format.");
+    }
+
     private static class DirtyFlagLockState implements LockState {
         private final boolean dirty;
 

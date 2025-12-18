@@ -49,6 +49,14 @@ public interface FileLock extends Closeable, FileAccess {
     FileLockManager.LockMode getMode();
 
     /**
+     * Returns true if the lock is still valid and it was not recreated by another process since the lock was acquired.
+     * Should not be called after the lock is closed.
+     *
+     * NOTE: This method is not supported for cross-version locks.
+     */
+    boolean isValid();
+
+    /**
      * An immutable snapshot of the state of a lock.
      */
     interface State {

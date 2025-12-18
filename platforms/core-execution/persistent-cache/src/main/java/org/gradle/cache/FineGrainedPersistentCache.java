@@ -16,6 +16,8 @@
 
 package org.gradle.cache;
 
+import org.jspecify.annotations.NullMarked;
+
 import java.io.Closeable;
 import java.io.File;
 import java.util.function.Supplier;
@@ -25,6 +27,7 @@ import java.util.function.Supplier;
  *
  * Cache will always use {@link FileLockManager.LockMode#OnDemandEagerRelease} lock mode for key locks.
  */
+@NullMarked
 public interface FineGrainedPersistentCache extends Closeable, CleanableStore, HasCleanupAction {
 
     /**
