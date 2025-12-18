@@ -126,7 +126,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
         try {
             ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
             ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
-            return consoleMetaData != null && consoleMetaData.isStdOut();
+            return consoleMetaData != null && consoleMetaData.isStdOutATerminal();
         } catch (RuntimeException e) {
             return false;
         }
