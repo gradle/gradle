@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.internal.declarativedsl.DeclarativeTestUtils
 import org.gradle.internal.declarativedsl.settings.ProjectFeatureFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -131,7 +132,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
     @Requires(UnitTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
     def "can declare and configure a custom project feature in Kotlin"() {
         PluginBuilder pluginBuilder = withKotlinProjectFeaturePlugins()
-        pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", "2.2.20")
+        pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", new KotlinGradlePluginVersions().getLatestStableOrRC())
         pluginBuilder.addBuildScriptContent pluginBuildScriptForKotlin
         pluginBuilder.prepareToExecute()
 

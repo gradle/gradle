@@ -264,7 +264,7 @@ class CommonReport(
     }
 
     private
-    val stateLock = Object()
+    val stateLock = Any()
 
     private
     val failureDecorator = FailureDecorator()

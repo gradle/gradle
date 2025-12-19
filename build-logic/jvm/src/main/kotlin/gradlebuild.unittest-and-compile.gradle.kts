@@ -256,7 +256,7 @@ abstract class AddOpensArgumentProvider : CommandLineArgumentProvider {
     abstract val embedded: Property<Boolean>
 
     override fun asArguments(): Iterable<String> =
-        JpmsConfiguration.forDaemonProcesses(jvmVersion.get().toInt(), true)
+        JpmsConfiguration.forDaemonProcesses(jvmVersion.get(), true)
 }
 
 fun Test.addOsAsInputs() {

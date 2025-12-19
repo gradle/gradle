@@ -69,7 +69,8 @@ val kotlinFunctionAsConfigureLambda: ConfigureLambdaHandler = object : Configure
     }
 
     private
-    fun isConfigureLambdaType(maybeLambdaType: KType) = maybeLambdaType.isSubtypeOf(typeOf<Function1<*, Unit>>())
+    fun isConfigureLambdaType(maybeLambdaType: KType) =
+        maybeLambdaType.isSubtypeOf(typeOf<Function1<*, Unit>>())
 
     private
     fun isConfigureLambdaType(maybeLambdaType: KType, configuredType: KType) = maybeLambdaType.isSubtypeOf(configureLambdaTypeFor(configuredType))

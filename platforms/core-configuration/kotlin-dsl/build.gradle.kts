@@ -33,7 +33,6 @@ dependencies {
     api(libs.kotlinCompilerEmbeddable)
     api(libs.kotlinStdlib)
     api(libs.inject)
-    api(libs.slf4jApi)
 
     implementation(projects.baseAsm)
     implementation(projects.instrumentationReporting)
@@ -67,6 +66,7 @@ dependencies {
     implementation(libs.asm)
     implementation(libs.jetbrainsAnnotations)
     implementation(libs.kotlinReflect)
+    implementation(libs.slf4jApi)
 
     compileOnly(libs.jspecify)
 

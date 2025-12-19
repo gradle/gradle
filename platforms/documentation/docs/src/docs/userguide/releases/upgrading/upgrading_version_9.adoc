@@ -88,6 +88,10 @@ tasks.withType<CodeNarc>().configureEach {
 }
 ----
 
+==== Upgrade to Kotlin 2.3.0
+
+The embedded Kotlin has been upgraded from 2.2.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.0[Kotlin 2.3.0].
+
 === Deprecations
 
 [[changes_9.3.0]]
