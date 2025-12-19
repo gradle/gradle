@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.testng
+package org.gradle.testing.junit.junit5.jupiter
 
-import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.internal.jvm.Jvm
-import org.gradle.testing.AbstractTestJavaVersionIntegrationTest
-import org.gradle.testing.fixture.TestNGCoverage
+import org.gradle.testing.fixture.JUnitCoverage
+import org.gradle.testing.junit.AbstractJUnitSpockIntegrationTest
 
-/**
- * Tests support for different TestNG versions across different Java versions.
- */
-@TargetCoverage({ TestNGCoverage.ALL_VERSIONS })
-class TestNGJavaVersionIntegrationTest extends AbstractTestJavaVersionIntegrationTest implements TestNGMultiVersionTest {
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
+
+@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
+class JUnitJupiterSpockIntegrationTest extends AbstractJUnitSpockIntegrationTest implements JUnitJupiterMultiVersionTest {
     @Override
-    List<Jvm> getSupportedJvms() {
-        return AvailableJavaHomes.supportedWorkerJdks
+    GenericTestExecutionResult.TestFramework getTestFramework() {
+        return GenericTestExecutionResult.TestFramework.SPOCK
     }
 }

@@ -23,6 +23,7 @@ import org.gradle.testing.junit.junit4.JUnit4CommonTestSources
 import static org.gradle.testing.fixture.JUnitCoverage.*
 
 trait JUnitVintageMultiVersionTest extends JUnit4CommonTestSources {
+
     AbstractTestingMultiVersionIntegrationTest.BuildScriptConfiguration getBuildScriptConfiguration() {
         return new JUnitVintageBuildScriptConfiguration()
     }
