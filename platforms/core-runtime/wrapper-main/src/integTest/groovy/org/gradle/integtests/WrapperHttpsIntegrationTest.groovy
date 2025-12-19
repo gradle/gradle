@@ -137,9 +137,13 @@ class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
             systemProp.http.nonProxyHosts=
         """.stripIndent()
 
-        and:
+        expect:
         proxyServer.requestCount == 0
+
+        when:
         prepareWrapper(getAuthenticatedBaseUrl()).run()
+
+        then:
         proxyServer.requestCount == 1
 
         when:

@@ -186,7 +186,7 @@ public class Download implements IDownload {
     }
 
     private void addAuthentication(URI address, URLConnection connection) throws IOException {
-        String token = getWrapperProperty(address.getHost(), "wrapperToken");
+        String token = getSystemProperty(address.getHost(), "wrapperToken");
         if (token == null) {
             addBasicAuthentication(address, connection);
         } else {
@@ -241,7 +241,7 @@ public class Download implements IDownload {
         }
     }
 
-    private String getWrapperProperty(String host, String key) {
+    private String getSystemProperty(String host, String key) {
         if (host != null) {
             String hostEscaped = host.replace('.', '_');
             String hostProperty = systemProperties.get("gradle." + hostEscaped + '.' + key);
@@ -254,8 +254,8 @@ public class Download implements IDownload {
 
     private String calculateUserInfo(URI uri) {
         String host = uri.getHost();
-        String username = getWrapperProperty(host, "wrapperUser");
-        String password = getWrapperProperty(host, "wrapperPassword");
+        String username = getSystemProperty(host, "wrapperUser");
+        String password = getSystemProperty(host, "wrapperPassword");
         if (username != null && password != null) {
             return username + ':' + password;
         }

@@ -374,7 +374,7 @@ To authenticate with a static HTTP Bearer Token, add the following line to your 
 systemProp.gradle.your_private-server_com.wrapperToken=some-api-token
 ----
 
-NOTE: If a `wrapperToken` is specified, it will take precedence over `wrapperUser` and `wrapperPassword`.
+NOTE: If a `wrapperToken` is specified, it will take precedence over `wrapperUser` and `wrapperPassword` system properties (and also over user & password values embedded in the URL).
 It is strongly recommended to include the hostname in the property to prevent the token from being sent to an unintended server by accident.
 
 [[sec:verification]]
