@@ -54,6 +54,7 @@ public class ApiMemberSelector extends ClassVisitor {
     private final boolean apiIncludesPackagePrivateMembers;
 
     private boolean isInnerClass;
+    @SuppressWarnings("NullAway")
     private ClassMember classMember;
     private boolean thisClassIsPrivateInnerClass;
 
@@ -69,7 +70,7 @@ public class ApiMemberSelector extends ClassVisitor {
     }
 
     @Override
-    public void visit(int version, int access, String name, @Nullable String signature, @Nullable String superName, @Nullable String[] interfaces) {
+    public void visit(int version, int access, String name, @Nullable String signature, @Nullable String superName, String @Nullable [] interfaces) {
         super.visit(version, access, name, signature, superName, interfaces);
         classMember = new ClassMember(version, access, name, signature, superName, interfaces);
         isInnerClass = (access & ACC_SUPER) == ACC_SUPER;
@@ -96,7 +97,7 @@ public class ApiMemberSelector extends ClassVisitor {
 
     @Nullable
     @Override
-    public MethodVisitor visitMethod(int access, String name, String desc, @Nullable String signature, @Nullable String[] exceptions) {
+    public MethodVisitor visitMethod(int access, String name, String desc, @Nullable String signature, String @Nullable [] exceptions) {
         if ("<clinit>".equals(name)) {
             // discard static initializers
             return null;

@@ -28,6 +28,7 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
     private final List<AnnotationValue<?>> annotationValues = new LinkedList<>();
     private final AnnotationMember annotation;
 
+    @SuppressWarnings("NullAway")
     private SortingAnnotationVisitor parentVisitor;
     @Nullable
     private String annotationValueName;

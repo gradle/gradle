@@ -50,7 +50,7 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
     }
 
     @Override
-    public ModuleVisitor writeModule(String name, int access, String version) {
+    public ModuleVisitor writeModule(String name, int access, @Nullable String version) {
         return apiMemberAdapter.visitModule(name, access, version);
     }
 
