@@ -118,7 +118,7 @@ class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/22172')
-    void 'CodeNarc/Checkstyle do not fail with PermGen space error'() {
+    def "CodeNarc/Checkstyle do not fail with PermGen space error"() {
         given:
         withCheckstyle()
         20.times { count ->
@@ -162,7 +162,7 @@ class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires([UnitTestPreconditions.Jdk11OrLater, IntegTestPreconditions.NotConfigCached]) // grgit 5 requires JDK 11, see https://github.com/ajoberstar/grgit/issues/355
-    void "does not fail with a PermGen space error or a missing method exception"() {
+    def "does not fail with a PermGen space error or a missing method exception"() {
         given:
         GitUtility.initGitDir(testDirectory)
         buildFile << """

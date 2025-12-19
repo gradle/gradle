@@ -20,7 +20,7 @@ import org.gradle.testkit.runner.GradleRunner
 
 class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
 
-    def 'project lombok works when options.fork=#fork'() {
+    def "project lombok works when options.fork=#fork"() {
         given:
         buildFile << """
             plugins {

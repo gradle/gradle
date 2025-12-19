@@ -36,7 +36,7 @@ class MappingSourceDependencyIntegrationTest extends AbstractSourceDependencyInt
         """
     }
 
-    def 'emits sensible error when bad code is in vcsMappings block'() {
+    def "emits sensible error when bad code is in vcsMappings block"() {
         settingsFile << """
             sourceControl {
                 vcsMappings {
@@ -55,7 +55,7 @@ class MappingSourceDependencyIntegrationTest extends AbstractSourceDependencyInt
         failure.assertHasCause("No signature of method: org.gradle.vcs.internal.DefaultVcsMapping.foo() is applicable for argument types: () values: []")
     }
 
-    def 'emits sensible error when bad module in vcsMappings block'() {
+    def "emits sensible error when bad module in vcsMappings block"() {
         settingsFile << """
             rootProject.name = 'test'
             sourceControl {

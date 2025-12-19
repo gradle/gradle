@@ -29,7 +29,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
  * Smoke test for the Kotlin Multiplatform plugin.
  */
 class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
-    def 'test kotlin multiplatform with js project (kotlin=#kotlinVersion)'() {
+    def "test kotlin multiplatform with js project (kotlin=#kotlinVersion)"() {
         given:
         withKotlinBuildFile()
         useSample("kotlin-multiplatform-js-jvm-example")
@@ -59,7 +59,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     }
 
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/4643")
-    def 'can run tests with kotlin multiplatform with js project (kotlin=#kotlinVersion)'() {
+    def "can run tests with kotlin multiplatform with js project (kotlin=#kotlinVersion)"() {
         given:
         withKotlinBuildFile()
         useSample("kotlin-multiplatform-js-jvm-example")
@@ -108,7 +108,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
      * See usage here: https://cs.android.com/android-studio/kotlin/+/master:libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/testing/internal/KotlinTestReport.kt;l=136?q=KotlinTestReport.kt:136&ss=android-studio
      */
     @Issue("https://github.com/gradle/gradle/issues/22246")
-    def 'ensure kotlin multiplatform allTests aggregation task can be created (kotlin=#kotlinVersion)'() {
+    def "ensure kotlin multiplatform allTests aggregation task can be created (kotlin=#kotlinVersion)"() {
         given:
         buildFile << """
             plugins {

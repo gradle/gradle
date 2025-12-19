@@ -20,11 +20,11 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.util.GradleVersion
 
-import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.expectStrictVersion
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.ENFORCED_PLATFORM
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.LEGACY_PLATFORM
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.MODULE
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.PLATFORM
+import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.expectStrictVersion
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -145,7 +145,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         }
     }
 
-    void "(1) all future releases of org:foo:3.0 are bad and the platform enforces 3.0 [#platformType]"() {
+    def "(1) all future releases of org:foo:3.0 are bad and the platform enforces 3.0 [#platformType]"() {
         initialRepository(platformType)
         singleLibraryBuildFile(platformType)
 
@@ -206,7 +206,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         platformType << PlatformType.values()
     }
 
-    void "(2) org:foo:3.1.1 and platform upgrade 1.1 are release [#platformType]"() {
+    def "(2) org:foo:3.1.1 and platform upgrade 1.1 are release [#platformType]"() {
         updatedRepository(platformType)
         singleLibraryBuildFile(platformType)
 
@@ -267,7 +267,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         platformType << PlatformType.values()
     }
 
-    void "(3) library developer has issues with org:foo:3.1.1 and overrides platform decision with 3.2 which fails due to reject [#platformType]"() {
+    def "(3) library developer has issues with org:foo:3.1.1 and overrides platform decision with 3.2 which fails due to reject [#platformType]"() {
         updatedRepository(platformType)
         singleLibraryBuildFile(platformType)
         buildFile << """
@@ -326,7 +326,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         platformType << PlatformType.values()
     }
 
-    void "(4) library developer has issues with org:foo:3.1.1 and forces an override of the platform decision with strictly [#platformType]"() {
+    def "(4) library developer has issues with org:foo:3.1.1 and forces an override of the platform decision with strictly [#platformType]"() {
         // issue with enforced platform: consumer can not override platform decision via constraint
         //                               (an override via an own forced dependency is possible)
         def expectedFooVersion = platformType == ENFORCED_PLATFORM ? '3.1.1' : '3.2'
@@ -411,7 +411,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         platformType << PlatformType.values()
     }
 
-    void "(5) if two libraries are combined without agreeing on an override, the original platform constraint is brought back [#platformType]"() {
+    def "(5) if two libraries are combined without agreeing on an override, the original platform constraint is brought back [#platformType]"() {
         updatedRepository(platformType)
         settingsFile << """
             include 'recklessLibrary'

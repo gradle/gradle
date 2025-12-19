@@ -29,7 +29,7 @@ import static org.hamcrest.CoreMatchers.containsString
 
 class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
 
-    def 'can work with junit-platform-runner'() {
+    def "can work with junit-platform-runner"() {
         given:
         buildFile << """
         dependencies {
@@ -42,7 +42,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         succeeds('test')
     }
 
-    def 'can handle class level ignored tests'() {
+    def "can handle class level ignored tests"() {
         given:
         file('src/test/java/org/gradle/IgnoredTest.java') << '''
             package org.gradle;
@@ -66,7 +66,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         results.testPath('org.gradle.IgnoredTest').onlyRoot().assertChildrenSkipped("testIgnored1()")
     }
 
-    def 'can handle class-level error in #location method'() {
+    def "can handle class-level error in #location method"() {
         given:
         file('src/test/java/org/gradle/ClassErrorTest.java') << """
             package org.gradle;
@@ -107,7 +107,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         '@AfterAll'  | ''                   | 'fail("@AfterAll")' | 1            | "executionError"
     }
 
-    def 'can handle class level assumption'() {
+    def "can handle class level assumption"() {
         given:
         file('src/test/java/org/gradle/ClassAssumeTest.java') << '''
         package org.gradle;
@@ -134,7 +134,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
         new DefaultTestExecutionResult(testDirectory).testClass('org.gradle.ClassAssumeTest').assertTestCount(1, 0)
     }
 
-    def 'can handle repeated tests'() {
+    def "can handle repeated tests"() {
         given:
         file('src/test/java/org/gradle/RepeatTest.java') << '''
         package org.gradle;
@@ -185,7 +185,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4476')
-    def 'can handle test engine failure'() {
+    def "can handle test engine failure"() {
         given:
         createSimpleJupiterTest()
         file('src/test/java/UninstantiableExtension.java') << '''
@@ -215,7 +215,7 @@ public class UninstantiableExtension implements BeforeEachCallback {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4427')
-    def 'can run tests in static nested class'() {
+    def "can run tests in static nested class"() {
         given:
         file('src/test/java/org/gradle/StaticInnerTest.java') << '''
 package org.gradle;
@@ -344,7 +344,7 @@ public class StaticInnerTest {
     }
 
     @Issue("https://github.com/junit-team/junit5/issues/2028 and https://github.com/gradle/gradle/issues/12073")
-    def 'properly fails when engine fails during discovery #scenario'() {
+    def "properly fails when engine fails during discovery #scenario"() {
         given:
         createSimpleJupiterTest()
         buildFile << """
@@ -471,7 +471,7 @@ public class StaticInnerTest {
         version << ["5.9.2", "5.6.3"]
     }
 
-    def 'properly fails when engine fails during execution'() {
+    def "properly fails when engine fails during execution"() {
         given:
         buildFile << """
             dependencies {

@@ -88,7 +88,7 @@ class JavadocExecHandleBuilderTest extends Specification {
         }
     }
 
-    void testSetNullOptions() {
+    def testSetNullOptions() {
         when:
         javadocExecHandleBuilder.options(null);
 

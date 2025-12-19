@@ -131,7 +131,7 @@ public class ClasspathTest extends Specification {
         'USER_LIB_PATH/file' | true
     }
 
-    def 'create file reference from file'() {
+    def "create file reference from file"() {
         when:
         FileReference reference = classpath.fileReference(new File(path))
 
@@ -145,7 +145,7 @@ public class ClasspathTest extends Specification {
         '/user/lib/path/file' | 'USER_LIB_PATH/file' | true
     }
 
-    def 'invalid file reference creation'() {
+    def "invalid file reference creation"() {
         when:
         classpath.fileReference(arg)
 
@@ -157,7 +157,7 @@ public class ClasspathTest extends Specification {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/21968')
-    def 'when filtering duplicate project dependencies prefer main sources to test sources'() {
+    def "when filtering duplicate project dependencies prefer main sources to test sources"() {
         when:
         classpath.configure([createProjectDependency(path1, '/path1.jar', [test: test1]),
                              createProjectDependency(path2, '/path2.jar', [test: test2])])

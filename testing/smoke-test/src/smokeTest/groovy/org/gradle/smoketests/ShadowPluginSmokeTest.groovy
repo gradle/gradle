@@ -89,7 +89,7 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
     }
 
-    def 'shadow plugin'() {
+    def "shadow plugin"() {
         given:
         buildFile << """
             $common
@@ -143,7 +143,7 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/com.gradleup.shadow')
-    def 'can publish shadowed project'() {
+    def "can publish shadowed project"() {
         given:
         MavenFileRepository mavenRepo = new MavenFileRepository(file("maven-repo"))
 

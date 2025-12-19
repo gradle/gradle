@@ -39,7 +39,7 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/org.gradle.test-retry')
-    def 'test retry plugin'() {
+    def "test retry plugin"() {
         given:
         buildFile << """
             dependencies {
@@ -68,7 +68,7 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/org.gradle.test-retry')
-    def 'test retry plugin with test suites'() {
+    def "test retry plugin with test suites"() {
         given:
         buildFile << """
             testing {

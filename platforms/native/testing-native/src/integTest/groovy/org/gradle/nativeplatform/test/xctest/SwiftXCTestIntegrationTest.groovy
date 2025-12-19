@@ -418,7 +418,7 @@ apply plugin: 'swift-library'
         test.assertTestCasesRan(testExecutionResult)
     }
 
-    def 'can build xctest bundle which transitively depends on other Swift libraries'() {
+    def "can build xctest bundle which transitively depends on other Swift libraries"() {
         given:
         def app = new SwiftAppWithLibraries()
         createDirs("hello", "log")
@@ -458,7 +458,7 @@ apply plugin: 'swift-library'
             tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ':xcTest', ':test')
     }
 
-    def 'can run xctest in swift package manager layout'() {
+    def "can run xctest in swift package manager layout"() {
         given:
         def app = new SwiftAppWithLibraries()
         createDirs("hello", "log")

@@ -503,7 +503,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Class MyPlugin.MyTask is a non-static inner class.")
     }
 
-    def 'can run custom task with constructor arguments via Kotlin friendly DSL'() {
+    def "can run custom task with constructor arguments via Kotlin friendly DSL"() {
         given:
         settingsFile << "rootProject.buildFileName = 'build.gradle.kts'"
         file("build.gradle.kts") << """
@@ -586,7 +586,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             def schema = tasks.collectionSchema.elements.collectEntries { e ->
                 [ e.name, e.publicType.simpleName ]
             }
-            
+
             // check some built-in tasks
             assert schema["help"] == "Help"
             assert schema["projects"] == "ProjectReportTask"

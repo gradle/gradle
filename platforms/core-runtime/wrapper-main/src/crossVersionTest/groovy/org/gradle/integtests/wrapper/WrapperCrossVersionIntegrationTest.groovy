@@ -26,7 +26,7 @@ class WrapperCrossVersionIntegrationTest extends AbstractWrapperCrossVersionInte
     @Requires(value = [
         UnitTestPreconditions.NotWindowsJavaBefore11
     ], reason = "see https://github.com/gradle/gradle-private/issues/3758")
-    void canUseWrapperFromPreviousVersionToRunCurrentVersion() {
+    def canUseWrapperFromPreviousVersionToRunCurrentVersion() {
         when:
         GradleExecuter executer = prepareWrapperExecuter(previous, current)
 

@@ -30,7 +30,7 @@ class DeclarativeAgpSmokeSpec extends AbstractIntegrationSpec {
     private final AndroidGradlePluginVersions agpVersions = new AndroidGradlePluginVersions()
 
     @ToBeFixedForConfigurationCache
-    def 'a declarative project configures successfully with AGP'() {
+    def "a declarative project configures successfully with AGP"() {
         Assume.assumeTrue("Java version >= 11 required by AGP dependencies", Jvm.current().javaVersionMajor >= 11)
 
         executer.usingInitScript(agpVersions.createAgpNightlyRepositoryInitScript())

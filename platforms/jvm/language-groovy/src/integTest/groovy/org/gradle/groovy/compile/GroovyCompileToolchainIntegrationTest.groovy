@@ -155,7 +155,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
     }
 
     @Requires(IntegTestPreconditions.Java21HomeAvailable)
-    def 'source and target compatibility override toolchain (source #source, target #target) for Groovy '() {
+    def "source and target compatibility override toolchain (source #source, target #target) for Groovy "() {
         def jdk21 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_21)
 
         buildFile << """

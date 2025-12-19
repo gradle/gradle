@@ -253,7 +253,7 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("gradle/gradle#19300")
-    def 'show that log4j-core, if present, is 2_17_1 at the minimum'() {
+    def "show that log4j-core, if present, is 2_17_1 at the minimum"() {
         given:
         buildFile << """
             plugins {

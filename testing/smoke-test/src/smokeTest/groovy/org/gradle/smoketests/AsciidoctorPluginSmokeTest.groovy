@@ -24,7 +24,7 @@ import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 
 class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
-    def 'asciidoctor plugin #version'() {
+    def "asciidoctor plugin #version"() {
         given:
         buildFile << """
             plugins {

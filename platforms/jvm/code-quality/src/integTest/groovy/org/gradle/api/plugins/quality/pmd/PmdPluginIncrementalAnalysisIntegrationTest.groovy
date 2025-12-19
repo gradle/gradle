@@ -69,7 +69,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         !output.contains('Analysis cache invalidated, rulesets changed')
     }
 
-    def 'incremental analysis is transparent'() {
+    def "incremental analysis is transparent"() {
         given:
         Assume.assumeTrue(supportIncrementalAnalysis())
         goodCode()
@@ -89,7 +89,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         file("build/reports/pmd/main.xml").assertContents(CoreMatchers.not(containsString('BadClass')))
     }
 
-    def 'incremental analysis invalidated when #reason'() {
+    def "incremental analysis invalidated when #reason"() {
         given:
         Assume.assumeTrue(supportIncrementalAnalysis())
         goodCode()

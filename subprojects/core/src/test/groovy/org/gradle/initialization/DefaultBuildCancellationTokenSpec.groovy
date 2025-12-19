@@ -20,7 +20,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException
 import spock.lang.Specification
 
 class DefaultBuildCancellationTokenSpec extends Specification {
-    def 'can cancel token'() {
+    def "can cancel token"() {
         when:
         def token = new DefaultBuildCancellationToken()
 
@@ -34,7 +34,7 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         token.cancellationRequested
     }
 
-    def 'cancel notifies callbacks'() {
+    def "cancel notifies callbacks"() {
         def token = new DefaultBuildCancellationToken()
 
         def callback1 = Mock(Runnable)
@@ -51,7 +51,7 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         1 * callback2.run()
     }
 
-    def 'addCallback after cancel notifies'() {
+    def "addCallback after cancel notifies"() {
         def token = new DefaultBuildCancellationToken()
 
         def callback = Mock(Runnable)
@@ -65,7 +65,7 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         1 * callback.run()
     }
 
-    def 'cancel drops references'() {
+    def "cancel drops references"() {
         def token = new DefaultBuildCancellationToken()
 
         def callback1 = Mock(Runnable)
@@ -80,7 +80,7 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         token.callbacks.empty
     }
 
-    def 'cancel notifies callbacks even if exception is thrown'() {
+    def "cancel notifies callbacks even if exception is thrown"() {
         def token = new DefaultBuildCancellationToken()
         def ex = new IllegalStateException('testing')
 
@@ -102,7 +102,7 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         1 * callback2.run()
     }
 
-    def 'cancel notifies callbacks and preserves exceptions'() {
+    def "cancel notifies callbacks and preserves exceptions"() {
         def token = new DefaultBuildCancellationToken()
         def ex1 = new IllegalStateException('testing', new IOException('something happened'))
         def ex2 = new IllegalStateException('testing')
@@ -128,7 +128,7 @@ class DefaultBuildCancellationTokenSpec extends Specification {
         1 * callback3.run()
     }
 
-    def 'removed callback is not notified'() {
+    def "removed callback is not notified"() {
         def token = new DefaultBuildCancellationToken()
 
         def callback = Mock(Runnable)

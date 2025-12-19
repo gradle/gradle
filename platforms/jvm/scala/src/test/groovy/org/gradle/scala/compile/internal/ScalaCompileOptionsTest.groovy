@@ -24,7 +24,7 @@ import spock.lang.Subject
 @Subject(ScalaCompileOptions)
 class ScalaCompileOptionsTest extends Specification {
 
-    def 'additional parameters are empty by default'() {
+    def "additional parameters are empty by default"() {
         ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
 
         expect:
@@ -32,7 +32,7 @@ class ScalaCompileOptionsTest extends Specification {
         scalaCompileOptions.additionalParameters.isEmpty()
     }
 
-    def 'can append to additional parameters #description'() {
+    def "can append to additional parameters #description"() {
         ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
 
         when:

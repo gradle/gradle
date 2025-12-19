@@ -22,7 +22,7 @@ class DefaultDependencyConstraintTest extends Specification {
 
     private DependencyConstraint dependencyConstraint = new DefaultDependencyConstraint("org.gradle", "gradle-core", "4.4-beta2")
 
-    void "has reasonable default values"() {
+    def "has reasonable default values"() {
         expect:
         dependencyConstraint.group == "org.gradle"
         dependencyConstraint.name == "gradle-core"
@@ -34,7 +34,7 @@ class DefaultDependencyConstraintTest extends Specification {
     }
 
 
-    void "knows if is equal to"() {
+    def "knows if is equal to"() {
         expect:
         constraint("group1", "name1", "version1") == constraint("group1", "name1", "version1")
         constraint("group1", "name1", "version1").hashCode() == constraint("group1", "name1", "version1").hashCode()

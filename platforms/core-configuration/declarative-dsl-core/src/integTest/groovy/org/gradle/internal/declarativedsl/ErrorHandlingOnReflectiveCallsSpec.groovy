@@ -38,7 +38,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
     }
 
     @Test
-    void 'can disambiguate between methods based on parameters'() {
+    def "can disambiguate between methods based on parameters"() {
         given:
 
         file("build-logic/build.gradle.kts") << defineBuildLogic([
@@ -96,7 +96,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
     }
 
     @Test
-    void 'can disambiguate between annotated and non-annotated methods'() {
+    def "can disambiguate between annotated and non-annotated methods"() {
         given:
 
         file("build-logic/build.gradle.kts") << defineBuildLogic([
@@ -167,7 +167,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
     }
 
     @Test
-    void 'fails disambiguating between two annotated, semantically equivalent methods'() {
+    def "fails disambiguating between two annotated, semantically equivalent methods"() {
         given:
         file("build-logic/build.gradle.kts") << defineBuildLogic([
             "id(\"java-gradle-plugin\")",
@@ -240,7 +240,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
     }
 
     @Test
-    void 'when reflective invocation fails the cause is identified correctly'() {
+    def "when reflective invocation fails the cause is identified correctly"() {
         given:
         file("build-logic/build.gradle.kts") << defineBuildLogic(["id(\"java-gradle-plugin\")"])
 

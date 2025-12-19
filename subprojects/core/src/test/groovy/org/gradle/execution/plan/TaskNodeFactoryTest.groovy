@@ -50,7 +50,7 @@ class TaskNodeFactoryTest extends Specification {
         }
     }
 
-    void 'can create a node for a task'() {
+    def "can create a node for a task"() {
         when:
         def node = factory.getOrCreateNode(a)
 
@@ -64,7 +64,7 @@ class TaskNodeFactoryTest extends Specification {
         node.finalizers.empty
     }
 
-    void 'caches node for a given task'() {
+    def "caches node for a given task"() {
         when:
         def node = factory.getOrCreateNode(a)
 
@@ -72,7 +72,7 @@ class TaskNodeFactoryTest extends Specification {
         factory.getOrCreateNode(a).is(node)
     }
 
-    void 'can add multiple nodes'() {
+    def "can add multiple nodes"() {
         when:
         factory.getOrCreateNode(a)
         factory.getOrCreateNode(b)
@@ -81,7 +81,7 @@ class TaskNodeFactoryTest extends Specification {
         factory.tasks == [a, b] as Set
     }
 
-    void 'reset state'() {
+    def "reset state"() {
         when:
         factory.getOrCreateNode(a)
         factory.getOrCreateNode(b)

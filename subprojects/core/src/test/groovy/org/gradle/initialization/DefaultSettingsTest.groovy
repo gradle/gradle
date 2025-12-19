@@ -28,7 +28,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         createSettings()
     }
 
-    def 'is wired properly'() {
+    def "is wired properly"() {
         expect:
         settings.startParameter == startParameter
         settings.is(settings.settings)
@@ -45,7 +45,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         settings.classLoaderScope.is(classLoaderScope)
     }
 
-    def 'can include projects'() {
+    def "can include projects"() {
         String projectA = "a"
         String projectB = "b"
         String projectC = "c"
@@ -62,7 +62,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         testDescriptor(settings.project(":$projectB:$projectC"), projectC, new File(settingsDir, "$projectB/$projectC"))
     }
 
-    def 'can include projects flat'() {
+    def "can include projects flat"() {
         String projectA = "a"
         String projectB = "b"
 
@@ -83,7 +83,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         assert projectDir == descriptor.getProjectDir()
     }
 
-    def 'can create project descriptor'() {
+    def "can create project descriptor"() {
         String testName = "testname"
         File testDir = new File("testDir")
 
@@ -97,7 +97,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         testDir.canonicalFile == projectDescriptor.projectDir
     }
 
-    def 'can find project by path'() {
+    def "can find project by path"() {
         ProjectDescriptorInternal projectDescriptor = createTestDescriptor()
 
         when:
@@ -107,7 +107,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         foundProjectDescriptor.is(projectDescriptor)
     }
 
-    def 'can find project by directory'() {
+    def "can find project by directory"() {
         ProjectDescriptorInternal projectDescriptor = createTestDescriptor()
 
         when:
@@ -117,7 +117,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         foundProjectDescriptor.is(projectDescriptor)
     }
 
-    def 'fails on unknown project path'() {
+    def "fails on unknown project path"() {
         when:
         settings.project("unknownPath")
 
@@ -126,7 +126,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
     }
 
 
-    def 'fails on unknown project directory'() {
+    def "fails on unknown project directory"() {
         when:
         settings.project(new File("unknownPath"))
 
@@ -140,7 +140,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         return settings.createProjectDescriptor(settings.rootProject, testName, testDir)
     }
 
-    def 'can get and set dynamic properties'() {
+    def "can get and set dynamic properties"() {
         when:
         settings.ext.dynamicProp = 'value'
 
@@ -148,7 +148,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         settings.dynamicProp == 'value'
     }
 
-    def 'can get and set dynamic properties on extension'() {
+    def "can get and set dynamic properties on extension"() {
         when:
         settings.extensions.dynamicProperty = 'valued'
 
@@ -156,7 +156,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         settings.dynamicProperty == 'valued'
     }
 
-    def 'fails on missing property'() {
+    def "fails on missing property"() {
         when:
         settings.unknownProp
 
@@ -164,7 +164,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         thrown(MissingPropertyException)
     }
 
-    def 'has useful toString'() {
+    def "has useful toString"() {
         expect:
         settings.toString() == 'settings \'root\''
     }
@@ -178,7 +178,7 @@ class DefaultSettingsTest extends DefaultSettingsCommonTest {
         feature << FeaturePreviewsActivationFixture.activeFeatures()
     }
 
-    def 'fails when enabling an unknown feature'() {
+    def "fails when enabling an unknown feature"() {
         when:
         settings.enableFeaturePreview('UNKNOWN_FEATURE')
         then:

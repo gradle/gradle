@@ -34,7 +34,7 @@ import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.jetbrains.kotlin.config.JvmTarget
 
 final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegrationSpec {
-    def 'can configure an extension using DependencyCollector in declarative DSL'() {
+    def "can configure an extension using DependencyCollector in declarative DSL"() {
         given: "a plugin that creates a custom extension using a DependencyCollector"
         file("build-logic/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtension()
         file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()
@@ -59,7 +59,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         typeSafeProjectAccessors << [true, false]
     }
 
-    def 'can configure an extension using DependencyCollector in declarative DSL with @Restricted methods available on supertype'() {
+    def "can configure an extension using DependencyCollector in declarative DSL with @Restricted methods available on supertype"() {
         given:
         file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << """
             package com.example.restricted;
@@ -181,7 +181,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         typeSafeProjectAccessors << [true, false]
     }
 
-    def 'can configure an extension using DependencyCollector in declarative DSL with a getter name NOT associated with an expected configuration name'() {
+    def "can configure an extension using DependencyCollector in declarative DSL with a getter name NOT associated with an expected configuration name"() {
         given: "a plugin that creates a custom extension using a DependencyCollector"
         file("build-logic/src/main/java/com/example/restricted/DependenciesExtension.java") << """
             package com.example.restricted;
@@ -257,7 +257,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         outputContains("org.apache.commons:commons-lang3:3.12.0")
     }
 
-    def 'can NOT configure an extension using DependencyCollector in declarative DSL if extension does NOT extend Dependencies'() {
+    def "can NOT configure an extension using DependencyCollector in declarative DSL if extension does NOT extend Dependencies"() {
         given: "a plugin that creates a custom extension using a DependencyCollector on an extension that does NOT extend Dependencies"
         file("build-logic/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtension(false)
         file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()
@@ -275,7 +275,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         failure.assertHasCause("Failed to interpret the declarative DSL file '${testDirectory.file("build.gradle.dcl").path}'")
     }
 
-    def 'can configure an extension using DependencyCollector in declarative DSL that uses Kotlin properties for the getters'() {
+    def "can configure an extension using DependencyCollector in declarative DSL that uses Kotlin properties for the getters"() {
         given: "a plugin that creates a custom extension using a DependencyCollector"
         file("build-logic/src/main/kotlin/com/example/restricted/DependenciesExtension.kt") << """
             package com.example.restricted
@@ -315,7 +315,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         outputContains("org.apache.commons:commons-lang3:3.12.0")
     }
 
-    def 'can configure an extension using DependencyCollector in declarative DSL using project() from the Dependencies class to add dependencies'() {
+    def "can configure an extension using DependencyCollector in declarative DSL using project() from the Dependencies class to add dependencies"() {
         given: "a plugin that creates a custom extension using a DependencyCollector"
         file("build-logic/src/main/java/com/example/restricted/DependenciesExtension.java") << defineDependenciesExtension()
         file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << defineLibraryExtension()

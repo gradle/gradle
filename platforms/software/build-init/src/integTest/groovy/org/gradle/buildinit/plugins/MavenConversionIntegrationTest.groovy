@@ -517,7 +517,7 @@ ${TextUtil.indent(dependencies.collect { it.asString(dsl) }.join("\n"), "    ")}
         failure.assertHasCause("There were failing tests.")
     }
 
-    def 'sourcesJar'() {
+    def "sourcesJar"() {
         def rootBuildFile = dslFixtureFor(scriptDsl).getBuildFile()
 
         when: 'build is initialized'
@@ -539,7 +539,7 @@ ${TextUtil.indent(dependencies.collect { it.asString(dsl) }.join("\n"), "    ")}
         targetDir.file('build/libs/util-2.5-sources.jar').exists()
     }
 
-    def 'testsJar'() {
+    def "testsJar"() {
         def rootBuildFile = dslFixtureFor(scriptDsl).getBuildFile()
 
         when: 'build is initialized'
@@ -567,7 +567,7 @@ ${TextUtil.indent(dependencies.collect { it.asString(dsl) }.join("\n"), "    ")}
         targetDir.file('build/libs/util-2.5-tests.jar').exists()
     }
 
-    def 'javadocJar'() {
+    def "javadocJar"() {
         def rootBuildFile = dslFixtureFor(scriptDsl).getBuildFile()
 
         when: 'build is initialized'

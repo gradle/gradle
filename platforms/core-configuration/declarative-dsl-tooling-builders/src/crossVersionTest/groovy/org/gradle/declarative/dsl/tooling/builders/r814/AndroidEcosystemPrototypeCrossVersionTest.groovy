@@ -36,7 +36,7 @@ class AndroidEcosystemPrototypeCrossVersionTest extends AbstractDeclarativeDslTo
     }
 
     @Requires(UnitTestPreconditions.Jdk17OrLater)
-    def 'model can be used for evaluation'() {
+    def "model can be used for evaluation"() {
         given:
         file("settings.gradle.dcl") <<
             """

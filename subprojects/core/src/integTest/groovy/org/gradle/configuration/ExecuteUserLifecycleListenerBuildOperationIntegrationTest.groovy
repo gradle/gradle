@@ -98,7 +98,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
     }
 
     @ToBeFixedForConfigurationCache(because = "build listener")
-    def 'projectsLoaded listeners are attributed to the correct registrant'() {
+    def "projectsLoaded listeners are attributed to the correct registrant"() {
         given:
         def addGradleListeners = { String source ->
             """
@@ -143,7 +143,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(projectsLoaded, settingsPluginAppId, 'settings plugin', expectedGradleOps)
     }
 
-    def 'rootProject listeners are attributed to the correct registrant'() {
+    def "rootProject listeners are attributed to the correct registrant"() {
         given:
         def addGradleListeners = { String source ->
             """
@@ -177,7 +177,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
     }
 
     @ToBeFixedForConfigurationCache(because = "build listener")
-    def 'projectsEvaluated listeners are attributed to the correct registrant'() {
+    def "projectsEvaluated listeners are attributed to the correct registrant"() {
         given:
         def addGradleListeners = { String source ->
             """
@@ -233,7 +233,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
     }
 
     @ToBeFixedForIsolatedProjects(because = "Configuring projects from root, access to root from projects")
-    def 'beforeEvaluate listeners are attributed to the correct registrant'() {
+    def "beforeEvaluate listeners are attributed to the correct registrant"() {
         given:
         def addGradleListeners = { String source ->
             """
@@ -336,7 +336,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
     }
 
     @ToBeFixedForIsolatedProjects(because = "Access to root from projects")
-    def 'afterEvaluate listeners are attributed to the correct registrant'() {
+    def "afterEvaluate listeners are attributed to the correct registrant"() {
         given:
         def addGradleListeners = { String source ->
             """
@@ -440,7 +440,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(subAfterEvaluated, subOtherScriptAppId, 'other script', expectedProjectOps)
     }
 
-    def 'nested afterEvaluate listeners are attributed to the correct registrant'() {
+    def "nested afterEvaluate listeners are attributed to the correct registrant"() {
         given:
         def addGradleListeners = { String source ->
             """
@@ -500,7 +500,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(rootAfterEvaluated, rootOtherScriptAppId, 'other script', expectedProjectOps)
     }
 
-    def 'taskGraph whenReady action listeners are attributed to the correct registrant'() {
+    def "taskGraph whenReady action listeners are attributed to the correct registrant"() {
         given:
         def addGradleListeners = { String source ->
             """
@@ -553,7 +553,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
     }
 
     @ToBeFixedForConfigurationCache(because = "build listener")
-    def 'listeners that implement multiple interfaces are decorated correctly'() {
+    def "listeners that implement multiple interfaces are decorated correctly"() {
         given:
         def addGradleListeners = { String source ->
             """
@@ -621,7 +621,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(whenReadyEvaluated, initScriptAppId, 'init', expectedGradleOps)
     }
 
-    def 'no extra executions for composite builds'() {
+    def "no extra executions for composite builds"() {
         // This test does two things:
         // - shake out internal listener registration that isn't using InternalListener.
         //   There are a lost of listeners registered through the methods that we've decorated in the composite build code
@@ -644,7 +644,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
     }
 
     @ToBeFixedForIsolatedProjects(because = "allprojects")
-    def 'listener registrations in delayed callbacks are tracked correctly'() {
+    def "listener registrations in delayed callbacks are tracked correctly"() {
         given:
         def addBeforeProjectListeners = { String source ->
             """
@@ -698,7 +698,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
     }
 
     @ToBeFixedForConfigurationCache(because = "build listener")
-    def 'decorated listener can be removed'() {
+    def "decorated listener can be removed"() {
         given:
         initFile << """
             def listener = new BuildAdapter() {
@@ -718,7 +718,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyExpectedNumberOfExecuteListenerChildren(projectsLoaded, 0)
     }
 
-    def 'application ids are unique across gradleBuild builds'() {
+    def "application ids are unique across gradleBuild builds"() {
         given:
         initFile << ""
         file('gb/settings.gradle').touch()

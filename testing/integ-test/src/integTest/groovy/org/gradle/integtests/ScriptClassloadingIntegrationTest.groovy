@@ -34,7 +34,7 @@ class ScriptClassloadingIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue(['GRADLE-3526', 'GRADLE-3553'])
     @LeaksFileHandles
-    def 'apply the same script file causing different buildscript classpaths in different projects #sharedScriptFileType'(SharedScriptFileType sharedScriptFileType) {
+    def "apply the same script file causing different buildscript classpaths in different projects #sharedScriptFileType"(SharedScriptFileType sharedScriptFileType) {
         given:
         def subprojectNames = ['project1', 'project2']
         multiProjectBuild('root', subprojectNames) {

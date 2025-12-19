@@ -149,7 +149,7 @@ class MultiProjectVariantResolutionIntegrationTest extends AbstractIntegrationSp
         '''
     }
 
-    def 'producer has expected outgoingVariants'() {
+    def "producer has expected outgoingVariants"() {
         when:
         succeeds(':producer:outgoingVariants')
 
@@ -190,7 +190,7 @@ Artifacts
     - producer-other.txt''')
     }
 
-    def 'consumer resolves jar variant of producer'() {
+    def "consumer resolves jar variant of producer"() {
         file('consumer/build.gradle') << '''
             tasks.resolve {
                 expectations = [ 'producer-jar.txt' ]
@@ -200,7 +200,7 @@ Artifacts
         succeeds(':consumer:resolve')
     }
 
-    def 'consumer resolves javadoc variant of producer'() {
+    def "consumer resolves javadoc variant of producer"() {
         file('consumer/build.gradle') << '''
             tasks.resolveJavadoc {
                 expectations = [ 'producer-javadoc.txt' ]
@@ -210,7 +210,7 @@ Artifacts
         succeeds(':consumer:resolveJavadoc')
     }
 
-    def 'consumer resolves other variant of producer'() {
+    def "consumer resolves other variant of producer"() {
         file('consumer/build.gradle') << '''
             tasks.resolveOther {
                 expectations = [ 'producer-other.txt' ]
@@ -220,7 +220,7 @@ Artifacts
         succeeds(':consumer:resolveOther')
     }
 
-    def 'consumer resolves all variants of producer'() {
+    def "consumer resolves all variants of producer"() {
         file('consumer/build.gradle') << '''
             tasks.resolveAll {
                 expectations = [ 'producer-jar.txt', 'producer-javadoc.txt', 'producer-other.txt' ]
@@ -230,7 +230,7 @@ Artifacts
         succeeds(':consumer:resolveAll')
     }
 
-    def 'consumer resolves jar variant of producer with dependencies'() {
+    def "consumer resolves jar variant of producer with dependencies"() {
         defineVariants(file('transitive'))
 
         defineVariants(file('direct'))
@@ -254,7 +254,7 @@ Artifacts
         succeeds(':consumer:resolve')
     }
 
-    def 'consumer resolves javadoc variant of producer with dependencies on jarElements'() {
+    def "consumer resolves javadoc variant of producer with dependencies on jarElements"() {
         defineVariants(file('transitive'))
 
         defineVariants(file('direct'))
@@ -278,7 +278,7 @@ Artifacts
         succeeds(':consumer:resolveJavadoc')
     }
 
-    def 'consumer resolves other variant of producer with dependencies on jarElements'() {
+    def "consumer resolves other variant of producer with dependencies on jarElements"() {
         defineVariants(file('transitive'))
 
         defineVariants(file('direct'))
@@ -302,7 +302,7 @@ Artifacts
         succeeds(':consumer:resolveOther')
     }
 
-    def 'consumer resolves other variant of producer with dependencies on otherElements'() {
+    def "consumer resolves other variant of producer with dependencies on otherElements"() {
         defineVariants(file('transitive'))
 
         defineVariants(file('direct'))

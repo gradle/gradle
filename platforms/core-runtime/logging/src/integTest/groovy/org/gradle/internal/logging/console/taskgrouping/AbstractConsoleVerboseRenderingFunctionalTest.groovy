@@ -22,7 +22,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 
 abstract class AbstractConsoleVerboseRenderingFunctionalTest extends AbstractConsoleVerboseBasicFunctionalTest {
 
-    def 'up-to-date task result can be rendered'() {
+    def "up-to-date task result can be rendered"() {
         given:
         buildFile << '''
             task upToDate{

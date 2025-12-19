@@ -43,7 +43,7 @@ abstract class AbstractJUnitClassDetectionIntegrationTest extends AbstractTestin
     def jar = new File(testDirectory, "build/libs/$jarName")
     def jarNew = new File(testDirectory, "build/libs/$jarNameNew")
 
-    def 'support detecting classes whose package is not a zip entry'() {
+    def "support detecting classes whose package is not a zip entry"() {
         given:
         buildFile << """
             dependencies {
@@ -97,7 +97,7 @@ abstract class AbstractJUnitClassDetectionIntegrationTest extends AbstractTestin
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18465")
-    def 'does not try to execute non-test class as test class'() {
+    def "does not try to execute non-test class as test class"() {
         given:
         file('src/test/java/com/example/MyTest.java') << """
             package com.example;

@@ -39,7 +39,7 @@ class ResolveTaskExecutionModeExecuterTest extends Specification {
 
     final executer = new ResolveTaskExecutionModeExecuter(repository, delegate)
 
-    def 'taskContext is initialized and cleaned as expected'() {
+    def "taskContext is initialized and cleaned as expected"() {
         when:
         executer.execute(task, taskState, taskContext)
 

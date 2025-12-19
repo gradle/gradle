@@ -48,7 +48,7 @@ class GradleVersionTest extends Specification {
         version.baseVersion
     }
 
-    def 'can parse commitId from commit version'() {
+    def "can parse commitId from commit version"() {
         expect:
         GradleVersion.version('5.1-commit-123abc').commitId == '123abc'
     }

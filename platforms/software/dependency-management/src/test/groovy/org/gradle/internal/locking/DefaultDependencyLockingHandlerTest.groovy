@@ -25,7 +25,7 @@ import spock.lang.Subject
 
 class DefaultDependencyLockingHandlerTest extends Specification {
 
-    def 'activates dependency locking on configurations'() {
+    def "activates dependency locking on configurations"() {
         given:
         ConfigurationContainer container = Mock()
         Configuration configuration = Mock()
@@ -45,7 +45,7 @@ class DefaultDependencyLockingHandlerTest extends Specification {
         1 * strategy.activateDependencyLocking()
     }
 
-    def 'deactivates dependency locking on configurations'() {
+    def "deactivates dependency locking on configurations"() {
         given:
         ConfigurationContainer container = Mock()
         Configuration configuration = Mock()

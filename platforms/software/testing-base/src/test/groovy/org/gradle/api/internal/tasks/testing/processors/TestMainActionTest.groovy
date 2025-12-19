@@ -36,7 +36,7 @@ class TestMainActionTest extends Specification {
     private final WorkerLeaseService workerLeaseService = Mock()
     private final TestMainAction action = new TestMainAction(detector, processor, resultProcessor, workerLeaseService, timeProvider, "rootTestSuiteId456", "Test Run")
 
-    def 'fires start and end events around detector execution'() {
+    def "fires start and end events around detector execution"() {
         when:
         action.run()
 
@@ -56,7 +56,7 @@ class TestMainActionTest extends Specification {
         0 * _._
     }
 
-    def 'fires end events when detector fails'() {
+    def "fires end events when detector fails"() {
         given:
         def failure = new RuntimeException()
 
@@ -82,7 +82,7 @@ class TestMainActionTest extends Specification {
     }
 
 
-    def 'fires end events when start processing fails'() {
+    def "fires end events when start processing fails"() {
         given:
         def failure = new RuntimeException()
 
@@ -102,7 +102,7 @@ class TestMainActionTest extends Specification {
         0 * processor._
     }
 
-    def 'fires end events when end processing fails'() {
+    def "fires end events when end processing fails"() {
         given:
         def failure = new RuntimeException()
 

@@ -53,7 +53,7 @@ class CallInterceptingMetaClassTest extends Specification {
         }
     }
 
-    def 'intercepts a dynamic call with no argument'() {
+    def "intercepts a dynamic call with no argument"() {
         when:
         withEntryPoint(INVOKE_METHOD, "test") {
             instance.invokeMethod("test", [].toArray())
@@ -63,7 +63,7 @@ class CallInterceptingMetaClassTest extends Specification {
         instance.intercepted == "test()"
     }
 
-    def 'intercepts a dynamic call with argument'() {
+    def "intercepts a dynamic call with argument"() {
         when:
         withEntryPoint(INVOKE_METHOD, "test") {
             instance.invokeMethod("test", [].toArray())
@@ -73,7 +73,7 @@ class CallInterceptingMetaClassTest extends Specification {
         instance.intercepted == "test()"
     }
 
-    def 'intercepts a dynamic call to a non-existent method'() {
+    def "intercepts a dynamic call to a non-existent method"() {
         when:
         withEntryPoint(INVOKE_METHOD, "nonExistent") {
             instance.nonExistent("test")
@@ -89,7 +89,7 @@ class CallInterceptingMetaClassTest extends Specification {
         thrown(MissingMethodException)
     }
 
-    def 'intercepts only one call in a succession with a single entry point'() {
+    def "intercepts only one call in a succession with a single entry point"() {
         when:
         withEntryPoint(INVOKE_METHOD, "test") {
             instance.test()
@@ -103,7 +103,7 @@ class CallInterceptingMetaClassTest extends Specification {
         instance.intercepted == null
     }
 
-    def 'method invocation with #name on a metaClass is intercepted: #intercepted'() {
+    def "method invocation with #name on a metaClass is intercepted: #intercepted"() {
         MissingMethodException thrown = null
 
         when:
@@ -134,7 +134,7 @@ class CallInterceptingMetaClassTest extends Specification {
         "invokeMethod(sender, receiver, methodName, arguments, true, true)"   | { instance.metaClass.invokeMethod(getClass(), instance, "test", [].toArray(), true, true) }   | false       | true
     }
 
-    def 'non-intercepted invokeMethod calls invoke the original method'() {
+    def "non-intercepted invokeMethod calls invoke the original method"() {
         when:
         withEntryPoint(INVOKE_METHOD, "callNonIntercepted") {
             instance.callNonIntercepted()
@@ -144,7 +144,7 @@ class CallInterceptingMetaClassTest extends Specification {
         instance.intercepted == "callNotIntercepted()-not-intercepted"
     }
 
-    def 'a metamethod obtained within an entry point scope does not break out of the scope'() {
+    def "a metamethod obtained within an entry point scope does not break out of the scope"() {
         MetaMethod method = null
 
         when:
@@ -157,7 +157,7 @@ class CallInterceptingMetaClassTest extends Specification {
         instance.intercepted == null
     }
 
-    def 'successive pickMethod invocations in the entry point scope return the intercepted method'() {
+    def "successive pickMethod invocations in the entry point scope return the intercepted method"() {
         when:
         def method1 = null
         def method2 = null
@@ -174,7 +174,7 @@ class CallInterceptingMetaClassTest extends Specification {
         !(method3 instanceof CallInterceptingMetaClass.InterceptedMetaMethod)
     }
 
-    def 'intercepts invokeMethod in a closure'() {
+    def "intercepts invokeMethod in a closure"() {
         given:
         def closure = {
             testVararg()
@@ -190,7 +190,7 @@ class CallInterceptingMetaClassTest extends Specification {
         instance.intercepted == "testVararg(Object...)"
     }
 
-    def 'intercepts invokeMethod in a nested closure'() {
+    def "intercepts invokeMethod in a nested closure"() {
         given:
         def closure = {
             withEntryPoint(INVOKE_METHOD, "testVararg") {
@@ -206,7 +206,7 @@ class CallInterceptingMetaClassTest extends Specification {
         instance.intercepted == "testVararg(Object...)"
     }
 
-    def 'intercepts getMetaMethod and pickMethod for matching signatures only'() {
+    def "intercepts getMetaMethod and pickMethod for matching signatures only"() {
         when:
         def methodByArgs = withEntryPoint(INVOKE_METHOD, name) {
             instance.metaClass.getMetaMethod(name, args.toArray())
@@ -236,7 +236,7 @@ class CallInterceptingMetaClassTest extends Specification {
         "notIntercepted" | []                                                             | false
     }
 
-    def 'property access via #method property from closure is intercepted: #intercepted'() {
+    def "property access via #method property from closure is intercepted: #intercepted"() {
         MissingPropertyException missingPropertyException = null
 
         when:
@@ -264,7 +264,7 @@ class CallInterceptingMetaClassTest extends Specification {
         "getProperty(Class, Object, String, true, true)"   | { instance.metaClass.getProperty(getClass(), instance, "testString", true, true) }   | false       | true
     }
 
-    def 'only one property read is intercepted per entry point'() {
+    def "only one property read is intercepted per entry point"() {
         when:
         def result = withEntryPoint(GET_PROPERTY, "testString") {
             [
@@ -277,7 +277,7 @@ class CallInterceptingMetaClassTest extends Specification {
         result == ["testString-intercepted", "testString"]
     }
 
-    def 'intercepts setting #type property #method from closure'() {
+    def "intercepts setting #type property #method from closure"() {
         given:
         setExpr.delegate = instance
 
@@ -299,7 +299,7 @@ class CallInterceptingMetaClassTest extends Specification {
         "via setProperty" | "string"  | "setNonExistentProperty(String)-non-existent" | "nonExistentProperty" | { instance.metaClass.setProperty(null, instance, "nonExistentProperty", "!", false, false) }
     }
 
-    def 'set meta property use Provider API coercion for DynamicObject when a property is not intercepted but a property with the same name in another type is intercepted'() {
+    def "set meta property use Provider API coercion for DynamicObject when a property is not intercepted but a property with the same name in another type is intercepted"() {
         given:
         def propertyName = "richProperty"
         MetaProperty property = null
@@ -348,7 +348,7 @@ class CallInterceptingMetaClassTest extends Specification {
         cleanupMetaClass(interceptedInstance.getClass(), interceptedClassBasedLock, interceptedOriginalMetaClass)
     }
 
-    def 'intercepts getMetaProperty for matching properties'() {
+    def "intercepts getMetaProperty for matching properties"() {
         MetaProperty property = null
 
         when:
@@ -366,7 +366,7 @@ class CallInterceptingMetaClassTest extends Specification {
         "metaClass"  | false
     }
 
-    def 'successive calls to getMetaProperty in the scope of an entry point all return the intercepted property'() {
+    def "successive calls to getMetaProperty in the scope of an entry point all return the intercepted property"() {
         List<MetaProperty> properties = []
 
         when:

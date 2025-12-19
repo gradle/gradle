@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 class DefaultJavaLanguageVersionTest extends Specification {
 
-    def 'defines known versions'() {
+    def "defines known versions"() {
         given:
         JavaLanguageVersion[] knownVersions = DefaultJavaLanguageVersion.KNOWN_VERSIONS
 
@@ -31,7 +31,7 @@ class DefaultJavaLanguageVersionTest extends Specification {
         }
     }
 
-    def 'special cases versions 1 to 4'() {
+    def "special cases versions 1 to 4"() {
         given:
         def values = 1..4
 
@@ -41,7 +41,7 @@ class DefaultJavaLanguageVersionTest extends Specification {
         }
     }
 
-    def 'behaves as an integer wrapper'() {
+    def "behaves as an integer wrapper"() {
         given:
         def value = getVersion()
 
@@ -53,7 +53,7 @@ class DefaultJavaLanguageVersionTest extends Specification {
         version.toString() == String.valueOf(value)
     }
 
-    def 'compatibility relates to sort order'() {
+    def "compatibility relates to sort order"() {
         given:
         def firstValue = getVersion()
         def secondValue = getVersion()

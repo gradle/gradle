@@ -23,7 +23,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
-    def 'can check for updated versions'() {
+    def "can check for updated versions"() {
         given:
         buildFile << """
             plugins {

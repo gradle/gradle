@@ -21,12 +21,12 @@ import spock.lang.Specification
 class ChainingTransformerTest extends Specification {
     private final ChainingTransformer<String> transformer = new ChainingTransformer<String>(String.class)
 
-    def 'does nothing when no transformers added'() {
+    def "does nothing when no transformers added"() {
         expect:
         transformer.transform('value') == 'value'
     }
 
-    def 'passes object to each Transformer in turn'() {
+    def "passes object to each Transformer in turn"() {
         given:
         Transformer<String, String> transformerA = Mock()
         Transformer<String, String> transformerB = Mock()
@@ -42,7 +42,7 @@ class ChainingTransformerTest extends Specification {
 
     }
 
-    def 'can use a Closure as a Transformer'() {
+    def "can use a Closure as a Transformer"() {
         when:
         transformer.add { it + ' transformed'}
 
@@ -50,7 +50,7 @@ class ChainingTransformerTest extends Specification {
         transformer.transform('original') == 'original transformed'
     }
 
-    def 'uses original object when Closure returns null'() {
+    def "uses original object when Closure returns null"() {
         when:
         transformer.add { null }
 
@@ -58,7 +58,7 @@ class ChainingTransformerTest extends Specification {
         transformer.transform('original') == 'original'
     }
 
-    def 'uses original object when Closure returns object of unexpected type'() {
+    def "uses original object when Closure returns object of unexpected type"() {
         when:
         transformer.add { 9 }
 
@@ -66,7 +66,7 @@ class ChainingTransformerTest extends Specification {
         transformer.transform('original') == 'original'
     }
 
-    def 'original object is set as delegate for Closure'() {
+    def "original object is set as delegate for Closure"() {
         when:
         transformer.add { substring(1, 3) }
 
@@ -74,7 +74,7 @@ class ChainingTransformerTest extends Specification {
         transformer.transform('original') == 'ri'
     }
 
-    def 'closure can transform a String into a GString'() {
+    def "closure can transform a String into a GString"() {
         when:
         transformer.add { "[$it]" }
 

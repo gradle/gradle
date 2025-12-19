@@ -33,7 +33,7 @@ abstract class AbstractJUnitEnclosedRunnerIntegrationTest extends AbstractTestin
     }
 
     @Issue('https://github.com/gradle/gradle/issues/2319')
-    def 'can run tests in Enclosed runner'() {
+    def "can run tests in Enclosed runner"() {
         given:
         file('src/test/java/EnclosedTest.java') << """
             ${testFrameworkImports}
@@ -60,7 +60,7 @@ abstract class AbstractJUnitEnclosedRunnerIntegrationTest extends AbstractTestin
     }
 
     @Issue('https://github.com/gradle/gradle/issues/2320')
-    def 'can run @BeforeClass in Enclosed runner'() {
+    def "can run @BeforeClass in Enclosed runner"() {
         given:
         file('src/test/java/EnclosedTest.java') << """
             ${testFrameworkImports}
@@ -93,7 +93,7 @@ abstract class AbstractJUnitEnclosedRunnerIntegrationTest extends AbstractTestin
     }
 
     @Issue('https://github.com/junit-team/junit4/issues/1354')
-    def 'can run tests in Enclosed runner with Category'() {
+    def "can run tests in Enclosed runner with Category"() {
         given:
         file('src/test/java/EnclosedTest.java') << """
             ${testFrameworkImports}

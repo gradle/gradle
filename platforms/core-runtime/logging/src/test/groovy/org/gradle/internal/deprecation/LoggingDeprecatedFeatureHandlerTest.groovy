@@ -67,7 +67,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         handler.init(WarningMode.All, progressBroadcaster, TestUtil.problemsService(), problemStream)
     }
 
-    def 'logs each deprecation warning only once'() {
+    def "logs each deprecation warning only once"() {
         given:
         useStackTrace()
         useStackTrace()
@@ -87,7 +87,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         events[1].message == 'feature2 removal'
     }
 
-    def 'deprecations are logged at WARN level'() {
+    def "deprecations are logged at WARN level"() {
         given:
         useStackTrace()
 
@@ -103,7 +103,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         event.logLevel == LogLevel.WARN
     }
 
-    def 'includes problem location in message'() {
+    def "includes problem location in message"() {
         given:
         useLocation("<long>", "<path to source>", 123)
 
@@ -116,7 +116,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         events[0].message == TextUtil.toPlatformLineSeparators('<long>: line 123\nfeature removal')
     }
 
-    def 'logs deprecation warning once for each unique Gradle script location that appears first in the stack trace'() {
+    def "logs deprecation warning once for each unique Gradle script location that appears first in the stack trace"() {
         given:
         useStackTrace(fakeStackTrace1)
         useStackTrace(fakeStackTrace2)
@@ -154,7 +154,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         ] as ArrayList<StackTraceElement>
     }
 
-    def 'logs deprecation warning once for each unique location'() {
+    def "logs deprecation warning once for each unique location"() {
         given:
         useLocation("<one>", "<path to source>", 123)
         useLocation("<one>", "<path to source>", 1)
@@ -178,7 +178,7 @@ feature1 removal""")
 feature1 removal""")
     }
 
-    def 'does not log deprecation warning without stack trace if the same warning has already been seen with a stack trace'() {
+    def "does not log deprecation warning without stack trace if the same warning has already been seen with a stack trace"() {
         given:
         useStackTrace(fakeStackTrace)
         useLocation("<plugin>", "<path to source>", 123, fakeStackTrace)
@@ -218,7 +218,7 @@ feature1 removal""")
         type << WarningMode.values().findAll { !it.shouldDisplayMessages() }
     }
 
-    def 'fake call with #deprecationTracePropertyName=true logs full stack trace.'() {
+    def "fake call with #deprecationTracePropertyName=true logs full stack trace."() {
         given:
         System.setProperty(deprecationTracePropertyName, 'true')
         useStackTrace(fakeStackTrace)
@@ -257,7 +257,7 @@ feature1 removal""")
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    def 'fake call with Gradle script element first and #deprecationTracePropertyName=false logs only Gradle script element'() {
+    def "fake call with Gradle script element first and #deprecationTracePropertyName=false logs only Gradle script element"() {
         given:
         System.setProperty(deprecationTracePropertyName, 'false')
         useStackTrace(fakeStackTrace)
@@ -296,7 +296,7 @@ feature1 removal""")
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    def 'fake call with Gradle Kotlin script element first and #deprecationTracePropertyName=false logs only Gradle Kotlin script element'() {
+    def "fake call with Gradle Kotlin script element first and #deprecationTracePropertyName=false logs only Gradle Kotlin script element"() {
         given:
         System.setProperty(deprecationTracePropertyName, 'false')
         useStackTrace(fakeStackTrace)
@@ -335,7 +335,7 @@ feature1 removal""")
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    def 'fake call without Gradle script elements and #deprecationTracePropertyName=false does not log a stack trace element.'() {
+    def "fake call without Gradle script elements and #deprecationTracePropertyName=false does not log a stack trace element."() {
         given:
         System.setProperty(deprecationTracePropertyName, 'false')
         useStackTrace(fakeStackTrace)
@@ -366,7 +366,7 @@ feature1 removal""")
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    def 'fake call with only a single stack trace element and #deprecationTracePropertyName=false does not log that element'() {
+    def "fake call with only a single stack trace element and #deprecationTracePropertyName=false does not log that element"() {
         given:
         System.setProperty(deprecationTracePropertyName, 'false')
         useStackTrace(fakeStackTrace)
@@ -390,7 +390,7 @@ feature1 removal""")
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    def 'fake call with only a single stack non root trace element and #deprecationTracePropertyName=true logs that element'() {
+    def "fake call with only a single stack non root trace element and #deprecationTracePropertyName=true logs that element"() {
         given:
         System.setProperty(deprecationTracePropertyName, 'true')
         useStackTrace(fakeStackTrace)
@@ -416,7 +416,7 @@ feature1 removal""")
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    def 'fake call without stack trace elements and #deprecationTracePropertyName=#deprecationTraceProperty logs only message'() {
+    def "fake call without stack trace elements and #deprecationTracePropertyName=#deprecationTraceProperty logs only message"() {
         given:
         System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
         useStackTrace()
@@ -436,7 +436,7 @@ feature1 removal""")
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    def 'Setting #deprecationTracePropertyName=#deprecationTraceProperty overrides setTraceLoggingEnabled value.'() {
+    def "Setting #deprecationTracePropertyName=#deprecationTraceProperty overrides setTraceLoggingEnabled value."() {
         given:
         System.setProperty(deprecationTracePropertyName, deprecationTraceProperty)
 
@@ -458,7 +458,7 @@ feature1 removal""")
         expectedResult << [true, false, false]
     }
 
-    def 'Undefined #deprecationTracePropertyName does not influence setTraceLoggingEnabled value.'() {
+    def "Undefined #deprecationTracePropertyName does not influence setTraceLoggingEnabled value."() {
         given:
         System.clearProperty(deprecationTracePropertyName)
 
@@ -478,7 +478,7 @@ feature1 removal""")
         deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
-    def 'deprecated usages are exposed as build operation progress events'() {
+    def "deprecated usages are exposed as build operation progress events"() {
         given:
         useStackTrace()
         useStackTrace()

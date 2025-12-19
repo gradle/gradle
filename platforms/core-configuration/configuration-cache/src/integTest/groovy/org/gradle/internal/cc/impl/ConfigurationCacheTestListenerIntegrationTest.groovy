@@ -22,7 +22,7 @@ import spock.lang.Issue
 class ConfigurationCacheTestListenerIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     @Issue('https://github.com/gradle/gradle/issues/26465')
-    def 'can register KotlinClosure listener'() {
+    def "can register KotlinClosure listener"() {
         given:
         buildKotlinFile """
             plugins {

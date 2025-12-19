@@ -1324,7 +1324,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
     // We only need to test one flavor
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    def 'properly aligns with substitutions in place'() {
+    def "properly aligns with substitutions in place"() {
         repository {
             path 'start:start:1.0 -> foo:1.2'
 
@@ -1423,7 +1423,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         }
     }
 
-    def 'does not fail on combination of replacement, alignment and excludes'() {
+    def "does not fail on combination of replacement, alignment and excludes"() {
         given:
         repository {
             'proto:java:0.5'()

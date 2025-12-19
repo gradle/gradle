@@ -109,7 +109,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
     }
 
 
-    def 'emits sensible error when bad vcs url'() {
+    def "emits sensible error when bad vcs url"() {
         mappingFor("https://bad.invalid", "org.test:dep")
 
         expect:
@@ -138,7 +138,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         assertRepoCheckedOut()
     }
 
-    def 'main build can request plugins to be applied to source dependency build'() {
+    def "main build can request plugins to be applied to source dependency build"() {
         def pluginBuilder = new PluginBuilder(file("plugin"))
         pluginBuilder.addSettingsPlugin """
             settings.gradle.allprojects {
@@ -160,7 +160,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         assertRepoCheckedOut()
     }
 
-    def 'injected plugin can apply other plugins to source dependency build'() {
+    def "injected plugin can apply other plugins to source dependency build"() {
         def pluginBuilder = new PluginBuilder(file("plugin"))
         pluginBuilder.addPlugin """
             project.apply plugin: 'java'
@@ -187,7 +187,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         assertRepoCheckedOut()
     }
 
-    def 'produces reasonable message when injected plugin does not exist'() {
+    def "produces reasonable message when injected plugin does not exist"() {
         mappingFor(repo, "org.test:dep", 'plugins { id ("com.example.DoesNotExist") }')
 
         expect:
@@ -196,7 +196,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         failure.assertHasDescription("Plugin [id: 'com.example.DoesNotExist'] was not found in any of the following sources:")
     }
 
-    def 'can build from sub-directory of repository'() {
+    def "can build from sub-directory of repository"() {
         def subdir = repo.file("subdir")
         repo.workTree.listFiles().each {
             if (it.name == '.git') {
@@ -213,7 +213,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         assertRepoCheckedOut()
     }
 
-    def 'fails with a reasonable message if rootDir is invalid'() {
+    def "fails with a reasonable message if rootDir is invalid"() {
         mappingFor(repo, "org.test:dep", 'rootDir = null')
         expect:
         fails('assemble')

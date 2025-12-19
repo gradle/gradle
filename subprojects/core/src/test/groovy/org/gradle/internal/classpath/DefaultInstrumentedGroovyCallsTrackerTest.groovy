@@ -25,7 +25,7 @@ class DefaultInstrumentedGroovyCallsTrackerTest extends Specification {
 
     InstrumentedGroovyCallsTracker instance = new DefaultInstrumentedGroovyCallsTracker()
 
-    def 'enters and leaves nested calls'() {
+    def "enters and leaves nested calls"() {
         given:
         def entryFoo = instance.enterCall("FooCallerClass", "foo", INVOKE_METHOD)
         def entryBar = instance.enterCall("BarCallerClass", "bar", INVOKE_METHOD)
@@ -38,7 +38,7 @@ class DefaultInstrumentedGroovyCallsTrackerTest extends Specification {
         noExceptionThrown()
     }
 
-    def 'entry points are not interchangeable even if produced by similar calls'() {
+    def "entry points are not interchangeable even if produced by similar calls"() {
         given:
         def entryFoo1 = instance.enterCall("FooCallerClass", "foo", INVOKE_METHOD)
         def entryFoo2 = instance.enterCall("FooCallerClass", "foo", INVOKE_METHOD)
@@ -57,7 +57,7 @@ class DefaultInstrumentedGroovyCallsTrackerTest extends Specification {
         noExceptionThrown()
     }
 
-    def 'throws an exception on leave if an entry point does not match because it #entryPointKind'() {
+    def "throws an exception on leave if an entry point does not match because it #entryPointKind"() {
         given:
         def entryFoo = instance.enterCall("FooCallerClass", "foo", INVOKE_METHOD)
         def entryBar = instance.enterCall("BarCallerClass", "bar", INVOKE_METHOD)
@@ -79,7 +79,7 @@ class DefaultInstrumentedGroovyCallsTrackerTest extends Specification {
         "is still deeper in the stack" | 1
     }
 
-    def 'throws an exception on instance.markCurrentCallAsIntercepted if its #part does not match'() {
+    def "throws an exception on instance.markCurrentCallAsIntercepted if its #part does not match"() {
         given:
         def entryFoo = instance.enterCall("FooCallerClass", "foo", INVOKE_METHOD)
 
@@ -96,7 +96,7 @@ class DefaultInstrumentedGroovyCallsTrackerTest extends Specification {
         "kind" | "foo" | GET_PROPERTY
     }
 
-    def 'throws an exception when trying to match a call twice'() {
+    def "throws an exception when trying to match a call twice"() {
         given:
         def entryFoo = instance.enterCall("FooCallerClass", "foo", INVOKE_METHOD)
         instance.markCurrentCallAsIntercepted("foo", INVOKE_METHOD)
@@ -109,7 +109,7 @@ class DefaultInstrumentedGroovyCallsTrackerTest extends Specification {
         instance.leaveCall(entryFoo)
     }
 
-    def 'matches the innermost nested call'() {
+    def "matches the innermost nested call"() {
         def entryFoo = instance.enterCall("FooCallerClass", "foo", INVOKE_METHOD)
         def entryBar = instance.enterCall("BarCallerClass", "bar", INVOKE_METHOD)
 
@@ -134,7 +134,7 @@ class DefaultInstrumentedGroovyCallsTrackerTest extends Specification {
         fooCaller == "FooCallerClass"
     }
 
-    def 'does not match a call if it has been marked as intercepted'() {
+    def "does not match a call if it has been marked as intercepted"() {
         def entryFoo = instance.enterCall("FooCallerClass", "foo", INVOKE_METHOD)
 
         when:

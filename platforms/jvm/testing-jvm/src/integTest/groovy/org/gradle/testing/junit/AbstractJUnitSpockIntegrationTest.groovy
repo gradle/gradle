@@ -87,7 +87,7 @@ abstract class AbstractJUnitSpockIntegrationTest extends AbstractTestingMultiVer
         succeeds("test")
     }
 
-    def 'can run spock with @Unroll'() {
+    def "can run spock with @Unroll"() {
         given:
         writeSpockDependencies()
         file('src/test/groovy/UnrollTest.groovy') << '''
@@ -114,7 +114,7 @@ abstract class AbstractJUnitSpockIntegrationTest extends AbstractTestingMultiVer
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4358')
-    def 'can run spock test with same method name in super class and base class'() {
+    def "can run spock test with same method name in super class and base class"() {
         given:
         writeSpockDependencies()
         file('src/test/groovy/Base.groovy') << '''

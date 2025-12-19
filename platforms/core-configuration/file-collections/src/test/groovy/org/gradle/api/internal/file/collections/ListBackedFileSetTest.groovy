@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class ListBackedFileSetTest extends Specification {
 
-    void hasUsefulDisplayName() {
+    def hasUsefulDisplayName() {
         def testFile = new File('test-file')
         def testFile2 = new File('test-file2')
 

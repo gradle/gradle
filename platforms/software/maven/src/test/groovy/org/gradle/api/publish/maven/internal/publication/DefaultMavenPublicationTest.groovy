@@ -160,7 +160,7 @@ class DefaultMavenPublicationTest extends Specification {
         publication.pom.packaging == "ext"
     }
 
-    def 'if there is only one artifact it is the main artifact even if packaging is different'() {
+    def "if there is only one artifact it is the main artifact even if packaging is different"() {
         when:
         def mavenArtifact = Mock(MavenTestArtifact) {
             shouldBePublished() >> true
@@ -385,7 +385,7 @@ class DefaultMavenPublicationTest extends Specification {
         }
     }
 
-    def 'adopts platform in #scope declaration from added components'() {
+    def "adopts platform in #scope declaration from added components"() {
         given:
         def publication = createPublication()
         def moduleDependency = Mock(ExternalDependency)

@@ -56,7 +56,7 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
         outputContains("name = test-value")
     }
 
-    def 'schema is written during settings interpretation'() {
+    def "schema is written during settings interpretation"() {
         given:
         file("settings.gradle.dcl") << """
             rootProject.name = "test"
@@ -70,7 +70,7 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
         schemaFile.isFile() && schemaFile.text != ""
     }
 
-    def 'reports #kind errors in settings'() {
+    def "reports #kind errors in settings"() {
         given:
         file("settings.gradle.dcl") << """
             rootProject.name = "test"
@@ -90,7 +90,7 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
         "semantic"         | "x = 1"               | "3:13: unresolved reference 'x'"
     }
 
-    def 'reports illegal order of settings blocks on #order'() {
+    def "reports illegal order of settings blocks on #order"() {
         given:
         file("settings.gradle.dcl") << content
 
@@ -107,7 +107,7 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
         'statement before plugins'           | 'rootProject.name = "foo"\nplugins { }'          | "1:1: illegal content before 'plugins', which can only be preceded by 'pluginManagement"
     }
 
-    def 'reports duplicate #kind blocks in settings'() {
+    def "reports duplicate #kind blocks in settings"() {
         given:
         file("settings.gradle.dcl") << content
 
@@ -123,7 +123,7 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
         'pluginManagement' | 'pluginManagement { }\nplugins { }\nrootProject.name = "foo"\npluginManagement { }' | "4:1: duplicate 'pluginManagement'"
     }
 
-    def 'supports correct order of blocks in setttings file if there is #order'() {
+    def "supports correct order of blocks in setttings file if there is #order"() {
         given:
         file("settings.gradle.dcl") << content
 
@@ -138,7 +138,7 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
         'no special blocks'                       | 'rootProject.name = "test-project"'
     }
 
-    def 'can apply settings plugins'() {
+    def "can apply settings plugins"() {
         given:
         file("included-settings-plugin/build.gradle") << """
             plugins {

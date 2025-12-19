@@ -55,7 +55,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
     def context = new DefaultUserCodeApplicationContext()
     def decorator = new DefaultListenerBuildOperationDecorator(buildOperationRunner, context)
 
-    def 'ignores implementers of InternalListener'() {
+    def "ignores implementers of InternalListener"() {
         given:
         def action = Mock(InternalAction)
         def buildListener = new InternalBuildAdapter()
@@ -78,7 +78,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         decorator.decorateUnknownListener('foo', graphListener) is graphListener
     }
 
-    def 'ignores classes which do not implement any of the supported interfaces'() {
+    def "ignores classes which do not implement any of the supported interfaces"() {
         given:
         def testListener = Mock(TestListener)
 
@@ -87,7 +87,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         decorator.decorateUnknownListener('foo', testListener) is testListener
     }
 
-    def 'decorates actions'() {
+    def "decorates actions"() {
         given:
         def action = Mock(Action)
         def arg = new Object()
@@ -114,7 +114,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         verifyExpectedOp('foo', id)
     }
 
-    def 'decorated action propagates exception'() {
+    def "decorated action propagates exception"() {
         given:
         def action = Mock(Action)
         def failure = new RuntimeException()
@@ -140,7 +140,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         verifyExpectedOp('foo', id, failure)
     }
 
-    def 'decorates closures of same single arity'() {
+    def "decorates closures of same single arity"() {
         given:
         def called = false
         def arg = new Object()
@@ -170,7 +170,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         verifyExpectedOp('foo', id)
     }
 
-    def 'decorates closures of same multiple arity'() {
+    def "decorates closures of same multiple arity"() {
         given:
         def called = false
         def arg1 = new Object()
@@ -202,7 +202,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         verifyExpectedOp('foo', id)
     }
 
-    def 'decorates closures of lower arity'() {
+    def "decorates closures of lower arity"() {
         given:
         def called = false
         def arg1 = new Object()
@@ -233,7 +233,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         verifyExpectedOp('foo', id)
     }
 
-    def 'decorates closures of zero arity'() {
+    def "decorates closures of zero arity"() {
         given:
         def called = false
         def arg = new Object()
@@ -262,7 +262,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         verifyExpectedOp('foo', id)
     }
 
-    def 'decorated closure propagates exception'() {
+    def "decorated closure propagates exception"() {
         given:
         def failure = new RuntimeException()
         def arg = new Object()
@@ -288,7 +288,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         verifyExpectedOp('foo', id, failure)
     }
 
-    def 'decorates BuildListener listeners'() {
+    def "decorates BuildListener listeners"() {
         given:
         def settingsEvaluatedArg = Mock(Settings)
         def projectsLoadedArg = Mock(Gradle)
@@ -358,7 +358,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         decorateAsObject << [true, false]
     }
 
-    def 'decorated BuildListener rethrows failures'() {
+    def "decorated BuildListener rethrows failures"() {
         given:
         def settingsEvaluatedArg = Mock(Settings)
         def projectsLoadedArg = Mock(Gradle)
@@ -429,7 +429,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         verifyNoOp()
     }
 
-    def 'decorates ProjectEvaluationListener listeners'() {
+    def "decorates ProjectEvaluationListener listeners"() {
         given:
         def beforeEvaluateArg = Mock(Project)
         def afterEvaluateArg1 = Mock(Project)
@@ -470,7 +470,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         decorateAsObject << [true, false]
     }
 
-    def 'decorates TaskExecutionGraphListener listeners'() {
+    def "decorates TaskExecutionGraphListener listeners"() {
         given:
         def arg = Mock(TaskExecutionGraph)
         def listener = Mock(TaskExecutionGraphListener)
@@ -499,7 +499,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         decorateAsObject << [true, false]
     }
 
-    def 'decorates listeners that are a combination of listener interfaces'() {
+    def "decorates listeners that are a combination of listener interfaces"() {
         given:
         def settingsEvaluatedArg = Mock(Settings)
         def projectsLoadedArg = Mock(Gradle)
@@ -567,7 +567,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         verifyNoOp()
     }
 
-    def 'decorated listeners can be removed from listener manager'() {
+    def "decorated listeners can be removed from listener manager"() {
         given:
         def listenerManager = new DefaultListenerManager(Scope.Build)
         def gradle = Mock(Gradle)

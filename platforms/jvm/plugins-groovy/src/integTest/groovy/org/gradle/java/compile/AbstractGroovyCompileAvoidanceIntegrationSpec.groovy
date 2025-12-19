@@ -100,7 +100,7 @@ abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJav
         """
     }
 
-    def 'always recompile if compilation avoidance is not enabled'() {
+    def "always recompile if compilation avoidance is not enabled"() {
         given:
         settingsFile.text = settingsFile.text.readLines().findAll { !it.contains("enableFeaturePreview") }.join('\n')
         buildFile << """

@@ -48,7 +48,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         pluginPortal.stop()
     }
 
-    def 'can declare and configure a custom project feature from included build'() {
+    def "can declare and configure a custom project feature from included build"() {
         given:
         PluginBuilder pluginBuilder = withProjectFeature()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
@@ -70,7 +70,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("Binding FeatureDefinition")
     }
 
-    def 'can declare and configure a custom project feature from published plugin'() {
+    def "can declare and configure a custom project feature from published plugin"() {
         given:
         pluginPortal.start()
         PluginBuilder pluginBuilder = withProjectFeature()
@@ -97,7 +97,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("Binding FeatureDefinition")
     }
 
-    def 'can declare and configure a custom project feature from plugin published to a custom repository'() {
+    def "can declare and configure a custom project feature from plugin published to a custom repository"() {
         given:
         PluginBuilder pluginBuilder = withProjectFeature()
         pluginBuilder.publishAs("com", "example", "1.0", mavenHttpRepo, createExecuter()).allowAll()
@@ -151,7 +151,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("Binding FeatureDefinition")
     }
 
-    def 'can apply multiple project features to a target receiver'() {
+    def "can apply multiple project features to a target receiver"() {
         given:
         PluginBuilder pluginBuilder = withMultipleProjectFeaturePlugins()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
@@ -203,7 +203,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
     }
 
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy has no problem with finding non-public methods/types ...")
-    def 'can declare and configure a custom project feature with a definition that has public and implementation types'() {
+    def "can declare and configure a custom project feature with a definition that has public and implementation types"() {
         given:
         PluginBuilder pluginBuilder = withProjectFeatureDefinitionThatHasPublicAndImplementationTypes()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
@@ -245,7 +245,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         }
     }
 
-    def 'sensible error when a project feature plugin is registered that does not expose a project feature'() {
+    def "sensible error when a project feature plugin is registered that does not expose a project feature"() {
         given:
         def pluginBuilder = withProjectFeaturePluginThatDoesNotExposeProjectFeatures()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
@@ -262,7 +262,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         failure.assertHasCause("Type 'org.gradle.test.NotAProjectFeaturePlugin' is registered as a project feature plugin but does not expose a project feature.")
     }
 
-    def 'sensible error when two plugins register features with the same name'() {
+    def "sensible error when two plugins register features with the same name"() {
         given:
         PluginBuilder pluginBuilder = withTwoProjectFeaturesThatHaveTheSameName()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
@@ -286,7 +286,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         )
     }
 
-    def 'can declare and configure a custom project feature that binds to a build model'() {
+    def "can declare and configure a custom project feature that binds to a build model"() {
         given:
         PluginBuilder pluginBuilder = withProjectFeatureThatBindsToBuildModel()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
@@ -308,7 +308,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("Binding FeatureDefinition")
     }
 
-    def 'can declare and configure a custom project feature that has a build model with public and implementation class types'() {
+    def "can declare and configure a custom project feature that has a build model with public and implementation class types"() {
         given:
         PluginBuilder pluginBuilder = withProjectFeatureBuildModelThatHasPublicAndImplementationTypes()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
@@ -334,7 +334,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("feature model class: FeatureDefinition\$FeatureModelImpl")
     }
 
-    def 'can declare and configure a custom feature that targets a nested definition of a project type'() {
+    def "can declare and configure a custom feature that targets a nested definition of a project type"() {
         given:
         PluginBuilder pluginBuilder = withProjectTypeAndFeatureThatBindsToNestedDefinition()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
@@ -351,7 +351,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("model text = foo BAR")
     }
 
-    def 'can declare and configure a custom feature that targets a nested build model of a project type'() {
+    def "can declare and configure a custom feature that targets a nested build model of a project type"() {
         given:
         PluginBuilder pluginBuilder = withProjectTypeAndFeatureThatBindsToNestedBuildModel()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
@@ -368,7 +368,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("model text = foo BAR")
     }
 
-    def 'can declare a custom project feature with no build model'() {
+    def "can declare a custom project feature with no build model"() {
         given:
         PluginBuilder pluginBuilder = withProjectFeatureThatHasNoBuildModel()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
@@ -393,7 +393,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("Binding FeatureDefinition")
     }
 
-    def 'can declare a custom project feature with no build model and another feature that binds to its definition'() {
+    def "can declare a custom project feature with no build model and another feature that binds to its definition"() {
         given:
         PluginBuilder pluginBuilder = withProjectFeatureThatHasNoBuildModelAndAnotherFeatureThatBindsToItsDefinition()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
@@ -437,7 +437,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("Binding FeatureDefinition")
     }
 
-    def 'sensible error when a project feature attempts to bind to a build model of None'() {
+    def "sensible error when a project feature attempts to bind to a build model of None"() {
         given:
         PluginBuilder pluginBuilder = withProjectFeatureThatBindsToNoneBuildModel()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava

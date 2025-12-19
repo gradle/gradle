@@ -25,7 +25,7 @@ class DependencyLockingStrictModeIntegrationTest extends AbstractValidatingLocki
         LockMode.STRICT
     }
 
-    def 'fails without lock file present and does not create one'() {
+    def "fails without lock file present and does not create one"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
         buildFile << """
@@ -59,7 +59,7 @@ dependencies {
         lockfileFixture.expectLockStateMissing('unlockedConf')
     }
 
-    def 'fails if update done without lockfile present'() {
+    def "fails if update done without lockfile present"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -95,7 +95,7 @@ dependencies {
         lockfileFixture.expectLockStateMissing('unlockedConf')
     }
 
-    def 'ignores not locked configurations'() {
+    def "ignores not locked configurations"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
         buildFile << """

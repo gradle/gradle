@@ -34,7 +34,7 @@ class MavenBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
-    void "reports and recovers from missing module"() {
+    def "reports and recovers from missing module"() {
         given:
         def repo = mavenHttpRepo("repo1")
         def module = repo.module("group", "projectA", "1.2").publish()
@@ -97,7 +97,7 @@ Required by:
         succeeds('showMissing')
     }
 
-    void "reports and recovers from multiple missing modules"() {
+    def "reports and recovers from multiple missing modules"() {
         given:
         def repo = mavenHttpRepo("repo1")
         def moduleA = repo.module("group", "projectA", "1.2").publish()
@@ -159,7 +159,7 @@ Required by:
         succeeds('showMissing')
     }
 
-    void "reports and recovers from multiple missing transitive modules"() {
+    def "reports and recovers from multiple missing transitive modules"() {
         settingsFile << "include 'child1'"
 
         given:
@@ -256,7 +256,7 @@ Required by:
         succeeds('showMissing')
     }
 
-    void "reports and recovers from failed POM download"() {
+    def "reports and recovers from failed POM download"() {
         given:
         def module = mavenHttpRepo.module('group', 'projectA', '1.3').publish()
 
@@ -301,7 +301,7 @@ task showBroken {
     }
 
     @Unroll("recovers from initial failed POM download (max retries = #retries)")
-    void "recovers from initial failed POM download"() {
+    def "recovers from initial failed POM download"() {
         withMaxHttpRetryCount(retries)
 
         given:
@@ -338,7 +338,7 @@ task showBroken {
     }
 
     @Unroll("recovers from initial failed artifact download (max retries = #retries)")
-    void "recovers from initial failed artifact download"() {
+    def "recovers from initial failed artifact download"() {
         withMaxHttpRetryCount(retries)
 
         given:
@@ -375,7 +375,7 @@ task showBroken {
     }
 
     @Unroll("doesn't attempt to retry downloading missing POM file (max retries = #retries)")
-    void "doesn't attempt to retry downloading missing POM file"() {
+    def "doesn't attempt to retry downloading missing POM file"() {
         withMaxHttpRetryCount(retries)
 
         given:
@@ -412,7 +412,7 @@ task showBroken {
     }
 
     @Unroll("doesn't attempt to retry downloading missing artifact file (max retries = #retries)")
-    void "doesn't attempt to retry downloading missing artifact file"() {
+    def "doesn't attempt to retry downloading missing artifact file"() {
         withMaxHttpRetryCount(retries)
 
         given:
@@ -450,7 +450,7 @@ task showBroken {
         retries << (1..3)
     }
 
-    void "reports and recovers from failed artifact download"() {
+    def "reports and recovers from failed artifact download"() {
         given:
         buildFile << """
 repositories {

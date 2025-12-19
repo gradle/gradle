@@ -18,7 +18,7 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
-    void "publishes war and meta-data for web component with external dependencies"() {
+    def "publishes war and meta-data for web component with external dependencies"() {
         def webModule = mavenRepo.module("org.gradle.test", "project1", "1.9").withModuleMetadata()
 
         given:
@@ -70,7 +70,7 @@ class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
         resolveArtifacts(webModule) { expectFiles "project1-1.9.war" }
     }
 
-    void "publishes war and meta-data for web component with project dependencies"() {
+    def "publishes war and meta-data for web component with project dependencies"() {
         given:
         createDirs("projectWeb", "depProject1", "depProject2")
         settingsFile << "include 'projectWeb', 'depProject1', 'depProject2'"

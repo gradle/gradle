@@ -34,7 +34,7 @@ include ':child1', ':child2', ':child3'
 """
     }
 
-    void "global sourceCompatibility results in project language level"() {
+    def "global sourceCompatibility results in project language level"() {
         given:
         buildFile << """
 allprojects {
@@ -55,7 +55,7 @@ allprojects {
         iml('child3').languageLevel == null
     }
 
-    void "specific module languageLevel is exposed with derived language level"() {
+    def "specific module languageLevel is exposed with derived language level"() {
         given:
         buildFile << """
 allprojects {
@@ -88,7 +88,7 @@ project(':child3') {
         iml("child3").languageLevel == null
     }
 
-    void "use project language level not source language level and target bytecode level when explicitly set"() {
+    def "use project language level not source language level and target bytecode level when explicitly set"() {
         given:
         buildFile << """
 allprojects {
@@ -166,7 +166,7 @@ project(':child3') {
         ipr.bytecodeTargetLevel.children().size() == 0
     }
 
-    void "uses subproject sourceCompatibility even if root project does not apply java plugin"() {
+    def "uses subproject sourceCompatibility even if root project does not apply java plugin"() {
         buildFile << """
 allprojects {
     apply plugin: 'idea'
@@ -187,7 +187,7 @@ subprojects {
         iml('child3').languageLevel == null
     }
 
-    void "module languageLevel always exposed when no idea root project found"() {
+    def "module languageLevel always exposed when no idea root project found"() {
         buildFile << """
 subprojects {
     apply plugin:'java'
@@ -411,7 +411,7 @@ idea {
         ipr.bytecodeTargetLevel.module.find { it.@name == "subprojectB" }.@target == "1.7"
     }
 
-    void "language levels specified in properties files are ignored"() {
+    def "language levels specified in properties files are ignored"() {
         given:
         file('gradle.properties') << """
 sourceCompatibility=1.3

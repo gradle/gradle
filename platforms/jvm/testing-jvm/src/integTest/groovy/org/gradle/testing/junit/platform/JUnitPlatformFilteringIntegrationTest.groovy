@@ -23,7 +23,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.LATEST_ARCHUNIT_VERSION
 
 class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec {
 
-    def 'can filter nested tests'() {
+    def "can filter nested tests"() {
         given:
         file('src/test/java/org/gradle/NestedTest.java') << '''
             package org.gradle;
@@ -65,7 +65,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
             .assertOnlyChildrenExecuted("innerTest()")
     }
 
-    def 'can use nested class as test pattern'() {
+    def "can use nested class as test pattern"() {
         given:
         file('src/test/java/EnclosingClass.java') << '''
             import org.junit.jupiter.api.Test;
@@ -105,7 +105,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
             .assertChildrenExecuted("nestedTest()")
     }
 
-    def 'can filter tests from a superclass'() {
+    def "can filter tests from a superclass"() {
         given:
         file('src/test/java/SuperClass.java') << '''
             import org.junit.jupiter.api.Test;
@@ -142,7 +142,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
      * future to filter on field names directly; if this is done, this test should be replaced.
      */
     @Issue("https://github.com/gradle/gradle/issues/19352")
-    def 'does not exclude tests with a non-standard test source if filter matches nothing'() {
+    def "does not exclude tests with a non-standard test source if filter matches nothing"() {
         given:
         buildFile << """
             dependencies {
@@ -186,7 +186,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
      * future to filter on field names directly; if this is done, this test should be replaced.
      */
     @Issue("https://github.com/gradle/gradle/issues/19352")
-    def 'does not exclude tests with a non-standard test source if filter matches field name'() {
+    def "does not exclude tests with a non-standard test source if filter matches field name"() {
         given:
         buildFile << """
             dependencies {
@@ -229,7 +229,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
      * filter based on containing class name.
      */
     @Issue("https://github.com/gradle/gradle/issues/19352")
-    def 'can filter tests with a non-standard test source using containing class name'() {
+    def "can filter tests with a non-standard test source using containing class name"() {
         given:
         buildFile << """
             dependencies {

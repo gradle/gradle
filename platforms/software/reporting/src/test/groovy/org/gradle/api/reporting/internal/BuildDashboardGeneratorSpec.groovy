@@ -69,7 +69,7 @@ class BuildDashboardGeneratorSpec extends Specification {
         }
     }
 
-    void 'appropriate message is displayed when there are no reports available'() {
+    def "appropriate message is displayed when there are no reports available"() {
         when:
         generator.render([], outputFile)
 
@@ -77,7 +77,7 @@ class BuildDashboardGeneratorSpec extends Specification {
         outputHtml.select('h1').text() == 'There are no build reports available.'
     }
 
-    void 'links to reports are added to the generated markup'() {
+    def "links to reports are added to the generated markup"() {
         given:
         def htmlFolder = tmpDir.createDir('htmlContent');
         htmlFolder.createFile("index.html")
@@ -103,7 +103,7 @@ class BuildDashboardGeneratorSpec extends Specification {
         }
     }
 
-    void 'encodes output using utf-8'() {
+    def "encodes output using utf-8"() {
         given:
         def htmlFolder = tmpDir.createDir('htmlContent');
         htmlFolder.createFile("index.html")
@@ -119,7 +119,7 @@ class BuildDashboardGeneratorSpec extends Specification {
         }
     }
 
-    void 'report css is set up'() {
+    def "report css is set up"() {
         when:
         generator.render([], outputFile)
 

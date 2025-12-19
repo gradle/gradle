@@ -27,7 +27,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
-    void "published dependency constraint is ignored when Gradle module metadata is not available"() {
+    def "published dependency constraint is ignored when Gradle module metadata is not available"() {
         given:
         repository {
             'org:foo:1.0'()
@@ -67,7 +67,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
         }
     }
 
-    void "dependency constraint is not included in resolution without a hard dependency"() {
+    def "dependency constraint is not included in resolution without a hard dependency"() {
         given:
         def available = featureAvailable()
         repository {
@@ -101,7 +101,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
         }
     }
 
-    void "dependency constraint is included into the result of resolution when a hard dependency is also added"() {
+    def "dependency constraint is included into the result of resolution when a hard dependency is also added"() {
         given:
         def available = featureAvailable()
         repository {
@@ -162,7 +162,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
         }
     }
 
-    void "dependency constraint is included into the result of resolution when a hard dependency is also added transitively"() {
+    def "dependency constraint is included into the result of resolution when a hard dependency is also added transitively"() {
         given:
         def available = featureAvailable()
         repository {
@@ -231,7 +231,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
         }
     }
 
-    void "range resolution kicks in with dependency constraints"() {
+    def "range resolution kicks in with dependency constraints"() {
         given:
         def available = featureAvailable()
         repository {
@@ -303,7 +303,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
         }
     }
 
-    void "transitive dependencies of a dependency constraint do not participate in conflict resolution if it is not included elsewhere"() {
+    def "transitive dependencies of a dependency constraint do not participate in conflict resolution if it is not included elsewhere"() {
         given:
         def available = featureAvailable()
         repository {
@@ -347,7 +347,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
         }
     }
 
-    void "dependency constraint on substituted module is recognized properly"() {
+    def "dependency constraint on substituted module is recognized properly"() {
         given:
         def available = featureAvailable()
         repository {
@@ -413,7 +413,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
 
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
-    void "deferred selector still resolved when constraint disappears"() {
+    def "deferred selector still resolved when constraint disappears"() {
         repository {
             'org:bar:1.0'()
             'org:bar:1.1'()
@@ -556,7 +556,7 @@ dependencies {
 
     @Issue("https://github.com/gradle/gradle/issues/24037")
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
-    void "duplicate constraint going back to pending not leave hanging edge"() {
+    def "duplicate constraint going back to pending not leave hanging edge"() {
         when:
         repository {
             'org:foundation:1.0' {

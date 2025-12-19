@@ -60,7 +60,7 @@ class DefaultGroovyJavaJointCompileSpecFactoryTest extends Specification {
         true  | true       | false             | true
     }
 
-    def 'produces correct spec type for toolchains'() {
+    def "produces correct spec type for toolchains"() {
         // Make sure other Java home is valid from Jvm.forHome point of view and compiler executable exists
         def otherJavaHome = tmpDir.createDir("other-java-home")
         otherJavaHome.createDir("bin")

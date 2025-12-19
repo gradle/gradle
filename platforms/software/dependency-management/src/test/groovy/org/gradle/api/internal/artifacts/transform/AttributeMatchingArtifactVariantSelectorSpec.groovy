@@ -56,7 +56,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
 
     def failureProcessor = DependencyManagementTestUtil.newFailureHandler()
 
-    def 'direct match on variant means no finder interaction'() {
+    def "direct match on variant means no finder interaction"() {
         given:
         def resolvedArtifactSet = Mock(ResolvedArtifactSet)
         def variants = [variant]
@@ -72,7 +72,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         0 * consumerProvidedVariantFinder._
     }
 
-    def 'multiple match on variant results in ambiguous exception'() {
+    def "multiple match on variant results in ambiguous exception"() {
         given:
         def variantSet = variantSetOf([variant, otherVariant])
         def selector = newSelector()
@@ -91,7 +91,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         0 * consumerProvidedVariantFinder._
     }
 
-    def 'does not perform schema disambiguation against a single transform result'() {
+    def "does not perform schema disambiguation against a single transform result"() {
         given:
         def transformed = Mock(ResolvedArtifactSet)
         def variants = [variant]
@@ -111,7 +111,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         0 * attributeMatcher._
     }
 
-    def 'can leverage schema disambiguation'() {
+    def "can leverage schema disambiguation"() {
         given:
         def transformed = Mock(ResolvedArtifactSet)
         def variants = [variant, otherVariant, yetAnotherVariant]
@@ -134,7 +134,7 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         resultNum << [0, 1, 2]
     }
 
-    def 'exception for ambiguous transformations'() {
+    def "exception for ambiguous transformations"() {
         given:
         def variants = [variant, otherVariant]
         def transformedVariants = transformedVariants(variants)

@@ -127,7 +127,7 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
         succeeds('help')
     }
 
-    def 'settings script classpath has proper usage attribute'() {
+    def "settings script classpath has proper usage attribute"() {
         settingsFile << """
 buildscript {
     configurations.classpath {

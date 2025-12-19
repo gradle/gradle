@@ -119,7 +119,7 @@ class TestDataGeneratorTest extends ResultSpecification {
         ]
     }
 
-    def 'can calculate background color'() {
+    def "can calculate background color"() {
         expect:
         TestDataGenerator.BackgroundColor.ofConfidence([0, 100]).xaxis == [from: -0.5, to: 0.5]
         TestDataGenerator.BackgroundColor.ofConfidence([1, 100]).xaxis == [from: 0.5, to: 1.5]

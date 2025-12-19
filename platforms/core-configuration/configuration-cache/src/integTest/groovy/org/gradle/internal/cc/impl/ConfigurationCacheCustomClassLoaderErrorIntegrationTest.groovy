@@ -18,7 +18,7 @@ package org.gradle.internal.cc.impl
 
 class ConfigurationCacheCustomClassLoaderErrorIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def 'reports problem for custom classloader'() {
+    def "reports problem for custom classloader"() {
         given:
         jarWithClasses(
             'Foo': 'public class Foo {}',

@@ -25,7 +25,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 class Scala3PluginTest extends AbstractProjectBuilderSpec {
 
-    def 'adds Scaladoc test to project for Scala 3'() {
+    def "adds Scaladoc test to project for Scala 3"() {
         when:
         project.pluginManager.apply(ScalaPlugin)
 

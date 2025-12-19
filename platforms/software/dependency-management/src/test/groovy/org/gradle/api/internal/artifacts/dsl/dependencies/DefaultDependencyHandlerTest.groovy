@@ -68,7 +68,7 @@ class DefaultDependencyHandlerTest extends Specification {
         _ * configuration.dependencies >> dependencySet
     }
 
-    void "creates and adds a dependency from some notation"() {
+    def "creates and adds a dependency from some notation"() {
         Dependency dependency = Mock()
 
         when:
@@ -82,7 +82,7 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencySet.add(dependency)
     }
 
-    void "creates, configures and adds a dependency from some notation"() {
+    def "creates, configures and adds a dependency from some notation"() {
         ExternalDependency dependency = Mock()
 
         when:
@@ -99,7 +99,7 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencySet.add(dependency)
     }
 
-    void "creates a dependency from some notation"() {
+    def "creates a dependency from some notation"() {
         Dependency dependency = Mock()
 
         when:
@@ -112,7 +112,7 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencyFactory.createDependency("someNotation") >> dependency
     }
 
-    void "creates and configures a dependency from some notation"() {
+    def "creates and configures a dependency from some notation"() {
         ExternalDependency dependency = Mock()
 
         when:
@@ -130,7 +130,7 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependency.version(_ as Action<VersionConstraint>)
     }
 
-    void "can use dynamic method to add dependency"() {
+    def "can use dynamic method to add dependency"() {
         Dependency dependency = Mock()
 
         when:
@@ -145,7 +145,7 @@ class DefaultDependencyHandlerTest extends Specification {
 
     }
 
-    void "can use dynamic method to add and configure dependency"() {
+    def "can use dynamic method to add and configure dependency"() {
         ExternalDependency dependency = Mock()
 
         when:
@@ -160,7 +160,7 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependency.because("It's really important")
     }
 
-    void "can use dynamic method to add multiple dependencies"() {
+    def "can use dynamic method to add multiple dependencies"() {
         Dependency dependency1 = Mock()
         Dependency dependency2 = Mock()
 
@@ -177,7 +177,7 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencySet.add(dependency2)
     }
 
-    void "can use dynamic method to add multiple dependencies from nested lists"() {
+    def "can use dynamic method to add multiple dependencies from nested lists"() {
         Dependency dependency1 = Mock()
         Dependency dependency2 = Mock()
 
@@ -194,7 +194,7 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencySet.add(dependency2)
     }
 
-    void "dynamic method fails for unknown configuration"() {
+    def "dynamic method fails for unknown configuration"() {
         when:
         dependencyHandler.unknown("someDep")
 
@@ -203,7 +203,7 @@ class DefaultDependencyHandlerTest extends Specification {
         e.message.startsWith('Could not find method unknown() for arguments [someDep] on ')
     }
 
-    void "dynamic method fails for no args"() {
+    def "dynamic method fails for no args"() {
         when:
         dependencyHandler.someConf()
 
@@ -212,7 +212,7 @@ class DefaultDependencyHandlerTest extends Specification {
         e.message.startsWith('Could not find method someConf() for arguments [] on ')
     }
 
-    void "creates a project dependency from map"() {
+    def "creates a project dependency from map"() {
         ProjectDependency projectDependency = Mock()
 
         when:
@@ -225,7 +225,7 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencyFactory.createProjectDependencyFromMap(projectFinder, [:]) >> projectDependency
     }
 
-    void "cannot create project dependency for configuration from same project"() {
+    def "cannot create project dependency for configuration from same project"() {
         Configuration other = Mock()
 
         given:
@@ -239,7 +239,7 @@ class DefaultDependencyHandlerTest extends Specification {
         t.message.contains("Adding a Configuration as a dependency is no longer allowed as of Gradle 8.0.")
     }
 
-    void "cannot create project dependency for configuration from different project"() {
+    def "cannot create project dependency for configuration from different project"() {
         Configuration other = Mock()
 
         given:
@@ -253,7 +253,7 @@ class DefaultDependencyHandlerTest extends Specification {
         t.message.contains("Adding a Configuration as a dependency is no longer allowed as of Gradle 8.0.")
     }
 
-    void "creates gradle api dependency"() {
+    def "creates gradle api dependency"() {
         Dependency dependency = Mock()
 
         when:
@@ -266,7 +266,7 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_API) >> dependency
     }
 
-    void "creates Gradle test-kit dependency"() {
+    def "creates Gradle test-kit dependency"() {
         Dependency dependency = Mock()
 
         when:
@@ -279,7 +279,7 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT) >> dependency
     }
 
-    void "creates local groovy dependency"() {
+    def "creates local groovy dependency"() {
         Dependency dependency = Mock()
 
         when:
@@ -292,7 +292,7 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencyFactory.createDependency(DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY) >> dependency
     }
 
-    void "cannot add dependency to unknown configuration"() {
+    def "cannot add dependency to unknown configuration"() {
         when:
         dependencyHandler.add(UNKNOWN_TEST_CONF_NAME, "someNotation")
 
@@ -300,7 +300,7 @@ class DefaultDependencyHandlerTest extends Specification {
         thrown(UnknownDomainObjectException)
     }
 
-    void "reasonable error when supplying null as a dependency notation"() {
+    def "reasonable error when supplying null as a dependency notation"() {
         when:
         dependencyHandler."$TEST_CONF_NAME"(null)
 
@@ -308,7 +308,7 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencyFactory.createDependency(null)
     }
 
-    void "platform dependencies are endorsing"() {
+    def "platform dependencies are endorsing"() {
         ModuleDependency dep1 = new DefaultExternalModuleDependency("org", "platform", "")
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
         ModuleDependency dep2 = new DefaultExternalModuleDependency("org", "platform", "")
@@ -333,7 +333,7 @@ class DefaultDependencyHandlerTest extends Specification {
         dep2.version == '1.0'
     }
 
-    void "local platform dependencies are endorsing"() {
+    def "local platform dependencies are endorsing"() {
         ModuleDependency dep1 = new DefaultProjectDependency(null)
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
         ModuleDependency dep2 = new DefaultProjectDependency(null)
@@ -356,7 +356,7 @@ class DefaultDependencyHandlerTest extends Specification {
         dep2.isEndorsingStrictVersions()
     }
 
-    void "platform dependency can be made non-endorsing"() {
+    def "platform dependency can be made non-endorsing"() {
         ModuleDependency dep1 = new DefaultExternalModuleDependency("org", "platform", "")
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
 
@@ -369,7 +369,7 @@ class DefaultDependencyHandlerTest extends Specification {
         !dep1.isEndorsingStrictVersions()
     }
 
-    void "local platform dependency can be made non-endorsing"() {
+    def "local platform dependency can be made non-endorsing"() {
         ModuleDependency dep1 = new DefaultProjectDependency(null)
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
 
@@ -383,7 +383,7 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     @CompileStatic
-    void "can configure ExtensionAware statically"() {
+    def "can configure ExtensionAware statically"() {
         String dependency = "some:random-dependency:0.1.1"
         when:
 

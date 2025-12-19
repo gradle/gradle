@@ -207,7 +207,7 @@ class JavaVersionSpec extends Specification {
 
     /* Following test cases are from http://hg.openjdk.java.net/jdk/jdk/file/af37d9997bd6/test/jdk/java/lang/Runtime/Version/Basic.java */
 
-    def 'can recognize multiple version number'() {
+    def "can recognize multiple version number"() {
         expect:
         JavaVersion.toVersion('9') == JavaVersion.VERSION_1_9
         JavaVersion.toVersion('9.1') == JavaVersion.VERSION_1_9
@@ -219,7 +219,7 @@ class JavaVersionSpec extends Specification {
         JavaVersion.toVersion('1000.0.0.0.0.0.99999999') == JavaVersion.VERSION_HIGHER
     }
 
-    def 'can recognize version with $pre'() {
+    def "can recognize version with pre"() {
         expect:
         JavaVersion.toVersion('9-ea') == JavaVersion.VERSION_1_9
         JavaVersion.toVersion('9-internal') == JavaVersion.VERSION_1_9
@@ -228,7 +228,7 @@ class JavaVersionSpec extends Specification {
         JavaVersion.toVersion('2.3.4.5-1a') == JavaVersion.VERSION_1_2
     }
 
-    def 'can recognize $build'() {
+    def "can recognize build"() {
         expect:
         JavaVersion.toVersion('9+0') == JavaVersion.VERSION_1_9
         JavaVersion.toVersion('3.14+9999900') == JavaVersion.VERSION_1_3
@@ -236,7 +236,7 @@ class JavaVersionSpec extends Specification {
         JavaVersion.toVersion('6.0.42-8beta+4') == JavaVersion.VERSION_1_6
     }
 
-    def 'can recognize version with $opt'() {
+    def "can recognize version with opt"() {
         expect:
         JavaVersion.toVersion('9+-foo') == JavaVersion.VERSION_1_9
         JavaVersion.toVersion('9-pre-opt') == JavaVersion.VERSION_1_9

@@ -36,7 +36,7 @@ class WrapperPropertiesLoaderCrossVersionTest extends CrossVersionIntegrationSpe
         value = UnitTestPreconditions.NotWindowsJavaBefore11,
         reason = 'https://github.com/gradle/gradle-private/issues/3758'
     )
-    void "System properties defined in gradle.properties are available in buildSrc and in included builds"() {
+    def "System properties defined in gradle.properties are available in buildSrc and in included builds"() {
         given:
         GradleDistribution wrapperVersion = previous
         GradleDistribution executionVersion = current

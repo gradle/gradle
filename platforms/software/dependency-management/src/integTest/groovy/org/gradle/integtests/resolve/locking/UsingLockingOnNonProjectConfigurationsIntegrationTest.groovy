@@ -29,7 +29,7 @@ class UsingLockingOnNonProjectConfigurationsIntegrationTest extends AbstractDepe
     @Rule
     MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
-    def 'locks build script classpath configuration (initial unique: #unique)'() {
+    def "locks build script classpath configuration (initial unique: #unique)"() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
         mavenRepo.module('org.foo', 'foo-plugin', '1.1').publish()
@@ -65,7 +65,7 @@ buildscript {
         unique << [true, false]
     }
 
-    def 'locks build script classpath configuration in custom lockfile'() {
+    def "locks build script classpath configuration in custom lockfile"() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
         mavenRepo.module('org.foo', 'foo-plugin', '1.1').publish()
@@ -107,7 +107,7 @@ buildscript {
         LockfileFixture.verifyCustomLockfile(lockFile, 'classpath', ['org.foo:foo-plugin:1.1'])
     }
 
-    def 'strict locks on buildscript classpath does not mean strict locks on project (initial unique: #unique)'() {
+    def "strict locks on buildscript classpath does not mean strict locks on project (initial unique: #unique)"() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
         mavenRepo.module('org.foo', 'foo-plugin', '1.1').publish()
@@ -168,7 +168,7 @@ task resolve {
         unique << [true, false]
     }
 
-    def 'strict lock on build script classpath configuration causes build to fail when no lockfile present'() {
+    def "strict lock on build script classpath configuration causes build to fail when no lockfile present"() {
         given:
         settingsFile << """
 rootProject.name = 'foo'
@@ -196,7 +196,7 @@ buildscript {
         failureHasCause("Locking strict mode:")
     }
 
-    def 'locks build script classpath combined with plugins (initial unique: #unique)'() {
+    def "locks build script classpath combined with plugins (initial unique: #unique)"() {
         given:
         addPlugin()
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
@@ -244,7 +244,7 @@ plugins {
         unique << [true, false]
     }
 
-    def 'creates lock file for build script classpath'() {
+    def "creates lock file for build script classpath"() {
         given:
         addPlugin()
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
@@ -287,7 +287,7 @@ plugins {
         lockfileFixture.verifyBuildscriptLockfile('classpath', ['org.foo:foo-plugin:1.1', 'org.bar:bar-plugin:1.0', 'bar.plugin:bar.plugin.gradle.plugin:1.0'])
     }
 
-    def 'fails to resolve if lock state present but no dependencies remain (initial unique: #unique)'() {
+    def "fails to resolve if lock state present but no dependencies remain (initial unique: #unique)"() {
         given:
 
         settingsFile << """
@@ -312,7 +312,7 @@ buildscript {
         unique << [true, false]
     }
 
-    def 'same name buildscript and project configurations result in different lock files'() {
+    def "same name buildscript and project configurations result in different lock files"() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
         mavenRepo.module('org.foo', 'foo-plugin', '1.1').publish()
@@ -358,7 +358,7 @@ dependencies {
         lockfileFixture.verifyLockfile('classpath', ['org.foo:foo:1.1'])
     }
 
-    def 'settings locking'() {
+    def "settings locking"() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
         mavenRepo.module('org.foo', 'foo-plugin', '1.1').publish()

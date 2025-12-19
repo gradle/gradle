@@ -62,7 +62,7 @@ class JUnit4RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSp
         """
     }
 
-    def 'subsequent execution runs failed test first'() {
+    def "subsequent execution runs failed test first"() {
         given:
         letTestFail(indexOfTestToFail)
 
@@ -104,7 +104,7 @@ class JUnit4RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSp
         assert findIt
     }
 
-    def 'can delete previous failed test'() {
+    def "can delete previous failed test"() {
         given:
         letTestFail(indexOfTestToFail)
 
@@ -125,7 +125,7 @@ class JUnit4RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSp
         indexOfTestToFail << TESTS
     }
 
-    def 'can modify previous failed test'() {
+    def "can modify previous failed test"() {
         given:
         letTestFail(indexOfTestToFail)
 

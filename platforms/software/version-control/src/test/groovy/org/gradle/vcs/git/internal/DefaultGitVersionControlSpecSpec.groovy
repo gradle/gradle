@@ -23,7 +23,7 @@ import spock.lang.Specification
 class DefaultGitVersionControlSpecSpec extends Specification {
     GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
 
-    def 'handles file urls'() {
+    def "handles file urls"() {
         given:
         spec.url = new URI("file:/tmp/repos/foo")
 
@@ -33,7 +33,7 @@ class DefaultGitVersionControlSpecSpec extends Specification {
         spec.displayName == 'Git repository at file:/tmp/repos/foo'
     }
 
-    def 'handles urls which do not end in .git'() {
+    def "handles urls which do not end in .git"() {
         given:
         spec.url = 'https://github.com/gradle/gradle-checksum'
 
@@ -43,7 +43,7 @@ class DefaultGitVersionControlSpecSpec extends Specification {
         spec.displayName == 'Git repository at https://github.com/gradle/gradle-checksum'
     }
 
-    def 'handles urls which do end in .git'() {
+    def "handles urls which do end in .git"() {
         given:
         spec.url = 'https://github.com/gradle/gradle-checksum.git'
 

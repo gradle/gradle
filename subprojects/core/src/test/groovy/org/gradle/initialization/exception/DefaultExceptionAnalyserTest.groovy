@@ -36,7 +36,7 @@ class DefaultExceptionAnalyserTest extends Specification {
     private final ProblemDiagnosticsFactory diagnosticsFactory = Stub(ProblemDiagnosticsFactory)
     private final FailureFactory failureFactory = DefaultFailureFactory.withDefaultClassifier()
 
-    def 'wraps original exception when it is not a contextual exception'() {
+    def "wraps original exception when it is not a contextual exception"() {
         given:
         def failure = new RuntimeException()
         def analyser = analyser()
@@ -53,7 +53,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         getReportableCauses(transformedFailure).isEmpty()
     }
 
-    def 'wraps contextual exception with location aware exception'() {
+    def "wraps contextual exception with location aware exception"() {
         given:
         def failure = new ContextualException()
         def analyser = analyser()
@@ -71,7 +71,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         getReportableCauses(transformedFailure).isEmpty()
     }
 
-    def 'wraps highest contextual exception with location aware exception'() {
+    def "wraps highest contextual exception with location aware exception"() {
         given:
         def cause = new ContextualException()
         def failure = new ContextualException(cause)
@@ -89,7 +89,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         getReportableCauses(transformedFailure) == [cause]
     }
 
-    def 'adds location info from stack trace'() {
+    def "adds location info from stack trace"() {
         def failure = new ContextualException()
         def analyser = analyser()
         def result = []
@@ -108,7 +108,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         transformedFailure.lineNumber == 7
     }
 
-    def 'adds location info from deepest cause'() {
+    def "adds location info from deepest cause"() {
         def cause = new RuntimeException()
         def failure = new ContextualException(new RuntimeException(cause))
 
@@ -130,7 +130,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         transformedFailure.lineNumber == 7
     }
 
-    def 'does not add location when location cannot be determined'() {
+    def "does not add location when location cannot be determined"() {
         def failure = new ContextualException()
         def result = []
 
@@ -148,7 +148,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         transformedFailure.lineNumber == null
     }
 
-    def 'wraps contextual multi cause exception with location aware exception'() {
+    def "wraps contextual multi cause exception with location aware exception"() {
         given:
         def cause1 = new ContextualException()
         def cause2 = new ContextualException()
@@ -166,7 +166,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         getReportableCauses(transformedFailure) == [cause1, cause2]
     }
 
-    def 'uses original exception when it is already location aware'() {
+    def "uses original exception when it is already location aware"() {
         given:
         def failure = locationAwareException(null)
         def analyser = analyser()
@@ -181,7 +181,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         transformedFailure.is(failure)
     }
 
-    def 'uses deepest ScriptException exception'() {
+    def "uses deepest ScriptException exception"() {
         given:
         def cause = new GradleScriptException("broken", new RuntimeException())
         def failure = new GradleScriptException("broken", new RuntimeException(cause))
@@ -197,7 +197,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         transformedFailure.cause.is(cause)
     }
 
-    def 'uses deepest location aware exception'() {
+    def "uses deepest location aware exception"() {
         given:
         def cause = locationAwareException(null)
         def failure = locationAwareException(new RuntimeException(cause))
@@ -212,7 +212,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         transformedFailure.is(cause)
     }
 
-    def 'prefers script exception over contextual exception'() {
+    def "prefers script exception over contextual exception"() {
         given:
         def cause = new GradleScriptException("broken", new ContextualException())
         def failure = new TaskExecutionException(null, cause)
@@ -228,7 +228,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         transformedFailure.cause.is(cause)
     }
 
-    def 'prefers location aware exception over script exception'() {
+    def "prefers location aware exception over script exception"() {
         given:
         def cause = locationAwareException(new GradleScriptException("broken", new RuntimeException()))
         def failure = new TaskExecutionException(null, cause)
@@ -241,7 +241,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         transformedFailure instanceof LocationAwareException
     }
 
-    def 'wraps arbitrary failure with location information'() {
+    def "wraps arbitrary failure with location information"() {
         def failure = new RuntimeException()
 
         def analyser = analyser()
@@ -262,7 +262,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         transformedFailure.cause.is(failure)
     }
 
-    def 'unpacks project configuration exception with script execution cause'() {
+    def "unpacks project configuration exception with script execution cause"() {
         given:
         def scriptFailure = new GradleScriptException("broken", new RuntimeException())
         def failure = new ProjectConfigurationException("broken", scriptFailure)
@@ -279,7 +279,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         transformedFailure.cause.is(scriptFailure)
     }
 
-    def 'unpacks project configuration exception with other cause'() {
+    def "unpacks project configuration exception with other cause"() {
         given:
         def otherFailure = new RuntimeException("broken")
         def failure = new ProjectConfigurationException("broken", otherFailure)
@@ -296,7 +296,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         transformedFailure.cause.is(failure)
     }
 
-    def 'unpacks project configuration exception with multiple causes'() {
+    def "unpacks project configuration exception with multiple causes"() {
         given:
         def scriptFailure = new GradleScriptException("broken", new RuntimeException())
         def otherFailure1 = new RuntimeException("broken")

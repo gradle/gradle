@@ -26,7 +26,7 @@ class IdeaProjectIntegrationTest extends AbstractIdeIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
-    void "allows configuring the VCS"() {
+    def "allows configuring the VCS"() {
         //when
         runTask('idea', '''
 apply plugin: "java"

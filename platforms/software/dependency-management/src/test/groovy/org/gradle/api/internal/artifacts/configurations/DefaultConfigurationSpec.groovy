@@ -109,7 +109,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
     }
 
-    void defaultValues() {
+    def defaultValues() {
         when:
         def configuration = conf("name", ":project")
 
@@ -617,7 +617,7 @@ class DefaultConfigurationSpec extends Specification {
         checkCopiedConfiguration(configuration, copied3Configuration, resolutionStrategyCopy, 3)
     }
 
-    void "deprecations are passed to copies when corresponding role is #baseRole"() {
+    def "deprecations are passed to copies when corresponding role is #baseRole"() {
         expect:
         deprecationsArePassedToCopies(baseRole)
 
@@ -630,7 +630,7 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     @ExpectDeprecation("The conf configuration has been deprecated for dependency declaration")
-    void "deprecations are passed to copies when corresponding role is #baseRole (deprecated)"() {
+    def "deprecations are passed to copies when corresponding role is #baseRole (deprecated)"() {
         expect:
         deprecationsArePassedToCopies(baseRole)
 
@@ -670,7 +670,7 @@ class DefaultConfigurationSpec extends Specification {
         assert !copy.deprecatedForDeclarationAgainst
     }
 
-    void "fails to copy non-resolvable configuration (#role)"() {
+    def "fails to copy non-resolvable configuration (#role)"() {
         given:
         def configuration = prepareConfigurationForCopyTest(conf("conf", ":", ":", role))
 
@@ -1498,7 +1498,7 @@ This method is only meant to be called on configurations which allow the (non-de
         rootConfig.getAllExcludeRules() == [thirdRule] as Set
     }
 
-    void 'does not fail to map failures when settings are not available'() {
+    def "does not fail to map failures when settings are not available"() {
         when:
         DependencyResolutionServices resolutionServices = ProjectBuilder.builder().build().services.get(DependencyResolutionServices)
         resolutionServices.resolveRepositoryHandler.mavenCentral()

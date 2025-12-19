@@ -93,7 +93,7 @@ dependencies {
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    def 'cached rule can access PomModuleDescriptor for Maven component'() {
+    def "cached rule can access PomModuleDescriptor for Maven component"() {
         given:
         repository {
             'org.test:projectA:1.0'()
@@ -126,7 +126,7 @@ dependencies {
         succeeds 'resolve'
     }
 
-    def 'rule cache properly differentiates inputs'() {
+    def "rule cache properly differentiates inputs"() {
         repository {
             'org.test:projectA:1.0'()
         }
@@ -174,7 +174,7 @@ dependencies {
         outputContains('Rule B executed - saw changing true')
     }
 
-    def 'can cache rules with service injection'() {
+    def "can cache rules with service injection"() {
         repository {
             'org.test:projectA:1.0'()
         }
@@ -240,7 +240,7 @@ dependencies {
         outputContains('Rule B executed - saw changing true')
     }
 
-    def 'can cache rules having a custom type attribute as parameter'() {
+    def "can cache rules having a custom type attribute as parameter"() {
         repository {
             'org.test:projectA:1.0'()
         }
@@ -290,7 +290,7 @@ dependencies {
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    def 'can cache rules setting custom type attributes'() {
+    def "can cache rules setting custom type attributes"() {
         repository {
             'org.test:projectA:1.0'()
         }
@@ -382,7 +382,7 @@ dependencies {
         }
     }
 
-    def 'changing rule implementation invalidates cache'() {
+    def "changing rule implementation invalidates cache"() {
         repository {
             'org.test:projectA:1.0'()
         }
@@ -453,7 +453,7 @@ class CachedRule implements ComponentMetadataRule {
 
     }
 
-    def 'having a rule triggered on missing metadata does not cause cache collision'() {
+    def "having a rule triggered on missing metadata does not cause cache collision"() {
         file('deps/projectA-1.0.jar').createFile()
         file('deps/projectB-1.0.jar').createFile()
 

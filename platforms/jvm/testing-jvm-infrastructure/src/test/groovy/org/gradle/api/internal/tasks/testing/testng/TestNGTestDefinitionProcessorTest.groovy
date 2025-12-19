@@ -58,7 +58,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
         classProcessor.stop()
     }
 
-    void "executes the test class"() {
+    def "executes the test class"() {
         when: process(ATestNGClass)
 
         then: 1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, { it.parentId == null })
@@ -70,7 +70,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
         0 * processor._
     }
 
-    void "executes factory test class"() {
+    def "executes factory test class"() {
         when:
         process(ATestNGFactoryClass)
 
@@ -84,7 +84,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
         0 * processor._
     }
 
-    void "executes selected included method"() {
+    def "executes selected included method"() {
         filterSpec.getIncludedTests() >> [ATestNGClassWithManyMethods.name + ".another"]
 
         when: process(ATestNGClassWithManyMethods)
@@ -99,7 +99,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
         0 * processor._
     }
 
-    void "executes multiple included methods"() {
+    def "executes multiple included methods"() {
         filterSpec.getIncludedTests() >> [ATestNGClassWithManyMethods.name + ".another", ATestNGClassWithManyMethods.name + ".yetAnother"]
 
         when: process(ATestNGClassWithManyMethods)
@@ -112,7 +112,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
         0 * processor.started(_, _)
     }
 
-    void "executes methods from multiple classes by pattern"() {
+    def "executes methods from multiple classes by pattern"() {
         filterSpec.getIncludedTests() >> ["*Methods.ok*"]
 
         when: process(ATestNGClassWithManyMethods)
@@ -125,7 +125,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
         0 * processor.started(_, _)
     }
 
-    void "executes no tests if none of the included test methods match"() {
+    def "executes no tests if none of the included test methods match"() {
         filterSpec.getIncludedTests() >> [ATestNGClassWithManyMethods.name + "does not exist"]
 
         when: process(ATestNGClassWithManyMethods)
@@ -137,7 +137,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
         0 * processor._
     }
 
-    void "executes test with expected exception"() {
+    def "executes test with expected exception"() {
         when: process(ATestNGClassWithExpectedException)
 
         then: 1 * processor.started({ it.id == 1 } , _)
@@ -149,7 +149,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
         0 * processor._
     }
 
-    void "executes test with broken setup"() {
+    def "executes test with broken setup"() {
         when: process(ATestNGClassWithBrokenSetupMethod)
 
         then: 1 * processor.started({ it.id == 1 } , _)
@@ -167,7 +167,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
         0 * processor._
     }
 
-    void "executes test class with dependency method"() {
+    def "executes test class with dependency method"() {
         when: process(ATestNGClassWithBrokenDependencyMethod)
 
         then: 1 * processor.started({ it.id == 1 } , _)
@@ -186,7 +186,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
         0 * processor._
     }
 
-    void "includes and excludes groups"() {
+    def "includes and excludes groups"() {
         given:
         _ * spec.getIncludeGroups() >> ['group1', 'group2']
         _ * spec.getExcludeGroups() >> ['group3']
@@ -203,7 +203,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
     }
 
     @Ignore //not implemented yet
-    void "executes class with broken constructor"() {
+    def "executes class with broken constructor"() {
         when: process(ATestNGClassWithBrokenConstructor)
 
         then:
@@ -216,7 +216,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
         0 * processor._
     }
 
-    void "fails early for unknown test class"() {
+    def "fails early for unknown test class"() {
         classProcessor.startProcessing(processor)
 
         when:
@@ -227,7 +227,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
         ex.message == "Could not load test class \'unknown\'."
     }
 
-    void "before and after methods are not triggered when all tests from a class are filtered"() {
+    def "before and after methods are not triggered when all tests from a class are filtered"() {
         filterSpec.getIncludedTests() >> [ATestNGClass.name]
 
         when:
@@ -242,7 +242,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
         0 * processor._
     }
 
-    void "custom test listeners can change test status"() {
+    def "custom test listeners can change test status"() {
         spec.listeners << FailSkippedTestsListener.class.name
 
         when: process(ATestNGClassWithSkippedTest)
@@ -250,7 +250,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
         then: 1 * processor.completed(_, { it.resultType == ResultType.FAILURE})
     }
 
-    void "executes test from suite"() {
+    def "executes test from suite"() {
         def suite = dir.file("suite.xml") << """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="AwesomeSuite">
@@ -275,7 +275,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
         0 * processor._
     }
 
-    void "executes multiple suites and tests"() {
+    def "executes multiple suites and tests"() {
         def suite1 = dir.file("suite1.xml") << """<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="suite 1">

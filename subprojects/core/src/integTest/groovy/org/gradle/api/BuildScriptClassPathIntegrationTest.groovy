@@ -92,7 +92,7 @@ task foo {
         outputDoesNotContain('Original bar')
     }
 
-    def 'buildscript classpath has proper usage attribute'() {
+    def "buildscript classpath has proper usage attribute"() {
         buildFile << """
 buildscript {
     configurations.classpath {

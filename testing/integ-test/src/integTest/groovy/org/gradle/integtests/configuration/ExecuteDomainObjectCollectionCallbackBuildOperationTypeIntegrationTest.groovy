@@ -32,7 +32,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
     private static Closure fooTaskRealizationOpsQuery = { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':foo' }) }
     private static Closure addingPluginBuildOpQuery = { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
 
-    def '#containerType container callbacks emit registrant when using #callbackName callback(before creation registered)'() {
+    def "#containerType container callbacks emit registrant when using #callbackName callback(before creation registered)"() {
         given:
         callbackScript(containerAccess, callbackName)
         buildFile << """
@@ -89,7 +89,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         'all'                                | 'distributions'            | ['distribution'] | 'distributions'                                              | createFooDistributions()            | addingPluginBuildOpQuery
     }
 
-    def '#containerName container callbacks emit registrant with #callbackName callback(after creation registered)'() {
+    def "#containerName container callbacks emit registrant with #callbackName callback(after creation registered)"() {
         given:
         callbackScript(containerAccess, callbackName)
         buildFile << """

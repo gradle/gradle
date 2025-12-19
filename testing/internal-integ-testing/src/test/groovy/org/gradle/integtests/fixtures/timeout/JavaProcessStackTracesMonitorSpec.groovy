@@ -23,7 +23,7 @@ import spock.lang.Specification
 class JavaProcessStackTracesMonitorSpec extends Specification {
 
     @Requires(UnitTestPreconditions.NotWindows)
-    def 'can extract process info from unix ps()'() {
+    def "can extract process info from unix ps()"() {
         given:
         def output = '''
           PID TTY      STAT   TIME COMMAND
@@ -51,7 +51,7 @@ class JavaProcessStackTracesMonitorSpec extends Specification {
     }
 
     @Requires(UnitTestPreconditions.Windows)
-    def 'can extract process info from windows pwoershell'() {
+    def "can extract process info from windows pwoershell"() {
         given:
         def output = '''
 \\SystemRoot\\System32\\smss.exe 244
@@ -81,7 +81,7 @@ cmd.exe /d /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:
     }
 
     @Requires(UnitTestPreconditions.NotWindows)
-    def 'can locate jstack on Unix'() {
+    def "can locate jstack on Unix"() {
         expect:
         new JavaProcessStackTracesMonitor.JavaProcessInfo('0', javaCommand).jstackCommand == jstackCommand
 
@@ -93,7 +93,7 @@ cmd.exe /d /c C:\\tcagent1\\work\\668602365d1521fc\\gradlew.bat --init-script C:
     }
 
     @Requires(UnitTestPreconditions.Windows)
-    def 'can locate jstack on Windows'() {
+    def "can locate jstack on Windows"() {
         expect:
         new JavaProcessStackTracesMonitor.JavaProcessInfo('0', javaCommand).jstackCommand == jstackCommand
 

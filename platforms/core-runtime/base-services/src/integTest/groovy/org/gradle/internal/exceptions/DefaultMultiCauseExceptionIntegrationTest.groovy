@@ -19,7 +19,7 @@ package org.gradle.internal.exceptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DefaultMultiCauseExceptionIntegrationTest  extends AbstractIntegrationSpec {
-    def 'when tasks throw exceptions that offer resolutions, those resolutions are included'() {
+    def "when tasks throw exceptions that offer resolutions, those resolutions are included"() {
         given:
         buildFile << """
             ${defineTestException()}
@@ -39,7 +39,7 @@ class DefaultMultiCauseExceptionIntegrationTest  extends AbstractIntegrationSpec
             .assertHasResolution('resolution1')
     }
 
-    def 'when tasks throw multi cause exceptions with resolutions offered by the causes, those resolutions are included'() {
+    def "when tasks throw multi cause exceptions with resolutions offered by the causes, those resolutions are included"() {
         given:
         buildFile << """
             ${defineTestException()}
@@ -63,7 +63,7 @@ class DefaultMultiCauseExceptionIntegrationTest  extends AbstractIntegrationSpec
             .assertHasResolution('resolution2')
     }
 
-    def 'when tasks throw multi cause exceptions with the same resolution offered by multiple causes, those resolutions are not duplicated'() {
+    def "when tasks throw multi cause exceptions with the same resolution offered by multiple causes, those resolutions are not duplicated"() {
         given:
         buildFile << """
             ${defineTestException()}

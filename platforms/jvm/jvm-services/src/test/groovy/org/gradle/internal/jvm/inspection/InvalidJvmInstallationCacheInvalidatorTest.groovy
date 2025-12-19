@@ -21,7 +21,7 @@ import spock.lang.Specification
 import java.util.function.Predicate
 
 class InvalidJvmInstallationCacheInvalidatorTest extends Specification {
-    def 'closing triggers cache invalidation'() {
+    def "closing triggers cache invalidation"() {
         def cache = Mock(ConditionalInvalidation<JvmInstallationMetadata>)
 
         given:

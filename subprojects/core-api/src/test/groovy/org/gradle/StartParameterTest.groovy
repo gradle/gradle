@@ -34,7 +34,7 @@ class StartParameterTest extends Specification {
     @Rule private TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule private SetSystemProperties systemProperties = new SetSystemProperties()
 
-    void "new instance has correct state"() {
+    def "new instance has correct state"() {
         def parameter = new StartParameter()
         parameter.taskNames = ['a']
         parameter.buildProjectDependencies = true
@@ -68,7 +68,7 @@ class StartParameterTest extends Specification {
         parameter != newInstance
     }
 
-    void "mutable collections are not shared"() {
+    def "mutable collections are not shared"() {
         def parameter = new StartParameter()
         parameter.taskNames = ['a']
         parameter.excludedTaskNames = ['foo']
@@ -97,7 +97,7 @@ class StartParameterTest extends Specification {
         parameter.includedBuilds == newInstance.includedBuilds
     }
 
-    void "default values"() {
+    def "default values"() {
         def parameter = new StartParameter()
 
         expect:
@@ -121,7 +121,7 @@ class StartParameterTest extends Specification {
         assertThat(parameter, isSerializable())
     }
 
-    void "uses gradle user home system property"() {
+    def "uses gradle user home system property"() {
         def gradleUserHome = tmpDir.file("someGradleUserHomePath")
         System.setProperty(StartParameter.GRADLE_USER_HOME_PROPERTY_KEY, gradleUserHome.absolutePath)
 
@@ -131,7 +131,7 @@ class StartParameterTest extends Specification {
         parameter.gradleUserHomeDir == gradleUserHome
     }
 
-    void "canonicalizes current dir"() {
+    def "canonicalizes current dir"() {
         StartParameter parameter = new StartParameter()
         File dir = new File('current')
 
@@ -143,7 +143,7 @@ class StartParameterTest extends Specification {
         assertThat(parameter, isSerializable())
     }
 
-    void "can configure project dir"() {
+    def "can configure project dir"() {
         StartParameter parameter = new StartParameter()
         File file = new File('test/project dir')
 
@@ -155,7 +155,7 @@ class StartParameterTest extends Specification {
         assertThat(parameter, isSerializable())
     }
 
-    void "can configure null project dir"() {
+    def "can configure null project dir"() {
         StartParameter parameter = new StartParameter()
         parameter.projectDir = new File('test/project dir')
 
@@ -167,7 +167,7 @@ class StartParameterTest extends Specification {
         assertThat(parameter, isSerializable())
     }
 
-    void "can configure null user home dir"() {
+    def "can configure null user home dir"() {
         StartParameter parameter = new StartParameter()
 
         when:
@@ -178,7 +178,7 @@ class StartParameterTest extends Specification {
         assertThat(parameter, isSerializable())
     }
 
-    void "considers system properties for null user home dir"() {
+    def "considers system properties for null user home dir"() {
         def gradleUserHome = tmpDir.file("someGradleUserHomePath")
         System.setProperty(StartParameter.GRADLE_USER_HOME_PROPERTY_KEY, gradleUserHome.absolutePath)
 
@@ -194,7 +194,7 @@ class StartParameterTest extends Specification {
         assertThat(parameter, isSerializable())
     }
 
-    void "creates parameter for new build"() {
+    def "creates parameter for new build"() {
         StartParameter parameter = new StartParameter()
 
         // Copied properties
@@ -247,7 +247,7 @@ class StartParameterTest extends Specification {
         assertThat(newParameter, isSerializable())
     }
 
-    void "gets all init scripts"() {
+    def "gets all init scripts"() {
         def gradleUserHomeDir = tmpDir.testDirectory.createDir("gradleUserHomeDie")
         def gradleHomeDir = tmpDir.testDirectory.createDir("gradleHomeDir")
         StartParameter parameter = new StartParameter()
@@ -279,7 +279,7 @@ class StartParameterTest extends Specification {
         parameter.allInitScripts == [userMainInit, userInit1, userInit2, distroInit1, distroInit2]
     }
 
-    def 'taskNames getter defaults to taskParameters'() {
+    def "taskNames getter defaults to taskParameters"() {
         def parameter = new StartParameter()
         def requests = [new DefaultTaskExecutionRequest(['a']), new DefaultTaskExecutionRequest(['b'])]
 
@@ -291,7 +291,7 @@ class StartParameterTest extends Specification {
         parameter.taskRequests == requests
     }
 
-    def 'taskNames setter defaults to taskParameters'() {
+    def "taskNames setter defaults to taskParameters"() {
         StartParameter parameter = new StartParameter()
 
         when:
@@ -316,7 +316,7 @@ class StartParameterTest extends Specification {
     // Previously StartParameter's toString got wildly out of sync with the state inside of it
     // Ensure that all state is represented in the toString, so it's more useful for debugging
     // In the future StartParameter should be replaced with a `record` so this doesn't need to be checked
-    void "all state is represented in toString"() {
+    def "all state is represented in toString"() {
         given:
         def parameter = new StartParameter()
         def fieldNames = StartParameter.class.getDeclaredFields()

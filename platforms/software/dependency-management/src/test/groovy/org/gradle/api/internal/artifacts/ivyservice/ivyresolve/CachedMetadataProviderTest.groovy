@@ -29,7 +29,7 @@ class CachedMetadataProviderTest extends Specification {
     @Subject
     CachedMetadataProvider provider
 
-    def 'verifies that metadata was provided when state is Resolved'() {
+    def "verifies that metadata was provided when state is Resolved"() {
         given:
         cachedResult.state >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
         cachedResult.metaData >> componentState
@@ -40,7 +40,7 @@ class CachedMetadataProviderTest extends Specification {
         provider.componentMetadata
     }
 
-    def 'verifies that metadata was not provided when state is #state'() {
+    def "verifies that metadata was not provided when state is #state"() {
         given:
         cachedResult.state >> state
         provider = new CachedMetadataProvider(cachedResult)
@@ -53,7 +53,7 @@ class CachedMetadataProviderTest extends Specification {
         state << [BuildableModuleComponentMetaDataResolveResult.State.Unknown, BuildableModuleComponentMetaDataResolveResult.State.Failed, BuildableModuleComponentMetaDataResolveResult.State.Missing]
     }
 
-    def 'returns IvyModuleDescriptor when available'() {
+    def "returns IvyModuleDescriptor when available"() {
         given:
         cachedResult.state >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
         cachedResult.metaData >> componentState
@@ -64,7 +64,7 @@ class CachedMetadataProviderTest extends Specification {
         provider.ivyModuleDescriptor
     }
 
-    def 'returns null for IvyModuleDescriptor when not available'() {
+    def "returns null for IvyModuleDescriptor when not available"() {
         given:
         cachedResult.state >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
         cachedResult.metaData >> componentState

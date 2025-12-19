@@ -58,7 +58,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         """
     }
 
-    def 'setting different version in resolutionStrategy will affect plugin choice'() {
+    def "setting different version in resolutionStrategy will affect plugin choice"() {
         given:
         publishTestPlugin()
         buildFile """
@@ -86,7 +86,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         output.contains("I'm here")
     }
 
-    def 'when no version is specified, resolution fails'() {
+    def "when no version is specified, resolution fails"() {
         given:
         publishTestPlugin()
         buildFile """
@@ -114,7 +114,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         failure.assertHasDescription("Plugin [id: 'org.example.plugin'] was not found")
     }
 
-    def 'when invalid version is specified, resolution fails'() {
+    def "when invalid version is specified, resolution fails"() {
         given:
         publishTestPlugin()
         buildFile """
@@ -142,7 +142,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         failure.assertHasDescription("Plugin [id: 'org.example.plugin', version: 'x'] was not found")
     }
 
-    def 'when version range is specified, resolution succeeds'() {
+    def "when version range is specified, resolution succeeds"() {
         given:
         publishTestPlugin()
         buildFile """
@@ -170,7 +170,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         output.contains("I'm here")
     }
 
-    def 'when invalid artifact version is specified, resolution fails'() {
+    def "when invalid artifact version is specified, resolution fails"() {
         given:
         publishTestPlugin()
         buildFile """
@@ -198,7 +198,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         failure.assertHasDescription("Plugin [id: 'org.example.plugin', version: '1.2', artifact: 'org.example.plugin:plugin:x'] was not found")
     }
 
-    def 'when artifact version range is specified, resolution succeeds'() {
+    def "when artifact version range is specified, resolution succeeds"() {
         given:
         publishTestPlugin()
         buildFile """
@@ -226,7 +226,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         output.contains("I'm here")
     }
 
-    def 'can specify an artifact to use'() {
+    def "can specify an artifact to use"() {
         given:
         publishTestPlugin()
         buildFile """
@@ -254,7 +254,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         output.contains("I'm here")
     }
 
-    def 'rules are executed in declaration order'() {
+    def "rules are executed in declaration order"() {
         given:
         publishTestPlugin()
         buildFile """
@@ -287,7 +287,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         output.contains("I'm here")
     }
 
-    def 'Build fails when a rule throws an exception'() {
+    def "Build fails when a rule throws an exception"() {
         given:
         publishTestPlugin()
         buildFile """

@@ -46,7 +46,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         _ * instantiator.newInstanceWithDisplayName(_, _, _) >> { args -> TestUtil.newInstance(args[0]) }
     }
 
-    void injectsProjectAndNameIntoTask() {
+    def injectsProjectAndNameIntoTask() {
         when:
         Task task = taskFactory.create(new TaskIdentity(DefaultTask, 'task', projectId, 12))
 

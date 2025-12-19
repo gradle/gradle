@@ -46,7 +46,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         _ * configuration.dependencyConstraints >> dependencyConstraintSet
     }
 
-    void "creates and adds a dependency constraint from some notation"() {
+    def "creates and adds a dependency constraint from some notation"() {
         def dependencyConstraint = Mock(DependencyConstraint)
 
         when:
@@ -60,7 +60,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         1 * dependencyConstraintSet.add(dependencyConstraint)
     }
 
-    void "creates, configures and adds a dependency constraint from some notation"() {
+    def "creates, configures and adds a dependency constraint from some notation"() {
         def dependencyConstraint = Mock(DependencyConstraint)
 
         when:
@@ -77,7 +77,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         1 * dependencyConstraintSet.add(dependencyConstraint)
     }
 
-    void "creates a dependency constraint from some notation"() {
+    def "creates a dependency constraint from some notation"() {
         def dependencyConstraint = Mock(DependencyConstraint)
 
         when:
@@ -90,7 +90,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         1 * dependencyConstraintFactory.createDependencyConstraint("someNotation") >> dependencyConstraint
     }
 
-    void "creates and configures a dependency constraint from some notation"() {
+    def "creates and configures a dependency constraint from some notation"() {
         def dependencyConstraint = Mock(DependencyConstraint)
 
         when:
@@ -106,7 +106,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         1 * dependencyConstraint.version(_ as Action<VersionConstraint>)
     }
 
-    void "can use dynamic method to add dependency constraint"() {
+    def "can use dynamic method to add dependency constraint"() {
         def dependencyConstraint = Mock(DependencyConstraint)
 
         when:
@@ -121,7 +121,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
 
     }
 
-    void "can use dynamic method to add and configure dependency constraint"() {
+    def "can use dynamic method to add and configure dependency constraint"() {
         def dependencyConstraint = Mock(DependencyConstraint)
 
         when:
@@ -136,7 +136,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         1 * dependencyConstraint.version(_ as Action<VersionConstraint>)
     }
 
-    void "can use dynamic method to add multiple dependency constraint"() {
+    def "can use dynamic method to add multiple dependency constraint"() {
         def constraint1 = Mock(DependencyConstraint)
         def constraint2 = Mock(DependencyConstraint)
 
@@ -153,7 +153,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         1 * dependencyConstraintSet.add(constraint2)
     }
 
-    void "can use dynamic method to add multiple dependency constraint from nested lists"() {
+    def "can use dynamic method to add multiple dependency constraint from nested lists"() {
         def constraint1 = Mock(DependencyConstraint)
         def constraint2 = Mock(DependencyConstraint)
 
@@ -170,7 +170,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         1 * dependencyConstraintSet.add(constraint2)
     }
 
-    void "dynamic method fails for unknown configuration"() {
+    def "dynamic method fails for unknown configuration"() {
         when:
         dependencyConstraintHandler.unknown("someDep")
 
@@ -179,7 +179,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         e.message.startsWith('Could not find method unknown() for arguments [someDep] on ')
     }
 
-    void "dynamic method fails for no args"() {
+    def "dynamic method fails for no args"() {
         when:
         dependencyConstraintHandler.someConf()
 
@@ -188,7 +188,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         e.message.startsWith('Could not find method someConf() for arguments [] on ')
     }
 
-    void "cannot add dependency constraint to unknown configuration"() {
+    def "cannot add dependency constraint to unknown configuration"() {
         when:
         dependencyConstraintHandler.add(UNKNOWN_TEST_CONF_NAME, "someNotation")
 
@@ -196,7 +196,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         thrown(UnknownDomainObjectException)
     }
 
-    void "reasonable error when supplying null as a dependency notation"() {
+    def "reasonable error when supplying null as a dependency notation"() {
         when:
         dependencyConstraintHandler."$TEST_CONF_NAME"(null)
 
@@ -204,7 +204,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         1 * dependencyConstraintFactory.createDependencyConstraint(null)
     }
 
-    void "creates and adds a dependency constraint using a provider"() {
+    def "creates and adds a dependency constraint using a provider"() {
         when:
         dependencyConstraintHandler.add(TEST_CONF_NAME, TestUtil.providerFactory().provider { "someNotation" })
 

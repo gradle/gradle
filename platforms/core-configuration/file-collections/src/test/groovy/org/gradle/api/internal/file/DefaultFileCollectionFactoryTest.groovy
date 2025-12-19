@@ -213,7 +213,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection.is(original)
     }
 
-    def 'resolves specified files for resolving collection using FileResolver'() {
+    def "resolves specified files for resolving collection using FileResolver"() {
         def collection = factory.resolving('test files', ['abc', 'def'])
 
         when:
@@ -224,7 +224,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         files == [tmpDir.file('abc'), tmpDir.file('def')] as Set
     }
 
-    def 'can use a Closure for resolving collection to specify a single file'() {
+    def "can use a Closure for resolving collection to specify a single file"() {
         def collection = factory.resolving('test files', [{ 'abc' }] as Object[])
 
         when:
@@ -235,7 +235,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         files == [tmpDir.file('abc')] as Set
     }
 
-    def 'resolving collection source #description can return null'() {
+    def "resolving collection source #description can return null"() {
         def collection = factory.resolving('test files', input)
 
         when:
@@ -250,7 +250,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         'Callable'  | (({ null } as Callable<Object>) as Object[])
     }
 
-    def 'Provider can throw IllegalStateException'() {
+    def "Provider can throw IllegalStateException"() {
         Provider provider = Mock()
         def exception = new IllegalStateException()
         def collection = factory.resolving('test files', provider)
@@ -264,7 +264,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         exception == thrown
     }
 
-    def 'lazily queries contents of a resolving collection'() {
+    def "lazily queries contents of a resolving collection"() {
         Callable<File> callable = Mock()
 
         when:
@@ -282,7 +282,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         files == [tmpDir.file('abc')] as Set
     }
 
-    def 'can use a #description to specify the contents of a resolving collection'() {
+    def "can use a #description to specify the contents of a resolving collection"() {
         def collection = factory.resolving('test files', input)
 
         when:
@@ -302,14 +302,14 @@ class DefaultFileCollectionFactoryTest extends Specification {
         'nested objects'   | ({ [{ ['abc', { ['def'] as String[] }] }] } as Object[])
     }
 
-    def 'constructs empty tree when composite tree created with empty list'() {
+    def "constructs empty tree when composite tree created with empty list"() {
         def tree = factory.treeOf([])
 
         expect:
         emptyTree(tree)
     }
 
-    def 'returns source file tree when composite tree created with single entry'() {
+    def "returns source file tree when composite tree created with single entry"() {
         def source = Stub(FileTreeInternal)
         def tree = factory.treeOf([source])
 
@@ -317,7 +317,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         tree.is source
     }
 
-    def 'can use a #description to specify the single content of the collection'() {
+    def "can use a #description to specify the single content of the collection"() {
         def collection = factory.resolving('test files', input)
 
         when:
@@ -334,7 +334,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         'URL'       | tmpDir.file('abc').toURI().toURL()
     }
 
-    def 'fails on resolving absent Provider#description in file collection'() {
+    def "fails on resolving absent Provider#description in file collection"() {
         def collection = factory.resolving(provider)
 
         when:
@@ -348,7 +348,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         ' in Callable' | { -> Providers.notDefined() }
     }
 
-    def 'ignores absent Provider#description when resolving leniently'() {
+    def "ignores absent Provider#description when resolving leniently"() {
         def collection = factory.resolvingLeniently(provider)
 
         expect:

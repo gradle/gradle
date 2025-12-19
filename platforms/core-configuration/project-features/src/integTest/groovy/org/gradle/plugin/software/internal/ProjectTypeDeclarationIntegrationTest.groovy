@@ -44,7 +44,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         pluginPortal.stop()
     }
 
-    def 'can declare and configure a custom project type from included build'() {
+    def "can declare and configure a custom project type from included build"() {
         given:
         withProjectType().prepareToExecute()
 
@@ -63,7 +63,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         outputDoesNotContain("Applying AnotherProjectTypeImplPlugin")
     }
 
-    def 'can declare and configure a custom project type from published plugin'() {
+    def "can declare and configure a custom project type from published plugin"() {
         given:
         pluginPortal.start()
         def pluginBuilder = withProjectType()
@@ -88,7 +88,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         outputDoesNotContain("Applying AnotherProjectTypeImplPlugin")
     }
 
-    def 'can declare and configure a custom project type from plugin published to a custom repository'() {
+    def "can declare and configure a custom project type from plugin published to a custom repository"() {
         given:
         def pluginBuilder = withProjectType()
         pluginBuilder.publishAs("com", "example", "1.0", mavenHttpRepo, createExecuter()).allowAll()
@@ -117,7 +117,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         outputDoesNotContain("Applying AnotherProjectTypeImplPlugin")
     }
 
-    def 'can declare multiple custom project types from a single settings plugin'() {
+    def "can declare multiple custom project types from a single settings plugin"() {
         given:
         withSettingsPluginThatExposesMultipleProjectTypes().prepareToExecute()
 
@@ -152,7 +152,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         outputContains("model id = another")
     }
 
-    def 'can declare multiple custom project types from a single settings plugin but apply only one'() {
+    def "can declare multiple custom project types from a single settings plugin but apply only one"() {
         given:
         withSettingsPluginThatExposesMultipleProjectTypes().prepareToExecute()
 
@@ -172,7 +172,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
     }
 
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy has no problem with finding non-public methods/types ...")
-    def 'can declare and configure a custom project type with different public and implementation model types'() {
+    def "can declare and configure a custom project type with different public and implementation model types"() {
         given:
         withProjectTypeThatHasDifferentPublicAndImplementationTypes().prepareToExecute()
 
@@ -205,7 +205,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         }
     }
 
-    def 'sensible error when a project type plugin is registered that does not expose a project type'() {
+    def "sensible error when a project type plugin is registered that does not expose a project type"() {
         given:
         withProjectTypePluginThatDoesNotExposeProjectTypes().prepareToExecute()
 
@@ -220,7 +220,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         failure.assertHasCause("Type 'org.gradle.test.NotAProjectTypePlugin' is registered as a project feature plugin but does not expose a project feature.")
     }
 
-    def 'sensible error when two plugins register the same project type'() {
+    def "sensible error when two plugins register the same project type"() {
         given:
         withTwoProjectTypesThatHaveTheSameName().prepareToExecute()
 
@@ -242,7 +242,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         )
     }
 
-    def 'a project type plugin can declare multiple project types'() {
+    def "a project type plugin can declare multiple project types"() {
         given:
         withProjectTypePluginThatExposesMultipleProjectTypes().prepareToExecute()
 
@@ -274,7 +274,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         outputContains("model id = another")
     }
 
-    def 'sensible error when a script applies multiple project types'() {
+    def "sensible error when a script applies multiple project types"() {
         given:
         withProjectTypePluginThatExposesMultipleProjectTypes().prepareToExecute()
 
@@ -297,7 +297,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
 
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy can use a property value on the assignment RHS")
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Kotlin can use a property value on the assignment RHS")
-    def 'sensible error when declarative script uses a property as value for another property'() {
+    def "sensible error when declarative script uses a property as value for another property"() {
         given:
         withProjectType().prepareToExecute()
 

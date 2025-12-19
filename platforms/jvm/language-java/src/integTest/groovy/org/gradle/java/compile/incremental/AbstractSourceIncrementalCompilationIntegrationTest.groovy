@@ -95,7 +95,7 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         outputs.recompiledClasses("B", "A")
     }
 
-    def 'can move classes between source dirs'() {
+    def "can move classes between source dirs"() {
         given:
         buildFile << "sourceSets.main.${languageName}.srcDir 'extra'"
         source('class A1 {}')
@@ -485,7 +485,7 @@ sourceSets {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/9380')
-    def 'can move source sets'() {
+    def "can move source sets"() {
         given:
         buildFile << "sourceSets.main.${languageName}.srcDir 'src/other/${languageName}'"
         source('class Sub extends Base {}')

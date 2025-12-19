@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 class ProblemIdAndProblemGroupTest extends Specification {
 
-    def 'name and displayName cannot be null or empty or only whitespace'() {
+    def "name and displayName cannot be null or empty or only whitespace"() {
         when:
         def rootGroup = ProblemGroup.create(rootGroupName, rootGroupDisplayName)
         def subGroup = ProblemGroup.create(subGroupName, subGroupDisplayName, rootGroup)
@@ -48,7 +48,7 @@ class ProblemIdAndProblemGroupTest extends Specification {
         "valid"       | "valid"      | "valid" | "valid"              | "valid"             | "  "          || 'Problem id displayName must not be blank'
     }
 
-    def 'multiline names are flattened to a single line'() {
+    def "multiline names are flattened to a single line"() {
         when:
         def rootGroup = ProblemGroup.create("ro\no\r\nt\r\n\r\nGroupName", "ro\no\r\nt\r\n\r\nGroupDisplayName")
         def subGroup = ProblemGroup.create("su\nb\r\nG\r\n\r\nroupName", "su\nb\r\nG\r\n\r\nroupDisplayName", rootGroup)

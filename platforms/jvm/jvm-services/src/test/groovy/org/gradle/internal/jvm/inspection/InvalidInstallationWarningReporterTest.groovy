@@ -24,7 +24,7 @@ class InvalidInstallationWarningReporterTest extends Specification {
 
     def mockLogger = Mock(Logger)
 
-    def 'reporter logs only invalid installations'() {
+    def "reporter logs only invalid installations"() {
         given:
         def reporter = new InvalidInstallationWarningReporter(mockLogger)
         def location = InstallationLocation.userDefined(new File("_"), "_")
@@ -43,7 +43,7 @@ class InvalidInstallationWarningReporterTest extends Specification {
         isReported << [1, 0]
     }
 
-    def 'reporter logs meaningful message'() {
+    def "reporter logs meaningful message"() {
         given:
         def reporter = new InvalidInstallationWarningReporter(mockLogger)
         def location = InstallationLocation.userDefined(new File("testHome"), "test")

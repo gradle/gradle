@@ -91,7 +91,7 @@ task check {
         'attempting to exclude declared module'            | [group: 'org.gradle', module: 'test']     | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar', 'company-4.0.jar', 'other-company-4.0.jar', 'enterprise-5.0.jar', 'baz-6.0.jar']
     }
 
-    void "does not resolve module excluded for configuration"() {
+    def "does not resolve module excluded for configuration"() {
         given:
         def repo = mavenRepo
         repo.module('org.gradle.test', 'direct', '1.0').publish()
@@ -207,7 +207,7 @@ task test {
 
 
     @Issue("GRADLE-3124")
-    void "provides reasonable error message for typo in exclude declaration"() {
+    def "provides reasonable error message for typo in exclude declaration"() {
         given:
         mavenRepo.module('org.gradle.test', 'external', '1.0').publish()
 
@@ -235,7 +235,7 @@ task test {
         failure.assertHasCause("Could not set unknown property 'modue' for object of type org.gradle.api.internal.artifacts.DefaultExcludeRule.")
     }
 
-    void "makes no attempt to resolve an excluded dependency"() {
+    def "makes no attempt to resolve an excluded dependency"() {
         given:
         mavenRepo.module('org.gradle.test', 'external', '1.0')
             .dependsOn('org.gradle.test', 'unknown1', '1.0')

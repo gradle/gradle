@@ -24,7 +24,7 @@ class ResolutionOverrideIntegrationTest extends AbstractHttpDependencyResolution
     @Shared
     def refreshDependenciesArgs = ['-U', '--refresh-dependencies']
 
-    void "will refresh non-changing module when run with --refresh-dependencies"() {
+    def "will refresh non-changing module when run with --refresh-dependencies"() {
         given:
         def module = mavenHttpRepo.module('org.name', 'projectA', '1.2').publish()
 
@@ -73,7 +73,7 @@ task retrieve(type: Sync) {
         arg << refreshDependenciesArgs
     }
 
-    void "will recover from missing module when run with --refresh-dependencies"() {
+    def "will recover from missing module when run with --refresh-dependencies"() {
         given:
         def module = mavenHttpRepo.module('org.name', 'projectA', '1.2').publish()
         def artifact = module.artifact
@@ -115,7 +115,7 @@ task showMissing {
         arg << refreshDependenciesArgs
     }
 
-    void "will recover from missing artifact when run with --refresh-dependencies"() {
+    def "will recover from missing artifact when run with --refresh-dependencies"() {
         given:
         buildFile << """
 repositories {
@@ -158,7 +158,7 @@ task retrieve(type: Sync) {
         arg << refreshDependenciesArgs
     }
 
-    void "will not expire cache entries when run with offline flag"() {
+    def "will not expire cache entries when run with offline flag"() {
 
         given:
         def module = mavenHttpRepo.module("org.name", "unique", "1.0-SNAPSHOT").publish()
@@ -204,7 +204,7 @@ task retrieve(type: Sync) {
         file('libs/unique-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshot)
     }
 
-    void "does not attempt to contact server when run with offline flag"() {
+    def "does not attempt to contact server when run with offline flag"() {
         def resolve = new ResolveFailureTestFixture(buildFile)
 
         given:

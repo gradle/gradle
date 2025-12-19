@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class OrdinalGroupFactoryTest extends Specification {
 
-    def 'groups can be accessed in any order'() {
+    def "groups can be accessed in any order"() {
         given:
         def subject = new OrdinalGroupFactory()
 
@@ -33,7 +33,7 @@ class OrdinalGroupFactoryTest extends Specification {
         subject.allGroups == [g0, g1, g2]
     }
 
-    def 'returns the same group for the same ordinal'() {
+    def "returns the same group for the same ordinal"() {
         given:
         def subject = new OrdinalGroupFactory()
 

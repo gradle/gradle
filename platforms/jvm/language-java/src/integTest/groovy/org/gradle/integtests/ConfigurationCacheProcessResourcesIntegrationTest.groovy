@@ -33,7 +33,7 @@ class ConfigurationCacheProcessResourcesIntegrationTest extends AbstractIntegrat
     }
 
     @Issue('https://github.com/gradle/gradle/issues/16423')
-    def 'java source files are excluded by default'() {
+    def "java source files are excluded by default"() {
         given:
         buildFile '''
             plugins {

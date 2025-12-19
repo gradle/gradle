@@ -27,7 +27,7 @@ import java.util.concurrent.CyclicBarrier
 class ListenerBroadcastTest extends ConcurrentSpec {
     private final ListenerBroadcast<TestListener> broadcast = new ListenerBroadcast<TestListener>(TestListener.class)
 
-    def 'creates source object'() {
+    def "creates source object"() {
         expect:
         broadcast.getSource() != null
         broadcast.getSource() is broadcast.getSource()
@@ -36,17 +36,17 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         broadcast.getSource().toString() == 'TestListener broadcast'
     }
 
-    def 'getType yields the listener class'() {
+    def "getType yields the listener class"() {
         expect:
         broadcast.type == TestListener
     }
 
-    def 'source object does nothing when no listeners are added'() {
+    def "source object does nothing when no listeners are added"() {
         expect:
         broadcast.source.event1("param")
     }
 
-    def 'visit listeners does nothing when no listeners are added'() {
+    def "visit listeners does nothing when no listeners are added"() {
         def visitor = Mock(Action)
 
         when:
@@ -56,7 +56,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         0 * visitor._
     }
 
-    def 'source object notifies each listener in the added order'() {
+    def "source object notifies each listener in the added order"() {
         given:
         def listener1 = Mock(TestListener)
         def listener2 = Mock(TestListener)
@@ -73,7 +73,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def 'can dispatch event to listeners'() {
+    def "can dispatch event to listeners"() {
         given:
         def listener1 = Mock(TestListener)
         def listener2 = Mock(TestListener)
@@ -91,7 +91,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def 'visit listener visits listeners in order added'() {
+    def "visit listener visits listeners in order added"() {
         def listener1 = Mock(TestListener)
         def listener2 = Mock(TestListener)
         def visitor = Mock(Action)
@@ -111,7 +111,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         0 * visitor._
     }
 
-    def 'listener is not used after it is removed'() {
+    def "listener is not used after it is removed"() {
         given:
         def listener = Mock(TestListener)
         broadcast.add(listener)
@@ -124,7 +124,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def 'listener is not visited after it is removed'() {
+    def "listener is not visited after it is removed"() {
         def visitor = Mock(Action)
         def listener = Mock(TestListener)
 
@@ -139,7 +139,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         0 * visitor._
     }
 
-    def 'listener is not used after all listeners removed'() {
+    def "listener is not used after all listeners removed"() {
         given:
         def listener = Mock(TestListener)
         broadcast.add(listener)
@@ -152,7 +152,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def 'can use dispatch to receive notifications'() {
+    def "can use dispatch to receive notifications"() {
         given:
         Dispatch<MethodInvocation> dispatch1 = Mock()
         Dispatch<MethodInvocation> dispatch2 = Mock()
@@ -171,7 +171,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def 'visit listeners does not visit dispatch instances'() {
+    def "visit listeners does not visit dispatch instances"() {
         def dispatch = Mock(Dispatch)
         def visitor = Mock(Action)
 
@@ -185,7 +185,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         0 * visitor._
     }
 
-    def 'dispatch is not used after it is removed'() {
+    def "dispatch is not used after it is removed"() {
         given:
         Dispatch<MethodInvocation> dispatch = Mock()
         broadcast.add(dispatch)
@@ -198,7 +198,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def 'can use Action for single event method'() {
+    def "can use Action for single event method"() {
         given:
         Action<String> action = Mock()
         broadcast.add("event1", action)
@@ -211,7 +211,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def 'does not notify Action for other event methods'() {
+    def "does not notify Action for other event methods"() {
         given:
         Action<String> action = Mock()
         broadcast.add("event1", action)
@@ -223,7 +223,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def 'the Action can have fewer parameters than the event method'() {
+    def "the Action can have fewer parameters than the event method"() {
         given:
         Action<Integer> action = Mock()
         broadcast.add("event2", action)
@@ -242,7 +242,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def 'listener can add another listener'() {
+    def "listener can add another listener"() {
         given:
         TestListener listener1 = Mock()
         TestListener listener2 = Mock()
@@ -270,7 +270,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def 'wraps checked exception thrown by listener'() {
+    def "wraps checked exception thrown by listener"() {
         given:
         TestListener listener = Mock()
         Exception failure = new Exception()
@@ -287,7 +287,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         exception.cause.is(failure)
     }
 
-    def 'attempts to notify all other listeners when one throws exception'() {
+    def "attempts to notify all other listeners when one throws exception"() {
         given:
         TestListener listener1 = Mock()
         TestListener listener2 = Mock()
@@ -307,7 +307,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
 
     }
 
-    def 'attempts to notify all other listeners when multiple exceptions are thrown'() {
+    def "attempts to notify all other listeners when multiple exceptions are thrown"() {
         TestListener listener1 = Mock()
         TestListener listener2 = Mock()
         TestListener listener3 = Mock()
@@ -330,7 +330,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
         exception.causes == [failure1, failure2]
     }
 
-    def 'can query the number of registered listeners'() {
+    def "can query the number of registered listeners"() {
         TestListener listener1 = Mock()
         TestListener listener2 = Mock()
         TestListener listener3 = Mock()
@@ -377,7 +377,7 @@ class ListenerBroadcastTest extends ConcurrentSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/31537")
-    def 'listeners may be added or removed by multiple threads'() {
+    def "listeners may be added or removed by multiple threads"() {
         def threads = 10
         def listenerCount = 200
         List<TestListener> listeners = (1..listenerCount)

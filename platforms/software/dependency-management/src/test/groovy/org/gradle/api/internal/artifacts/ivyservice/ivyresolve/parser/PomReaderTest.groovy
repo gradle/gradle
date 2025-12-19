@@ -879,7 +879,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     }
 
     @Issue("gradle/gradle#5092")
-    def 'can parse exclusion defined only by artifactId'() {
+    def "can parse exclusion defined only by artifactId"() {
         when:
         pomFile << """
 <project>
@@ -912,7 +912,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     }
 
     @Issue("gradle/gradle#5092")
-    def 'can parse exclusion defined only by groupId'() {
+    def "can parse exclusion defined only by groupId"() {
         when:
         pomFile << """
 <project>
@@ -945,7 +945,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     }
 
     @Issue("gradle/gradle#5092")
-    def 'can parse exclusion defined by groupId and artifactId'() {
+    def "can parse exclusion defined by groupId and artifactId"() {
         when:
         pomFile << """
 <project>
@@ -979,7 +979,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     }
 
     @Issue("gradle/gradle#5092")
-    def 'ignores empty exclusion block'() {
+    def "ignores empty exclusion block"() {
         when:
         pomFile << """
 <project>
@@ -1010,7 +1010,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     }
 
     @Issue("gradle/gradle#5092")
-    def 'can parse a wildcard exclusion block'() {
+    def "can parse a wildcard exclusion block"() {
         when:
         pomFile << """
 <project>
@@ -1044,7 +1044,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     }
 
     @Issue("gradle/gradle#22370")
-    def 'can parse an exclusion block with properties'() {
+    def "can parse an exclusion block with properties"() {
         when:
         pomFile << """
 <project>
@@ -1083,7 +1083,7 @@ class PomReaderTest extends AbstractPomReaderTest {
         excluded == [DefaultModuleIdentifier.newId('excluded-group-id', 'excluded-artifact-id')]
     }
 
-    def 'parses old gradle module metadata marker'() {
+    def "parses old gradle module metadata marker"() {
         when:
         pomFile << """
 <project>
@@ -1100,7 +1100,7 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.hasGradleMetadataMarker()
     }
 
-    def 'parses gradle module metadata marker'() {
+    def "parses gradle module metadata marker"() {
         when:
         pomFile << """
 <project>
@@ -1118,7 +1118,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     }
 
     @Issue("gradle/gradle#26110")
-    def 'can parse optional with whitespace'() {
+    def "can parse optional with whitespace"() {
         when:
         pomFile << """
 <project>

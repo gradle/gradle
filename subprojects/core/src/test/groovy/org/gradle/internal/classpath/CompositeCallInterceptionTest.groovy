@@ -101,7 +101,7 @@ class CompositeCallInterceptionTest extends AbstractCallInterceptionTest {
         receiver.intercepted
     }
 
-    def 'intercepts a basic instance call with #method from #caller for multiple types with the same method names'() {
+    def "intercepts a basic instance call with #method from #caller for multiple types with the same method names"() {
         when:
         def firstIntercepted = interceptedInterceptorTestReceiver(shouldDelegate, invocation)
         def secondIntercepted = interceptedCompositeInterceptorTestReceiver(shouldDelegate, invocation)
@@ -123,7 +123,7 @@ class CompositeCallInterceptionTest extends AbstractCallInterceptionTest {
         "vararg"        | "Groovy dynamic dispatch" | { testVararg(it, it, it) }    | true           | "testVararg(Object...)"
     }
 
-    def 'access to a #kind of a Groovy property from a #caller caller is intercepted as #expected for multiple types with the same method names'() {
+    def "access to a #kind of a Groovy property from a #caller caller is intercepted as #expected for multiple types with the same method names"() {
         when:
         def firstIntercepted = interceptedInterceptorTestReceiver(shouldDelegate, invocation)
         def secondIntercepted = interceptedCompositeInterceptorTestReceiver(shouldDelegate, invocation)

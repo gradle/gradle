@@ -82,7 +82,7 @@ class CompositeBuildTaskLifecycleIntegrationTest extends AbstractCompositeBuildI
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15875")
-    void '#method can not reference tasks from another build'() {
+    def "#method can not reference tasks from another build"() {
         given:
         buildA.buildFile << """
             task a {

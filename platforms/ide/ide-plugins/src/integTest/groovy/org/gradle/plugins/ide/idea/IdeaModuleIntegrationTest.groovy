@@ -114,7 +114,7 @@ idea {
 
     @Test
     @Issue("https://github.com/gradle/gradle/issues/6547")
-    void "omit resource declaration if directory is also a source directory"() {
+    def "omit resource declaration if directory is also a source directory"() {
         //given
         testResources.dir.create {
             src {
@@ -347,7 +347,7 @@ idea.module {
     }
 
     @Test
-    void "respects external dependencies order"() {
+    def "respects external dependencies order"() {
         //given
         def repoDir = file("repo")
         maven(repoDir).module("org.gradle", "artifact1").publish()
@@ -377,7 +377,7 @@ dependencies {
     }
 
     @Test
-    void "respects local dependencies order"() {
+    def "respects local dependencies order"() {
         //given
         file('artifact1.jar').createNewFile()
         file('artifact2.jar').createNewFile()
@@ -402,7 +402,7 @@ dependencies {
     }
 
     @Test
-    void "works with artifacts without group and version"() {
+    def "works with artifacts without group and version"() {
         //given
         testFile('repo/hibernate-core.jar').createFile()
 
@@ -466,7 +466,7 @@ project(':impl') {
 
     @Issue("GRADLE-2017")
     @Test
-    void "create external dependency in more scopes when needed"() {
+    def "create external dependency in more scopes when needed"() {
         //given
         def repoDir = file("repo")
         maven(repoDir).module("org.gradle", "api-artifact").publish()
@@ -496,7 +496,7 @@ dependencies {
     }
 
     @Test
-    void "custom configuration is added to all specified scopes considering IDEA scope inclusion"() {
+    def "custom configuration is added to all specified scopes considering IDEA scope inclusion"() {
         //given
         def repoDir = file("repo")
         maven(repoDir).module("org.gradle", "api-artifact").publish()
@@ -533,7 +533,7 @@ idea {
     }
 
     @Test
-    void "custom configuration can be added to TEST and RUNTIME"() {
+    def "custom configuration can be added to TEST and RUNTIME"() {
         //given
         def repoDir = file("repo")
         maven(repoDir).module("org.gradle", "api-artifact").publish()
@@ -572,7 +572,7 @@ idea {
     }
 
     @Test
-    void "no libraries generated without java plugin"() {
+    def "no libraries generated without java plugin"() {
         //given
         def repoDir = file("repo")
         maven(repoDir).module("org.gradle", "api-artifact").publish()
@@ -641,7 +641,7 @@ Could not resolve: myGroup:missing-artifact:1.0
     }
 
     @Test
-    void "compile only dependencies handled correctly"() {
+    def "compile only dependencies handled correctly"() {
         // given
         def shared = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'compile', '1.0').dependsOn(shared).publish()
@@ -674,7 +674,7 @@ dependencies {
     }
 
     @Test
-    void "test compile only dependencies mapped to IDEA scopes"() {
+    def "test compile only dependencies mapped to IDEA scopes"() {
         // given
         def shared = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'compile', '1.0').dependsOn(shared).publish()
@@ -704,7 +704,7 @@ dependencies {
     }
 
     @Test
-    void "conflicting versions of the same library requested for compile and compile-only mapped to IDEA scopes"() {
+    def "conflicting versions of the same library requested for compile and compile-only mapped to IDEA scopes"() {
         // given
         mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '2.0').publish()
@@ -733,7 +733,7 @@ dependencies {
     }
 
     @Test
-    void "conflicting versions of the same library requested for runtime and compile-only mapped to IDEA scopes"() {
+    def "conflicting versions of the same library requested for runtime and compile-only mapped to IDEA scopes"() {
         // given
         mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '2.0').publish()
@@ -762,7 +762,7 @@ dependencies {
     }
 
     @Test
-    void "conflicting versions of the same library requested for test-compile and test-compile-only mapped to IDEA scopes"() {
+    def "conflicting versions of the same library requested for test-compile and test-compile-only mapped to IDEA scopes"() {
         // given
         mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '2.0').publish()
@@ -790,7 +790,7 @@ dependencies {
     }
 
     @Test
-    void "providedCompile dependencies are added to PROVIDED only"() {
+    def "providedCompile dependencies are added to PROVIDED only"() {
         // given
         mavenRepo.module('org.gradle.test', 'foo', '1.0').publish()
 
@@ -815,7 +815,7 @@ dependencies {
     }
 
     @Test
-    void "providedRuntime dependencies are added to PROVIDED only"() {
+    def "providedRuntime dependencies are added to PROVIDED only"() {
         // given
         mavenRepo.module('org.gradle.test', 'foo', '1.0').publish()
 

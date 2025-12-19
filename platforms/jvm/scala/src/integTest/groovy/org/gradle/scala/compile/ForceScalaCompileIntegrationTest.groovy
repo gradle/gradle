@@ -26,7 +26,7 @@ class ForceScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#13224")
-    def 'disabling incremental compilation does not produce an analysis file'() {
+    def "disabling incremental compilation does not produce an analysis file"() {
         given:
         buildFile << """
 plugins {
@@ -62,7 +62,7 @@ class Person(name: String) {
     }
 
     @Issue("gradle/gradle#13224")
-    def 'changing one file only produces valid compilation output'() {
+    def "changing one file only produces valid compilation output"() {
         given:
         buildFile << """
 plugins {

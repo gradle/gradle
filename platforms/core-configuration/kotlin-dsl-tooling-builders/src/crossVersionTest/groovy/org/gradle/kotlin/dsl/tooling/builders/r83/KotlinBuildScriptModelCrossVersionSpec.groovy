@@ -47,7 +47,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         loadToolingModel(KotlinDslScriptsModel)
     }
 
-    def 'exceptions in different scripts are reported on the corresponding scripts'() {
+    def "exceptions in different scripts are reported on the corresponding scripts"() {
 
         given:
         requireIsolatedUserHome()

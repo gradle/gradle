@@ -43,7 +43,7 @@ class DefaultObjectConfigurationActionTest extends Specification {
        textResourceLoaderFactory.create(_) >> Mock(TextUriResourceLoader)
     }
 
-    void doesNothingWhenNothingSpecified() {
+    def doesNothingWhenNothingSpecified() {
         expect:
         action.execute()
     }

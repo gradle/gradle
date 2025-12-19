@@ -21,7 +21,7 @@ import spock.lang.Specification
 import java.nio.file.Files
 
 class ClassLoaderUtilsTest extends Specification {
-    def 'can inject classes to a classloader'() {
+    def "can inject classes to a classloader"() {
         given:
         Class testClass = DefaultClassLoaderFactoryTestHelper
         File classpath = ClasspathUtil.getClasspathForClass(testClass)

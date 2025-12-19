@@ -41,12 +41,12 @@ class BaselineVersionResolverTest extends Specification {
         new DefaultGradleDistribution(GradleVersion.version(version), null, null)
     }
 
-    def 'nightly can be used if minimumBaseVersion matched'() {
+    def "nightly can be used if minimumBaseVersion matched"() {
         expect:
         toBaselineVersions(distributions, ['6.0-20190823180744+0000'], '6.0') == ['6.0-20190823180744+0000'] as LinkedHashSet
     }
 
-    def 'throw exception if all versions are filtered out by minimumBaseVersion'() {
+    def "throw exception if all versions are filtered out by minimumBaseVersion"() {
         setup:
         System.setProperty(ResultsStoreHelper.SYSPROP_PERFORMANCE_TEST_CHANNEL, '')
 
@@ -58,7 +58,7 @@ class BaselineVersionResolverTest extends Specification {
         e.message.contains('No versions selected: [6.0-20190823180744+0000]')
     }
 
-    def 'latest release is added if no versions specified'() {
+    def "latest release is added if no versions specified"() {
         expect:
         toBaselineVersions(distributions, [], null) == ['6.1'] as LinkedHashSet
     }

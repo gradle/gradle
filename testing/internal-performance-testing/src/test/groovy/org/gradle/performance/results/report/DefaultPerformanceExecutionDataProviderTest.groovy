@@ -41,7 +41,7 @@ class DefaultPerformanceExecutionDataProviderTest extends ResultSpecification {
         provider = new DefaultPerformanceExecutionDataProvider(mockStore, [resultsJson], [] as Set)
     }
 
-    def 'can sort scenarios correctly'() {
+    def "can sort scenarios correctly"() {
         when:
         List buildResults = [
             createLowConfidenceRegressedData(),

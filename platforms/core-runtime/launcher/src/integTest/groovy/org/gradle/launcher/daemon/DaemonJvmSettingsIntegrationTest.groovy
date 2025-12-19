@@ -99,7 +99,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         javaToolOptions << ["-Xms513m", "-Xmx255m", "-Xms128m -Xmx256m"]
     }
 
-    def 'can start the daemon with flag that emits to stdout'() {
+    def "can start the daemon with flag that emits to stdout"() {
         given:
         file('build.gradle') << """
 println 'Started'

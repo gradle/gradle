@@ -32,7 +32,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
-    void "forces multiple modules by rule"() {
+    def "forces multiple modules by rule"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -88,7 +88,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "module forced by rule has correct selection reason"() {
+    def "module forced by rule has correct selection reason"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -131,7 +131,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "all rules are executed in order and last one wins"() {
+    def "all rules are executed in order and last one wins"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -171,7 +171,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "all rules are executed in order and last one wins, including resolution rules"() {
+    def "all rules are executed in order and last one wins, including resolution rules"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -211,7 +211,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "can unforce the version"() {
+    def "can unforce the version"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -254,7 +254,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "forced modules and rules coexist"() {
+    def "forced modules and rules coexist"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -291,7 +291,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "rule selects a dynamic version"() {
+    def "rule selects a dynamic version"() {
         mavenRepo.module("org.utils", "api", '1.3').publish()
         mavenRepo.module("org.utils", "api", '1.4').publish()
         mavenRepo.module("org.utils", "api", '1.5').publish()
@@ -330,7 +330,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "can substitute modules with project dependency using #name"() {
+    def "can substitute modules with project dependency using #name"() {
         settingsFile << 'include "api", "impl"'
 
         buildFile << common
@@ -372,7 +372,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         "matching component" | "org.utils:api:1.5"
     }
 
-    void "can access built artifacts from substituted project dependency"() {
+    def "can access built artifacts from substituted project dependency"() {
         settingsFile << 'include "api", "impl"'
 
         buildFile << common
@@ -423,7 +423,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         executedAndNotSkipped ":api:build"
     }
 
-    void "can replace project dependency #projectGroup:api:#projectVersion with external dependency org.utils:api:1.5"() {
+    def "can replace project dependency #projectGroup:api:#projectVersion with external dependency org.utils:api:1.5"() {
         mavenRepo.module("org.utils", "api", '1.5').publish()
 
         settingsFile << 'include "api", "impl"'
@@ -470,7 +470,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         "2.0"          | "my.org.utils" | "GAV different, version and group"
     }
 
-    void "can replace transitive external dependency with project dependency"() {
+    def "can replace transitive external dependency with project dependency"() {
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
         settingsFile << 'include "api", "test"'
 
@@ -513,7 +513,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         executedAndNotSkipped ":api:jar"
     }
 
-    void "can replace external dependency declared in extended configuration with project dependency"() {
+    def "can replace external dependency declared in extended configuration with project dependency"() {
         mavenRepo.module("org.utils", "api", '1.5').publish()
 
         settingsFile << 'include "api", "impl"'
@@ -552,7 +552,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "can replace forced external dependency with project dependency"() {
+    def "can replace forced external dependency with project dependency"() {
         settingsFile << 'include "api", "impl"'
 
         buildFile << common
@@ -589,7 +589,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "get useful error message when replacing an external dependency with a project that does not exist"() {
+    def "get useful error message when replacing an external dependency with a project that does not exist"() {
         settingsFile << 'include "api", "impl"'
 
         buildFile << common
@@ -620,7 +620,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         failure.assertHasCause("Project with path ':doesnotexist' not found in build ':'.")
     }
 
-    void "replacing external module dependency with project dependency keeps the original configuration"() {
+    def "replacing external module dependency with project dependency keeps the original configuration"() {
         settingsFile << 'include "api", "impl"'
 
         buildFile << common
@@ -655,7 +655,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "replacing external module dependency with project dependency keeps the original transitivity"() {
+    def "replacing external module dependency with project dependency keeps the original transitivity"() {
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
         settingsFile << 'include "impl", "test"'
 
@@ -690,7 +690,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "external dependency substituted for a project dependency participates in conflict resolution"() {
+    def "external dependency substituted for a project dependency participates in conflict resolution"() {
         mavenRepo.module("org.utils", "api", '2.0').publish()
 
         settingsFile << 'include "api", "impl"'
@@ -751,7 +751,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "project dependency substituted for an external dependency participates in conflict resolution"() {
+    def "project dependency substituted for an external dependency participates in conflict resolution"() {
         mavenRepo.module("org.utils", "dep1", '2.0').publish()
         mavenRepo.module("org.utils", "dep2", '2.0').publish()
         settingsFile << 'include "impl", "dep1", "dep2"'
@@ -813,7 +813,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "can deny a version"() {
+    def "can deny a version"() {
         mavenRepo.module("org.utils", "a", '1.4').publish()
         mavenRepo.module("org.utils", "a", '1.3').publish()
         mavenRepo.module("org.utils", "a", '1.2').publish()
@@ -846,7 +846,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "can deny a version that is not used"() {
+    def "can deny a version that is not used"() {
         mavenRepo.module("org.utils", "a", '1.3').publish()
         mavenRepo.module("org.utils", "a", '1.2').publish()
         mavenRepo.module("org.utils", "b", '1.3').dependsOn("org.utils", "a", "1.3").publish()
@@ -940,7 +940,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "rule selects unavailable version"() {
+    def "rule selects unavailable version"() {
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
         buildFile << """
@@ -978,7 +978,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         failure.assertHasCause("Could not find org.utils:api:1.123.15")
     }
 
-    void "rules triggered exactly once per the same dependency"() {
+    def "rules triggered exactly once per the same dependency"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
@@ -1032,7 +1032,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         succeeds "check"
     }
 
-    void "runtime exception when evaluating rule yields decent exception"() {
+    def "runtime exception when evaluating rule yields decent exception"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
@@ -1069,7 +1069,7 @@ Required by:
         failure.assertHasCause("Unhappy :(")
     }
 
-    void "reasonable error message when attempting to substitute with an unversioned module selector"() {
+    def "reasonable error message when attempting to substitute with an unversioned module selector"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             version = 1.0
@@ -1093,7 +1093,7 @@ Required by:
         failure.assertHasCause("Must specify version for target of dependency substitution")
     }
 
-    void "reasonable error message when attempting to create an invalid selector"() {
+    def "reasonable error message when attempting to create an invalid selector"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             version = 1.0
@@ -1116,7 +1116,7 @@ Required by:
         failure.assertHasCause("Cannot convert the provided notation to an object of type ComponentSelector: :foo:bar:baz:")
     }
 
-    void "reasonable error message when attempting to add rule that substitutes with an unversioned module selector"() {
+    def "reasonable error message when attempting to add rule that substitutes with an unversioned module selector"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             version = 1.0
@@ -1142,7 +1142,7 @@ Required by:
         failure.assertHasCause("Must specify version for target of dependency substitution")
     }
 
-    void "can substitute module name and resolve conflict"() {
+    def "can substitute module name and resolve conflict"() {
         mavenRepo.module("org.utils", "a", '1.2').publish()
         mavenRepo.module("org.utils", "b", '2.0').publish()
         mavenRepo.module("org.utils", "b", '2.1').publish()
@@ -1356,7 +1356,7 @@ Required by:
         """
     }
 
-    void "custom dependency substitution reasons are available in resolution result"() {
+    def "custom dependency substitution reasons are available in resolution result"() {
         mavenRepo.module("org", "a", "1.0").publish()
         mavenRepo.module("org", "b").dependsOn("org", "a", "2.0").publish()
         mavenRepo.module("org", "a", "2.0").dependsOn("org", "c", "1.0").publish()
@@ -1396,7 +1396,7 @@ Required by:
     }
 
     @Issue("gradle/gradle#5692")
-    def 'substitution with project does not trigger failOnVersionConflict'() {
+    def "substitution with project does not trigger failOnVersionConflict"() {
         settingsFile << 'include "sub"'
         buildFile << """
             $common

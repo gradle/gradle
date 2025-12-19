@@ -25,7 +25,7 @@ import spock.lang.Issue
 
 class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
-    def 'copies files and removes extra files from destDir'() {
+    def "copies files and removes extra files from destDir"() {
         given:
         defaultSourceFileTree()
         file('dest').create {
@@ -57,7 +57,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         )
     }
 
-    def 'preserve keeps specified files in destDir'() {
+    def "preserve keeps specified files in destDir"() {
         given:
         defaultSourceFileTree()
         file('dest').create {
@@ -95,7 +95,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         )
     }
 
-    def 'only excluding non-preserved files works as expected'() {
+    def "only excluding non-preserved files works as expected"() {
         given:
         defaultSourceFileTree()
         file('dest').create {
@@ -134,7 +134,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         )
     }
 
-    def 'sync is up to date when only changing preserved files'() {
+    def "sync is up to date when only changing preserved files"() {
         given:
         file('source').create {
             file 'not-preserved.txt'
@@ -177,7 +177,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
     }
 
     @NotYetImplemented
-    def 'sync is not up to date when files are added to the destination dir'() {
+    def "sync is not up to date when files are added to the destination dir"() {
         given:
         defaultSourceFileTree()
         file('dest').create {}
@@ -204,7 +204,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
     }
 
     @NotYetImplemented
-    def 'sync is not up to date when the preserve filter is changed'() {
+    def "sync is not up to date when the preserve filter is changed"() {
         given:
         defaultSourceFileTree()
         file('dest').create {
@@ -242,7 +242,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         !file('dest/preserved').exists()
     }
 
-    def 'default excludes are removed with non-preserved directories'(String preserved) {
+    def "default excludes are removed with non-preserved directories"(String preserved) {
         given:
         defaultSourceFileTree()
         file('dest').create {
@@ -278,7 +278,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         preserved << ["include 'out/some.txt'", "exclude 'some'"]
     }
 
-    def 'empty directories can be preserved and synced'() {
+    def "empty directories can be preserved and synced"() {
         given:
         defaultSourceFileTree()
         file('dest').create {

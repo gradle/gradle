@@ -21,7 +21,7 @@ import spock.lang.Issue
 class SpotBugsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/com.github.spotbugs')
-    def 'spotbugs plugin'() {
+    def "spotbugs plugin"() {
         given:
         buildFile << """
             import com.github.spotbugs.snom.SpotBugsTask

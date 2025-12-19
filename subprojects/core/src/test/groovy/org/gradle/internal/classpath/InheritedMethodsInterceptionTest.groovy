@@ -60,7 +60,7 @@ class InheritedMethodsInterceptionTest extends AbstractCallInterceptionTest {
         return instrumentedClasses.instrumentedClosure(call).call(receiver)
     }
 
-    def 'intercepts inherited method for #description'() {
+    def "intercepts inherited method for #description"() {
         when:
         def intercepted = interceptedFor(interceptionReceiver)
 

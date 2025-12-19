@@ -22,7 +22,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 @Requires(UnitTestPreconditions.Jdk11OrLater)
 class PalantirConsistentVersionsPluginSmokeTest extends AbstractSmokeTest {
 
-    def 'basic functionality'() {
+    def "basic functionality"() {
         given:
         buildFile << """
             plugins {

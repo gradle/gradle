@@ -34,7 +34,7 @@ class IvyBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolu
     }
 
     @ToBeFixedForConfigurationCache
-    void "reports and recovers from missing module"() {
+    def "reports and recovers from missing module"() {
         given:
         def repo = ivyHttpRepo("repo1")
         def module = repo.module("group", "projectA", "1.2").publish()
@@ -98,7 +98,7 @@ Required by:
     }
 
     @ToBeFixedForConfigurationCache
-    void "reports and recovers from multiple missing modules"() {
+    def "reports and recovers from multiple missing modules"() {
         given:
         def repo = ivyHttpRepo("repo1")
         def moduleA = repo.module("group", "projectA", "1.2").publish()
@@ -158,7 +158,7 @@ Required by:
     }
 
     @ToBeFixedForConfigurationCache
-    void "reports and recovers from multiple missing transitive modules"() {
+    def "reports and recovers from multiple missing transitive modules"() {
         settingsFile << """
             include 'child1'
         """
@@ -256,7 +256,7 @@ Required by:
     }
 
     @ToBeFixedForConfigurationCache
-    void "reports and recovers from missing module when dependency declaration references an artifact"() {
+    def "reports and recovers from missing module when dependency declaration references an artifact"() {
         given:
         def repo = ivyHttpRepo("repo1")
         def module = repo.module("group", "projectA", "1.2").artifact(classifier: 'thing').publish()
@@ -307,7 +307,7 @@ Required by:
     }
 
     @ToBeFixedForConfigurationCache
-    void "reports and recovers from module missing from multiple repositories"() {
+    def "reports and recovers from module missing from multiple repositories"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -357,7 +357,7 @@ Required by:
     }
 
     @ToBeFixedForConfigurationCache
-    void "reports and recovers from missing module when no repositories defined"() {
+    def "reports and recovers from missing module when no repositories defined"() {
         given:
         buildFile << """
 configurations { missing }
@@ -393,7 +393,7 @@ task showMissing { doLast { println configurations.missing.files } }
     }
 
     @ToBeFixedForConfigurationCache
-    void "reports and recovers from failed Ivy descriptor download"() {
+    def "reports and recovers from failed Ivy descriptor download"() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.3').publish()
 
@@ -436,7 +436,7 @@ task showBroken { doLast { println configurations.broken.files } }
         succeeds("showBroken")
     }
 
-    void "reports and caches missing artifact"() {
+    def "reports and caches missing artifact"() {
         given:
         buildFile << """
 repositories {
@@ -479,7 +479,7 @@ Searched in the following locations:
     ${module.jar.uri}""")
     }
 
-    void "reports and recovers from failed artifact download"() {
+    def "reports and recovers from failed artifact download"() {
         given:
         buildFile << """
 repositories {

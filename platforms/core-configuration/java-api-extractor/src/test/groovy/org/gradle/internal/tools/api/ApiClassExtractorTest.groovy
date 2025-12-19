@@ -213,7 +213,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
     }
 
-    void "static initializer is removed"() {
+    def "static initializer is removed"() {
         given:
         def api = toApi 'com.acme.A': '''
             package com.acme;
@@ -245,7 +245,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         ex.message == null
     }
 
-    void "constant initial value for #type is #expected"() {
+    def "constant initial value for #type is #expected"() {
         given:
         def api = toApi 'com.acme.A': """
             package com.acme;
@@ -271,7 +271,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         'boolean' | 'true'         | false
     }
 
-    void "target binary compatibility is maintained for Java version #target"() {
+    def "target binary compatibility is maintained for Java version #target"() {
         given:
         def api = toApi(target, [A: 'public class A {}'])
 

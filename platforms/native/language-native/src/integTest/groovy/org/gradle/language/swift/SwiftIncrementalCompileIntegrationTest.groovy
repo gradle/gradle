@@ -41,7 +41,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         """
     }
 
-    def 'recompiles only the Swift source files that have changed'() {
+    def "recompiles only the Swift source files that have changed"() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
@@ -72,7 +72,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.recompiledFile(main)
     }
 
-    def 'adding a new file only compiles new file'() {
+    def "adding a new file only compiles new file"() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
@@ -96,7 +96,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.recompiledFile(newFile)
     }
 
-    def 'adding a new file that overlaps with an existing type fails'() {
+    def "adding a new file that overlaps with an existing type fails"() {
         given:
         def app = new SwiftApp()
         settingsFile << "rootProject.name = 'app'"
@@ -115,7 +115,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4_OR_OLDER)
-    def 'removing a file rebuilds everything'() {
+    def "removing a file rebuilds everything"() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
@@ -135,7 +135,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
-    def 'removing an isolated file does not rebuild anything'() {
+    def "removing an isolated file does not rebuild anything"() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
@@ -154,7 +154,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.deletedClasses("multiply")
     }
 
-    def 'changing compiler arguments rebuilds everything'() {
+    def "changing compiler arguments rebuilds everything"() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
@@ -177,7 +177,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
     }
 
-    def 'changing macros rebuilds everything'() {
+    def "changing macros rebuilds everything"() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
@@ -200,7 +200,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
     }
 
-    def 'changes to an unused dependency rebuilds everything'() {
+    def "changes to an unused dependency rebuilds everything"() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
@@ -249,7 +249,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
-    def 'changing Swift language level rebuilds everything'() {
+    def "changing Swift language level rebuilds everything"() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
         def app = new SwiftApp()
@@ -282,7 +282,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
     // This isn't quite right, we really want to assert something like "has both swiftc3 and swiftc4"
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
-    def 'changing Swift tool chain rebuilds everything'() {
+    def "changing Swift tool chain rebuilds everything"() {
         given:
         def swiftc3 = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_3)
         def swiftc4 = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_4)

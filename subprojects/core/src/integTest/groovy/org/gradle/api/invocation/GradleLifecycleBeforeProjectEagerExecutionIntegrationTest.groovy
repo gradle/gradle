@@ -23,7 +23,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 @Requires(IntegTestPreconditions.NotIsolatedProjects)
 class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    def 'lifecycle.beforeProject is executed eagerly when getProperty accessed in Groovy DSL'() {
+    def "lifecycle.beforeProject is executed eagerly when getProperty accessed in Groovy DSL"() {
         settingsFile """
             gradle.lifecycle.beforeProject {
                 ext.foo = "\$name bar"
@@ -52,7 +52,7 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
         "println(it.foo)"      | ""
     }
 
-    def 'lifecycle.beforeProject is executed lazily before project evaluation if immutable state accessed'() {
+    def "lifecycle.beforeProject is executed lazily before project evaluation if immutable state accessed"() {
         given:
         settingsFile """
             gradle.lifecycle.beforeProject {
@@ -74,7 +74,7 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
         outputContains "eager a\nlifecycle.beforeProject: a\nevaluate a"
     }
 
-    def 'lifecycle.beforeProject is executed eagerly before mutable state access'() {
+    def "lifecycle.beforeProject is executed eagerly before mutable state access"() {
         given:
         settingsFile """
             gradle.lifecycle.beforeProject {
@@ -158,7 +158,7 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
         ]
     }
 
-    def 'lifecycle.beforeProject is executed only once for a project'() {
+    def "lifecycle.beforeProject is executed only once for a project"() {
         given:
         settingsFile """
             rootProject.name = 'root'
@@ -189,7 +189,7 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
         ]
     }
 
-    def 'lifecycle.beforeProject eager execution can be triggered from project.#api'() {
+    def "lifecycle.beforeProject eager execution can be triggered from project.#api"() {
         given:
         settingsFile """
             rootProject.name = 'root'
@@ -228,7 +228,7 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
         "getChildProjects" | "getChildProjects().values().forEach" | "lifecycle :root\naccess :a\nlifecycle :a\nbar :a\naccess :b\nlifecycle :b\nbar :b"
     }
 
-    def 'lifecycle.beforeProject eager execution can be triggered from gradle.allprojects'() {
+    def "lifecycle.beforeProject eager execution can be triggered from gradle.allprojects"() {
         settingsFile """
             rootProject.name = 'root'
             gradle.allprojects {

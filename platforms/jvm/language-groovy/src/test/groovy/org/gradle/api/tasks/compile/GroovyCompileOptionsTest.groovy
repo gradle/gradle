@@ -53,7 +53,7 @@ class GroovyCompileOptionsTest {
     }
 
     @Test
-    void "forkOptions closure"() {
+    def "forkOptions closure"() {
         AtomicReference<ForkOptions> forkOptions = new AtomicReference<ForkOptions>()
         compileOptions.forkOptions(forkOptions::set)
         assertEquals(compileOptions.forkOptions, forkOptions.get())

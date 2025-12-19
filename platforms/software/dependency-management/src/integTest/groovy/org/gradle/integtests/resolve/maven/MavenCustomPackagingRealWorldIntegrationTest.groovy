@@ -26,7 +26,7 @@ class MavenCustomPackagingRealWorldIntegrationTest extends AbstractIntegrationSp
         """.stripIndent()
     }
 
-    def 'resolve maven module with non-existing custom packaging artifact - does not apply java plugin'() {
+    def "resolve maven module with non-existing custom packaging artifact - does not apply java plugin"() {
         given:
         buildFile << """
             configurations {
@@ -51,7 +51,7 @@ class MavenCustomPackagingRealWorldIntegrationTest extends AbstractIntegrationSp
         file('libs').assertHasDescendants('ha-api-3.1.7.jar')
     }
 
-    def 'resolve maven module with non-existing custom packaging artifact - applies java plugin'() {
+    def "resolve maven module with non-existing custom packaging artifact - applies java plugin"() {
         given:
         buildFile.text = '''plugins {
             id 'java'
@@ -78,7 +78,7 @@ class MavenCustomPackagingRealWorldIntegrationTest extends AbstractIntegrationSp
         file('libs').assertHasDescendants('ha-api-3.1.7.jar')
     }
 
-    def 'resolve maven module with valid custom packaging artifact - does not apply java plugin'() {
+    def "resolve maven module with valid custom packaging artifact - does not apply java plugin"() {
         given:
         buildFile << """
             configurations {
@@ -103,7 +103,7 @@ class MavenCustomPackagingRealWorldIntegrationTest extends AbstractIntegrationSp
         file('libs').assertContainsDescendants('nifi-smb-nar-1.12.0.nar')
     }
 
-    def 'resolve maven module with valid custom packaging artifact - applies java plugin'() {
+    def "resolve maven module with valid custom packaging artifact - applies java plugin"() {
         given:
         buildFile.text = '''plugins {
             id 'java'

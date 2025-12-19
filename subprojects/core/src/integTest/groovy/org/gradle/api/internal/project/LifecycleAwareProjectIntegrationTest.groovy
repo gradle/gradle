@@ -34,7 +34,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 @Requires(IntegTestPreconditions.NotIsolatedProjects)
 class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec implements ProjectDirectoryCreator, BuildLogicGcTrigger {
 
-    def 'Different equal instances of LifecycleAwareProject bear the same state'() {
+    def "Different equal instances of LifecycleAwareProject bear the same state"() {
         given:
         settingsFile """
             rootProject.name = 'root'
@@ -56,7 +56,7 @@ class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec imple
         outputContains "root foo=bar\na foo=bar"
     }
 
-    def 'LifecycleAwareProject delegates hasProperty correctly'() {
+    def "LifecycleAwareProject delegates hasProperty correctly"() {
         given:
         settingsFile """
             rootProject.name = 'root'
@@ -76,7 +76,7 @@ class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec imple
         outputContains "a contains foo: true"
     }
 
-    def 'LifecycleAwareProject delegates setProperty correctly'() {
+    def "LifecycleAwareProject delegates setProperty correctly"() {
         given:
         settingsFile """
             rootProject.name = 'root'
@@ -99,7 +99,7 @@ class LifecycleAwareProjectIntegrationTest extends AbstractIntegrationSpec imple
         outputContains "a foo=bar1"
     }
 
-    def 'LifecycleAwareProject instances are ephemeral'() {
+    def "LifecycleAwareProject instances are ephemeral"() {
         given:
         file("buildSrc/build.gradle") << """
             plugins {

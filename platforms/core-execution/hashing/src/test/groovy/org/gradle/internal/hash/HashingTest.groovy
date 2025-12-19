@@ -23,7 +23,7 @@ import static java.util.concurrent.CompletableFuture.supplyAsync
 import static java.util.concurrent.Executors.newFixedThreadPool
 
 class HashingTest extends Specification {
-    def 'cannot call hash multiple times'() {
+    def "cannot call hash multiple times"() {
         given:
         def hasher = Hashing.newHasher()
         hasher.putInt(1)
@@ -36,7 +36,7 @@ class HashingTest extends Specification {
         thrown(IllegalStateException)
     }
 
-    def 'hashers can overlap'() {
+    def "hashers can overlap"() {
         when:
         def hasher1 = Hashing.newHasher()
         hasher1.putInt(1)
@@ -53,7 +53,7 @@ class HashingTest extends Specification {
         hash2 == hash1
     }
 
-    def 'hasher works without calling final hash method'() {
+    def "hasher works without calling final hash method"() {
         given:
         def value = ('a'..'z').join()
 
@@ -76,7 +76,7 @@ class HashingTest extends Specification {
         hash == hash3
     }
 
-    def 'hasher can be used from multiple threads'() {
+    def "hasher can be used from multiple threads"() {
         given:
         def threadRange = 1..100
 
@@ -89,7 +89,7 @@ class HashingTest extends Specification {
         hashes.size() == threadRange.size()
     }
 
-    def 'null does not collide with other values'() {
+    def "null does not collide with other values"() {
         expect:
         def hasher = Hashing.newHasher()
         hasher.putNull()
@@ -97,14 +97,14 @@ class HashingTest extends Specification {
         hash != Hashing.hashString("abc")
     }
 
-    def 'hash collision for bytes'() {
+    def "hash collision for bytes"() {
         def left = [[1, 2, 3], [4, 5]]
         def right = [[1, 2], [3, 4, 5]]
         expect:
         hashKey(left) != hashKey(right)
     }
 
-    def 'hash collision for strings'() {
+    def "hash collision for strings"() {
         expect:
         hashStrings(["abc", "de"]) != hashStrings(["ab", "cde"])
     }

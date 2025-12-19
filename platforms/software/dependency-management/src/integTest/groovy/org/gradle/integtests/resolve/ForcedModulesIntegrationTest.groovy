@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
 
-    void "can force the version of a particular module"() {
+    def "can force the version of a particular module"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
@@ -50,7 +50,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("checkDeps")
     }
 
-    void "can force the version of a transitive dependency module"() {
+    def "can force the version of a transitive dependency module"() {
         mavenRepo.module("org", "foo", '1.3.3')
             .dependsOn("org", "bar", '1.1')
             .publish()
@@ -82,7 +82,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("checkDeps")
     }
 
-    void "can force already resolved version of a module and avoid conflict"() {
+    def "can force already resolved version of a module and avoid conflict"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
@@ -139,7 +139,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("api:dependencies", "tool:dependencies")
     }
 
-    void "can force arbitrary version of a module and avoid conflict"() {
+    def "can force arbitrary version of a module and avoid conflict"() {
         ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
         mavenRepo.module("org", "foo", '1.3.3').publish()
@@ -221,7 +221,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "latest strategy respects forced modules"() {
+    def "latest strategy respects forced modules"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
@@ -281,7 +281,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("tool:checkDeps")
     }
 
-    void "forcing transitive dependency does not add extra dependency"() {
+    def "forcing transitive dependency does not add extra dependency"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("hello", "world", '1.4.4').publish()
 
@@ -311,7 +311,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("checkDeps")
     }
 
-    void "when forcing the same module last declaration wins"() {
+    def "when forcing the same module last declaration wins"() {
         mavenRepo.module("org", "foo", '1.9').publish()
 
         buildFile << """

@@ -31,7 +31,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
     // This comes from the BOM
     static springVersion = "6.2.5"
 
-    def 'bom support is provided by #bomSupportProvider'() {
+    def "bom support is provided by #bomSupportProvider"() {
         given:
         def springVersion = springVersion
         def bomVersion = bomVersion

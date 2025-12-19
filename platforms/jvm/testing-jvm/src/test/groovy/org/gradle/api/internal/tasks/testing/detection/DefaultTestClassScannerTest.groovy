@@ -33,7 +33,7 @@ class DefaultTestClassScannerTest extends Specification {
     @Subject
     def scanner = new DefaultTestScanner(files, Collections.emptySet(), detector, processor)
 
-    void passesEachClassFileToTestClassDetector() {
+    def passesEachClassFileToTestClassDetector() {
         given:
         def class1 = stubFileVisitDetails('class1')
         def class2 = stubFileVisitDetails('class2')

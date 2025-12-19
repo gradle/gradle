@@ -34,7 +34,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         """
     }
 
-    def 'set single value: #name (set defaults: #setDefaults) (set values: #setValues)'() {
+    def "set single value: #name (set defaults: #setDefaults) (set values: #setValues)"() {
         given:
         def projectType = new ProjectTypePluginClassBuilder(definition as ProjectTypeDefinitionClassBuilder).withoutConventions().withUnsafeDefinition()
         def settingsBuilder = new SettingsPluginClassBuilder()
@@ -85,7 +85,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy doesn't have the `listOf(...)` function")
-    def 'set multi value: #name (set defaults: #setDefaults) (set values: #setValues)'() {
+    def "set multi value: #name (set defaults: #setDefaults) (set values: #setValues)"() {
         given:
         def projectType = new ProjectTypePluginClassBuilder(definition as ProjectTypeDefinitionClassBuilder).withoutConventions().withUnsafeDefinition()
         def settingsBuilder = new SettingsPluginClassBuilder()

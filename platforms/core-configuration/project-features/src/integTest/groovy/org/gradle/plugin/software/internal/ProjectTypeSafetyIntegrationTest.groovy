@@ -30,7 +30,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         propertiesFile << "org.gradle.kotlin.dsl.dcl=true"
     }
 
-    def 'can declare and configure a custom project type with an unsafe definition'() {
+    def "can declare and configure a custom project type with an unsafe definition"() {
         given:
         withUnsafeProjectTypeDefinitionDeclaredUnsafe().prepareToExecute()
 
@@ -45,7 +45,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         assertThatDeclaredValuesAreSetProperly()
     }
 
-    def 'sensible error when definition is declared safe but is not an interface'() {
+    def "sensible error when definition is declared safe but is not an interface"() {
         given:
         withUnsafeProjectTypeDefinitionDeclaredSafe().prepareToExecute()
 
@@ -69,7 +69,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         )
     }
 
-    def 'sensible error when definition is declared safe but has an injected service'() {
+    def "sensible error when definition is declared safe but has an injected service"() {
         given:
         withSafeProjectTypeAndInjectableDefinition().prepareToExecute()
 
@@ -93,7 +93,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         )
     }
 
-    def 'sensible error when definition is declared safe but has a nested property with an injected service'() {
+    def "sensible error when definition is declared safe but has a nested property with an injected service"() {
         given:
         withSafeProjectTypeAndNestedInjectableDefinition().prepareToExecute()
 
@@ -117,7 +117,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         )
     }
 
-    def 'sensible error when definition is declared safe but has multiple properties with an injected service'() {
+    def "sensible error when definition is declared safe but has multiple properties with an injected service"() {
         given:
         withSafeProjectTypeAndMultipleInjectableDefinition().prepareToExecute()
 
@@ -148,7 +148,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         )
     }
 
-    def 'sensible error when definition is declared safe but inherits an injected service'() {
+    def "sensible error when definition is declared safe but inherits an injected service"() {
         given:
         withSafeProjectTypeAndInheritedInjectableDefinition().prepareToExecute()
 
@@ -172,7 +172,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         )
     }
 
-    def 'sensible error when definition is declared safe but has several different errors'() {
+    def "sensible error when definition is declared safe but has several different errors"() {
         given:
         withPolyUnsafeProjectTypeDefinitionDeclaredSafe().prepareToExecute()
 

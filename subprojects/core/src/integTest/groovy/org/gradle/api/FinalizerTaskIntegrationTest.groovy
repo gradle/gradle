@@ -423,7 +423,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void 'finalizer tasks are scheduled as expected (#requestedTasks)'() {
+    def "finalizer tasks are scheduled as expected (#requestedTasks)"() {
         given:
         setupProject()
 
@@ -437,7 +437,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         requestedTasks << [['a'], ['a', 'b'], ['d', 'a']]
     }
 
-    void 'finalizer tasks work with task excluding (#excludedTask)'() {
+    def "finalizer tasks work with task excluding (#excludedTask)"() {
         setupProject()
         executer.beforeExecute {
             withArguments('-x', excludedTask)
@@ -467,7 +467,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         tasksNotInGraph = [':a', ':b', ':c', ':d'] - expectedExecutedTasks
     }
 
-    void 'finalizer tasks work with --continue (#requestedTasks, #failingTask)'() {
+    def "finalizer tasks work with --continue (#requestedTasks, #failingTask)"() {
         setupProject()
         executer.beforeExecute {
             withArguments('--continue')
@@ -490,7 +490,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         ['a', 'b']     | 'c'         | [any(':c', ':d'), ':b'] // :c and :d might run in parallel with the configuration cache
     }
 
-    void 'finalizer tasks are not run when finalized task does not run due to unrelated task failure and not using --continue'() {
+    def "finalizer tasks are not run when finalized task does not run due to unrelated task failure and not using --continue"() {
         given:
         buildFile("""
             task a {
@@ -517,7 +517,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Ignore
-    void 'finalizer tasks work with task disabling (#taskDisablingStatement)'() {
+    def "finalizer tasks work with task disabling (#taskDisablingStatement)"() {
         setupProject()
         buildFile << """
             $taskDisablingStatement
@@ -538,7 +538,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeImplemented
-    void 'requesting to run finalizer task before finalized results in a circular dependency failure'() {
+    def "requesting to run finalizer task before finalized results in a circular dependency failure"() {
         setupProject()
 
         expect:
@@ -548,7 +548,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void 'finalizer tasks are executed as expected in parallel builds'() {
+    def "finalizer tasks are executed as expected in parallel builds"() {
         setupMultipleProjects()
         executer.beforeExecute {
             withArguments('--parallel')
@@ -561,7 +561,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void 'finalizers for finalizers are executed when finalized task is executed'() {
+    def "finalizers for finalizers are executed when finalized task is executed"() {
         buildFile """
             task a {
                 finalizedBy 'b'
@@ -580,7 +580,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21346")
-    void 'finalizer can be finalized'() {
+    def "finalizer can be finalized"() {
         buildFile """
             task a(type: BreakingTask) {
                 finalizedBy 'b'
@@ -610,7 +610,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void 'finalizers for finalizers can have a common dependency'() {
+    def "finalizers for finalizers can have a common dependency"() {
         buildFile """
             task a(type: BreakingTask) {
                 finalizedBy 'b'
@@ -644,7 +644,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void 'finalizer task can be used by multiple tasks that depend on one another'() {
+    def "finalizer task can be used by multiple tasks that depend on one another"() {
         buildFile """
             task a(type: BreakingTask) {
                 finalizedBy 'c'
@@ -675,7 +675,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void 'finalizer tasks are executed after their dependencies'() {
+    def "finalizer tasks are executed after their dependencies"() {
         buildFile """
             task a {
                 dependsOn 'b', 'c'
@@ -693,7 +693,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void 'circular dependency errors are detected for finalizer tasks'() {
+    def "circular dependency errors are detected for finalizer tasks"() {
         buildFile """
             task a {
                 finalizedBy 'b'
@@ -719,7 +719,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2293")
-    void 'circular dependency is detected on cycle within chained finalizers'() {
+    def "circular dependency is detected on cycle within chained finalizers"() {
         buildFile """
             task a {
                 finalizedBy 'b'
@@ -775,7 +775,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20800")
-    void 'finalizedBy dependencies can run before finalized task to honour mustRunAfter constraints'() {
+    def "finalizedBy dependencies can run before finalized task to honour mustRunAfter constraints"() {
         given:
         buildFile '''
             task dockerTest(type: BreakingTask) {
@@ -820,7 +820,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/5415")
     @ToBeFixedForIsolatedProjects(because = "Configure projects from root")
-    void 'finalizers are executed after the last task to be finalized'() {
+    def "finalizers are executed after the last task to be finalized"() {
         createDirs("a", "b")
         settingsFile << """
             include "a"

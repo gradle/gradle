@@ -44,7 +44,7 @@ class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
 """
     }
 
-    void "has non-zero exit code on build failure"() {
+    def "has non-zero exit code on build failure"() {
         given:
         prepareWrapper().run()
 
@@ -78,7 +78,7 @@ class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1871")
-    void "can specify project properties containing D"() {
+    def "can specify project properties containing D"() {
         given:
         prepareWrapper().run()
 

@@ -26,13 +26,13 @@ class ComponentMetadataRuleContainerTest extends Specification {
     @Subject
     def container = new ComponentMetadataRuleContainer()
 
-    def 'is empty and class based by default'() {
+    def "is empty and class based by default"() {
         expect:
         container.isEmpty()
         container.isClassBasedRulesOnly()
     }
 
-    def 'records added rules in order'() {
+    def "records added rules in order"() {
         given:
         def rule1 = Mock(SpecRuleAction)
         def rule2 = configurableRule()
@@ -53,7 +53,7 @@ class ComponentMetadataRuleContainerTest extends Specification {
         ruleWrapper2.classRules.contains(rule2)
     }
 
-    def 'records subsequent class based rule in a single wrapper'() {
+    def "records subsequent class based rule in a single wrapper"() {
         given:
         def rule1 = configurableRule()
         def rule2 = configurableRule()

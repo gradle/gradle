@@ -31,7 +31,7 @@ class RenamingCopyActionTest extends Specification {
         details.getRelativePath() >> new RelativePath(true, "a", "b")
     }
 
-    def 'transforms last segment of path with non-null input'() {
+    def "transforms last segment of path with non-null input"() {
         when:
         action.execute(details);
 
@@ -40,7 +40,7 @@ class RenamingCopyActionTest extends Specification {
         1 * details.setRelativePath(new RelativePath(true, "a", "c"))
     }
 
-    def 'does not transform last segment of path with null input'() {
+    def "does not transform last segment of path with null input"() {
         when:
         action.execute(details);
 

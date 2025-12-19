@@ -49,7 +49,7 @@ class DefaultCachePolicySpec extends Specification {
         hasNoMissingModuleTimeout()
     }
 
-    def 'never expires missing module for dynamic versions'() {
+    def "never expires missing module for dynamic versions"() {
         when:
         def moduleIdentifier = DefaultModuleIdentifier.newId('org', 'foo')
 
@@ -67,7 +67,7 @@ class DefaultCachePolicySpec extends Specification {
         thisBuild.keepFor == Duration.ofMillis(DAY)
     }
 
-    def 'never expires missing module for non changing module'() {
+    def "never expires missing module for non changing module"() {
         when:
         def module = moduleComponent('org', 'foo', '1.0')
 

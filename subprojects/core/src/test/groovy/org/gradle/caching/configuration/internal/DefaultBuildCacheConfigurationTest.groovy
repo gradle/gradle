@@ -29,7 +29,7 @@ class DefaultBuildCacheConfigurationTest extends Specification {
         newInstance(DirectoryBuildCache) >> { Stub(DirectoryBuildCache) }
     }
 
-    def 'can reconfigure remote'() {
+    def "can reconfigure remote"() {
         def buildCacheConfiguration = createConfig()
         def original = Stub(CustomBuildCache)
         when:
@@ -51,7 +51,7 @@ class DefaultBuildCacheConfigurationTest extends Specification {
         0 * _
     }
 
-    def 'can reconfigure remote as super-type'() {
+    def "can reconfigure remote as super-type"() {
         def buildCacheConfiguration = createConfig()
         def original = Stub(CustomBuildCache)
         when:
@@ -73,7 +73,7 @@ class DefaultBuildCacheConfigurationTest extends Specification {
         0 * _
     }
 
-    def 'can replace remote configuration completely'() {
+    def "can replace remote configuration completely"() {
         def buildCacheConfiguration = createConfig()
         def original = Stub(CustomBuildCache)
         when:
@@ -92,7 +92,7 @@ class DefaultBuildCacheConfigurationTest extends Specification {
         0 * _
     }
 
-    def 'fails when trying to reconfigure non-existent remote'() {
+    def "fails when trying to reconfigure non-existent remote"() {
         def buildCacheConfiguration = createConfig()
         when:
         buildCacheConfiguration.remote {}

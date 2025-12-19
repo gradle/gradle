@@ -69,7 +69,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
     }
 
-    def 'DeprecatedPlugin and DeprecatedTask - #scenario'() {
+    def "DeprecatedPlugin and DeprecatedTask - #scenario"() {
         given:
         executer.beforeExecute {
             withoutInternalDeprecationStackTraceFlag()
@@ -140,7 +140,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         'with stacktrace and --warning-mode=fail'       | WarningMode.Fail    | 5             | false           | true
     }
 
-    def 'build error and deprecation failure combined'() {
+    def "build error and deprecation failure combined"() {
         given:
         buildFile << """
             apply plugin: DeprecatedPlugin // line 2
@@ -163,7 +163,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription('Deprecated Gradle features were used in this build')
     }
 
-    def 'DeprecatedPlugin from init script - without full stacktrace.'() {
+    def "DeprecatedPlugin from init script - without full stacktrace."() {
         given:
         def initScript = file("init.gradle") << """
             allprojects {
@@ -186,7 +186,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.count(RUN_WITH_STACKTRACE) == 1
     }
 
-    def 'DeprecatedPlugin from applied script - #scenario'() {
+    def "DeprecatedPlugin from applied script - #scenario"() {
         given:
         file("project.gradle") << """
             apply plugin:  DeprecatedPlugin // line 2
@@ -219,7 +219,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         'with full stacktrace'    | true
     }
 
-    def 'DeprecatedPlugin from applied kotlin script - #scenario'() {
+    def "DeprecatedPlugin from applied kotlin script - #scenario"() {
         given:
         file("project.gradle.kts") << """
            apply(plugin = "org.acme.deprecated") // line 2

@@ -51,7 +51,7 @@ rootProject.name = 'testproject'
     }
 
     @Issue("gradle/gradle#19300")
-    def 'carries implicit constraint for log4j-core'() {
+    def "carries implicit constraint for log4j-core"() {
         given:
         mavenRepo().module('org.apache.logging.log4j', 'log4j-core', '2.17.1').publish()
 
@@ -82,7 +82,7 @@ rootProject.name = 'testproject'
     }
 
     @Issue("gradle/gradle#19300")
-    def 'fails if build attempts to force vulnerable log4j-core'() {
+    def "fails if build attempts to force vulnerable log4j-core"() {
         given:
         settingsFile << """
             rootProject.name = 'testproject'
@@ -103,7 +103,7 @@ rootProject.name = 'testproject'
     }
 
     @Issue("gradle/gradle#19300")
-    def 'allows to upgrade log4j to 3.x one day'() {
+    def "allows to upgrade log4j to 3.x one day"() {
         given:
         mavenRepo().module('org.apache.logging.log4j', 'log4j-core', '3.1.0').publish()
         buildFile << """

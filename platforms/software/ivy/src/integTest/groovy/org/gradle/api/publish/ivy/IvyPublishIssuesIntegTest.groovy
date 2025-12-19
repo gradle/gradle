@@ -66,7 +66,7 @@ class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5136")
-    void "doesn't publish if main artifact is missing"() {
+    def "doesn't publish if main artifact is missing"() {
         settingsFile << 'rootProject.name = "test"'
         buildFile << """
             apply plugin: "java-library"
@@ -112,7 +112,7 @@ class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5136")
-    void "doesn't publish stale files"() {
+    def "doesn't publish stale files"() {
         IvyFileModule publishedModule
 
         settingsFile << 'rootProject.name = "test"'
@@ -176,7 +176,7 @@ class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20581")
-    void "fail when GMM is modified after an Ivy publication is populated"() {
+    def "fail when GMM is modified after an Ivy publication is populated"() {
         given:
         buildFile << """
             plugins {

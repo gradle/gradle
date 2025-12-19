@@ -80,7 +80,7 @@ class ConfigurationCacheInputListenerLifecycleIntegrationTest extends AbstractCo
         false    | _
     }
 
-    def 'switching the opt-out flag should invalidate the configuration cache entry'() {
+    def "switching the opt-out flag should invalidate the configuration cache entry"() {
         when:
         configurationCacheRun()
         configurationCacheRun("-D$IGNORE_INPUTS_PROPERTY=true")

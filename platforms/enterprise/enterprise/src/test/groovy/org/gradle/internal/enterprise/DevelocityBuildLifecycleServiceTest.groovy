@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 class DevelocityBuildLifecycleServiceTest extends Specification {
 
-    def 'uses #correctApi API for `beforeProject` logic execution if IsolatedProjects enabled=#ipEnabled'() {
+    def "uses #correctApi API for `beforeProject` logic execution if IsolatedProjects enabled=#ipEnabled"() {
         given:
         def gradle = Mock(Gradle) {
             _ * getLifecycle() >> Mock(GradleLifecycle)

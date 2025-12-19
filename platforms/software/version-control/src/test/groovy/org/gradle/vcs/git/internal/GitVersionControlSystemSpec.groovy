@@ -71,7 +71,7 @@ class GitVersionControlSystemSpec extends Specification {
         submoduleRepo2.commit("initial commit")
     }
 
-    def 'clone a repository'() {
+    def "clone a repository"() {
         given:
         def target = tmpDir.file('versionDir')
 
@@ -84,7 +84,7 @@ class GitVersionControlSystemSpec extends Specification {
         target.file( 'dir/another.txt').text == 'Goodbye world!'
     }
 
-    def 'clone a repository with a submodule'() {
+    def "clone a repository with a submodule"() {
         given:
         repo.addSubmodule(submoduleRepo)
         def target = tmpDir.file('versionDir')
@@ -97,7 +97,7 @@ class GitVersionControlSystemSpec extends Specification {
         target.file( 'submodule/foo.txt').text == "hello from submodule"
     }
 
-    def 'reset a cloned repository with dirty working dir'() {
+    def "reset a cloned repository with dirty working dir"() {
         given:
         def target = tmpDir.file('versionDir')
         gitVcs.populate(target, repoHead, repoSpec)
@@ -117,7 +117,7 @@ class GitVersionControlSystemSpec extends Specification {
 
     // commit() method seems to leak files
     @Requires(UnitTestPreconditions.NotWindows)
-    def 'reset a cloned repository with local commits'() {
+    def "reset a cloned repository with local commits"() {
         given:
         def target = tmpDir.file('versionDir')
         gitVcs.populate(target, repoHead, repoSpec)
@@ -141,7 +141,7 @@ class GitVersionControlSystemSpec extends Specification {
         targetRepo?.close()
     }
 
-    def 'reset a cloned repository with submodules'() {
+    def "reset a cloned repository with submodules"() {
         given:
         submoduleRepo.addSubmodule(submoduleRepo2)
         repo.addSubmodule(submoduleRepo)
@@ -162,7 +162,7 @@ class GitVersionControlSystemSpec extends Specification {
         submodule2.text == "hello from another submodule"
     }
 
-    def 'error if working dir is not a repository'() {
+    def "error if working dir is not a repository"() {
         given:
         def target = tmpDir.file('versionDir')
         target.file('repo').mkdirs()
@@ -182,7 +182,7 @@ class GitVersionControlSystemSpec extends Specification {
         thrown GradleException
     }
 
-    def 'error if working dir repo is missing the remote'() {
+    def "error if working dir repo is missing the remote"() {
         given:
         def target = tmpDir.file('versionDir')
         gitVcs.populate(target, repoHead, repoSpec)
@@ -201,7 +201,7 @@ class GitVersionControlSystemSpec extends Specification {
         thrown GradleException
     }
 
-    def 'error if repo is not a git repo'() {
+    def "error if repo is not a git repo"() {
         given:
         def target = tmpDir.file('versionDir')
         repoSpec.url = 'https://notarepo.invalid'
@@ -219,7 +219,7 @@ class GitVersionControlSystemSpec extends Specification {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/28823")
-    def 'connection error if SSH repo does not exist'() {
+    def "connection error if SSH repo does not exist"() {
         given:
         def target = tmpDir.file('versionDir')
         repoSpec.url = 'ssh://git@notarepo.invalid:12345/TestGradleLibrary.git'
@@ -236,7 +236,7 @@ class GitVersionControlSystemSpec extends Specification {
         e.cause.message.contains('Failed (UnresolvedAddressException) to execute')
     }
 
-    def 'treats tags as the available versions and ignores other references'() {
+    def "treats tags as the available versions and ignores other references"() {
         given:
         def versions = gitVcs.getAvailableVersions(repoSpec)
         HashMap<String, String> versionMap = new HashMap()
@@ -250,7 +250,7 @@ class GitVersionControlSystemSpec extends Specification {
         versionMap['v1.0.1'] == c1.id.name
     }
 
-    def 'default branch of repo is master'() {
+    def "default branch of repo is master"() {
         given:
         def version = gitVcs.getDefaultBranch(repoSpec)
 

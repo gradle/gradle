@@ -31,7 +31,7 @@ class JacocoConfigurationCacheIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/26922')
-    def 'can aggregate with `java-gradle-plugin` subproject'() {
+    def "can aggregate with `java-gradle-plugin` subproject"() {
         given:
         file('settings.gradle.kts') << """
             include(":plugin")

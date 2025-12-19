@@ -22,11 +22,11 @@ import spock.lang.Issue
 class NestedClosureIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/2888')
-    def 'can handle nested closure during initialization'() {
+    def "can handle nested closure during initialization"() {
         given:
         settingsFile << '''
 gradle.projectsLoaded { g ->
-    println 'projectsLoaded' 
+    println 'projectsLoaded'
     g.rootProject {
         println 'rootProject'
         beforeEvaluate { project ->

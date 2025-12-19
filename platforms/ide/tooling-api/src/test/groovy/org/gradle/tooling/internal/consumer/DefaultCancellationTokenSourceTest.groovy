@@ -21,7 +21,7 @@ import spock.lang.Specification
 class DefaultCancellationTokenSourceTest extends Specification {
     def source = new DefaultCancellationTokenSource()
 
-    def 'token operation idempotent'() {
+    def "token operation idempotent"() {
         when:
         def token1 = source.token()
         def token2 = source.token()
@@ -30,12 +30,12 @@ class DefaultCancellationTokenSourceTest extends Specification {
         token1 == token2
     }
 
-    def 'can unpack token'() {
+    def "can unpack token"() {
         expect:
         source.token().token != null
     }
 
-    def 'can cancel'() {
+    def "can cancel"() {
         expect:
         !source.token().cancellationRequested
 

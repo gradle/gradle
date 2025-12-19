@@ -84,7 +84,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
     def componentIdentifierNotationParser = new ComponentIdentifierParserFactory().create()
     def metadataRuleContainer = new ComponentMetadataRuleContainer()
 
-    def 'setup'() {
+    def "setup"() {
         rule1Executed = false
         rule2Executed = false
         TestComponentMetadataRule.instanceCount = 0

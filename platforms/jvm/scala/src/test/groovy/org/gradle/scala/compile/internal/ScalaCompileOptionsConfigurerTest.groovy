@@ -27,7 +27,7 @@ import spock.lang.Subject
 @Subject(ScalaCompileOptionsConfigurer)
 class ScalaCompileOptionsConfigurerTest extends Specification {
 
-    def 'using Java #toolchain and Scala #scalaLibraryVersion results in #expectedTarget'() {
+    def "using Java #toolchain and Scala #scalaLibraryVersion results in #expectedTarget"() {
         given:
         ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
         scalaCompileOptions.additionalParameters = ["-some-other-flag"].asImmutable()
@@ -88,7 +88,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         toolchain = fallbackToolchain ? "$javaToolchain (fallback)" : javaToolchain
     }
 
-    def 'does not configure target jvm if toolchain is not present'() {
+    def "does not configure target jvm if toolchain is not present"() {
         given:
         ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
         File scalaLibrary = new File("scala-library-2.11.0.jar")
@@ -101,7 +101,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         !scalaCompileOptions.additionalParameters
     }
 
-    def 'does not configure target jvm if scala library is not present or invalid'() {
+    def "does not configure target jvm if scala library is not present or invalid"() {
         given:
         ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
         File scalaLibrary = new File("scala-invalid-2.11.0.jar")
@@ -120,7 +120,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         ]
     }
 
-    def 'does not configure target jvm if scala compiler already has a configured target via #targetFlagName flag'() {
+    def "does not configure target jvm if scala compiler already has a configured target via #targetFlagName flag"() {
         given:
         ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
         scalaCompileOptions.additionalParameters = targetFlagParts.toList()

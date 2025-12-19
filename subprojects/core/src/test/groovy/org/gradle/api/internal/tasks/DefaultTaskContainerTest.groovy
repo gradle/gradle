@@ -34,7 +34,6 @@ import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.internal.build.BuildState
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
@@ -42,6 +41,7 @@ import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.service.ServiceRegistry
@@ -113,7 +113,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.addInternal(element)
     }
 
-    void 'cannot create task with no name'() {
+    def "cannot create task with no name"() {
         when:
         container.create([:])
 
@@ -122,7 +122,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         e.message == "The task name must be provided."
     }
 
-    void 'can create task with dependencies'() {
+    def "can create task with dependencies"() {
         def task = task("task")
         taskFactory.create(_ as TaskIdentity) >> task
 
@@ -134,7 +134,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         1 * task.dependsOn("/path1")
     }
 
-    void 'create fails with unknown arguments'() {
+    def "create fails with unknown arguments"() {
         when:
         container.create([name: 'task', dependson: 'anotherTask'])
 
@@ -153,7 +153,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     static class NotATask {
     }
 
-    void 'can create task with Action'() {
+    def "can create task with Action"() {
         Action<Task> action = Mock()
         def task = task("task")
         taskFactory.create(_ as TaskIdentity) >> task
@@ -166,7 +166,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         1 * task.doFirst(action)
     }
 
-    void 'can create task with Action closure'() {
+    def "can create task with Action closure"() {
         Closure action = Mock()
         def task = task("task")
         taskFactory.create(_ as TaskIdentity) >> task
@@ -179,7 +179,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         1 * task.doFirst(action)
     }
 
-    void 'can create task with description'() {
+    def "can create task with description"() {
         def task = task("task")
         taskFactory.create(_ as TaskIdentity) >> task
 
@@ -191,7 +191,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         1 * task.setDescription("some task")
     }
 
-    void 'can create task with group'() {
+    def "can create task with group"() {
         def task = task("task")
         taskFactory.create(_ as TaskIdentity) >> task
 
@@ -203,7 +203,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         1 * task.setGroup("some group")
     }
 
-    void "creates by Map"() {
+    def "creates by Map"() {
         def options = singletonMap("name", "task")
         def task = task("task")
         taskFactory.create(_ as TaskIdentity) >> task
@@ -216,7 +216,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.getByName("task") == task
     }
 
-    void "creates by name"() {
+    def "creates by name"() {
         given:
         def task = task("task")
         taskFactory.create(_ as TaskIdentity) >> task
@@ -226,7 +226,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.names.contains("task")
     }
 
-    void "creates by name and type"() {
+    def "creates by name and type"() {
         given:
         def task = task("task", CustomTask)
         taskFactory.create(_ as TaskIdentity) >> task
@@ -235,7 +235,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.create("task", CustomTask.class) == task
     }
 
-    void "creates by name and closure"() {
+    def "creates by name and closure"() {
         given:
         final Closure action = {}
         def task = task("task")
@@ -250,7 +250,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         1 * task.configure(action) >> task
     }
 
-    void "creates by name and action"() {
+    def "creates by name and action"() {
         given:
         def action = Mock(Action)
         def task = task("task")
@@ -265,7 +265,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         1 * action.execute(task)
     }
 
-    void "create by map wraps task creation failure"() {
+    def "create by map wraps task creation failure"() {
         given:
         def failure = new RuntimeException()
 
@@ -280,7 +280,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         e.cause == failure
     }
 
-    void "create wraps task creation failure"() {
+    def "create wraps task creation failure"() {
         given:
         def failure = new RuntimeException()
 
@@ -295,7 +295,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         e.cause == failure
     }
 
-    void "create with action wraps task creation failure"() {
+    def "create with action wraps task creation failure"() {
         given:
         def failure = new RuntimeException()
         def action = Mock(Action)
@@ -311,7 +311,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         e.cause == failure
     }
 
-    void "create wraps task configuration failure"() {
+    def "create wraps task configuration failure"() {
         given:
         def failure = new RuntimeException()
         def action = Mock(Action)
@@ -330,7 +330,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         e.cause == failure
     }
 
-    void "replacing non-existent task by name throws exception"() {
+    def "replacing non-existent task by name throws exception"() {
         given:
         def task = task("task")
         taskFactory.create(_ as TaskIdentity) >> task
@@ -343,7 +343,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         e.cause.message == "Unnecessarily replacing a task that does not exist is not supported.  Use create() or register() directly instead.  You attempted to replace a task named 'task', but there is no existing task with that name."
     }
 
-    void "replacing non-existent task by name and type throws exception"() {
+    def "replacing non-existent task by name and type throws exception"() {
         given:
         def task = task("task", CustomTask)
         taskFactory.create(_ as TaskIdentity) >> task
@@ -356,7 +356,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         e.cause.message == "Unnecessarily replacing a task that does not exist is not supported.  Use create() or register() directly instead.  You attempted to replace a task named 'task', but there is no existing task with that name."
     }
 
-    void "does not fire rule when adding task"() {
+    def "does not fire rule when adding task"() {
         def rule = Mock(Rule)
         def task = task("task")
 
@@ -370,7 +370,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * rule._
     }
 
-    void "prevents duplicate tasks"() {
+    def "prevents duplicate tasks"() {
         given:
         def task = addTask("task")
         1 * taskFactory.create(_ as TaskIdentity) >> { this.task("task") }
@@ -384,7 +384,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.getByName("task") == task
     }
 
-    void "replacing existing duplicate task throws exception"() {
+    def "replacing existing duplicate task throws exception"() {
         given:
         addTask("task")
         def newTask = task("task")
@@ -398,7 +398,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         e.cause.message == "Replacing an existing task that may have already been used by other plugins is not supported.  Use a different name for this task ('task')."
     }
 
-    void "replaces registered task without realizing it"() {
+    def "replaces registered task without realizing it"() {
         given:
         container.register("task")
         def newTask = task("task")
@@ -415,7 +415,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         1 * taskFactory.create(_ as TaskIdentity) >> newTask
     }
 
-    void "replaces unrealized registered task will execute configuration action against new task"() {
+    def "replaces unrealized registered task will execute configuration action against new task"() {
         given:
         def action = Mock(Action)
         def provider = container.register("task", action)
@@ -431,7 +431,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         3 * action.execute(newTask)
     }
 
-    void "replaces registered task with compatible type"() {
+    def "replaces registered task with compatible type"() {
         given:
         container.register("task", CustomTask)
         def newTask = task("task", MyCustomTask)
@@ -447,7 +447,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         1 * taskFactory.create(_ as TaskIdentity) >> newTask
     }
 
-    void "returns the same Task instance from TaskProvider after replace"() {
+    def "returns the same Task instance from TaskProvider after replace"() {
         given:
         def newTask = task("task")
         1 * taskFactory.create(_ as TaskIdentity) >> newTask
@@ -463,7 +463,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         p1.get() == container.getByName("task")
     }
 
-    void "fails if unknown task is requested"() {
+    def "fails if unknown task is requested"() {
         when:
         container.getByName("unknown")
 
@@ -472,7 +472,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         ex.message == "Task with name 'unknown' not found in Mock for type 'ProjectInternal' named '<project>'."
     }
 
-    void "finds tasks"() {
+    def "finds tasks"() {
         when:
         def task = addTask("task")
 
@@ -482,7 +482,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.findByName("task") == task
     }
 
-    void "finds task by relative path"() {
+    def "finds task by relative path"() {
         when:
         Task task = task("task")
         expectTaskLookupInOtherProject(":sub", "task", task)
@@ -491,7 +491,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.findByPath("sub:task") == task
     }
 
-    void "finds tasks by absolute path in current project"() {
+    def "finds tasks by absolute path in current project"() {
         when:
         Task task = addTask("task")
 
@@ -499,7 +499,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.findByPath(":task") == task
     }
 
-    void "finds tasks by absolute path in different project"() {
+    def "finds tasks by absolute path in different project"() {
         when:
         Task task = task("task")
         expectTaskLookupInOtherProject(":other", "task", task)
@@ -508,7 +508,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.findByPath(":other:task") == task
     }
 
-    void "does not find tasks from unknown projects"() {
+    def "does not find tasks from unknown projects"() {
         when:
         project.findProject(":unknown") >> null
 
@@ -516,7 +516,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.findByPath(":unknown:task") == null
     }
 
-    void "does not find unknown tasks by path"() {
+    def "does not find unknown tasks by path"() {
         when:
         expectTaskLookupInOtherProject(":other", "task", null)
 
@@ -524,7 +524,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.findByPath(":other:task") == null
     }
 
-    void "gets task by path"() {
+    def "gets task by path"() {
         when:
         Task task = addTask("task")
         expectTaskLookupInOtherProject(":a:b:c", "task", task)
@@ -533,7 +533,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.getByPath(":a:b:c:task") == task
     }
 
-    void "get by path fails for unknown task"() {
+    def "get by path fails for unknown task"() {
         when:
         container.getByPath("unknown")
 
@@ -542,7 +542,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         ex.message == "Task with path 'unknown' not found in Mock for type 'ProjectInternal' named '<project>'."
     }
 
-    void "resolve locates by name"() {
+    def "resolve locates by name"() {
         when:
         Task task = addTask("1")
 
@@ -550,7 +550,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.getByPath("1") == task
     }
 
-    void "resolve locates by path"() {
+    def "resolve locates by path"() {
         when:
         Task task = addTask("task")
 
@@ -558,7 +558,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.getByPath(":task") == task
     }
 
-    void "realizes task graph"() {
+    def "realizes task graph"() {
         given:
         def aTask = addTask("a")
         def bTask = addTask("b")
@@ -572,7 +572,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * bTask.getTaskDependencies()
     }
 
-    void "invokes rule at most once when locating a task"() {
+    def "invokes rule at most once when locating a task"() {
         def rule = Mock(Rule)
 
         given:
@@ -589,7 +589,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * rule._
     }
 
-    void "can query task name and type from task provider after registration without realizing it"() {
+    def "can query task name and type from task provider after registration without realizing it"() {
         def action = Mock(Action)
 
         given:
@@ -637,7 +637,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * action.execute(_)
     }
 
-    void "can define task to create and configure later given name and type"() {
+    def "can define task to create and configure later given name and type"() {
         def action = Mock(Action)
 
         when:
@@ -653,7 +653,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         provider.present
     }
 
-    void "can define task to create and configure later given name"() {
+    def "can define task to create and configure later given name"() {
         def action = Mock(Action)
         def task = task("task")
 
@@ -676,7 +676,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         result == task
     }
 
-    void "can define task to create later given name and type"() {
+    def "can define task to create later given name and type"() {
         when:
         def provider = container.register("task", DefaultTask)
 
@@ -690,7 +690,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         provider.present
     }
 
-    void "can define task to create later given name"() {
+    def "can define task to create later given name"() {
         def task = task("task")
 
         when:
@@ -711,7 +711,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         result == task
     }
 
-    void "define task fails when task with given name already defined"() {
+    def "define task fails when task with given name already defined"() {
         given:
         1 * taskFactory.create(_ as TaskIdentity, _) >> task("task1")
         1 * taskFactory.create(_ as TaskIdentity, _) >> task("task2")
@@ -741,7 +741,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         e3.message == "Cannot add task 'task2' as a task with that name already exists."
     }
 
-    void "defined task can be created and configured explicitly by using the returned provider"() {
+    def "defined task can be created and configured explicitly by using the returned provider"() {
         def action = Mock(Action)
         def task = task("task")
 
@@ -767,7 +767,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * _
     }
 
-    void "defined task is created and configured when queried by name"() {
+    def "defined task is created and configured when queried by name"() {
         def action = Mock(Action)
         def task = task("task")
 
@@ -786,7 +786,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * action._
     }
 
-    void "defined task is created and configured when found by name"() {
+    def "defined task is created and configured when found by name"() {
         def action = Mock(Action)
         def task = task("task")
 
@@ -805,7 +805,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * action._
     }
 
-    void "container and task specific configuration actions are executed when task is created"() {
+    def "container and task specific configuration actions are executed when task is created"() {
         def action1 = Mock(Action)
         def action2 = Mock(Action)
         def action3 = Mock(Action)
@@ -858,7 +858,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * _
     }
 
-    void "can locate defined task by type and name without triggering creation or configuration"() {
+    def "can locate defined task by type and name without triggering creation or configuration"() {
         def action = Mock(Action)
         def task = task("task")
 
@@ -886,7 +886,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * action._
     }
 
-    void "can configure a task by type and name without triggering creation or configuration"() {
+    def "can configure a task by type and name without triggering creation or configuration"() {
         def action = Mock(Action)
         def deferredAction = Mock(Action)
         def task = task("task")
@@ -919,7 +919,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * deferredAction._
     }
 
-    void "task configuration action is executed immediately when task is already realized"() {
+    def "task configuration action is executed immediately when task is already realized"() {
         def action = Mock(Action)
         def task = task("task")
 
@@ -937,7 +937,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * action._
     }
 
-    void "fails task creation when creation rule throw exception"() {
+    def "fails task creation when creation rule throw exception"() {
         def action = Mock(Action)
         def task = task("task")
 
@@ -961,7 +961,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         1 * action.execute(_) >> { throw new RuntimeException("Failing creation rule") }
     }
 
-    void "fails later creation upon realizing through register provider when creation rule throw exception"() {
+    def "fails later creation upon realizing through register provider when creation rule throw exception"() {
         def action = Mock(Action)
         def task = task("task")
 
@@ -1000,7 +1000,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * _
     }
 
-    void "fails later creation upon realizing through get() provider when creation rule throw exception"() {
+    def "fails later creation upon realizing through get() provider when creation rule throw exception"() {
         given:
         def action = Mock(Action)
         def task = task("task")
@@ -1043,7 +1043,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * _
     }
 
-    void "fails later creation upon realizing through register provider when task instantiation is unsuccessful"() {
+    def "fails later creation upon realizing through register provider when task instantiation is unsuccessful"() {
 
         given:
         def action = Mock(Action)
@@ -1085,7 +1085,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * _
     }
 
-    void "fails later creation upon realizing through get() provider when task instantiation is unsuccessful"() {
+    def "fails later creation upon realizing through get() provider when task instantiation is unsuccessful"() {
         given:
         def action = Mock(Action)
         1 * taskFactory.create(_ as TaskIdentity) >> { throw new RuntimeException("Failing constructor") }
@@ -1121,7 +1121,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * _
     }
 
-    void "fails later creation when task configuration via withType is unsuccessful"() {
+    def "fails later creation when task configuration via withType is unsuccessful"() {
         def action = Mock(Action)
         def task = task("task")
 
@@ -1150,7 +1150,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         1 * action.execute(_) >> { throw new RuntimeException("Failing withType configuration rule") }
     }
 
-    void "fails task creation when task configuration via configureEach is unsuccessful"() {
+    def "fails task creation when task configuration via configureEach is unsuccessful"() {
         def action = Mock(Action)
         def task = task("task")
 
@@ -1178,7 +1178,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         1 * action.execute(_) >> { throw new RuntimeException("Failing configureEach configuration rule") }
     }
 
-    void "fails later creation upon realizing through register provider when task configuration via configureEach is unsuccessful"() {
+    def "fails later creation upon realizing through register provider when task configuration via configureEach is unsuccessful"() {
         def action = Mock(Action)
         def task = task("task")
 
@@ -1218,7 +1218,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * _
     }
 
-    void "fails later creation upon realizing through get() provider when task configuration via configureEach is unsuccessful"() {
+    def "fails later creation upon realizing through get() provider when task configuration via configureEach is unsuccessful"() {
         given:
         def action = Mock(Action)
         def task = task("task")
@@ -1255,7 +1255,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * _
     }
 
-    void "can locate task that already exists by name"() {
+    def "can locate task that already exists by name"() {
         def task = task("task")
 
         given:
@@ -1270,7 +1270,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         provider.get() == task
     }
 
-    void "configuration action is executed eagerly for a task that already exists located by name"() {
+    def "configuration action is executed eagerly for a task that already exists located by name"() {
         def task = task("task")
         def action = Mock(Action)
 
@@ -1287,7 +1287,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * action._
     }
 
-    void "maybeCreate creates new task"() {
+    def "maybeCreate creates new task"() {
         given:
         def task = task("task")
 
@@ -1300,7 +1300,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         added == task
     }
 
-    void "maybeCreate returns existing task"() {
+    def "maybeCreate returns existing task"() {
         when:
         def task = addTask("task")
 
@@ -1308,7 +1308,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.maybeCreate("task") == task
     }
 
-    void "maybeCreate creates new task with type"() {
+    def "maybeCreate creates new task with type"() {
         given:
         def task = task("task", CustomTask)
 
@@ -1321,7 +1321,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         added == task
     }
 
-    void "maybeCreate returns existing task with type"() {
+    def "maybeCreate returns existing task with type"() {
         when:
         def task = addTask("task", CustomTask)
 
@@ -1329,7 +1329,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.maybeCreate("task", CustomTask) == task
     }
 
-    void "get() fails if unknown task is requested"() {
+    def "get() fails if unknown task is requested"() {
         when:
         container.withType(DefaultTask).named("unknown")
 
@@ -1338,7 +1338,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         ex.message == "Task with name 'unknown' not found in Mock for type 'ProjectInternal' named '<project>'."
     }
 
-    void "get() fails if eagerly created task type is not a subtype"() {
+    def "get() fails if eagerly created task type is not a subtype"() {
         given:
         taskFactory.create(_ as TaskIdentity) >> task("task")
         container.create("task", DefaultTask)
@@ -1351,7 +1351,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         ex.message == "Task with name 'task' not found in Mock for type 'ProjectInternal' named '<project>'."
     }
 
-    void "get() fails if lazily created task type is not a subtype"() {
+    def "get() fails if lazily created task type is not a subtype"() {
         container.register("task", DefaultTask)
 
         when:
@@ -1363,7 +1363,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * taskFactory.create(_ as TaskIdentity)
     }
 
-    void "can get() for eagerly created task subtype"() {
+    def "can get() for eagerly created task subtype"() {
         given:
         taskFactory.create(_ as TaskIdentity) >> task("task")
         container.create("task", CustomTask)
@@ -1375,7 +1375,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         noExceptionThrown()
     }
 
-    void "can get() for lazily created task subtype"() {
+    def "can get() for lazily created task subtype"() {
         container.register("task", CustomTask)
 
         when:
@@ -1386,7 +1386,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * taskFactory.create(_ as TaskIdentity)
     }
 
-    void "can get() if task is eagerly created before"() {
+    def "can get() if task is eagerly created before"() {
         given:
         taskFactory.create(_ as TaskIdentity) >> task("task")
         container.create("task", DefaultTask)
@@ -1398,7 +1398,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         noExceptionThrown()
     }
 
-    void "can get() if task is lazily created before"() {
+    def "can get() if task is lazily created before"() {
         given:
         container.register("task", DefaultTask)
 
@@ -1410,7 +1410,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         0 * taskFactory.create(_ as TaskIdentity)
     }
 
-    void "overwriting eagerly created task throws exception"() {
+    def "overwriting eagerly created task throws exception"() {
         given:
         def customTask = task("task", CustomTask)
         1 * taskFactory.create(_ as TaskIdentity, _ as Object[]) >> customTask
@@ -1432,7 +1432,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         e.cause.message == "Replacing an existing task that may have already been used by other plugins is not supported.  Use a different name for this task ('task')."
     }
 
-    void "can get() if lazy created task gets overwrite"() {
+    def "can get() if lazy created task gets overwrite"() {
         given:
         container.register("task", CustomTask)
 

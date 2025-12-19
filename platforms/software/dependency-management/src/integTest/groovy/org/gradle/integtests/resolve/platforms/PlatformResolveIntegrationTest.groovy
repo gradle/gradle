@@ -346,7 +346,7 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         'runtimeClasspath' | 'runtime'
     }
 
-    def 'platform deselection / reselection does not cause orphan edges'() {
+    def "platform deselection / reselection does not cause orphan edges"() {
         given:
         def depExcluded = mavenHttpRepo.module('org.test', 'excluded', '1.0').publish()
         def depA = mavenHttpRepo.module('org.test', 'depA', '1.0').publish()
@@ -419,7 +419,7 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         }
     }
 
-    def 'platform deselection does not cause orphan edges'() {
+    def "platform deselection does not cause orphan edges"() {
         given:
         def depA = mavenHttpRepo.module('org.test', 'depA', '1.0').withModuleMetadata()
             .withVariant('runtime') {
@@ -489,7 +489,7 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         //Shape of the graph is not checked as bug was failing resolution altogether
     }
 
-    def 'platform upgrade does not leave orphaned edges'() {
+    def "platform upgrade does not leave orphaned edges"() {
         given:
         def depA = mavenHttpRepo.module('org.test', 'depA', '1.0').withModuleMetadata()
             .withVariant('runtime') {

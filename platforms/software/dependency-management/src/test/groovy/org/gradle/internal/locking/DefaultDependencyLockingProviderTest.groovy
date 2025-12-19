@@ -73,7 +73,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
         provider = newProvider()
     }
 
-    def 'can persist resolved modules as unique lockfile'() {
+    def "can persist resolved modules as unique lockfile"() {
         given:
         tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) << "empty=conf"
         startParameter.isWriteDependencyLocks() >> true
@@ -94,7 +94,7 @@ empty=
 
     }
 
-    def 'can load lockfile as strict constraints (Unique: #unique)'() {
+    def "can load lockfile as strict constraints (Unique: #unique)"() {
         given:
         writeLockFile(['org:bar:1.3', 'org:foo:1.0'], unique)
 
@@ -114,7 +114,7 @@ empty=
         unique << [true, false]
     }
 
-    def 'can load lockfile as prefer constraints in update mode (Unique: #unique)'() {
+    def "can load lockfile as prefer constraints in update mode (Unique: #unique)"() {
         given:
         startParameter = Mock()
         startParameter.isWriteDependencyLocks() >> true
@@ -133,7 +133,7 @@ empty=
         unique << [true, false]
     }
 
-    def 'can filter lock entries using module update patterns (Unique: #unique)'() {
+    def "can filter lock entries using module update patterns (Unique: #unique)"() {
         given:
         startParameter = Mock()
         startParameter.isWriteDependencyLocks() >> true
@@ -152,7 +152,7 @@ empty=
         unique << [true, false]
     }
 
-    def 'can filter lock entries using group update patterns (Unique: #unique)'() {
+    def "can filter lock entries using group update patterns (Unique: #unique)"() {
         given:
         startParameter = Mock()
         startParameter.isWriteDependencyLocks() >> true
@@ -171,7 +171,7 @@ empty=
         unique << [true, false]
     }
 
-    def 'can filter lock entries impacted by dependency substitutions (Unique: #unique)'() {
+    def "can filter lock entries impacted by dependency substitutions (Unique: #unique)"() {
         given:
         dependencySubstitutionRules.rulesMayAddProjectDependency() >> true
         Action< DependencySubstitution> substitutionAction = Mock()
@@ -194,7 +194,7 @@ empty=
         unique << [true, false]
     }
 
-    def 'fails with invalid content in lock file (Unique: #unique)'() {
+    def "fails with invalid content in lock file (Unique: #unique)"() {
         given:
         writeLockFile(["invalid"], unique)
 
@@ -215,7 +215,7 @@ empty=
         return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(org, name), version)
     }
 
-    def 'fails with missing lockfile in strict mode (Unique: #unique)'() {
+    def "fails with missing lockfile in strict mode (Unique: #unique)"() {
         given:
         provider.getLockMode().set(LockMode.STRICT)
 
@@ -233,7 +233,7 @@ empty=
         unique << [true, false]
     }
 
-    def 'fails with invalid ignored dependencies notation #notation'() {
+    def "fails with invalid ignored dependencies notation #notation"() {
         uniqueLockFile << """
 org:foo:1.0=conf
 empty=
@@ -255,7 +255,7 @@ empty=
         '*:*'           | '*:*'
     }
 
-    def 'can drop lock state for no longer locked configuration'() {
+    def "can drop lock state for no longer locked configuration"() {
         uniqueLockFile << """
 org:foo:1.0=conf,otherConf
 empty=

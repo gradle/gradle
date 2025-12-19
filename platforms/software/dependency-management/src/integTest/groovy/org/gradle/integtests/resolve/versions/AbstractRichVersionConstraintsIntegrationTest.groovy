@@ -23,7 +23,7 @@ import spock.lang.Issue
 
 abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    void "can declare a strict dependency onto an external component"() {
+    def "can declare a strict dependency onto an external component"() {
         given:
         repository {
             'org:foo:1.0'()
@@ -52,7 +52,7 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
         }
     }
 
-    void "can declare a strict dependency constraint onto an external component"() {
+    def "can declare a strict dependency constraint onto an external component"() {
         given:
         repository {
             'org:foo:1.0'()
@@ -274,7 +274,7 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
         }
     }
 
-    void "a strict dependency version takes precedence over a higher transitive version"() {
+    def "a strict dependency version takes precedence over a higher transitive version"() {
         given:
         repository {
             'org:foo' {
@@ -324,7 +324,7 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
 
     }
 
-    void "should pass if transitive dependency version matches exactly the strict dependency version"() {
+    def "should pass if transitive dependency version matches exactly the strict dependency version"() {
         given:
         repository {
             'org:foo:1.0'()
@@ -366,7 +366,7 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
         }
     }
 
-    void "can upgrade a non-strict dependency"() {
+    def "can upgrade a non-strict dependency"() {
         given:
         repository {
             'org:foo' {
@@ -413,7 +413,7 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
         }
     }
 
-    void "should pass if transitive dependency version (#transitiveDependencyVersion) matches a strict dependency version (#directDependencyVersion)"() {
+    def "should pass if transitive dependency version (#transitiveDependencyVersion) matches a strict dependency version (#directDependencyVersion)"() {
         given:
         repository {
             'org:foo' {
@@ -711,7 +711,7 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
    Dependency path: 'root project :' (conf) --> 'org:foo:{strictly [0,1]}'""")
     }
 
-    void "can reject dependency versions of an external component"() {
+    def "can reject dependency versions of an external component"() {
         given:
         repository {
             'org:foo:1.0'()
@@ -744,7 +744,7 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
         }
     }
 
-    void "honors rejection using dynamic versions using dependency notation #notation"() {
+    def "honors rejection using dynamic versions using dependency notation #notation"() {
         given:
         repository {
             'org:foo:1.0' {
@@ -889,7 +889,7 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
         }
     }
 
-    void "can reject multiple versions of an external component"() {
+    def "can reject multiple versions of an external component"() {
         given:
         repository {
             'org:foo:1.0'()
@@ -922,7 +922,7 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
         }
     }
 
-    void "honors multiple rejections #rejects using dynamic versions using dependency notation #notation"() {
+    def "honors multiple rejections #rejects using dynamic versions using dependency notation #notation"() {
         given:
         repository {
             (0..5).each {

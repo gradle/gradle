@@ -35,7 +35,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         """
     }
 
-    void "can select distinct variants of the same component by using different attributes if they have different capabilities"() {
+    def "can select distinct variants of the same component by using different attributes if they have different capabilities"() {
         given:
         repository {
             'org:test:1.0' {
@@ -100,7 +100,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         }
     }
 
-    void "fails selecting distinct variants of the same component by using attributes if they have different capabilities but incompatible values"() {
+    def "fails selecting distinct variants of the same component by using attributes if they have different capabilities but incompatible values"() {
         given:
         repository {
             'org:test:1.0' {
@@ -158,7 +158,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
    - Variant runtime2 has attributes {custom=c2, org.gradle.status=${MultipleVariantSelectionIntegrationTest.defaultStatus()}}""")
     }
 
-    void "cannot select distinct variants of the same component by using different attributes if they have the same capabilities"() {
+    def "cannot select distinct variants of the same component by using different attributes if they have the same capabilities"() {
         given:
         repository {
             'org:test:1.0' {
@@ -200,7 +200,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
     }
 
     @Unroll("can select distinct variants of the same component by using different attributes with capabilities (conflict=#conflict)")
-    void "can select distinct variants of the same component by using different attributes with capabilities"() {
+    def "can select distinct variants of the same component by using different attributes with capabilities"() {
         given:
         repository {
             'org:test:1.0' {

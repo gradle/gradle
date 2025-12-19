@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 class TaskNameComparatorTest extends Specification {
 
-    def 'compares task names #first and #second'() {
+    def "compares task names #first and #second"() {
         def comparator = new TaskNameComparator()
 
         expect:

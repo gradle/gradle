@@ -179,7 +179,7 @@ class DevelocityPluginConfigIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/24023')
     @Requires(IntegTestPreconditions.IsConfigCached)
-    def 'is correctly requested by the configuration cache'() {
+    def "is correctly requested by the configuration cache"() {
         when:
         succeeds('t', *firstBuildArgs)
 

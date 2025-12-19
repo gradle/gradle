@@ -179,7 +179,7 @@ class EclipseTestConfigurationsWithProjectDependenciesIntegrationTest extends Ab
     }
 
     @Issue('https://github.com/gradle/gradle/issues/21968')
-    def 'dependencies for different features present in test and non-test configurations are not marked with test classpath attribute'() {
+    def "dependencies for different features present in test and non-test configurations are not marked with test classpath attribute"() {
         given:
         settingsFile << """
             rootProject.name='test'

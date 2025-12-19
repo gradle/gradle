@@ -1146,7 +1146,7 @@ project(':b') {
     }
 
     @Test
-    void "test compile only dependencies mapped to classpath and not exported"() {
+    def "test compile only dependencies mapped to classpath and not exported"() {
         // given
         mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'compile', '1.0').publish()
@@ -1193,7 +1193,7 @@ project(':b') {
      * use case or another.
      */
     @Test
-    void "conflicting versions of the same library for compile and compile-only mapped to classpath"() {
+    def "conflicting versions of the same library for compile and compile-only mapped to classpath"() {
         // given
         mavenRepo.module('org.gradle.test', 'conflictingDependency', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'conflictingDependency', '2.0').publish()
@@ -1240,7 +1240,7 @@ project(':b') {
      * use case or another.
      */
     @Test
-    void "conflicting versions of the same library for runtime and compile-only mapped to classpath"() {
+    def "conflicting versions of the same library for runtime and compile-only mapped to classpath"() {
         // given
         mavenRepo.module('org.gradle.test', 'conflictingDependency', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'conflictingDependency', '2.0').publish()
@@ -1287,7 +1287,7 @@ project(':b') {
      * use case or another.
      */
     @Test
-    void "conflicting versions of the same library for test-compile and testcompile-only mapped to classpath"() {
+    def "conflicting versions of the same library for test-compile and testcompile-only mapped to classpath"() {
         // given
         mavenRepo.module('org.gradle.test', 'conflictingDependency', '1.0').publish()
         mavenRepo.module('org.gradle.test', 'conflictingDependency', '2.0').publish()

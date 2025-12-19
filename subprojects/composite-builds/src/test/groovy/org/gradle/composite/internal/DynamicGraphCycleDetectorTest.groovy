@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class DynamicGraphCycleDetectorTest extends Specification {
 
-    def 'can detect immediate cycles'() {
+    def "can detect immediate cycles"() {
         given:
         def graph = new DynamicGraphCycleDetector<String>()
 
@@ -36,7 +36,7 @@ class DynamicGraphCycleDetectorTest extends Specification {
         result.get().format({ ":$it".toString() }) == ":A -> :A"
     }
 
-    def 'can detect direct cycles'() {
+    def "can detect direct cycles"() {
         given:
         def graph = new DynamicGraphCycleDetector<String>()
 
@@ -59,7 +59,7 @@ class DynamicGraphCycleDetectorTest extends Specification {
         result2.get().format({ ":$it".toString() }) == ":B -> :A -> :B"
     }
 
-    def 'can detect indirect cycles'() {
+    def "can detect indirect cycles"() {
         given:
         def graph = new DynamicGraphCycleDetector<String>()
 
@@ -77,7 +77,7 @@ class DynamicGraphCycleDetectorTest extends Specification {
         result.get().format({ ":$it".toString() }) == ":C -> :A -> :B -> :C"
     }
 
-    def 'can detect long indirect cycles'() {
+    def "can detect long indirect cycles"() {
         given:
         def graph = new DynamicGraphCycleDetector<String>()
 
@@ -96,7 +96,7 @@ class DynamicGraphCycleDetectorTest extends Specification {
         result.get().format({ ":$it".toString() }) == ":D -> :A -> :B -> :C -> :D"
     }
 
-    def 'do not report valid cycles'() {
+    def "do not report valid cycles"() {
         given:
         def graph = new DynamicGraphCycleDetector<String>()
 
@@ -111,7 +111,7 @@ class DynamicGraphCycleDetectorTest extends Specification {
         !result.present
     }
 
-    def 'do report invalid cycles'() {
+    def "do report invalid cycles"() {
         given:
         def graph = new DynamicGraphCycleDetector<String>()
 

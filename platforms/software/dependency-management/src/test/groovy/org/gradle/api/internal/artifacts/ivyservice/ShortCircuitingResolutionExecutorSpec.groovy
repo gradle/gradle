@@ -106,7 +106,7 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
         0 * delegate._
     }
 
-    def 'empty graph result for build dependencies does not interact with dependency locking'() {
+    def "empty graph result for build dependencies does not interact with dependency locking"() {
         given:
         ResolutionParameters params = paramsWithoutDependencies()
 
@@ -118,7 +118,7 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
         0 * lockingProvider._
     }
 
-    def 'empty graph result still interacts with dependency locking'() {
+    def "empty graph result still interacts with dependency locking"() {
         given:
         ResolutionParameters params = paramsWithoutDependencies()
         params.dependencyLockingId >> 'lockedConf'
@@ -133,7 +133,7 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
         1 * lockingProvider.persistResolvedDependencies('lockedConf', _, Collections.emptySet(), Collections.emptySet())
     }
 
-    def 'empty result with non empty lock state causes resolution through delegate'() {
+    def "empty result with non empty lock state causes resolution through delegate"() {
         given:
         ResolverResults delegateResults = Mock()
         List<ResolutionAwareRepository> repos = Mock()

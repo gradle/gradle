@@ -32,7 +32,7 @@ class RestartEveryNTestDefinitionProcessorTest extends Specification {
     private final TestResultProcessor resultProcessor = Mock();
     private RestartEveryNTestDefinitionProcessor processor = new RestartEveryNTestDefinitionProcessor(factory, 2);
 
-    def 'creates delegate processor on first test'() {
+    def "creates delegate processor on first test"() {
         when:
         processor.startProcessing(resultProcessor)
         processor.processTestDefinition(test1)
@@ -46,7 +46,7 @@ class RestartEveryNTestDefinitionProcessorTest extends Specification {
         0 * _._
     }
 
-    def 'ends processing on delegate processor on nth test'() {
+    def "ends processing on delegate processor on nth test"() {
         when:
         processor.startProcessing(resultProcessor)
         processor.processTestDefinition(test1)
@@ -64,7 +64,7 @@ class RestartEveryNTestDefinitionProcessorTest extends Specification {
         0 * _._
     }
 
-    def 'creates new delegate processor on (n + 1)th test'() {
+    def "creates new delegate processor on (n + 1)th test"() {
         given:
         TestDefinitionProcessor delegate2 = Mock()
 
@@ -96,7 +96,7 @@ class RestartEveryNTestDefinitionProcessorTest extends Specification {
         0 * _._
     }
 
-    def 'processing on delegate processor ends on end of processing'() {
+    def "processing on delegate processor ends on end of processing"() {
         when:
         processor.startProcessing(resultProcessor)
         processor.processTestDefinition(test1)
@@ -112,12 +112,12 @@ class RestartEveryNTestDefinitionProcessorTest extends Specification {
         0 * _._
     }
 
-    def 'does nothing on end of processing when no tests received'() {
+    def "does nothing on end of processing when no tests received"() {
         expect:
         processor.stop()
     }
 
-    def 'does nothing on end of processing when on nth test'() {
+    def "does nothing on end of processing when on nth test"() {
         when:
         processor.startProcessing(resultProcessor)
         processor.processTestDefinition(test1)
@@ -136,7 +136,7 @@ class RestartEveryNTestDefinitionProcessorTest extends Specification {
         0 * _._
     }
 
-    def 'uses single batch when n equals zero'() {
+    def "uses single batch when n equals zero"() {
         given:
         processor = new RestartEveryNTestDefinitionProcessor(factory, 0)
 

@@ -128,7 +128,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void "task registered as a builder of resources is executed"() {
+    def "task registered as a builder of resources is executed"() {
         TestFile buildFile = testFile("build.gradle")
         buildFile << '''
             apply plugin: 'java'
@@ -157,7 +157,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     @Category(Flaky.class) // https://github.com/gradle/gradle-private/issues/4442
-    void "can recursively build dependent and dependee projects"() {
+    def "can recursively build dependent and dependee projects"() {
         createDirs("a", "b", "c")
         testFile("settings.gradle") << "include 'a', 'b', 'c'"
         testFile("build.gradle") << """
@@ -232,7 +232,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     @Category(Flaky.class) // https://github.com/gradle/gradle-private/issues/4442
-    void "project dependency does not drag in source jar from target project"() {
+    def "project dependency does not drag in source jar from target project"() {
         createDirs("a", "b")
         testFile("settings.gradle") << "include 'a', 'b'"
         testFile("build.gradle") << """

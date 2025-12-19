@@ -35,7 +35,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 """
     }
 
-    void "can publish jar and descriptor to ivy repository"() {
+    def "can publish jar and descriptor to ivy repository"() {
         requiresExternalDependencies = true
         given:
         createBuildScripts("""
@@ -72,7 +72,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    void "'#gradleConfiguration' dependencies end up in '#ivyConfiguration' configuration with '#plugin' plugin"() {
+    def "'#gradleConfiguration' dependencies end up in '#ivyConfiguration' configuration with '#plugin' plugin"() {
         given:
         file("settings.gradle") << '''
             rootProject.name = 'publishTest'
@@ -146,7 +146,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
     }
 
-    void "ignores extra artifacts added to configurations"() {
+    def "ignores extra artifacts added to configurations"() {
         given:
         createBuildScripts("""
             task extraJar(type: Jar) {
@@ -175,7 +175,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublishedAsJavaModule()
     }
 
-    void "can publish additional artifacts for java project"() {
+    def "can publish additional artifacts for java project"() {
         requiresExternalDependencies = true
         given:
         createBuildScripts("""
@@ -229,7 +229,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Issue("GRADLE-3514")
-    void "generated ivy descriptor includes dependency exclusions"() {
+    def "generated ivy descriptor includes dependency exclusions"() {
         requiresExternalDependencies = true
 
         given:
@@ -320,7 +320,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4356, https://github.com/gradle/gradle/issues/5035")
-    void "generated ivy descriptor includes configuration exclusions"() {
+    def "generated ivy descriptor includes configuration exclusions"() {
         def exclusion = { name -> "$name-group:$name-module" }
         def exclusions = { conf -> javaLibrary.parsedIvy.exclusions.findAll { it.conf == conf }.collect { it.org + ":" + it.module } }
 
@@ -373,7 +373,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    void "defaultDependencies are included in published ivy descriptor"() {
+    def "defaultDependencies are included in published ivy descriptor"() {
         given:
         settingsFile << "rootProject.name = 'publishTest' "
 
@@ -413,7 +413,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertApiDependencies("org.test:default-dependency:1.1")
     }
 
-    void "dependency mutations are included in published ivy descriptor"() {
+    def "dependency mutations are included in published ivy descriptor"() {
         given:
         settingsFile << "rootProject.name = 'publishTest'"
 

@@ -922,7 +922,7 @@ class TestCapability implements Capability {
         variant.dependencyConstraints[0].rejectsVersion == []
     }
 
-    def 'can add the build identifier'() {
+    def "can add the build identifier"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
             apply plugin: 'maven-publish'

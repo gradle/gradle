@@ -162,7 +162,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
         }
     }
 
-    void "can add several dependencies at once using a bundle"() {
+    def "can add several dependencies at once using a bundle"() {
         tomlFile << """[libraries]
 lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 lib2.module = "org.gradle.test:lib2"
@@ -200,7 +200,7 @@ myBundle = ["lib", "lib2"]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22552")
-    void "can add several dependencies at once using a bundle with DependencyHandler#addProvider"() {
+    def "can add several dependencies at once using a bundle with DependencyHandler#addProvider"() {
         tomlFile << """[libraries]
 lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 lib2.module = "org.gradle.test:lib2"
@@ -237,7 +237,7 @@ myBundle = ["lib", "lib2"]
         }
     }
 
-    void "overriding the version of a bundle overrides the version of all dependencies of the bundle"() {
+    def "overriding the version of a bundle overrides the version of all dependencies of the bundle"() {
         tomlFile << """[libraries]
 lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 lib2.module = "org.gradle.test:lib2"

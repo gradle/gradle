@@ -25,7 +25,7 @@ class ExclusiveFileAccessManagerTest extends Specification {
     public TestNameTestDirectoryProvider temporaryDirectory = new TestNameTestDirectoryProvider(getClass())
     private manager = new ExclusiveFileAccessManager(1000, 10)
 
-    def 'If the directory for the lock file cannot be created then we get a good error message'() {
+    def "If the directory for the lock file cannot be created then we get a good error message"() {
         given:
         def fileWithSameNameAsDirectory = temporaryDirectory.createFile('someDir')
         when:

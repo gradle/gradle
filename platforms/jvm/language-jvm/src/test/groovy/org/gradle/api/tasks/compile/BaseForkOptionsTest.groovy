@@ -19,7 +19,7 @@ package org.gradle.api.tasks.compile
 import spock.lang.Specification
 
 public class BaseForkOptionsTest extends Specification {
-    def 'JVM options are filtered properly even with bad input'() {
+    def "JVM options are filtered properly even with bad input"() {
 	    def options = new BaseForkOptions()
 
         options.jvmArgs = ['', '\n', ' ']
@@ -28,7 +28,7 @@ public class BaseForkOptionsTest extends Specification {
         options.jvmArgs.isEmpty()
     }
 
-    def 'JVM options are preserved if they are not bad'() {
+    def "JVM options are preserved if they are not bad"() {
         def options = new BaseForkOptions()
 
         options.jvmArgs = ['x', '', 'y']
@@ -39,7 +39,7 @@ public class BaseForkOptionsTest extends Specification {
         options.jvmArgs[1] == 'y'
     }
 
-    def 'JVM options preserve newline character at the end of an option'() {
+    def "JVM options preserve newline character at the end of an option"() {
         def options = new BaseForkOptions()
 
         options.jvmArgs = ['-Dline.separator=\n']

@@ -39,7 +39,7 @@ abstract class AbstractLockingIntegrationTest extends AbstractDependencyResoluti
 
     abstract LockMode lockMode()
 
-    def 'succeeds when lock file does not conflict from declared versions (unique: #unique)'() {
+    def "succeeds when lock file does not conflict from declared versions (unique: #unique)"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
@@ -85,7 +85,7 @@ abstract class AbstractLockingIntegrationTest extends AbstractDependencyResoluti
         unique << [true, false]
     }
 
-    def 'does not write-locks for not locked configuration'() {
+    def "does not write-locks for not locked configuration"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
         buildFile << """
@@ -113,7 +113,7 @@ dependencies {
         lockfileFixture.expectNoLockFile()
     }
 
-    def 'clears lock state for no longer locked configuration'() {
+    def "clears lock state for no longer locked configuration"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
         buildFile << """
@@ -145,7 +145,7 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0'])
     }
 
-    def 'writes dependency lock file when requested'() {
+    def "writes dependency lock file when requested"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
 
@@ -179,7 +179,7 @@ dependencies {
     }
 
     @ToBeFixedForConfigurationCache(because = "Does actually write the lock file when CC is enabled (which is fine, because all dependency resolution has completed successfully by the time the task fails)")
-    def 'does not write lock file when task execution fails'() {
+    def "does not write lock file when task execution fails"() {
         mavenRepo.module('org', 'bar', '1.1').publish()
 
         buildFile << """
@@ -216,7 +216,7 @@ task copyDeps(type: Copy) {
         lockfileFixture.expectLockStateMissing('conf')
     }
 
-    def 'does not write lock file when dependency resolution fails'() {
+    def "does not write lock file when dependency resolution fails"() {
         mavenRepo.module('org', 'bar', '1.1').publish()
 
         buildFile << """
@@ -354,7 +354,7 @@ dependencies {
         lockfileFixture.expectLockStateMissing('secondLockEnabledConf')
     }
 
-    def 'upgrades lock file (unique: #unique)'() {
+    def "upgrades lock file (unique: #unique)"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
         mavenRepo.module('org', 'foo', '2.0').publish()
@@ -394,7 +394,7 @@ dependencies {
         unique << [true, false]
     }
 
-    def 'deletes legacy lock files on upgrade'() {
+    def "deletes legacy lock files on upgrade"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
         mavenRepo.module('org', 'foo', '2.0').publish()
@@ -435,7 +435,7 @@ dependencies {
         lockfileFixture.assertLegacyLockfileMissing('otherLockedConf')
     }
 
-    def 'does not write duplicates in the lockfile'() {
+    def "does not write duplicates in the lockfile"() {
         def foo = mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').dependsOn(foo).publish()
 
@@ -468,7 +468,7 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
     }
 
-    def 'includes transitive dependencies in the lock file'() {
+    def "includes transitive dependencies in the lock file"() {
         def dep = mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.0').dependsOn(dep).publish()
 
@@ -500,7 +500,7 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
     }
 
-    def 'updates part of the lockfile (initial unique: #unique)'() {
+    def "updates part of the lockfile (initial unique: #unique)"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -540,7 +540,7 @@ dependencies {
         unique << [true, false]
     }
 
-    def 'updates part of the lockfile using wildcard (initial unique #unique)'() {
+    def "updates part of the lockfile using wildcard (initial unique #unique)"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -580,7 +580,7 @@ dependencies {
         unique << [true, false]
     }
 
-    def 'updates but ignores irrelevant modules (initial unique #unique)'() {
+    def "updates but ignores irrelevant modules (initial unique #unique)"() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.1').publish()
         mavenRepo.module('org', 'foo', '1.0').publish()
@@ -620,7 +620,7 @@ dependencies {
         unique << [true, false]
     }
 
-    def 'updates multiple parts of the lockfile (initial unique #unique)'() {
+    def "updates multiple parts of the lockfile (initial unique #unique)"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
         mavenRepo.module('org', 'buz', '1.0').publish()
@@ -665,7 +665,7 @@ dependencies {
         unique << [true, false]
     }
 
-    def 'writes an empty lock file for an empty configuration'() {
+    def "writes an empty lock file for an empty configuration"() {
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -689,7 +689,7 @@ configurations {
         lockfileFixture.verifyLockfile('lockedConf', [])
     }
 
-    def 'overwrites a not empty lock file with an empty one when configuration no longer has dependencies (unique: #unique)'() {
+    def "overwrites a not empty lock file with an empty one when configuration no longer has dependencies (unique: #unique)"() {
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -788,7 +788,7 @@ dependencies {
         notation << ['org:foo', '*:foo', 'or*:f*']
     }
 
-    def 'updates part of the lockfile, with ignored dependencies (unique: #unique)'() {
+    def "updates part of the lockfile, with ignored dependencies (unique: #unique)"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()

@@ -35,7 +35,7 @@ class ArtifactResolutionQueryIntegrationTest extends AbstractHttpDependencyResol
     @Issue('https://github.com/gradle/gradle/issues/3579')
     @IntegrationTestTimeout(60)
     @UnsupportedWithConfigurationCache(because = "task uses artifact query API")
-    def 'can use artifact resolution queries in parallel to file resolution'() {
+    def "can use artifact resolution queries in parallel to file resolution"() {
         given:
         def module = mavenHttpRepo.module('group', "artifact", '1.0').publish()
         def handler = blockingServer.expectConcurrentAndBlock(blockingServer.get(module.pom.path).sendFile(module.pom.file), blockingServer.get('/sync'))
@@ -98,7 +98,7 @@ class ArtifactResolutionQueryIntegrationTest extends AbstractHttpDependencyResol
 
     @Issue('https://github.com/gradle/gradle/issues/11247')
     @ToBeFixedForConfigurationCache(because = "task uses artifact query API")
-    def 'respects repository content filter'() {
+    def "respects repository content filter"() {
         given:
         def module = mavenHttpRepo.module('group', "artifact", '1.0').publish()
         module.pom.allowGetOrHead()

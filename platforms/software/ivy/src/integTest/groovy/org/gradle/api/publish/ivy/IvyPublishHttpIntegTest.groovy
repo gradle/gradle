@@ -311,7 +311,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         !module.ivy.file.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER)
     }
 
-    void "can publish large artifact to authenticated repository"() {
+    def "can publish large artifact to authenticated repository"() {
         given:
         def largeJar = file("large.jar")
         new RandomAccessFile(largeJar, "rw").withCloseable {
@@ -365,7 +365,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         module.jarFile.assertIsCopyOf(new TestFile(largeJar))
     }
 
-    void "does not upload meta-data file if artifact upload fails"() {
+    def "does not upload meta-data file if artifact upload fails"() {
         given:
         buildFile << """
             apply plugin: 'java'
@@ -523,7 +523,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         customModule.assertMetadataAndJarFilePublished()
     }
 
-    void "can publish artifact to authenticated repository using credentials provider"() {
+    def "can publish artifact to authenticated repository using credentials provider"() {
         given:
         buildFile << publicationBuildWithCredentialsProvider('2', 'org.gradle', ivyHttpRepo.uri)
 

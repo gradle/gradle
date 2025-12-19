@@ -36,7 +36,7 @@ class CompositeFileCollectionTest extends Specification {
     def file2 = new File("2")
     def file3 = new File("3")
 
-    void "contains union of all source collections"() {
+    def "contains union of all source collections"() {
         def source1 = new TestFileCollection(file1, file2)
         def source2 = new TestFileCollection(file2, file3)
         def collection = new TestCompositeFileCollection(source1, source2)
@@ -109,7 +109,7 @@ class CompositeFileCollectionTest extends Specification {
         0 * _
     }
 
-    void "visits children when structure is visited"() {
+    def "visits children when structure is visited"() {
         def visitor = Mock(FileCollectionStructureVisitor)
         def source1 = Mock(FileCollectionInternal)
         def source2 = Mock(FileCollectionInternal)
@@ -125,7 +125,7 @@ class CompositeFileCollectionTest extends Specification {
         0 * _
     }
 
-    void "listener can skip visiting children"() {
+    def "listener can skip visiting children"() {
         def visitor = Mock(FileCollectionStructureVisitor)
         def source1 = Mock(FileCollectionInternal)
         def source2 = Mock(FileCollectionInternal)

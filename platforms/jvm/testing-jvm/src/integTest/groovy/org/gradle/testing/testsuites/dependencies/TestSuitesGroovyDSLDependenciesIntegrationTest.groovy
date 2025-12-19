@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegrationSpec {
     // region basic functionality
-    def 'suites do not share dependencies by default'() {
+    def "suites do not share dependencies by default"() {
         given:
         buildFile << """
         plugins {
@@ -127,7 +127,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     // endregion basic functionality
 
     // region dependencies - projects
-    def 'default suite has project dependency by default; others do not'() {
+    def "default suite has project dependency by default; others do not"() {
         given:
         buildFile << """
         plugins {
@@ -166,7 +166,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
     }
 
-    def 'custom suites have project dependency if explicitly set'() {
+    def "custom suites have project dependency if explicitly set"() {
         given:
         buildFile << """
         plugins {
@@ -211,7 +211,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
     }
 
-    def 'can add dependencies to other projects to #suiteDesc'() {
+    def "can add dependencies to other projects to #suiteDesc"() {
         given:
         multiProjectBuild('root', ['consumer', 'util']) {
             buildFile << """
@@ -255,7 +255,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     // endregion dependencies - projects
 
     // region dependencies - modules (GAV)
-    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite using a GAV string'() {
+    def "can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite using a GAV string"() {
         given:
         buildFile << """
         plugins {
@@ -325,7 +325,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
     }
 
-    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via DependencyHandler using #desc'() {
+    def "can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via DependencyHandler using #desc"() {
         given:
         buildFile << """
         plugins {
@@ -390,7 +390,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
     }
 
-    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via DependencyHandler using a GAV map'() {
+    def "can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via DependencyHandler using a GAV map"() {
         given:
         buildFile << """
         plugins {
@@ -455,7 +455,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
         succeeds 'checkConfiguration'
     }
 
-    def 'can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via DependencyHandler using named args'() {
+    def "can add dependencies to the implementation, compileOnly and runtimeOnly configurations of a suite via DependencyHandler using named args"() {
         given:
         buildFile << """
         plugins {
@@ -729,7 +729,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     // endregion dependencies - modules (GAV)
 
     // region dependency constraints - modules (GAV)
-    def 'can add dependency constraints to the implementation, compileOnly and runtimeOnly configurations of a suite using a GAV string'() {
+    def "can add dependency constraints to the implementation, compileOnly and runtimeOnly configurations of a suite using a GAV string"() {
         given:
         buildFile << """
         plugins {
@@ -799,7 +799,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
     // endregion dependency constraints - modules (GAV)
 
     // region dependencies - dependency objects
-    def 'can add dependency objects to the implementation, compileOnly and runtimeOnly configurations of a suite'() {
+    def "can add dependency objects to the implementation, compileOnly and runtimeOnly configurations of a suite"() {
         given:
         buildFile << """
             plugins {

@@ -479,7 +479,7 @@ tasks.resolve.doLast {
         succeeds 'resolve'
     }
 
-    def 'class based rule does not get access to IvyModuleDescriptor for Maven component'() {
+    def "class based rule does not get access to IvyModuleDescriptor for Maven component"() {
         given:
         repository {
             'org.test:projectA:1.0'()
@@ -510,7 +510,7 @@ dependencies {
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    def 'rule can access PomModuleDescriptor for Maven component'() {
+    def "rule can access PomModuleDescriptor for Maven component"() {
         given:
         repository {
             'org.test:projectA:1.0'()

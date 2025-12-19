@@ -59,7 +59,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         handler.flatDir([name: 'libs'] + [dirs: ['a', 'b']]).is(repository)
     }
 
-    public void testMavenCentralWithNoArgs() {
+    public def testMavenCentralWithNoArgs() {
         when:
         MavenArtifactRepository repository = Mock(TestMavenArtifactRepository) { getName() >> "name" }
         1 * repositoryFactory.createMavenCentralRepository() >> repository

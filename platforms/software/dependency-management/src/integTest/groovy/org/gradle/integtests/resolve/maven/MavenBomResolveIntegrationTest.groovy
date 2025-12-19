@@ -297,7 +297,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         failure.assertNotOutput("parse")
     }
 
-    def 'a BOM dependencyManagement entry preserves exclusions declared in build file'() {
+    def "a BOM dependencyManagement entry preserves exclusions declared in build file"() {
         def modB = mavenHttpRepo.module("group", "moduleB", "1.0").allowAll().publish()
         moduleA.dependsOn(modB).publish()
         bomDependency('moduleA').publish()
@@ -328,7 +328,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         }
     }
 
-    def 'a BOM dependencyManagement entry preserves transitive=false declared in build file'() {
+    def "a BOM dependencyManagement entry preserves transitive=false declared in build file"() {
         def modB = mavenHttpRepo.module("group", "moduleB", "1.0").allowAll().publish()
         moduleA.dependsOn(modB).publish()
         bomDependency('moduleA').publish()

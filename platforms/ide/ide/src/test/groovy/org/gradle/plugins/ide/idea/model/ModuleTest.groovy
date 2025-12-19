@@ -126,7 +126,7 @@ class ModuleTest extends Specification {
         this.module == newModule
     }
 
-    def 'Module without content can be loaded'() {
+    def "Module without content can be loaded"() {
         when:
         module.load((InputStream) getClass().getResourceAsStream('moduleWithoutContent.xml'))
 

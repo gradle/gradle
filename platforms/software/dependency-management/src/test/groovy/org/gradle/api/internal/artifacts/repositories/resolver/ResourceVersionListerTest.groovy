@@ -143,7 +143,7 @@ class ResourceVersionListerTest extends Specification {
         0 * _
     }
 
-    def 'overlapping patterns filter out parts matching more than one pattern'() {
+    def "overlapping patterns filter out parts matching more than one pattern"() {
         def resource1 = Mock(ExternalResource)
 
         when:
@@ -161,7 +161,7 @@ class ResourceVersionListerTest extends Specification {
         0 * _
     }
 
-    def 'exact duplicates do not filter out all results'() {
+    def "exact duplicates do not filter out all results"() {
         def resource1 = Mock(ExternalResource)
 
         when:

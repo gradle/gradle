@@ -32,7 +32,7 @@ class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
         value = IntegTestPreconditions.IsConfigCached,
         reason = "Isolation provided by Configuration Cache serialization"
     )
-    def 'flow actions are isolated from each other'() {
+    def "flow actions are isolated from each other"() {
         given: 'flow actions that share a bean'
         buildFile '''
             import org.gradle.api.flow.*
@@ -85,7 +85,7 @@ class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain 'Bean.value = 43'
     }
 
-    def 'flow actions cannot depend on tasks'() {
+    def "flow actions cannot depend on tasks"() {
         given:
         buildFile '''
             import org.gradle.api.flow.*
@@ -137,7 +137,7 @@ class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeImplemented()
     @Issue("https://github.com/gradle/gradle/issues/32918")
-    def 'flow actions cannot depend on tasks indirectly'() {
+    def "flow actions cannot depend on tasks indirectly"() {
         given:
         buildFile '''
             import org.gradle.api.flow.*
@@ -194,7 +194,7 @@ class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
         // failureCauseContains "Property 'text' cannot carry a dependency on task ':producer' as these are not yet supported."
     }
 
-    def '#scriptTarget action can use injectable #simpleServiceTypeName'() {
+    def "#scriptTarget action can use injectable #simpleServiceTypeName"() {
         given:
         file(scriptTarget.fileName) << """
             import org.gradle.api.flow.*

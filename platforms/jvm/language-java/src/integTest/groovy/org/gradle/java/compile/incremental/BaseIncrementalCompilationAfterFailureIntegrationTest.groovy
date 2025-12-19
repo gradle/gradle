@@ -510,7 +510,7 @@ class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrem
      *
      * That is why we test restoring overwritten and deleting new files just with Java files.
      */
-    def 'incremental compilation after a failure works with mix java/groovy sources when #description compilation fails and new classes are deleted and overwritten classes are restored'() {
+    def "incremental compilation after a failure works with mix java/groovy sources when #description compilation fails and new classes are deleted and overwritten classes are restored"() {
         given:
         sourceWithFileSuffix("groovy", "package a; class A {}")
         File b = sourceWithFileSuffix(fileWithErrorSuffix, "package b; class B { }")
@@ -549,7 +549,7 @@ class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrem
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22814")
-    def 'does full recompilation on fatal failure'() {
+    def "does full recompilation on fatal failure"() {
         given:
         def a = source("class A extends ABase implements WithTrait { def m() { println('a') } }")
         source "class ABase { def mBase() { println(A) } }"

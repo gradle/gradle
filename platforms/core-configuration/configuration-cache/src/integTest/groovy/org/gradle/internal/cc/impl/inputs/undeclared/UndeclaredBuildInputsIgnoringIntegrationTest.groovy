@@ -20,7 +20,7 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 
 class UndeclaredBuildInputsIgnoringIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    def 'can ignore a file system check configuration input'() {
+    def "can ignore a file system check configuration input"() {
         given:
         buildFile("""
             println("exists = " + new File("build/test.lock").exists())
@@ -46,7 +46,7 @@ class UndeclaredBuildInputsIgnoringIntegrationTest extends AbstractConfiguration
         }
     }
 
-    def 'can ignore file system checks in multiple paths if separated by semicolon'() {
+    def "can ignore file system checks in multiple paths if separated by semicolon"() {
         given:
         buildFile("""
             println("exists = " + new File(projectDir, "file1.txt").exists())
@@ -66,7 +66,7 @@ class UndeclaredBuildInputsIgnoringIntegrationTest extends AbstractConfiguration
         }
     }
 
-    def 'paths ignored in file system checks are included in the configuration cache fingerprint'() {
+    def "paths ignored in file system checks are included in the configuration cache fingerprint"() {
         when:
         configurationCacheRun()
         configurationCacheRun("-D$IGNORE_FS_CHECKS_PROPERTY=test")

@@ -51,7 +51,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         mavenRepo.module("org", "bar", '1.0').dependsOn(foo11).publish()
     }
 
-    void "force resolution strategy is applied to dependency constraints"() {
+    def "force resolution strategy is applied to dependency constraints"() {
         given:
         buildFile << """
             dependencies {
@@ -82,7 +82,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         }
     }
 
-    void "fail-on-conflict resolution strategy is applied to dependency constraints"() {
+    def "fail-on-conflict resolution strategy is applied to dependency constraints"() {
         given:
         buildFile << """
             dependencies {
@@ -110,7 +110,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         )
     }
 
-    void "dependency substitution rules are applied to dependency constraints"() {
+    def "dependency substitution rules are applied to dependency constraints"() {
         given:
         buildFile << """
             dependencies {
@@ -143,7 +143,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         }
     }
 
-    void "dependency resolve rules are applied to dependency constraints"() {
+    def "dependency resolve rules are applied to dependency constraints"() {
         given:
         buildFile << """
             dependencies {
@@ -179,7 +179,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         }
     }
 
-    void "module replacement rules are applied to dependency constraints"() {
+    def "module replacement rules are applied to dependency constraints"() {
         given:
         buildFile << """
             dependencies {

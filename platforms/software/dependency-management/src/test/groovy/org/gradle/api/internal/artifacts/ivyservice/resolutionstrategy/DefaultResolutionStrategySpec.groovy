@@ -316,7 +316,7 @@ class DefaultResolutionStrategySpec extends Specification {
         then: 0 * validator.validateMutation(_)
     }
 
-    def 'provides the expected DependencyLockingProvider'() {
+    def "provides the expected DependencyLockingProvider"() {
         when:
         strategy.activateDependencyLocking()
 

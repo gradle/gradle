@@ -264,7 +264,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def 'demonstrate incompatible requested configuration failure'() {
+    def "demonstrate incompatible requested configuration failure"() {
         incompatibleRequestedConfiguration.prepare()
 
         expect:

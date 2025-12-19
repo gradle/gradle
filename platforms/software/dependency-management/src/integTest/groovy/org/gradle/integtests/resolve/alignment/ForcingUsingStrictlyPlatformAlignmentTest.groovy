@@ -461,7 +461,7 @@ include 'other'
         }
     }
 
-    void "repository simulating Jackson situation"(@DelegatesTo(value = RemoteRepositorySpec, strategy = Closure.DELEGATE_FIRST) Closure<Void> extraSpec = {}) {
+    def "repository simulating Jackson situation"(@DelegatesTo(value = RemoteRepositorySpec, strategy = Closure.DELEGATE_FIRST) Closure<Void> extraSpec = {}) {
         // see https://gist.github.com/melix/0f539bca5d29dafe295877ddff707e4a to generate the code below
 
         repository {

@@ -42,7 +42,7 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
         true
     }
 
-    def 'isolated beforeProject action given as Kotlin lambda can capture managed value'() {
+    def "isolated beforeProject action given as Kotlin lambda can capture managed value"() {
         given:
         withSettingsPluginInBuildLogic()
 
@@ -84,7 +84,7 @@ class GradleLifecycleIntegrationTest extends AbstractIntegrationSpec {
         configuredTaskRunsCorrectly()
     }
 
-    def 'isolated beforeProject action given as Java lambda can capture managed value'() {
+    def "isolated beforeProject action given as Java lambda can capture managed value"() {
         given:
         withSettingsPluginInBuildLogic()
 

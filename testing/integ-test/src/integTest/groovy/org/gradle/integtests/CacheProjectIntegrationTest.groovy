@@ -88,7 +88,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void "caches compiled build script"() {
+    def "caches compiled build script"() {
         createLargeBuildScript()
         testBuild("hello1", "Hello 1")
         TestFile.Snapshot classFileSnapshot = classFile.snapshot()
@@ -104,7 +104,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     @Issue("https://github.com/gradle/gradle/issues/13367")
     @Test
     @UnsupportedWithConfigurationCache(because = "Test always passes with cc because we don't rerun config phase on second run")
-    void "recovers from discarded empty classes directory from classpath entry"() {
+    def "recovers from discarded empty classes directory from classpath entry"() {
         given:
         buildFile << """
             task hello1 {
@@ -124,7 +124,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void "caches incremental build state"() {
+    def "caches incremental build state"() {
         createLargeBuildScript()
         testBuild("hello1", "Hello 1")
         TestFile.Snapshot artifactsCacheSnapshot = artifactsCache.snapshot()
@@ -141,7 +141,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void "does not rebuild artifact cache when run with --rerun-tasks"() {
+    def "does not rebuild artifact cache when run with --rerun-tasks"() {
         createLargeBuildScript()
         testBuild("hello1", "Hello 1")
 

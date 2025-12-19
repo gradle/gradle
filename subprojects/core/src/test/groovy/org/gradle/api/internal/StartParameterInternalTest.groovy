@@ -23,7 +23,7 @@ import spock.lang.Specification
 class StartParameterInternalTest extends Specification {
 
     @ExpectDeprecation("The StartParameter.isConfigurationCacheRequested property has been deprecated")
-    def 'can query whether configuration caching is requested'() {
+    def "can query whether configuration caching is requested"() {
         def parameter = new StartParameterInternal()
 
         expect:

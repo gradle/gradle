@@ -25,7 +25,7 @@ class DefaultSettingsRootFileSystemTest extends DefaultSettingsCommonTest {
        createSettings('/')
     }
 
-    def 'root project name generation in file system root'() {
+    def "root project name generation in file system root"() {
         expect:
         settings.rootProject.name ==~ getRootProjectNamePattern()
     }

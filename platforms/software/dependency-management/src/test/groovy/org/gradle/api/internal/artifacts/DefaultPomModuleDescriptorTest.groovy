@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 class DefaultPomModuleDescriptorTest extends Specification {
 
-    def 'exposes packaging for maven metadata'() {
+    def "exposes packaging for maven metadata"() {
         given:
         def metadata = Mock(MavenModuleResolveMetadata)
         metadata.getPackaging() >> "foo"

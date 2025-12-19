@@ -25,7 +25,7 @@ class ConfigurationCacheJavaCollectionsIntegrationTest extends AbstractConfigura
 
     @Issue('https://github.com/gradle/gradle/issues/26942')
     @Requires(value = UnitTestPreconditions.Jdk11OrLater)
-    def 'restores Java 11 collections'() {
+    def "restores Java 11 collections"() {
         given:
         buildFile '''
             import java.util.*;

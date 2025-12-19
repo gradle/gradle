@@ -752,7 +752,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
 
     // fails to delete directory under Windows otherwise
     @Requires(UnitTestPreconditions.NotWindows)
-    void "repositories declared in settings shouldn't be used to resolve plugins"() {
+    def "repositories declared in settings shouldn't be used to resolve plugins"() {
         def pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
         pluginPortal.start()
         def taskName = 'pluginTask'

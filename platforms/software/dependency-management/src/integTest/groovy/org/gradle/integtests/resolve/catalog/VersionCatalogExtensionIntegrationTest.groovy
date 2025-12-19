@@ -505,7 +505,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
-    void "can add several dependencies at once using a bundle"() {
+    def "can add several dependencies at once using a bundle"() {
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
@@ -547,7 +547,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
-    void "bundles can use nested accessors"() {
+    def "bundles can use nested accessors"() {
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {
@@ -589,7 +589,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
-    void "overriding the version of a bundle overrides the version of all dependencies of the bundle"() {
+    def "overriding the version of a bundle overrides the version of all dependencies of the bundle"() {
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {

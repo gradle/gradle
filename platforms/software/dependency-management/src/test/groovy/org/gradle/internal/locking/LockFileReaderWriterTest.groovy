@@ -55,7 +55,7 @@ class LockFileReaderWriterTest extends Specification {
         lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile, listener)
     }
 
-    def 'writes a unique lock file'() {
+    def "writes a unique lock file"() {
         when:
         lockDir.deleteDir()
         lockFileReaderWriter.writeUniqueLockfile([a: ['foo', 'bar'], b: ['foo'], c: []])
@@ -69,7 +69,7 @@ empty=c
         !lockDir.exists()
     }
 
-    def 'deletes an unique lock file on empty lock state'() {
+    def "deletes an unique lock file on empty lock state"() {
         def uniqueLockfile = tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
 
         given:
@@ -82,7 +82,7 @@ empty=c
         !uniqueLockfile.exists()
     }
 
-    def 'writes dependencies and configurations sorted in the unique lock file'() {
+    def "writes dependencies and configurations sorted in the unique lock file"() {
         when:
         lockFileReaderWriter.writeUniqueLockfile([b: ['foo', 'bar'], d: ['bar', 'foobar'],a: ['foo'], e: [], f: [], c: []])
 
@@ -95,7 +95,7 @@ empty=c,e,f
 """.denormalize()
     }
 
-    def 'writes a unique lock file to a custom location'() {
+    def "writes a unique lock file to a custom location"() {
         def testLockFile = tmpDir.file('different', 'lock.file')
         lockDir.deleteDir()
         given:
@@ -113,7 +113,7 @@ empty=c
         !lockDir.exists()
     }
 
-    def 'reads a legacy lock file'() {
+    def "reads a legacy lock file"() {
         given:
         def lockFile = lockDir.file('conf.lockfile')
         lockFile << """#Ignored
@@ -130,7 +130,7 @@ line2"""
         1 * listener.fileObserved(lockFile)
     }
 
-    def 'reads a unique lock file'() {
+    def "reads a unique lock file"() {
         given:
         def lockFile = tmpDir.file('gradle.lockfile')
         lockFile << """#ignored
@@ -148,7 +148,7 @@ empty=d
         1 * listener.fileObserved(lockFile)
     }
 
-    def 'reads an invalid unique lock file '() {
+    def "reads an invalid unique lock file "() {
         given:
         def lockFile = tmpDir.file('gradle.lockfile')
         lockFile << """#ignored
@@ -168,7 +168,7 @@ empty=d
         ex.resolutions == ["Verify the lockfile content. For more information on lock file format, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#lock_state_location_and_format in the Gradle documentation."]
     }
 
-    def 'reads a unique lock file from a custom location'() {
+    def "reads a unique lock file from a custom location"() {
         given:
         def file = tmpDir.file('custom', 'lock.file')
         lockFile.set(file)
@@ -185,7 +185,7 @@ empty=d
         result == [a: ['bar', 'foo'], b: ['foo'], c: ['bar', 'foo'], d: []]
     }
 
-    def 'writes a unique lock file with prefix'() {
+    def "writes a unique lock file with prefix"() {
         when:
         context.isScript() >> true
         resolver.resolve("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME") >> tmpDir.file("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME")
@@ -201,7 +201,7 @@ empty=c
 
     }
 
-    def 'reads a legacy lock file with prefix'() {
+    def "reads a legacy lock file with prefix"() {
         given:
         context.isScript() >> true
         lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile, listener)
@@ -217,7 +217,7 @@ line2"""
         result == ['line1', 'line2']
     }
 
-    def 'reads a unique lock file with prefix'() {
+    def "reads a unique lock file with prefix"() {
         given:
         context.isScript() >> true
         resolver.resolve("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME") >> tmpDir.file("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME")
@@ -235,7 +235,7 @@ empty=d
         result == [a: ['bar', 'foo'], b: ['foo'], c: ['bar', 'foo'], d: []]
     }
 
-    def 'reads an invalid unique lock file with prefix'() {
+    def "reads an invalid unique lock file with prefix"() {
         given:
         context.isScript() >> true
         resolver.resolve("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME") >> tmpDir.file("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME")
@@ -258,7 +258,7 @@ empty=d
         ex.resolutions == ["Verify the lockfile content. For more information on lock file format, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/dependency_locking.html#lock_state_location_and_format in the Gradle documentation."]
     }
 
-    def 'fails to read a unique lockfile if root could not be determined'() {
+    def "fails to read a unique lockfile if root could not be determined"() {
         FileResolver resolver = Mock()
         resolver.canResolveRelativePath() >> false
         lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile, listener)
@@ -271,7 +271,7 @@ empty=d
         ex.getMessage().contains("Dependency locking cannot be used for project :foo")
     }
 
-    def 'fails to read a legacy lockfile if root could not be determined'() {
+    def "fails to read a legacy lockfile if root could not be determined"() {
         FileResolver resolver = Mock()
         resolver.canResolveRelativePath() >> false
         lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile, listener)
@@ -284,7 +284,7 @@ empty=d
         ex.getMessage().contains("Dependency locking cannot be used for project :foo")
     }
 
-    def 'fails to write a unique lockfile if root could not be determined'() {
+    def "fails to write a unique lockfile if root could not be determined"() {
         FileResolver resolver = Mock()
         resolver.canResolveRelativePath() >> false
         lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile, listener)

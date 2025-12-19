@@ -578,7 +578,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         configuredJavadocTool.isPresent()
     }
 
-    def 'can set java compile source compatibility if toolchain is configured'() {
+    def "can set java compile source compatibility if toolchain is configured"() {
         given:
         def someJdk = Jvm.current()
         setupProjectWithToolchain(someJdk.javaVersion)
@@ -593,7 +593,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         javaCompileTask.sourceCompatibility == prevJavaVersion.toString()
     }
 
-    void "source and target compatibility of compile tasks default to release if set"() {
+    def "source and target compatibility of compile tasks default to release if set"() {
         given:
         project.pluginManager.apply(JavaPlugin)
         def compileJava = project.tasks.named("compileJava", JavaCompile).get()

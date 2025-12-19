@@ -497,7 +497,7 @@ class DefaultProjectTest extends Specification {
         thrown(InvalidUserDataException)
     }
 
-    void evaluationDependsOnWithEmptyArgument() {
+    def evaluationDependsOnWithEmptyArgument() {
         when:
         project.evaluationDependsOn('')
 

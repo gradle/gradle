@@ -265,7 +265,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
         }
     }
 
-    def 'can use camel-case matching to exclude tasks'() {
+    def "can use camel-case matching to exclude tasks"() {
         buildFile << """
             task someDep
             task someOtherDep
@@ -279,7 +279,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
         }
     }
 
-    def 'can combine exclude task filters'() {
+    def "can combine exclude task filters"() {
         buildFile << """
             task someDep
             task someOtherDep
@@ -295,7 +295,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
     }
 
     @Issue(["https://issues.gradle.org/browse/GRADLE-3031", "https://issues.gradle.org/browse/GRADLE-2974"])
-    def 'excluding a task that is a dependency of multiple tasks'() {
+    def "excluding a task that is a dependency of multiple tasks"() {
         createDirs("sub")
         settingsFile << "include 'sub'"
         buildFile << """

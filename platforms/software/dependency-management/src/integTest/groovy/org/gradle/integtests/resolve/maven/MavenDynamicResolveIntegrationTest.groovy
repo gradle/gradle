@@ -448,7 +448,7 @@ Searched in the following locations:
         file('libs').assertHasDescendants('projectA-1.5.jar')
     }
 
-    def 'a -SNAPSHOT is higher than a -RC for a given version'() {
+    def "a -SNAPSHOT is higher than a -RC for a given version"() {
         given:
         def repo = mavenHttpRepo("repo")
         repo.getModuleMetaData('group', 'projectA').expectGet()

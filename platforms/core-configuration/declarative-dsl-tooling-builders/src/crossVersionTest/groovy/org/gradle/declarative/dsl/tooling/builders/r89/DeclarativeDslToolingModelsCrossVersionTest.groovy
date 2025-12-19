@@ -51,7 +51,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
         settingsFile.delete() //we are using a declarative settings file
     }
 
-    def 'can obtain model containing project schema, even in the presence of errors in project scripts'() {
+    def "can obtain model containing project schema, even in the presence of errors in project scripts"() {
         given:
         file("settings.gradle.dcl") << """
             rootProject.name = "test"
@@ -73,7 +73,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
         !schema.dataClassTypesByFqName.isEmpty()
     }
 
-    def 'model is obtained without configuring the project'() {
+    def "model is obtained without configuring the project"() {
         given:
         file("settings.gradle.dcl") << """
             rootProject.name = "test"
@@ -91,7 +91,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
         listener.hasSeenSomeEvents && listener.configPhaseStartEvents.isEmpty()
     }
 
-    def 'schema contains custom project type from included build'() {
+    def "schema contains custom project type from included build"() {
         given:
         withSoftwareTypePlugins(targetVersion).prepareToExecute()
 
@@ -111,7 +111,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
         !topLevelFunctions.find { it.contains("simpleName=testSoftwareType") }
     }
 
-    def 'interpretation sequences obtained via TAPI are suitable for analysis'() {
+    def "interpretation sequences obtained via TAPI are suitable for analysis"() {
         given:
         withSoftwareTypePlugins(targetVersion).prepareToExecute()
 

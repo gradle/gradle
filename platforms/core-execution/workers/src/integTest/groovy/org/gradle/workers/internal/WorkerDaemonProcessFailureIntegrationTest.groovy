@@ -49,7 +49,7 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
         writeAnnotationProcessorProject()
     }
 
-    void "daemon is gracefully removed if it is killed while idle in between builds"() {
+    def "daemon is gracefully removed if it is killed while idle in between builds"() {
         given:
         buildFile << """
             plugins {
@@ -92,7 +92,7 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
         outputContainsKilledWorkerWarning()
     }
 
-    void "daemon is gracefully removed if it is killed while idle in between calls"() {
+    def "daemon is gracefully removed if it is killed while idle in between calls"() {
         given:
         settingsFile << """
             include 'other'
@@ -167,7 +167,7 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
         outputContainsKilledWorkerWarning()
     }
 
-    void "daemon is gracefully removed if it is killed while idle before clients are stopped"() {
+    def "daemon is gracefully removed if it is killed while idle before clients are stopped"() {
         given:
         buildFile << """
             plugins {

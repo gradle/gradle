@@ -198,7 +198,7 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implem
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9487")
-    def 'break cycles with suppressed and cause exceptions'() {
+    def "break cycles with suppressed and cause exceptions"() {
         given:
         buildFile << """
             task doIt {
@@ -227,7 +227,7 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implem
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9487")
-    def 'break cycles with suppressed exceptions'() {
+    def "break cycles with suppressed exceptions"() {
         given:
         buildFile << """
             task doIt {
@@ -257,7 +257,7 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implem
     }
 
     @Issue("https://github.com/gradle/gradle/issues/34738")
-    def 'shows test-classpath-only cause of GradleConnectionException from test worker'() {
+    def "shows test-classpath-only cause of GradleConnectionException from test worker"() {
         given:
         buildFile << """
             plugins {

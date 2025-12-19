@@ -203,7 +203,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         "buildDirectory.file('exe/main.exe')"          | "build/exe/main.exe"
     }
 
-    def 'can create empty #collectionType'() {
+    def "can create empty #collectionType"() {
         given:
         buildFile << """
             def fileCollection = $expression
@@ -221,7 +221,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         'FileCollection'             | 'project.layout.files()'
     }
 
-    def 'can create #collectionType containing #content'() {
+    def "can create #collectionType containing #content"() {
         given:
         file('src/resource/file.txt') << "some text"
 
@@ -254,7 +254,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         'FileCollection'             | 'nested objects' | "project.layout.files({[{$STRING_CALLABLE}]})"
     }
 
-    def 'can create #collectionType with #dependencyType dependency'() {
+    def "can create #collectionType with #dependencyType dependency"() {
         buildFile << """
             task myTask {
                 def outputFile = file('build/resource/file.txt')
@@ -280,7 +280,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         'FileCollection'             | 'TaskOutputs'  | 'project.layout.files(project.tasks.myTask.outputs)'
     }
 
-    def '#expression enforces build dependencies when given Task as input'() {
+    def "#expression enforces build dependencies when given Task as input"() {
         buildFile << """
             task producer {
                 def outputFile = file('build/resource/file.txt')
@@ -310,7 +310,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         expression << ['project.layout.files']
     }
 
-    def 'can create #collectionType with Configuration dependency'() {
+    def "can create #collectionType with Configuration dependency"() {
         file('src/resource/file.txt') << "some text"
         buildFile << """
             configurations {
@@ -336,7 +336,7 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         'FileCollection'             | 'project.layout.files(configurations.other)'
     }
 
-    def 'fails to resolve #collectionType with null element'() {
+    def "fails to resolve #collectionType with null element"() {
         buildFile << """
             def fileCollection = $expression
             println("size = \${fileCollection.files.size()}")

@@ -30,7 +30,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         file("gradle.properties") << "org.gradle.kotlin.dsl.dcl=true"
     }
 
-    def 'can declare and configure a custom project feature with an unsafe definition'() {
+    def "can declare and configure a custom project feature with an unsafe definition"() {
         given:
         def pluginBuilder = withUnsafeProjectFeatureDefinitionDeclaredUnsafe()
         pluginBuilder.addBuildScriptContent(pluginBuildScriptForJava)
@@ -47,7 +47,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         assertThatDeclaredValuesAreSetProperly()
     }
 
-    def 'sensible error when definition is declared safe but is not an interface'() {
+    def "sensible error when definition is declared safe but is not an interface"() {
         given:
         def pluginBuilder = withUnsafeProjectFeatureDefinitionDeclaredSafe()
         pluginBuilder.addBuildScriptContent(pluginBuildScriptForJava)
@@ -73,7 +73,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         )
     }
 
-    def 'sensible error when definition is declared safe but has an injected service'() {
+    def "sensible error when definition is declared safe but has an injected service"() {
         given:
         def pluginBuilder = withProjectFeatureAndInjectableDefinitionDeclaredSafe()
         pluginBuilder.addBuildScriptContent(pluginBuildScriptForJava)
@@ -99,7 +99,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         )
     }
 
-    def 'sensible error when definition is declared safe but has a nested property with an injected service'() {
+    def "sensible error when definition is declared safe but has a nested property with an injected service"() {
         given:
         def pluginBuilder = withProjectFeatureAndNestedInjectableDefinitionDeclaredSafe()
         pluginBuilder.addBuildScriptContent(pluginBuildScriptForJava)
@@ -125,7 +125,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         )
     }
 
-    def 'sensible error when definition is declared safe but has multiple properties with an injected service'() {
+    def "sensible error when definition is declared safe but has multiple properties with an injected service"() {
         given:
         def pluginBuilder = withProjectFeatureAndMultipleInjectableDefinition()
         pluginBuilder.addBuildScriptContent(pluginBuildScriptForJava)
@@ -158,7 +158,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         )
     }
 
-    def 'sensible error when definition is declared safe but inherits an injected service'() {
+    def "sensible error when definition is declared safe but inherits an injected service"() {
         given:
         def pluginBuilder = withProjectFeatureAndInjectableParentDefinitionDeclaredSafe()
         pluginBuilder.addBuildScriptContent(pluginBuildScriptForJava)
@@ -184,7 +184,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         )
     }
 
-    def 'sensible error when definition is declared safe but has several different errors'() {
+    def "sensible error when definition is declared safe but has several different errors"() {
         given:
         def pluginBuilder = withPolyUnsafeProjectFeatureDefinitionDeclaredSafe()
         pluginBuilder.addBuildScriptContent(pluginBuildScriptForJava)

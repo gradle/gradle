@@ -17,7 +17,7 @@
 package org.gradle.api.publish.ivy
 
 class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
-    void "can publish EAR only for mixed java and WAR and EAR project"() {
+    def "can publish EAR only for mixed java and WAR and EAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishEar' "
 

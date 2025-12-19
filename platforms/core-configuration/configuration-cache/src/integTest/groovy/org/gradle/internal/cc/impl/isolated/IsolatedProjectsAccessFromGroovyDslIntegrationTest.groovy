@@ -537,7 +537,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "method"   | "def foo() { }" | "foo()"
     }
 
-    def 'no duplicate problems reported for dynamic property lookup in transitive parents'() {
+    def "no duplicate problems reported for dynamic property lookup in transitive parents"() {
         createDirs("sub", "sub/sub-a", "sub/sub-b")
         settingsFile << """
             include(":sub")
@@ -932,7 +932,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "dependencyLocking" | "dependencyLocking { lockAllConfigurations() }"
     }
 
-    def 'child project access preserves a referrer'() {
+    def "child project access preserves a referrer"() {
         settingsFile """
             include(":a")
         """
@@ -954,7 +954,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         outputContains "root.version = v1\na.version = v1"
     }
 
-    def 'access via Gradle instance preserves a referrer'() {
+    def "access via Gradle instance preserves a referrer"() {
         settingsFile """
             include(":a")
         """

@@ -22,7 +22,7 @@ import spock.lang.Issue
 
 class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
 
-    def 'can use separate JUnit frameworks for unit versus integration tests'() {
+    def "can use separate JUnit frameworks for unit versus integration tests"() {
         given:
         buildFile << """
         plugins {
@@ -86,7 +86,7 @@ class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
         integTestResults.assertTestClassesExecuted('it.IntegrationTest')
     }
 
-    def 'can use JUnit for unit tests and TestNG for integration tests'() {
+    def "can use JUnit for unit tests and TestNG for integration tests"() {
         given:
         buildFile << """
         plugins {
@@ -163,7 +163,7 @@ class TestSuitesTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23544")
-    def 'can configure test task testing framework after test suite framework is set'() {
+    def "can configure test task testing framework after test suite framework is set"() {
         given:
         buildFile """
             plugins {

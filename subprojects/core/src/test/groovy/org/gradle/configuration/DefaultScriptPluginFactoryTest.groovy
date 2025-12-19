@@ -86,7 +86,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         classpathHasher.hash(_ as ClassPath) >> TestHashCodes.hashCodeFrom(123)
     }
 
-    void "configures a target object using script"() {
+    def "configures a target object using script"() {
         given:
         final Object target = new Object()
 
@@ -106,7 +106,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         0 * scriptRunner._
     }
 
-    void "configures a project object using script with imperative and inheritable code"() {
+    def "configures a project object using script with imperative and inheritable code"() {
         given:
         def target = Mock(ProjectInternal) {
             getExtensions() >> Mock(ExtensionContainerInternal)
@@ -132,7 +132,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         0 * scriptRunner._
     }
 
-    void "configures a project object using script with imperative code"() {
+    def "configures a project object using script with imperative code"() {
         given:
         def target = Mock(ProjectInternal) {
             getExtensions() >> Mock(ExtensionContainerInternal)
@@ -157,7 +157,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         0 * scriptRunner._
     }
 
-    void "configures a project object using script with inheritable and deferred code"() {
+    def "configures a project object using script with inheritable and deferred code"() {
         given:
         def target = Mock(ProjectInternal) {
             getExtensions() >> Mock(ExtensionContainerInternal)
@@ -182,7 +182,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         0 * scriptRunner._
     }
 
-    void "configures a project object using script with deferred code"() {
+    def "configures a project object using script with deferred code"() {
         given:
         def target = Mock(ProjectInternal) {
             getExtensions() >> Mock(ExtensionContainerInternal)
@@ -206,7 +206,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         0 * scriptRunner._
     }
 
-    void "configures a project object using empty script"() {
+    def "configures a project object using empty script"() {
         given:
         def target = Mock(ProjectInternal) {
             getExtensions() >> Mock(ExtensionContainerInternal)
@@ -228,7 +228,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         0 * scriptRunner._
     }
 
-    void "configured target uses given script plugin factory for nested scripts"() {
+    def "configured target uses given script plugin factory for nested scripts"() {
         given:
         def otherScriptPluginFactory = Mock(ScriptPluginFactory)
         factory.setScriptPluginFactory(otherScriptPluginFactory)

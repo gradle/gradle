@@ -25,7 +25,7 @@ import spock.lang.Issue
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    void "can downgrade version through platform"() {
+    def "can downgrade version through platform"() {
         given:
         repository {
             'org:platform:1.0'() {
@@ -83,7 +83,7 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         }
     }
 
-    void "can deal with platform upgrades"() {
+    def "can deal with platform upgrades"() {
         given:
         repository {
             'org:platform:1.0'() {

@@ -153,7 +153,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    def 'can aggregate unit test results from dependent projects'() {
+    def "can aggregate unit test results from dependent projects"() {
         given:
         file('application/build.gradle') << '''
             apply plugin: 'org.gradle.test-report-aggregation'
@@ -181,7 +181,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         aggregatedResults.assertAtLeastTestPathsExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
     }
 
-    def 'multiple test suites create multiple aggregation tasks'() {
+    def "multiple test suites create multiple aggregation tasks"() {
         given:
         file("transitive/build.gradle") << """
             testing {
@@ -287,7 +287,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         aggregatedIntegTestResults.assertAtLeastTestPathsExecuted('transitive.ModTest', 'application.DivTest')
     }
 
-    def 'can aggregate tests from root project'() {
+    def "can aggregate tests from root project"() {
         given:
         buildFile << '''
             apply plugin: 'org.gradle.test-report-aggregation'
@@ -324,7 +324,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
     }
 
 
-    def 'can aggregate tests from root project with different overall statuses'() {
+    def "can aggregate tests from root project with different overall statuses"() {
         given:
         buildFile << '''
             apply plugin: 'org.gradle.test-report-aggregation'
@@ -417,7 +417,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    def 'can aggregate tests from root project when subproject does not have tests'() {
+    def "can aggregate tests from root project when subproject does not have tests"() {
         given:
         buildFile << '''
             apply plugin: 'org.gradle.test-report-aggregation'
@@ -446,7 +446,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         aggregatedTestResults.assertAtLeastTestPathsExecuted('application.AdderTest', 'direct.MultiplierTest')
     }
 
-    def 'test verification failure prevents creation of aggregated report'() {
+    def "test verification failure prevents creation of aggregated report"() {
         given:file("application/build.gradle") << """
             apply plugin: 'org.gradle.test-report-aggregation'
         """
@@ -475,7 +475,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         file("application/build/reports/tests/test/aggregated-results").assertDoesNotExist()
     }
 
-    def 'test verification failure creates aggregated report with --continue flag'() {
+    def "test verification failure creates aggregated report with --continue flag"() {
         given:file("application/build.gradle") << """
             apply plugin: 'org.gradle.test-report-aggregation'
         """
@@ -515,7 +515,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         aggregatedResults.assertAtLeastTestPathsExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
     }
 
-    def 'test aggregated report can be put into a custom location'() {
+    def "test aggregated report can be put into a custom location"() {
         given:
         // Reordering the plugins so that Java is applied later
         file("application/build.gradle").text = """
@@ -542,7 +542,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         aggregatedResults.assertTestClassesExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
     }
 
-    def 'catastrophic failure of single test prevents creation of aggregated report'() {
+    def "catastrophic failure of single test prevents creation of aggregated report"() {
         given:
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.test-report-aggregation'
@@ -576,7 +576,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
 
     }
 
-    def 'catastrophic failure of every test task prevents creation of aggregated report'() {
+    def "catastrophic failure of every test task prevents creation of aggregated report"() {
         given:
         // prevent all test VMs from starting
         buildFile << '''

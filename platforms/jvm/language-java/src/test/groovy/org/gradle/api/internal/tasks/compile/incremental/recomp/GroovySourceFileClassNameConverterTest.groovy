@@ -40,7 +40,7 @@ class GroovySourceFileClassNameConverterTest extends Specification {
         converter = new DefaultSourceFileClassNameConverter(Multimaps.asMap(sourceClassesMapping))
     }
 
-    def 'can get class names by file'() {
+    def "can get class names by file"() {
         expect:
         converter.getClassNames(file) == classes
 
@@ -51,7 +51,7 @@ class GroovySourceFileClassNameConverterTest extends Specification {
         'OtherClass.groovy' | [] as Set
     }
 
-    def 'can get files by classname'() {
+    def "can get files by classname"() {
         expect:
         converter.getRelativeSourcePaths(fqcn) == files
 

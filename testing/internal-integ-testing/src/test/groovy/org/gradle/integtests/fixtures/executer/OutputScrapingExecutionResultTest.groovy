@@ -667,7 +667,7 @@ BUILD FAILED in 13s
         result.assertAnyTasksExecuted()
     }
 
-    def 'assertAnyTasksExecuted() fails assertion when output contains no tasks or skipped tasks'() {
+    def "assertAnyTasksExecuted() fails assertion when output contains no tasks or skipped tasks"() {
         def output = """
 
 $tasksExecuted
@@ -692,7 +692,7 @@ BUILD FAILED in 13s
         ''                                                 | "Build output does not contain any executed tasks."
     }
 
-    def 'assertAllTasksSkipped() fails assertion when output contains at least one task that is executed'() {
+    def "assertAllTasksSkipped() fails assertion when output contains at least one task that is executed"() {
         def output = """
 > Task :a
 > Task :b
@@ -748,7 +748,7 @@ BUILD FAILED in 13s
         ]
     }
 
-    def 'throws exception when assertTasksScheduled taskPaths is empty'() {
+    def "throws exception when assertTasksScheduled taskPaths is empty"() {
         def output = """
 > Task :compileMyTestBinaryMyTestJava
 > Task :myTestBinaryTest

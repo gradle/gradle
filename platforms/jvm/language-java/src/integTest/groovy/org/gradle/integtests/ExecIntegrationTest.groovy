@@ -40,7 +40,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
-    def 'can execute java with #task'() {
+    def "can execute java with #task"() {
         given:
         buildFile << """
             apply plugin: 'java'
@@ -78,7 +78,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         task << ['javaexecTask', 'javaexecInjectedTaskAction']
     }
 
-    def 'can execute commands with #task'() {
+    def "can execute commands with #task"() {
         given:
         buildFile << """
             import org.gradle.internal.jvm.Jvm

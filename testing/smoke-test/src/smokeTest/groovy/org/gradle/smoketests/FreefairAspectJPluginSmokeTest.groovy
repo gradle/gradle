@@ -23,7 +23,7 @@ import spock.lang.Issue
 @Requires(value = UnitTestPreconditions.Jdk17OrLater, reason = "AspectJ requires JVM 17+")
 class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Issue('https://plugins.gradle.org/plugin/io.freefair.aspectj')
-    def 'freefair aspectj plugin'() {
+    def "freefair aspectj plugin"() {
         given:
         buildFile << """
             plugins {

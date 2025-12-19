@@ -20,7 +20,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def '#target #injectionStyle with #parameter can react to build work result'() {
+    def "#target #injectionStyle with #parameter can react to build work result"() {
         given:
         def configCache = newConfigurationCacheFixture()
 
@@ -68,7 +68,7 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
         ].combinations()
     }
 
-    def '#target #injectionStyle with #parameter can react to configuration failure'() {
+    def "#target #injectionStyle with #parameter can react to configuration failure"() {
         given:
         withLavaLampPluginFor target, parameter, injectionStyle
 
@@ -91,7 +91,7 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
         ].combinations()
     }
 
-    def '#scriptTarget action can use build service registered #beforeOrAfter prior to the service being closed'() {
+    def "#scriptTarget action can use build service registered #beforeOrAfter prior to the service being closed"() {
         given:
         def configCache = newConfigurationCacheFixture()
         scriptFileFor(scriptTarget) << """

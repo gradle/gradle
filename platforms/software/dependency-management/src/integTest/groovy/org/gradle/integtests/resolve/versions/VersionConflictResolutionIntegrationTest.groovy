@@ -35,7 +35,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    void "strict conflict resolution should fail due to conflict"() {
+    def "strict conflict resolution should fail due to conflict"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
@@ -107,7 +107,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
-    void "strict conflict resolution should pass when no conflicts"() {
+    def "strict conflict resolution should pass when no conflicts"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
 
         settingsFile << "include 'api', 'impl', 'tool'"
@@ -151,7 +151,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("tool:dependencies")
     }
 
-    void "resolves module version conflicts to the latest version by default"() {
+    def "resolves module version conflicts to the latest version by default"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
@@ -211,7 +211,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "resolves transitive module version conflicts to the latest version by default"() {
+    def "resolves transitive module version conflicts to the latest version by default"() {
         def foo133 = mavenRepo.module("org", "foo", '1.3.3').publish()
         def foo144 = mavenRepo.module("org", "foo", '1.4.4').publish()
         mavenRepo.module("org", "bar", "1.0").dependsOn(foo133).publish()
@@ -251,7 +251,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "re-selects target version for previously resolved then evicted selector"() {
+    def "re-selects target version for previously resolved then evicted selector"() {
         def depOld = mavenRepo.module("org", "dep", "2.0").publish()
         def depNew = mavenRepo.module("org", "dep", "2.5").publish()
 
@@ -306,7 +306,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "does not attempt to resolve an evicted dependency"() {
+    def "does not attempt to resolve an evicted dependency"() {
         mavenRepo.module("org", "external", "1.2").publish()
         mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.0").publish()
 
@@ -340,7 +340,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2890")
-    void "selects latest from multiple conflicts"() {
+    def "selects latest from multiple conflicts"() {
         mavenRepo.module("org", "child", '1').publish()
         mavenRepo.module("org", "child", '2').publish()
         mavenRepo.module("org", "parent", '1').dependsOn("org", "child", "1").publish()
@@ -383,7 +383,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "resolves dynamic dependency before resolving conflict"() {
+    def "resolves dynamic dependency before resolving conflict"() {
         mavenRepo.module("org", "external", "1.2").publish()
         mavenRepo.module("org", "external", "1.4").publish()
         mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "[1.3,)").publish()
@@ -420,7 +420,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "fails when version selected by conflict resolution does not exist"() {
+    def "fails when version selected by conflict resolution does not exist"() {
         mavenRepo.module("org", "external", "1.2").publish()
         mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.4").publish()
 
@@ -451,7 +451,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not find org:external:1.4.")
     }
 
-    void "does not fail when evicted version does not exist"() {
+    def "does not fail when evicted version does not exist"() {
         mavenRepo.module("org", "external", "1.4").publish()
         mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.4").publish()
 
@@ -486,7 +486,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "takes newest dynamic version when dynamic version forced"() {
+    def "takes newest dynamic version when dynamic version forced"() {
         mavenRepo.module("org", "foo", '1.3.0').publish()
 
         mavenRepo.module("org", "foo", '1.4.1').publish()
@@ -561,7 +561,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "parent pom does not participate in forcing mechanism"() {
+    def "parent pom does not participate in forcing mechanism"() {
         mavenRepo.module("org", "foo", '1.3.0').publish()
         mavenRepo.module("org", "foo", '2.4.0').publish()
 
@@ -613,7 +613,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "previously evicted nodes should contain correct target version"() {
+    def "previously evicted nodes should contain correct target version"() {
         /*
         a1->b1
         a2->b2->a1
@@ -667,7 +667,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2555")
-    void "can deal with transitive with parent in conflict"() {
+    def "can deal with transitive with parent in conflict"() {
         /*
             Graph looks like…
 
@@ -735,7 +735,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2555")
-    void "batched up conflicts with conflicted parent and child"() {
+    def "batched up conflicts with conflicted parent and child"() {
         /*
         Dependency tree:
 
@@ -813,7 +813,7 @@ parentFirst
     }
 
     @Issue("GRADLE-2752")
-    void "selects root module when earlier version of module requested"() {
+    def "selects root module when earlier version of module requested"() {
         mavenRepo.module("org", "test", "1.2").publish()
         mavenRepo.module("org", "other", "1.7").dependsOn("org", "test", "1.2").publish()
 
@@ -848,7 +848,7 @@ parentFirst
     }
 
     @Issue("GRADLE-2920")
-    void "selects later version of root module when requested"() {
+    def "selects later version of root module when requested"() {
         mavenRepo.module("org", "test", "2.1").publish()
         mavenRepo.module("org", "other", "1.7").dependsOn("org", "test", "2.1").publish()
 
@@ -882,7 +882,7 @@ parentFirst
         }
     }
 
-    void "module is required only by selected conflicting version and in turn requires evicted conflicting version"() {
+    def "module is required only by selected conflicting version and in turn requires evicted conflicting version"() {
         /*
             a2 -> b1 -> c1
             a1
@@ -2070,7 +2070,7 @@ parentFirst
         }
     }
 
-    def 'order of dependency declaration does not effect transitive dependency versions'() {
+    def "order of dependency declaration does not effect transitive dependency versions"() {
         given:
         def foo11 = mavenRepo.module('org', 'foo', '1.1').publish()
         def foo12 = mavenRepo.module('org', 'foo', '1.2').publish()
@@ -2180,7 +2180,7 @@ parentFirst
         succeeds("dependencies", "--configuration", "conf")
     }
 
-    def 'optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover has constraint: #dependsOptional, root has constraint: #constraintsOptional)'() {
+    def "optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover has constraint: #dependsOptional, root has constraint: #constraintsOptional)"() {
         given:
         def optional = mavenRepo.module('org', 'optional', '1.0').publish()
         def main = mavenRepo.module('org', 'main', '1.0').dependsOn(optional, optional: true).publish()
@@ -2227,7 +2227,7 @@ parentFirst
     }
 
     @Issue("gradle/gradle#8944")
-    def 'verify that cleaning up constraints no longer causes a ConcurrentModificationException'() {
+    def "verify that cleaning up constraints no longer causes a ConcurrentModificationException"() {
         given:
         // Direct dependency with transitive to be substituted by project
         def project = mavenRepo.module('org', 'project', '1.0')
@@ -2289,7 +2289,7 @@ parentFirst
     }
 
     @Issue("gradle/gradle#11844")
-    def 'does not fail serialization in recursive error case'() {
+    def "does not fail serialization in recursive error case"() {
         // org:lib:1.0 -> org:between:1.0 -> org:lib:1.1
         //
         //  - org:lib:1.1 is selected
@@ -2317,7 +2317,7 @@ parentFirst
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
-    def 'local cycle between dependencies does not causes a ConcurrentModificationException during selector removal'() {
+    def "local cycle between dependencies does not causes a ConcurrentModificationException during selector removal"() {
         given:
         def lib2 = mavenRepo.module('org', 'lib', '2.0').publish()
         def lib3 = mavenRepo.module('org', 'lib', '3.0').publish()
@@ -2348,7 +2348,7 @@ parentFirst
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
-    def 'local cycle between dependencies does not causes a ConcurrentModificationException during selector removal with strict version endorsement'() {
+    def "local cycle between dependencies does not causes a ConcurrentModificationException during selector removal with strict version endorsement"() {
         given:
         def direct11 = mavenRepo.module('org', 'direct', '1.1')
         def betweenLibAndDirect = mavenRepo.module('org', 'betweenLibAndDirect', '1.0').dependsOn(direct11)
@@ -2379,7 +2379,7 @@ parentFirst
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
-    def 'local cycle between dependencies does not causes a ConcurrentModificationException during selector removal with multiple strict version endorsements'() {
+    def "local cycle between dependencies does not causes a ConcurrentModificationException during selector removal with multiple strict version endorsements"() {
         given:
         def foo2 = mavenRepo.module('org', 'foo', '2.0').publish()
         def foo1 = mavenRepo.module('org', 'foo', '1.0')
@@ -2465,7 +2465,7 @@ parentFirst
         succeeds 'dependencies', '--configuration', 'conf'
     }
 
-    def 'does not cache node dependencies when node is deselected then reselected with different exclude filter'() {
+    def "does not cache node dependencies when node is deselected then reselected with different exclude filter"() {
         given:
         // Excluded module
         def excluded = mavenRepo.module('org.test', 'excluded', '1.0').publish()

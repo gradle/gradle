@@ -20,13 +20,13 @@ import spock.lang.Specification
 
 class PersistentArrayTest extends Specification {
 
-    def 'empty arrays are the same'() {
+    def "empty arrays are the same"() {
         expect:
         PersistentArray.of() === PersistentArray.of()
         PersistentArray.of().size() == 0
     }
 
-    def 'copyOf(array) === array'() {
+    def "copyOf(array) === array"() {
         expect:
         PersistentArray.copyOf(array) === array
 
@@ -34,7 +34,7 @@ class PersistentArrayTest extends Specification {
         array << [PersistentArray.of(), PersistentArray.of(1), PersistentArray.of(1, 2, 3)]
     }
 
-    def 'plus'() {
+    def "plus"() {
         given:
         def array = PersistentArray.of()
 
@@ -54,7 +54,7 @@ class PersistentArrayTest extends Specification {
         size << [1, 32, 33, 32 * 32, 32 * 32 + 1, 32 * 32 * 32 + 1, 32 * 32 * 32 * 32 + 1]
     }
 
-    def 'iterator'() {
+    def "iterator"() {
         given:
         def list = (0..<size).collect()
         def array = PersistentArray.copyOf(list)
@@ -66,7 +66,7 @@ class PersistentArrayTest extends Specification {
         size << [0, 1, 32, 33, 32 * 32 + 1, 32 * 32 * 32 * 32 + 1]
     }
 
-    def 'contains'() {
+    def "contains"() {
         given:
         def list = size > 0 ? (1..size).collect() : []
         def array = PersistentArray.copyOf(list)
@@ -82,7 +82,7 @@ class PersistentArrayTest extends Specification {
         size << [0, 1, 32, 33, 32 * 32 + 1]
     }
 
-    def 'forEach'() {
+    def "forEach"() {
         given:
         def list = size > 0 ? (1..size).collect() : []
         def array = PersistentArray.copyOf(list)
@@ -100,7 +100,7 @@ class PersistentArrayTest extends Specification {
         size << [0, 1, 32, 33, 32 * 32 + 1]
     }
 
-    def 'iterator throws NoSuchElement'() {
+    def "iterator throws NoSuchElement"() {
         given:
         def array = PersistentArray.copyOf((0..<size).collect())
         def iterator = array.iterator()
@@ -120,7 +120,7 @@ class PersistentArrayTest extends Specification {
         size << [0, 1, 32, 33, 32 * 32 + 1, 32 * 32 * 32 * 32 + 1]
     }
 
-    def 'getLast'() {
+    def "getLast"() {
         expect:
         null === PersistentArray.of().last
         1 == PersistentArray.of(1).last
@@ -128,7 +128,7 @@ class PersistentArrayTest extends Specification {
         33 == PersistentArray.copyOf((1..33)).last
     }
 
-    def 'toString == [v1,v2,...]'() {
+    def "toString == [v1,v2,...]"() {
         expect:
         def integers = 0..<arraySize
         def expected = integers.toList().toString().replaceAll(" ", "")
@@ -138,7 +138,7 @@ class PersistentArrayTest extends Specification {
         arraySize << [0, 1, 2, 33]
     }
 
-    def 'array get throws IndexOutOfBoundsException for negative index'() {
+    def "array get throws IndexOutOfBoundsException for negative index"() {
         when:
         array.get(-1)
 
@@ -154,7 +154,7 @@ class PersistentArrayTest extends Specification {
         ]
     }
 
-    def 'array get throws IndexOutOfBoundsException for index >= size'() {
+    def "array get throws IndexOutOfBoundsException for index >= size"() {
         when:
         array.get(array.size())
 
@@ -170,7 +170,7 @@ class PersistentArrayTest extends Specification {
         ]
     }
 
-    def 'array hashCode is consistent with equals'() {
+    def "array hashCode is consistent with equals"() {
         given:
         def array1 = PersistentArray.copyOf(1..size)
         def array2 = PersistentArray.copyOf(1..size)

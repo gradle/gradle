@@ -202,7 +202,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         project.eclipse.wtp.component.resources == [new WbResource('/', 'foo'), new WbResource('/common', 'common')]
     }
 
-    def 'applyToEarProject in order #plugs should have web project and classpath task'() {
+    def "applyToEarProject in order #plugs should have web project and classpath task"() {
         when:
         plugs.each { p ->
             if (p == 'eclipse-wtp') {

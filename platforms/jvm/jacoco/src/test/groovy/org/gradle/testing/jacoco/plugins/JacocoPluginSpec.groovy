@@ -29,7 +29,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
         project.apply plugin: 'jacoco'
     }
 
-    def 'jacoco applied to specific JavaExec task'() {
+    def "jacoco applied to specific JavaExec task"() {
         given:
         JavaExec task = project.tasks.create('exec', JavaExec)
         when:
@@ -38,7 +38,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
         task.extensions.getByType(JacocoTaskExtension) != null
     }
 
-    def 'jacoco applied to Test task'() {
+    def "jacoco applied to Test task"() {
         given:
         Test task = project.tasks.create('customTest', Test)
         expect:
@@ -47,7 +47,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
 
     @Requires(UnitTestPreconditions.Online)
     @Issue("GRADLE-3498")
-    def 'jacoco task extension can be configured. includeNoLocationClasses: #includeNoLocationClassesValue'() {
+    def "jacoco task extension can be configured. includeNoLocationClasses: #includeNoLocationClassesValue"() {
         given:
         project.apply plugin: 'java'
         project.repositories.maven { repo ->

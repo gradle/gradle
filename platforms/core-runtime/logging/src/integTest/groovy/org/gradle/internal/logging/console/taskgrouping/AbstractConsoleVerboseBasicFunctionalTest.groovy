@@ -56,7 +56,7 @@ abstract class AbstractConsoleVerboseBasicFunctionalTest extends AbstractConsole
         hasSilenceTaskOutput == result.groupedOutput.hasTask(':silence')
     }
 
-    def 'failed task result can be rendered'() {
+    def "failed task result can be rendered"() {
         given:
         buildFile << '''
             task myFailure {

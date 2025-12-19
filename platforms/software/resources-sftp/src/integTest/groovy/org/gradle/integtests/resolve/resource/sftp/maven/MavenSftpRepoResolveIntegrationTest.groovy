@@ -20,7 +20,7 @@ import org.gradle.integtests.resolve.resource.sftp.AbstractSftpDependencyResolut
 
 class MavenSftpRepoResolveIntegrationTest extends AbstractSftpDependencyResolutionTest {
 
-    void "can resolve dependencies from a SFTP Maven repository"() {
+    def "can resolve dependencies from a SFTP Maven repository"() {
         given:
         def mavenSftpRepo = getMavenSftpRepo()
         def module = mavenSftpRepo.module('org.group.name', 'projectA', '1.2')

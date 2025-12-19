@@ -27,7 +27,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 @Requires(UnitTestPreconditions.Jdk17OrLater)
 class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
-    def 'spring boot plugin'() {
+    def "spring boot plugin"() {
         given:
         buildFile << """
             plugins {

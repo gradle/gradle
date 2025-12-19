@@ -24,7 +24,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
 
     def configurationCache = newConfigurationCacheFixture()
 
-    def 'stores single entry per key by default'() {
+    def "stores single entry per key by default"() {
         given:
         settingsFile.text = '// original branch'
 
@@ -53,7 +53,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         configurationCacheEntryDirs.size() == 1
     }
 
-    def 'can store multiple entries per key'() {
+    def "can store multiple entries per key"() {
         given:
         withMaxEntriesPerKey 2
 
@@ -115,7 +115,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         configurationCacheEntryDirs.size() == 2
     }
 
-    def 'evicted entry is collected'() {
+    def "evicted entry is collected"() {
         given:
         withMaxEntriesPerKey 1
 
@@ -135,7 +135,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         configurationCacheEntryDirs.size() == 1
     }
 
-    def 'evicted entries are collected'() {
+    def "evicted entries are collected"() {
         given:
         withMaxEntriesPerKey 3
 
@@ -175,7 +175,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         newest in remainingEntries
     }
 
-    def 'least recently used entry is evicted'() {
+    def "least recently used entry is evicted"() {
         given:
         withMaxEntriesPerKey 2
 

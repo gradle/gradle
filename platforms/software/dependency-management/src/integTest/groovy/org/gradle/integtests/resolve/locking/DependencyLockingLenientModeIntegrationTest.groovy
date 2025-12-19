@@ -24,7 +24,7 @@ class DependencyLockingLenientModeIntegrationTest extends AbstractLockingIntegra
         return LockMode.LENIENT
     }
 
-    def 'does not fail when lock file conflicts with declared strict constraint (initial unique: #unique)'() {
+    def "does not fail when lock file conflicts with declared strict constraint (initial unique: #unique)"() {
         given:
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -74,7 +74,7 @@ dependencies {
         unique << [true, false]
     }
 
-    def 'does not fail when lock file conflicts with declared version constraint (initial unique: #unique)'() {
+    def "does not fail when lock file conflicts with declared version constraint (initial unique: #unique)"() {
         given:
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -122,7 +122,7 @@ dependencies {
         unique << [true, false]
     }
 
-    def 'does not fail when lock file contains entry that is not in resolution result (initial unique: #unique)'() {
+    def "does not fail when lock file contains entry that is not in resolution result (initial unique: #unique)"() {
 
         given:
         mavenRepo.module('org', 'foo', '1.0').publish()
@@ -168,7 +168,7 @@ dependencies {
         unique << [true, false]
     }
 
-    def 'does not fail when lock file does not contain entry for module in resolution result (initial unique: #unique)'() {
+    def "does not fail when lock file does not contain entry for module in resolution result (initial unique: #unique)"() {
         given:
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -215,7 +215,7 @@ dependencies {
         unique << [true, false]
     }
 
-    def 'does not fail when resolution result is empty and lock file contains entries (initial unique: #unique)'() {
+    def "does not fail when resolution result is empty and lock file contains entries (initial unique: #unique)"() {
         given:
         mavenRepo.module('org', 'foo', '1.0').publish()
 
@@ -251,7 +251,7 @@ configurations {
         unique << [true, false]
     }
 
-    def 'dependency report passes without failed dependencies using out-of-date lock file'() {
+    def "dependency report passes without failed dependencies using out-of-date lock file"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
@@ -291,7 +291,7 @@ dependencies {
 \\--- org:foo:1.0 -> 1.1 (c)"""
     }
 
-    def 'dependency report passes without FAILED dependencies for all out lock issues'() {
+    def "dependency report passes without FAILED dependencies for all out lock issues"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()

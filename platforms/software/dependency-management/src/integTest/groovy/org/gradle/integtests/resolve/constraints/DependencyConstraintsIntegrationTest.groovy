@@ -48,7 +48,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    void "dependency constraint is not included in resolution without a hard dependency"() {
+    def "dependency constraint is not included in resolution without a hard dependency"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
         writeSpec {
@@ -70,7 +70,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    void "dependency constraint is included into the result of resolution when a hard dependency is also added"() {
+    def "dependency constraint is included into the result of resolution when a hard dependency is also added"() {
         given:
         mavenRepo.module("org", "foo", '1.1').publish()
 
@@ -99,7 +99,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    void "dependency constraint can be used to declare incompatibility"() {
+    def "dependency constraint can be used to declare incompatibility"() {
         given:
         mavenRepo.module("org", "foo", '1.1').publish()
         mavenRepo.module("org", "bar", '1.0')
@@ -128,7 +128,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
    Constraint path: 'root project :' (conf) --> 'org:foo:{reject all versions}'""")
     }
 
-    void "dependency constraint is included into the result of resolution when a hard dependency is also added transitively"() {
+    def "dependency constraint is included into the result of resolution when a hard dependency is also added transitively"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
@@ -166,7 +166,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
      * Test demonstrates a bug in resolution of constraints, when real dependency is evicted via conflict resolution.
      */
     @Issue("gradle/gradle#4610")
-    void "dependency constraint should not preserve hard dependency for evicted dependency"() {
+    def "dependency constraint should not preserve hard dependency for evicted dependency"() {
         given:
         // "org:foo:1.0" -> "org:baz:1.0" -> "org:baz-transitive:1.0"
         mavenRepo.module("org", "foo", '1.0')
@@ -233,7 +233,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
          */
     }
 
-    void "range resolution kicks in with dependency constraints"() {
+    def "range resolution kicks in with dependency constraints"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
@@ -267,7 +267,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    void "transitive dependencies of an dependency constraint do not participate in conflict resolution if it is not included elsewhere"() {
+    def "transitive dependencies of an dependency constraint do not participate in conflict resolution if it is not included elsewhere"() {
         given:
         mavenRepo.module("org", "foo", '1.0').dependsOn('org', 'bar', '1.1').publish()
         mavenRepo.module("org", "bar", '1.0').publish()
@@ -295,7 +295,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    void "dependency constraints on substituted module is recognized properly"() {
+    def "dependency constraints on substituted module is recognized properly"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
@@ -347,7 +347,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    void "dependency constraints are inherited"() {
+    def "dependency constraints are inherited"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
@@ -385,7 +385,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    void "dependency constraints defined for a configuration are applied when resolving that configuration as part of a project dependency"() {
+    def "dependency constraints defined for a configuration are applied when resolving that configuration as part of a project dependency"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
@@ -431,7 +431,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    void "dependency constraints defined for a build are applied when resolving a configuration that uses that build as an included build"() {
+    def "dependency constraints defined for a build are applied when resolving a configuration that uses that build as an included build"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()
@@ -519,7 +519,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    void "dependency constraints should not pull in additional artifacts"() {
+    def "dependency constraints should not pull in additional artifacts"() {
         given:
         mavenRepo.module("org", "foo", '1.0').artifact(classifier: 'shaded').publish()
         mavenRepo.module("org", "foo", '1.1').artifact(classifier: 'shaded').publish()
@@ -550,7 +550,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    void "dependency constraints should not pull in additional artifacts for transitive dependencies"() {
+    def "dependency constraints should not pull in additional artifacts for transitive dependencies"() {
         given:
         def foo11 = mavenRepo.module("org", "foo", '1.0').artifact(classifier: 'shaded').publish()
         mavenRepo.module("org", "foo", '1.1').artifact(classifier: 'shaded').publish()
@@ -585,7 +585,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    void 'dependency updated through constraints has its transitive dependencies'() {
+    def "dependency updated through constraints has its transitive dependencies"() {
         given:
         def foo10 = mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -617,7 +617,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    void 'dependency without version updated through constraints has its transitive dependencies'() {
+    def "dependency without version updated through constraints has its transitive dependencies"() {
         given:
         def foo10 = mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -648,7 +648,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    void 'dependency constraint can be not pending, then pending, then not pending and still participate in resolution'() {
+    def "dependency constraint can be not pending, then pending, then not pending and still participate in resolution"() {
         def constrainedBase = mavenRepo.module('org', 'constrained', '1.0').publish()
         def constrained = mavenRepo.module('org', 'constrained', '1.1').publish()
         def bom = mavenRepo.module('org', 'bom', '1.0').hasType('pom').dependencyConstraint(constrained).publish()
@@ -753,7 +753,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    void 'dependency constraint on failed variant resolution needs to be in the right state'() {
+    def "dependency constraint on failed variant resolution needs to be in the right state"() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         writeSpec {
             rootProject {
@@ -779,7 +779,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         outputContains("org:bar: FAILED")
     }
 
-    void 'multiple dependency constraints on single module are all taken into account (#one then #two)'() {
+    def "multiple dependency constraints on single module are all taken into account (#one then #two)"() {
         def bar10 = mavenRepo.module('org', 'bar', '1.0').publish()
         def bar20 = mavenRepo.module('org', 'bar', '2.0').publish()
         def foo10 = mavenRepo.module('org', 'foo', '1.0').dependsOn(bar10).publish()
@@ -815,7 +815,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19882")
-    void 'can use constraints on project to upgrade third party to higher version project'() {
+    def "can use constraints on project to upgrade third party to higher version project"() {
         def bar10 = mavenRepo.module('org', 'bar', '1.0').publish()
         def foo10 = mavenRepo.module('org', 'foo', '1.0').dependencyConstraint(bar10).publish()
 

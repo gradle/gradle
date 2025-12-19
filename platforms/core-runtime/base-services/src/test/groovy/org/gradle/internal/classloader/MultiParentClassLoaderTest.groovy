@@ -24,7 +24,7 @@ class MultiParentClassLoaderTest extends Specification {
     private ClassLoader parent2 = Mock()
     private MultiParentClassLoader loader = new MultiParentClassLoader(parent1, parent2)
 
-    public void parentsAreNotVisibleViaSuperClass() {
+    public def parentsAreNotVisibleViaSuperClass() {
         expect:
         loader.parent == null
     }

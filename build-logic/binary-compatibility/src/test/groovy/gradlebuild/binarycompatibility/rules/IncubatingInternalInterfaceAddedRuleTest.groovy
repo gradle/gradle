@@ -100,7 +100,7 @@ class IncubatingInternalInterfaceAddedRuleTest extends AbstractContextAwareRuleS
         noViolation(rule)
     }
 
-    def 'adding an #type interface can be reported'() {
+    def "adding an #type interface can be reported"() {
         given:
         newBase.addInterface(interfaces[type])
 

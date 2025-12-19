@@ -104,7 +104,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
-    def 'arguments passed via command line take precedence and is not incremental by default'() {
+    def "arguments passed via command line take precedence and is not incremental by default"() {
         when:
         run("run", "--args", "2 '3' \"4\"")
 
@@ -157,7 +157,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
-    def 'arguments passed via command line matter in incremental check'() {
+    def "arguments passed via command line matter in incremental check"() {
         given:
         buildFile << """
             run.outputs.file "out.txt"

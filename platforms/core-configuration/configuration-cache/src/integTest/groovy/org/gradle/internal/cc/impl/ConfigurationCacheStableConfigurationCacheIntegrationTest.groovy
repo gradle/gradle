@@ -26,7 +26,7 @@ class ConfigurationCacheStableConfigurationCacheIntegrationTest extends Abstract
         '''
     }
 
-    def 'external processes at configuration time are reported as problems'() {
+    def "external processes at configuration time are reported as problems"() {
         given:
         def snippets = ExternalProcessFixture.processBuilder().groovy.newSnippets(new ExternalProcessFixture(testDirectory))
 
@@ -61,7 +61,7 @@ class ConfigurationCacheStableConfigurationCacheIntegrationTest extends Abstract
         }
     }
 
-    def 'project access at execution time is a deprecation when configuration cache is disabled'() {
+    def "project access at execution time is a deprecation when configuration cache is disabled"() {
         given:
         buildFile """
             tasks.register('problematic') { doLast { println project.name } }

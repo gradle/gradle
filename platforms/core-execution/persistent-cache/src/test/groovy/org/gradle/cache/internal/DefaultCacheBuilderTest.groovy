@@ -39,7 +39,7 @@ class DefaultCacheBuilderTest extends Specification {
     private final PersistentCache cache = Mock()
     private final DefaultCacheBuilder builder = new DefaultCacheBuilder(cacheFactory, sharedCacheDir)
 
-    void createsGlobalDirectoryBackedCache() {
+    def createsGlobalDirectoryBackedCache() {
         when:
         def result = builder.open()
 

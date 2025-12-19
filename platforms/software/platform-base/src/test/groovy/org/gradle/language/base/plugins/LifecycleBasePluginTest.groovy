@@ -22,7 +22,12 @@ import org.gradle.api.tasks.Delete
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
-import static org.gradle.language.base.plugins.LifecycleBasePlugin.*
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.ASSEMBLE_TASK_NAME
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_GROUP
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.BUILD_TASK_NAME
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.CHECK_TASK_NAME
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.CLEAN_TASK_NAME
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
 import static org.hamcrest.CoreMatchers.instanceOf
 
 class LifecycleBasePluginTest extends AbstractProjectBuilderSpec {
@@ -35,7 +40,7 @@ class LifecycleBasePluginTest extends AbstractProjectBuilderSpec {
         project.plugins.hasPlugin(LifecycleBasePlugin)
     }
 
-    public void createsTasksAndAppliesMappings() {
+    public def createsTasksAndAppliesMappings() {
         when:
         project.pluginManager.apply(LifecycleBasePlugin)
 

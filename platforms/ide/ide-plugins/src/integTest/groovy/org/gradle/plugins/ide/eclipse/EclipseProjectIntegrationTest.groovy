@@ -21,7 +21,7 @@ class EclipseProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
         settingsFile.text = "rootProject.name = 'root'"
     }
 
-    void allowsConfiguringEclipseProject() {
+    def allowsConfiguringEclipseProject() {
         given:
         buildFile """
 apply plugin: 'java'
@@ -76,7 +76,7 @@ eclipse {
         assert jdt.contains('source=1.4')
     }
 
-    void "allows custom matcher resource filter"() {
+    def "allows custom matcher resource filter"() {
         given:
         buildFile """
 apply plugin: 'java'
@@ -116,7 +116,7 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
-    void "allows configuring multiple resource filters"() {
+    def "allows configuring multiple resource filters"() {
         given:
         buildFile """
 apply plugin: 'java'
@@ -173,7 +173,7 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
-    void "allows 'include only' type resource filter"() {
+    def "allows 'include only' type resource filter"() {
         given:
         buildFile """
 apply plugin: 'java'
@@ -213,7 +213,7 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
-    void "allows resource filter for files"() {
+    def "allows resource filter for files"() {
         given:
         buildFile """
 apply plugin: 'java'
@@ -253,7 +253,7 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
-    void "allows resource filter for folders"() {
+    def "allows resource filter for folders"() {
         given:
         buildFile """
 apply plugin: 'java'
@@ -293,7 +293,7 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
-    void "allows non-recursive resource filter"() {
+    def "allows non-recursive resource filter"() {
         given:
         buildFile """
 apply plugin: 'java'
@@ -334,7 +334,7 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
-    void "existing resource filters are not duplicated"() {
+    def "existing resource filters are not duplicated"() {
         given:
         def projectFile = file('.project')
         projectFile << '''<?xml version="1.0" encoding="UTF-8"?>
@@ -411,7 +411,7 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
-    void "existing project file with equivalent resource filters is unchanged"() {
+    def "existing project file with equivalent resource filters is unchanged"() {
         given:
         def projectFile = file('.project')
         def projectFileOriginalText = '''<?xml version="1.0" encoding="UTF-8"?>
@@ -513,7 +513,7 @@ eclipse {
         projectFileOriginalText == projectFile.text.normalize()
     }
 
-    void "allows nested matcher"() {
+    def "allows nested matcher"() {
         given:
         buildFile """
 apply plugin: 'java'
@@ -667,7 +667,7 @@ eclipseJdt.doLast() {
         assert jdt.contains('dummy=testValue')
     }
 
-    void "setting project name within #hook is disallowed"(){
+    def "setting project name within #hook is disallowed"(){
         given:
 
         buildFile """

@@ -23,7 +23,7 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 // we only need to check without Gradle metadata, it doesn't matter
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
 class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolveTest {
-    void "can list versions without hitting repository"() {
+    def "can list versions without hitting repository"() {
         withLister([testA: [1, 2, 3]])
         given:
         repository {
@@ -48,7 +48,7 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         succeeds 'checkDeps'
     }
 
-    void "falls back to repository listing when no version is listed"() {
+    def "falls back to repository listing when no version is listed"() {
         withLister([:])
         given:
         repository {
@@ -76,7 +76,7 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         succeeds 'checkDeps'
     }
 
-    void "doesn't fallback to repository listing when empty list version is returned"() {
+    def "doesn't fallback to repository listing when empty list version is returned"() {
         withLister([testA: []])
         given:
         buildFile << """
@@ -92,7 +92,7 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         failure.assertHasCause("Could not find any matches for org:testA:+ as no versions of org:testA are available.")
     }
 
-    void "can version listing can use module identifier to return the version list"() {
+    def "can version listing can use module identifier to return the version list"() {
         withLister([testA: [1, 2, 3], testB: [1, 2]])
         given:
         repository {
@@ -123,7 +123,7 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         succeeds 'checkDeps'
     }
 
-    void "caches version listing using #lister lister"() {
+    def "caches version listing using #lister lister"() {
         ListerInteractions listerInteractions
         switch (lister) {
             case 'simple':
@@ -183,7 +183,7 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         'file on repository' | [testA: [1, 2, 3]]
     }
 
-    void "can recover from broken lister"() {
+    def "can recover from broken lister"() {
         withBrokenLister()
         given:
         repository {

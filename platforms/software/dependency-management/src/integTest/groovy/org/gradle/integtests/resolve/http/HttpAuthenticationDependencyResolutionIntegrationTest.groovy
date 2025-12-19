@@ -99,7 +99,7 @@ task listJars {
         'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | DIGEST            | ['Basic', 'Digest']
     }
 
-    public void "can resolve dependencies using #authSchemeName scheme from #authScheme authenticated HTTP maven repository"() {
+    public def "can resolve dependencies using #authSchemeName scheme from #authScheme authenticated HTTP maven repository"() {
         given:
         def moduleA = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
         mavenHttpRepo.module('group', 'projectB', '2.0').publish()
@@ -172,7 +172,7 @@ task listJars {
     }
 
     @Issue("gradle/gradle#5571")
-    public void "can resolve dependencies from HTTP Maven repository authenticating with HTTP header"() {
+    public def "can resolve dependencies from HTTP Maven repository authenticating with HTTP header"() {
         given:
         def moduleA = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
         and:
@@ -213,7 +213,7 @@ task listJars {
     }
 
     @Issue("gradle/gradle#5571")
-    void "can resolve dependencies from HTTP Maven repository authenticating with HTTP header with redirect"() {
+    def "can resolve dependencies from HTTP Maven repository authenticating with HTTP header with redirect"() {
         given:
         HttpServer redirectServer = new HttpServer()
         redirectServer.start()

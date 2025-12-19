@@ -183,12 +183,12 @@ abstract class AbstractAlignmentSpec extends AbstractModuleDependencyResolveTest
 
     }
 
-    protected void "a rule which infers module set from group and version"(boolean virtual = true) {
+    protected def "a rule which infers module set from group and version"(boolean virtual = true) {
         buildFile << """
             dependencies {
                 components.all(InferModuleSetFromGroupAndVersion)
             }
-            
+
             class InferModuleSetFromGroupAndVersion implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext ctx) {
                     ctx.details.with {
@@ -199,12 +199,12 @@ abstract class AbstractAlignmentSpec extends AbstractModuleDependencyResolveTest
         """
     }
 
-    protected void "align the 'org' group only"() {
+    protected def "align the 'org' group only"() {
         buildFile << """
             dependencies {
                 components.all(AlignOrgGroup)
             }
-            
+
             class AlignOrgGroup implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext ctx) {
                     ctx.details.with {
@@ -217,12 +217,12 @@ abstract class AbstractAlignmentSpec extends AbstractModuleDependencyResolveTest
         """
     }
 
-    protected void "align the 'org' group to 2 different virtual platforms"() {
+    protected def "align the 'org' group to 2 different virtual platforms"() {
         buildFile << """
             dependencies {
                 components.all(AlignOrgGroupTo2Platforms)
             }
-            
+
             class AlignOrgGroupTo2Platforms implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext ctx) {
                     ctx.details.with {
@@ -236,12 +236,12 @@ abstract class AbstractAlignmentSpec extends AbstractModuleDependencyResolveTest
         """
     }
 
-    protected void 'a rule which declares that Groovy belongs to the Groovy and the Spring platforms'(boolean groovyVirtual=false, boolean springVirtual = false) {
+    protected def "a rule which declares that Groovy belongs to the Groovy and the Spring platforms"(boolean groovyVirtual=false, boolean springVirtual = false) {
         buildFile << """
             dependencies {
                 components.all(GroovyRule)
             }
-            
+
             class GroovyRule implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext ctx) {
                     ctx.details.with {

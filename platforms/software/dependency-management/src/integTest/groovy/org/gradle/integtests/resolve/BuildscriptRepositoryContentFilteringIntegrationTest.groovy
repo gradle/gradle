@@ -79,7 +79,7 @@ plugins {
         false       | "excludeGroupByRegex('or.+')"
     }
 
-    def 'exclusive content filtering in settings prevents adding repositories in project'() {
+    def "exclusive content filtering in settings prevents adding repositories in project"() {
         given:
         settingsFile << """
 pluginManagement {

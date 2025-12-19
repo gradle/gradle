@@ -149,7 +149,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         assertHasMatchingCause(e, m -> m ==~ /Cannot run program .*java.*/)
     }
 
-    def 'uses release property combined with toolchain compiler'() {
+    def "uses release property combined with toolchain compiler"() {
         def javaCompile = project.tasks.create('compileJava', JavaCompile)
         javaCompile.destinationDirectory.fileValue(new File('somewhere'))
         def javaHome = Jvm.current().javaHome
@@ -175,7 +175,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         (spec as ForkingJavaCompileSpec).javaHome == javaHome
     }
 
-    def 'uses custom source and target compatibility combined with toolchain compiler'() {
+    def "uses custom source and target compatibility combined with toolchain compiler"() {
         def javaCompile = project.tasks.create('compileJava', JavaCompile)
         javaCompile.destinationDirectory.fileValue(new File('somewhere'))
         def javaHome = Jvm.current().javaHome
@@ -201,7 +201,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         (spec as ForkingJavaCompileSpec).javaHome == javaHome
     }
 
-    def 'source compatibility serves as target compatibility fallback on compile spec'() {
+    def "source compatibility serves as target compatibility fallback on compile spec"() {
         def javaCompile = project.tasks.create('compileJava', JavaCompile)
         javaCompile.destinationDirectory.fileValue(new File('somewhere'))
 
@@ -218,7 +218,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         spec.targetCompatibility == prevJavaVersion
     }
 
-    def 'source compatibility serves as target compatibility fallback on compile spec when compiler tool is defined'() {
+    def "source compatibility serves as target compatibility fallback on compile spec when compiler tool is defined"() {
         def javaCompile = project.tasks.create('compileJava', JavaCompile)
         javaCompile.destinationDirectory.fileValue(new File('somewhere'))
         def javaHome = Jvm.current().javaHome

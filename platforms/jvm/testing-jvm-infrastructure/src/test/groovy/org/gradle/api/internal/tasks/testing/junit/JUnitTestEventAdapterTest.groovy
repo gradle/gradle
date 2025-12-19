@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.junit
 import spock.lang.Specification
 
 class JUnitTestEventAdapterTest extends Specification {
-    def 'can recognize JUnit4 description #description'() {
+    def "can recognize JUnit4 description #description"() {
         expect:
         JUnitTestEventAdapter.methodName(description) == methodName
         JUnitTestEventAdapter.className(description) == className

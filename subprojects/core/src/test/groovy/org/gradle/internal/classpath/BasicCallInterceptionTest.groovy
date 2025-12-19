@@ -87,7 +87,7 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
         receiver.intercepted
     }
 
-    def 'intercepts a basic instance call with #method from #caller'() {
+    def "intercepts a basic instance call with #method from #caller"() {
         when:
         def intercepted = interceptedWhen(shouldDelegate, invocation)
 
@@ -120,7 +120,7 @@ class BasicCallInterceptionTest extends AbstractCallInterceptionTest {
         "non-existent-method"   | "Groovy dynamic dispatch" | { nonExistent(null) }                     | true          | "nonExistent(String)-non-existent"
     }
 
-    def 'access to a #kind of a Groovy property from a #caller caller is intercepted as #expected'() {
+    def "access to a #kind of a Groovy property from a #caller caller is intercepted as #expected"() {
         when:
         def intercepted = interceptedWhen(shouldDelegate, invocation)
 

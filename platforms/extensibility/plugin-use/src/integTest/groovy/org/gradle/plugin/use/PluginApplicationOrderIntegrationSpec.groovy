@@ -20,7 +20,7 @@ import spock.lang.Issue
 
 class PluginApplicationOrderIntegrationSpec extends AbstractPluginSpec {
     @Issue('https://github.com/gradle/gradle/issues/15664')
-    def 'plugins are applied in the order they are declared in the plugins block'() {
+    def "plugins are applied in the order they are declared in the plugins block"() {
         given:
         publishPlugin """
             if (!project.pluginManager.hasPlugin('java')) {

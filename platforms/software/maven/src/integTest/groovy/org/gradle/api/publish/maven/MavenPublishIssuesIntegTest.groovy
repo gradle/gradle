@@ -260,7 +260,7 @@ subprojects {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5136")
-    void "doesn't publish if main artifact is missing"() {
+    def "doesn't publish if main artifact is missing"() {
         settingsFile << 'rootProject.name = "test"'
         buildFile << """
             apply plugin: "java-library"
@@ -307,7 +307,7 @@ subprojects {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5136")
-    void "doesn't publish stale files"() {
+    def "doesn't publish stale files"() {
         MavenFileModule publishedModule
 
         settingsFile << 'rootProject.name = "test"'
@@ -373,7 +373,7 @@ subprojects {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20581")
-    void "fail when GMM is modified after a Maven publication is populated"() {
+    def "fail when GMM is modified after a Maven publication is populated"() {
         given:
         buildFile << """
             plugins {

@@ -52,7 +52,7 @@ class DefaultCacheFactoryTest extends Specification {
         _ * metaDataProvider.processDisplayName >> 'process'
     }
 
-    void "creates directory backed cache instance"() {
+    def "creates directory backed cache instance"() {
         when:
         def cache = factory.open(tmpDir.testDirectory, "<display>", [prop: 'value'], mode(Shared), null, null)
 
@@ -65,7 +65,7 @@ class DefaultCacheFactoryTest extends Specification {
         factory.close()
     }
 
-    void "reuses directory backed cache instances"() {
+    def "reuses directory backed cache instances"() {
         when:
         def ref1 = factory.open(tmpDir.testDirectory, null, [prop: 'value'], mode(Exclusive), null, null)
         def ref2 = factory.open(tmpDir.testDirectory, null, [prop: 'value'], mode(Exclusive), null, null)
@@ -81,7 +81,7 @@ class DefaultCacheFactoryTest extends Specification {
         factory.close()
     }
 
-    void "closes cache instance when factory is closed"() {
+    def "closes cache instance when factory is closed"() {
         def implementation
 
         when:
@@ -99,7 +99,7 @@ class DefaultCacheFactoryTest extends Specification {
         0 * _
     }
 
-    void "closes cache instance when reference is closed"() {
+    def "closes cache instance when reference is closed"() {
         def implementation
 
         when:
@@ -124,7 +124,7 @@ class DefaultCacheFactoryTest extends Specification {
         0 * _
     }
 
-    void "can close cache multiple times"() {
+    def "can close cache multiple times"() {
         def implementation
 
         when:
@@ -143,7 +143,7 @@ class DefaultCacheFactoryTest extends Specification {
         0 * _
     }
 
-    void "can close factory after closing cache"() {
+    def "can close factory after closing cache"() {
         def implementation
 
         when:
@@ -162,7 +162,7 @@ class DefaultCacheFactoryTest extends Specification {
         0 * _
     }
 
-    void "fails when directory cache is already open with different properties"() {
+    def "fails when directory cache is already open with different properties"() {
         given:
         factory.open(tmpDir.testDirectory, null, [prop: 'value'], mode(Exclusive), null, null)
 
@@ -177,7 +177,7 @@ class DefaultCacheFactoryTest extends Specification {
         factory.close()
     }
 
-    void "fails when directory cache when cache is already open with different lock mode"() {
+    def "fails when directory cache when cache is already open with different lock mode"() {
         given:
         factory.open(tmpDir.testDirectory, null, [prop: 'value'], mode(Shared), null, null)
 
@@ -192,7 +192,7 @@ class DefaultCacheFactoryTest extends Specification {
         factory.close()
     }
 
-    void "can visit all caches created by factory"() {
+    def "can visit all caches created by factory"() {
         def visited = [] as Set
 
         when:
@@ -215,7 +215,7 @@ class DefaultCacheFactoryTest extends Specification {
         factory.close()
     }
 
-    void "does not visit caches that have been closed"() {
+    def "does not visit caches that have been closed"() {
         def visited = [] as Set
 
         when:

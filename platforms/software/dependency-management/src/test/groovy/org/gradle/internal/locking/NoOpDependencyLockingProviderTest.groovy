@@ -27,7 +27,7 @@ class NoOpDependencyLockingProviderTest extends Specification {
     @Subject
     def provider = NoOpDependencyLockingProvider.instance
 
-    def 'does not find locked dependencies'() {
+    def "does not find locked dependencies"() {
         when:
         def result = provider.loadLockState('conf', Describables.of("foo"))
 
@@ -35,7 +35,7 @@ class NoOpDependencyLockingProviderTest extends Specification {
         !result.mustValidateLockState()
     }
 
-    def 'does nothing on persist'() {
+    def "does nothing on persist"() {
         given:
         def result = Mock(Set)
 

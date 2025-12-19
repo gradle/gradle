@@ -34,7 +34,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTe
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
-    void canHaveConfigurationHierarchy() {
+    def canHaveConfigurationHierarchy() {
         given:
         buildFile << """
             ${resolve.configureProject("compile", "runtime")}
@@ -706,7 +706,7 @@ task test {
         }
     }
 
-    void "configuration transitive = false overrides dependency transitive flag"() {
+    def "configuration transitive = false overrides dependency transitive flag"() {
         expect:
         repo.module('org.gradle.test', 'one', '1.0').publish()
         def module = repo.module('org.gradle.test', 'external1', '1.0')

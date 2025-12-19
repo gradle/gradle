@@ -25,7 +25,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
     public static final String QUALIFIED_JAVA = "org.gradle.java"
     public static final String UNQUALIFIED_JAVA = "java"
 
-    void "can resolve core plugins"() {
+    def "can resolve core plugins"() {
         when:
         buildFile """
             plugins {
@@ -37,7 +37,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         succeeds "javadoc"
     }
 
-    void "can resolve qualified core plugins"() {
+    def "can resolve qualified core plugins"() {
         when:
         buildFile """
             plugins {
@@ -49,7 +49,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         succeeds "javadoc"
     }
 
-    void "core plugins cannot have a version number"() {
+    def "core plugins cannot have a version number"() {
         given:
         buildFile """
             plugins {
@@ -67,7 +67,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(3)
     }
 
-    void "qualified core plugins cannot have a version number"() {
+    def "qualified core plugins cannot have a version number"() {
         given:
         buildFile """
             plugins {
@@ -85,7 +85,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(3)
     }
 
-    void "core plugins cannot be used with apply false"() {
+    def "core plugins cannot be used with apply false"() {
         given:
         buildFile """
             plugins {

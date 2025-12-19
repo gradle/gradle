@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class DependencyLockingNotationConverterTest extends Specification {
 
-    def 'converts lock notation to a ModuleComponentIdentifier'() {
+    def "converts lock notation to a ModuleComponentIdentifier"() {
         given:
         def converter = new DependencyLockingNotationConverter()
         def lockEntry = 'org:foo:1.1'
@@ -51,7 +51,7 @@ class DependencyLockingNotationConverterTest extends Specification {
         lockEntry << ['invalid', 'invalid:invalid', 'invalid:invalid:invalid:1.0']
     }
 
-    def 'converts a ModuleComponentIdentifier to a lock notation'() {
+    def "converts a ModuleComponentIdentifier to a lock notation"() {
         given:
         def converter = new DependencyLockingNotationConverter()
         def module = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('org', 'foo'), '1.1')

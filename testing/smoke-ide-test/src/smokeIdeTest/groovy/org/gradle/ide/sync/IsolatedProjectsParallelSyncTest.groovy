@@ -29,7 +29,7 @@ class IsolatedProjectsParallelSyncTest extends AbstractIdeSyncTest {
         server.start()
     }
 
-    def 'projects are configured in parallel during IDEA sync'() {
+    def "projects are configured in parallel during IDEA sync"() {
         given:
         simpleProject()
         server.expect("configure-root")

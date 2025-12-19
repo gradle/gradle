@@ -24,12 +24,12 @@ import java.util.stream.Stream
 
 class PersistentSetTest extends Specification {
 
-    def 'empty === empty'() {
+    def "empty === empty"() {
         expect:
         PersistentSet.of() === PersistentSet.of()
     }
 
-    def 'copyOf(set) === set'() {
+    def "copyOf(set) === set"() {
         expect:
         PersistentSet.copyOf(set) === set
 
@@ -37,7 +37,7 @@ class PersistentSetTest extends Specification {
         set << [PersistentSet.of(), PersistentSet.of(1), PersistentSet.of(1, 2, 3)]
     }
 
-    def 'empty union other === other'() {
+    def "empty union other === other"() {
         expect:
         empty.union(other) === other
         other.union(empty) === other
@@ -47,7 +47,7 @@ class PersistentSetTest extends Specification {
         other << [PersistentSet.of(), PersistentSet.of(1), PersistentSet.of(1, 2, 3)]
     }
 
-    def 'set union is commutative'() {
+    def "set union is commutative"() {
         given:
         def set1 = PersistentSet.of(1, 2, 3)
         def set2 = PersistentSet.of(3, 4, 5)
@@ -56,7 +56,7 @@ class PersistentSetTest extends Specification {
         set1.union(set2) == set2.union(set1)
     }
 
-    def 'superset union subset === superset'() {
+    def "superset union subset === superset"() {
         expect:
         superset.union(subset) === superset
         superset.union(subset) === superset
@@ -71,7 +71,7 @@ class PersistentSetTest extends Specification {
         ]
     }
 
-    def 'empty intersect other === empty'() {
+    def "empty intersect other === empty"() {
         expect:
         empty.intersect(other) === empty
         other.intersect(empty) === empty
@@ -81,7 +81,7 @@ class PersistentSetTest extends Specification {
         other << [PersistentSet.of(), PersistentSet.of(1), PersistentSet.of(1, 2, 3)]
     }
 
-    def 'set intersect with disjoint sets returns empty'() {
+    def "set intersect with disjoint sets returns empty"() {
         given:
         def set1 = PersistentSet.of(1, 2, 3)
         def set2 = PersistentSet.of(4, 5, 6)
@@ -90,7 +90,7 @@ class PersistentSetTest extends Specification {
         set1.intersect(set2) === PersistentSet.of()
     }
 
-    def 'superset intersect subset === subset'() {
+    def "superset intersect subset === subset"() {
         expect:
         superset.intersect(subset) === subset
         superset.intersect(subset) === subset
@@ -104,7 +104,7 @@ class PersistentSetTest extends Specification {
         ]
     }
 
-    def 'set intersect is commutative'() {
+    def "set intersect is commutative"() {
         given:
         def set1 = PersistentSet.of(1, 2, 3, 4)
         def set2 = PersistentSet.of(3, 4, 5, 6)
@@ -113,7 +113,7 @@ class PersistentSetTest extends Specification {
         set1.intersect(set2) == set2.intersect(set1)
     }
 
-    def 'set except with disjoint set returns same set'() {
+    def "set except with disjoint set returns same set"() {
         given:
         def set1 = PersistentSet.of(1, 2, 3)
         def set2 = PersistentSet.of(4, 5, 6)
@@ -122,7 +122,7 @@ class PersistentSetTest extends Specification {
         set1.except(set2) === set1
     }
 
-    def 'set except with same set returns empty'() {
+    def "set except with same set returns empty"() {
         given:
         def set = PersistentSet.of(1, 2, 3)
 
@@ -130,7 +130,7 @@ class PersistentSetTest extends Specification {
         set.except(set) === PersistentSet.of()
     }
 
-    def 'singleton(key) == singleton(key)'() {
+    def "singleton(key) == singleton(key)"() {
         given:
         def set1 = PersistentSet.of(42)
         def set2 = PersistentSet.of(42)
@@ -144,7 +144,7 @@ class PersistentSetTest extends Specification {
         !set1.contains(37)
     }
 
-    def 'set plus existing === set'() {
+    def "set plus existing === set"() {
         given:
         def set1 = PersistentSet.of(42)
         def set2 = set1 + 33
@@ -157,7 +157,7 @@ class PersistentSetTest extends Specification {
         set2 === (set2 + 33)
     }
 
-    def 'contains'() {
+    def "contains"() {
         given:
         def random = new Random(42)
         def present = []
@@ -196,7 +196,7 @@ class PersistentSetTest extends Specification {
         set3.size() == present.size()
     }
 
-    def 'set.of(xs) == set.of(xs)'() {
+    def "set.of(xs) == set.of(xs)"() {
         given:
         def random = new Random(42)
         def list = random.ints(1024).toArray().toList()
@@ -217,7 +217,7 @@ class PersistentSetTest extends Specification {
         set2.hashCode() == set3.hashCode()
     }
 
-    def 'set.of(xs + collisions) == set.of(xs + collisions)'() {
+    def "set.of(xs + collisions) == set.of(xs + collisions)"() {
         given:
         def random = new Random(seed)
         def list = []
@@ -249,7 +249,7 @@ class PersistentSetTest extends Specification {
         seed << (1..10)
     }
 
-    def 'iterator'() {
+    def "iterator"() {
         given:
         def random = new Random(42)
         def keys = random.ints(collectionSize).toArray().toSet()
@@ -264,7 +264,7 @@ class PersistentSetTest extends Specification {
         collectionSize << [0, 1, 1024]
     }
 
-    def 'iterator with collisions'() {
+    def "iterator with collisions"() {
         given:
         def random = new Random(42)
         def keys = []
@@ -283,7 +283,7 @@ class PersistentSetTest extends Specification {
         collectionSize << [0, 1, 1024]
     }
 
-    def 'forEach'() {
+    def "forEach"() {
         given:
         def random = new Random(42)
         def keys = random.ints(collectionSize).toArray().toSet()
@@ -303,7 +303,7 @@ class PersistentSetTest extends Specification {
         collectionSize << [0, 1, 1024]
     }
 
-    def 'set minus nonExisting === set'() {
+    def "set minus nonExisting === set"() {
         expect:
         set - nonExisting === set
 
@@ -312,7 +312,7 @@ class PersistentSetTest extends Specification {
         set << [PersistentSet.of(), PersistentSet.of(1), PersistentSet.of(1, 2, 3)]
     }
 
-    def 'minus is inverse to plus'() {
+    def "minus is inverse to plus"() {
         given:
         def random = new Random(42)
         def keys = []
@@ -350,7 +350,7 @@ class PersistentSetTest extends Specification {
         withCollision << [false, true]
     }
 
-    def 'minus can happen in any order'() {
+    def "minus can happen in any order"() {
         given:
         def random = new Random(42)
         def keys = random.ints(collectionSize).toArray().toSet().toList()
@@ -384,7 +384,7 @@ class PersistentSetTest extends Specification {
         collectionSize = 1024
     }
 
-    def 'singleton set and set after minus left with same single element should be equal'() {
+    def "singleton set and set after minus left with same single element should be equal"() {
         given: 'A singleton set created directly'
         def set1 = PersistentSet.of(42)
 
@@ -397,7 +397,7 @@ class PersistentSetTest extends Specification {
         set1.hashCode() == setViaOps.hashCode()
     }
 
-    def 'minusAll but one'() {
+    def "minusAll but one"() {
         given:
         def random = new Random(42)
         def keys = random.ints(collectionSize).toArray().toSet().toList()
@@ -423,7 +423,7 @@ class PersistentSetTest extends Specification {
         collectionSize << [2, 32]
     }
 
-    def 'set minusAll with empty iterable returns same set'() {
+    def "set minusAll with empty iterable returns same set"() {
         given:
         def set = PersistentSet.of(1, 2, 3)
 
@@ -431,7 +431,7 @@ class PersistentSetTest extends Specification {
         set.minusAll([]) === set
     }
 
-    def 'set minusAll absent returns same set'() {
+    def "set minusAll absent returns same set"() {
         given:
         def set = PersistentSet.of(1, 2, 3)
 
@@ -439,7 +439,7 @@ class PersistentSetTest extends Specification {
         set.minusAll([4, 5, 6]) === set
     }
 
-    def 'minusAll stops iterating when set becomes empty'() {
+    def "minusAll stops iterating when set becomes empty"() {
         given:
         def iterations = 0
         def iterable = new Iterable() {
@@ -471,7 +471,7 @@ class PersistentSetTest extends Specification {
         set << [PersistentSet.of(), PersistentSet.of(1), PersistentSet.of(1, 2, 3)]
     }
 
-    def 'toString == {k1,k2,...}'() {
+    def "toString == {k1,k2,...}"() {
         expect:
         "{}" == PersistentSet.of().toString()
         "{1}" == PersistentSet.of(1).toString()
@@ -479,7 +479,7 @@ class PersistentSetTest extends Specification {
         "{3,2,1}" == PersistentSet.of(3, 2, 1).toString()
     }
 
-    def 'set key cannot be null'() {
+    def "set key cannot be null"() {
         when:
         PersistentSet.of() + null
 
@@ -499,13 +499,13 @@ class PersistentSetTest extends Specification {
         thrown(IllegalArgumentException)
     }
 
-    def 'toPersistentSet collector'() {
+    def "toPersistentSet collector"() {
         expect:
         PersistentSet.of() === Stream.empty().collect(PersistentSet.toPersistentSet())
         PersistentSet.of(1, 2, 3) == Stream.of(1, 2, 3).collect(PersistentSet.toPersistentSet())
     }
 
-    def 'toArray returns array of exact size with elements in unspecified order'() {
+    def "toArray returns array of exact size with elements in unspecified order"() {
         given:
         def set = PersistentSet.of(1, 2, 3)
 
@@ -516,7 +516,7 @@ class PersistentSetTest extends Specification {
         result as Set == [1, 2, 3] as Set
     }
 
-    def 'toArray fills provided array when it has sufficient capacity'() {
+    def "toArray fills provided array when it has sufficient capacity"() {
         given:
         def set = PersistentSet.of(1, 2, 3)
         Integer[] target = new Integer[5]
@@ -535,7 +535,7 @@ class PersistentSetTest extends Specification {
         target[4] == 100
     }
 
-    def 'toArray allocates new array when provided array is too small'() {
+    def "toArray allocates new array when provided array is too small"() {
         given:
         def set = PersistentSet.of(1, 2, 3)
         Integer[] small = new Integer[2]
@@ -549,7 +549,7 @@ class PersistentSetTest extends Specification {
         allocated as Set == [1, 2, 3] as Set
     }
 
-    def 'toArray throws when target array component type is incompatible'() {
+    def "toArray throws when target array component type is incompatible"() {
         given:
         def set = PersistentSet.of(1, 2, 3)
 
@@ -560,12 +560,12 @@ class PersistentSetTest extends Specification {
         thrown(ArrayStoreException)
     }
 
-    def 'groupBy on empty set returns empty map'() {
+    def "groupBy on empty set returns empty map"() {
         expect:
         PersistentSet.of().groupBy({ k -> k } as Function) === PersistentMap.of()
     }
 
-    def 'groupBy groups elements by parity'() {
+    def "groupBy groups elements by parity"() {
         given:
         def set = PersistentSet.of(1, 2, 3, 4)
 
@@ -578,7 +578,7 @@ class PersistentSetTest extends Specification {
             .assoc('even', PersistentSet.of(2, 4))
     }
 
-    def 'groupBy ignores elements that map to null group'() {
+    def "groupBy ignores elements that map to null group"() {
         given:
         def set = PersistentSet.copyOf(keys)
 
@@ -595,7 +595,7 @@ class PersistentSetTest extends Specification {
         [1, 2, 3, 4] | PersistentMap.of('odd', PersistentSet.of(1, 3))
     }
 
-    def 'groupBy on singleton set returns same set'() {
+    def "groupBy on singleton set returns same set"() {
         given:
         def set = PersistentSet.of(1)
 
@@ -603,7 +603,7 @@ class PersistentSetTest extends Specification {
         set.is(set.groupBy({ "group" } as Function).get("group"))
     }
 
-    def 'groupBy with constant key produces single bucket with all elements'() {
+    def "groupBy with constant key produces single bucket with all elements"() {
         given:
         def set = PersistentSet.of('a', 'b', 'c')
 
@@ -614,7 +614,7 @@ class PersistentSetTest extends Specification {
         grouped == PersistentMap.of('all', PersistentSet.of('a', 'b', 'c'))
     }
 
-    def 'filter on empty set returns same empty instance'() {
+    def "filter on empty set returns same empty instance"() {
         given:
         def empty = PersistentSet.of()
 
@@ -625,7 +625,7 @@ class PersistentSetTest extends Specification {
         filtered.is(empty)
     }
 
-    def 'filter on singleton set retains or removes element'() {
+    def "filter on singleton set retains or removes element"() {
         given:
         def one = PersistentSet.of(42)
 
@@ -636,7 +636,7 @@ class PersistentSetTest extends Specification {
         one.filter({ it != 42 } as Predicate) === PersistentSet.of()
     }
 
-    def 'filter on set with many elements keeps those matching predicate'() {
+    def "filter on set with many elements keeps those matching predicate"() {
         given:
         def many = PersistentSet.of(1, 2, 3, 4, 5)
 
@@ -649,7 +649,7 @@ class PersistentSetTest extends Specification {
         many.filter({ it > 10 } as Predicate) === PersistentSet.of()
     }
 
-    def 'anyMatch'() {
+    def "anyMatch"() {
         expect:
         // empty -> no element matches
         !PersistentSet.of().anyMatch({ true } as Predicate)
@@ -664,7 +664,7 @@ class PersistentSetTest extends Specification {
         !PersistentSet.of(1, 2).anyMatch({ it > 5 } as Predicate) // matches none
     }
 
-    def 'noneMatch'() {
+    def "noneMatch"() {
         expect:
         // empty -> none match by definition
         PersistentSet.of().noneMatch({ true } as Predicate)

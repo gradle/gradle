@@ -21,7 +21,7 @@ import org.junit.Test
 class EclipseDependencyLockingIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
-    void "does not break when lockfile is out of date"() {
+    def "does not break when lockfile is out of date"() {
         //given
         def mvnRepo = maven(file("repo"))
         mvnRepo.module("groupOne", "artifactTwo").publish()
@@ -57,7 +57,7 @@ dependencies {
     }
 
     @Test
-    void "does not break when extra dependency not in lockfile is defined"() {
+    def "does not break when extra dependency not in lockfile is defined"() {
         //given
         def mvnRepo = maven(file("repo"))
         mvnRepo.module("groupOne", "artifactOne").publish()

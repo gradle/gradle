@@ -112,7 +112,7 @@ class SimpleXmlWriterSpec extends Specification {
         xml == "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root><!-- 丈, &#x1f603;, and नि, and > or & --></root>"
     }
 
-    def 'detects invalid comment'() {
+    def "detects invalid comment"() {
         when:
         writer.comment("Some comment that is -- invalid!")
 

@@ -70,7 +70,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     MetadataResolutionContext context = Mock()
     ModuleSourcesSerializer moduleSourcesSerializer = new ModuleSourcesSerializer([:])
 
-    def 'setup'() {
+    def "setup"() {
         TestComponentMetadataRule.instanceCount = 0
     }
 
@@ -449,7 +449,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         "org.gradle" | "lib" | false
     }
 
-    def 'allows to mix old style and class based rules starting with class based'() {
+    def "allows to mix old style and class based rules starting with class based"() {
         def closure = { ComponentMetadataDetails cmd -> }
 
         when:
@@ -463,7 +463,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
 
     }
 
-    def 'allows to mix old style and class based rules starting with old style'() {
+    def "allows to mix old style and class based rules starting with old style"() {
         def closure = { ComponentMetadataDetails cmd -> }
 
         when:

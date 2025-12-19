@@ -37,7 +37,7 @@ class FilePathUtilTest extends Specification {
         "some/path" | "with/one/ending" | "without/two/different"
     }
 
-    def 'can remove trailing path segments from path'() {
+    def "can remove trailing path segments from path"() {
         expect:
         FilePathUtil.maybeRemoveTrailingSegments(path, removalPath) == expectedPath
 

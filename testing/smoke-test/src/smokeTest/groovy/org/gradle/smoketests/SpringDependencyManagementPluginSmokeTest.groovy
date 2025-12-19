@@ -20,7 +20,7 @@ import spock.lang.Issue
 
 class SpringDependencyManagementPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Issue('https://plugins.gradle.org/plugin/io.spring.dependency-management')
-    def 'spring dependency management plugin'() {
+    def "spring dependency management plugin"() {
         given:
         buildFile << """
             plugins {

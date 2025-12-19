@@ -691,7 +691,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         metadata.extraAttributes[new NamespaceId("namespace-c", "a")] == "info 2"
     }
 
-    def 'parses old gradle module metadata marker'() {
+    def "parses old gradle module metadata marker"() {
         when:
         def file = temporaryFolder.file("ivy.xml") << """
 <ivy-module version="1.0">
@@ -708,7 +708,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         hasGradleMetadataRedirectionMarker
     }
 
-    def 'parses gradle module metadata marker'() {
+    def "parses gradle module metadata marker"() {
         when:
         def file = temporaryFolder.file("ivy.xml") << """
 <ivy-module version="1.0">

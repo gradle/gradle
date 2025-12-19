@@ -24,7 +24,7 @@ class TargetJVMVersionOnLibraryTooNewFailureDescriberIntegrationTest extends Abs
     Integer currentJava = Integer.valueOf(JavaVersion.current().majorVersion)
     Integer tooHighJava = currentJava + 1
 
-    def 'JVM version too low on non-plugin dependency uses standard error message'() {
+    def "JVM version too low on non-plugin dependency uses standard error message"() {
         given:
         def producer = file('producer')
         def consumer = file('consumer')
@@ -67,7 +67,7 @@ class TargetJVMVersionOnLibraryTooNewFailureDescriberIntegrationTest extends Abs
         failure.assertHasResolution("Change the dependency on 'project :producer' to an earlier version that supports JVM runtime version $currentJava.")
     }
 
-    def 'JVM version too low even if other non-Library category variants available uses standard error message for non-plugin'() {
+    def "JVM version too low even if other non-Library category variants available uses standard error message for non-plugin"() {
         given:
         def producer = file('producer')
         def consumer = file('consumer')

@@ -26,7 +26,7 @@ class IdeaDependencySubstitutionIntegrationTest extends AbstractIdeIntegrationTe
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
-    void "external dependency substituted with project dependency"() {
+    def "external dependency substituted with project dependency"() {
         createDirs("project1", "project2")
         runTask("idea", "include 'project1', 'project2'", """
 allprojects {
@@ -54,7 +54,7 @@ project(":project2") {
     }
 
     @Test
-    void "transitive external dependency substituted with project dependency"() {
+    def "transitive external dependency substituted with project dependency"() {
         mavenRepo.module("org.gradle", "module1").dependsOnModules("module2").publish()
         mavenRepo.module("org.gradle", "module2").publish()
 
@@ -90,7 +90,7 @@ project(":project2") {
     }
 
     @Test
-    void "project dependency substituted with external dependency"() {
+    def "project dependency substituted with external dependency"() {
         createDirs("project1", "project2")
         runTask("idea", "include 'project1', 'project2'", """
 allprojects {

@@ -33,7 +33,7 @@ class ConfigurationCacheLifecyclePluginIntegrationTest extends AbstractIntegrati
         executer.withConfigurationCacheEnabled()
     }
 
-    def 'buildDirectory is finalized when writing to the cache'() {
+    def "buildDirectory is finalized when writing to the cache"() {
         given:
         def buildDirName = 'my-build-dir'
         def buildDir = file(buildDirName)

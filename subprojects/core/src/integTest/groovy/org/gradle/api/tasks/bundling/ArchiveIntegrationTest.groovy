@@ -849,7 +849,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         "test.tar"  | "tarTree" | "createTar"
     }
 
-    def 'fails when duplicates are included in #archiveType for default duplicates strategy'() {
+    def "fails when duplicates are included in #archiveType for default duplicates strategy"() {
         given:
         createFilesStructureForDupeTests()
         buildFile << archiveTaskWithDuplicates(archiveType)
@@ -864,7 +864,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         archiveType << ['tar', 'zip']
     }
 
-    def 'ensure duplicates can be included in #archiveType'() {
+    def "ensure duplicates can be included in #archiveType"() {
         given:
         createFilesStructureForDupeTests()
         buildFile << archiveTaskWithDuplicates(archiveType) << """

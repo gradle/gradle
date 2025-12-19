@@ -25,7 +25,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
 
     @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-recommender')
     @ToBeFixedForConfigurationCache
-    def 'nebula recommender plugin'() {
+    def "nebula recommender plugin"() {
         when:
         buildFile << """
             plugins {
@@ -50,7 +50,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
     }
 
     @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.plugin-plugin')
-    def 'nebula plugin plugin'() {
+    def "nebula plugin plugin"() {
         when:
         buildFile << """
             plugins {
@@ -75,7 +75,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
 
     @Ignore("https://github.com/nebula-plugins/gradle-lint-plugin/issues/417")
     @Issue('https://plugins.gradle.org/plugin/nebula.lint')
-    def 'nebula lint plugin'() {
+    def "nebula lint plugin"() {
         given:
         buildFile << """
             buildscript {
@@ -119,7 +119,7 @@ testImplementation('junit:junit:4.7')""")
     }
 
     @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-lock')
-    def 'nebula dependency lock plugin #nebulaDepLockVersion'() {
+    def "nebula dependency lock plugin #nebulaDepLockVersion"() {
         when:
         buildFile << """
             plugins {
@@ -199,7 +199,7 @@ testImplementation('junit:junit:4.7')""")
     }
 
     @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.resolution-rules')
-    def 'nebula resolution rules plugin'() {
+    def "nebula resolution rules plugin"() {
         when:
         file('rules.json') << """
             {

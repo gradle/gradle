@@ -32,7 +32,7 @@ class DefaultProblemLocationAnalyzerTest extends Specification {
     def elementWithNoSourceFile = new StackTraceElement("class", "method", null, 11)
     def elementWithNoLineNumber = new StackTraceElement("class", "method", "filename", -1)
 
-    def 'uses location info from deepest stack frame with matching source file and line information'() {
+    def "uses location info from deepest stack frame with matching source file and line information"() {
         def stack = [elementWithNoSourceFile, elementWithNoLineNumber, otherElement, element, callerElement]
         def failure = Mock(Failure) {
             getStackTrace() >> stack

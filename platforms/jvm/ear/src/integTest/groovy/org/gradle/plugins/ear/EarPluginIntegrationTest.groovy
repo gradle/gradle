@@ -36,7 +36,7 @@ class EarPluginIntegrationTest extends AbstractIntegrationSpec {
         file("settings.gradle").write("rootProject.name='root'")
     }
 
-    void "creates ear archive"() {
+    def "creates ear archive"() {
         buildFile << """
 apply plugin: 'ear'
 
@@ -58,7 +58,7 @@ dependencies {
         ear.assertContainsFile("lib/earLib.jar")
     }
 
-    void "customizes ear archive"() {
+    def "customizes ear archive"() {
         buildFile << """
 apply plugin: 'ear'
 
@@ -86,7 +86,7 @@ ear {
         appXml.'library-directory'.text() == 'CUSTOM/lib'
     }
 
-    void "includes modules in deployment descriptor"() {
+    def "includes modules in deployment descriptor"() {
         file('moduleA.jar').createFile()
         file('moduleB.war').createFile()
 
@@ -109,7 +109,7 @@ dependencies {
         modules[1].web.'web-uri'.text() == 'moduleB.war'
     }
 
-    void "uses content from application xml located #location"() {
+    def "uses content from application xml located #location"() {
         def xsi = ["xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd\""]
 
         if (JavaVersion.current().java8Compatible) {
@@ -147,7 +147,7 @@ ear {
         "in specified metaInf folder" | "customMetaInf" | "metaInf { from 'customMetaInf' }"
     }
 
-    void "skips creating application xml"() {
+    def "skips creating application xml"() {
         buildFile << """
 apply plugin: 'ear'
 ear {
@@ -163,7 +163,7 @@ ear {
         ear.assertNotContainsFile("META-INF/application.xml")
     }
 
-    void "uses content found in #location app folder, ignoring descriptor modification"() {
+    def "uses content found in #location app folder, ignoring descriptor modification"() {
         def applicationXml = """<?xml version="1.0"?>
 <application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6">
   <application-name>customear</application-name>
@@ -199,7 +199,7 @@ ear {
         "default"   | ""                                                                                 | "src/main/application"
     }
 
-    void "works with existing descriptor containing a doctype declaration"() {
+    def "works with existing descriptor containing a doctype declaration"() {
         // We serve the DTD locally because the parser actually pulls on this URL,
         // and we don't want it reaching out to the Internet in our tests
         def dtdResource = getClass().getResource("application_1_3.dtd")
@@ -225,7 +225,7 @@ apply plugin: 'ear'
         ear.assertFileContent("META-INF/application.xml", applicationXml)
     }
 
-    void "exclude duplicates: lib has priority over other files"() {
+    def "exclude duplicates: lib has priority over other files"() {
         file('bad-lib/file.txt').createFile().write('bad')
         file('good-lib/file.txt').createFile().write('good')
 
@@ -249,7 +249,7 @@ ear {
         ear.assertFileContent("lib/file.txt", "good")
     }
 
-    void "use security role closure"() {
+    def "use security role closure"() {
         file('bad-lib/file.txt').createFile().write('bad')
         file('good-lib/file.txt').createFile().write('good')
 

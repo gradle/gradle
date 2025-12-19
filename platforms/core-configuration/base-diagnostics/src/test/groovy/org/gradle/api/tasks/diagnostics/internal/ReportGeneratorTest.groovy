@@ -34,7 +34,7 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
         return new ReportGenerator(renderer, file, textOutputFactory)
     }
 
-    def 'completes renderer at end of generation'() {
+    def "completes renderer at end of generation"() {
         setup:
         def generator = createReportGenerator()
 
@@ -58,7 +58,7 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
         1 * renderer.complete()
     }
 
-    def 'sets outputFileName on renderer before generation'() {
+    def "sets outputFileName on renderer before generation"() {
         setup:
         final File file = temporaryFolder.getTestDirectory().file("report.txt");
         def generator = createReportGenerator(file)
@@ -84,7 +84,7 @@ class ReportGeneratorTest extends AbstractProjectBuilderSpec {
     }
 
 
-    def 'passes each project to renderer'() {
+    def "passes each project to renderer"() {
         setup:
         def child1 = TestUtil.createChildProject(project, "child1");
         def child2 = TestUtil.createChildProject(project, "child2");

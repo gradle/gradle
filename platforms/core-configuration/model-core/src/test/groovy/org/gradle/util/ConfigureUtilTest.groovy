@@ -194,7 +194,7 @@ class ConfigureUtilTest extends Specification {
         b.prop == "p"
     }
 
-    void configureByMapTriesMethodForExtensibleObjects() {
+    def configureByMapTriesMethodForExtensibleObjects() {
         given:
         Bean bean = TestUtil.instantiatorFactory().decorateLenient().newInstance(Bean)
 

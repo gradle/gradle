@@ -21,7 +21,7 @@ import org.gradle.internal.resource.ReadableContent
 
 class HttpResourceUploaderTest extends AbstractHttpClientTest {
 
-    def 'uploader closes the request'() {
+    def "uploader closes the request"() {
         given:
         HttpClientHelper client = Mock()
         ReadableContent resource = Mock()

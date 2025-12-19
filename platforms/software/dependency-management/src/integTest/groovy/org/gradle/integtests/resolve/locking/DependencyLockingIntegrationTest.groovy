@@ -25,7 +25,7 @@ class DependencyLockingIntegrationTest extends AbstractValidatingLockingIntegrat
         LockMode.DEFAULT
     }
 
-    def 'succeeds without lock file present and does not create one'() {
+    def "succeeds without lock file present and does not create one"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
         buildFile << """
@@ -102,7 +102,7 @@ task check {
         succeeds 'check'
     }
 
-    def 'writes a new lock file if update done without lockfile present'() {
+    def "writes a new lock file if update done without lockfile present"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -136,7 +136,7 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.1'])
     }
 
-    def 'does not write an empty lock file for an empty configuration if not requested'() {
+    def "does not write an empty lock file for an empty configuration if not requested"() {
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -159,7 +159,7 @@ configurations {
         lockfileFixture.expectLockStateMissing('lockedConf')
     }
 
-    def 'attempting to change lock mode after a configuration has been resolved is invalid'() {
+    def "attempting to change lock mode after a configuration has been resolved is invalid"() {
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -187,7 +187,7 @@ dependencyLocking {
         failureHasCause("The value for property 'lockMode' is final and cannot be changed any further.")
     }
 
-    def 'can use a custom file location for reading and writing per project lock state'() {
+    def "can use a custom file location for reading and writing per project lock state"() {
         given:
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -233,7 +233,7 @@ dependencies {
 
     }
 
-    def 'fails to load a malformed lock file'() {
+    def "fails to load a malformed lock file"() {
         given:
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()

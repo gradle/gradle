@@ -28,7 +28,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 
 class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "must run with specific JDK that may differ from the current test JDK")
-    def 'JVM version too low uses custom error message for plugin'() {
+    def "JVM version too low uses custom error message for plugin"() {
         given:
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.differentVersion
@@ -112,7 +112,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         failure.assertHasResolution("Run this build using a Java ${higherVersion.javaVersion.majorVersion} or newer JVM.")
     }
 
-    def 'JVM version too low uses custom error message for plugin when version attribute explicitly mis-set'() {
+    def "JVM version too low uses custom error message for plugin when version attribute explicitly mis-set"() {
         given:
         Integer currentJava = Integer.valueOf(JavaVersion.current().majorVersion)
         Integer tooHighJava = currentJava + 1
@@ -193,7 +193,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
     }
 
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "must run with specific JDK that may differ from the current test JDK")
-    def 'JVM version too low uses custom error message for plugin when using composite build'() {
+    def "JVM version too low uses custom error message for plugin when using composite build"() {
         given:
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.differentVersion

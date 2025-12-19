@@ -17,7 +17,7 @@ package org.gradle.api.publish.ivy
 
 class IvyPublishWarIntegTest extends AbstractIvyPublishIntegTest {
 
-    void "can publish WAR only for mixed java and WAR project"() {
+    def "can publish WAR only for mixed java and WAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "
 

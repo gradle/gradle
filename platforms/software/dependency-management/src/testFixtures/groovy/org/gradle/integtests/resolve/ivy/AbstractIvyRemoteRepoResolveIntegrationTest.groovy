@@ -35,7 +35,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
     @Rule
     ProgressLoggingFixture progressLogger = new ProgressLoggingFixture(executer, temporaryFolder)
 
-    void "can resolve dependencies from a remote Ivy repository with #layout layout"() {
+    def "can resolve dependencies from a remote Ivy repository with #layout layout"() {
         given:
         def remoteIvyRepo = server.getRemoteIvyRepo(m2Compatible, null, ivyFilePattern, artifactFilePattern)
         def module = remoteIvyRepo.module('org.group.name', 'projectA', '1.2')
@@ -73,7 +73,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         'ivy'    | false        | '[type]s/[artifact].[ext]' | '[type]s/[artifact].[ext]'
     }
 
-    void "can resolve dependencies from a remote Ivy repository with pattern layout and m2compatible: #m2Compatible"() {
+    def "can resolve dependencies from a remote Ivy repository with pattern layout and m2compatible: #m2Compatible"() {
         given:
         def remoteIvyRepo = server.getRemoteIvyRepo(m2Compatible, "[module]/[organisation]/[revision]")
         def module = remoteIvyRepo.module('org.group.name', 'projectA', '1.2')
@@ -112,7 +112,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         m2Compatible << [false, true]
     }
 
-    void "can resolve dependencies from a remote Ivy repository with multiple patterns configured"() {
+    def "can resolve dependencies from a remote Ivy repository with multiple patterns configured"() {
         given:
         def emptyRepo = server.getRemoteIvyRepo('/empty')
         def thirdPartyModuleInEmptyRepo = emptyRepo.module('other', '3rdParty', '1.2')
@@ -170,7 +170,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         file('libs').assertHasDescendants '3rdParty-1.2.jar', 'original-1.1.jar'
     }
 
-    public void "can resolve and cache dependencies from multiple remote Ivy repositories"() {
+    public def "can resolve and cache dependencies from multiple remote Ivy repositories"() {
         given:
         def repo1 = server.getRemoteIvyRepo("/repo1")
         def repo2 = server.getRemoteIvyRepo("/repo2")
@@ -229,7 +229,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         succeeds('listJars')
     }
 
-    public void "can resolve and cache dependencies from a remote Ivy repository"() {
+    public def "can resolve and cache dependencies from a remote Ivy repository"() {
         given:
         def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
         module.publish()
@@ -271,7 +271,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         succeeds 'listJars'
     }
 
-    void "can resolve and cache artifact-only dependencies from a remote Ivy repository"() {
+    def "can resolve and cache artifact-only dependencies from a remote Ivy repository"() {
         given:
         def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
         module.publish()

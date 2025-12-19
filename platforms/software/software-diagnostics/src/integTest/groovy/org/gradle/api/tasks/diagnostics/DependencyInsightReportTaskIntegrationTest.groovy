@@ -1432,7 +1432,7 @@ org:leaf:[1.5,2.0] FAILED
 """
     }
 
-    void "marks project dependencies that cannot be resolved as 'FAILED'"() {
+    def "marks project dependencies that cannot be resolved as 'FAILED'"() {
         given:
         createDirs("A", "B", "C")
         settingsFile << "include 'A', 'B', 'C'; rootProject.name='root'"
@@ -1981,7 +1981,7 @@ org:leaf3:1.0
 """
     }
 
-    void "fails a configuration is not resolvable"() {
+    def "fails a configuration is not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
 

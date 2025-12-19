@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.tasks
 
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 
 class TaskOnlyIfReasonIntegrationTest extends AbstractIntegrationSpec {
-    def 'task skipped by #condition reports "#reason"'() {
+    def "task skipped by #condition reports #reason"() {
         buildFile("""
             tasks.register("task") {
                 $condition

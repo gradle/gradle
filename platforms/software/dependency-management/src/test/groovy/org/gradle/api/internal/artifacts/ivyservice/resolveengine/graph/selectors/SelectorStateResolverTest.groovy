@@ -203,7 +203,7 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_FOUR_DEPENDENCIES
     }
 
-    def 'short circuits for matching project selectors'() {
+    def "short circuits for matching project selectors"() {
         ProjectIdentity id = ProjectIdentity.forRootProject(Path.ROOT, "projectA")
         def projectId = new DefaultProjectComponentIdentifier(id)
         def nine = new TestProjectSelectorState(id)

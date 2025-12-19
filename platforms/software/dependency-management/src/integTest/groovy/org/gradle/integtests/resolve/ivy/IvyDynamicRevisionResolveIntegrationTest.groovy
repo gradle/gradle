@@ -263,7 +263,7 @@ Searched in the following locations:
     }
 
     @Issue("GRADLE-2502")
-    void "latest.release selects highest version with release status"() {
+    def "latest.release selects highest version with release status"() {
         given:
         buildFile << """
             dependencies {

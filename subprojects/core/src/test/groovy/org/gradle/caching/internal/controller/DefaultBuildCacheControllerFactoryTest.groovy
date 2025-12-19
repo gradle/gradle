@@ -78,7 +78,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         buildOperationRunner.log.mostRecentResult(FinalizeBuildCacheConfigurationBuildOperationType)
     }
 
-    def 'local cache service is created when remote is not configured'() {
+    def "local cache service is created when remote is not configured"() {
         when:
         def c = createController()
 
@@ -94,7 +94,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         }
     }
 
-    def 'local cache service is created when remote is disabled'() {
+    def "local cache service is created when remote is disabled"() {
         config.remote(TestRemoteBuildCache).enabled = false
 
         when:
@@ -110,7 +110,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         }
     }
 
-    def 'remote cache service is created when local is disabled'() {
+    def "remote cache service is created when local is disabled"() {
         config.local.enabled = false
         config.remote(TestRemoteBuildCache)
 
@@ -127,7 +127,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         }
     }
 
-    def 'can enable both'() {
+    def "can enable both"() {
         config.remote(TestRemoteBuildCache)
 
         when:
@@ -142,7 +142,7 @@ class DefaultBuildCacheControllerFactoryTest extends Specification {
         }
     }
 
-    def 'when caching is disabled no services are created'() {
+    def "when caching is disabled no services are created"() {
         buildCacheEnabled = false
 
         expect:

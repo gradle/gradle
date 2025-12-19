@@ -252,7 +252,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain(file('transitive/build/libs/transitive-1.0.jar').absolutePath)
     }
 
-    def 'aggregated report infers dependency versions from platform'() {
+    def "aggregated report infers dependency versions from platform"() {
         given:
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'
@@ -274,7 +274,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertDoesNotContainClass("org.codehaus.janino.Parser")
     }
 
-    def 'multiple test suites create multiple aggregation tasks'() {
+    def "multiple test suites create multiple aggregation tasks"() {
         given:
         file("transitive/build.gradle") << """
             testing {
@@ -542,7 +542,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertDoesNotContainClass("org.codehaus.janino.Parser")
     }
 
-    def 'test verification failure prevents creation of aggregated report'() {
+    def "test verification failure prevents creation of aggregated report"() {
         given:
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'
@@ -577,7 +577,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml").assertDoesNotExist()
     }
 
-    def 'test verification failure creates aggregated report with --continue flag'() {
+    def "test verification failure creates aggregated report with --continue flag"() {
         given:
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'
@@ -618,7 +618,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertHasClassCoverage("transitive.Powerize")
     }
 
-    def 'catastrophic failure of single test prevents creation of aggregated report'() {
+    def "catastrophic failure of single test prevents creation of aggregated report"() {
         given:
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'
@@ -656,7 +656,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         file("application/build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml").assertDoesNotExist()
     }
 
-    def 'catastrophic failure of every test task prevents creation of aggregated report'() {
+    def "catastrophic failure of every test task prevents creation of aggregated report"() {
         given:
         // prevent all test VMs from starting
         buildFile << '''

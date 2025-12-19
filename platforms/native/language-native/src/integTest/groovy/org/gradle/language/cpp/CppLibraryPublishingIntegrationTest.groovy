@@ -693,7 +693,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6766")
-    void "configuration exclusions are published in generated POM and Gradle metadata"() {
+    def "configuration exclusions are published in generated POM and Gradle metadata"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
         given:

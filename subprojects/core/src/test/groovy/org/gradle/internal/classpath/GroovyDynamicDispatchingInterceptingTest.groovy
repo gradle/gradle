@@ -61,7 +61,7 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
     // Define a nested classes so that we can freely modify the metaClass of it loaded in the child class loader
     class NestedClass {}
 
-    def 'setting a null delegate in a closure is safe'() {
+    def "setting a null delegate in a closure is safe"() {
         given:
         def transformedClosure = instrumentedClasses.instrumentedClosure {
             if (delegate != null) {
@@ -86,7 +86,7 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
         noExceptionThrown()
     }
 
-    def 'setting a delegate of a closure before invoking an intercepted method in it replaces the metaclass of the delegate'() {
+    def "setting a delegate of a closure before invoking an intercepted method in it replaces the metaclass of the delegate"() {
         given:
         def transformedClosure = instrumentedClasses.instrumentedClosure {
             test()
@@ -101,7 +101,7 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
         GroovySystem.metaClassRegistry.getMetaClass(InterceptorTestReceiver) instanceof CallInterceptingMetaClass
     }
 
-    def 'setting a delegate of a closure after invoking an intercepted method replaces the metaclass of the new delegate'() {
+    def "setting a delegate of a closure after invoking an intercepted method replaces the metaclass of the new delegate"() {
         given:
         def transformedClosure = instrumentedClasses.instrumentedClosure {
             test()
@@ -118,7 +118,7 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
         GroovySystem.metaClassRegistry.getMetaClass(InterceptorTestReceiver) instanceof CallInterceptingMetaClass
     }
 
-    def 'invoking a closure constructor with a specific owner replaces the metaclass of the delegate'() {
+    def "invoking a closure constructor with a specific owner replaces the metaclass of the delegate"() {
         given:
         def transformedClosureClass = instrumentedClasses.instrumentedClosure {
             test()
@@ -140,7 +140,7 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
         modifiedMetaClasses.every()
     }
 
-    def 'closure does not erroneously become effectively instrumented after it threw an exception'() {
+    def "closure does not erroneously become effectively instrumented after it threw an exception"() {
         given:
         def transformedThrowingClosure = instrumentedClasses.instrumentedClosure {
             throw new RuntimeException()
@@ -171,7 +171,7 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
         void test() { }
     }
 
-    def 'invoking an intercepted method on a BeanDynamicObject replaces the metaclass of the bean'() {
+    def "invoking an intercepted method on a BeanDynamicObject replaces the metaclass of the bean"() {
         when:
         instrumentedClasses.instrumentedClosure { receiver ->
             new BeanDynamicObject(receiver).invokeMethod("test")
@@ -181,7 +181,7 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
         GroovySystem.metaClassRegistry.getMetaClass(InterceptorTestReceiver) instanceof CallInterceptingMetaClass
     }
 
-    def 'interceptors persist after dynamic invocations'() {
+    def "interceptors persist after dynamic invocations"() {
         given:
         def receiver = new InterceptorTestReceiver()
         def transformedClosure = instrumentedClasses.instrumentedClosure { test() }
@@ -206,7 +206,7 @@ class GroovyDynamicDispatchingInterceptingTest extends AbstractCallInterceptionT
     }
 
     @Issue("https://github.com/gradle/gradle/issues/35049")
-    def 'safe navigation works with intercepted calls'() {
+    def "safe navigation works with intercepted calls"() {
         given:
         def receiver = new InterceptorTestReceiver()
         def transformedClosure = instrumentedClasses.instrumentedClosure { delegate?.test() }

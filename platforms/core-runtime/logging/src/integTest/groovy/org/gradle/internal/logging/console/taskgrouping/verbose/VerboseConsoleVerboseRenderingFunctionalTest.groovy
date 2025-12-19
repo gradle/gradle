@@ -26,7 +26,7 @@ class VerboseConsoleVerboseRenderingFunctionalTest extends AbstractConsoleVerbos
     ConsoleOutput consoleType = Verbose
 
     @SuppressWarnings("IntegrationTestFixtures")
-    def 'verbose task header has no blank line above it'() {
+    def "verbose task header has no blank line above it"() {
         given:
         buildFile << '''
 task upToDate{

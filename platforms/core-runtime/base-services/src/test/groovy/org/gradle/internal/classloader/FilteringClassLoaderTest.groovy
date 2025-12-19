@@ -33,7 +33,7 @@ class FilteringClassLoaderTest extends Specification {
         withSpec {}
     }
 
-    void passesThroughSystemClasses() {
+    def passesThroughSystemClasses() {
         expect:
         canLoadClass(String)
     }
@@ -216,7 +216,7 @@ class FilteringClassLoaderTest extends Specification {
         canSeeResource('org/gradle/util/ClassLoaderTest.txt')
     }
 
-    void "can disallow packages"() {
+    def "can disallow packages"() {
         given:
         withSpec { FilteringClassLoader.Spec spec ->
             spec.disallowPackage("org.junit")
@@ -228,7 +228,7 @@ class FilteringClassLoaderTest extends Specification {
         cannotSeePackage("org.junit.subpackage")
     }
 
-    void "disallow wins over allow packages"() {
+    def "disallow wins over allow packages"() {
         given:
         withSpec { FilteringClassLoader.Spec spec ->
             spec.disallowPackage("org.junit")
@@ -239,7 +239,7 @@ class FilteringClassLoaderTest extends Specification {
         cannotLoadClass(Test)
     }
 
-    void "allow class wins over disallow package"() {
+    def "allow class wins over disallow package"() {
         given:
         withSpec { FilteringClassLoader.Spec spec ->
             spec.disallowPackage("org.junit")
@@ -251,7 +251,7 @@ class FilteringClassLoaderTest extends Specification {
         cannotLoadClass(Before)
     }
 
-    void "visits self and parent"() {
+    def "visits self and parent"() {
         def visitor = Mock(ClassLoaderVisitor)
         given:
         withSpec { FilteringClassLoader.Spec spec ->
@@ -342,7 +342,7 @@ class FilteringClassLoaderTest extends Specification {
         0 * parent._
     }
 
-    void "spec is copied correctly"() {
+    def "spec is copied correctly"() {
         given:
         def parent = Mock(ClassLoader, useObjenesis: false)
         def spec = new FilteringClassLoader.Spec(['allow.ClassName' ], ['allowPackage' ], ['allowPackagePrefix' ], ['allowPackageResource' ], ['allowResource' ], ['disallow.ClassName' ], ['disallowPackage' ])

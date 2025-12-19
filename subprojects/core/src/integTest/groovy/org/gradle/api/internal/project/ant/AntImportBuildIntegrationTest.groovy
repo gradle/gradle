@@ -36,7 +36,7 @@ class AntImportBuildIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    private void "test basedir"(String buildFileContents, File expectedBasedir, String taskName) {
+    private def "test basedir"(String buildFileContents, File expectedBasedir, String taskName) {
         // given
         buildFile << buildFileContents
         // when

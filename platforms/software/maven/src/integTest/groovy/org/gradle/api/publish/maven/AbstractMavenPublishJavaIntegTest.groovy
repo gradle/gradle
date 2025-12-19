@@ -547,7 +547,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    void "'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin"() {
+    def "'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin"() {
         given:
         createBuildScripts """
             publishing {
@@ -610,7 +610,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         'java-library' | 'implementation'    | 'runtime'
     }
 
-    void "depending on an unpublished project is deprecated"() {
+    def "depending on an unpublished project is deprecated"() {
         given:
         settingsFile << """
             include("b")
@@ -852,7 +852,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5034, https://github.com/gradle/gradle/issues/5035")
-    void "configuration exclusions are published in generated POM and Gradle metadata"() {
+    def "configuration exclusions are published in generated POM and Gradle metadata"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "a", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "b", "2.0")).withModuleMetadata().publish()
@@ -1077,7 +1077,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         outputContains "Maven publication 'java' isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
     }
 
-    def 'can publish java library with a #config dependency on a published BOM platform"'() {
+    def "can publish java library with a #config dependency on a published BOM platform"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bom", "1.0")).hasPackaging('pom').dependencyConstraint(mavenRepo.module('org.test', 'bar', '1.1')).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -1144,7 +1144,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
 
     @ToBeImplemented("Currently we cannot detect that a platform is in fact a virtual one during publication")
     @Ignore
-    def 'can publish a java library using a virtual platform by ignoring it'() {
+    def "can publish a java library using a virtual platform by ignoring it"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
@@ -1196,7 +1196,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
 
     }
 
-    def 'can publish a java library using a virtual platform by ignoring it explicitly'() {
+    def "can publish a java library using a virtual platform by ignoring it explicitly"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
@@ -1255,7 +1255,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         // Sadly this does not take care of the Gradle metadata
     }
 
-    def 'can publish java library with a #config dependency on a java-platform subproject"'() {
+    def "can publish java library with a #config dependency on a java-platform subproject"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()

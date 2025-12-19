@@ -54,7 +54,7 @@ class DefaultComponentSelectionTest extends Specification {
         selection.rejectionReason == "worse"
     }
 
-    def 'delegates to metadata provider for metadata access'() {
+    def "delegates to metadata provider for metadata access"() {
         given:
         metadataProvider.usable >> true
 
@@ -65,7 +65,7 @@ class DefaultComponentSelectionTest extends Specification {
         1 * metadataProvider.componentMetadata
     }
 
-    def 'delegates to metadata provider for ivy module descriptor access'() {
+    def "delegates to metadata provider for ivy module descriptor access"() {
         given:
         metadataProvider.usable >> true
 
@@ -76,7 +76,7 @@ class DefaultComponentSelectionTest extends Specification {
         1 * metadataProvider.ivyModuleDescriptor
     }
 
-    def 'ignores non ivy descriptor requests'() {
+    def "ignores non ivy descriptor requests"() {
         when:
         selection.getDescriptor(Object.class)
 

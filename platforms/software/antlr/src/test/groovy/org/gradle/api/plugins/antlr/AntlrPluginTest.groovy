@@ -86,7 +86,7 @@ class AntlrPluginTest extends AbstractProjectBuilderSpec {
         project.tasks.compileCustomJava.taskDependencies.getDependencies(null).contains(custom)
     }
 
-    def 'source set extension exposes its public type'() {
+    def "source set extension exposes its public type"() {
         when:
         project.pluginManager.apply(AntlrPlugin)
 
@@ -96,7 +96,7 @@ class AntlrPluginTest extends AbstractProjectBuilderSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/19555')
-    def 'adds task dependency to sourcesJar'() {
+    def "adds task dependency to sourcesJar"() {
         when:
         project.pluginManager.apply(AntlrPlugin)
 

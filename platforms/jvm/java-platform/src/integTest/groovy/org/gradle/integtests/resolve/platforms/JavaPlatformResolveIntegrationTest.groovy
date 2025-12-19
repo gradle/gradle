@@ -238,7 +238,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         succeeds ":compileJava"
     }
 
-    def 'constraint from platform does not erase excludes (platform: #platform)'() {
+    def "constraint from platform does not erase excludes (platform: #platform)"() {
         given:
         platformModule("""
         constraints {

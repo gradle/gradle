@@ -57,7 +57,7 @@ class DefaultSourceDirectorySetTest extends Specification {
         set = new DefaultSourceDirectorySet('files', '<display-name>', patternSetFactory, taskDependencyFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
     }
 
-    void hasUsefulToString() {
+    def hasUsefulToString() {
         expect:
         set.displayName == '<display-name>'
         set.toString() == '<display-name>'
@@ -245,7 +245,7 @@ class DefaultSourceDirectorySetTest extends Specification {
         assertSetContainsForAllTypes(set, 'subdir/file1.txt', 'subdir2/file1.txt')
     }
 
-    void "can use patterns to filter files but not directories with getSrcDirTrees method"() {
+    def "can use patterns to filter files but not directories with getSrcDirTrees method"() {
         File srcDir1 = new File(testDir, 'dir1')
         touch(new File(srcDir1, 'subdir/file1.txt'))
         touch(new File(srcDir1, 'subdir/file2.txt'))
@@ -274,7 +274,7 @@ class DefaultSourceDirectorySetTest extends Specification {
         assertSetContainsForAllTypes(tree2, 'subdir2/file2.txt')
     }
 
-    void "can use patterns to include only certain files but not directories with getSrcDirTrees method"() {
+    def "can use patterns to include only certain files but not directories with getSrcDirTrees method"() {
         File srcDir1 = new File(testDir, 'dir1')
         touch(new File(srcDir1, 'subdir/file1.txt'))
         touch(new File(srcDir1, 'subdir2/file2.txt'))
@@ -453,7 +453,7 @@ class DefaultSourceDirectorySetTest extends Specification {
         assertSetContainsForAllTypes(filteredSet, 'subdir/file1.txt', 'subdir2/file1.txt')
     }
 
-    void "compileBy can be called multiple times and only applies the last mapping"() {
+    def "compileBy can be called multiple times and only applies the last mapping"() {
         given:
         TaskProvider taskProvider1 = Mock()
         TaskProvider taskProvider2 = Mock()

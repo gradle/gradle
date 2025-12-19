@@ -48,7 +48,7 @@ class ZipCopyActionTest extends Specification {
         visitor = new ZipCopyAction(zipFile, new DefaultZipCompressor(false, ZipArchiveOutputStream.STORED), new DocumentationRegistry(), encoding, false)
     }
 
-    void createsZipFile() {
+    def createsZipFile() {
         given:
         zip(dir("dir"), file("dir/file1"), file("file2"))
 

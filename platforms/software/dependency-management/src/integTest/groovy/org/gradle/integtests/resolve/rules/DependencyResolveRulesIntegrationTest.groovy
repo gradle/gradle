@@ -36,7 +36,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
     /**
      * Test demonstrating current (not necessarily desired) behaviour
      */
-    void "can replace project dependency with external dependency"() {
+    def "can replace project dependency with external dependency"() {
         mavenRepo.module("org.gradle.test", "a", '1.3').publish()
 
         settingsFile << "include 'a', 'b'"
@@ -78,7 +78,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "forces multiple modules by rule"() {
+    def "forces multiple modules by rule"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -126,7 +126,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "module forced by rule has correct selection reason"() {
+    def "module forced by rule has correct selection reason"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -167,7 +167,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "all rules are executed orderly and last one wins"() {
+    def "all rules are executed orderly and last one wins"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -213,7 +213,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "can override forced version with rule"() {
+    def "can override forced version with rule"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -252,7 +252,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "rule are applied after forced modules"() {
+    def "rule are applied after forced modules"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -292,7 +292,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "forced modules and rules coexist"() {
+    def "forced modules and rules coexist"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 
@@ -332,7 +332,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "rule selects a dynamic version"() {
+    def "rule selects a dynamic version"() {
         mavenRepo.module("org.utils", "api", '1.3').publish()
         mavenRepo.module("org.utils", "api", '1.4').publish()
         mavenRepo.module("org.utils", "api", '1.5').publish()
@@ -360,7 +360,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "can deny a version"() {
+    def "can deny a version"() {
         mavenRepo.module("org.utils", "a",  '1.4').publish()
         mavenRepo.module("org.utils", "a",  '1.3').publish()
         mavenRepo.module("org.utils", "a",  '1.2').publish()
@@ -396,7 +396,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "can deny a version that is not used"() {
+    def "can deny a version that is not used"() {
         mavenRepo.module("org.utils", "a",  '1.3').publish()
         mavenRepo.module("org.utils", "a",  '1.2').publish()
         mavenRepo.module("org.utils", "b", '1.3').dependsOn("org.utils", "a", "1.3").publish()
@@ -490,7 +490,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void "rule selects unavailable version"() {
+    def "rule selects unavailable version"() {
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
         buildFile << """
@@ -526,7 +526,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not find org.utils:api:1.123.15")
     }
 
-    void "rules triggered exactly once per the same dependency"() {
+    def "rules triggered exactly once per the same dependency"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
@@ -578,7 +578,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    void "runtime exception when evaluating rule yields decent exception"() {
+    def "runtime exception when evaluating rule yields decent exception"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
@@ -613,7 +613,7 @@ Required by:
         failure.assertHasCause("Unhappy :(")
     }
 
-    void "can substitute module name and resolve conflict"() {
+    def "can substitute module name and resolve conflict"() {
         mavenRepo.module("org.utils", "a",  '1.2').publish()
         mavenRepo.module("org.utils", "b",  '2.0').publish()
         mavenRepo.module("org.utils", "b",  '2.1').publish()

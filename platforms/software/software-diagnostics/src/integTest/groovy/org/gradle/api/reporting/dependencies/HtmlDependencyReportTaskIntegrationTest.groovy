@@ -520,7 +520,7 @@ rootProject.name = 'root'
         compileClasspathConfiguration.dependencies[3].children[0].children[0].children.empty
     }
 
-    void "does not fail if a configuration is not resolvable"() {
+    def "does not fail if a configuration is not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
 
@@ -556,7 +556,7 @@ rootProject.name = 'root'
         apiConfiguration.dependencies[0].children.empty
     }
 
-    void "treats a configuration that is deprecated for resolving as not resolvable"() {
+    def "treats a configuration that is deprecated for resolving as not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
 
         buildFile << """
@@ -588,7 +588,7 @@ rootProject.name = 'root'
         apiConfiguration.dependencies[0].children.empty
     }
 
-    void "excludes directly undeclarable configurations"() {
+    def "excludes directly undeclarable configurations"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
 
         buildFile << """
@@ -613,7 +613,7 @@ rootProject.name = 'root'
         !undeclarableConfiguration
     }
 
-    void "includes indirectly declarable configurations"() {
+    def "includes indirectly declarable configurations"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
 
         buildFile << """

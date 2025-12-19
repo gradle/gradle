@@ -280,7 +280,7 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
     }
 
     @Ignore("to be used adhoc when analyzing specific issue")
-    def 'replay content from shared json formatted log'() {
+    def "replay content from shared json formatted log"() {
         def input = new File('/path/to/log.json')
         def converter = new ExcludeJsonLogToCode()
 

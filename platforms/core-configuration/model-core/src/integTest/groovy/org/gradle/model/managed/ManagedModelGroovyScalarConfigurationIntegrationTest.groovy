@@ -134,7 +134,7 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         apply type: RulePlugin
         '''
 
-    void 'only CharSequence input values are supported - #varname'() {
+    def "only CharSequence input values are supported - #varname"() {
         when:
         buildFile << CLASSES
         buildFile << """
@@ -162,7 +162,7 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
                     'theInteger', 'theLong', 'thelong', 'theshort', 'theShort', 'thebyte', 'theByte']
     }
 
-    void 'reports supported input types for enum property'() {
+    def "reports supported input types for enum property"() {
         when:
         buildFile << CLASSES
         buildFile << """
@@ -187,7 +187,7 @@ The following types/formats are supported:
         value << ["12", "false"]
     }
 
-    void 'number types require stringified numeric inputs - #varname'() {
+    def "number types require stringified numeric inputs - #varname"() {
         when:
         buildFile << CLASSES
         buildFile << """
@@ -224,7 +224,7 @@ The following types/formats are supported:
         'theByte'       | Byte
     }
 
-    void 'primitive types cannot accept null values'() {
+    def "primitive types cannot accept null values"() {
         when:
         buildFile << CLASSES
         buildFile << """
@@ -257,7 +257,7 @@ The following types/formats are supported:
         'thechar'   | char
     }
 
-    void 'non-primitive types can accept null values'() {
+    def "non-primitive types can accept null values"() {
         when:
         buildFile << CLASSES
         buildFile << '''
@@ -297,7 +297,7 @@ The following types/formats are supported:
         output.contains 'prop theThing     : null'
     }
 
-    void 'enum types require valid enum constants'() {
+    def "enum types require valid enum constants"() {
         when:
         buildFile << CLASSES
         buildFile << """
@@ -317,7 +317,7 @@ The following types/formats are supported:
         failure.assertHasCause("Cannot convert string value 'IS_NOT_A_TOASTER' to an enum value of type 'Thing'")
     }
 
-    void 'boolean types are only true for the literal string "true"'() {
+    def "boolean types are only true for the literal string true"() {
         when:
         buildFile << CLASSES
         buildFile << """
@@ -341,7 +341,7 @@ The following types/formats are supported:
         'false' | false
     }
 
-    void 'can convert CharSequence to any scalar type'() {
+    def "can convert CharSequence to any scalar type"() {
         when:
         buildFile << CLASSES
         buildFile << '''
@@ -399,7 +399,7 @@ The following types/formats are supported:
         output.contains 'prop theThing     : NOT_A_TOASTER'
     }
 
-    void 'scalar conversion works from a Groovy RuleSource'() {
+    def "scalar conversion works from a Groovy RuleSource"() {
         when:
         buildFile << CLASSES
         buildFile << '''
@@ -425,7 +425,7 @@ The following types/formats are supported:
         output.contains 'prop theThing     : null'
     }
 
-    void 'can convert CharSequence to File'() {
+    def "can convert CharSequence to File"() {
         when:
         buildFile << '''
             @Managed
@@ -506,7 +506,7 @@ The following types/formats are supported:
         output.contains '4: true'
     }
 
-    void 'File error cases'() {
+    def "File error cases"() {
         given:
         String model = '''
             @Managed
@@ -543,7 +543,7 @@ The following types/formats are supported:
   - A File'''))
     }
 
-    void 'can convert CharSequence to File for multi-project build'() {
+    def "can convert CharSequence to File for multi-project build"() {
 
         given:
         String model = '''

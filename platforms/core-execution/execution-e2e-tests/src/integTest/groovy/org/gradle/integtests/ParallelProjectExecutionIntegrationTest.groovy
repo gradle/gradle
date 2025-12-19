@@ -129,7 +129,7 @@ allprojects {
         run 'd:ping'
     }
 
-    void 'tasks with should run after ordering rules are preferred when running over an idle worker thread'() {
+    def "tasks with should run after ordering rules are preferred when running over an idle worker thread"() {
         buildFile("a/build.gradle", """
             tasks.named("pingA") {
                 shouldRunAfter(":b:pingB")

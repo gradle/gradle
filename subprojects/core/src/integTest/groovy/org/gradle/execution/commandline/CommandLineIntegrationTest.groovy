@@ -202,7 +202,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         userHome.file(".gradle").exists()
     }
 
-    void "can specify system properties from command line"() {
+    def "can specify system properties from command line"() {
         when:
         createProject()
         // the actual testing is done in the build script.

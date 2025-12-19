@@ -112,7 +112,7 @@ class PathTest extends Specification {
         path.relativePath(':other:path') == ':other:path'
     }
 
-    def 'converts relative path to relative path'() {
+    def "converts relative path to relative path"() {
         def path = path(':')
 
         expect:

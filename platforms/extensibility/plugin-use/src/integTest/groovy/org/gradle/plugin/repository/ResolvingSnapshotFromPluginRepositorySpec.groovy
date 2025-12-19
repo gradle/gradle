@@ -45,7 +45,7 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
         """
     }
 
-    def 'Can specify snapshot version'() {
+    def "Can specify snapshot version"() {
         given:
         publishTestPlugin()
         buildFile """
@@ -67,7 +67,7 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
         output.contains("I'm here")
     }
 
-    def 'setting different snapshot version in resolutionStrategy will affect plugin choice'() {
+    def "setting different snapshot version in resolutionStrategy will affect plugin choice"() {
         given:
         publishTestPlugin()
         buildFile """
@@ -95,7 +95,7 @@ class ResolvingSnapshotFromPluginRepositorySpec extends AbstractDependencyResolu
         output.contains("I'm here")
     }
 
-    def 'can specify a snapshot artifact to use'() {
+    def "can specify a snapshot artifact to use"() {
         given:
         publishTestPlugin()
         buildFile """

@@ -26,7 +26,7 @@ class ForkOptionsTest extends Specification {
 
     ForkOptions forkOptions = TestUtil.newInstance(ForkOptions)
 
-    def 'initial values of forkOptions'() {
+    def "initial values of forkOptions"() {
         expect:
         forkOptions.executable == null
         forkOptions.javaHome == null

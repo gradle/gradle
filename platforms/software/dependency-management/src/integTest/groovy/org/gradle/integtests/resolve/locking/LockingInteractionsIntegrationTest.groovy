@@ -26,7 +26,7 @@ class LockingInteractionsIntegrationTest extends AbstractHttpDependencyResolutio
         settingsFile << "rootProject.name = 'locking-interactions'"
     }
 
-    def 'locking constraints do not bring back excluded modules'() {
+    def "locking constraints do not bring back excluded modules"() {
         def foo = mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').dependsOn(foo).publish()
 
@@ -63,7 +63,7 @@ dependencies {
 
     }
 
-    def 'does not lock dependencies missing a version'() {
+    def "does not lock dependencies missing a version"() {
         def flatRepo = testDirectory.file('repo')
         flatRepo.createFile('my-dep-1.0.jar')
 
@@ -185,7 +185,7 @@ dependencies {
 
     }
 
-    def 'kind of locks snapshots but warns about it'() {
+    def "kind of locks snapshots but warns about it"() {
         mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()
         mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()
 
@@ -270,7 +270,7 @@ dependencies {
         'latest.integration' | '2.2-SNAPSHOT'
     }
 
-    def 'locking works with default dependency action'() {
+    def "locking works with default dependency action"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
         buildFile << """

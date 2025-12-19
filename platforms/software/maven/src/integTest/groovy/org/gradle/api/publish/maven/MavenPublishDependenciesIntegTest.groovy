@@ -119,7 +119,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         dependency.version == ""
     }
 
-    void "defaultDependencies are included in published pom file"() {
+    def "defaultDependencies are included in published pom file"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -166,7 +166,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         repoModule.assertRuntimeDependencies('org:explicit-dependency:1.0')
     }
 
-    void "dependency mutations are reflected in published pom file"() {
+    def "dependency mutations are reflected in published pom file"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """

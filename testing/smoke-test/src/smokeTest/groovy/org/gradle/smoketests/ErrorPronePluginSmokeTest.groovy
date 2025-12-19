@@ -22,7 +22,7 @@ import spock.lang.Issue
 class ErrorPronePluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue("https://github.com/gradle/gradle/issues/9897")
-    def 'errorprone plugin'() {
+    def "errorprone plugin"() {
 
         given:
         buildFile << """

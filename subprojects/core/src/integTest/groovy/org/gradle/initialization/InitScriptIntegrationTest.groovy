@@ -48,7 +48,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue(['GRADLE-1457', 'GRADLE-3197'])
-    def 'init scripts passed on the command line are applied to buildSrc'() {
+    def "init scripts passed on the command line are applied to buildSrc"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
         createProject()
@@ -64,7 +64,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Project hello evaluated")
     }
 
-    def 'init scripts passed in the Gradle user home are applied to buildSrc'() {
+    def "init scripts passed in the Gradle user home are applied to buildSrc"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
         createProject()
@@ -79,7 +79,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Project hello evaluated")
     }
 
-    def 'init script can contribute to settings - before and after'() {
+    def "init script can contribute to settings - before and after"() {
         given:
         createDirs("sub1", "sub2")
         file("init.gradle") << """

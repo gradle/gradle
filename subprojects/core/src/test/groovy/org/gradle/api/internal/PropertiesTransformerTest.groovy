@@ -22,7 +22,7 @@ import spock.lang.Specification
 class PropertiesTransformerTest extends Specification {
     final PropertiesTransformer transformer = new PropertiesTransformer()
 
-    def 'returns original when no action specified'() {
+    def "returns original when no action specified"() {
         given:
         Map map = [test:'value']
         Properties original = props(map)
@@ -33,7 +33,7 @@ class PropertiesTransformerTest extends Specification {
         result == test
     }
 
-    def 'action can access properties'() {
+    def "action can access properties"() {
         given:
         Action<Properties> action = Mock()
         transformer.addAction(action)
@@ -49,7 +49,7 @@ class PropertiesTransformerTest extends Specification {
         props(changed:'new', added:'value') == result
     }
 
-    def 'can use closure as action'() {
+    def "can use closure as action"() {
         given:
         transformer.addAction action { Properties props ->
             props.added = 'value'
@@ -60,7 +60,7 @@ class PropertiesTransformerTest extends Specification {
         props(added:'value') == result
     }
 
-    def 'can chain actions'() {
+    def "can chain actions"() {
         given:
         transformer.addAction action { Properties props ->
             props.remove('removed')
@@ -78,7 +78,7 @@ class PropertiesTransformerTest extends Specification {
         props(changed:'new', added:'value') == result
     }
 
-    def 'can transform to an OutputStream'() {
+    def "can transform to an OutputStream"() {
         given:
         transformer.addAction action { Properties props ->
             props.added = 'value'

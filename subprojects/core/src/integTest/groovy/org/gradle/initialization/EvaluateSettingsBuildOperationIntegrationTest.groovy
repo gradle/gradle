@@ -66,7 +66,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         operations()[1].details.buildPath == ":nested"
     }
 
-    def 'can configure feature preview in settings'() {
+    def "can configure feature preview in settings"() {
         given:
         settingsFile << '''
 enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
@@ -75,7 +75,7 @@ enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
         succeeds('help')
     }
 
-    def 'can create project directories in afterEvaluate'() {
+    def "can create project directories in afterEvaluate"() {
         given:
         settingsFile << '''
         include 'has-no-dir'

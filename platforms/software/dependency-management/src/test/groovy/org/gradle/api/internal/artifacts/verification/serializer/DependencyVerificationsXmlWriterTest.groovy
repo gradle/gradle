@@ -70,7 +70,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
         true           | true
     }
 
-    def 'can write top level comments'() {
+    def "can write top level comments"() {
         when:
         builder.addTopLevelComment("Some top level comment")
         builder.addTopLevelComment("Another comment\non two lines")
@@ -343,7 +343,7 @@ on two lines -->
         validateAgainstSchemasSince("1.3")
     }
 
-    void "can declare origin of a checksum"() {
+    def "can declare origin of a checksum"() {
         declareChecksum("org:foo:1.0", "sha1", "abc", "from test")
         declareChecksum("org:bar:1.0", "sha1", "abc", "from test")
         declareChecksum("org:bar:1.0", "md5", "abc", "other")
@@ -377,7 +377,7 @@ on two lines -->
         validateAgainstSchemasSince("1.3")
     }
 
-    void "can declare more than one checksum of the same kind"() {
+    def "can declare more than one checksum of the same kind"() {
         declareChecksum("org:foo:1.0", "sha1", "abc")
         declareChecksum("org:foo:1.0", "sha1", "def")
         declareChecksum("org:foo:1.0", "sha1", "123")

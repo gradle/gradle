@@ -48,7 +48,7 @@ class JavadocCachingIntegrationTest extends AbstractIntegrationSpec implements D
         """
     }
 
-    def 'javadoc can be cached'() {
+    def "javadoc can be cached"() {
         when:
         withBuildCache().run "javadoc"
 

@@ -282,7 +282,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         "executable" | 'options.forkOptions.executable = "<path>"'     | OperatingSystem.current().getExecutableName('/bin/javac')
     }
 
-    def 'fails when requesting not available toolchain'() {
+    def "fails when requesting not available toolchain"() {
         buildFile << """
             apply plugin: 'java'
 

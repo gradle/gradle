@@ -33,7 +33,7 @@ class ContextClassLoaderDispatchTest extends Specification {
         Thread.currentThread().contextClassLoader = original
     }
 
-    def 'sets ContextClassLoader during dispatch'() {
+    def "sets ContextClassLoader during dispatch"() {
         when:
         dispatch.dispatch('message')
 
@@ -46,7 +46,7 @@ class ContextClassLoaderDispatchTest extends Specification {
         assertContextClassloaderIs(original)
     }
 
-    def 'cleans up after failure'() {
+    def "cleans up after failure"() {
         given:
         def failure = new RuntimeException()
 

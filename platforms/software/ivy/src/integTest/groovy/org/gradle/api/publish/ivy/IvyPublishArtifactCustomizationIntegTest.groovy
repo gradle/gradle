@@ -22,7 +22,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
 
     def module = ivyRepo.module("org.gradle.test", "ivyPublish", "2.4")
 
-    void "can publish custom artifacts"() {
+    def "can publish custom artifacts"() {
         given:
         createBuildScripts("""
             file("customFile.foo") << 'some foo'

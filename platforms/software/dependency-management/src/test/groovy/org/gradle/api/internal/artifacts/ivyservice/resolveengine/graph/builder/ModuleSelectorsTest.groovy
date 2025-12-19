@@ -33,12 +33,12 @@ class ModuleSelectorsTest extends Specification {
     ModuleSelectors selectors = new ModuleSelectors(versionComparator, new VersionParser())
     int dynCount = 1
 
-    def 'empty by default'() {
+    def "empty by default"() {
         expect:
         verifyEmpty(selectors)
     }
 
-    def 'can add a selector not marked as deferring'() {
+    def "can add a selector not marked as deferring"() {
         given:
         def selector = Mock(ResolvableSelectorState)
 
@@ -52,7 +52,7 @@ class ModuleSelectorsTest extends Specification {
         !selectors.checkDeferSelection()
     }
 
-    def 'can remove a selector'() {
+    def "can remove a selector"() {
         given:
         def selector = Mock(ResolvableSelectorState)
         selectors.add(selector, false)
@@ -65,7 +65,7 @@ class ModuleSelectorsTest extends Specification {
         verifyEmpty(selectors)
     }
 
-    def 'can ad a selector marked as deferring'() {
+    def "can ad a selector marked as deferring"() {
         given:
         def selector = Mock(ResolvableSelectorState)
 
@@ -76,7 +76,7 @@ class ModuleSelectorsTest extends Specification {
         selectors.checkDeferSelection()
     }
 
-    def 'clears deferring state on first access'() {
+    def "clears deferring state on first access"() {
         given:
         def selector = Mock(ResolvableSelectorState)
         selectors.add(selector, true)
@@ -88,7 +88,7 @@ class ModuleSelectorsTest extends Specification {
         !selectors.checkDeferSelection()
     }
 
-    def 'can add 2 selectors'() {
+    def "can add 2 selectors"() {
         given:
         def selector1 = Mock(ResolvableSelectorState)
         selectors.add(selector1, false)
@@ -110,7 +110,7 @@ class ModuleSelectorsTest extends Specification {
         !iterator.hasNext()
     }
 
-    def 'when adding 2 selectors and one dynamic, non-dynamic is first'() {
+    def "when adding 2 selectors and one dynamic, non-dynamic is first"() {
         given:
         def selector1 = dynamicSelector()
         def selector2 = Mock(ResolvableSelectorState)
@@ -132,7 +132,7 @@ class ModuleSelectorsTest extends Specification {
         !iterator.hasNext()
     }
 
-    def 'can add and remove selectors in any order'() {
+    def "can add and remove selectors in any order"() {
         given:
         def selector1 = dynamicSelector()
         def selector2 = Mock(ResolvableSelectorState)

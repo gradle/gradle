@@ -496,7 +496,7 @@ task check(type: Sync) {
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    def 'dependency with same selector but different excludes is taken into account'() {
+    def "dependency with same selector but different excludes is taken into account"() {
         given:
         repository {
             'org.test:platform:1.0' {

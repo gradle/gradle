@@ -58,7 +58,7 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
         app.application.writeToProject(project)
     }
 
-    def 'compilation can be cached'() {
+    def "compilation can be cached"() {
         setupProject()
         def allCompileTasks = ['', ':hello', ':log'].collect { compileTask(it, buildType) } as String[]
 

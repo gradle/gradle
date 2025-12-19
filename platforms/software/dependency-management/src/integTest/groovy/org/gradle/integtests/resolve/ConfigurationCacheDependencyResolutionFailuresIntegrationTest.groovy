@@ -23,7 +23,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "handles CC explicitly")
 class ConfigurationCacheDependencyResolutionFailuresIntegrationTest extends AbstractIntegrationSpec {
 
-    def 'nested dependency resolution failures are surfaced to the top'() {
+    def "nested dependency resolution failures are surfaced to the top"() {
         given:
         def emptyRepo = createDir('empty')
         buildFile '''

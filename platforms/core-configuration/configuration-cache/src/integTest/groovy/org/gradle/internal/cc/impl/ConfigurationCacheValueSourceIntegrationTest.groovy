@@ -642,7 +642,7 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         }
     }
 
-    def 'reentrant fingerprint'() {
+    def "reentrant fingerprint"() {
         def configurationCache = newConfigurationCacheFixture()
         given:
         buildFile """
@@ -687,7 +687,7 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         configurationCache.assertStateStored()
     }
 
-    def 'fingerprint does not block'() {
+    def "fingerprint does not block"() {
         given:
         buildFile """
             abstract class CustomValueSource implements ValueSource<String, Parameters> {

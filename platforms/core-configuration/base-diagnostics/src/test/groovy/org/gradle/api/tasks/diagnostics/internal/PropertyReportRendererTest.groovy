@@ -26,7 +26,7 @@ class PropertyReportRendererTest extends Specification {
         setOutput(out)
     }}
 
-    def 'writes property'() {
+    def "writes property"() {
         when:
         renderer.addProperty("prop", "value")
 
@@ -34,7 +34,7 @@ class PropertyReportRendererTest extends Specification {
         assert containsLine(out.toString(), "prop: value")
     }
 
-    def 'writes null property'() {
+    def "writes null property"() {
         when:
         renderer.addProperty("prop", null)
 
@@ -42,7 +42,7 @@ class PropertyReportRendererTest extends Specification {
         assert containsLine(out.toString(), "prop: null")
     }
 
-    void 'writes property that throws in toString'() {
+    def "writes property that throws in toString"() {
         when:
         renderer.addProperty("prop", new RenderFailedValue())
 

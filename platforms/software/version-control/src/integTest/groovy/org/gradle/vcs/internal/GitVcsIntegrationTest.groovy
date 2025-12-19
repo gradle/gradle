@@ -62,7 +62,7 @@ class GitVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDep
         }
     }
 
-    def 'can define and use source repository'() {
+    def "can define and use source repository"() {
         given:
         def commit = repo.commit('initial commit')
 
@@ -81,7 +81,7 @@ class GitVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDep
         gitCheckout.file('.git').assertExists()
     }
 
-    def 'can define and use source repositories using VCS mapping'() {
+    def "can define and use source repositories using VCS mapping"() {
         given:
         repo.commit('initial commit')
 
@@ -102,7 +102,7 @@ class GitVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDep
         result.assertTaskScheduled(":compileJava")
     }
 
-    def 'can define and use source repositories with submodules'() {
+    def "can define and use source repositories with submodules"() {
         given:
         // Populate submodule origin
         evenDeeperRepo.file('foo').text = "baz"
@@ -157,7 +157,7 @@ class GitVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDep
         gitCheckout.file('deeperDep/evenDeeperDep/foo').text == "buzz"
     }
 
-    def 'reports error when badly formed module used'() {
+    def "reports error when badly formed module used"() {
         given:
         settingsFile << """
             rootProject.name = 'test'
@@ -177,7 +177,7 @@ The following types/formats are supported:
     }
 
     @Issue('gradle/gradle-native#206')
-    def 'can define and use source repositories with initscript resolution present'() {
+    def "can define and use source repositories with initscript resolution present"() {
         given:
         def commit = repo.commit('initial commit')
         temporaryFolder.file('initialize.gradle') << """
@@ -209,7 +209,7 @@ The following types/formats are supported:
     }
 
     @Issue('gradle/gradle-native#207')
-    def 'can use repositories even when clean is run'() {
+    def "can use repositories even when clean is run"() {
         given:
         def commit = repo.commit('initial commit')
 
@@ -237,7 +237,7 @@ The following types/formats are supported:
         gitCheckout.file('.git').assertExists()
     }
 
-    def 'can handle conflicting versions'() {
+    def "can handle conflicting versions"() {
         given:
         settingsFile << """
             sourceControl {
@@ -278,7 +278,7 @@ The following types/formats are supported:
         gitCheckout2.file('.git').assertExists()
     }
 
-    def 'uses root project cache directory'() {
+    def "uses root project cache directory"() {
         given:
         settingsFile << """
             sourceControl {
@@ -333,7 +333,7 @@ The following types/formats are supported:
         deeperCheckout.file('.git').assertExists()
     }
 
-    def 'can resolve the same version for latest.integration within the same build session'() {
+    def "can resolve the same version for latest.integration within the same build session"() {
         given:
         BlockingHttpServer server = new BlockingHttpServer()
         server.start()

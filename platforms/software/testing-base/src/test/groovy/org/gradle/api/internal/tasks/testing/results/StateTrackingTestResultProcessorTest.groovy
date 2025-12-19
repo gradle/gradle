@@ -39,7 +39,7 @@ class StateTrackingTestResultProcessorTest extends Specification {
     def listener = Mock(TestListenerInternal.class)
     def adapter = new StateTrackingTestResultProcessor(listener)
 
-    void notifiesBefore() {
+    def notifiesBefore() {
         given:
         def test = new DefaultTestDescriptor("id", "Foo", "bar");
         def startEvent = new TestStartEvent(100L)

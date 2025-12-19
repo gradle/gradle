@@ -38,7 +38,7 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         return !(version in ['4.10', '4.11', '4.12'])
     }
 
-    def 'reports unloadable #type'() {
+    def "reports unloadable #type"() {
         given:
         testSources.with {
             testClass('SomeTestClass').with {

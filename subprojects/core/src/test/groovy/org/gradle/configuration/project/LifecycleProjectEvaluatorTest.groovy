@@ -63,7 +63,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         mutationState.applyToMutableState(_) >> { Consumer consumer -> consumer.accept(project) }
     }
 
-    void "nothing happens if project was already configured"() {
+    def "nothing happens if project was already configured"() {
         given:
         state.configured()
 
@@ -78,7 +78,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         operations.empty
     }
 
-    void "nothing happens if project is being configured now"() {
+    def "nothing happens if project is being configured now"() {
         given:
         state.toBeforeEvaluate()
 
@@ -93,7 +93,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         operations.empty
     }
 
-    void "fails when build has been cancelled"() {
+    def "fails when build has been cancelled"() {
         when:
         evaluate()
 
@@ -105,7 +105,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         thrown(BuildCancelledException)
     }
 
-    void "evaluates the project firing all necessary listeners and updating the state"() {
+    def "evaluates the project firing all necessary listeners and updating the state"() {
         when:
         evaluate()
 
@@ -141,7 +141,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         assertAfterEvaluateOp(operations[2])
     }
 
-    void "notifies listeners and updates state on evaluation failure"() {
+    def "notifies listeners and updates state on evaluation failure"() {
         when:
         1 * delegate.evaluate(project, state) >> { throw failure1 }
         1 * listener.afterEvaluate(project, state)
@@ -156,7 +156,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         assertAfterEvaluateOp(operations[2])
     }
 
-    void "updates state and does not delegate when beforeEvaluate action fails"() {
+    def "updates state and does not delegate when beforeEvaluate action fails"() {
         when:
         1 * listener.beforeEvaluate(project) >> { throw failure1 }
 
@@ -173,7 +173,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         assertBeforeEvaluateOp(operations[1], failure1)
     }
 
-    void "updates state when afterEvaluate action fails"() {
+    def "updates state when afterEvaluate action fails"() {
         when:
         1 * listener.afterEvaluate(project, state) >> { throw failure1 }
 
@@ -187,7 +187,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         assertAfterEvaluateOp(operations[2], failure1)
     }
 
-    void "notifies listeners and updates state on evaluation failure even if afterEvaluate fails"() {
+    def "notifies listeners and updates state on evaluation failure even if afterEvaluate fails"() {
         when:
         1 * delegate.evaluate(project, state) >> { throw failure1 }
 

@@ -74,7 +74,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
 
-    void "can ignore failures"() {
+    def "can ignore failures"() {
         badCode()
         buildFile << """
             pmd {
@@ -90,7 +90,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
     }
 
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/4688")
-    void "can set max failures"() {
+    def "can set max failures"() {
         badCode()
         buildFile << """
             pmd {
@@ -105,7 +105,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         output.contains("2 PMD rule violations were found. See the report at:")
     }
 
-    void "does not ignore more than max failures"() {
+    def "does not ignore more than max failures"() {
         badCode()
         buildFile << """
             pmd {
@@ -121,7 +121,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
 
-    void "can configure priority level threshold"() {
+    def "can configure priority level threshold"() {
         badCode()
         buildFile << """
             pmd {
@@ -259,7 +259,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         output.contains "\tEnsure you override both equals() and hashCode()"
     }
 
-    void "can configure number of threads on good code"() {
+    def "can configure number of threads on good code"() {
         goodCode()
         buildFile << """
             pmd {

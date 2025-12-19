@@ -681,7 +681,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
         0 * _
     }
 
-    def 'rootSnapshotsUnder can stream the root'() {
+    def "rootSnapshotsUnder can stream the root"() {
         def rootNode = Mock(FileSystemNode)
         def hierarchy = DefaultSnapshotHierarchy.from(rootNode, CASE_SENSITIVE)
 

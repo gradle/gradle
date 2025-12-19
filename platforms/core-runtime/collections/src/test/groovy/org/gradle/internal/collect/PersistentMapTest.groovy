@@ -21,12 +21,12 @@ import spock.lang.Specification
 
 class PersistentMapTest extends Specification {
 
-    def 'empty === empty'() {
+    def "empty === empty"() {
         expect:
         PersistentMap.of() === PersistentMap.of()
     }
 
-    def 'copyOf(map) === map'() {
+    def "copyOf(map) === map"() {
         expect:
         PersistentMap.copyOf(map) === map
 
@@ -34,7 +34,7 @@ class PersistentMapTest extends Specification {
         map << [PersistentMap.of(), PersistentMap.of(1, "1"), PersistentMap.of(1, "1").assoc(2, "2")]
     }
 
-    def 'singleton maps with same element are equal'() {
+    def "singleton maps with same element are equal"() {
         given:
         def map1 = PersistentMap.of(42, "42")
         def map2 = PersistentMap.of(42, "42")
@@ -48,7 +48,7 @@ class PersistentMapTest extends Specification {
         !map1.containsKey(37)
     }
 
-    def 'assoc existing entry returns same map'() {
+    def "assoc existing entry returns same map"() {
         given:
         def collision = new HashCollision(42)
         def map1 = PersistentMap.of()
@@ -72,7 +72,7 @@ class PersistentMapTest extends Specification {
         map2 === map2.assoc(33, "33")
     }
 
-    def 'assoc replaces entry'() {
+    def "assoc replaces entry"() {
         given:
         def collision = new HashCollision(42)
         def map = PersistentMap.of()
@@ -105,7 +105,7 @@ class PersistentMapTest extends Specification {
         return map
     }
 
-    def 'lookup'() {
+    def "lookup"() {
         given:
         def random = new Random(42)
         def present = []
@@ -148,12 +148,12 @@ class PersistentMapTest extends Specification {
         map1.size() == present.size()
     }
 
-    def 'map equals with different type returns false'() {
+    def "map equals with different type returns false"() {
         expect:
         PersistentMap.of(1, "a") != [1: "a"]
     }
 
-    def 'maps with same elements are equal'() {
+    def "maps with same elements are equal"() {
         given:
         def random = new Random(42)
         def list = random.ints(1024).toArray().toList()
@@ -174,7 +174,7 @@ class PersistentMapTest extends Specification {
         map2.hashCode() == map3.hashCode()
     }
 
-    def 'maps with same elements, including collisions, are equal'() {
+    def "maps with same elements, including collisions, are equal"() {
         given:
         def random = new Random(seed)
         def list = []
@@ -206,7 +206,7 @@ class PersistentMapTest extends Specification {
         seed << (1..10)
     }
 
-    def 'iterator'() {
+    def "iterator"() {
         given:
         def random = new Random(42)
         def keys = random.ints(collectionSize).toArray().toSet()
@@ -221,7 +221,7 @@ class PersistentMapTest extends Specification {
         collectionSize << [0, 1, 5, 32, 1024]
     }
 
-    def 'iterator with collisions'() {
+    def "iterator with collisions"() {
         given:
         def random = new Random(42)
         def keys = []
@@ -240,7 +240,7 @@ class PersistentMapTest extends Specification {
         collectionSize << [0, 1, 5, 32, 1024]
     }
 
-    def 'forEach'() {
+    def "forEach"() {
         given:
         def random = new Random(42)
         def keys = random.ints(collectionSize).toArray().toSet()
@@ -260,7 +260,7 @@ class PersistentMapTest extends Specification {
         collectionSize << [0, 1, 5, 32, 1024, 16 * 1024]
     }
 
-    def 'modify puts element'() {
+    def "modify puts element"() {
         given:
         def map = PersistentMap.<Integer, String> of()
 
@@ -315,14 +315,14 @@ class PersistentMapTest extends Specification {
         map.get(37) == "*37"
     }
 
-    def 'modify removes element when function returns null'() {
+    def "modify removes element when function returns null"() {
         expect:
         PersistentMap.of() === PersistentMap.of().modify(42, { k, v -> null })
         PersistentMap.of() === PersistentMap.of(42, "42").modify(42, { k, v -> null })
         PersistentMap.of(37, "37") == PersistentMap.of(42, "42").assoc(37, "37").modify(42, { k, v -> null })
     }
 
-    def 'map modify with no change returns same map'() {
+    def "map modify with no change returns same map"() {
         expect:
         map.modify("key", { k, v -> v }) === map
 
@@ -330,7 +330,7 @@ class PersistentMapTest extends Specification {
         map << [PersistentMap.of("key", "value"), PersistentMap.of("key", "value").assoc("a", "1")]
     }
 
-    def 'map modify non-existing key with null returns same map'() {
+    def "map modify non-existing key with null returns same map"() {
         expect:
         map.modify("b", { k, v -> null }) === map
 
@@ -338,7 +338,7 @@ class PersistentMapTest extends Specification {
         map << [PersistentMap.of(), PersistentMap.of("key", "value"), PersistentMap.of("key", "value").assoc("a", "1")]
     }
 
-    def 'dissoc is inverse to assoc'() {
+    def "dissoc is inverse to assoc"() {
         given:
         def random = new Random(42)
         def keys = []
@@ -376,7 +376,7 @@ class PersistentMapTest extends Specification {
         withCollision << [false, true]
     }
 
-    def 'map dissoc non-existing key returns same map'() {
+    def "map dissoc non-existing key returns same map"() {
         given:
         def map = PersistentMap.of("a", 1).assoc("b", 2)
 
@@ -384,7 +384,7 @@ class PersistentMapTest extends Specification {
         map.dissoc("c") === map
     }
 
-    def 'map get returns null for missing key'() {
+    def "map get returns null for missing key"() {
         expect:
         map.get("missing") == null
 
@@ -396,7 +396,7 @@ class PersistentMapTest extends Specification {
         ]
     }
 
-    def 'map getOrDefault returns default for missing key'() {
+    def "map getOrDefault returns default for missing key"() {
         expect:
         map.getOrDefault("missing", 42) == 42
 
@@ -408,7 +408,7 @@ class PersistentMapTest extends Specification {
         ]
     }
 
-    def 'map value cannot be null'() {
+    def "map value cannot be null"() {
         when:
         PersistentMap.of().assoc("key", null)
 
@@ -428,14 +428,14 @@ class PersistentMapTest extends Specification {
         thrown(IllegalArgumentException)
     }
 
-    def 'toString == {k1:v1,k2:v2,...}'() {
+    def "toString == {k1:v1,k2:v2,...}"() {
         expect:
         "{}" == PersistentMap.of().toString()
         "{1:2}" == PersistentMap.of(1, 2).toString()
         "{3:4,1:2}" == PersistentMap.of(1, 2).assoc(3, 4).toString()
     }
 
-    def 'maps with same keys but different values in collision bucket are not equal'() {
+    def "maps with same keys but different values in collision bucket are not equal"() {
         given: 'Two keys that have the same hash code (collision)'
         def key1 = 42
         def key2 = new HashCollision(42)  // Same hash as 42

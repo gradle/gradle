@@ -412,7 +412,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
     }
 
     @Issue('gradle/gradle#18494')
-    def 'two capabilities conflict when one is a transitive of the other resolve successfully'() {
+    def "two capabilities conflict when one is a transitive of the other resolve successfully"() {
         given:
         repository {
             'jakarta:activation:1.0'()

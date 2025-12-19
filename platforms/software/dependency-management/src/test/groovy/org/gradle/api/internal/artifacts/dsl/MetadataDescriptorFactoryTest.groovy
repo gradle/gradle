@@ -30,7 +30,7 @@ import javax.xml.namespace.QName
 
 class MetadataDescriptorFactoryTest extends Specification {
 
-    def 'exposes ivy descriptor if ivy metadata present'() {
+    def "exposes ivy descriptor if ivy metadata present"() {
         given:
         DefaultIvyModuleResolveMetadata metadata = Stub()
         def key = new NamespaceId("", "foo")
@@ -48,7 +48,7 @@ class MetadataDescriptorFactoryTest extends Specification {
         descriptor.extraInfo.asMap() == [(new QName("foo")): "bar"]
     }
 
-    def 'exposes pom descriptor if pom metadata present'() {
+    def "exposes pom descriptor if pom metadata present"() {
         given:
         MavenModuleResolveMetadata metadata = Stub()
         metadata.getPackaging() >> "pack"
@@ -61,7 +61,7 @@ class MetadataDescriptorFactoryTest extends Specification {
         descriptor.packaging == "pack"
     }
 
-    def 'does not expose #name descriptor if no #name metadata present'() {
+    def "does not expose #name descriptor if no #name metadata present"() {
         given:
         def metadata = Mock(ModuleComponentResolveMetadata)
         def factory = new MetadataDescriptorFactory(metadata)
@@ -78,7 +78,7 @@ class MetadataDescriptorFactoryTest extends Specification {
         "maven" | PomModuleDescriptor
     }
 
-    def '#descriptorType and metadata #metadataType should match: #match'() {
+    def "#descriptorType and metadata #metadataType should match: #match"() {
         given:
         def metadata = Mock(metadataType)
         def factory = new MetadataDescriptorFactory(metadata)

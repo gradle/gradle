@@ -638,7 +638,7 @@ conf2
         !output.contains("conf1")
     }
 
-    void "marks module that cannot be resolved due to broken dependency rule as 'FAILED'"() {
+    def "marks module that cannot be resolved due to broken dependency rule as 'FAILED'"() {
         mavenRepo.module("org.utils", "impl", '1.3').publish()
 
         buildFile << """
@@ -876,7 +876,7 @@ compile
 """
     }
 
-    void "doesn't fail if a configuration is not resolvable"() {
+    def "doesn't fail if a configuration is not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
 
@@ -1087,7 +1087,7 @@ compileClasspath - Compile classpath for source set 'main'.
         result.assertHasErrorOutput("Dependencies can not be declared against the `compile` configuration.")
     }
 
-    void "treats a configuration that is deprecated for resolving as not resolvable"() {
+    def "treats a configuration that is deprecated for resolving as not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
 

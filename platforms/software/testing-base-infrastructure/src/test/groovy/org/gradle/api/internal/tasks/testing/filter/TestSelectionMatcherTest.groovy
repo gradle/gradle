@@ -180,7 +180,7 @@ class TestSelectionMatcherTest extends Specification {
         ["FooTest"]         | ["Bar"]          | "FooTest"  | "whatever" | false
     }
 
-    def 'can exclude as many classes as possible'() {
+    def "can exclude as many classes as possible"() {
         expect:
         matcher(input, [], []).mayIncludeClass(fullQualifiedName) == maybeMatch
         matcher([], [], input).mayIncludeClass(fullQualifiedName) == maybeMatch
@@ -242,7 +242,7 @@ class TestSelectionMatcherTest extends Specification {
         ['org.gradle.Foo$1$2.test']       | "org.gradle.Foo"     | true
     }
 
-    def 'can use multiple patterns'() {
+    def "can use multiple patterns"() {
         expect:
         matcher(pattern1, [], pattern2).mayIncludeClass(fullQualifiedName) == maybeMatch
 

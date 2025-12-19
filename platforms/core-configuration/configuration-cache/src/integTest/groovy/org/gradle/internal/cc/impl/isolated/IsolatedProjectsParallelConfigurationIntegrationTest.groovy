@@ -48,7 +48,7 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         """
     }
 
-    def 'all projects are configured in parallel for #invocation'() {
+    def "all projects are configured in parallel for #invocation"() {
         given:
         withTwoWaitingProjects()
 
@@ -74,7 +74,7 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         [":build", "--no-configure-on-demand"] | [":build"]
     }
 
-    def 'parallel configuration can be disabled in favor of configure-on-demand'() {
+    def "parallel configuration can be disabled in favor of configure-on-demand"() {
         given:
         withTwoWaitingProjects()
 

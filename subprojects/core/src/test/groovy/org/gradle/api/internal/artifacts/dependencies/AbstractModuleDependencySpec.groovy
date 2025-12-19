@@ -52,7 +52,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
 
     protected abstract ExternalModuleDependency createDependency(String group, String name, String version, String configuration);
 
-    void "has reasonable default values"() {
+    def "has reasonable default values"() {
         expect:
         dependency.group == "org.gradle"
         dependency.name == "gradle-core"
@@ -90,7 +90,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dep.artifacts[0].type == 'jar'
     }
 
-    void "can exclude dependencies"() {
+    def "can exclude dependencies"() {
         def excludeArgs1 = WrapUtil.toMap("group", "aGroup")
         def excludeArgs2 = WrapUtil.toMap("module", "aModule")
 
@@ -104,7 +104,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dependency.excludeRules.contains(new DefaultExcludeRule(null, "aModule"))
     }
 
-    void "can add artifacts"() {
+    def "can add artifacts"() {
         def artifact1 = Mock(DependencyArtifact)
         def artifact2 = Mock(DependencyArtifact)
 
@@ -118,7 +118,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dependency.artifacts.contains(artifact2)
     }
 
-    void "can set attributes"() {
+    def "can set attributes"() {
         def attr1 = Attribute.of("attr1", String)
         def attr2 = Attribute.of("attr2", Integer)
 
@@ -134,7 +134,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dependency.attributes.getAttribute(attr2) == 123
     }
 
-    void "knows if is equal to"() {
+    def "knows if is equal to"() {
         when:
         def dep1 = createDependency("group1", "name1", "version1")
         def dep2 = createDependency("group1", "name1", "version1")
@@ -160,7 +160,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
 
     }
 
-    void "refuses artifact when attributes present"() {
+    def "refuses artifact when attributes present"() {
         given:
         def dep = createDependency("group", "name", "1.0")
         dep.attributes {
@@ -182,7 +182,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         thrown(InvalidUserCodeException)
     }
 
-    void "refuses target configuration when attributes present"() {
+    def "refuses target configuration when attributes present"() {
         given:
         def dep = createDependency("group", "name", "1.0")
         dep.attributes {
@@ -196,7 +196,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         thrown(InvalidUserCodeException)
     }
 
-    void "refuses artifact when capability present"() {
+    def "refuses artifact when capability present"() {
         given:
         def dep = createDependency("group", "name", "1.0")
         dep.capabilities {
@@ -218,7 +218,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         thrown(InvalidUserCodeException)
     }
 
-    void "refuses target configuration when capability present"() {
+    def "refuses target configuration when capability present"() {
         given:
         def dep = createDependency("group", "name", "1.0")
         dep.capabilities {
@@ -232,7 +232,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         thrown(InvalidUserCodeException)
     }
 
-    void "refuses attribute when targetConfiguration specified"() {
+    def "refuses attribute when targetConfiguration specified"() {
         given:
         def dep = createDependency("group", "name", "1.0")
         dep.setTargetConfiguration('foo')
@@ -246,7 +246,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         thrown(InvalidUserCodeException)
     }
 
-    void "refuses capability when targetConfiguration specified"() {
+    def "refuses capability when targetConfiguration specified"() {
         given:
         def dep = createDependency("group", "name", "1.0")
         dep.setTargetConfiguration('foo')
@@ -260,7 +260,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         thrown(InvalidUserCodeException)
     }
 
-    void "refuses attribute when artifact added"() {
+    def "refuses attribute when artifact added"() {
         given:
         def dep = createDependency("group", "name", "1.0")
         dep.addArtifact(Mock(DependencyArtifact))
@@ -274,7 +274,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         thrown(InvalidUserCodeException)
     }
 
-    void "refuses capability when artifact added"() {
+    def "refuses capability when artifact added"() {
         given:
         def dep = createDependency("group", "name", "1.0")
         dep.addArtifact(Mock(DependencyArtifact))
@@ -288,7 +288,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         thrown(InvalidUserCodeException)
     }
 
-    void "refuses configuration when artifact added"() {
+    def "refuses configuration when artifact added"() {
         given:
         def dep = createDependency("group", "name", "1.0")
         dep.addArtifact(Mock(DependencyArtifact))
@@ -300,7 +300,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         thrown(InvalidUserCodeException)
     }
 
-    void "refuses artifact when configuration specified"() {
+    def "refuses artifact when configuration specified"() {
         given:
         def dep = createDependency("group", "name", "1.0")
         dep.setTargetConfiguration('foo')
@@ -320,7 +320,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         thrown(InvalidUserCodeException)
     }
 
-    void "copy does not mutate original attributes"() {
+    def "copy does not mutate original attributes"() {
         def attr1 = Attribute.of("attr1", String)
         dependency.attributes {
             it.attribute(attr1, 'foo')
@@ -340,7 +340,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         copy.attributes.getAttribute(attr1) == 'bar'
     }
 
-    void "copy does not mutate original capabilities"() {
+    def "copy does not mutate original capabilities"() {
         dependency.capabilities {
             it.requireCapability('org:original:1')
             it.requireFeature('foo')

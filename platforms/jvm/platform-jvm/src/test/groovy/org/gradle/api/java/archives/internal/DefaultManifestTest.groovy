@@ -79,7 +79,7 @@ class DefaultManifestTest extends Specification {
         gradleManifest.getAttributes() == attributes + attributes2 + MANIFEST_VERSION_MAP
     }
 
-    def 'supports Provider'() {
+    def "supports Provider"() {
         given:
         TestFile manifestFile = tmpDir.file('manifest')
         fileResolver.resolve('manifest') >> manifestFile
@@ -101,7 +101,7 @@ class DefaultManifestTest extends Specification {
 
     }
 
-    def 'skips unset Provider'() {
+    def "skips unset Provider"() {
         given:
         TestFile manifestFile = tmpDir.file('manifest')
         fileResolver.resolve('manifest') >> manifestFile

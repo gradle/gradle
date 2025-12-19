@@ -73,7 +73,7 @@ class CallInterceptionFilteringTest extends AbstractCallInterceptionTest {
         receiver.intercepted
     }
 
-    def 'intercepts a basic instance call with #method from #caller with `instrumentation only` filter'() {
+    def "intercepts a basic instance call with #method from #caller with `instrumentation only` filter"() {
         given:
         bytecodeInterceptorFilter = BytecodeInterceptorFilter.INSTRUMENTATION_ONLY
         resetInterceptors()
@@ -96,7 +96,7 @@ class CallInterceptionFilteringTest extends AbstractCallInterceptionTest {
         "bytecode upgrade" | "Groovy dynamic dispatch"  | { testBytecodeUpgrade() }     | true           | null
     }
 
-    def 'intercepts a basic instance call with #method from #caller with `all` filter'() {
+    def "intercepts a basic instance call with #method from #caller with `all` filter"() {
         given:
         bytecodeInterceptorFilter = BytecodeInterceptorFilter.ALL
         resetInterceptors()

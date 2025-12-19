@@ -29,7 +29,7 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
         """
     }
 
-    def 'does not apply lock defined in a dependent project'() {
+    def "does not apply lock defined in a dependent project"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
@@ -76,7 +76,7 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
         outputContains('org:foo:1.1')
     }
 
-    def 'does apply lock to transitive dependencies from dependent project'() {
+    def "does apply lock to transitive dependencies from dependent project"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
@@ -123,7 +123,7 @@ class MultiProjectDependencyLockingIntegrationTest  extends AbstractDependencyRe
         outputContains('org:foo:1.1')
     }
 
-    def 'creates a lock file including transitive dependencies of dependent project'() {
+    def "creates a lock file including transitive dependencies of dependent project"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 

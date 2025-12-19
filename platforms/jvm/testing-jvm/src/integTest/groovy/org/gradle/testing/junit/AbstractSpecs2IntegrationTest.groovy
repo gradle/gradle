@@ -24,7 +24,7 @@ import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 abstract class AbstractSpecs2IntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
 
     @Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "2.11.12 is required for specs2 3.x, which is not compatible with running on JDK 24.")
-    def 'can run Specs2 tests'() {
+    def "can run Specs2 tests"() {
         given:
         buildFile << """
             plugins {

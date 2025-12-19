@@ -27,7 +27,7 @@ class GroovyIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncr
         configureGroovyIncrementalCompilation()
     }
 
-    def 'is incremental after loading from cache'() {
+    def "is incremental after loading from cache"() {
         given:
         def a = source "class A {}"
         source "class B {}"
@@ -53,7 +53,7 @@ class GroovyIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncr
         outputs.recompiledClasses('A')
     }
 
-    def 'only recompile affected classes when multiple class in one groovy file'() {
+    def "only recompile affected classes when multiple class in one groovy file"() {
         given:
         def a = file('src/main/groovy/org/gradle/A.groovy')
         a << """
@@ -75,7 +75,7 @@ class A2{}
         outputs.deletedClasses('A2')
     }
 
-    def 'only recompile removed packages'() {
+    def "only recompile removed packages"() {
         given:
         file('src/main/groovy/org/gradle/Org.groovy') << 'package org.gradle; class Org {}'
         file('src/main/groovy/com/gradle/Com.groovy') << 'package com.gradle; class Com {}'
@@ -91,7 +91,7 @@ class A2{}
         outputs.deletedClasses('Com')
     }
 
-    def 'recompiles when #action class to source file'() {
+    def "recompiles when #action class to source file"() {
         given:
         File src = source(oldFile)
 
@@ -112,7 +112,7 @@ class A2{}
         'changing' | 'class A { } \nclass B { } \nclass C { }' | 'class A{}\nclass B{}\n class C { int i }' | ['A', 'B', 'C']  | []
     }
 
-    def 'recompiles when moving class to another source file'() {
+    def "recompiles when moving class to another source file"() {
         given:
         File src1 = source('class A { }\n class B { }')
         File src2 = source('class C { }')
@@ -146,7 +146,7 @@ class A2{}
                 'Change the configuration of your sources or disable incremental Groovy compilation.')
     }
 
-    def 'merge old class source mappings if no recompilation required'() {
+    def "merge old class source mappings if no recompilation required"() {
         given:
         File a = source('class A { }')
         File b = source('class B { } \n class C { }')

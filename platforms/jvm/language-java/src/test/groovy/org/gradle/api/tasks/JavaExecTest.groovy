@@ -24,7 +24,7 @@ import org.gradle.util.TestUtil
 
 class JavaExecTest extends AbstractProjectBuilderSpec {
 
-    def 'Jvm arguments are empty by default'() {
+    def "Jvm arguments are empty by default"() {
         when:
         def task = project.tasks.create("run", JavaExec)
 
@@ -33,7 +33,7 @@ class JavaExecTest extends AbstractProjectBuilderSpec {
         task.jvmArgs.isEmpty()
     }
 
-    def 'fails if custom executable does not exist'() {
+    def "fails if custom executable does not exist"() {
         def task = project.tasks.create("run", JavaExec)
         def invalidExecutable = temporaryFolder.file("invalid")
 
@@ -48,7 +48,7 @@ class JavaExecTest extends AbstractProjectBuilderSpec {
         cause.message.contains(invalidExecutable.absolutePath)
     }
 
-    def 'fails if custom executable is a directory'() {
+    def "fails if custom executable is a directory"() {
         def task = project.tasks.create("run", JavaExec)
         def executableDir = temporaryFolder.createDir("javac")
 

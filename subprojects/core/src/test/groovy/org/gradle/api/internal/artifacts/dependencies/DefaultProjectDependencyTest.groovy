@@ -57,7 +57,7 @@ class DefaultProjectDependencyTest extends Specification {
         projectDependency.path == projectState.identity.projectPath.asString()
     }
 
-    void "provides dependency information"() {
+    def "provides dependency information"() {
         expect:
         projectDependency.transitive
         projectDependency.name == projectState.identity.projectName
@@ -65,7 +65,7 @@ class DefaultProjectDependencyTest extends Specification {
         projectDependency.version == "1.2"
     }
 
-    void "knows when content is equal"() {
+    def "knows when content is equal"() {
         def d1 = createProjectDependency()
         def d2 = createProjectDependency()
 
@@ -73,7 +73,7 @@ class DefaultProjectDependencyTest extends Specification {
         d1 == d2
     }
 
-    void "knows when content is not equal"() {
+    def "knows when content is not equal"() {
         def d1 = createProjectDependency()
         def d2 = createProjectDependency()
         d2.setTransitive(false)
@@ -82,7 +82,7 @@ class DefaultProjectDependencyTest extends Specification {
         d1 != d2
     }
 
-    void "can copy"() {
+    def "can copy"() {
         def d1 = createProjectDependency()
         def copy = d1.copy()
 
@@ -114,7 +114,7 @@ class DefaultProjectDependencyTest extends Specification {
         out
     }
 
-    void "knows if is equal"() {
+    def "knows if is equal"() {
         def dep1 = new DefaultProjectDependency(projectState)
         def dep2 = new DefaultProjectDependency(projectState)
 

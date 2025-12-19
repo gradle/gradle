@@ -101,7 +101,7 @@ class DefaultCopySpecTest extends Specification {
         { -> return 'spec' } | ['spec']
     }
 
-    def 'with Spec'() {
+    def "with Spec"() {
         given:
         def other1 = Stub(CopySpecInternal)
         def other2 = Stub(CopySpecInternal)
@@ -114,7 +114,7 @@ class DefaultCopySpecTest extends Specification {
         spec.children.size() == 2
     }
 
-    def 'into with Closure'() {
+    def "into with Closure"() {
         when:
         CopySpec child = spec.into('target') {}
 
@@ -123,7 +123,7 @@ class DefaultCopySpecTest extends Specification {
         unpackWrapper(child).buildRootResolver().destPath == relativeDirectory('target')
     }
 
-    def 'into with Action'() {
+    def "into with Action"() {
         when:
         CopySpec child = spec.into('target', new Action<CopySpec>() {
             @Override
@@ -135,7 +135,7 @@ class DefaultCopySpecTest extends Specification {
         unpackWrapper(child).buildRootResolver().destPath == relativeDirectory('target')
     }
 
-    def 'filter with Closure'() {
+    def "filter with Closure"() {
         when:
         spec.filter { it.length() > 10 ? null : it }
 
@@ -143,7 +143,7 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
     }
 
-    def 'filter with Transformer'() {
+    def "filter with Transformer"() {
         when:
         spec.filter(new Transformer<String, String>() {
             @Override
@@ -156,7 +156,7 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
     }
 
-    def 'no arg filter'() {
+    def "no arg filter"() {
         when:
         spec.filter(StripJavaComments)
 
@@ -164,7 +164,7 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
     }
 
-    def 'arg filter'() {
+    def "arg filter"() {
         when:
         spec.filter(HeadFilter, lines: 15, skip: 2)
 
@@ -172,7 +172,7 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
     }
 
-    def 'expand'() {
+    def "expand"() {
         when:
         spec.expand(version: '1.2', skip: 2)
 
@@ -180,7 +180,7 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
     }
 
-    def 'expand with action'() {
+    def "expand with action"() {
         when:
         spec.expand(version: '1.2', skip: 2) {details ->
             details.escapeBackslash = true
@@ -190,7 +190,7 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
     }
 
-    def 'two filters'() {
+    def "two filters"() {
         when:
         spec.filter(StripJavaComments)
         spec.filter(HeadFilter, lines: 15, skip: 2)
@@ -199,7 +199,7 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 2
     }
 
-    def 'adds rename to actions'() {
+    def "adds rename to actions"() {
         when:
         spec.rename(regexp, "replacement")
 
@@ -213,7 +213,7 @@ class DefaultCopySpecTest extends Specification {
         regexp << ["regexp", /regexp/]
     }
 
-    def 'adds rename Closure to actions'() {
+    def "adds rename Closure to actions"() {
         when:
         spec.rename {}
 
@@ -222,7 +222,7 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions[0] instanceof RenamingCopyAction
     }
 
-    def 'add action'() {
+    def "add action"() {
         given:
         Action<CopySpec> action = Mock()
 
@@ -233,7 +233,7 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions == [action]
     }
 
-    def 'add Closure as action'() {
+    def "add Closure as action"() {
         when:
         spec.eachFile {}
 
@@ -241,7 +241,7 @@ class DefaultCopySpecTest extends Specification {
         spec.copyActions.size() == 1
     }
 
-    def 'matching creates appropriate action'() {
+    def "matching creates appropriate action"() {
         when:
         spec.filesMatching 'root/**/a*', Actions.doNothing()
 
@@ -260,7 +260,7 @@ class DefaultCopySpecTest extends Specification {
         }
     }
 
-    def 'matching with multiple patterns creates appropriate action'() {
+    def "matching with multiple patterns creates appropriate action"() {
         when:
         spec.filesMatching(['root/**/a*', 'special/*', 'banner.txt'], Actions.doNothing())
 
@@ -279,7 +279,7 @@ class DefaultCopySpecTest extends Specification {
         }
     }
 
-    def 'notMatching creates appropriate action'() {
+    def "notMatching creates appropriate action"() {
         when:
         spec.filesNotMatching('**/a*/**', Actions.doNothing())
 
@@ -298,7 +298,7 @@ class DefaultCopySpecTest extends Specification {
         }
     }
 
-    def 'notMatching multiple Patterns creates appropriate action'() {
+    def "notMatching multiple Patterns creates appropriate action"() {
         when:
         spec.filesNotMatching(['**/a*/**', '**/c*/**'], Actions.doNothing())
 
@@ -324,7 +324,7 @@ class DefaultCopySpecTest extends Specification {
         assert matcher.test(file.segments, file.isFile())
     }
 
-    def 'add Spec as first child'() {
+    def "add Spec as first child"() {
         when:
         DefaultCopySpec child1 = spec.addFirst()
 
@@ -340,7 +340,7 @@ class DefaultCopySpecTest extends Specification {
         spec.children == [child2, child1]
     }
 
-    def 'add Spec in between two child Specs if given child exists'() {
+    def "add Spec in between two child Specs if given child exists"() {
         when:
         DefaultCopySpec child1 = spec.addChild()
         DefaultCopySpec child2 = spec.addChild()
@@ -358,7 +358,7 @@ class DefaultCopySpecTest extends Specification {
         spec.children == [child1, child3, child2]
     }
 
-    def 'append Spec after two child Specs if given child does not exist or is null'() {
+    def "append Spec after two child Specs if given child does not exist or is null"() {
         when:
         DefaultCopySpec child1 = spec.addChild()
         DefaultCopySpec child2 = spec.addChild()
@@ -379,7 +379,7 @@ class DefaultCopySpecTest extends Specification {
         notContainedChild << [null, Stub(CopySpecInternal)]
     }
 
-    def 'properties accessed directly have defaults'() {
+    def "properties accessed directly have defaults"() {
         expect:
         spec.caseSensitive
         spec.includeEmptyDirs
@@ -389,7 +389,7 @@ class DefaultCopySpecTest extends Specification {
         spec.filteringCharset == Charset.defaultCharset().name()
     }
 
-    def 'file permissions can be set via #method'(String method, Closure setter) {
+    def "file permissions can be set via #method"(String method, Closure setter) {
         when:
         spec.caseSensitive = false
         spec.includeEmptyDirs = false
@@ -421,7 +421,7 @@ class DefaultCopySpecTest extends Specification {
         }
     }
 
-    def 'properties accessed directly on specs created using #method inherit from parents'() {
+    def "properties accessed directly on specs created using #method inherit from parents"() {
         when: //set non defaults on root
         spec.caseSensitive = false
         spec.includeEmptyDirs = false
@@ -444,7 +444,7 @@ class DefaultCopySpecTest extends Specification {
         method << ['from', 'into']
     }
 
-    def 'setting the filteringCharset to invalid value throws an exception'() {
+    def "setting the filteringCharset to invalid value throws an exception"() {
         when:
         spec.filteringCharset = "THAT_SURE_IS_AN_INVALID_CHARSET"
 
@@ -452,7 +452,7 @@ class DefaultCopySpecTest extends Specification {
         thrown(InvalidUserDataException)
     }
 
-    def 'setting the filteringCharset to null throws an exception'() {
+    def "setting the filteringCharset to null throws an exception"() {
         when:
         spec.filteringCharset = null
 
@@ -460,7 +460,7 @@ class DefaultCopySpecTest extends Specification {
         thrown(NullPointerException)
     }
 
-    def 'can add spec hierarchy as child'() {
+    def "can add spec hierarchy as child"() {
         CopySpec otherSpec = new DefaultCopySpec(fileCollectionFactory, propertyFactory, instantiator, TestFiles.patternSetFactory)
         otherSpec.addChild()
         def added = []

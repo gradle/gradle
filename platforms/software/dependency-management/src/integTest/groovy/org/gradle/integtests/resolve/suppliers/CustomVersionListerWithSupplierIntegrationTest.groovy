@@ -47,7 +47,7 @@ class CustomVersionListerWithSupplierIntegrationTest extends AbstractModuleDepen
         ]
     )
 
-    void "can use the same remote cached external resource to get both version list and module metadata"() {
+    def "can use the same remote cached external resource to get both version list and module metadata"() {
         def versions = ['org:testA': TEST_A_METADATA,
                         'org:testB': TEST_B_METADATA]
         def supplierInteractions = withPerModuleExternalResourceListerAndSupplier(versions, true)
@@ -100,7 +100,7 @@ class CustomVersionListerWithSupplierIntegrationTest extends AbstractModuleDepen
         outputDoesNotContain("Supplying metadata for module org:testB:1")
     }
 
-    void "can use the same remote cached external resource to get both version list and module metadata for all modules at once"() {
+    def "can use the same remote cached external resource to get both version list and module metadata for all modules at once"() {
         withGlobalExternalResourceListerAndSupplier(ALL_METADATA, true)
         given:
         repository {

@@ -19,7 +19,7 @@ package org.gradle.internal.cc.impl
 
 class ConfigurationCacheCircularReferenceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def 'circular reference without hashCode override is no problem'() {
+    def "circular reference without hashCode override is no problem"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         buildFile '''
@@ -88,7 +88,7 @@ class ConfigurationCacheCircularReferenceIntegrationTest extends AbstractConfigu
         outputContains 'circular === indirect.first() => true'
     }
 
-    def 'circular reference in HashSet is fully initialized prior to insertion but problems are reported'() {
+    def "circular reference in HashSet is fully initialized prior to insertion but problems are reported"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         buildFile '''

@@ -28,7 +28,7 @@ import java.nio.file.Files
 class CacheResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements CachingIntegrationFixture {
 
     @ToBeFixedForConfigurationCache(because = "CC does not check for deleted or modified artifacts in local cache")
-    void "cache handles manual deletion of cached artifacts"() {
+    def "cache handles manual deletion of cached artifacts"() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 
@@ -68,7 +68,7 @@ task deleteCacheFiles(type: Delete) {
         succeeds('listJars')
     }
 
-    void "cache entries are segregated between different repositories"() {
+    def "cache entries are segregated between different repositories"() {
         given:
         def repo1 = ivyHttpRepo('ivy-repo-a')
         def module1 = repo1.module('org.gradle', 'testproject', '1.0').publish()
@@ -124,7 +124,7 @@ task deleteCacheFiles(type: Delete) {
         file('b/build/testproject-1.0.jar').assertIsCopyOf(module2.jarFile)
     }
 
-    def 'dependency cache can be relocated'() {
+    def "dependency cache can be relocated"() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 
@@ -157,7 +157,7 @@ task listJars {
         succeeds('listJars')
     }
 
-    def 'cannot write cache entries outside of GAV'() {
+    def "cannot write cache entries outside of GAV"() {
         given:
         def fakeDep = temporaryFolder.testDirectory.file('fake-repo/pwned.txt')
         fakeDep << """
@@ -189,7 +189,7 @@ dependencies { implementation 'org.spring:core:1.0@/../../../../boot/2.0/$hashOf
         !invalidLocation.exists()
     }
 
-    def 'cannot write cache entries outside of dependency cache'() {
+    def "cannot write cache entries outside of dependency cache"() {
         given:
         def fakeDep = temporaryFolder.testDirectory.file('fake-repo/pwned.txt')
         fakeDep << """
@@ -221,7 +221,7 @@ dependencies { implementation 'org.spring/../../../../../:core:1.0@/../../../../
         !invalidLocation.exists()
     }
 
-    def 'cannot write cache entries anywhere on disk using metadata'() {
+    def "cannot write cache entries anywhere on disk using metadata"() {
         given:
         // Our crafty coordinates
         def pwnedDep = mavenRepo.module('org.spring/../../../../../', 'core')

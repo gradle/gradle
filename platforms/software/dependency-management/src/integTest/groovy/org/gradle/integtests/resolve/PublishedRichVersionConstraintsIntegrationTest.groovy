@@ -59,7 +59,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
 
     }
 
-    void "should pass if strict version ranges overlap using external dependencies"() {
+    def "should pass if strict version ranges overlap using external dependencies"() {
         given:
         repository {
             'org:foo' {
@@ -259,7 +259,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
    Dependency path: 'root project :' (conf) --> 'org:bar:1.0' (runtime) --> 'org:foo:{require 1.0; reject 1.1}'""")
     }
 
-    void "honors multiple rejections #rejects using dynamic versions using dependency notation #rejects"() {
+    def "honors multiple rejections #rejects using dynamic versions using dependency notation #rejects"() {
         given:
         repository {
             (0..5).each {

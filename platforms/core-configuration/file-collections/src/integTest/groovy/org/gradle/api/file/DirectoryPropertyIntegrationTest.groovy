@@ -22,7 +22,7 @@ import spock.lang.Issue
 class DirectoryPropertyIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/17533')
-    def 'DirectoryProperty.file(#type) preserves task dependency'() {
+    def "DirectoryProperty.file(#type) preserves task dependency"() {
         given:
         buildFile """
             abstract class Producer extends DefaultTask {

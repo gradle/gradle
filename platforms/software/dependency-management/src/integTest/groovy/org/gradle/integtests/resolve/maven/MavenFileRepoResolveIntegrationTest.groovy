@@ -23,7 +23,7 @@ class MavenFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTe
         run 'retrieve'
     }
 
-    void "can resolve snapshots uncached from local Maven repository"() {
+    def "can resolve snapshots uncached from local Maven repository"() {
         given:
         def moduleA = mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT')
         def moduleB = mavenRepo().module('group', 'projectB', '9.1')
@@ -61,7 +61,7 @@ task retrieve(type: Sync) {
         buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
     }
 
-    void "does not cache artifacts and metadata from local Maven repository"() {
+    def "does not cache artifacts and metadata from local Maven repository"() {
         given:
         def moduleA = mavenRepo().module('group', 'projectA', '1.2')
         def moduleB = mavenRepo().module('group', 'projectB', '9.1')
@@ -99,7 +99,7 @@ task retrieve(type: Sync) {
         buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
     }
 
-    void "uses artifactUrls to resolve artifacts"() {
+    def "uses artifactUrls to resolve artifacts"() {
         given:
         def moduleA = mavenRepo().module('group', 'projectA', '1.2')
         def moduleB = mavenRepo().module('group', 'projectB', '9.1')

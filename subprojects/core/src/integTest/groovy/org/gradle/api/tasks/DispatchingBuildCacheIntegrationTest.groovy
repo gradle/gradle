@@ -65,7 +65,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
     }
 
-    def 'push to local'() {
+    def "push to local"() {
         pushToLocal()
 
         when:
@@ -87,7 +87,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    def 'push to remote'() {
+    def "push to remote"() {
         pushToRemote()
 
         when:
@@ -109,7 +109,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    def 'pull from local first'() {
+    def "pull from local first"() {
         pushToRemote()
         cacheOriginInputFile.text = 'remote'
 
@@ -142,7 +142,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         outputFile.text == inputFile.text + 'local'
     }
 
-    def 'push to the local cache by default'() {
+    def "push to the local cache by default"() {
         settingsFile.text = """
             buildCache {
                 local {
@@ -162,7 +162,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
         remoteCache.empty
     }
 
-    def 'push to local and remote'() {
+    def "push to local and remote"() {
         pushToBoth()
 
         when:

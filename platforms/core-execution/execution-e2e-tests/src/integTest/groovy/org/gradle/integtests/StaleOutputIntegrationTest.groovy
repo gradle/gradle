@@ -26,7 +26,7 @@ import spock.lang.Issue
 class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue(['GRADLE-2440', 'GRADLE-2579'])
-    def 'stale output file is removed after input source directory is emptied.'() {
+    def "stale output file is removed after input source directory is emptied."() {
         def taskWithSources = new TaskWithSources()
         taskWithSources.createInputs()
         buildFile(taskWithSources.buildScript)

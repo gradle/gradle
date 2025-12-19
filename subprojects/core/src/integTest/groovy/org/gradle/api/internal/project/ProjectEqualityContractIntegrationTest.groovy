@@ -33,7 +33,7 @@ import org.gradle.internal.operations.OperationStartEvent
 
 class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
 
-    def 'Symmetrical equality between raw and wrapped projects'() {
+    def "Symmetrical equality between raw and wrapped projects"() {
         given:
         buildFile("buildSrc/build.gradle", """
             plugins {
@@ -143,7 +143,7 @@ class ProjectEqualityContractIntegrationTest extends AbstractIntegrationSpec {
         outputContains("raw :a equals to :a wrapped by :b#project: true")
     }
 
-    def 'Raw and wrapped projects are interchangeable when using as keys in hashCode-based data structures'() {
+    def "Raw and wrapped projects are interchangeable when using as keys in hashCode-based data structures"() {
         given:
         buildFile("buildSrc/build.gradle", """
             plugins {

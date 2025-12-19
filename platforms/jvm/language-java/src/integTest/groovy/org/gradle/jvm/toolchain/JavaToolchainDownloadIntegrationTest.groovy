@@ -72,7 +72,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imple
                    GET_HELP)
     }
 
-    def 'toolchain selection that requires downloading fails when it is disabled'() {
+    def "toolchain selection that requires downloading fails when it is disabled"() {
         settingsFile << """${applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())}"""
 
         buildFile << """
@@ -110,7 +110,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imple
                    GET_HELP)
     }
 
-    def 'toolchain download on http fails'() {
+    def "toolchain download on http fails"() {
         settingsFile << """${applyToolchainResolverPlugin("CustomToolchainResolver", unsecuredToolchainResolverCode())}"""
 
         buildFile << """

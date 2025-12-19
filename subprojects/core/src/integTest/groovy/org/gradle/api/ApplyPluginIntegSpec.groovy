@@ -91,7 +91,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
             class ProjectBuilderTest {
                 @Test
-                void "can evaluate ProjectBuilder"() {
+                def "can evaluate ProjectBuilder"() {
                     def projectDir = new File('${testProjectPath}')
                     def userHome = new File('${gradleUserHome}')
                     def project = ProjectBuilder.builder()

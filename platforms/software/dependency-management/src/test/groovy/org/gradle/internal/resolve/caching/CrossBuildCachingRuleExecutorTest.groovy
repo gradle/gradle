@@ -159,7 +159,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         result.length == 6
     }
 
-    void "validates entries on cache hit"() {
+    def "validates entries on cache hit"() {
         withToUpperCaseRule()
         def id = new Id('Alicia')
 
@@ -179,7 +179,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         result.length == 123
     }
 
-    void "if cache expired, re-executes the rule"() {
+    def "if cache expired, re-executes the rule"() {
         withToUpperCaseRule()
         def snapshot
         def keyHash
@@ -205,7 +205,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         result.length == 6
     }
 
-    void "can expire entries based on implicit inputs"() {
+    def "can expire entries based on implicit inputs"() {
         withServiceInjectedRule()
         def id = new Id('Alicia')
 
@@ -238,7 +238,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         result.length == 6
     }
 
-    void "can expire entries based on implicit inputs when multiple rules are used"() {
+    def "can expire entries based on implicit inputs when multiple rules are used"() {
         withServiceInjectedRules()
         def id = new Id('Alicia')
 

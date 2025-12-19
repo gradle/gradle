@@ -27,7 +27,7 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 
 class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionTest {
 
-    void "resolve missing dependencies from a SFTP Ivy repository"() {
+    def "resolve missing dependencies from a SFTP Ivy repository"() {
         given:
         buildFile << """
             repositories {
@@ -69,7 +69,7 @@ Required by:
 
     }
 
-    void "resolve missing dynamic dependencies from a SFTP Ivy repository"() {
+    def "resolve missing dynamic dependencies from a SFTP Ivy repository"() {
         given:
         buildFile << """
             repositories {
@@ -103,7 +103,7 @@ Required by:
 """)
     }
 
-    void "resolve dependencies from a SFTP Ivy repository with invalid credentials"() {
+    def "resolve dependencies from a SFTP Ivy repository with invalid credentials"() {
         given:
         buildFile << """
             repositories {
@@ -134,7 +134,7 @@ Required by:
             .assertHasCause("Auth fail for methods 'password,keyboard-interactive,publickey'")
     }
 
-    void "resolve dependencies from a SFTP Ivy repository with unsupported password authentication"() {
+    def "resolve dependencies from a SFTP Ivy repository with unsupported password authentication"() {
         given:
         server.withPasswordAuthenticationDisabled()
         and:
@@ -167,7 +167,7 @@ Required by:
             .assertHasCause("Auth fail for methods 'keyboard-interactive,publickey'")
     }
 
-    void "resolve dependencies from an unreachable SFTP Ivy repository"() {
+    def "resolve dependencies from an unreachable SFTP Ivy repository"() {
         given:
         buildFile << """
             repositories {
@@ -200,7 +200,7 @@ Required by:
             .assertHasCause("Could not connect to SFTP server at ${ivySftpRepo.serverUri}")
     }
 
-    void 'resolve dependencies from a SFTP Ivy that returns a failure'() {
+    def "resolve dependencies from a SFTP Ivy that returns a failure"() {
         given:
         buildFile << """
             repositories {

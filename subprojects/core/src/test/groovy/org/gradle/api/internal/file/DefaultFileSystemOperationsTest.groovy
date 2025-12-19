@@ -28,7 +28,7 @@ class DefaultFileSystemOperationsTest extends Specification {
     private Instantiator instantiator = Mock()
     private DefaultFileSystemOperations fileSystemOperations = new DefaultFileSystemOperations(instantiator, fileOperations)
 
-    def 'copySpec forwards to FileOperations::copySpec'() {
+    def "copySpec forwards to FileOperations::copySpec"() {
         when:
         fileSystemOperations.copySpec()
 
@@ -37,7 +37,7 @@ class DefaultFileSystemOperationsTest extends Specification {
     }
 
     @CompileStatic
-    def 'sync uses syncSpec'() {
+    def "sync uses syncSpec"() {
         setup:
         Action<SyncSpec> action = { SyncSpec s ->
             s.preserve {

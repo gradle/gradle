@@ -24,7 +24,7 @@ import java.util.concurrent.Callable
 
 class NetworkOperationBackOffAndRetryTest extends Specification {
 
-    def 'retries operation on transient network issue and fails after max attempts - #ex'() {
+    def "retries operation on transient network issue and fails after max attempts - #ex"() {
         when:
         int attempts = 0
         Callable operation = {
@@ -53,7 +53,7 @@ class NetworkOperationBackOffAndRetryTest extends Specification {
         ]
     }
 
-    def 'retries operation on transient network issue and succeeds on subsequent attempt - #ex'() {
+    def "retries operation on transient network issue and succeeds on subsequent attempt - #ex"() {
         when:
         int attempts = 0
         Callable operation = {
@@ -79,7 +79,7 @@ class NetworkOperationBackOffAndRetryTest extends Specification {
         ]
     }
 
-    def 'does not retry operation for non transient network issue - #ex'() {
+    def "does not retry operation for non transient network issue - #ex"() {
         when:
         int attempts = 0
         Callable operation = {

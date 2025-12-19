@@ -424,7 +424,7 @@ class GradlePomModuleDescriptorParserBomTest extends AbstractGradlePomModuleDesc
         !dep.transitive
     }
 
-    def 'exclusion on imported BOM is ignored'() {
+    def "exclusion on imported BOM is ignored"() {
         given:
         def bomFile = tmpDir.file('bom.xml') << """
 <project>

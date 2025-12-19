@@ -105,7 +105,7 @@ class FileHierarchySetTest extends Specification {
     }
 
     @Requires(UnitTestPreconditions.Windows)
-    def 'can handle more root dirs'() {
+    def "can handle more root dirs"() {
         expect:
         from(pathList.collect { new File(it) }).contains(target) == result
 
@@ -126,7 +126,7 @@ class FileHierarchySetTest extends Specification {
     }
 
     @Requires(UnitTestPreconditions.NotWindows)
-    def 'can handle complicated roots'() {
+    def "can handle complicated roots"() {
         expect:
         rootsOf(from([
             "/tulry/nested-cli/nested-cli-nested/buildSrc",
@@ -140,7 +140,7 @@ class FileHierarchySetTest extends Specification {
     }
 
     @Requires(UnitTestPreconditions.Unix)
-    def 'can handle more dirs on Unix'() {
+    def "can handle more dirs on Unix"() {
         expect:
         from(pathList.collect { new File(it) }).contains(target) == result
 

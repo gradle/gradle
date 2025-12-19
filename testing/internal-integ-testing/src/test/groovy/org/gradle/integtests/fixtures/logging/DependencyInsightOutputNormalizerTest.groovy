@@ -22,7 +22,7 @@ class DependencyInsightOutputNormalizerTest extends Specification {
 
     def normalizer = new DependencyInsightOutputNormalizer()
 
-    def 'normalizes single-digit requested JDK version in "new" dependencyInsight report'() {
+    def "normalizes single-digit requested JDK version in new dependencyInsight report"() {
         given:
         def originalOutput = '''
     | Attribute Name                 | Provided | Requested    |

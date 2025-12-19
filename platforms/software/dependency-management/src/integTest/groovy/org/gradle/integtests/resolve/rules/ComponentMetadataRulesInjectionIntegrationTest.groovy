@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
 class ComponentMetadataRulesInjectionIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    def 'inject no-op RepositoryResourceAccessor for flat dir repo'() {
+    def "inject no-op RepositoryResourceAccessor for flat dir repo"() {
         file('lib', 'my-lib-1.0.jar').createFile()
         buildFile << """
 repositories {
@@ -69,7 +69,7 @@ task resolve {
         outputDoesNotContain('Resource action executed')
     }
 
-    def 'can inject and use RepositoryResourceAccessor for ivy local repo'() {
+    def "can inject and use RepositoryResourceAccessor for ivy local repo"() {
         ivyRepo.module("org", "my-lib", "1.0").publish()
 
         buildFile << """
@@ -117,7 +117,7 @@ task resolve {
         outputContains('AssertingRule executed')
     }
 
-    def 'can inject and use RepositoryResourceAccessor for maven local repo'() {
+    def "can inject and use RepositoryResourceAccessor for maven local repo"() {
         using m2
         m2.mavenRepo().module("org", "my-lib", "1.0").publish()
 

@@ -32,7 +32,7 @@ class DefaultProblemBuilderTest extends Specification {
     def problemGroup = ProblemGroup.create("group", "label")
     def problemId = ProblemId.create('id', 'Problem Id', problemGroup)
 
-    def 'additionalData accepts GeneralDataInternalSpec'() {
+    def "additionalData accepts GeneralDataInternalSpec"() {
         given:
         def problemBuilder = createProblemBuilder()
 
@@ -52,7 +52,7 @@ class DefaultProblemBuilderTest extends Specification {
         new DefaultProblemBuilder(new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), Mock(Instantiator.class), Mock(PayloadSerializer.class), Mock(IsolatableFactory), Mock(IsolatableToBytesSerializer), EMPTY_STREAM))
     }
 
-    def 'additionalData accepts DeprecationDataInternalSpec'() {
+    def "additionalData accepts DeprecationDataInternalSpec"() {
         given:
         def problemBuilder = createProblemBuilder()
 
@@ -68,7 +68,7 @@ class DefaultProblemBuilderTest extends Specification {
         DeprecationData.isInstance(data)
     }
 
-    def 'additionalData accepts TypeValidationDataInternalSpec'() {
+    def "additionalData accepts TypeValidationDataInternalSpec"() {
         given:
         def problemBuilder = createProblemBuilder()
 
@@ -87,7 +87,7 @@ class DefaultProblemBuilderTest extends Specification {
         TypeValidationData.isInstance(data)
     }
 
-    def 'additionalData accepts PropertyTraceDataInternalSpec'() {
+    def "additionalData accepts PropertyTraceDataInternalSpec"() {
         given:
         def problemBuilder = createProblemBuilder()
 
@@ -104,7 +104,7 @@ class DefaultProblemBuilderTest extends Specification {
     }
 
 
-    def 'additionalDataInternal fails with invalid type'() {
+    def "additionalDataInternal fails with invalid type"() {
         given:
         def problemBuilder = createProblemBuilder()
 

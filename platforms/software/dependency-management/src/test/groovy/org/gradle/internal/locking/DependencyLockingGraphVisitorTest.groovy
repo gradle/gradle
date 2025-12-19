@@ -47,7 +47,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
     @Subject
     def visitor = new DependencyLockingGraphVisitor(lockId, Describables.of("owner"), dependencyLockingProvider)
 
-    def 'initialises when there is lock state'() {
+    def "initialises when there is lock state"() {
         when:
         visitor.start(rootNode)
 
@@ -58,7 +58,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
         0 * _
     }
 
-    def 'initialises when there is no lock state'() {
+    def "initialises when there is no lock state"() {
         when:
         visitor.start(rootNode)
 
@@ -68,7 +68,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
         0 * _
     }
 
-    def 'processes node having a ModuleComponentIdentifier'() {
+    def "processes node having a ModuleComponentIdentifier"() {
         given:
         startWithState([])
 
@@ -83,7 +83,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
         1 * component.componentId >> newId(mid, '1.0')
     }
 
-    def 'ignores node having a ModuleComponentIdentifier but an empty version'() {
+    def "ignores node having a ModuleComponentIdentifier but an empty version"() {
         given:
         startWithState([])
 
@@ -105,7 +105,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
         0 * _
     }
 
-    def 'ignores node not having a ModuleComponentIdentifier'() {
+    def "ignores node not having a ModuleComponentIdentifier"() {
         given:
         startWithState([])
 
@@ -125,7 +125,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
         0 * _
     }
 
-    def 'ignores root node'() {
+    def "ignores root node"() {
         given:
         startWithState([])
 
@@ -145,7 +145,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
         visitor.allResolvedModules.empty
     }
 
-    def 'finishes without error when visited match expected'() {
+    def "finishes without error when visited match expected"() {
         given:
         def id = newId(mid, '1.1')
         startWithState([id])
@@ -158,7 +158,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
         notThrown(LockOutOfDateException)
     }
 
-    def 'generates failures when extra modules visited'() {
+    def "generates failures when extra modules visited"() {
         given:
         startWithState([])
         addVisitedNode(newId(mid, '1.0'))
@@ -174,7 +174,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
         }
     }
 
-    def 'generates failures when module not visited'() {
+    def "generates failures when module not visited"() {
         given:
         startWithState([newId(mid, '1.1')])
 
@@ -189,7 +189,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
         }
     }
 
-    def 'generates failures when module visited with different version'() {
+    def "generates failures when module visited with different version"() {
         given:
         startWithState([newId(mid, '1.1')])
         addVisitedNode(newId(mid, '1.0'))
@@ -205,7 +205,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
         }
     }
 
-    def 'invokes locking provider on writeLocks with visited modules'() {
+    def "invokes locking provider on writeLocks with visited modules"() {
         given:
         def identifier = newId(mid, '1.1')
         startWithoutLockState()
@@ -219,7 +219,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
 
     }
 
-    def 'invokes locking provider on writeLocks with visited modules and indicates changing modules seen'() {
+    def "invokes locking provider on writeLocks with visited modules and indicates changing modules seen"() {
         given:
         def identifier = newId(mid, '1.1')
         startWithoutLockState()
@@ -233,7 +233,7 @@ class DependencyLockingGraphVisitorTest extends Specification {
 
     }
 
-    def 'ignores visited node that is to be ignored'() {
+    def "ignores visited node that is to be ignored"() {
         given:
         def identifier = newId(mid, '1.1')
         def ignoredIdentifier = newId(DefaultModuleIdentifier.newId('org', 'ignored'), '1.0')

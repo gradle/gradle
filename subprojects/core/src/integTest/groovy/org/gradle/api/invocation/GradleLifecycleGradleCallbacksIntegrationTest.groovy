@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class GradleLifecycleGradleCallbacksIntegrationTest extends AbstractIntegrationSpec {
 
-    def 'lifecycle.beforeProject eager execution can be triggered from gradle.rootProject'() {
+    def "lifecycle.beforeProject eager execution can be triggered from gradle.rootProject"() {
         settingsFile """
             rootProject.name = 'root'
             gradle.rootProject {

@@ -63,7 +63,7 @@ dependencies {
     }
 
     @Test
-    void "respects dependency substitution rules"() {
+    def "respects dependency substitution rules"() {
         // given:
         mavenRepo.module("gradle", "foo").publish()
         mavenRepo.module("gradle", "bar").publish()
@@ -106,7 +106,7 @@ dependencies {
     }
 
     @Test
-    void "included build"() {
+    def "included build"() {
         // given:
         createRootProject()
         createIncludedBuild()

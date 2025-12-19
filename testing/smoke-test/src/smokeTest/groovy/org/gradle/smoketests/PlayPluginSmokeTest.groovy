@@ -28,7 +28,7 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Requires(UnitTestPreconditions.Jdk11OrEarlier)
     @ToBeFixedForConfigurationCache(because = "unsupported Configuration field")
-    def 'build basic Play project'() {
+    def "build basic Play project"() {
         given:
         useSample("play-example")
         buildFile << """

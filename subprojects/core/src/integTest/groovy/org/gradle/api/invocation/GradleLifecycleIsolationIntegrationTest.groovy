@@ -22,7 +22,7 @@ import org.gradle.util.internal.ToBeImplemented
 
 class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
 
-    def 'lifecycle actions are isolated per project and their order is preserved'() {
+    def "lifecycle actions are isolated per project and their order is preserved"() {
         given:
         settingsFile '''
             rootProject.name = 'root'
@@ -182,7 +182,7 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         "static"     | "static "
     }
 
-    def 'lifecycle actions preserve user code application context for scripts'() {
+    def "lifecycle actions preserve user code application context for scripts"() {
         given:
         settingsFile """
             gradle.lifecycle.beforeProject {
@@ -202,7 +202,7 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         outputContains "after:settings file 'settings.gradle'"
     }
 
-    def 'lifecycle actions preserve user code application context for plugins'() {
+    def "lifecycle actions preserve user code application context for plugins"() {
         given:
         buildFile "build-logic/build.gradle", '''
             plugins {
@@ -235,7 +235,7 @@ class GradleLifecycleIsolationIntegrationTest extends AbstractIntegrationSpec {
         outputContains "after:plugin 'my-settings-plugin'"
     }
 
-    def 'lifecycle actions can be registered in the context of the Gradle runtime'() {
+    def "lifecycle actions can be registered in the context of the Gradle runtime"() {
         given:
         settingsFile """
             ${userCodeApplicationContext}.gradleRuntime {

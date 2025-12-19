@@ -38,7 +38,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         kotlinPluginVersion = VersionNumber.parse(version)
     }
 
-    def 'kotlin jvm (kotlin=#version)'() {
+    def "kotlin jvm (kotlin=#version)"() {
         given:
         setupForKotlinVersion(version)
         useSample("kotlin-example")
@@ -61,7 +61,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         version << TestedVersions.kotlin.versions
     }
 
-    def 'kotlin jvm and test suites (kotlin=#version)'() {
+    def "kotlin jvm and test suites (kotlin=#version)"() {
 
         setupForKotlinVersion(version)
 
@@ -121,7 +121,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         version << TestedVersions.kotlin.versions
     }
 
-    def 'kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)'() {
+    def "kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)"() {
 
         setupForKotlinVersion(kotlinVersion)
 
@@ -174,7 +174,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
-    def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
+    def "kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)"() {
 
         setupForKotlinVersion(kotlinVersion)
 

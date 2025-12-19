@@ -205,7 +205,7 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         bytecodeVersion() == TestJavaClassUtil.getClassVersion(lower.javaVersion)
     }
 
-    def 'honors task level compatibility when using toolchain'() {
+    def "honors task level compatibility when using toolchain"() {
         given:
         def lower = getLowerJvm()
         def lowerVersion = lower.javaVersion.getMajorVersion()

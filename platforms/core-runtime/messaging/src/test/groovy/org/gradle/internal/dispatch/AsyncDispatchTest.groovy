@@ -28,7 +28,7 @@ public class AsyncDispatchTest extends Specification {
     public MultithreadedTestRule parallel = new MultithreadedTestRule()
     private final AsyncDispatch<String> dispatch = new AsyncDispatch<String>(parallel.executor)
 
-    def 'dispatches message to an idle target'() {
+    def "dispatches message to an idle target"() {
         when:
         dispatch.dispatchTo(target1)
         dispatch.dispatch('message1')
@@ -41,7 +41,7 @@ public class AsyncDispatchTest extends Specification {
         1 * target1.dispatch('message2')
     }
 
-    def 'dispatch does not block while no idle target available'() {
+    def "dispatch does not block while no idle target available"() {
         given:
         Dispatch<String> target1 = new DispatchStub(
                 message1: {
@@ -76,7 +76,7 @@ public class AsyncDispatchTest extends Specification {
         target2.receivedMessages == ['message2']
     }
 
-    def 'can stop from multiple threads'() {
+    def "can stop from multiple threads"() {
         when:
         dispatch.dispatchTo(target1)
 
@@ -91,7 +91,7 @@ public class AsyncDispatchTest extends Specification {
         noExceptionThrown()
     }
 
-    def 'can request stop from multiple threads'() {
+    def "can request stop from multiple threads"() {
         when:
         dispatch.dispatchTo(target1)
 
@@ -109,7 +109,7 @@ public class AsyncDispatchTest extends Specification {
         noExceptionThrown()
     }
 
-    def 'stop blocks until all messages are dispatched'() {
+    def "stop blocks until all messages are dispatched"() {
         given:
         def target1 = new DispatchStub(
             message1: {
@@ -145,7 +145,7 @@ public class AsyncDispatchTest extends Specification {
         target2.receivedMessages == ['message2']
     }
 
-    def 'requestStop does not block when messages are queued'() {
+    def "requestStop does not block when messages are queued"() {
         given:
         def target1 = new DispatchStub(
             message1: {
@@ -171,7 +171,7 @@ public class AsyncDispatchTest extends Specification {
         target1.receivedMessages == ['message1']
     }
 
-    def 'stop fails when no targets are available to deliver queued messages'() {
+    def "stop fails when no targets are available to deliver queued messages"() {
         given:
         dispatch.dispatch('message1')
 
@@ -183,7 +183,7 @@ public class AsyncDispatchTest extends Specification {
         e.message == 'Cannot wait for messages to be dispatched, as there are no dispatch threads running.'
     }
 
-    def 'stop fails when all targets have failed'() {
+    def "stop fails when all targets have failed"() {
         when:
         dispatch.dispatchTo(target1)
         dispatch.dispatch('message1')
@@ -201,7 +201,7 @@ public class AsyncDispatchTest extends Specification {
         e.message == 'Cannot wait for messages to be dispatched, as there are no dispatch threads running.'
     }
 
-    def 'cannot dispatch messages after stop'() {
+    def "cannot dispatch messages after stop"() {
         given:
         dispatch.stop()
 

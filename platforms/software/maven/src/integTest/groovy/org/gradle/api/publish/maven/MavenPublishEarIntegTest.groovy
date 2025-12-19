@@ -18,7 +18,7 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishEarIntegTest extends AbstractMavenPublishIntegTest {
-    void "can publish ear module"() {
+    def "can publish ear module"() {
         def earModule = mavenRepo.module("org.gradle.test", "publishEar", "1.9")
 
         given:

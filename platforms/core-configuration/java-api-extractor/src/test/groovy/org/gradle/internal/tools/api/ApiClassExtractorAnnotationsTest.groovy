@@ -23,7 +23,7 @@ import java.lang.reflect.Method
 
 class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
 
-    void "annotations on class are retained"() {
+    def "annotations on class are retained"() {
         given:
         def api = toApi([
             A  : '@Ann public class A {}',
@@ -54,7 +54,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         extractedAnnotations[0].annotationType() == extractedAnn
     }
 
-    void "annotations on method are retained"() {
+    def "annotations on method are retained"() {
         given:
         def api = toApi([
             A  : '''
@@ -90,7 +90,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         extractedAnnotations[0].annotationType() == extractedAnn
     }
 
-    void "annotations on method params are retained"() {
+    def "annotations on method params are retained"() {
         given:
         def api = toApi([
             A  : '''
@@ -128,7 +128,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         extractedAnnotations[0].path() == 'somePath'
     }
 
-    void "type annotations on method params are retained"() {
+    def "type annotations on method params are retained"() {
         given:
         def api = toApi([
             A  : '''
@@ -166,7 +166,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         extractedAnnotations[0].annotations[0].path() == 'somePath'
     }
 
-    void "mixed annotations on method params are retained"() {
+    def "mixed annotations on method params are retained"() {
         given:
         def api = toApi([
             A  : '''
@@ -224,7 +224,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
 
     }
 
-    void "annotations on constructor params are retained"() {
+    def "annotations on constructor params are retained"() {
         given:
         def api = toApi([
             A  : '''
@@ -262,7 +262,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         extractedAnnotations[0].path() == 'somePath'
     }
 
-    void "type annotations on constructor params are retained"() {
+    def "type annotations on constructor params are retained"() {
         given:
         def api = toApi([
             A  : '''
@@ -300,7 +300,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         extractedAnnotations[0].annotations[0].path() == 'somePath'
     }
 
-    void "annotations on field are retained"() {
+    def "annotations on field are retained"() {
         given:
         def api = toApi([
             A  : '''
@@ -339,7 +339,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         extractedAnnotations[0].a() == 'b'
     }
 
-    void "annotation value is retained"() {
+    def "annotation value is retained"() {
         given:
         def api = toApi([
             A     : '''
@@ -394,7 +394,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         subAnnotation.value() == 'foo'
     }
 
-    void "annotation arrays on class are retained"() {
+    def "annotation arrays on class are retained"() {
         given:
         def api = toApi([
             A     : '''
@@ -449,7 +449,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         subAnnotations.collect { it.value() } == ['foo', 'bar']
     }
 
-    void "annotation arrays of String on class are retained"() {
+    def "annotation arrays of String on class are retained"() {
         given:
         def api = toApi([
             A     : '''
@@ -489,7 +489,7 @@ class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
         stringValues == ['foo', 'bar']
     }
 
-    void "default values for annotations are retained"() {
+    def "default values for annotations are retained"() {
         given:
         def api = toApi([
             A  : '@Ann public class A {}',

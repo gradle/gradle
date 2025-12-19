@@ -104,7 +104,7 @@ eclipse {
 
     @Issue("GRADLE-2653")
     @Test
-    void "wtp component respects configuration modifications"() {
+    def "wtp component respects configuration modifications"() {
         //given
         mavenRepo.module("gradle", "foo").publish()
         mavenRepo.module("gradle", "bar").publish()
@@ -242,7 +242,7 @@ eclipse {
 
     @Issue("GRADLE-2661")
     @Test
-    void "file dependencies respect plus minus configurations"() {
+    def "file dependencies respect plus minus configurations"() {
         //when
         runEclipseTask """
 apply plugin: 'java'
@@ -278,7 +278,7 @@ eclipse {
 
     @Test
     @Issue("GRADLE-1881")
-    void "uses eclipse project name for wtp module dependencies"() {
+    def "uses eclipse project name for wtp module dependencies"() {
         //given
         createDirs("impl", "contrib")
         def settings = file('settings.gradle')
@@ -318,7 +318,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1881")
-    void "does not explode if dependent project does not have eclipse plugin"() {
+    def "does not explode if dependent project does not have eclipse plugin"() {
         //given
         createDirs("impl", "contrib")
         def settings = file('settings.gradle')
@@ -348,7 +348,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-2030")
-    void "component for war plugin does not contain non-existing source and resource dirs"() {
+    def "component for war plugin does not contain non-existing source and resource dirs"() {
         //given
         file('xxxSource').createDir()
         file('xxxResource').createDir()
@@ -378,7 +378,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-2030")
-    void "component for ear plugin does not contain non-existing source and resource dirs"() {
+    def "component for ear plugin does not contain non-existing source and resource dirs"() {
         //given
         file('xxxSource').createDir()
         file('xxxResource').createDir()
@@ -411,7 +411,7 @@ project(':contrib') {
     }
 
     @Test
-    void "component for ear plugin contains the app dir"() {
+    def "component for ear plugin contains the app dir"() {
         //given
         file('coolAppDir').createDir()
 
@@ -431,7 +431,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1974")
-    void "may use web libraries container"() {
+    def "may use web libraries container"() {
         //given
         //adding a little bit more stress with a subproject and some web resources:
         file("src/main/webapp/index.jsp") << "<html>Hey!</html>"
@@ -464,7 +464,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1974")
-    void "the web container is not present without war+wtp combo"() {
+    def "the web container is not present without war+wtp combo"() {
         //given
         file("build.gradle") << """
             apply plugin: 'java' //anything but not war
@@ -480,7 +480,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1707")
-    void "classpath entries are protected from conflicting component dependency attributes"() {
+    def "classpath entries are protected from conflicting component dependency attributes"() {
         //given
         file("build.gradle") << """
             apply plugin: 'war'
@@ -515,7 +515,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1412")
-    void "utility project's library and variable classpath entries contain necessary dependency attribute"() {
+    def "utility project's library and variable classpath entries contain necessary dependency attribute"() {
         //given
         file('libs/myFoo.jar').touch()
         createDirs("someLib")
@@ -547,7 +547,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1412")
-    void "web project's library and variable classpath entries contain necessary dependency attribute"() {
+    def "web project's library and variable classpath entries contain necessary dependency attribute"() {
         //given
         file('libs/myFoo.jar').touch()
         createDirs("someLib")

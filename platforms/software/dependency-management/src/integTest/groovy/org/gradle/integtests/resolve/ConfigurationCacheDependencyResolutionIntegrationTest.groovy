@@ -1240,7 +1240,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         }
     }
 
-    def 'transform action is re-executed when input artifact changes'() {
+    def "transform action is re-executed when input artifact changes"() {
         given:
         buildKotlinFile '''
 
@@ -1338,7 +1338,7 @@ dependencies {
         result.assertTaskScheduled ':summarize'
     }
 
-    def 'can use ListProperty of ComponentArtifactIdentifier as task input'() {
+    def "can use ListProperty of ComponentArtifactIdentifier as task input"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         buildFile '''

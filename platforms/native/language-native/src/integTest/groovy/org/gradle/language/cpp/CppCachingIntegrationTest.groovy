@@ -50,7 +50,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         app.main.writeToProject(project)
     }
 
-    def 'compilation can be cached (#buildType)'() {
+    def "compilation can be cached (#buildType)"() {
         setupProject()
 
         when:

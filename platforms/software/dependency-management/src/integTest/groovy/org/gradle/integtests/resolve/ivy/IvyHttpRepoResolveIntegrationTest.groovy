@@ -43,7 +43,7 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         """
     }
 
-    void "fails when configured with AwsCredentials"() {
+    def "fails when configured with AwsCredentials"() {
         given:
         def remoteIvyRepo = server.remoteIvyRepo
         def module = remoteIvyRepo.module('org.group.name', 'projectA', '1.2')
@@ -75,7 +75,7 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         failure.assertHasCause("Credentials must be an instance of: ${PasswordCredentials.canonicalName}")
     }
 
-    void "can resolve and cache dependencies with missing status and publication date"() {
+    def "can resolve and cache dependencies with missing status and publication date"() {
         given:
         def dep = server.remoteIvyRepo.module('group', 'projectA', '1.2')
         dep.withXml({
@@ -134,7 +134,7 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         }
     }
 
-    void "skip subsequent Ivy repositories on timeout and recovers for later resolution"() {
+    def "skip subsequent Ivy repositories on timeout and recovers for later resolution"() {
         given:
         executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")
         def repo1 = server.getRemoteIvyRepo("/repo1")

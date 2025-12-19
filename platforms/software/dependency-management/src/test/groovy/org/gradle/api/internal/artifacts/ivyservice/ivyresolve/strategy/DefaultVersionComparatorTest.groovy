@@ -243,7 +243,7 @@ class DefaultVersionComparatorTest extends Specification {
         "1.0.sp"       | "1.0"
     }
 
-    def 'dev considered lower than any other string qualifier'() {
+    def "dev considered lower than any other string qualifier"() {
         expect:
         compare(smaller, larger) < 0
         compare(larger, smaller) > 0
@@ -269,7 +269,7 @@ class DefaultVersionComparatorTest extends Specification {
         "1.0-dev-1" | "1.0-final"
     }
 
-    def 'case for special qualifiers is ignored'() {
+    def "case for special qualifiers is ignored"() {
         expect:
         compare("1.0-rc", "1.0.RC") == 0
         compare("1.0-rc-1", "1.0.RC.1") == 0

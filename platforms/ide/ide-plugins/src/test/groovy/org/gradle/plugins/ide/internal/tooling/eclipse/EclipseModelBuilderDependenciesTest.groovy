@@ -183,7 +183,7 @@ class EclipseModelBuilderDependenciesTest extends AbstractProjectBuilderSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/21968')
-    def 'prefer project dependency without test attribute when handling duplicate paths'() {
+    def "prefer project dependency without test attribute when handling duplicate paths"() {
         setup:
         def modelBuilder = createEclipseModelBuilder()
 

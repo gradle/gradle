@@ -31,7 +31,7 @@ class JacocoTaskExtensionSpec extends Specification {
     JacocoTaskExtension extension = TestUtil.newInstance(JacocoTaskExtension.class, project.objects, agent, task)
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
-    def 'asJvmArg with default arguments assembles correct string'() {
+    def "asJvmArg with default arguments assembles correct string"() {
         setup:
         agent.supportsJmx() >> true
         agent.supportsInclNoLocationClasses() >> true
@@ -41,7 +41,7 @@ class JacocoTaskExtensionSpec extends Specification {
         extension.asJvmArg == "-javaagent:${agent.jar.absolutePath}=append=true,inclnolocationclasses=false,dumponexit=true,output=file,jmx=false"
     }
 
-    def 'supports jacocoagent with no jmx support'() {
+    def "supports jacocoagent with no jmx support"() {
         given:
         agent.supportsJmx() >> false
         agent.jar >> temporaryFolder.file('fakeagent.jar')
@@ -51,7 +51,7 @@ class JacocoTaskExtensionSpec extends Specification {
         extension.asJvmArg == "-javaagent:${agent.jar.absolutePath}=append=true,dumponexit=true,output=file"
     }
 
-    def 'supports jacocoagent with no inclNoLocationClasses support'() {
+    def "supports jacocoagent with no inclNoLocationClasses support"() {
         given:
         agent.supportsInclNoLocationClasses() >> false
         agent.jar >> temporaryFolder.file('fakeagent.jar')
@@ -61,7 +61,7 @@ class JacocoTaskExtensionSpec extends Specification {
         extension.asJvmArg == "-javaagent:${agent.jar.absolutePath}=append=true,dumponexit=true,output=file"
     }
 
-    def 'asJvmArg with all arguments assembles correct string. includeNoLocationClasses: #includeNoLocationClassesValue'() {
+    def "asJvmArg with all arguments assembles correct string. includeNoLocationClasses: #includeNoLocationClassesValue"() {
         given:
         agent.supportsJmx() >> true
         agent.supportsInclNoLocationClasses() >> true
@@ -107,7 +107,7 @@ class JacocoTaskExtensionSpec extends Specification {
         includeNoLocationClassesValue << [true, false]
     }
 
-    def 'asJvmArg fails if agent cannot extract the JAR'() {
+    def "asJvmArg fails if agent cannot extract the JAR"() {
         given:
         agent.jar >> { throw new Exception() }
         when:

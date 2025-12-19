@@ -47,7 +47,7 @@ class VerificationFailureHandlingIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
-    def 'consumer task executes when it has a producer task output dependency and producer task has verification failure, with --continue'() {
+    def "consumer task executes when it has a producer task output dependency and producer task has verification failure, with --continue"() {
         when:
         fails('consumerTask', '--continue')
 
@@ -63,7 +63,7 @@ class VerificationFailureHandlingIntegrationTest extends AbstractIntegrationSpec
         result.assertTaskScheduled(':consumerTask')
     }
 
-    def 'producer task doLast action does not execute after verification failure is thrown; consumer task does not execute even with --continue'() {
+    def "producer task doLast action does not execute after verification failure is thrown; consumer task does not execute even with --continue"() {
         given:
         buildFile << '''
             tasks.named('producerTask', ProducerTask).configure {

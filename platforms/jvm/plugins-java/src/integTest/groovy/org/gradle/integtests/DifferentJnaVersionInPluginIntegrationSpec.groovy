@@ -22,7 +22,7 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 
 class DifferentJnaVersionInPluginIntegrationSpec extends AbstractIntegrationSpec {
     @Requires(UnitTestPreconditions.NotMacOsM1)
-    def 'can build a plugin with a different jna version'() {
+    def "can build a plugin with a different jna version"() {
         given:
         buildFile """
             plugins {

@@ -311,7 +311,7 @@ class TestTest extends AbstractConventionTaskTest {
         test.setClasspath(classpathMock)
     }
 
-    def 'fails if custom executable does not exist'() {
+    def "fails if custom executable does not exist"() {
         def task = project.tasks.create("test", Test)
         task.testClassesDirs = TestFiles.fixed(new File("tmp"))
         task.binaryResultsDirectory.fileValue(new File("out"))

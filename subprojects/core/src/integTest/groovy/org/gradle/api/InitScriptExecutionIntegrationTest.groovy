@@ -228,7 +228,7 @@ rootProject {
         }
     }
 
-    def 'init script classpath configuration has proper usage attribute'() {
+    def "init script classpath configuration has proper usage attribute"() {
         def initScript = file('init.gradle')
         initScript << """
 initscript {

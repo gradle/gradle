@@ -27,7 +27,7 @@ class DockerPluginSmokeTest extends AbstractSmokeTest {
     // Plugin after 7.0.0 requires Java 11+ to run
     @Requires(UnitTestPreconditions.Jdk11OrLater)
     @Issue('https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application')
-    def 'docker plugin'() {
+    def "docker plugin"() {
         given:
         buildFile << """
             plugins {

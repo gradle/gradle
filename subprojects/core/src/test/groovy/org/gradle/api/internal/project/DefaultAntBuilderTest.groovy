@@ -233,7 +233,7 @@ class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
     }
 
     @Issue('GRADLE-3511')
-    def 'Filename #filename is properly masked when adding it as #antType to an ant task'(String filename, antType) {
+    def "Filename #filename is properly masked when adding it as #antType to an ant task"(String filename, antType) {
         given:
         def dirname = 'somedir$$with'
         def dirAndFile = "${dirname}/${filename}"

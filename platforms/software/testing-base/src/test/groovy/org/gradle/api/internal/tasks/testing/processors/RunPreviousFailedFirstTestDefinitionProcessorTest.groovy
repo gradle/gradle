@@ -27,7 +27,7 @@ class RunPreviousFailedFirstTestDefinitionProcessorTest extends Specification {
     TestResultProcessor testResultProcessor = Mock()
     RunPreviousFailedFirstTestDefinitionProcessor processor
 
-    def 'previous failed test classes should be passed to delegate first'() {
+    def "previous failed test classes should be passed to delegate first"() {
         given:
         processor = new RunPreviousFailedFirstTestDefinitionProcessor(['Class3'] as Set, [] as Set, delegate)
 

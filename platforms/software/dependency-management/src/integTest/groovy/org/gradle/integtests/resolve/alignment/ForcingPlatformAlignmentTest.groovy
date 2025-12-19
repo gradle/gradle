@@ -357,7 +357,7 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    def 'forced platform turning selector state to force after being selected and deselected'() {
+    def "forced platform turning selector state to force after being selected and deselected"() {
         repository {
             ['1.0', '2.0'].each {
                 path "webapp:$it -> xml:$it"
@@ -960,7 +960,7 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         }
     }
 
-    void "repository simulating Jackson situation"(@DelegatesTo(value = RemoteRepositorySpec, strategy = Closure.DELEGATE_FIRST) Closure<Void> extraSpec = {}) {
+    def "repository simulating Jackson situation"(@DelegatesTo(value = RemoteRepositorySpec, strategy = Closure.DELEGATE_FIRST) Closure<Void> extraSpec = {}) {
         // see https://gist.github.com/melix/0f539bca5d29dafe295877ddff707e4a to generate the code below
 
         repository {

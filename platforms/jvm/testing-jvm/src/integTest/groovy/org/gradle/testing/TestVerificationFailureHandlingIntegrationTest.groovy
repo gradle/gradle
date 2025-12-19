@@ -40,7 +40,7 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
         """
     }
 
-    def 'task does not execute when it has a test task output dependency and VM exits unexpectedly'() {
+    def "task does not execute when it has a test task output dependency and VM exits unexpectedly"() {
         given:
         withFatalTestExecutionError()
         withCustomTaskInputFromTestTaskOutput()
@@ -52,7 +52,7 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
         assertFatalTestExecutionError()
     }
 
-    def 'task does not execute when it has a test task output dependency with failing test(s)'() {
+    def "task does not execute when it has a test task output dependency with failing test(s)"() {
         given:
         withTestVerificationFailure()
         withCustomTaskInputFromTestTaskOutput()
@@ -64,7 +64,7 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
         failure.assertTestsFailed()
     }
 
-    def 'task executes when it has a test task output dependency with failing test(s) and --continue'() {
+    def "task executes when it has a test task output dependency with failing test(s) and --continue"() {
         given:
         withTestVerificationFailure()
         withCustomTaskInputFromTestTaskOutput()
@@ -76,7 +76,7 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
         failure.assertTestsFailed()
     }
 
-    def 'task does not execute when it dependsOn test with failing test(s) and --continue'() {
+    def "task does not execute when it dependsOn test with failing test(s) and --continue"() {
         given:
         withTestVerificationFailure()
         withCustomTaskDependsOnTestTask()
@@ -88,7 +88,7 @@ class TestVerificationFailureHandlingIntegrationTest extends AbstractIntegration
         failure.assertTestsFailed()
     }
 
-    def 'task does not execute when it has a test task output dependency and redundant dependsOn test with failing test(s) and --continue'() {
+    def "task does not execute when it has a test task output dependency and redundant dependsOn test with failing test(s) and --continue"() {
         given:
         withTestVerificationFailure()
         withCustomTaskDependsOnTestTaskAndTestTaskOutput()

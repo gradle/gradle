@@ -30,7 +30,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
     abstract String getCompilationTask()
     abstract String getCompiledFile()
 
-    def 'compilation can be cached'() {
+    def "compilation can be cached"() {
         when:
         withBuildCache().run compilationTask
 
@@ -45,7 +45,7 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12860")
-    def 'compilation is cached if the project version changes'() {
+    def "compilation is cached if the project version changes"() {
         when:
         buildFile << '''
             version = '1.0-a'

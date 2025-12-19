@@ -25,7 +25,7 @@ import org.intellij.lang.annotations.Language
 
 class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationSpec {
 
-    def 'schema is written during project files interpretation with declarative DSL'() {
+    def "schema is written during project files interpretation with declarative DSL"() {
         given:
         settingsFile("""
             include(":sub")
@@ -44,7 +44,7 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
         ].every { it.isFile() && it.text != "" }
     }
 
-    def 'can configure a custom plugin extension in declarative DSL for a plugin written in #language'() {
+    def "can configure a custom plugin extension in declarative DSL for a plugin written in #language"() {
         given:
         simpleDeclarativePlugin(language)
 
@@ -95,7 +95,7 @@ secondaryAccess { three, true, true}"""
         "kotlin" | _
     }
 
-    def 'can use list augmentation with += from a DCL file'() {
+    def "can use list augmentation with += from a DCL file"() {
         given:
         simpleDeclarativePlugin(language)
 
@@ -129,7 +129,7 @@ secondaryAccess { three, true, true}"""
         "kotlin" | _
     }
 
-    def 'can set and augment map properties from a DCL file'() {
+    def "can set and augment map properties from a DCL file"() {
         given:
         simpleDeclarativePlugin(language)
 
@@ -467,7 +467,7 @@ secondaryAccess { three, true, true}"""
         }
     """
 
-    def 'reports #kind errors in project file'() {
+    def "reports #kind errors in project file"() {
         given:
         file("build.gradle.dcl") << bodyCode
 

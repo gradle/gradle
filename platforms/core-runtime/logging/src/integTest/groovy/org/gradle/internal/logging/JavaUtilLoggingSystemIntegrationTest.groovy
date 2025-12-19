@@ -35,7 +35,7 @@ class JavaUtilLoggingSystemIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def 'JUL logger.isLoggable corresponds to gradle log level for --debug'() {
+    def "JUL logger.isLoggable corresponds to gradle log level for --debug"() {
         given:
         buildFile << """
             task isLoggable() {
@@ -60,7 +60,7 @@ class JavaUtilLoggingSystemIntegrationTest extends AbstractIntegrationSpec {
         succeeds('isLoggable')
     }
 
-    def 'JUL logger.isLoggable corresponds to gradle log level for --warn'() {
+    def "JUL logger.isLoggable corresponds to gradle log level for --warn"() {
         given:
         buildFile << """
             task isLoggable() {
@@ -85,7 +85,7 @@ class JavaUtilLoggingSystemIntegrationTest extends AbstractIntegrationSpec {
         succeeds('isLoggable')
     }
 
-    def 'JUL logger.isLoggable corresponds to gradle log level for --info'() {
+    def "JUL logger.isLoggable corresponds to gradle log level for --info"() {
         given:
         buildFile << """
             task isLoggable() {
@@ -110,7 +110,7 @@ class JavaUtilLoggingSystemIntegrationTest extends AbstractIntegrationSpec {
         succeeds('isLoggable')
     }
 
-    def 'JUL logger.isLoggable corresponds to gradle log level for LIFECYCLE'() {
+    def "JUL logger.isLoggable corresponds to gradle log level for LIFECYCLE"() {
         given:
         buildFile << """
             task isLoggable() {
@@ -135,7 +135,7 @@ class JavaUtilLoggingSystemIntegrationTest extends AbstractIntegrationSpec {
         succeeds('isLoggable')
     }
 
-    def 'JUL logger.isLoggable corresponds to gradle log level for --quiet'() {
+    def "JUL logger.isLoggable corresponds to gradle log level for --quiet"() {
         given:
         buildFile << """
             task isLoggable() {

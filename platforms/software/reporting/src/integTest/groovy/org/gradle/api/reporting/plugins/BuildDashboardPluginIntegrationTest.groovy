@@ -119,7 +119,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         'buildDashboard'
     }
 
-    void 'build dashboard for a project with no other reports lists just the dashboard'() {
+    def "build dashboard for a project with no other reports lists just the dashboard"() {
         when:
         run('buildDashboard')
 
@@ -129,7 +129,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         unavailableReports.empty
     }
 
-    void 'build dashboard lists the enabled reports for the project'() {
+    def "build dashboard lists the enabled reports for the project"() {
         given:
         goodCode()
         goodTests()
@@ -144,7 +144,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':test', 'junitXml')
     }
 
-    void 'build dashboard lists the reports which have not been generated'() {
+    def "build dashboard lists the reports which have not been generated"() {
         given:
         goodCode()
         goodTests()
@@ -160,7 +160,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasUnavailableReport(':test', 'junitXml')
     }
 
-    void 'build dashboard is always generated after report generating tasks have executed'() {
+    def "build dashboard is always generated after report generating tasks have executed"() {
         given:
         goodCode()
         goodTests()
@@ -175,7 +175,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':test', 'junitXml')
     }
 
-    void 'running a report generating task also generates build dashboard'() {
+    def "running a report generating task also generates build dashboard"() {
         given:
         goodCode()
         goodTests()
@@ -190,7 +190,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':test', 'junitXml')
     }
 
-    void 'build dashboard is generated even if report generating task fails'() {
+    def "build dashboard is generated even if report generating task fails"() {
         given:
         goodCode()
         badTests()
@@ -205,7 +205,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':test', 'junitXml')
     }
 
-    void 'build dashboard is not generated if a dependency of the report generating task fails'() {
+    def "build dashboard is not generated if a dependency of the report generating task fails"() {
         given:
         goodCode()
         goodTests()
@@ -218,7 +218,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         !buildDashboardFile.exists()
     }
 
-    void 'build dashboard is not generated if a dependency of the report generating task fails even with --continue'() {
+    def "build dashboard is not generated if a dependency of the report generating task fails even with --continue"() {
         given:
         goodCode()
         goodTests()
@@ -232,7 +232,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         !buildDashboardFile.exists()
     }
 
-    void 'dashboard is not generated if it is disabled'() {
+    def "dashboard is not generated if it is disabled"() {
         given:
         goodCode()
 
@@ -249,7 +249,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         !buildDashboardFile.exists()
     }
 
-    void 'buildDashboard is incremental'() {
+    def "buildDashboard is incremental"() {
         given:
         goodCode()
 
@@ -269,7 +269,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @Requires(UnitTestPreconditions.StableGroovy) // FIXME KM temporarily disabling while CodeNarc runs in Worker API with multiple Groovy runtimes
-    void 'enabling an additional report renders buildDashboard out-of-date'() {
+    def "enabling an additional report renders buildDashboard out-of-date"() {
         given:
         goodCode()
         withCodenarc()
@@ -301,7 +301,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':codenarcMain', 'text')
     }
 
-    void 'generating a report that was previously not available renders buildDashboard out-of-date'() {
+    def "generating a report that was previously not available renders buildDashboard out-of-date"() {
         given:
         goodCode()
         goodTests()
@@ -329,7 +329,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         unavailableReports.empty
     }
 
-    void 'reports from subprojects are aggregated'() {
+    def "reports from subprojects are aggregated"() {
         given:
         goodCode()
         goodTests()
@@ -347,7 +347,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':subproject:test', 'junitXml')
     }
 
-    void 'dashboard includes JaCoCo reports'() {
+    def "dashboard includes JaCoCo reports"() {
         given:
         JacocoCoverage.assumeDefaultJacocoWorksOnCurrentJdk()
         goodCode()
@@ -368,7 +368,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @Requires(UnitTestPreconditions.StableGroovy) // FIXME KM temporarily disabling while CodeNarc runs in Worker API with multiple Groovy runtimes
-    void 'dashboard includes CodeNarc reports'() {
+    def "dashboard includes CodeNarc reports"() {
         given:
         goodCode()
         withCodenarc()

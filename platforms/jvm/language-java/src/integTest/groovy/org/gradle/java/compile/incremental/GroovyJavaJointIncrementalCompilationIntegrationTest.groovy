@@ -43,7 +43,7 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         'J_G_G': 'class J_G_G extends G_G { }',
     ]
 
-    def 'Groovy-Java joint compilation on #scenario'() {
+    def "Groovy-Java joint compilation on #scenario"() {
         given:
         applyGroovyFileSet(initialSet)
         run "compileGroovy"
@@ -78,7 +78,7 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         'Change root Java files'                    | ['J', 'J_J', 'G_J_J'] | ['J.changed', 'J_J', 'G_J_J'] | 'Incremental compilation of' | ['J', 'J_J', 'G_J_J'] | ['J.changed', 'J_J', 'G_J_J'] | 'UP-TO-DATE'                 | []
     }
 
-    def 'Groovy-Java compilation with mix sourceSet on #scenario'() {
+    def "Groovy-Java compilation with mix sourceSet on #scenario"() {
         given:
         applyMixFileSet(initialSet)
         run "compileGroovy"
@@ -107,7 +107,7 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         'Change Java files which Groovy depends on' | ['J', 'G_J'] | ['J.changed', 'G_J'] | ['Incremental compilation of', 'Incremental compilation of'] | ['J.changed', 'G_J'] | ['UP-TO-DATE', 'UP-TO-DATE']
     }
 
-    def 'Groovy-Java joint compilation incremental compilation after failure: #scenario'() {
+    def "Groovy-Java joint compilation incremental compilation after failure: #scenario"() {
         given:
         applyGroovyFileSet(initialSet)
         outputs.snapshot { run "compileGroovy" }
@@ -143,7 +143,7 @@ class GroovyJavaJointIncrementalCompilationIntegrationTest extends AbstractJavaG
         'Change Groovy files which Java depends on' | ['G', 'J_G'] | ['G.failure', 'J_G'] | ['G.changed', 'J_G'] | ['G', 'J_G']                  | 'Incremental compilation of' | ['G.changed', 'J_G']
     }
 
-    def 'Groovy-Java joint compilation incremental compilation after failure with mix sources: #scenario'() {
+    def "Groovy-Java joint compilation incremental compilation after failure with mix sources: #scenario"() {
         given:
         applyMixFileSet(initialSet)
         outputs.snapshot { run "compileGroovy" }

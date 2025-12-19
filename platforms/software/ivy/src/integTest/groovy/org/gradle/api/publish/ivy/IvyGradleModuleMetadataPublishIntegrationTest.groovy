@@ -962,7 +962,7 @@ class TestCapability implements Capability {
         true    | true
     }
 
-    def 'can add the build identifier'() {
+    def "can add the build identifier"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """

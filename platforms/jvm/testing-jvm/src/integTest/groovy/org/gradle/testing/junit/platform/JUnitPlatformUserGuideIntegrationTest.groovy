@@ -27,7 +27,7 @@ import static org.hamcrest.CoreMatchers.containsString
  * These test cases are all from http://junit.org/junit5/docs/current/user-guide
  */
 class JUnitPlatformUserGuideIntegrationTest extends JUnitPlatformIntegrationSpec {
-    def 'can display test case and test class in @DisplayName'() {
+    def "can display test case and test class in @DisplayName"() {
         given:
         file('src/test/java/org/gradle/DisplayNameDemo.java') << '''
 package org.gradle;
@@ -75,7 +75,7 @@ class DisplayNameDemo2 {
         result.testPath(':org.gradle.DisplayNameDemo2:testWithDisplayNameContainingSpecialCharacters()').onlyRoot().assertDisplayName(Matchers.equalTo('╯°□°）╯'))
     }
 
-    def 'can change test instance lifecycle with #method'() {
+    def "can change test instance lifecycle with #method"() {
         given:
         if (jvmArg) {
             buildFile << """
@@ -122,7 +122,7 @@ public class LifecycleTest {
         'annotations' | ''                                                         | '@TestInstance(Lifecycle.PER_CLASS)'
     }
 
-    def 'can perform nested tests with #maxParallelForks'() {
+    def "can perform nested tests with #maxParallelForks"() {
         given:
         buildFile << """
 test {
@@ -209,7 +209,7 @@ class TestingAStackDemo {
         maxParallelForks << [1, 3]
     }
 
-    def 'can support dependency injection'() {
+    def "can support dependency injection"() {
         given:
         file('src/test/java/org/gradle/TestInfoDemo.java') << '''
 package org.gradle;
@@ -255,7 +255,7 @@ class TestInfoDemo {
             .assertOnlyChildrenExecuted("test2()", "test1(TestInfo)")
     }
 
-    def 'can use custom Extension'() {
+    def "can use custom Extension"() {
         given:
         file('src/test/java/org/gradle/MyExtension.java') << '''
 package org.gradle;
@@ -289,7 +289,7 @@ public class ExtensionTest {
             .assertStdout(containsString('Created!'))
     }
 
-    def 'can test interface default method'() {
+    def "can test interface default method"() {
         file('src/test/java/org/gradle/TestInterfaceDynamicTestsDemo.java') << '''
 package org.gradle;
 
@@ -331,7 +331,7 @@ public class Test implements TestInterfaceDynamicTestsDemo {
             .assertOnlyChildrenExecuted("dynamicTestsFromCollection()[1]", "dynamicTestsFromCollection()[2]")
     }
 
-    def 'can support parameterized tests'() {
+    def "can support parameterized tests"() {
         given:
         buildFile << """
 dependencies {
@@ -366,7 +366,7 @@ public class Test {
             .assertOnlyChildrenExecuted("ok(String)[1]", "ok(String)[2]", "ok(String)[3]")
     }
 
-    def 'can use test template'() {
+    def "can use test template"() {
         given:
         file('src/test/java/org/gradle/TestTemplateTest.java') << '''
 package org.gradle;

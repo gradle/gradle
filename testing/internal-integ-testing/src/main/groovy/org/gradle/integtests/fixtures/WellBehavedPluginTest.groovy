@@ -48,7 +48,7 @@ abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
         "PlayApplicationPluginGoodBehaviourIntegrationTest",
         "PmdPluginIntegrationTest"
     ])
-    void "can apply plugin unqualified"() {
+    def "can apply plugin unqualified"() {
         given:
         applyPluginUnqualified()
 

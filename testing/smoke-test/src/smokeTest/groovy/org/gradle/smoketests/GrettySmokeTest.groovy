@@ -32,7 +32,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 @Requires(UnitTestPreconditions.Jdk11OrLater)
 class GrettySmokeTest extends AbstractPluginValidatingSmokeTest {
 
-    def 'run Jetty with Gretty #grettyConfig.version'() {
+    def "run Jetty with Gretty #grettyConfig.version"() {
         given:
         def grettyVersion = VersionNumber.parse(grettyConfig.version)
         useSample('gretty-example')

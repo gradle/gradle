@@ -32,7 +32,7 @@ class CatchExceptionTaskExecuterTest extends Specification {
     private TaskStateInternal state = new TaskStateInternal()
     private TaskExecutionContext context = Mock(TaskExecutionContext)
 
-    def 'calls delegate and does nothing'() {
+    def "calls delegate and does nothing"() {
         when:
         executer.execute(task, state, context)
 
@@ -46,7 +46,7 @@ class CatchExceptionTaskExecuterTest extends Specification {
         !state.failure
     }
 
-    def 'should catch exception of delegate and set the outcome to failure'() {
+    def "should catch exception of delegate and set the outcome to failure"() {
         given:
         def failure = new RuntimeException("Failure")
 
