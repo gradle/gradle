@@ -71,6 +71,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -1036,8 +1037,16 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         return testFramework.get();
     }
 
+    /**
+     * Do not call this method.
+     * @deprecated This will be removed in Gradle 10
+     */
+    @Deprecated
     public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
-        // TODO: Deprecate and remove this method
+        DeprecationLogger.deprecateMethod(AbstractTestTask.class, "testFramework(Closure)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_test_methods")
+            .nagUser();
         options(testFrameworkConfigure);
         return getTestFramework();
     }
