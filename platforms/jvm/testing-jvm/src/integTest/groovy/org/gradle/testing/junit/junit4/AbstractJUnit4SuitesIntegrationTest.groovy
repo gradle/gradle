@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.junit4
 
+
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.testing.junit.AbstractJUnitSuitesIntegrationTest
@@ -255,6 +256,132 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
             // Due to the way JUnit 3 suites work, we cannot associate the output correctly, even in recent JUnit 4 and Vintage.
             result.testPath("org.gradle.SomeSuite:org.gradle.SomeTest2").onlyRoot().assertStdout(containsString("stdout in TestSetup#teardown"))
             result.testPath("org.gradle.SomeSuite:org.gradle.SomeTest2").onlyRoot().assertStderr(containsString("stderr in TestSetup#teardown"))
+        }
+    }
+
+    def "can run multiple parameterized tests via suite only"() {
+        setupManyParameterizedTests()
+
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test {
+                ${configureTestFramework}
+                include '**/*Suite.class'
+            }
+        """.stripIndent()
+
+        when:
+        succeeds("test")
+
+        then:
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        List<String> expectedDuplicatesInSuite = expectedManyParameterizedTests().collect { path ->
+            ":AllParamTestsSuite${path}".toString()
+        }
+        testResult.assertTestPathsExecuted(expectedDuplicatesInSuite as String[])
+    }
+
+    def "can run multiple parameterized tests via tests only"() {
+        setupManyParameterizedTests()
+
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test {
+                ${configureTestFramework}
+                include '**/*Foo.class'
+                include '**/*Bar.class'
+            }
+        """.stripIndent()
+
+        when:
+        succeeds("test")
+
+        then:
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        testResult.assertTestPathsExecuted(expectedManyParameterizedTests() as String[])
+    }
+
+    def "can run multiple parameterized tests via tests and suite in one execution"() {
+        setupManyParameterizedTests()
+
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test {
+                ${configureTestFramework}
+            }
+        """.stripIndent()
+
+        when:
+        succeeds("test")
+
+        then:
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        List<String> expectedDuplicatesInSuite = expectedManyParameterizedTests().collect { path ->
+            ":AllParamTestsSuite${path}".toString()
+        }
+        testResult.assertTestPathsExecuted((expectedDuplicatesInSuite + expectedManyParameterizedTests()) as String[])
+    }
+
+    private setupManyParameterizedTests() {
+        addParameterizedClass("Foo")
+        addParameterizedClass("Bar")
+        file("src/test/java/AllParamTestsSuite.java") << """
+            ${testFrameworkImports}
+            import org.junit.runners.Suite;
+            import org.junit.runners.Suite.SuiteClasses;
+            @RunWith(Suite.class)
+            @SuiteClasses({ParameterizedFoo.class, ParameterizedBar.class})
+            public class AllParamTestsSuite {
+            }
+        """
+    }
+
+    void addParameterizedClass(String suffix) {
+        file("src/test/java/Parameterized${suffix}.java") << """
+            ${testFrameworkImports}
+            import org.junit.runners.Parameterized;
+            import org.junit.runners.Parameterized.Parameters;
+            import org.junit.runner.RunWith;
+            import java.util.List;
+
+            @RunWith(Parameterized.class)
+            public class Parameterized${suffix} {
+                int index;
+                public Parameterized${suffix}(int index) {
+                    this.index = index;
+                }
+
+                @Parameters
+                public static List<?> data() {
+                   return List.of(0, 1);
+                }
+
+                @Test public void pass() {}
+                @Test public void fail() {}
+            }
+        """
+    }
+
+    private static expectedManyParameterizedTests() {
+        ["ParameterizedFoo", "ParameterizedBar"].collectMany { className ->
+            (0..1).collectMany { index ->
+                [
+                    ":${className}:[${index}]:pass[${index}]".toString(),
+                    ":${className}:[${index}]:fail[${index}]".toString()
+                ]
+            }
         }
     }
 }
