@@ -105,7 +105,6 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             import org.gradle.api.Action
             import org.gradle.api.model.ObjectFactory
             import org.gradle.api.provider.Property
-            import org.gradle.declarative.dsl.model.annotations.Configuring
             import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
             import javax.inject.Inject
             import ${BuildModel.class.name}
@@ -173,7 +172,6 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             import org.gradle.api.Action
             import org.gradle.api.model.ObjectFactory
             import org.gradle.api.provider.Property
-            import org.gradle.declarative.dsl.model.annotations.Configuring
             import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
             import javax.inject.Inject
             import ${BuildModel.class.name}
@@ -236,7 +234,6 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
         file("build-logic/src/main/java/com/example/restricted/Extension.java") << """
             package com.example.restricted;
 
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;

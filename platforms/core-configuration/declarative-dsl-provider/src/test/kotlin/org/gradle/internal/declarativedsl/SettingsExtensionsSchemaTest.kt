@@ -23,6 +23,7 @@ import org.gradle.api.plugins.ExtensionsSchema
 import org.gradle.api.plugins.ExtensionsSchema.ExtensionSchema
 import org.gradle.api.provider.Property
 import org.gradle.api.reflect.TypeOf
+import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.settings.settingsEvaluationSchema
 import org.junit.Assert.assertNotNull
@@ -64,6 +65,7 @@ class SettingsExtensionsSchemaTest {
         assertTrue(schema.analysisSchema.dataClassTypesByFqName.keys.any { it.simpleName == MyNestedType::class.simpleName })
     }
 
+    @VisibleInDefinition
     internal abstract class MyExtension {
         abstract val id: Property<String>
 

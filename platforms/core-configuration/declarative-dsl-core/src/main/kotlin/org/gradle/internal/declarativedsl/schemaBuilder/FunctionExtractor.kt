@@ -19,7 +19,6 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Builder
-import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.FunctionSemantics
@@ -272,10 +271,9 @@ class DefaultFunctionExtractor(
                 FunctionSemanticsInternal.DefaultAddAndConfigure(returnType, blockRequirement)
             }
 
-            function.kCallable.annotations.any { it is Configuring } || configuredType != null -> {
+            configuredType != null -> {
                 check(inType != null)
 
-                check(configuredType != null) { "@Configuring function $function must accept a configuring lambda" }
                 host.checkConfiguredType(configuredType)
 
                 val returnType = when (function.returnType.toKType()) {

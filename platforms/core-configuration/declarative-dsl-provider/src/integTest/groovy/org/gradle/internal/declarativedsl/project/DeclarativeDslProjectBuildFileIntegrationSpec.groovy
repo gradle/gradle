@@ -269,7 +269,6 @@ secondaryAccess { three, true, true}"""
         import java.util.ArrayList;
         import java.util.List;
         import org.gradle.api.internal.plugins.Definition;import org.gradle.declarative.dsl.model.annotations.Adding;
-        import org.gradle.declarative.dsl.model.annotations.Configuring;
         import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
         import org.gradle.api.Action;
         import org.gradle.api.model.ObjectFactory;
@@ -376,7 +375,6 @@ secondaryAccess { three, true, true}"""
         import org.gradle.api.provider.MapProperty
         import org.gradle.api.provider.Property
         import org.gradle.declarative.dsl.model.annotations.Adding
-        import org.gradle.declarative.dsl.model.annotations.Configuring
         import javax.inject.Inject
         import org.gradle.api.internal.plugins.Definition
         import org.gradle.api.internal.plugins.BuildModel

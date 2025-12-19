@@ -68,7 +68,6 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.api.artifacts.DependencyScopeConfiguration;
             import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
             import ${Definition.class.name};
@@ -100,7 +99,6 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             package com.example.restricted;
 
             import org.gradle.api.artifacts.dsl.Dependencies;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
             public interface BaseDependencies extends Dependencies {
                 default String baseMethod(String arg) {
@@ -184,7 +182,6 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
             import org.gradle.api.artifacts.dsl.DependencyCollector;
             import org.gradle.api.artifacts.dsl.Dependencies;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
             public interface DependenciesExtension extends Dependencies {
                 DependencyCollector getSomething();
@@ -454,7 +451,6 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import org.gradle.api.artifacts.dsl.DependencyCollector;
             import org.gradle.api.artifacts.dsl.Dependencies;
             import org.gradle.api.plugins.jvm.PlatformDependencyModifiers;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
             public interface DependenciesExtension extends Dependencies, PlatformDependencyModifiers {
                 DependencyCollector getApi();
@@ -469,7 +465,6 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
             import org.gradle.api.artifacts.DependencyScopeConfiguration;
             import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
             import ${Definition.class.name};
@@ -574,7 +569,6 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
             import org.gradle.api.Action
             import org.gradle.api.model.ObjectFactory
-            import org.gradle.declarative.dsl.model.annotations.Configuring
             import org.gradle.declarative.dsl.model.annotations.Restricted
             import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
             import org.gradle.api.internal.plugins.Definition

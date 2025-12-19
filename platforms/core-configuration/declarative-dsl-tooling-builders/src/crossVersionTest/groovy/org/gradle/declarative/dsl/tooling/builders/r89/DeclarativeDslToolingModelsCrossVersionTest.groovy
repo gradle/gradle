@@ -217,7 +217,6 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             package org.gradle.test;
 
             import org.gradle.declarative.dsl.model.annotations.Adding;
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
             import ${HiddenInDefinition.name};
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
@@ -274,8 +273,6 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             package org.gradle.test;
 
             import org.gradle.declarative.dsl.model.annotations.Adding;
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
