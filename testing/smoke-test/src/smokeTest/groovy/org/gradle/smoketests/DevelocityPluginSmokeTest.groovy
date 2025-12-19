@@ -37,8 +37,8 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
     enum CI {
         // https://github.com/jenkinsci/gradle-plugin/releases
         JENKINS(
-            "2.16.1149.v711b_998b_0532",
-            "https://raw.githubusercontent.com/jenkinsci/gradle-plugin/refs/tags/%s/plugin/src/main/resources/hudson/plugins/gradle/injection/init-script.gradle"
+            "gradle-2.15",
+            "https://raw.githubusercontent.com/jenkinsci/gradle-plugin/%s/src/main/resources/hudson/plugins/gradle/injection/init-script.gradle"
         ),
         // https://github.com/gradle/develocity-bamboo-plugin/releases
         BAMBOO(

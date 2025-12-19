@@ -632,8 +632,6 @@ Class <org.gradle.api.internal.tasks.testing.junit.IgnoredTestDescriptorProvider
 Class <org.gradle.api.internal.tasks.testing.junit.JUnitDetector> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JUnitDetector.java:0)
 Class <org.gradle.api.internal.tasks.testing.junit.JUnitSpec> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JUnitSpec.java:0)
 Class <org.gradle.api.internal.tasks.testing.junit.JUnitTestDefinitionProcessorFactory> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JUnitTestDefinitionProcessorFactory.java:0)
-Class <org.gradle.api.internal.tasks.testing.junit.JUnitTestEventAdapter$PostRunStartData> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JUnitTestEventAdapter.java:0)
-Class <org.gradle.api.internal.tasks.testing.junit.JUnitTestEventAdapter$TestNode> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JUnitTestEventAdapter.java:0)
 Class <org.gradle.api.internal.tasks.testing.junit.JUnitTestExecutor$MethodNameFilter> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JUnitTestExecutor.java:0)
 Class <org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JUnitTestFramework.java:0)
 Class <org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator$JUnitXmlReportFileGenerator> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (Binary2JUnitXmlReportGenerator.java:0)
