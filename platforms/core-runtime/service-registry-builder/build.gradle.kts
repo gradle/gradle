@@ -17,3 +17,7 @@ dependencies {
 
     implementation(projects.serviceRegistryImpl)
 }
+
+errorprone {
+    nullawayEnabled = true
+}
