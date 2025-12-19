@@ -17,11 +17,9 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.apache.commons.io.FilenameUtils
-import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
-import org.gradle.kotlin.dsl.support.SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME
 import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.zipTo
 import org.gradle.util.internal.TextUtil
@@ -41,7 +39,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 @Suppress("FunctionName", "JUnitMixedFramework")
-class SkipMetadataVersionCheckTest : AbstractKotlinIntegrationTest() {
+class CompilationFailureOnUnsupportedMetadataVersionTest : AbstractKotlinIntegrationTest() {
 
     private companion object {
         private lateinit var jarFile: File
@@ -83,55 +81,13 @@ class SkipMetadataVersionCheckTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `no compilation errors but deprecations when version check not explicitly configured`() {
+    fun `compilation error thrown by compiler`() {
         setupBuild()
-
-        // no gradle.properties, flag not specified
-
-        gradleExecuterFor(arrayOf())
-            .expectDeprecationWarning(ExpectedDeprecationWarning.withMessage(
-                "Using incompatible Kotlin dependencies in scripts without setting the 'org.gradle.kotlin.dsl.skipMetadataVersionCheck' property. " +
-                        "This behavior has been deprecated. " +
-                        "This will fail with an error in Gradle 10. " +
-                        "Using dependencies compiled with an incompatible Kotlin version has undefined behaviour and could lead to strange errors."))
-            .run()
-            .apply {
-                assertOutputContains("Hello, from the buildfile!")
-                assertOutputContains("Hello, from Printer.print()!")
-            }
-    }
-
-    @Test
-    fun `no compilation errors and no deprecations when version check explicitly disabled`() {
-        setupBuild()
-
-        withFile(
-            "gradle.properties", """
-            $SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME=true
-        """.trimIndent()
-        )
-
-        build().apply {
-            assertOutputContains("Hello, from the buildfile!")
-            assertOutputContains("Hello, from Printer.print()!")
-        }
-    }
-
-    @Test
-    fun `compilation error thrown when version check explicitly enabled`() {
-        setupBuild()
-
-        withFile(
-            "gradle.properties", """
-            $SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME=false
-        """.trimIndent()
-        )
 
         buildAndFail().apply {
             assertHasErrorOutput(
                 "Class 'org.integ.test.util.Printer' was compiled with an incompatible version of Kotlin. The actual metadata version is " +
-                        futureVersion +
-                        ", but the compiler version"
+                        futureVersion + ", but the compiler version"
             )
         }
     }
@@ -166,7 +122,7 @@ class SkipMetadataVersionCheckTest : AbstractKotlinIntegrationTest() {
                 KotlinCompilerOptions(),
                 "test",
                 listOf(sourceFile),
-                LoggerFactory.getLogger(SkipMetadataVersionCheckTest::class.java),
+                LoggerFactory.getLogger(CompilationFailureOnUnsupportedMetadataVersionTest::class.java),
                 emptyList()
             )
 
