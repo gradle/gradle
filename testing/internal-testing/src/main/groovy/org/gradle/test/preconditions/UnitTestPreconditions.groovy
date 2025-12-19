@@ -374,7 +374,7 @@ class UnitTestPreconditions {
 
         private static final JavaVersion MAX_SUPPORTED_JAVA_VERSION =
             JavaVersion.forClassVersion(
-                 JvmTarget.values().max { it.majorVersion }.majorVersion
+                JvmTarget.values().max { it.majorVersion }.majorVersion
             )
 
         @Override
