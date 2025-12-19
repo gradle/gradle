@@ -32,14 +32,15 @@ public abstract class RepositoryDescriptor {
     public enum Type {
         MAVEN,
         IVY,
-        FLAT_DIR
+        FLAT_DIR,
+        DISTRIBUTION
     }
 
     private final String id;
     private final String name;
     private Map<String, ?> properties;
 
-    RepositoryDescriptor(String id, String name) {
+    public RepositoryDescriptor(String id, String name) {
         this.id = id;
         this.name = name;
     }

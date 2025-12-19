@@ -27,132 +27,150 @@ class DefaultModuleRegistryTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     TestFile distDir = tmpDir.createDir("dist")
-    TestFile libDir = distDir.file("lib")
-    TestFile pluginsDir = libDir.file("plugins")
+    TestFile libDir = distDir.createDir("lib")
+    TestFile pluginsDir = libDir.createDir("plugins")
 
-    def "locates module using jar in distribution image"() {
+    void validate(TestModule testModule, List<String> dependencies) {
+        def moduleName = testModule.name
+
+        def found = registry.findModule(moduleName)
+        assert found != null
+
+        def module = registry.getModule(moduleName)
+        assert module.is(found)
+
+        assert module.name == moduleName
+        assert module.dependencyNames == dependencies
+        assert module.implementationClasspath.asFiles as List == [testModule.jar]
+
+        def classpath = registry.getRuntimeClasspath(moduleName)
+        assert classpath == registry.getRuntimeClasspath([module])
+
+        def moduleDependencies = registry.getRuntimeModules([module])
+        assert moduleDependencies as List == [module] + dependencies.collect { registry.getModule(it) }
+        assert classpath.asFiles == moduleDependencies.collect { it.implementationClasspath.asFiles }.flatten()
+    }
+
+    def "modules in lib can depend on modules from lib and plugins"() {
         given:
-        TestFile libDep = createExternalModule("dep", libDir)
-        TestFile pluginsDep = createExternalModule("dep2", pluginsDir)
-        TestFile someModule = createModule("some-module", properties(runtime: "${libDep.name},${pluginsDep.name}", projects: ''), libDir)
+        TestModule libDep = createModule("libDep", [], libDir)
+        TestModule pluginsDep = createModule("pluginsDep", [], pluginsDir)
 
         when:
-        def module = registry.getModule("gradle-some-module")
+        TestModule someModule = createModule("some-module", ["${libDep.name}", "${pluginsDep.name}"], libDir)
 
         then:
-        module.implementationClasspath.asFiles == [someModule]
-        module.runtimeClasspath.asFiles == [libDep, pluginsDep]
-        module.classpath.asFiles == [someModule, libDep, pluginsDep]
+        validate(someModule, ["libDep", "pluginsDep"])
+    }
+
+    def "modules in plugins can depend on modules from lib and plugins"() {
+        given:
+        TestModule libDep = createModule("libDep", [], libDir)
+        TestModule pluginsDep = createModule("pluginsDep", [], pluginsDir)
+
+        when:
+        TestModule someModule = createModule("some-module", ["${libDep.name}", "${pluginsDep.name}"], pluginsDir)
+
+        then:
+        validate(someModule, ["libDep", "pluginsDep"])
+    }
+
+    def "order of dependencies is preserved"() {
+        given:
+        TestModule dep1 = createModule("dep1", [], libDir)
+        TestModule dep2 = createModule("dep2", [], pluginsDir)
+
+        when:
+        TestModule module1 = createModule("module1", ["${dep1.name}", "${dep2.name}"], pluginsDir)
+        TestModule module2 = createModule("module2", ["${dep2.name}", "${dep1.name}"], pluginsDir)
+
+        then:
+        validate(module1, ["dep1", "dep2"])
+        validate(module2, ["dep2", "dep1"])
     }
 
     def "handles empty classpaths in manifest"() {
         given:
-        createModule("foo", properties())
+        createModule("foo", [])
 
         when:
-        def module = registry.getModule("gradle-foo")
+        def module = registry.getModule("foo")
 
         then:
-        module.runtimeClasspath.empty
-        module.requiredModules.empty
+        module.dependencyNames.empty
     }
 
     def "modules can depend on other modules"() {
         given:
-        createModule("lib-module", properties(), libDir)
-        createModule("plugin-module", properties(), pluginsDir)
-        createModule("root-lib-module", properties(projects: 'gradle-lib-module,gradle-plugin-module'), libDir)
-        createModule("root-plugins-module", properties(projects: 'gradle-lib-module,gradle-plugin-module'), pluginsDir)
+        createModule("lib-module", [], libDir)
+        createModule("plugin-module", [], pluginsDir)
+        createModule("root-lib-module", ["lib-module", "plugin-module"], libDir)
+        createModule("root-plugins-module", ["lib-module", "plugin-module"], pluginsDir)
 
         when:
-        def libModule = registry.getModule("gradle-root-lib-module")
-        def pluginsModule = registry.getModule("gradle-root-plugins-module")
+        def libModule = registry.getModule("root-lib-module")
+        def pluginsModule = registry.getModule("root-plugins-module")
 
         then:
-        libModule.requiredModules as List == [registry.getModule("gradle-lib-module"), registry.getModule("gradle-plugin-module")]
-        pluginsModule.requiredModules as List == [registry.getModule("gradle-lib-module"), registry.getModule("gradle-plugin-module")]
+        registry.getRuntimeModules([libModule]) as List == [libModule, registry.getModule("lib-module"), registry.getModule("plugin-module")]
+        registry.getRuntimeModules([pluginsModule]) as List == [pluginsModule, registry.getModule("lib-module"), registry.getModule("plugin-module")]
     }
 
     def "builds transitive closure of required modules"() {
         given:
-        createModule("module-1", properties(projects: 'gradle-module-2'))
-        createModule("module-2", properties(projects: 'gradle-module-3'))
-        createModule("module-3", properties(projects: ''))
+        createModule("module-1", ["module-2"])
+        createModule("module-2", ["module-3"])
+        createModule("module-3", [])
 
         when:
-        def module = registry.getModule("gradle-module-1")
+        def module = registry.getModule("module-1")
 
         then:
-        module.allRequiredModules as List == [module, registry.getModule("gradle-module-2"), registry.getModule("gradle-module-3")]
+        registry.getRuntimeModules([module]) as List == [module, registry.getModule("module-2"), registry.getModule("module-3")]
     }
 
     def "supports cycles between modules"() {
         given:
-        createModule("module-1", properties(projects: 'gradle-module-2'))
-        createModule("module-2", properties(projects: 'gradle-module-1'))
+        createModule("module-1", ["module-2"])
+        createModule("module-2", ["module-1"])
 
         when:
-        def module1 = registry.getModule("gradle-module-1")
-        def module2 = registry.getModule("gradle-module-2")
+        def module1 = registry.getModule("module-1")
+        def module2 = registry.getModule("module-2")
 
         then:
-        module1.allRequiredModules as List == [module1, module2]
-        module2.allRequiredModules as List == [module2, module1]
-    }
-
-    def "supports cycles between optional modules"() {
-        given:
-        createModule("module-1", properties(optional: 'gradle-optional-module,gradle-module-2'))
-        createModule("module-2", properties(optional: 'gradle-module-1'))
-
-        when:
-        def module1 = registry.getModule("gradle-module-1")
-        def module2 = registry.getModule("gradle-module-2")
-
-        then:
-        module1.allRequiredModules as List == [module1, module2]
-        module2.allRequiredModules as List == [module2, module1]
+        registry.getRuntimeModules([module1]) as List == [module1, module2]
+        registry.getRuntimeModules([module2]) as List == [module2, module1]
     }
 
     def "fails when distribution does not contain module"() {
         when:
-        registry.getModule("gradle-other-module")
+        registry.getModule("other-module")
 
         then:
         UnknownModuleException e = thrown()
-        e.message == "Cannot locate JAR for module 'gradle-other-module' in distribution directory '$distDir'."
+        e.message == "Cannot find module 'other-module' in distribution directory '$distDir'."
     }
 
-    def "fails when external module cannot be found"() {
-        when:
-        registry.getExternalModule("unknown")
-
-        then:
-        UnknownModuleException e = thrown()
-        e.message == "Cannot locate JAR for module 'unknown' in distribution directory '$distDir'."
-    }
-
-    def "ignores jars which have the same prefix as an external module"() {
+    def "ignores jars which have the same prefix as a module"() {
         given:
-        TestFile libDep = createExternalModule("dep", libDir)
-        createExternalModule("dep-extra", libDir)
+        TestModule libDep = createModule("dep", [], libDir)
+        createModule("dep-extra", [], libDir)
 
         when:
-        def module = registry.getExternalModule("dep")
+        def module = registry.getModule("dep")
 
         then:
-        module.implementationClasspath.asFiles == [libDep]
-        module.runtimeClasspath.empty
+        module.implementationClasspath.asFiles == [libDep.jar]
     }
 
-    def "also looks in subdirectories of plugins directory when searching for external modules"() {
+    def "also looks in subdirectories of plugins directory when searching for modules"() {
         when:
-        def sonarDependency = createExternalModule("sonar-dependency", pluginsDir.file("sonar"))
+        TestModule sonarDependency = createModule("sonar-dependency", [], pluginsDir.createDir("sonar"))
 
         then:
-        def module = registry.getExternalModule("sonar-dependency")
-        module.implementationClasspath.asFiles == [sonarDependency]
-        module.runtimeClasspath.empty
+        def module = registry.getModule("sonar-dependency")
+        module.implementationClasspath.asFiles == [sonarDependency.jar]
     }
 
     ModuleRegistry cachedRegistry
@@ -163,21 +181,27 @@ class DefaultModuleRegistryTest extends Specification {
         cachedRegistry
     }
 
-    TestFile createModule(String simpleName, Properties properties, TestFile destinationDir = libDir) {
-        TestFile moduleDir = tmpDir.createDir(simpleName)
-        GUtil.saveProperties(properties, moduleDir.file("gradle-$simpleName-classpath.properties"))
+    TestModule createModule(String moduleName, List<String> dependencies, TestFile destinationDir = libDir) {
+        TestFile jarFile = destinationDir.file("$moduleName-1.jar")
+        jarFile.createNewFile()
 
-        TestFile jarFile = destinationDir.file("gradle-$simpleName-1.jar")
-        moduleDir.zipTo(jarFile)
-        jarFile
+        def propertiesFile = destinationDir.file("${moduleName}.properties")
+        def properties = new Properties()
+        properties["jarFile"] = jarFile.name
+        properties["dependencies"] = dependencies.join(",")
+        GUtil.saveProperties(properties, propertiesFile)
+
+        new TestModule(moduleName, propertiesFile, jarFile)
     }
 
-    TestFile createExternalModule(String moduleName, TestFile destinationDir) {
-        TestFile moduleDir = tmpDir.createDir(moduleName)
-
+    TestModule createModule(String moduleName, Properties properties, TestFile destinationDir = libDir) {
         TestFile jarFile = destinationDir.file("$moduleName-1.jar")
-        moduleDir.zipTo(jarFile)
-        jarFile
+        jarFile.createNewFile()
+
+        def propertiesFile = destinationDir.file("${moduleName}.properties")
+        GUtil.saveProperties(properties, propertiesFile)
+
+        new TestModule(moduleName, propertiesFile, jarFile)
     }
 
     private static Properties properties(Map<String, String> kvs = [:]) {
@@ -187,6 +211,22 @@ class DefaultModuleRegistryTest extends Specification {
                 put(it.key.toString(), it.value.toString())
             }
             it
+        }
+    }
+
+    private static class TestModule {
+        String name
+        TestFile properties
+        TestFile jar
+
+        TestModule(
+            String name,
+            TestFile properties,
+            TestFile jar
+        ) {
+            this.name = name
+            this.properties = properties
+            this.jar = jar
         }
     }
 
