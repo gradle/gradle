@@ -15,20 +15,23 @@
  */
 package org.gradle.wrapper;
 
+import org.jspecify.annotations.Nullable;
+
 import java.net.URI;
+import java.util.Objects;
 
 public class WrapperConfiguration {
-    private URI distribution;
+    private @Nullable URI distribution;
     private String distributionBase = PathAssembler.GRADLE_USER_HOME_STRING;
     private String distributionPath = Install.DEFAULT_DISTRIBUTION_PATH;
-    private String distributionSha256Sum;
+    private @Nullable String distributionSha256Sum;
     private String zipBase = PathAssembler.GRADLE_USER_HOME_STRING;
     private String zipPath = Install.DEFAULT_DISTRIBUTION_PATH;
     private int networkTimeout = Download.DEFAULT_NETWORK_TIMEOUT_MILLISECONDS;
     private boolean validateDistributionUrl = true;
 
     public URI getDistribution() {
-        return distribution;
+        return Objects.requireNonNull(distribution);
     }
 
     public void setDistribution(URI distribution) {
@@ -51,11 +54,11 @@ public class WrapperConfiguration {
         this.distributionPath = distributionPath;
     }
 
-    public String getDistributionSha256Sum() {
+    public @Nullable String getDistributionSha256Sum() {
         return distributionSha256Sum;
     }
 
-    public void setDistributionSha256Sum(String distributionSha256Sum) {
+    public void setDistributionSha256Sum(@Nullable String distributionSha256Sum) {
         this.distributionSha256Sum = distributionSha256Sum;
     }
 
