@@ -43,6 +43,7 @@ import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.CallInterceptorSpecs.CallInterceptorSpec.ConstructorInterceptorSpec;
 import org.gradle.internal.instrumentation.processor.codegen.groovy.CallInterceptorSpecs.CallInterceptorSpec.NamedCallableInterceptorSpec;
 import org.gradle.internal.instrumentation.util.NameUtil;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.Type;
 
 import javax.lang.model.element.Modifier;
@@ -64,7 +65,7 @@ import static org.gradle.internal.instrumentation.processor.codegen.JavadocUtils
 
 public class InterceptGroovyCallsGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
     @Override
-    protected String classNameForRequest(CallInterceptionRequest request) {
+    protected @Nullable String classNameForRequest(CallInterceptionRequest request) {
         return request.getRequestExtras().getByType(RequestExtra.InterceptGroovyCalls.class)
             .map(RequestExtra.InterceptGroovyCalls::getImplementationClassName)
             .orElse(null);
