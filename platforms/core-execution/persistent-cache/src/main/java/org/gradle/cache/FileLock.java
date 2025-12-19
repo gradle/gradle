@@ -33,6 +33,14 @@ public interface FileLock extends Closeable, FileAccess {
     boolean isLockFile(File file);
 
     /**
+     * Returns true if the lock is still valid and it was not recreated by another process since the lock was acquired.
+     * Should not be called after the lock is closed.
+     *
+     * NOTE: This method is not supported for cross-version locks.
+     */
+    boolean isValid();
+
+    /**
      * Closes this lock, releasing the lock and any resources associated with it.
      */
     @Override
