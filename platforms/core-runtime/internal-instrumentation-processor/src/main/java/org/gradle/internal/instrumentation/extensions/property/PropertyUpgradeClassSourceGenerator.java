@@ -35,6 +35,7 @@ import org.gradle.internal.instrumentation.processor.codegen.GradleReferencedTyp
 import org.gradle.internal.instrumentation.processor.codegen.HasFailures;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 import org.gradle.internal.instrumentation.processor.codegen.TypeUtils;
+import org.jspecify.annotations.Nullable;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
@@ -63,7 +64,7 @@ public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrume
     private static final String SELF_PARAMETER_NAME = "self";
 
     @Override
-    protected String classNameForRequest(CallInterceptionRequest request) {
+    protected @Nullable String classNameForRequest(CallInterceptionRequest request) {
         return request.getRequestExtras().getByType(PropertyUpgradeRequestExtra.class)
             .map(PropertyUpgradeRequestExtra::getImplementationClassName)
             .orElse(null);

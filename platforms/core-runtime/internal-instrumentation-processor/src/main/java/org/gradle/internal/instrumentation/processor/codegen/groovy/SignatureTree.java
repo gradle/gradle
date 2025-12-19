@@ -44,8 +44,8 @@ import static org.gradle.internal.instrumentation.processor.codegen.groovy.Param
 import static org.gradle.internal.instrumentation.processor.codegen.groovy.ParameterMatchEntry.Kind.VARARG;
 
 class SignatureTree {
-    private CallInterceptionRequest leaf = null;
-    private LinkedHashMap<ParameterMatchEntry, SignatureTree> childrenByMatchEntry = null;
+    private @Nullable CallInterceptionRequest leaf = null;
+    private @Nullable LinkedHashMap<ParameterMatchEntry, SignatureTree> childrenByMatchEntry = null;
 
     @Nullable
     public CallInterceptionRequest getLeafOrNull() {
