@@ -384,11 +384,20 @@ The point above highlights a potential issue with integrating <<supported_reposi
 [[sec:repository-disabling]]
 === Repository disabling
 
-When Gradle fails to retrieve information from a repository, it disables the repository for the remainder of the build and fails all dependency resolution.
+When Gradle fails to retrieve information from a repository after multiple retries or specific fatal errors, the repository will no longer be checked for the remainder of the build.
+This will usually fail dependency resolution because Gradle will not continue to the next repository in the list unless told otherwise.
 
 This behavior ensures reproducibility.
 
 If the build were to continue while ignoring the faulty repository, subsequent builds could produce different results once the repository is back online.
+
+Reasons for disabling a repository include:
+
+* https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/net/UnknownHostException.html[Unknown host] errors
+* Reaching max retry attempts on transient connection failures, https://hc.apache.org/httpclient-legacy/exception-handling.html#org_apache_commons_httpclient_NoHttpResponseException[like a server failing to respond]
+* Getting https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#5xx_server_error[HTTP 5xx responses] from the server
+
+If your build setup relies on a repository that may be temporarily unavailable, see link:{javadocPath}/org/gradle/api/artifacts/repositories/UrlArtifactRepository.html#getAllowInsecureContinueWhenDisabled()[`UrlArtifactRepository.getAllowInsecureContinueWhenDisabled()`] to allow Gradle to continue using other repositories even when that one encounters issues.
 
 [[sub:http-retries]]
 ==== HTTP Retries
