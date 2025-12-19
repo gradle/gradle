@@ -33,7 +33,7 @@ public abstract class PerRootInfo {
         private final long id;
         private final List<SerializableTestResult> results;
         private final List<OutputEntry> outputEntries;
-        private final boolean isLeaf;
+        private boolean isLeaf;
         private int totalLeafCount;
         private int failedLeafCount;
         private int skippedLeafCount;
@@ -86,6 +86,11 @@ public abstract class PerRootInfo {
             }
             results.addAll(otherBuilder.results);
             outputEntries.addAll(otherBuilder.outputEntries);
+
+            // Clear leaf status if either is not a leaf (this.isLeaf will already be false if applicable)
+            if (!otherBuilder.isLeaf) {
+                isLeaf = false;
+            }
         }
 
         public PerRootInfo build() {
