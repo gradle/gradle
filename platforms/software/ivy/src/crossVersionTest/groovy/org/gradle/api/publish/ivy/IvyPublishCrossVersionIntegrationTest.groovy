@@ -24,7 +24,7 @@ class IvyPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpec 
     final TestFile repoDir = file("ivy-repo")
     final IvyFileRepository repo = new IvyFileRepository(repoDir)
 
-    void setup() {
+    def setup() {
         requireOwnGradleUserHomeDir()
     }
 

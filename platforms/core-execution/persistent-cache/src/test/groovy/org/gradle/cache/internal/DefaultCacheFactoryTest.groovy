@@ -52,7 +52,7 @@ class DefaultCacheFactoryTest extends Specification {
         _ * metaDataProvider.processDisplayName >> 'process'
     }
 
-    void "creates directory backed cache instance"() {
+    def "creates directory backed cache instance"() {
         when:
         def cache = factory.open(tmpDir.testDirectory, "<display>", [prop: 'value'], mode(Shared), null, null)
 

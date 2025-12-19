@@ -34,7 +34,7 @@ class BuildDashboardGeneratorSpec extends Specification {
     File outputFile
     BuildDashboardGenerator generator = new BuildDashboardGenerator()
 
-    void setup() {
+    def setup() {
         outputFile = tmpDir.file('output.html')
     }
 
@@ -69,7 +69,7 @@ class BuildDashboardGeneratorSpec extends Specification {
         }
     }
 
-    void 'appropriate message is displayed when there are no reports available'() {
+    def 'appropriate message is displayed when there are no reports available'() {
         when:
         generator.render([], outputFile)
 

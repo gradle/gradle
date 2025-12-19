@@ -39,14 +39,14 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
 
     private DefaultDependencyConstraintHandler dependencyConstraintHandler = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultDependencyConstraintHandler, configurationContainer, dependencyConstraintFactory, TestUtil.objectFactory(), DependencyManagementTestUtil.platformSupport())
 
-    void setup() {
+    def setup() {
         _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration
         _ * configurationContainer.getByName(TEST_CONF_NAME) >> configuration
         _ * configurationContainer.getByName(UNKNOWN_TEST_CONF_NAME) >> { throw new UnknownDomainObjectException("") }
         _ * configuration.dependencyConstraints >> dependencyConstraintSet
     }
 
-    void "creates and adds a dependency constraint from some notation"() {
+    def "creates and adds a dependency constraint from some notation"() {
         def dependencyConstraint = Mock(DependencyConstraint)
 
         when:

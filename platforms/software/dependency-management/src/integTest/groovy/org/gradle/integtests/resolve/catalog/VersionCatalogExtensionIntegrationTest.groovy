@@ -505,7 +505,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
-    void "can add several dependencies at once using a bundle"() {
+    def "can add several dependencies at once using a bundle"() {
         settingsFile << """
             dependencyResolutionManagement {
                 versionCatalogs {

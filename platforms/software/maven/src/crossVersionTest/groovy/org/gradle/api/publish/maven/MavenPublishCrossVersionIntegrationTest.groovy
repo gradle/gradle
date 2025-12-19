@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 class MavenPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     final MavenFileRepository repo = new MavenFileRepository(file("maven-repo"))
 
-    void setup() {
+    def setup() {
         requireOwnGradleUserHomeDir()
     }
 

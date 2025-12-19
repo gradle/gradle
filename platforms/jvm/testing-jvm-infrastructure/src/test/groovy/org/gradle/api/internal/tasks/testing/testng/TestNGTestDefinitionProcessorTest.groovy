@@ -58,7 +58,7 @@ class TestNGTestDefinitionProcessorTest extends Specification {
         classProcessor.stop()
     }
 
-    void "executes the test class"() {
+    def "executes the test class"() {
         when: process(ATestNGClass)
 
         then: 1 * processor.started({ it.id == 1 && it.name == 'Gradle suite' && it.className == null }, { it.parentId == null })

@@ -25,11 +25,11 @@ import java.util.concurrent.RejectedExecutionException
 class DefaultGradleEnterprisePluginBackgroundJobExecutorsTest extends Specification {
     DefaultGradleEnterprisePluginBackgroundJobExecutors jobExecutors
 
-    void setup() {
+    def setup() {
         jobExecutors = new DefaultGradleEnterprisePluginBackgroundJobExecutors(new DefaultDevelocityPluginUnsafeConfigurationService(new InputTrackingState()))
     }
 
-    void cleanup() {
+    def cleanup() {
         jobExecutors.shutdown()
     }
 

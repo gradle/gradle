@@ -38,7 +38,7 @@ class PathLimitationIntegrationTest extends AbstractWorkerProcessIntegrationSpec
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(TestListenerInterface.class)
     private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast.source)
 
-    public void setup() {
+    public def setup() {
         broadcast.add(listenerMock)
     }
 

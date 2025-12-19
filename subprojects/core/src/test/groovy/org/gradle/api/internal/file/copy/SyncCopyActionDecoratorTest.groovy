@@ -38,7 +38,7 @@ class SyncCopyActionDecoratorTest extends WorkspaceTest {
         )
     }
 
-    void deletesExtraFilesFromDestinationDirectoryAtTheEndOfVisit() {
+    def deletesExtraFilesFromDestinationDirectoryAtTheEndOfVisit() {
         given:
         file("src").with {
             createFile("subdir/included.txt")

@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 abstract class AbstractJUnit3FilteringIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
-    void "filters tests implemented using 3.x test cases"() {
+    def "filters tests implemented using 3.x test cases"() {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}

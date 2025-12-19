@@ -20,11 +20,11 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.util.GradleVersion
 
-import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.expectStrictVersion
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.ENFORCED_PLATFORM
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.LEGACY_PLATFORM
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.MODULE
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.PLATFORM
+import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.expectStrictVersion
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -145,7 +145,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         }
     }
 
-    void "(1) all future releases of org:foo:3.0 are bad and the platform enforces 3.0 [#platformType]"() {
+    def "(1) all future releases of org:foo:3.0 are bad and the platform enforces 3.0 [#platformType]"() {
         initialRepository(platformType)
         singleLibraryBuildFile(platformType)
 

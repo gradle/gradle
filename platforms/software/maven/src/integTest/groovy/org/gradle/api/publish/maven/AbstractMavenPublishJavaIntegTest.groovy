@@ -547,7 +547,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    void "'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin"() {
+    def "'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin"() {
         given:
         createBuildScripts """
             publishing {

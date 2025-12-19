@@ -162,7 +162,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
         }
     }
 
-    void "can add several dependencies at once using a bundle"() {
+    def "can add several dependencies at once using a bundle"() {
         tomlFile << """[libraries]
 lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 lib2.module = "org.gradle.test:lib2"

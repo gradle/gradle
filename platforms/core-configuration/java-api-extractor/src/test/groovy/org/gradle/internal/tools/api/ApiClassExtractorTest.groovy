@@ -213,7 +213,7 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
     }
 
-    void "static initializer is removed"() {
+    def "static initializer is removed"() {
         given:
         def api = toApi 'com.acme.A': '''
             package com.acme;

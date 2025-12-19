@@ -86,7 +86,7 @@ class DefaultSettingsLoaderTest extends Specification {
         }
     }
 
-    void setup() {
+    def setup() {
         startParameterInternal.setCurrentDir( projectRootDir )
     }
 

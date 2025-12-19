@@ -34,7 +34,7 @@ class IvyBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolu
     }
 
     @ToBeFixedForConfigurationCache
-    void "reports and recovers from missing module"() {
+    def "reports and recovers from missing module"() {
         given:
         def repo = ivyHttpRepo("repo1")
         def module = repo.module("group", "projectA", "1.2").publish()

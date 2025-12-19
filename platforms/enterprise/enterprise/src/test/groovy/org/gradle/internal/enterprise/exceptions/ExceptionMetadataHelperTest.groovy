@@ -31,7 +31,7 @@ import spock.lang.Specification
 
 class ExceptionMetadataHelperTest extends Specification {
 
-    void "extracts exception with multiple cause chain"() {
+    def "extracts exception with multiple cause chain"() {
         given:
         def npe = new NullPointerException("nullness")
         def iae = new IllegalArgumentException("badness", npe)

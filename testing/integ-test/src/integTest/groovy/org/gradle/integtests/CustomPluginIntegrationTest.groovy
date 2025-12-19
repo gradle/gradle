@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 
 class CustomPluginIntegrationTest extends AbstractIntegrationSpec {
-    void "can reference plugin in buildSrc by id"() {
+    def "can reference plugin in buildSrc by id"() {
         given:
         file('buildSrc/src/main/java/CustomPlugin.java') << '''
 import org.gradle.api.*;

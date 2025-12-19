@@ -86,7 +86,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         classpathHasher.hash(_ as ClassPath) >> TestHashCodes.hashCodeFrom(123)
     }
 
-    void "configures a target object using script"() {
+    def "configures a target object using script"() {
         given:
         final Object target = new Object()
 

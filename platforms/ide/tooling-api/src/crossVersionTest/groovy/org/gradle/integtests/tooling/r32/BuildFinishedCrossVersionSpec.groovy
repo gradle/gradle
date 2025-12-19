@@ -40,7 +40,7 @@ class BuildFinishedCrossVersionSpec extends ToolingApiSpecification {
         fetchedBeforeBuildFinished(project)
     }
 
-    void setup() {
+    def setup() {
         buildFile << """
             gradle.buildFinished {
                 buildDir = "someOtherDir"

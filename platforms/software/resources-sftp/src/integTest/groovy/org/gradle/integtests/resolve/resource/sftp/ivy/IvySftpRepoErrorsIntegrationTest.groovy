@@ -27,7 +27,7 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 
 class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionTest {
 
-    void "resolve missing dependencies from a SFTP Ivy repository"() {
+    def "resolve missing dependencies from a SFTP Ivy repository"() {
         given:
         buildFile << """
             repositories {

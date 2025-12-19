@@ -34,7 +34,7 @@ include ':child1', ':child2', ':child3'
 """
     }
 
-    void "global sourceCompatibility results in project language level"() {
+    def "global sourceCompatibility results in project language level"() {
         given:
         buildFile << """
 allprojects {

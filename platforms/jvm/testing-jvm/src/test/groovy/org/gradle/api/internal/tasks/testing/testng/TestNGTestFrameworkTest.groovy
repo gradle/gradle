@@ -30,11 +30,11 @@ class TestNGTestFrameworkTest extends Specification {
     private ProjectInternal project = ProjectBuilder.builder().build() as ProjectInternal
     private Test testTask = TestUtil.createTask(Test, project)
 
-    void setup() {
+    def setup() {
         project.ext.sourceCompatibility = "1.7"
     }
 
-    void "creates test class processor"() {
+    def "creates test class processor"() {
         when:
         def framework = createFramework()
         def processor = framework.getProcessorFactory().create(Mock(IdGenerator), Mock(ActorFactory), FixedClock.create())

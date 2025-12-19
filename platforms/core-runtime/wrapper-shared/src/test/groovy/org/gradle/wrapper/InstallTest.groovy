@@ -60,14 +60,14 @@ class InstallTest extends Specification {
     @Shared String templateZipHash
     @Shared String templateEvalZipHash
 
-    void setupSpec() {
+    def setupSpec() {
         createTestZip(templateZipFile)
         templateZipHash = Install.calculateSha256Sum(templateZipFile)
         createEvilZip(templateEvalZipFile)
         templateEvalZipHash = Install.calculateSha256Sum(templateEvalZipFile)
     }
 
-    void setup() {
+    def setup() {
         initConfiguration()
 
         testDir = temporaryFolder.testDirectory

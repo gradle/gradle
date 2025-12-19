@@ -520,7 +520,7 @@ rootProject.name = 'root'
         compileClasspathConfiguration.dependencies[3].children[0].children[0].children.empty
     }
 
-    void "does not fail if a configuration is not resolvable"() {
+    def "does not fail if a configuration is not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
 

@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 class DefaultInitScriptProcessorTest extends Specification {
 
-    void "can execute init script"() {
+    def "can execute init script"() {
         when:
         def scriptPluginFactory = Mock(ScriptPluginFactory)
         def scriptHandlerFactory = Mock(ScriptHandlerFactory)

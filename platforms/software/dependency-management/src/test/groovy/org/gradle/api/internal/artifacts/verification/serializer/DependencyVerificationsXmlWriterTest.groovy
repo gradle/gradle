@@ -343,7 +343,7 @@ on two lines -->
         validateAgainstSchemasSince("1.3")
     }
 
-    void "can declare origin of a checksum"() {
+    def "can declare origin of a checksum"() {
         declareChecksum("org:foo:1.0", "sha1", "abc", "from test")
         declareChecksum("org:bar:1.0", "sha1", "abc", "from test")
         declareChecksum("org:bar:1.0", "md5", "abc", "other")

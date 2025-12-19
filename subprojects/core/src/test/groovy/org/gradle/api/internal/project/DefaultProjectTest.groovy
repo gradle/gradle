@@ -358,7 +358,7 @@ class DefaultProjectTest extends Specification {
         checkProject(project, null, 'root', rootDir)
     }
 
-    private void checkProject(DefaultProject project, Project parent, String name, File projectDir) {
+    private def checkProject(DefaultProject project, Project parent, String name, File projectDir) {
         assert project.parent.is(parent)
         assert project.name == name
         assert project.version == Project.DEFAULT_VERSION
@@ -497,7 +497,7 @@ class DefaultProjectTest extends Specification {
         thrown(InvalidUserDataException)
     }
 
-    void evaluationDependsOnWithEmptyArgument() {
+    def evaluationDependsOnWithEmptyArgument() {
         when:
         project.evaluationDependsOn('')
 

@@ -59,7 +59,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
 
     }
 
-    void "should pass if strict version ranges overlap using external dependencies"() {
+    def "should pass if strict version ranges overlap using external dependencies"() {
         given:
         repository {
             'org:foo' {

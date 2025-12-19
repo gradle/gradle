@@ -46,7 +46,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
     final RuntimeException failure1 = new RuntimeException()
     final RuntimeException failure2 = new RuntimeException()
 
-    void setup() {
+    def setup() {
         project.getProjectEvaluationBroadcaster() >> listener
         project.displayName >> "<project>"
         project.gradle >> gradle
@@ -63,7 +63,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         mutationState.applyToMutableState(_) >> { Consumer consumer -> consumer.accept(project) }
     }
 
-    void "nothing happens if project was already configured"() {
+    def "nothing happens if project was already configured"() {
         given:
         state.configured()
 

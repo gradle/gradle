@@ -25,7 +25,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
     public static final String QUALIFIED_JAVA = "org.gradle.java"
     public static final String UNQUALIFIED_JAVA = "java"
 
-    void "can resolve core plugins"() {
+    def "can resolve core plugins"() {
         when:
         buildFile """
             plugins {

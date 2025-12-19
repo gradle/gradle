@@ -118,7 +118,7 @@ class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/22172')
-    void 'CodeNarc/Checkstyle do not fail with PermGen space error'() {
+    def 'CodeNarc/Checkstyle do not fail with PermGen space error'() {
         given:
         withCheckstyle()
         20.times { count ->

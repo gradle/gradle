@@ -33,7 +33,7 @@ class FilteringClassLoaderTest extends Specification {
         withSpec {}
     }
 
-    void passesThroughSystemClasses() {
+    def passesThroughSystemClasses() {
         expect:
         canLoadClass(String)
     }

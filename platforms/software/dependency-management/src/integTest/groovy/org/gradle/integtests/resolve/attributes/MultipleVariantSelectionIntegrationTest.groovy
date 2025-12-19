@@ -35,7 +35,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         """
     }
 
-    void "can select distinct variants of the same component by using different attributes if they have different capabilities"() {
+    def "can select distinct variants of the same component by using different attributes if they have different capabilities"() {
         given:
         repository {
             'org:test:1.0' {

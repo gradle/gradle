@@ -201,7 +201,7 @@ class DefaultTaskOutputsTest extends AbstractTaskInputsAndOutputsTest {
         method << ["file", "dir", "files", "dirs"]
     }
 
-    void canRegisterOutputFiles() {
+    def canRegisterOutputFiles() {
         when:
         outputs.file('a')
 

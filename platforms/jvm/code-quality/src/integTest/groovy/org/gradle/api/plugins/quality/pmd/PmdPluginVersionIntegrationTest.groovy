@@ -74,7 +74,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
 
-    void "can ignore failures"() {
+    def "can ignore failures"() {
         badCode()
         buildFile << """
             pmd {

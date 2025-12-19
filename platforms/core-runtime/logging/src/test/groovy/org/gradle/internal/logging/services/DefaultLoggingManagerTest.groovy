@@ -36,7 +36,7 @@ class DefaultLoggingManagerTest extends Specification {
     private final def loggingRouter = Mock(LoggingRouter)
     private final DefaultLoggingManager loggingManager = new DefaultLoggingManager(slf4jLoggingSystem, javaUtilLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem, loggingRouter);
 
-    public void "default values are set"() {
+    public def "default values are set"() {
         expect:
         loggingManager.getStandardOutputCaptureLevel() == null
         loggingManager.getStandardErrorCaptureLevel() == null

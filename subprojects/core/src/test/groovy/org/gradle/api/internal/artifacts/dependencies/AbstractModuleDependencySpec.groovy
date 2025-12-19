@@ -52,7 +52,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
 
     protected abstract ExternalModuleDependency createDependency(String group, String name, String version, String configuration);
 
-    void "has reasonable default values"() {
+    def "has reasonable default values"() {
         expect:
         dependency.group == "org.gradle"
         dependency.name == "gradle-core"

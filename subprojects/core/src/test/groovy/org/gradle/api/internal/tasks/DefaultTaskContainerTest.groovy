@@ -34,7 +34,6 @@ import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.internal.build.BuildState
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
@@ -42,6 +41,7 @@ import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.service.ServiceRegistry
@@ -113,7 +113,7 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         container.addInternal(element)
     }
 
-    void 'cannot create task with no name'() {
+    def 'cannot create task with no name'() {
         when:
         container.create([:])
 

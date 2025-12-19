@@ -57,7 +57,7 @@ class DefaultProjectDependencyTest extends Specification {
         projectDependency.path == projectState.identity.projectPath.asString()
     }
 
-    void "provides dependency information"() {
+    def "provides dependency information"() {
         expect:
         projectDependency.transitive
         projectDependency.name == projectState.identity.projectName

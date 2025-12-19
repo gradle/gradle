@@ -37,7 +37,7 @@ abstract class CircularEvaluationSpec<T> extends Specification {
         return [TO_STRING]
     }
 
-    void setup() {
+    def setup() {
         assert ((throwingConsumers() + safeConsumers()) as Set).containsAll(ProviderConsumer.values())
     }
 

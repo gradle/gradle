@@ -91,7 +91,7 @@ task check {
         'attempting to exclude declared module'            | [group: 'org.gradle', module: 'test']     | ['test-1.45.jar', 'foo-2.0.jar', 'bar-3.0.jar', 'company-4.0.jar', 'other-company-4.0.jar', 'enterprise-5.0.jar', 'baz-6.0.jar']
     }
 
-    void "does not resolve module excluded for configuration"() {
+    def "does not resolve module excluded for configuration"() {
         given:
         def repo = mavenRepo
         repo.module('org.gradle.test', 'direct', '1.0').publish()

@@ -22,7 +22,7 @@ import spock.lang.Issue
 
 @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperUserHomeIntegrationTest extends AbstractWrapperIntegrationSpec {
-    void 'uses gradle user home set by -Dgradle.user.home'() {
+    def 'uses gradle user home set by -Dgradle.user.home'() {
         given:
         prepareWrapper().run()
         def gradleUserHome = testDirectory.file('some-custom-user-home')

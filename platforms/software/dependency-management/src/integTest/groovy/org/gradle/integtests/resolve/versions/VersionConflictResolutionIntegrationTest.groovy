@@ -35,7 +35,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    void "strict conflict resolution should fail due to conflict"() {
+    def "strict conflict resolution should fail due to conflict"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 

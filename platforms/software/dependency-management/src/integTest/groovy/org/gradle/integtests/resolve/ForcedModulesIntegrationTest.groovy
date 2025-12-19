@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
 
-    void "can force the version of a particular module"() {
+    def "can force the version of a particular module"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
