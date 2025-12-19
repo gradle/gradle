@@ -45,7 +45,7 @@ class AbstractReportTaskTest extends Specification {
         task.setProjects(WrapUtil.<Project>toSet(project))
     }
 
-    def completesRendererAtEndOfGeneration() {
+    def "completes renderer at end of generation"() {
         when:
         task.generate()
 
@@ -57,7 +57,7 @@ class AbstractReportTaskTest extends Specification {
         1 * renderer.complete()
     }
 
-    def setsOutputFileNameOnRendererBeforeGeneration() {
+    def "sets output file name on renderer before generation"() {
         final File file = tmpDir.getTestDirectory().file("report.txt")
 
         when:
@@ -72,7 +72,7 @@ class AbstractReportTaskTest extends Specification {
         1 * renderer.complete()
     }
 
-    def passesEachProjectToRenderer() {
+    def "passes each project to renderer"() {
         final Project child1 = createChildProject(project, "child1")
         final Project child2 = createChildProject(project, "child2")
 

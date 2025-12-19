@@ -27,7 +27,7 @@ class AutoTestedSamplesToolingApiTest extends Specification {
 
     @Rule public final TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
-    def runSamples() {
+    def "run samples"() {
         expect:
 
         def util = new AutoTestedSamplesUtil()

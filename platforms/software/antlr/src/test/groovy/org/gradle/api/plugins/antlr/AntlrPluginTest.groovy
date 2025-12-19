@@ -24,7 +24,7 @@ import static org.gradle.api.reflect.TypeOf.typeOf
 
 class AntlrPluginTest extends AbstractProjectBuilderSpec {
 
-    def addsAntlrPropertiesToEachSourceSet() {
+    def "adds antlr properties to each source set"() {
         when:
         project.pluginManager.apply(AntlrPlugin)
 
@@ -64,7 +64,7 @@ class AntlrPluginTest extends AbstractProjectBuilderSpec {
         test.antlr.srcDirs == [project.file('src/test/antlr-custom')] as Set
     }
 
-    def addsTaskForEachSourceSet() {
+    def "adds task for each source set"() {
         when:
         project.pluginManager.apply(AntlrPlugin)
 

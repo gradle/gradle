@@ -34,7 +34,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTe
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
-    def canHaveConfigurationHierarchy() {
+    def "can have configuration hierarchy"() {
         given:
         buildFile << """
             ${resolve.configureProject("compile", "runtime")}
@@ -78,7 +78,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTe
         }
     }
 
-    void dependencyReportWithConflicts() {
+    void "dependency report with conflicts"() {
         given:
         buildFile << """
             ${resolve.configureProject("evictedTransitive", "evictedDirect", "multiProject")}
@@ -132,7 +132,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTe
         }
     }
 
-    void canHaveCycleInDependencyGraph() {
+    void "can have cycle in dependency graph"() {
         given:
         buildFile << """
             ${resolve.configureProject("compile")}
@@ -153,7 +153,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTe
         }
     }
 
-    void canUseDynamicVersions() {
+    void "can use dynamic versions"() {
         given:
         buildFile << """
             ${resolve.configureProject("compile")}
@@ -172,7 +172,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTe
         }
     }
 
-    void resolutionFailsWhenProjectHasNoRepositoriesEvenWhenArtifactIsCachedLocally() {
+    void "resolution fails when project has no repositories even when artifact is cached locally"() {
         expect:
         file('settings.gradle') << 'include "a", "b"'
         file("a/build.gradle") << """
@@ -209,7 +209,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTe
         failure.assertHasCause('Cannot resolve external dependency org.gradle.test:external1:1.0 because no repositories are defined.')
     }
 
-    void resolutionFailsForMissingArtifact() {
+    void "resolution fails for missing artifact"() {
         given:
         file('build.gradle') << """
 repositories {
@@ -258,7 +258,7 @@ Searched in the following locations:
     }
 
     @Issue("GRADLE-1342")
-    void resolutionDoesNotUseCachedArtifactFromDifferentRepository() {
+    void "resolution does not use cached artifact from different repository"() {
         expect:
         def repo1 = maven('repo1')
         repo1.module('org.gradle.test', 'external1', '1.0').publish()
@@ -302,7 +302,7 @@ Searched in the following locations:
         failure.assertThatCause(containsString('Could not find org.gradle.test:external1:1.0.'))
     }
 
-    void artifactFilesPreserveFixedOrder() {
+    void "artifact files preserve fixed order"() {
         expect:
         repo.module('org', 'leaf1').publish()
         repo.module('org', 'leaf2').publish()
@@ -335,7 +335,7 @@ Searched in the following locations:
         succeeds("test")
     }
 
-    void exposesMetaDataAboutResolvedArtifactsInAFixedOrder() {
+    void "exposes meta data about resolved artifacts in a fixed order"() {
         expect:
         def module = repo.module('org.gradle.test', 'lib', '1.0')
         module.artifact(type: 'zip')
@@ -399,7 +399,7 @@ tasks.register("test", CheckArtifacts) {
     }
 
     @Issue("GRADLE-1567")
-    void resolutionDifferentiatesBetweenArtifactsThatDifferOnlyInClassifier() {
+    void "resolution differentiates between artifacts that differ only in classifier"() {
         expect:
         def lib = repo.module('org.gradle.test', 'external1', '1.0')
         lib.artifact(classifier: 'classifier1')
@@ -473,7 +473,7 @@ tasks.register("test", CheckArtifacts) {
     }
 
     @Issue("GRADLE-739")
-    void singleConfigurationCanContainMultipleArtifactsThatOnlyDifferByClassifier() {
+    void "single configuration can contain multiple artifacts that only differ by classifier"() {
         expect:
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(classifier: 'baseClassifier')
@@ -531,7 +531,7 @@ task test {
     }
 
     @Issue("GRADLE-739")
-    void canUseClassifiersCombinedWithArtifactWithNonStandardPackaging() {
+    void "can use classifiers combined with artifact with non standard packaging"() {
         expect:
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(type: 'txt')
@@ -576,7 +576,7 @@ task test {
     }
 
     @Issue("GRADLE-739")
-    void configurationCanContainMultipleArtifactsThatOnlyDifferByType() {
+    void "configuration can contain multiple artifacts that only differ by type"() {
         expect:
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(type: 'zip')
@@ -614,7 +614,7 @@ task test {
         succeeds('test')
     }
 
-    void nonTransitiveDependenciesAreNotRetrieved() {
+    void "non transitive dependencies are not retrieved"() {
         expect:
         repo.module('org.gradle.test', 'one', '1.0').publish()
         repo.module('org.gradle.test', 'two', '1.0').publish()
@@ -739,7 +739,7 @@ task test {
      * Originally, we were aliasing dependency descriptors that were identical. This caused alias errors when we subsequently modified one of these descriptors.
      */
 
-    void addingClassifierToDuplicateDependencyDoesNotAffectOriginal() {
+    void "adding classifier to duplicate dependency does not affect original"() {
         expect:
         def module = repo.module('org.gradle.test', 'external1', '1.0')
         module.artifact(classifier: 'withClassifier')
@@ -774,7 +774,7 @@ task test {
         succeeds('test')
     }
 
-    void projectCanDependOnItself() {
+    void "project can depend on itself"() {
         given:
         file("settings.gradle") << "rootProject.name = 'test'"
         file("build.gradle") << """

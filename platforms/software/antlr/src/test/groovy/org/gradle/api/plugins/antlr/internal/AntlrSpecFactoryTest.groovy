@@ -27,7 +27,7 @@ class AntlrSpecFactoryTest extends Specification {
     private AntlrSpecFactory factory = new AntlrSpecFactory()
     private FileCollection sourceSetDirectories = Mock()
 
-    def tracePropertiesAddedToArgumentList() {
+    def "trace properties added to argument list"() {
         when:
         sourceSetDirectoriesAreEmptySet()
         AntlrTask task = Mock()
@@ -49,7 +49,7 @@ class AntlrSpecFactoryTest extends Specification {
         spec.arguments.contains("-traceTreeWalker")
     }
 
-    def sourceSetDirectoriesNull() {
+    def "sourceSetDirectories null"() {
         when:
         AntlrTask task = Mock()
 
@@ -67,7 +67,7 @@ class AntlrSpecFactoryTest extends Specification {
         spec.inputDirectories.isEmpty()
     }
 
-    def customTraceArgumentsOverrideProperties() {
+    def "custom trace arguments override properties"() {
         when:
         sourceSetDirectoriesAreEmptySet()
         AntlrTask task = Mock()
@@ -84,7 +84,7 @@ class AntlrSpecFactoryTest extends Specification {
         spec.arguments.contains("-traceTreeWalker")
     }
 
-    def traceArgumentsDoNotDuplicateTrueTraceProperties() {
+    def "trace arguments do not duplicate true trace properties"() {
         when:
         sourceSetDirectoriesAreEmptySet()
         AntlrTask task = Mock()

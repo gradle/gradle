@@ -21,7 +21,7 @@ class BasicJavadocLexerTest extends Specification {
     final BasicJavadocLexer lexer = new BasicJavadocLexer(new JavadocScanner(""))
     final visitor = Mock(JavadocLexer.TokenVisitor)
 
-    def parsesHtmlElements() {
+    def "parses html elements"() {
         when:
         lexer.pushText("<p> text </p>")
         lexer.visit(visitor)
@@ -35,7 +35,7 @@ class BasicJavadocLexerTest extends Specification {
         0 * visitor._
     }
 
-    def normalizesHtmlElementNamesToLowercase() {
+    def "normalizes html element names to lowercase"() {
         when:
         lexer.pushText("<P></End>")
         lexer.visit(visitor)
@@ -48,7 +48,7 @@ class BasicJavadocLexerTest extends Specification {
         0 * visitor._
     }
 
-    def parsesHtmlEntities() {
+    def "parses html entities"() {
         when:
         lexer.pushText("before &amp; after")
         lexer.visit(visitor)
@@ -59,7 +59,7 @@ class BasicJavadocLexerTest extends Specification {
         0 * visitor._
     }
 
-    def parsesStartHtmlElementWithAttributes() {
+    def "parses start html element with attributes"() {
         when:
         lexer.pushText("<a name='value' other='\n&amp; &apos;\n \"'>")
         lexer.visit(visitor)
@@ -73,7 +73,7 @@ class BasicJavadocLexerTest extends Specification {
         0 * visitor._
     }
 
-    def canUseSingleOrDoubleQuotesForAttributeValues() {
+    def "can use single or double quotes for attribute values"() {
         when:
         lexer.pushText("<a single='a=\"b\"' double = \"a='b'\">")
         lexer.visit(visitor)
@@ -87,7 +87,7 @@ class BasicJavadocLexerTest extends Specification {
         0 * visitor._
     }
 
-    def splitsHtmlElementWithNoContentIntoSeparateStartAndEndTokens() {
+    def "splits html element with no content into separate start and end tokens"() {
         when:
         lexer.pushText("<p/>")
         lexer.visit(visitor)
@@ -100,7 +100,7 @@ class BasicJavadocLexerTest extends Specification {
         0 * visitor._
     }
 
-    def discardsHtmlComments() {
+    def "discards html comments"() {
         when:
         lexer.pushText("<p><!-- ignore me --></p>text <!-- -->2")
         lexer.visit(visitor)
@@ -114,7 +114,7 @@ class BasicJavadocLexerTest extends Specification {
         0 * visitor._
     }
 
-    def handlesMissingEndOfComment() {
+    def "handles missing end of comment"() {
         when:
         lexer.pushText("<p><!-- ignore me ")
         lexer.visit(visitor)
@@ -126,7 +126,7 @@ class BasicJavadocLexerTest extends Specification {
         0 * visitor._
     }
 
-    def parsesJavadocTags() {
+    def "parses javadoc tags"() {
         when:
         lexer.pushText("{@tag some value}")
         lexer.visit(visitor)
@@ -139,7 +139,7 @@ class BasicJavadocLexerTest extends Specification {
         0 * visitor._
     }
 
-    def javadocTagCanBeEmpty() {
+    def "javadoc tag can be empty"() {
         when:
         lexer.pushText("{@empty}")
         lexer.visit(visitor)
@@ -151,7 +151,7 @@ class BasicJavadocLexerTest extends Specification {
         0 * visitor._
     }
 
-    def ignoresWhitespaceAndEOLCharsBetweenJavadocTagNameAndValue() {
+    def "ignores whitespace and EOL chars between javadoc tag name and value"() {
         when:
         lexer.pushText("* {@link\n *  Something}")
         lexer.visit(visitor)
@@ -164,7 +164,7 @@ class BasicJavadocLexerTest extends Specification {
         0 * visitor._
     }
 
-    def ignoresBadlyFormedHtmlElement() {
+    def "ignores badly formed html element"() {
         when:
         lexer.pushText("a << b")
         lexer.visit(visitor)
@@ -175,7 +175,7 @@ class BasicJavadocLexerTest extends Specification {
         0 * visitor._
     }
 
-    def javadocTagCanContainEOLChars() {
+    def "javadoc tag can contain EOL chars"() {
         when:
         lexer.pushText(" * {@link #Something(Object,\n * String\n * }")
         lexer.visit(visitor)
@@ -188,7 +188,7 @@ class BasicJavadocLexerTest extends Specification {
         0 * visitor._
     }
 
-    def doesNotParseHtmlElementsInsideJavadocTag() {
+    def "does not parse html elements inside javadoc tag"() {
         when:
         lexer.pushText("{@link <something> & &lt; </something>}")
         lexer.visit(visitor)
@@ -201,7 +201,7 @@ class BasicJavadocLexerTest extends Specification {
         0 * visitor._
     }
 
-    def javadocTagCannotHaveWhitespaceInsideMarker() {
+    def "javadoc tag cannot have whitespace inside marker"() {
         when:
         lexer.pushText("{ @code} {@ code} { @ code}")
         lexer.visit(visitor)

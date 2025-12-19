@@ -44,7 +44,7 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         """.stripIndent()
     }
 
-    def doesNotRunStaleTests() {
+    def "does not run stale tests"() {
         given:
         file('src/test/java/Broken.java') << """
             ${testFrameworkImports}
@@ -65,7 +65,7 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         succeeds('test')
     }
 
-    def executesTestsWhenSourceChanges() {
+    def "executes tests when source changes"() {
         given:
         file('src/main/java/MainClass.java') << """
             class MainClass { }
@@ -103,7 +103,7 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         succeeds('test').assertAllTasksSkipped()
     }
 
-    def executesTestsWhenTestFrameworkChanges() {
+    def "executes tests when test framework changes"() {
         given:
         file('src/test/java/JUnitExtra.java') << """
             ${testFrameworkImports}

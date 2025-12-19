@@ -48,7 +48,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
     }
 
     @Requires(UnitTestPreconditions.NotWindows)
-    def sourceZipContents() {
+    def "source zip contents"() {
         given:
         TestFile contentsDir = unpackDistribution()
 

@@ -43,7 +43,7 @@ class DocsDistributionIntegrationSpec extends DistributionIntegrationSpec {
     }
 
     @Requires([UnitTestPreconditions.NotWindows, UnitTestPreconditions.StableGroovy]) // cannot link to public javadocs of Groovy snapshots like https://docs.groovy-lang.org/docs/groovy-4.0.5-SNAPSHOT/html/gapi/
-    def docsZipContents() {
+    def "docs zip contents"() {
         given:
         TestFile contentsDir = unpackDistribution()
 

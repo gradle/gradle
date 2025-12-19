@@ -23,7 +23,7 @@ import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 abstract class AbstractJUnitJnaIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     @Requires(UnitTestPreconditions.Windows)
-    def canRunTestsUsingJna() {
+    def "can run tests using jna"() {
         given:
         file('src/test/java/OkTest.java') << """
             ${testFrameworkImports}

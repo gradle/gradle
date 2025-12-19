@@ -25,18 +25,18 @@ abstract class AbstractTestForPatternSet extends Specification {
 
     abstract PatternFilterable getPatternSet()
 
-    def testDefaultValues() {
+    def "default values"() {
         expect:
         patternSet.includes.empty
         patternSet.excludes.empty
     }
 
-    def testInclude() {
+    def "include"() {
         expect:
         checkIncludesExcludes(patternSet, 'include', 'includes')
     }
 
-    def testExclude() {
+    def "exclude"() {
         expect:
         checkIncludesExcludes(patternSet, 'exclude', 'excludes')
     }

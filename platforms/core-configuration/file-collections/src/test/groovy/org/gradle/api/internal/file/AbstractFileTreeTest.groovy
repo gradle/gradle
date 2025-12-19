@@ -27,14 +27,14 @@ import spock.lang.Specification
 import java.util.function.Consumer
 
 class AbstractFileTreeTest extends Specification {
-    def isEmptyWhenVisitsNoFiles() {
+    def "is empty when visits no files"() {
         def tree = new TestFileTree([])
 
         expect:
         tree.empty
     }
 
-    def isNotEmptyWhenVisitsFirstFile() {
+    def "is not empty when visits first file"() {
         FileVisitDetails file = Mock()
         def tree = new TestFileTree([file])
 
@@ -46,7 +46,7 @@ class AbstractFileTreeTest extends Specification {
         1 * file.stopVisiting()
     }
 
-    def canFilterTreeUsingClosure() {
+    def "can filter tree using closure"() {
         FileVisitDetails file1 = Mock()
         FileVisitDetails file2 = Mock()
         def tree = new TestFileTree([file1, file2])
@@ -59,7 +59,7 @@ class AbstractFileTreeTest extends Specification {
         filtered.patterns.includes == ['*.txt'] as Set
     }
 
-    def canFilterTreeUsingAction() {
+    def "can filter tree using action"() {
         FileVisitDetails file1 = Mock()
         FileVisitDetails file2 = Mock()
         def tree = new TestFileTree([file1, file2])

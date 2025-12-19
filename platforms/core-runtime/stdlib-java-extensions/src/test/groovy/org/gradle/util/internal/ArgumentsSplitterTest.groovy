@@ -22,61 +22,61 @@ import static org.gradle.util.internal.ArgumentsSplitter.split
 
 class ArgumentsSplitterTest extends Specification {
 
-    def breaksUpEmptyCommandLineIntoEmptyList() {
+    def "breaks up empty command line into empty list"() {
         expect:
         split('') == []
     }
 
-    def breaksUpWhitespaceOnlyCommandLineIntoEmptyList() {
+    def "breaks up whitespace only command line into empty list"() {
         expect:
         split(' \t ') == []
     }
 
-    def breaksUpCommandLineIntoSpaceSeparatedArgument() {
+    def "breaks up command line into space separated argument"() {
         expect:
         split('a') == ['a']
         split('a b\tc') == ['a', 'b', 'c']
     }
 
-    def ignoresExtraWhiteSpaceBetweenArguments() {
+    def "ignores extra white space between arguments"() {
         expect:
         split('  a \t') == ['a']
         split('a  \t\t b ') == ['a', 'b']
     }
 
-    def breaksUpCommandLineIntoDoubleQuotedArguments() {
+    def "breaks up command line into double quoted arguments"() {
         expect:
         split('"a b c"') == ['a b c']
         split('a "b c d" e') == ['a', 'b c d', 'e']
         split('a "  b c d  "') == ['a', '  b c d  ']
     }
 
-    def breaksUpCommandLineIntoSingleQuotedArguments() {
+    def "breaks up command line into single quoted arguments"() {
         expect:
         split("'a b c'") == ['a b c']
         split("a 'b c d' e") == ['a', 'b c d', 'e']
         split("a '  b c d  '") == ['a', '  b c d  ']
     }
 
-    def canHaveEmptyQuotedArgument() {
+    def "can have empty quoted argument"() {
         expect:
         split('""') == ['']
         split("''") == ['']
     }
 
-    def canHaveQuoteInsideQuotedArgument() {
+    def "can have quote inside quoted argument"() {
         expect:
         split('"\'quoted\'"') == ['\'quoted\'']
         split("'\"quoted\"'") == ['"quoted"']
     }
 
-    def argumentCanHaveQuotedAndUnquotedParts() {
+    def "argument can have quoted and unquoted parts"() {
         expect:
         split('a"b "c') == ['ab c']
         split("a'b 'c") == ['ab c']
     }
 
-    def canHaveMissingEndQuote() {
+    def "can have missing end quote"() {
         expect:
         split('"a b c') == ['a b c']
     }

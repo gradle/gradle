@@ -58,7 +58,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
     final ManagedFactoryRegistry managedFactoryRegistry = new DefaultManagedFactoryRegistry().withFactories(generatorFactory)
     ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), generatorFactory.id)
 
-    def canConstructInstanceOfAbstractClassWithAbstractPropertyGetterAndSetter() {
+    def "can construct instance of abstract class with abstract property getter and setter"() {
         def bean = create(BeanWithAbstractProperty)
 
         expect:
@@ -67,7 +67,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.name == "name"
     }
 
-    def canUnpackAndRecreateAbstractClassWithAbstractPropertyGetterAndSetter() {
+    def "can unpack and recreate abstract class with abstract property getter and setter"() {
         def bean = create(BeanWithAbstractProperty)
 
         expect:
@@ -94,7 +94,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         copy2.name == "name"
     }
 
-    def canConstructInstanceOfInterfaceWithPropertyGetterAndSetter() {
+    def "can construct instance of interface with property getter and setter"() {
         def bean = create(InterfaceBean)
 
         expect:
@@ -107,7 +107,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.numbers == [12] as Set
     }
 
-    def canUnpackAndRecreateInstanceOfInterface() throws Exception {
+    def "can unpack and recreate instance of interface"() throws Exception {
         def bean = create(InterfaceBean.class)
 
         expect:
@@ -140,7 +140,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         copy2.numbers == [12] as Set
     }
 
-    def canConstructInstanceOfInterfaceWithPrimitivePropertyGetterAndSetter() {
+    def "can construct instance of interface with primitive property getter and setter"() {
         def bean = create(InterfacePrimitiveBean)
 
         expect:
@@ -153,7 +153,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.prop2 == 12
     }
 
-    def canConstructInstanceOfInterfaceWithFileCollectionGetter() {
+    def "can construct instance of interface with FileCollection getter"() {
         def projectDir = tmpDir.testDirectory
         def bean = create(InterfaceFileCollectionBean)
 
@@ -164,7 +164,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.prop.files == [projectDir.file("a"), projectDir.file("b")] as Set
     }
 
-    def canConstructInstanceOfInterfaceWithFileTreeGetter() {
+    def "can construct instance of interface with FileTree getter"() {
         def projectDir = tmpDir.testDirectory
         def a = projectDir.file("dir/a").createFile()
         def b = projectDir.file("dir/sub/a").createFile()
@@ -175,7 +175,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.prop.files == [a, b] as Set
     }
 
-    def canConstructInstanceOfInterfaceWithNamedDomainObjectCollectionGetter() {
+    def "can construct instance of interface with NamedDomainObjectCollection getter"() {
         def bean = create(InterfaceContainerPropertyBean)
 
         expect:
@@ -185,7 +185,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.prop.names == ["one"] as Set
     }
 
-    def canConstructInstanceOfInterfaceWithDomainObjectSetGetter() {
+    def "can construct instance of interface with DomainObjectSet getter"() {
         def bean = create(InterfaceDomainSetPropertyBean)
 
         expect:
@@ -195,7 +195,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.prop.size() == 1
     }
 
-    def canConstructInstanceOfInterfaceWithNestedGetter() {
+    def "can construct instance of interface with nested getter"() {
         def projectDir = tmpDir.testDirectory
         def bean = create(InterfaceNestedBean)
         def beanWithDisplayName = create(InterfaceNestedBean, Describables.of("<display-name>"))
@@ -273,7 +273,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         beanWithDisplayName.mutableProperty.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
     }
 
-    def "canConstructInstanceOfInterfaceWithGetterOfFilePropertyType #type.simpleName"() {
+    def "can construct instance of interface with getter of FileProperty type #type.simpleName"() {
         def projectDir = tmpDir.testDirectory
         def bean = create(type)
 
@@ -287,7 +287,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         type << [InterfaceFilePropertyBean, InterfaceDirectoryPropertyBean]
     }
 
-    def "canConstructInstanceOfInterfaceWithGetterOfMutableType #type.simpleName"() {
+    def "can construct instance of interface with getter of mutable type #type.simpleName"() {
         def bean = create(type)
         def beanWithDisplayName = create(type, Describables.of("<display-name>"))
 
@@ -309,7 +309,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         InterfaceMapPropertyBean           | [:]          | [a: 1, b: 12]
     }
 
-    def "canUnpackAndRecreateInterfaceWithGetterOfMutableType #type.simpleName"() {
+    def "can unpack and recreate interface with getter of mutable type #type.simpleName"() {
         def bean = create(type)
 
         expect:
@@ -343,21 +343,21 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.bean != null
     }
 
-    def canConstructInstanceOfInterfaceWithReadOnlyMethodsWithCovariantReturnTypeWhereOverriddenTypesAreNotSupported() {
+    def "can construct instance of interface with read only methods with covariant return type where overridden types are not supported"() {
         def bean = create(AbstractCovariantReadOnlyPropertyBean)
 
         expect:
         bean.prop.toString() == "property 'prop'"
     }
 
-    def canConstructInstanceOfInterfaceWithDefaultMethodsOnly() {
+    def "can construct instance of interface with default methods only"() {
         def bean = create(InterfaceWithDefaultMethods)
 
         expect:
         bean.name == "name"
     }
 
-    def canUnpackAndRecreateInstanceOfInterfaceWithDefaultMethodsOnly() {
+    def "can unpack and recreate instance of interface with default methods only"() {
         def bean = create(InterfaceWithDefaultMethods)
 
         expect:
@@ -372,21 +372,21 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         copy.name == "name"
     }
 
-    def doesNotMixManagedIntoClassWithFields() {
+    def "does not mix managed into class with fields"() {
         def bean = create(Bean)
 
         expect:
         !(bean instanceof Managed)
     }
 
-    def doesNotMixManagedIntoAbstractClassWithFields() {
+    def "does not mix managed into abstract class with fields"() {
         def bean = create(AbstractBean, "value")
 
         expect:
         !(bean instanceof Managed)
     }
 
-    def doesNotMixManagedIntoClassWithInheritedFields() {
+    def "does not mix managed into class with inherited fields"() {
         def bean = create(AbstractBeanWithInheritedFields, "value")
 
         expect:

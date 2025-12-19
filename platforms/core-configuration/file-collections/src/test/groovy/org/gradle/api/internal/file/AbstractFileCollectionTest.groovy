@@ -44,7 +44,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         return new TestFileCollection(files)
     }
 
-    def canGetSingleFile() {
+    def "can get single file"() {
         def file = new File("f1")
         def collection = new TestFileCollection(file)
 
@@ -52,7 +52,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         collection.getSingleFile().is(file)
     }
 
-    void failsToGetSingleFileWhenCollectionContainsMultipleFiles() {
+    def "fails to get single file when collection contains multiple files"() {
         File file1 = new File("f1")
         File file2 = new File("f2")
         TestFileCollection collection = new TestFileCollection(file1, file2)
@@ -66,7 +66,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         }
     }
 
-    void failsToGetSingleFileWhenCollectionIsEmpty() {
+    def "fails to get single file when collection is empty"() {
         TestFileCollection collection = new TestFileCollection()
 
         expect:
@@ -78,7 +78,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         }
     }
 
-    void containsFile() {
+    def "contains file"() {
         def file1 = new File("f1")
         def collection = new TestFileCollection(file1)
 
@@ -87,7 +87,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         !collection.contains(new File("f2"))
     }
 
-    void canGetFilesAsAPath() {
+    def "can get files as a path"() {
         File file1 = new File("f1")
         File file2 = new File("f2")
         TestFileCollection collection = new TestFileCollection(file1, file2)
@@ -96,7 +96,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         assertThat(collection.getAsPath(), equalTo(file1.path + File.pathSeparator + file2.path))
     }
 
-    void canAddCollectionsTogether() {
+    def "can add collections together"() {
         File file1 = new File("f1")
         File file2 = new File("f2")
         File file3 = new File("f3")
@@ -212,7 +212,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         collection as List == toList(file)
     }
 
-    void toFileTreeReturnsSingletonTreeForEachFileInCollection() {
+    def "to file tree returns singleton tree for each file in collection"() {
         File file = testDir.createFile("f1")
         File file2 = testDir.createFile("f2")
 
@@ -223,7 +223,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         FileVisitorUtil.assertVisits(tree, GUtil.map("f1", file, "f2", file2))
     }
 
-    void canFilterContentsOfCollectionUsingSpec() {
+    def "can filter contents of collection using spec"() {
         File file1 = new File("f1")
         File file2 = new File("f2")
 
@@ -238,7 +238,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         assertThat(filtered.getFiles(), equalTo(toSet(file1)))
     }
 
-    void canFilterContentsOfCollectionUsingClosure() {
+    def "can filter contents of collection using closure"() {
         def file1 = new File("f1")
         def file2 = new File("f2")
 
@@ -249,7 +249,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         filtered.files == toSet(file1)
     }
 
-    void filteredCollectionIsLive() {
+    def "filtered collection is live"() {
         def file1 = new File("f1")
         def file2 = new File("f2")
         def file3 = new File("dir/f1")
@@ -284,12 +284,12 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         0 * _
     }
 
-    void hasNoDependencies() {
+    def "has no dependencies"() {
         expect:
         assertThat(new TestFileCollection().getBuildDependencies().getDependencies(null), isEmpty())
     }
 
-    void fileTreeHasSameDependenciesAsThis() {
+    def "file tree has same dependencies as this"() {
         TestFileCollectionWithDependency collection = new TestFileCollectionWithDependency(dependency)
         collection.files.add(new File("f1"))
 
@@ -298,14 +298,14 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         assertHasSameDependencies(collection.getAsFileTree().matching(TestUtil.TEST_CLOSURE))
     }
 
-    void filteredCollectionHasSameDependenciesAsThis() {
+    def "filtered collection has same dependencies as this"() {
         TestFileCollectionWithDependency collection = new TestFileCollectionWithDependency(dependency)
 
         expect:
         assertHasSameDependencies(collection.filter(TestUtil.toClosure("{true}")))
     }
 
-    void elementsProviderHasNoDependenciesWhenThisHasNoDependencies() {
+    def "elements provider has no dependencies when this has no dependencies"() {
         def collection = new TestFileCollection()
         def action = Mock(Action)
         def elements = collection.elements
@@ -322,7 +322,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         !elements.calculateExecutionTimeValue().hasChangingContent()
     }
 
-    void elementsProviderHasSameDependenciesAsThis() {
+    def "elements provider has same dependencies as this"() {
         def collection = new TestFileCollectionWithDependency(dependency)
         def action = Mock(Action)
         def task = Mock(TaskInternal)

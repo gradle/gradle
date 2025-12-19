@@ -39,7 +39,7 @@ class ApplicationIntegrationSpec extends AbstractIntegrationSpec {
         """
     }
 
-    def canUseEnvironmentVariableToPassMultipleOptionsToJvmWhenRunningScript() {
+    def "can use environment variable to pass multiple options to jvm when running script"() {
         file('src/main/java/org/gradle/test/Main.java') << '''
 package org.gradle.test;
 
@@ -76,7 +76,7 @@ class Main {
         result.assertNormalExitValue()
     }
 
-    def canUseDefaultJvmArgsToPassMultipleOptionsToJvmWhenRunningScript() {
+    def "can use default jvm args to pass multiple options to jvm when running script"() {
         file("build.gradle") << '''
 application.applicationDefaultJvmArgs = ['-DtestValue=value', '-DtestValue2=some value', '-DtestValue3=some value']
 '''
@@ -111,7 +111,7 @@ class Main {
         result.assertNormalExitValue()
     }
 
-    def canUseBothDefaultJvmArgsAndEnvironmentVariableToPassOptionsToJvmWhenRunningScript() {
+    def "can use both default jvm args and environment variable to pass options to jvm when running script"() {
         file("build.gradle") << '''
 application.applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=some value2']
 '''
@@ -147,7 +147,7 @@ class Main {
         result.assertNormalExitValue()
     }
 
-    def canUseDefaultJvmArgsToPassMultipleOptionsWithShellMetacharactersToJvmWhenRunningScript() {
+    def "can use default jvm args to pass multiple options with shell metacharacters to jvm when running script"() {
         def testValue = "value"
         // $'s are not escaped on Windows
         def testValue2 = OperatingSystem.current().windows ? 'some value$PATH' : 'some value\\\\$PATH'
@@ -189,7 +189,7 @@ class Main {
         result.assertNormalExitValue()
     }
 
-    def canUseDefaultJvmArgsInRunTask() {
+    def "can use default jvm args in run task"() {
         file("build.gradle") << '''
         application.applicationDefaultJvmArgs = ['-Dvar1=value1', '-Dvar2=value2']
         '''
@@ -438,7 +438,7 @@ class Main {
         true
     }
 
-    def checkClasspathOrderInStartScript() {
+    def "check classpath order in start script"() {
         def resourceFileName = "resource.properties"
         file('src/main/java/org/gradle/test/Main.java') << """
 package org.gradle.test;

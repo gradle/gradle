@@ -27,7 +27,7 @@ class AttachParentTestResultProcessorTest extends Specification {
     private final TestResultProcessor target = Mock()
     private final AttachParentTestResultProcessor processor = new AttachParentTestResultProcessor(target)
 
-    def attachesTestToCurrentlyExecutingRootSuite() {
+    def "attaches test to currently executing root suite"() {
         TestDescriptorInternal suite = suite('suite')
         TestDescriptorInternal test = test('test')
         TestStartEvent suiteStartEvent = new TestStartEvent(100L)
@@ -41,7 +41,7 @@ class AttachParentTestResultProcessorTest extends Specification {
         1 * target.started(test, { it.parentId == 'suite' })
     }
 
-    def canHaveMoreThanOneRootSuite() {
+    def "can have more than one root suite"() {
         TestDescriptorInternal root = suite('root')
         TestDescriptorInternal other = suite('suite1')
         TestDescriptorInternal test = test('test')
@@ -57,7 +57,7 @@ class AttachParentTestResultProcessorTest extends Specification {
         1 * target.started(test, { it.parentId == 'suite1' })
     }
 
-    def doesNothingToTestWhichHasAParentId() {
+    def "does nothing to test which has a parent id"() {
         TestDescriptorInternal suite = suite('suite')
         TestDescriptorInternal test = test('test')
         TestStartEvent testStartEvent = new TestStartEvent(200L, 'parent')

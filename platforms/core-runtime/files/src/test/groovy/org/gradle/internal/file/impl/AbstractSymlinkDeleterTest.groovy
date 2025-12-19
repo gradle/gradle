@@ -35,7 +35,7 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
         false
     )
 
-    def doesNotDeleteFilesInsideSymlinkDir() {
+    def "does not delete files inside symlink dir"() {
         Assume.assumeTrue(canCreateSymbolicLinkToDirectory())
 
         given:
@@ -62,7 +62,7 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
         link.delete()
     }
 
-    def deletesFilesInsideSymlinkDirWhenNeeded() {
+    def "deletes files inside symlink dir when needed"() {
         Assume.assumeTrue(canCreateSymbolicLinkToDirectory())
 
         given:

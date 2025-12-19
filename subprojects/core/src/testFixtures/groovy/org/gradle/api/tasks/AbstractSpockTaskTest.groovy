@@ -32,9 +32,9 @@ import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.provider.Property
 import org.gradle.api.specs.Spec
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.id.ConfigurationCacheableIdFactory
 import org.gradle.internal.Actions
 import org.gradle.internal.MutableBoolean
+import org.gradle.internal.id.ConfigurationCacheableIdFactory
 import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
 import org.gradle.internal.properties.annotations.MissingPropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler
@@ -89,7 +89,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         return type.cast(task)
     }
 
-    def testTask() {
+    def "test task"() {
         expect:
         getTask().isEnabled()
         TEST_TASK_NAME ==  getTask().getName()
@@ -102,7 +102,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         getTask().getOnlyIf().isSatisfiedBy(getTask())
     }
 
-    def testPath() {
+    def "test path"() {
         ProjectInternal childProject = TestUtil.createChildProject(project, "child")
         childProject.getProjectDir().mkdirs()
         ProjectInternal childchildProject = TestUtil.createChildProject(childProject, "childchild")
@@ -127,7 +127,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         Project.PATH_SEPARATOR + "child" + Project.PATH_SEPARATOR + "childchild" + Project.PATH_SEPARATOR + TEST_TASK_NAME ==  task.getPath()
     }
 
-    def testDependsOn() {
+    def "test depends on"() {
         Task dependsOnTask = createTask(project, "somename")
         Task task = createTask(project, TEST_TASK_NAME)
         project.getTasks().create("path1")
@@ -146,11 +146,11 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         TaskDependencyMatchers.dependsOn("path1", "path2", "somename").matches(task)
     }
 
-    def testToString() {
+    def "test toString"() {
         "task '" + getTask().getPath() + "'" ==  getTask().toString()
     }
 
-    def testSetActions() {
+    def "test set actions"() {
         when:
         Action action1 = Actions.doNothing()
         getTask().actions = [action1]
@@ -162,7 +162,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         [new AbstractTask.TaskActionWrapper(action2, "doLast(Action)")] ==  getTask().actions
     }
 
-    def testAddActionWithNull() {
+    def "test add action with null"() {
         when:
         getTask().doLast((Closure) null)
 
@@ -170,7 +170,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         thrown(InvalidUserDataException)
     }
 
-    def setGetDescription() {
+    def "set get description"() {
         when:
         String testDescription = "testDescription"
         getTask().setDescription(testDescription)
@@ -179,7 +179,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         testDescription ==  getTask().getDescription()
     }
 
-    def canSpecifyOnlyIfPredicateUsingClosure() {
+    def "can specify only if predicate using closure"() {
         DefaultTask task = getTask()
 
         expect:
@@ -192,7 +192,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         assertFalse(task.getOnlyIf().isSatisfiedBy(task))
     }
 
-    def canSpecifyOnlyIfPredicateUsingSpec() {
+    def "can specify only if predicate using spec"() {
         final Spec<Task> spec = Mock()
         final DefaultTask task = getTask()
 
@@ -207,7 +207,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         assertFalse(task.getOnlyIf().isSatisfiedBy(task))
     }
 
-    def onlyIfPredicateIsTrueWhenTaskIsEnabledAndAllPredicatesAreTrue() {
+    def "only if predicate is true when task is enabled and all predicates are true"() {
         final MutableBoolean condition1 = new MutableBoolean(true)
         final MutableBoolean condition2 = new MutableBoolean(true)
 
@@ -249,7 +249,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         task.getOnlyIf().isSatisfiedBy(task)
     }
 
-    def canReplaceOnlyIfSpec() {
+    def "can replace only if spec"() {
         final MutableBoolean condition1 = new MutableBoolean(true)
         DefaultTask task = getTask()
         task.onlyIf(Mock(Spec))

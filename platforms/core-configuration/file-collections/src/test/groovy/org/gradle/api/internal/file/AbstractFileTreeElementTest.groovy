@@ -26,7 +26,7 @@ import org.gradle.util.internal.GFileUtils
 class AbstractFileTreeElementTest extends AbstractProjectBuilderSpec {
     final chmod = Mock(Chmod)
 
-    def canCopyToOutputStream() {
+    def "can copy to output stream"() {
         given:
         def src = writeToFile("src", "content")
 

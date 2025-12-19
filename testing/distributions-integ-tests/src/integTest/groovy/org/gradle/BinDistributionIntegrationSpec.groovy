@@ -37,7 +37,7 @@ class BinDistributionIntegrationSpec extends DistributionIntegrationSpec {
         return 129
     }
 
-    def binZipContents() {
+    def "bin zip contents"() {
         given:
         TestFile contentsDir = unpackDistribution()
 

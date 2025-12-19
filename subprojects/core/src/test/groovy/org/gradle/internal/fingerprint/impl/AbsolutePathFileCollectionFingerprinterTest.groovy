@@ -80,7 +80,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
         fingerprint.fingerprints.keySet().collect { new File(it) } == [file, file2, file3, file4]
     }
 
-    def generatesEventWhenFileAdded() {
+    def "generates event when file added"() {
         given:
         TestFile file1 = tmpDir.createFile('file1')
         TestFile file2 = tmpDir.createFile('file2')

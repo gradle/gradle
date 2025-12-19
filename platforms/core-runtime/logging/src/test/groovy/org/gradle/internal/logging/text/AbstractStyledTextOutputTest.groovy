@@ -22,7 +22,7 @@ import org.gradle.internal.logging.text.StyledTextOutput.Style
 class AbstractStyledTextOutputTest extends OutputSpecification {
     private final TestStyledTextOutput output = new TestStyledTextOutput()
 
-    def onOutputWritesText() {
+    def "onOutput writes text"() {
         when:
         output.onOutput('some message')
 
@@ -30,7 +30,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == 'some message'
     }
 
-    def writesNullText() {
+    def "writes null text"() {
         when:
         output.text(null)
 
@@ -38,7 +38,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == 'null'
     }
 
-    def writesEndOfLine() {
+    def "writes end of line"() {
         when:
         output.println()
 
@@ -46,7 +46,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.rawValue == SystemProperties.instance.lineSeparator
     }
 
-    def appendsCharacter() {
+    def "appends character"() {
         when:
         output.append('c' as char)
 
@@ -54,7 +54,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == 'c'
     }
 
-    def appendsCharSequence() {
+    def "appends char sequence"() {
         when:
         output.append('some message')
 
@@ -62,7 +62,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == 'some message'
     }
 
-    def appendsNullCharSequence() {
+    def "appends null char sequence"() {
         when:
         output.append(null)
 
@@ -70,7 +70,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == 'null'
     }
 
-    def appendsCharSubsequence() {
+    def "appends char subsequence"() {
         when:
         output.append('some message', 5, 9)
 
@@ -78,7 +78,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == 'mess'
     }
 
-    def appendsNullCharSubsequence() {
+    def "appends null char subsequence"() {
         when:
         output.append(null, 5, 9)
 
@@ -86,7 +86,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == 'null'
     }
 
-    def printlnWritesTextAndEndOfLine() {
+    def "println writes text and end of line"() {
         when:
         output.println('message')
 
@@ -94,7 +94,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == 'message\n'
     }
 
-    def formatsText() {
+    def "formats text"() {
         when:
         output.format('[%s]', 'message')
 
@@ -102,7 +102,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == '[message]'
     }
 
-    def formatsTextAndEndOfLine() {
+    def "formats text and end of line"() {
         when:
         output.formatln('[%s]', 'message')
 
@@ -110,7 +110,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == '[message]\n'
     }
 
-    def formatsException() {
+    def "formats exception"() {
         when:
         output.exception(new RuntimeException('broken'))
 
@@ -118,7 +118,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == 'java.lang.RuntimeException: broken\n{stacktrace}\n'
     }
 
-    def canMixInStyleInformation() {
+    def "can MixIn style information"() {
         when:
         output.style(Style.Info).text('info test').style(Style.Normal)
 
@@ -126,7 +126,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == '{info}info test{normal}'
     }
 
-    def ignoresStyleChangeWhenAlreadyUsingTheGivenStyle() {
+    def "ignores style change when already using the given style"() {
         when:
         output.style(Style.Info).text('info test').style(Style.Info)
 
@@ -134,7 +134,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == '{info}info test'
     }
 
-    def writesTextWithTemporaryStyleChange() {
+    def "writes text with temporary style change"() {
         when:
         output.style(Style.Info).withStyle(Style.Error).text('some text')
 
@@ -142,7 +142,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == '{info}{error}some text{info}'
     }
 
-    def writesTextAndEndOfLineWithTemporaryStyleChange() {
+    def "writes text and end of line with temporary style change"() {
         when:
         output.style(Style.Info).withStyle(Style.Error).println('some text')
 
@@ -150,7 +150,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == '{info}{error}some text{info}\n'
     }
 
-    def appendsTextWithTemporaryStyleChange() {
+    def "appends text with temporary style change"() {
         when:
         output.style(Style.Info).withStyle(Style.Error).append('some text')
 
@@ -158,7 +158,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == '{info}{error}some text{info}'
     }
 
-    def appendsCharacterWithTemporaryStyleChange() {
+    def "appends character with temporary style change"() {
         when:
         output.style(Style.Info).withStyle(Style.Error).append('c' as char)
 
@@ -166,7 +166,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == '{info}{error}c{info}'
     }
 
-    def formatsTextWithTemporaryStyleChange() {
+    def "formats text with temporary style change"() {
         when:
         output.style(Style.Info).withStyle(Style.Error).format('[%s]', 'message')
 

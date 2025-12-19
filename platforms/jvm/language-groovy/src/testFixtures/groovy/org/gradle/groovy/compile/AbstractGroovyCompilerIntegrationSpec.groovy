@@ -64,7 +64,7 @@ abstract class AbstractGroovyCompilerIntegrationSpec extends AbstractBasicGroovy
     // more generally, this test is about transforms that statically reference
     // a class from the Groovy (compiler) Jar that in turn references a class from another Jar
     @Issue("GRADLE-2317")
-    def canUseAstTransformThatReferencesGroovyTestCase() {
+    def "can use ast transform that references groovy test case"() {
         if (versionLowerThan('3.0')) {
             return
         }

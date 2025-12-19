@@ -27,7 +27,7 @@ abstract class AbstractApiGroovyCompilerIntegrationSpec extends AbstractGroovyCo
         return GenericTestExecutionResult.TestFramework.JUNIT4
     }
 
-    def canEnableAndDisableIntegerOptimization() {
+    def "can enable and disable integer optimization"() {
         if (versionLowerThan('1.8')) {
             return
         }
@@ -43,7 +43,7 @@ abstract class AbstractApiGroovyCompilerIntegrationSpec extends AbstractGroovyCo
         noExceptionThrown()
     }
 
-    def canEnableAndDisableAllOptimizations() {
+    def "can enable and disable all optimizations"() {
         if (versionLowerThan('1.8')) {
             return
         }
@@ -55,7 +55,7 @@ abstract class AbstractApiGroovyCompilerIntegrationSpec extends AbstractGroovyCo
         noExceptionThrown()
     }
 
-    def canUseCustomFileExtensions() {
+    def "can use custom file extensions"() {
         if (versionLowerThan('1.7')) {
             return
         }

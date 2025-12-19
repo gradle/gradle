@@ -21,7 +21,7 @@ import spock.lang.Issue
 
 @Issue("GRADLE-1682")
 abstract class AbstractJUnitJdkNavigationIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
-    def shouldNotNavigateToJdkClasses() {
+    def "should not navigate to jdk classes"() {
         given:
         file('src/test/java/org/gradle/AbstractTest.java') << """
             package org.gradle;

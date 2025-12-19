@@ -20,7 +20,7 @@ import spock.lang.Specification
 class AllTestResultsTest extends Specification {
     final AllTestResults results = new AllTestResults()
 
-    def addsTest() {
+    def "adds test"() {
         when:
         def test = results.addTest(1, 'org.gradle.Test', 'test', 90)
 
@@ -31,7 +31,7 @@ class AllTestResultsTest extends Specification {
         results.packages.contains(test.classResults.packageResults)
     }
 
-    def addsTestInDefaultPackage() {
+    def "adds test in default package"() {
         when:
         def test = results.addTest(1, 'Test', 'test', 90)
 

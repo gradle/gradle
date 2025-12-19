@@ -156,7 +156,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         return project.services.get(FileCollectionFactory)
     }
 
-    def doesNothingToTaskWithNoTaskActionAnnotations() {
+    def "does nothing to task with no TaskAction annotations"() {
         given:
         def task = expectTaskCreated(DefaultTask)
 
@@ -164,7 +164,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         task.getActions().isEmpty()
     }
 
-    def propagatesExceptionThrownByTaskActionMethod() {
+    def "propagates exception thrown by TaskAction method"() {
         given:
         def action = Stub(Runnable, {
             run() >> {
@@ -180,7 +180,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         thrown(RuntimeException)
     }
 
-    def createsContextualActionForInputChangesTaskAction() {
+    def "creates contextual action for InputChanges TaskAction"() {
         given:
         def action = Mock(Action)
         def task = expectTaskCreated(TaskUsingInputChanges, action)
@@ -193,7 +193,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         0 * _
     }
 
-    def createsContextualActionForOverriddenInputChangesTaskAction() {
+    def "creates contextual action for overridden InputChanges TaskAction"() {
         given:
         def action = Mock(Action)
         def superAction = Mock(Action)
@@ -207,7 +207,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         0 * _
     }
 
-    def cachesClassMetaInfo() {
+    def "caches class meta info"() {
         given:
         def taskInfo1 = taskClassInfoStore.getTaskClassInfo(TaskWithInputFile)
         def taskInfo2 = taskClassInfoStore.getTaskClassInfo(TaskWithInputFile)
@@ -316,7 +316,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         arguments = type == TaskWithOptionalNestedBean ? [null] : []
     }
 
-    def validationActionSucceedsWhenSpecifiedOutputFileDoesNotExist() {
+    def "validation action succeeds when specified output file does not exist"() {
         given:
         def task = expectTaskCreated(TaskWithOutputFile, new File(testDir, "subdir/output.txt"))
 
@@ -327,7 +327,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         new File(testDir, "subdir").isDirectory()
     }
 
-    def validationActionSucceedsWhenSpecifiedOutputFilesDoesNotExist() {
+    def "validation action succeeds when specified output files does not exist"() {
         given:
         def task = expectTaskCreated(TaskWithOutputFiles, [new File(testDir, "subdir/output.txt"), new File(testDir, "subdir2/output.txt")] as List)
 
@@ -339,7 +339,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         new File(testDir, "subdir2").isDirectory()
     }
 
-    def validationActionSucceedsWhenSpecifiedOutputDirectoryDoesNotExist() {
+    def "validation action succeeds when specified output directory does not exist"() {
         given:
         def task = expectTaskCreated(TaskWithOutputDir, missingDir)
 
@@ -350,7 +350,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         task.outputDir.isDirectory()
     }
 
-    def validationActionSucceedsWhenSpecifiedOutputDirectoriesDoesNotExist() {
+    def "validation action succeeds when specified output directories does not exist"() {
         given:
         def task = expectTaskCreated(TaskWithOutputDirs, [missingDir] as List)
 
@@ -386,7 +386,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         TaskWithNestedBean  | 'bean.inputFile'
     }
 
-    def validationActionFailsWhenSpecifiedOutputFileIsADirectory() {
+    def "validation action fails when specified output file is a directory"() {
         given:
         def task = expectTaskCreated(TaskWithOutputFile, existingDir)
 
@@ -403,7 +403,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         })
     }
 
-    def validationActionFailsWhenSpecifiedOutputFilesIsADirectory() {
+    def "validation action fails when specified output files is a directory"() {
         given:
         def task = expectTaskCreated(TaskWithOutputFiles, [existingDir] as List)
 
@@ -420,7 +420,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         })
     }
 
-    def validationActionFailsWhenSpecifiedOutputFileParentIsAFile() {
+    def "validation action fails when specified output file parent is a file"() {
         given:
         def task = expectTaskCreated(TaskWithOutputFile, new File(testDir, "subdir/output.txt"))
         touch(task.outputFile.getParentFile())
@@ -438,7 +438,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         })
     }
 
-    def validationActionFailsWhenSpecifiedOutputFilesParentIsAFile() {
+    def "validation action fails when specified output files parent is a file"() {
         given:
         def task = expectTaskCreated(TaskWithOutputFiles, [new File(testDir, "subdir/output.txt")] as List)
         touch(task.outputFiles.get(0).getParentFile())
@@ -456,7 +456,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         })
     }
 
-    def validationActionFailsWhenOutputDirectoryIsAFile() {
+    def "validation action fails when output directory is a file"() {
         given:
         def task = expectTaskCreated(TaskWithOutputDir, existingFile)
 
@@ -473,7 +473,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         })
     }
 
-    def validationActionFailsWhenOutputDirectoriesIsAFile() {
+    def "validation action fails when output directories is a file"() {
         given:
         def task = expectTaskCreated(TaskWithOutputDirs, [existingFile] as List)
 
@@ -490,7 +490,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         })
     }
 
-    def validationActionFailsWhenParentOfOutputDirectoryIsAFile() {
+    def "validation action fails when parent of output directory is a file"() {
         given:
         def task = expectTaskCreated(TaskWithOutputDir, new File(testDir, "subdir/output"))
         touch(task.outputDir.getParentFile())
@@ -508,7 +508,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         })
     }
 
-    def validationActionFailsWhenParentOfOutputDirectoriesIsAFile() {
+    def "validation action fails when parent of output directories is a file"() {
         given:
         def task = expectTaskCreated(TaskWithOutputDirs, [new File(testDir, "subdir/output")])
         touch(task.outputDirs.get(0).getParentFile())
@@ -526,7 +526,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         })
     }
 
-    def validationActionFailsWhenInputDirectoryDoesNotExist() {
+    def "validation action fails when input directory does not exist"() {
         given:
         def task = expectTaskCreated(TaskWithInputDir, missingDir)
 
@@ -542,7 +542,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         })
     }
 
-    def validationActionFailsWhenInputDirectoryIsAFile() {
+    def "validation action fails when input directory is a file"() {
         given:
         def task = expectTaskCreated(TaskWithInputDir, existingFile)
         touch(task.inputDir)
@@ -559,7 +559,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         })
     }
 
-    def validatesNestedBeansWithPrivateType() {
+    def "validates nested beans with private type"() {
         given:
         def task = expectTaskCreated(TaskWithNestedBeanWithPrivateClass, [existingFile, null] as Object[])
 
@@ -573,7 +573,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
             ignoredAnnotationOnField { type(Bean2.canonicalName).property('inputFile2').annotatedWith('InputFile').includeLink() })
     }
 
-    def validationFailsWhenNestedBeanIsNull() {
+    def "validation fails when nested bean is null"() {
         given:
         def task = expectTaskCreated(TaskWithNestedBean, [null] as Object[])
         task.clearBean()
@@ -586,7 +586,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         validateException(task, e, missingValueMessage { property('bean').includeLink() })
     }
 
-    def validationFailsWhenNestedBeanWithPrivateTypeIsNull() {
+    def "validation fails when nested bean with private type is null"() {
         given:
         def task = expectTaskCreated(TaskWithNestedBeanWithPrivateClass, [null, null] as Object[])
         task.clearBean()
@@ -599,7 +599,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         validateException(task, e, missingValueMessage { property('bean').includeLink() })
     }
 
-    def canAttachAnnotationToGroovyProperty() {
+    def "can attach annotation to groovy property"() {
         given:
         def task = expectTaskCreated(InputFileTask)
 
@@ -611,7 +611,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         validateException(task, e, missingValueMessage { property('srcFile').includeLink() })
     }
 
-    def validationFailureListsViolationsForAllProperties() {
+    def "validation failure lists violations for all properties"() {
         given:
         def task = expectTaskCreated(TaskWithMultipleProperties, [null] as Object[])
 
@@ -625,7 +625,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
             missingValueMessage { property('bean.inputFile').includeLink() })
     }
 
-    def propertyValidationJavaBeanSpecCase() {
+    def "property validation JavaBean spec case"() {
         given:
         def task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties, [null, null, null, null, "a", "b"] as Object[])
 
@@ -641,7 +641,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
             missingValueMessage { property('URL').includeLink() })
     }
 
-    def propertyValidationJavaBeanSpecSingleChar() {
+    def "property validation JavaBean spec single char"() {
         given:
         def task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties, ["c", "C", "d", "U", null, null] as Object[])
 
@@ -692,7 +692,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         TaskWithOutputDirs  | ['missingDir', 'missingDir2']
     }
 
-    def registersSpecifiedInputDirectory() {
+    def "registers specified input directory"() {
         given:
         def task = expectTaskCreated(TaskWithInputDir, existingDir)
         File file = existingDir.file("some-file").createFile()
@@ -839,7 +839,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         TaskWithInputDir    | 'inputs'  | [null] as Object[]
     }
 
-    def skipsTaskWhenInputDirectoryIsEmptyAndSkipWhenEmpty() {
+    def "skips task when input directory is empty and SkipWhenEmpty"() {
         given:
         def task = expectTaskCreated(BrokenTaskWithInputDir, existingDir)
 
@@ -847,7 +847,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         execute(task)
     }
 
-    def skipsTaskWhenInputFileCollectionIsEmpty() {
+    def "skips task when input file collection is empty"() {
         given:
         def inputFiles = new ArrayList<File>()
         BrokenTaskWithInputFiles task = expectTaskCreated(BrokenTaskWithInputFiles, inputFiles)
@@ -871,7 +871,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         "file creation actions"                             | TaskWithOutputFile
     }
 
-    def ignoresBridgeMethods() {
+    def "ignores bridge methods"() {
         given:
         def task = expectTaskCreated(TaskWithBridgeMethod)
 
@@ -882,7 +882,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         task.traversedOutputsCount == 1
     }
 
-    def propertyExtractionJavaBeanSpec() {
+    def "property extraction JavaBean spec"() {
         given:
         def task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties, "c", "C", "d", "U", "a", "b")
         def properties = inputProperties(task)

@@ -42,7 +42,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
     }
 
     @Requires(UnitTestPreconditions.StableGroovy) // cannot link to public javadocs of Groovy snapshots like https://docs.groovy-lang.org/docs/groovy-4.0.5-SNAPSHOT/html/gapi/
-    def allZipContents() {
+    def "all zip contents"() {
         given:
         TestFile contentsDir = unpackDistribution()
 
