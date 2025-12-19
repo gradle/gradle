@@ -22,6 +22,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
+import org.gradle.util.internal.VersionNumber
+import org.junit.jupiter.api.Assumptions
 import spock.lang.Issue
 
 import java.time.Duration
@@ -120,6 +122,9 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
 
     @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "compiles and executes a Java 9 test suite"() {
+        // JUnit 6 requires Java 17
+        Assumptions.assumeTrue(VersionNumber.parse(version) < VersionNumber.parse("6.0.0"))
+
         given:
         buildFile << java9Build()
 
@@ -138,6 +143,9 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
 
     @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "compiles and executes a Java 9 test suite even if a module descriptor is on classpath"() {
+        // JUnit 6 requires Java 17
+        Assumptions.assumeTrue(VersionNumber.parse(version) < VersionNumber.parse("6.0.0"))
+
         given:
         buildFile << java9Build()
 
@@ -161,6 +169,9 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
     }
 
     def "test task does not hang if maxParallelForks is greater than max-workers (#maxWorkers)"() {
+        // JUnit 6 requires Java 17
+        Assumptions.assumeTrue(VersionNumber.parse(version) < VersionNumber.parse("6.0.0"))
+
         given:
         def maxParallelForks = maxWorkers + 1
 

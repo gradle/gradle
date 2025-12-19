@@ -16,7 +16,9 @@
 
 package org.gradle.testing.junit.junit4
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.AbstractTestJavaVersionIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4
@@ -26,4 +28,8 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4
  */
 @TargetCoverage({ JUNIT_4 })
 class JUnit4JavaVersionIntegrationTest extends AbstractTestJavaVersionIntegrationTest implements JUnit4MultiVersionTest {
+    @Override
+    List<Jvm> getSupportedJvms() {
+        return AvailableJavaHomes.supportedWorkerJdks
+    }
 }

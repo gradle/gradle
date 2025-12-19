@@ -17,5 +17,8 @@
 /**
  * This package contains tests that should be geared towards general functionality of the
  * JUnit Platform and may or may not be specific to an engine.
+ * <p>
+ * These tests should be applicable to any version of JUnit >= 5.  Major version specific tests
+ * should be located in the {@code org.gradle.testing.junitX.platform} package.
  */
 package org.gradle.testing.junit.platform;
