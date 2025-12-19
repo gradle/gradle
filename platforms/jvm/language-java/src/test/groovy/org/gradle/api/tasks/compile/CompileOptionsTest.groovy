@@ -60,7 +60,7 @@ class CompileOptionsTest extends Specification {
         compileOptions.allCompilerArgs.contains('Foo23')
     }
 
-    void "forkOptions closure"() {
+    def "forkOptions closure"() {
         AtomicReference<ForkOptions> forkOptions = new AtomicReference<ForkOptions>()
         compileOptions.forkOptions(forkOptions::set)
 

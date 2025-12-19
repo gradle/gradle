@@ -23,7 +23,7 @@ class MavenFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTe
         run 'retrieve'
     }
 
-    void "can resolve snapshots uncached from local Maven repository"() {
+    def "can resolve snapshots uncached from local Maven repository"() {
         given:
         def moduleA = mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT')
         def moduleB = mavenRepo().module('group', 'projectB', '9.1')

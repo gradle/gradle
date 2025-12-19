@@ -27,7 +27,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
-    void "published dependency constraint is ignored when Gradle module metadata is not available"() {
+    def "published dependency constraint is ignored when Gradle module metadata is not available"() {
         given:
         repository {
             'org:foo:1.0'()

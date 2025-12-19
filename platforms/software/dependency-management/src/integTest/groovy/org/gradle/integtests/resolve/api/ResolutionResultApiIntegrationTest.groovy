@@ -351,7 +351,7 @@ baz:1.0 requested
     }
 
     @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
-    void "expired cache entry doesn't break reading from cache"() {
+    def "expired cache entry doesn't break reading from cache"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
         mavenRepo.module("org", "bar", "1.0").publish()

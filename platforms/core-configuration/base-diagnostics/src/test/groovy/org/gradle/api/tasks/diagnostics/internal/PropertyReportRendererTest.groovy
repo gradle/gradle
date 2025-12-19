@@ -42,7 +42,7 @@ class PropertyReportRendererTest extends Specification {
         assert containsLine(out.toString(), "prop: null")
     }
 
-    void 'writes property that throws in toString'() {
+    def 'writes property that throws in toString'() {
         when:
         renderer.addProperty("prop", new RenderFailedValue())
 

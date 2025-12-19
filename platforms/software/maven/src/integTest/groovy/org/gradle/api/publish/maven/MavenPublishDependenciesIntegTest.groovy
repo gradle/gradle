@@ -119,7 +119,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         dependency.version == ""
     }
 
-    void "defaultDependencies are included in published pom file"() {
+    def "defaultDependencies are included in published pom file"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """

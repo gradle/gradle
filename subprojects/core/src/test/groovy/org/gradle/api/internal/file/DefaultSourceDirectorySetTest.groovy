@@ -57,7 +57,7 @@ class DefaultSourceDirectorySetTest extends Specification {
         set = new DefaultSourceDirectorySet('files', '<display-name>', patternSetFactory, taskDependencyFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
     }
 
-    void hasUsefulToString() {
+    def hasUsefulToString() {
         expect:
         set.displayName == '<display-name>'
         set.toString() == '<display-name>'

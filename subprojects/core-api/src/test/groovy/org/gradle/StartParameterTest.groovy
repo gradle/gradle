@@ -34,7 +34,7 @@ class StartParameterTest extends Specification {
     @Rule private TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule private SetSystemProperties systemProperties = new SetSystemProperties()
 
-    void "new instance has correct state"() {
+    def "new instance has correct state"() {
         def parameter = new StartParameter()
         parameter.taskNames = ['a']
         parameter.buildProjectDependencies = true

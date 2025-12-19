@@ -23,7 +23,7 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 // we only need to check without Gradle metadata, it doesn't matter
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
 class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolveTest {
-    void "can list versions without hitting repository"() {
+    def "can list versions without hitting repository"() {
         withLister([testA: [1, 2, 3]])
         given:
         repository {

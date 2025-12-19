@@ -18,7 +18,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 
 class TaskUpToDateCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
-    public void "task is not up-to-date when Gradle version changes"() {
+    public def "task is not up-to-date when Gradle version changes"() {
         given:
         buildFile << """
 apply plugin: 'java'

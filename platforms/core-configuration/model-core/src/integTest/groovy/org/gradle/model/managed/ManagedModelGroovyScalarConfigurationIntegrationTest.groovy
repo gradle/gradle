@@ -134,7 +134,7 @@ class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractInteg
         apply type: RulePlugin
         '''
 
-    void 'only CharSequence input values are supported - #varname'() {
+    def 'only CharSequence input values are supported - #varname'() {
         when:
         buildFile << CLASSES
         buildFile << """

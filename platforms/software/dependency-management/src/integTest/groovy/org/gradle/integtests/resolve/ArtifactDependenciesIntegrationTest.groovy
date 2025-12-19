@@ -34,7 +34,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractDependencyResolutionTe
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
-    void canHaveConfigurationHierarchy() {
+    def canHaveConfigurationHierarchy() {
         given:
         buildFile << """
             ${resolve.configureProject("compile", "runtime")}

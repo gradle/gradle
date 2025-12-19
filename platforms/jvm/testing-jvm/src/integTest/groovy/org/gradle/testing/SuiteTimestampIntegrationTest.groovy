@@ -23,7 +23,7 @@ import spock.lang.Issue
 class SuiteTimestampIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2730")
-    void "test logging is included in XML results"() {
+    def "test logging is included in XML results"() {
         file("build.gradle") << """
             apply plugin: 'java'
                 ${mavenCentralRepository()}

@@ -68,7 +68,7 @@ class DefaultBuildLifecycleControllerTest extends Specification {
                 buildModelLifecycleListener, workPreparer, workExecutor, toolingControllerFactory, TestUtil.stateTransitionControllerFactory(Mock(BuildOperationsParameters)))
     }
 
-    void testCanFinishBuildWhenNothingHasBeenDone() {
+    def testCanFinishBuildWhenNothingHasBeenDone() {
         def controller = controller()
 
         expect:

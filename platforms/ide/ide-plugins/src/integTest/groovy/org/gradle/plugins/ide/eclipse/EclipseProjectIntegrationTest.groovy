@@ -21,7 +21,7 @@ class EclipseProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
         settingsFile.text = "rootProject.name = 'root'"
     }
 
-    void allowsConfiguringEclipseProject() {
+    def allowsConfiguringEclipseProject() {
         given:
         buildFile """
 apply plugin: 'java'

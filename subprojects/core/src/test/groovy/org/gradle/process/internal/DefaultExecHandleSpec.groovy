@@ -47,7 +47,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     private final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
     @Rule final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
-    void "forks process"() {
+    def "forks process"() {
         given:
         def out = new ByteArrayOutputStream()
         def err = new ByteArrayOutputStream()

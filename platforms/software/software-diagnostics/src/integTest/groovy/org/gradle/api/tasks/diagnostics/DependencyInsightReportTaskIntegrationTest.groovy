@@ -1432,7 +1432,7 @@ org:leaf:[1.5,2.0] FAILED
 """
     }
 
-    void "marks project dependencies that cannot be resolved as 'FAILED'"() {
+    def "marks project dependencies that cannot be resolved as 'FAILED'"() {
         given:
         createDirs("A", "B", "C")
         settingsFile << "include 'A', 'B', 'C'; rootProject.name='root'"

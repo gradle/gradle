@@ -50,7 +50,7 @@ class TaskNodeFactoryTest extends Specification {
         }
     }
 
-    void 'can create a node for a task'() {
+    def 'can create a node for a task'() {
         when:
         def node = factory.getOrCreateNode(a)
 

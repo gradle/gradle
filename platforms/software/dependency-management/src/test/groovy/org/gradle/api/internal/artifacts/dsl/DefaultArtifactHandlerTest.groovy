@@ -45,7 +45,7 @@ class DefaultArtifactHandlerTest extends Specification {
         configurationMock.artifacts >> artifactsMock
     }
 
-    void pushOneDependency() {
+    def pushOneDependency() {
         ConfigurablePublishArtifact artifactDummy = Mock()
 
         when:

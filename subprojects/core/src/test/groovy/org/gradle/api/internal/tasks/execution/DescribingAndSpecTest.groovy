@@ -22,7 +22,7 @@ import spock.lang.Specification
 class DescribingAndSpecTest extends Specification {
     private final def dummyObject = new Object();
 
-    void isSatisfiedWhenEmpty() {
+    def isSatisfiedWhenEmpty() {
         when:
         def spec = new DescribingAndSpec<Object>()
 

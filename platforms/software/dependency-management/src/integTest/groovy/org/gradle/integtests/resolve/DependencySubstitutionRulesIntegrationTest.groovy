@@ -32,7 +32,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
-    void "forces multiple modules by rule"() {
+    def "forces multiple modules by rule"() {
         mavenRepo.module("org.utils", "impl", '1.3').dependsOn('org.utils', 'api', '1.3').publish()
         mavenRepo.module("org.utils", "impl", '1.5').dependsOn('org.utils', 'api', '1.5').publish()
 

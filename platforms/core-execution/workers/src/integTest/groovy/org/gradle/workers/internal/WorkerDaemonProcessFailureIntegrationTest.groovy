@@ -49,7 +49,7 @@ class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExec
         writeAnnotationProcessorProject()
     }
 
-    void "daemon is gracefully removed if it is killed while idle in between builds"() {
+    def "daemon is gracefully removed if it is killed while idle in between builds"() {
         given:
         buildFile << """
             plugins {

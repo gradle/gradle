@@ -23,7 +23,7 @@ import java.lang.reflect.Method
 
 class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
 
-    void "annotations on class are retained"() {
+    def "annotations on class are retained"() {
         given:
         def api = toApi([
             A  : '@Ann public class A {}',

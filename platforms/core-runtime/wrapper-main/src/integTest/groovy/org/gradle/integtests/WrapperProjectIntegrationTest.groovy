@@ -44,7 +44,7 @@ class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
 """
     }
 
-    void "has non-zero exit code on build failure"() {
+    def "has non-zero exit code on build failure"() {
         given:
         prepareWrapper().run()
 

@@ -311,7 +311,7 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         !module.ivy.file.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER)
     }
 
-    void "can publish large artifact to authenticated repository"() {
+    def "can publish large artifact to authenticated repository"() {
         given:
         def largeJar = file("large.jar")
         new RandomAccessFile(largeJar, "rw").withCloseable {

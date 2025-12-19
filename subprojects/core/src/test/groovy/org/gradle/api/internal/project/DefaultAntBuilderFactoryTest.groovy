@@ -29,7 +29,7 @@ public class DefaultAntBuilderFactoryTest extends AbstractProjectBuilderSpec {
         adapterFactory.create() >> Stub(AntLoggingAdapter)
     }
 
-    public void "can create AntBuilder"() {
+    public def "can create AntBuilder"() {
         when:
         def ant = factory.createAntBuilder()
 

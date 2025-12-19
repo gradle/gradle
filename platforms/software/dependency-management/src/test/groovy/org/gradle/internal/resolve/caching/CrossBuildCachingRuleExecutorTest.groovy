@@ -159,7 +159,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         result.length == 6
     }
 
-    void "validates entries on cache hit"() {
+    def "validates entries on cache hit"() {
         withToUpperCaseRule()
         def id = new Id('Alicia')
 

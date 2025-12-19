@@ -36,7 +36,7 @@ class EarPluginIntegrationTest extends AbstractIntegrationSpec {
         file("settings.gradle").write("rootProject.name='root'")
     }
 
-    void "creates ear archive"() {
+    def "creates ear archive"() {
         buildFile << """
 apply plugin: 'ear'
 

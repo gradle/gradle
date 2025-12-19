@@ -24,7 +24,7 @@ class ResolutionOverrideIntegrationTest extends AbstractHttpDependencyResolution
     @Shared
     def refreshDependenciesArgs = ['-U', '--refresh-dependencies']
 
-    void "will refresh non-changing module when run with --refresh-dependencies"() {
+    def "will refresh non-changing module when run with --refresh-dependencies"() {
         given:
         def module = mavenHttpRepo.module('org.name', 'projectA', '1.2').publish()
 

@@ -35,7 +35,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 """
     }
 
-    void "can publish jar and descriptor to ivy repository"() {
+    def "can publish jar and descriptor to ivy repository"() {
         requiresExternalDependencies = true
         given:
         createBuildScripts("""

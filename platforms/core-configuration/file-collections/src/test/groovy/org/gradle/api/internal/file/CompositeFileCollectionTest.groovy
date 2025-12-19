@@ -36,7 +36,7 @@ class CompositeFileCollectionTest extends Specification {
     def file2 = new File("2")
     def file3 = new File("3")
 
-    void "contains union of all source collections"() {
+    def "contains union of all source collections"() {
         def source1 = new TestFileCollection(file1, file2)
         def source2 = new TestFileCollection(file2, file3)
         def collection = new TestCompositeFileCollection(source1, source2)

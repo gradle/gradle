@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 
 class IvyFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    void "does not cache local artifacts or metadata"() {
+    def "does not cache local artifacts or metadata"() {
         given:
         def repo = ivyRepo()
         def moduleA = repo.module('group', 'projectA', '1.2')

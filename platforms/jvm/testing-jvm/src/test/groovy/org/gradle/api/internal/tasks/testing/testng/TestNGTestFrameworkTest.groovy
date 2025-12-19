@@ -34,7 +34,7 @@ class TestNGTestFrameworkTest extends Specification {
         project.ext.sourceCompatibility = "1.7"
     }
 
-    void "creates test class processor"() {
+    def "creates test class processor"() {
         when:
         def framework = createFramework()
         def processor = framework.getProcessorFactory().create(Mock(IdGenerator), Mock(ActorFactory), FixedClock.create())

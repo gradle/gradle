@@ -51,7 +51,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         mavenRepo.module("org", "bar", '1.0').dependsOn(foo11).publish()
     }
 
-    void "force resolution strategy is applied to dependency constraints"() {
+    def "force resolution strategy is applied to dependency constraints"() {
         given:
         buildFile << """
             dependencies {

@@ -48,7 +48,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    void "dependency constraint is not included in resolution without a hard dependency"() {
+    def "dependency constraint is not included in resolution without a hard dependency"() {
         given:
         mavenRepo.module("org", "foo", '1.0').publish()
         writeSpec {

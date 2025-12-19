@@ -119,7 +119,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         'buildDashboard'
     }
 
-    void 'build dashboard for a project with no other reports lists just the dashboard'() {
+    def 'build dashboard for a project with no other reports lists just the dashboard'() {
         when:
         run('buildDashboard')
 

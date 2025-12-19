@@ -22,7 +22,7 @@ import spock.lang.Issue
 // This is a workaround on our side
 @Issue('https://youtrack.jetbrains.com/issue/KT-29546')
 class IgnoreKotlinCompilerWarningIntegrationTest extends AbstractIntegrationSpec {
-    void dontWarnOnKotlinCompilerWarning() {
+    def dontWarnOnKotlinCompilerWarning() {
         buildFile << '''
 System.err.println(\'''
 Compilation with Kotlin compile daemon was not successful

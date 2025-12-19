@@ -28,7 +28,7 @@ import java.nio.file.Files
 class CacheResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements CachingIntegrationFixture {
 
     @ToBeFixedForConfigurationCache(because = "CC does not check for deleted or modified artifacts in local cache")
-    void "cache handles manual deletion of cached artifacts"() {
+    def "cache handles manual deletion of cached artifacts"() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
 

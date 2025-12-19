@@ -638,7 +638,7 @@ conf2
         !output.contains("conf1")
     }
 
-    void "marks module that cannot be resolved due to broken dependency rule as 'FAILED'"() {
+    def "marks module that cannot be resolved due to broken dependency rule as 'FAILED'"() {
         mavenRepo.module("org.utils", "impl", '1.3').publish()
 
         buildFile << """

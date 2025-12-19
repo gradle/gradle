@@ -68,7 +68,7 @@ class DefaultDependencyHandlerTest extends Specification {
         _ * configuration.dependencies >> dependencySet
     }
 
-    void "creates and adds a dependency from some notation"() {
+    def "creates and adds a dependency from some notation"() {
         Dependency dependency = Mock()
 
         when:

@@ -88,7 +88,7 @@ abstract class FileCollectionSpec extends Specification {
         elements.get()*.asFile == [file1, file2]
     }
 
-    void canAddToAntBuilderAsResourceCollection() {
+    def canAddToAntBuilderAsResourceCollection() {
         File file1 = new File("f1")
         File file2 = new File("f2")
         def collection = containing(file1, file2)

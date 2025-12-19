@@ -260,7 +260,7 @@ subprojects {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5136")
-    void "doesn't publish if main artifact is missing"() {
+    def "doesn't publish if main artifact is missing"() {
         settingsFile << 'rootProject.name = "test"'
         buildFile << """
             apply plugin: "java-library"

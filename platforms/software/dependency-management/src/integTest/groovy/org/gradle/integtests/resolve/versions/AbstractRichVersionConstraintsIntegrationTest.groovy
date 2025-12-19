@@ -23,7 +23,7 @@ import spock.lang.Issue
 
 abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    void "can declare a strict dependency onto an external component"() {
+    def "can declare a strict dependency onto an external component"() {
         given:
         repository {
             'org:foo:1.0'()

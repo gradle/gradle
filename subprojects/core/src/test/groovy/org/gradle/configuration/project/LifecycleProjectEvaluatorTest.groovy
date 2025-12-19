@@ -63,7 +63,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         mutationState.applyToMutableState(_) >> { Consumer consumer -> consumer.accept(project) }
     }
 
-    void "nothing happens if project was already configured"() {
+    def "nothing happens if project was already configured"() {
         given:
         state.configured()
 

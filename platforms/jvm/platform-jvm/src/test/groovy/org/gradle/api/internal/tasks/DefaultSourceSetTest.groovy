@@ -47,7 +47,7 @@ class DefaultSourceSetTest extends Specification {
         return s
     }
 
-    void hasUsefulDisplayName() {
+    def hasUsefulDisplayName() {
         SourceSet sourceSet = sourceSet('int-test')
         expect:
         assertThat(sourceSet.toString(), equalTo("source set 'int test'"))

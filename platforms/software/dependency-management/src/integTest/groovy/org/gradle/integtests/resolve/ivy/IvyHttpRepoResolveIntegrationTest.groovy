@@ -43,7 +43,7 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         """
     }
 
-    void "fails when configured with AwsCredentials"() {
+    def "fails when configured with AwsCredentials"() {
         given:
         def remoteIvyRepo = server.remoteIvyRepo
         def module = remoteIvyRepo.module('org.group.name', 'projectA', '1.2')

@@ -46,7 +46,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         _ * configuration.dependencyConstraints >> dependencyConstraintSet
     }
 
-    void "creates and adds a dependency constraint from some notation"() {
+    def "creates and adds a dependency constraint from some notation"() {
         def dependencyConstraint = Mock(DependencyConstraint)
 
         when:

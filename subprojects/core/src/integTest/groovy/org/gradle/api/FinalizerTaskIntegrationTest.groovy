@@ -423,7 +423,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void 'finalizer tasks are scheduled as expected (#requestedTasks)'() {
+    def 'finalizer tasks are scheduled as expected (#requestedTasks)'() {
         given:
         setupProject()
 

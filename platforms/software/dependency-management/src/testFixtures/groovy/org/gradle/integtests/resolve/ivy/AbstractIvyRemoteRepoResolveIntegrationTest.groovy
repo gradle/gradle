@@ -35,7 +35,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
     @Rule
     ProgressLoggingFixture progressLogger = new ProgressLoggingFixture(executer, temporaryFolder)
 
-    void "can resolve dependencies from a remote Ivy repository with #layout layout"() {
+    def "can resolve dependencies from a remote Ivy repository with #layout layout"() {
         given:
         def remoteIvyRepo = server.getRemoteIvyRepo(m2Compatible, null, ivyFilePattern, artifactFilePattern)
         def module = remoteIvyRepo.module('org.group.name', 'projectA', '1.2')

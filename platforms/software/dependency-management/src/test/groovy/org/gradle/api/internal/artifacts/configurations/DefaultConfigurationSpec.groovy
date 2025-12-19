@@ -109,7 +109,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
     }
 
-    void defaultValues() {
+    def defaultValues() {
         when:
         def configuration = conf("name", ":project")
 

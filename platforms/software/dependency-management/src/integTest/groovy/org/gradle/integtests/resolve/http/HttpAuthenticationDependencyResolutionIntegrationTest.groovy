@@ -99,7 +99,7 @@ task listJars {
         'basic and digest' | 'authentication { basic(BasicAuthentication)\ndigest(DigestAuthentication) }' | DIGEST            | ['Basic', 'Digest']
     }
 
-    public void "can resolve dependencies using #authSchemeName scheme from #authScheme authenticated HTTP maven repository"() {
+    public def "can resolve dependencies using #authSchemeName scheme from #authScheme authenticated HTTP maven repository"() {
         given:
         def moduleA = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
         mavenHttpRepo.module('group', 'projectB', '2.0').publish()

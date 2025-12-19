@@ -34,7 +34,7 @@ class MavenBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
-    void "reports and recovers from missing module"() {
+    def "reports and recovers from missing module"() {
         given:
         def repo = mavenHttpRepo("repo1")
         def module = repo.module("group", "projectA", "1.2").publish()
