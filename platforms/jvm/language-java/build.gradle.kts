@@ -18,6 +18,7 @@ dependencies {
     api(projects.buildOperations)
     api(projects.buildProcessServices)
     api(projects.classloaders)
+    api(projects.collections)
     api(projects.core)
     api(projects.coreApi)
     api(projects.daemonServerWorker)

@@ -62,15 +62,15 @@ class ClassDependentsAccumulatorTest extends Specification {
         accumulator.addClass("c", hash, null, [], [] as Set, IntSets.EMPTY_SET)
 
         expect:
-        accumulator.dependentsMap.a.privateDependentClasses == [] as Set
-        accumulator.dependentsMap.a.accessibleDependentClasses == ['b'] as Set
-        accumulator.dependentsMap.b.privateDependentClasses == ['a'] as Set
-        accumulator.dependentsMap.b.accessibleDependentClasses == [] as Set
-        accumulator.dependentsMap.c.privateDependentClasses == ['b'] as Set
-        accumulator.dependentsMap.c.accessibleDependentClasses == ['a'] as Set
+        accumulator.dependentsMap.a.privateDependentClasses as Set == [] as Set
+        accumulator.dependentsMap.a.accessibleDependentClasses as Set  == ['b'] as Set
+        accumulator.dependentsMap.b.privateDependentClasses as Set  == ['a'] as Set
+        accumulator.dependentsMap.b.accessibleDependentClasses as Set == [] as Set
+        accumulator.dependentsMap.c.privateDependentClasses as Set == ['b'] as Set
+        accumulator.dependentsMap.c.accessibleDependentClasses as Set == ['a'] as Set
         accumulator.dependentsMap.d.dependencyToAll
-        accumulator.dependentsMap.x.privateDependentClasses == [] as Set
-        accumulator.dependentsMap.x.accessibleDependentClasses == ['d'] as Set
+        accumulator.dependentsMap.x.privateDependentClasses as Set == [] as Set
+        accumulator.dependentsMap.x.accessibleDependentClasses as Set == ['d'] as Set
     }
 
     def "accumulates dependents"() {
@@ -80,14 +80,14 @@ class ClassDependentsAccumulatorTest extends Specification {
         accumulator.addClass("c", hash, null, [], [] as Set, IntSets.EMPTY_SET)
 
         expect:
-        accumulator.dependentsMap.a.privateDependentClasses == [] as Set
-        accumulator.dependentsMap.a.accessibleDependentClasses == ['b'] as Set
+        accumulator.dependentsMap.a.privateDependentClasses as Set == [] as Set
+        accumulator.dependentsMap.a.accessibleDependentClasses as Set == ['b'] as Set
         accumulator.dependentsMap.b.dependencyToAll
-        accumulator.dependentsMap.c.privateDependentClasses == [] as Set
-        accumulator.dependentsMap.c.accessibleDependentClasses == ['b', 'a'] as Set
+        accumulator.dependentsMap.c.privateDependentClasses as Set == [] as Set
+        accumulator.dependentsMap.c.accessibleDependentClasses as Set == ['b', 'a'] as Set
         accumulator.dependentsMap.d.dependencyToAll
-        accumulator.dependentsMap.x.privateDependentClasses == [] as Set
-        accumulator.dependentsMap.x.accessibleDependentClasses == ['d'] as Set
+        accumulator.dependentsMap.x.privateDependentClasses as Set == [] as Set
+        accumulator.dependentsMap.x.accessibleDependentClasses as Set == ['d'] as Set
     }
 
     def "creates keys for all encountered classes which are dependency to another"() {
@@ -120,8 +120,8 @@ class ClassDependentsAccumulatorTest extends Specification {
         accumulator.addClass("a", hash, null, [], ["a", "b"], IntSets.EMPTY_SET)
 
         expect:
-        accumulator.dependentsMap["b"].privateDependentClasses == [] as Set
-        accumulator.dependentsMap["b"].accessibleDependentClasses == ["a"] as Set
+        accumulator.dependentsMap["b"].privateDependentClasses as Set == [] as Set
+        accumulator.dependentsMap["b"].accessibleDependentClasses as Set == ["a"] as Set
         accumulator.dependentsMap["a"] == null
     }
 }

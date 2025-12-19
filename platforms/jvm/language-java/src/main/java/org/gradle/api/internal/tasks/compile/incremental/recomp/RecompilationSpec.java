@@ -47,8 +47,8 @@ public class RecompilationSpec {
         return classesToCompile.add(classToCompile);
     }
 
-    public void addClassesToCompile(Collection<String> classes) {
-        classesToCompile.addAll(classes);
+    public void addClassesToCompile(Iterable<String> classes) {
+        classes.forEach(this::addClassToCompile);
     }
 
     public Set<String> getClassesToCompile() {
@@ -63,8 +63,8 @@ public class RecompilationSpec {
         return Collections.unmodifiableCollection(classesToProcess);
     }
 
-    public void addResourcesToGenerate(Collection<GeneratedResource> resources) {
-        resourcesToGenerate.addAll(resources);
+    public void addResourcesToGenerate(Iterable<GeneratedResource> resources) {
+        resources.forEach(resourcesToGenerate::add);
     }
 
     public Collection<GeneratedResource> getResourcesToGenerate() {

@@ -20,7 +20,6 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,12 +34,12 @@ public class ConstantToDependentsMappingBuilder implements Serializable {
     private final Map<String, Set<String>> privateDependents = new HashMap<>();
     private final Map<String, Set<String>> accessibleDependents = new HashMap<>();
 
-    public ConstantToDependentsMappingBuilder addAccessibleDependents(String constantOrigin, Collection<String> dependents) {
+    public ConstantToDependentsMappingBuilder addAccessibleDependents(String constantOrigin, Iterable<String> dependents) {
         dependents.forEach(dependent -> addAccessibleDependent(constantOrigin, dependent));
         return this;
     }
 
-    public ConstantToDependentsMappingBuilder addPrivateDependents(String constantOrigin, Collection<String> dependents) {
+    public ConstantToDependentsMappingBuilder addPrivateDependents(String constantOrigin, Iterable<String> dependents) {
         dependents.forEach(dependent -> addPrivateDependent(constantOrigin, dependent));
         return this;
     }

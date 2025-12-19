@@ -38,7 +38,7 @@ class ClassSetAnalysisTest extends Specification {
                               DependentsSet aggregatedTypes = empty(), DependentsSet dependentsOnAll = empty(), String fullRebuildCause = null, CompilerApiData compilerApiData = CompilerApiData.unavailable()) {
         new ClassSetAnalysis(
             new ClassSetAnalysisData(Maps.transformValues(dependents) { hash }, dependents, classToConstants, fullRebuildCause),
-            new AnnotationProcessingData([:], aggregatedTypes.getAllDependentClasses(), dependentsOnAll.getAllDependentClasses(), [:], dependentsOnAll.dependentResources, null),
+            new AnnotationProcessingData([:], aggregatedTypes.getAllDependentClasses() as Set, dependentsOnAll.getAllDependentClasses()  as Set, [:], dependentsOnAll.dependentResources as Set, null),
             compilerApiData
         )
     }
@@ -60,8 +60,8 @@ class ClassSetAnalysisTest extends Specification {
         ClassSetAnalysis s2 = snapshot(["A": TestHashCodes.hashCodeFrom(0xaa), "B": TestHashCodes.hashCodeFrom(0xbbbb)])
 
         expect:
-        s1.findChangesSince(s2).dependents.allDependentClasses == ["B"] as Set
-        s2.findChangesSince(s1).dependents.allDependentClasses == ["B", "C"] as Set
+        s1.findChangesSince(s2).dependents.allDependentClasses as Set == ["B"] as Set
+        s2.findChangesSince(s1).dependents.allDependentClasses as Set == ["B", "C"] as Set
     }
 
     def "returns empty analysis"() {
@@ -97,32 +97,32 @@ class ClassSetAnalysisTest extends Specification {
         when:
         def deps = a.findTransitiveDependents(["a"], [:])
         then:
-        deps.accessibleDependentClasses == [] as Set
-        deps.privateDependentClasses == ['b'] as Set
+        deps.accessibleDependentClasses as Set == [] as Set
+        deps.privateDependentClasses as Set == ['b'] as Set
 
         when:
         deps = a.findTransitiveDependents(["b"], [:])
         then:
-        deps.accessibleDependentClasses == ['d'] as Set
-        deps.privateDependentClasses == ['c', 'e'] as Set
+        deps.accessibleDependentClasses as Set == ['d'] as Set
+        deps.privateDependentClasses as Set == ['c', 'e'] as Set
 
         when:
         deps = a.findTransitiveDependents(["c"], [:])
         then:
-        deps.accessibleDependentClasses == [] as Set
-        deps.privateDependentClasses == [] as Set
+        deps.accessibleDependentClasses as Set == [] as Set
+        deps.privateDependentClasses as Set == [] as Set
 
         when:
         deps = a.findTransitiveDependents(["d"], [:])
         then:
-        deps.accessibleDependentClasses == [] as Set
-        deps.privateDependentClasses == ['e'] as Set
+        deps.accessibleDependentClasses as Set == [] as Set
+        deps.privateDependentClasses as Set == ['e'] as Set
 
         when:
         deps = a.findTransitiveDependents(["e"], [:])
         then:
-        deps.accessibleDependentClasses == [] as Set
-        deps.privateDependentClasses == [] as Set
+        deps.accessibleDependentClasses as Set == [] as Set
+        deps.privateDependentClasses as Set == [] as Set
     }
 
     def "does not recurse if root class is a dependency to all"() {
@@ -157,9 +157,9 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.findTransitiveDependents(["Foo"], [:])
 
         expect:
-        deps.getAllDependentClasses() == ["Bar", "Baz"] as Set
-        a.findTransitiveDependents(["Bar"], [:]).getAllDependentClasses() == ["Baz"] as Set
-        a.findTransitiveDependents(["Baz"], [:]).getAllDependentClasses() == [] as Set
+        deps.getAllDependentClasses() as Set == ["Bar", "Baz"] as Set
+        a.findTransitiveDependents(["Bar"], [:]).getAllDependentClasses() as Set == ["Baz"] as Set
+        a.findTransitiveDependents(["Baz"], [:]).getAllDependentClasses() as Set == [] as Set
     }
 
     def "recurses multiple dependencies"() {
@@ -173,7 +173,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.findTransitiveDependents(["a"], [:])
 
         expect:
-        deps.getAllDependentClasses() == ["b", "c", "d", "e"] as Set
+        deps.getAllDependentClasses() as Set == ["b", "c", "d", "e"] as Set
     }
 
     def "removes self from dependents"() {
@@ -183,7 +183,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.findTransitiveDependents(["Foo"], [:])
 
         expect:
-        deps.getAllDependentClasses() == [] as Set
+        deps.getAllDependentClasses() as Set == [] as Set
     }
 
     def "handles dependency cycles"() {
@@ -195,7 +195,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps =  a.findTransitiveDependents(["Foo"], [:])
 
         expect:
-        deps.getAllDependentClasses() == ["Bar", "Baz"] as Set
+        deps.getAllDependentClasses() as Set == ["Bar", "Baz"] as Set
     }
 
     def "recurses but filters out inner classes"() {
@@ -208,7 +208,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps =  a.findTransitiveDependents(["a"], [:])
 
         expect:
-        deps.getAllDependentClasses() == ["c", "d", 'a$b'] as Set
+        deps.getAllDependentClasses() as Set == ["c", "d", 'a$b'] as Set
     }
 
     def "handles cycles with inner classes"() {
@@ -220,7 +220,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.findTransitiveDependents(["a"], [:])
 
         expect:
-        deps.getAllDependentClasses() == ["c", 'a$b'] as Set
+        deps.getAllDependentClasses() as Set == ["c", 'a$b'] as Set
     }
 
     def "provides dependents of all input classes"() {
@@ -232,7 +232,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.findTransitiveDependents(["A", "E"], [:])
 
         expect:
-        deps.getAllDependentClasses() == ["D", "B"] as Set
+        deps.getAllDependentClasses() as Set == ["D", "B"] as Set
     }
 
     def "provides recursive dependents of all input classes"() {
@@ -244,7 +244,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.findTransitiveDependents(["A", "D"], [:])
 
         expect:
-        deps.getAllDependentClasses() == ["E", "B", "C"] as Set
+        deps.getAllDependentClasses() as Set == ["E", "B", "C"] as Set
     }
 
     def "some classes may depend on any change"() {
@@ -254,7 +254,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.findTransitiveDependents(["A"], [:])
 
         expect:
-        deps.getAllDependentClasses() == ["DependsOnAny", "B", "C"] as Set
+        deps.getAllDependentClasses() as Set == ["DependsOnAny", "B", "C"] as Set
     }
 
     def "knows when any of the input classes is a dependency to all"() {
@@ -314,8 +314,8 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.findTransitiveDependents(["Foo"], ["Foo" : IntSet.of(1)])
 
         then:
-        deps.getAccessibleDependentClasses() == ["Bar"] as Set
-        deps.getPrivateDependentClasses() == ["BarBar"] as Set
+        deps.getAccessibleDependentClasses() as Set == ["Bar"] as Set
+        deps.getPrivateDependentClasses() as Set == ["BarBar"] as Set
     }
 
     def "find class constant dependents when constants hash analysis returns empty set"() {
@@ -329,7 +329,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.findTransitiveDependents(["Foo"], [:])
 
         then:
-        deps.getAccessibleDependentClasses() == ["Bar"] as Set
+        deps.getAccessibleDependentClasses() as Set == ["Bar"] as Set
     }
 
     def "find class constant dependents recursively"() {
@@ -348,7 +348,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.findTransitiveDependents(["Foo"], [:])
 
         then:
-        deps.getAccessibleDependentClasses() == ["Bar", "FooBar", "BarFoo"] as Set
+        deps.getAccessibleDependentClasses() as Set == ["Bar", "FooBar", "BarFoo"] as Set
     }
 
     private static DependentsSet dependentSet(boolean dependencyToAll, Collection<String> privateClasses, Collection<String> accessibleClasses) {
