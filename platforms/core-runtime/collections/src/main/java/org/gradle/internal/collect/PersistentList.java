@@ -16,6 +16,8 @@
 
 package org.gradle.internal.collect;
 
+import org.jspecify.annotations.Nullable;
+
 import javax.annotation.CheckReturnValue;
 import java.util.Collections;
 import java.util.Iterator;
@@ -100,12 +102,15 @@ public abstract class PersistentList<T> implements Iterable<T> {
 
         @Override
         public void forEach(Consumer<? super T> consumer) {
-            PersistentList<T> cur = this;
-            while (!cur.isEmpty()) {
-                Cons<T> cons = (Cons<T>) cur;
-                consumer.accept(cons.head);
-                cur = cons.tail;
-            }
+            Cons<T> cur = this;
+            do {
+                consumer.accept(cur.head);
+
+                PersistentList<T> tail = cur.tail;
+                cur = tail instanceof Cons<?>
+                    ? (Cons<T>) tail
+                    : null;
+            } while (cur != null);
         }
 
         @Override
@@ -146,7 +151,7 @@ public abstract class PersistentList<T> implements Iterable<T> {
         }
 
         private static final class PersistentListIterator<T> implements Iterator<T> {
-            private PersistentList<T> next;
+            private @Nullable Cons<T> next;
 
             public PersistentListIterator(Cons<T> next) {
                 this.next = next;
@@ -154,17 +159,20 @@ public abstract class PersistentList<T> implements Iterable<T> {
 
             @Override
             public boolean hasNext() {
-                return !next.isEmpty();
+                return next != null;
             }
 
             @Override
             public T next() {
-                if (next instanceof Cons<?>) {
-                    Cons<T> cons = (Cons<T>) next;
-                    next = cons.tail;
-                    return cons.head;
+                if (next == null) {
+                    throw new NoSuchElementException();
                 }
-                throw new NoSuchElementException();
+                T head = next.head;
+                PersistentList<T> tail = next.tail;
+                next = tail instanceof Cons<?>
+                    ? (Cons<T>) tail
+                    : null;
+                return head;
             }
         }
     }
