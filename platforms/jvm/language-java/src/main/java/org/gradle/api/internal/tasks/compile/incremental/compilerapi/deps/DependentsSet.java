@@ -21,7 +21,6 @@ import org.gradle.internal.collect.PersistentSet;
 import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * Provides a set of classes that depend on some other class.
@@ -29,10 +28,6 @@ import java.util.Set;
  * In this case a description of the problem is available via {@link #getDescription()}.
  */
 public abstract class DependentsSet {
-
-    public static DependentsSet dependentClasses(Set<String> privateDependentClasses, Set<String> accessibleDependentClasses) {
-        return dependentClasses(PersistentSet.copyOf(privateDependentClasses), PersistentSet.copyOf(accessibleDependentClasses));
-    }
 
     public static DependentsSet dependentClasses(PersistentSet<@NonNull String> privateDependentClasses, PersistentSet<@NonNull String> accessibleDependentClasses) {
         return dependents(privateDependentClasses, accessibleDependentClasses, PersistentSet.of());

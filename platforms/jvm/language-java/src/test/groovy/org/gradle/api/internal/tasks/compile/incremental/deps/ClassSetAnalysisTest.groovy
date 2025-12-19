@@ -22,11 +22,11 @@ import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApi
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantToDependentsMapping
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData
+import org.gradle.internal.collect.PersistentSet
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import spock.lang.Specification
 
-import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet.dependentClasses
 import static org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet.empty
 
 class ClassSetAnalysisTest extends Specification {
@@ -353,5 +353,9 @@ class ClassSetAnalysisTest extends Specification {
 
     private static DependentsSet dependentSet(boolean dependencyToAll, Collection<String> privateClasses, Collection<String> accessibleClasses) {
         dependencyToAll ? DependentsSet.dependencyToAll("reason") : dependentClasses(privateClasses as Set, accessibleClasses as Set)
+    }
+
+    private static DependentsSet dependentClasses(Set<String> privateDependentClasses, Set<String> accessibleDependentClasses) {
+        return DependentsSet.dependentClasses(PersistentSet.copyOf(privateDependentClasses), PersistentSet.copyOf(accessibleDependentClasses));
     }
 }

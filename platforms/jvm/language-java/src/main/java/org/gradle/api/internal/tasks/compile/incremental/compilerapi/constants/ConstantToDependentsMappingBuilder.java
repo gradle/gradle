@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
+import org.gradle.internal.collect.PersistentSet;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -66,7 +67,7 @@ public class ConstantToDependentsMappingBuilder implements Serializable {
         for (String constantOrigin : Iterables.concat(privateDependents.keySet(), accessibleDependents.keySet())) {
             Set<String> privateDependents = this.privateDependents.getOrDefault(constantOrigin, Collections.emptySet());
             Set<String> accessibleDependents = this.accessibleDependents.getOrDefault(constantOrigin, Collections.emptySet());
-            constantDependents.put(constantOrigin, DependentsSet.dependentClasses(privateDependents, accessibleDependents));
+            constantDependents.put(constantOrigin, DependentsSet.dependentClasses(PersistentSet.copyOf(privateDependents), PersistentSet.copyOf(accessibleDependents)));
         }
         return new ConstantToDependentsMapping(constantDependents);
     }
