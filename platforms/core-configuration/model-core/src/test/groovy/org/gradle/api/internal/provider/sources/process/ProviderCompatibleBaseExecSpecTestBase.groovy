@@ -30,7 +30,7 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
 
     ProviderCompatibleBaseExecSpec specUnderTest
 
-    void setup() {
+    def setup() {
         specUnderTest = createSpecUnderTest()
     }
 

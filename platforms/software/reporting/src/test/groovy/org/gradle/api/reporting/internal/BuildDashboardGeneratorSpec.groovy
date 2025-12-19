@@ -34,7 +34,7 @@ class BuildDashboardGeneratorSpec extends Specification {
     File outputFile
     BuildDashboardGenerator generator = new BuildDashboardGenerator()
 
-    void setup() {
+    def setup() {
         outputFile = tmpDir.file('output.html')
     }
 

@@ -51,7 +51,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         return fileTree
     }
 
-    void setup() {
+    def setup() {
         fileTree = new DefaultConfigurableFileTree(fileResolverStub, listener, TestFiles.patternSetFactory, taskDependencyFactory, directoryFileTreeFactory())
         fileTree.from(testDir)
     }

@@ -29,7 +29,7 @@ class ContextClassLoaderDispatchTest extends Specification {
         original = Thread.currentThread().contextClassLoader
     }
 
-    public void cleanup() {
+    def cleanup() {
         Thread.currentThread().contextClassLoader = original
     }
 

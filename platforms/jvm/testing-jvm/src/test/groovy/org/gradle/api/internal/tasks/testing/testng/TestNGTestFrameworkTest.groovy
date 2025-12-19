@@ -30,7 +30,7 @@ class TestNGTestFrameworkTest extends Specification {
     private ProjectInternal project = ProjectBuilder.builder().build() as ProjectInternal
     private Test testTask = TestUtil.createTask(Test, project)
 
-    void setup() {
+    def setup() {
         project.ext.sourceCompatibility = "1.7"
     }
 

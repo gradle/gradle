@@ -53,7 +53,7 @@ class DefaultSourceDirectorySetTest extends Specification {
     private PatternSetFactory patternSetFactory = TestFiles.patternSetFactory
     private DefaultSourceDirectorySet set
 
-    void setup() {
+    def setup() {
         set = new DefaultSourceDirectorySet('files', '<display-name>', patternSetFactory, taskDependencyFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory)
     }
 

@@ -46,7 +46,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
     final RuntimeException failure1 = new RuntimeException()
     final RuntimeException failure2 = new RuntimeException()
 
-    void setup() {
+    def setup() {
         project.getProjectEvaluationBroadcaster() >> listener
         project.displayName >> "<project>"
         project.gradle >> gradle

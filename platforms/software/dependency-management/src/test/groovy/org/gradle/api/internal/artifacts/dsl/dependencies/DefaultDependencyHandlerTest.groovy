@@ -61,7 +61,7 @@ class DefaultDependencyHandlerTest extends Specification {
         configurationContainer, dependencyFactory, projectFinder, Stub(DependencyConstraintHandler), Stub(ComponentMetadataHandler), Stub(ComponentModuleMetadataHandler), Stub(ArtifactResolutionQueryFactory),
         Stub(AttributesSchema), Stub(VariantTransformRegistry), Stub(ArtifactTypeRegistry), TestUtil.objectFactory(), DependencyManagementTestUtil.platformSupport())
 
-    void setup() {
+    def setup() {
         _ * configurationContainer.findByName(TEST_CONF_NAME) >> configuration
         _ * configurationContainer.getByName(TEST_CONF_NAME) >> configuration
         _ * configurationContainer.getByName(UNKNOWN_TEST_CONF_NAME) >> { throw new UnknownDomainObjectException("") }

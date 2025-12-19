@@ -37,7 +37,7 @@ abstract class AbstractCacheReuseCrossVersionIntegrationTest extends CrossVersio
      *  1. Make sure DefaultGradleDistribution.getArtifactCacheLayoutVersion settings are correct
      *  2. Think about improving this test so that we don't have to manually fix things ;)
      */
-    void setup() {
+    def setup() {
         assert DefaultArtifactCacheMetadata.CACHE_LAYOUT_VERSION == new UnderDevelopmentGradleDistribution().artifactCacheLayoutVersion
         requireOwnGradleUserHomeDir()
         server.start()
