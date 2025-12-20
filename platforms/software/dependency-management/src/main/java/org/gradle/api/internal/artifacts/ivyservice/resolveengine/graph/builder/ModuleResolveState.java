@@ -409,7 +409,7 @@ public class ModuleResolveState implements CandidateModule {
             pendingDependencies.decreaseHardEdgeCount();
             if (pendingDependencies.isPending()) {
                 // We are back to pending, since we no longer have any hard edges targeting us.
-                // All incoming constraint edges must now be removed.
+                // All incoming constraint edges must now be removed, as we are no longer part of the graph.
                 clearIncomingAttachedConstraints(removalSource);
                 clearIncomingUnattachedConstraints(removalSource);
             }
@@ -419,23 +419,33 @@ public class ModuleResolveState implements CandidateModule {
     private void clearIncomingAttachedConstraints(NodeState removalSource) {
         if (selected != null) {
             for (NodeState node : selected.getNodes()) {
-                node.clearIncomingConstraints(pendingDependencies, removalSource);
+                List<EdgeState> removedEdges = node.removeAllIncomingEdges();
+                for (EdgeState incomingEdge : removedEdges) {
+                    disconnectIncomingConstraint(removalSource, incomingEdge);
+                }
             }
         }
     }
 
     private void clearIncomingUnattachedConstraints(NodeState removalSource) {
         for (EdgeState unattachedEdge : unattachedEdges) {
-            assert unattachedEdge.getDependencyMetadata().isConstraint();
-            NodeState from = unattachedEdge.getFrom();
-            if (from != removalSource) {
-                // Only remove edges that come from a different node than the source of the dependency
-                // going back to pending. The edges from the "From" will be removed first.
-                from.removeOutgoingEdge(unattachedEdge);
-            }
-            pendingDependencies.registerConstraintProvider(from);
+            disconnectIncomingConstraint(removalSource, unattachedEdge);
+            unattachedEdge.markAttached();
         }
         unattachedEdges.clear();
+    }
+
+    private void disconnectIncomingConstraint(NodeState removalSource, EdgeState incomingEdge) {
+        // Since we are back to pending, any edges targeting this module must be a constraint.
+        assert incomingEdge.getDependencyMetadata().isConstraint();
+
+        NodeState from = incomingEdge.getFrom();
+        if (from != removalSource) {
+            // Only remove edges that come from a different node than the source of the dependency going
+            // back to pending. The source of the removal is already removing outgoing edges from itself.
+            from.removeOutgoingEdge(incomingEdge);
+        }
+        pendingDependencies.registerConstraintProvider(from);
     }
 
     boolean isPending() {

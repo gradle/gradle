@@ -92,7 +92,7 @@ public class NodeState implements DependencyGraphNode {
     // In opposite to outgoing edges, virtual edges are for now pretty rare, so they are created lazily
     private @Nullable List<EdgeState> virtualEdges;
     private boolean queued;
-    private boolean evicted;
+    private @Nullable NodeState replacement;
     private int transitiveEdgeCount;
     private @Nullable Set<ModuleIdentifier> upcomingNoLongerPendingConstraints;
 
@@ -648,13 +648,13 @@ public class NodeState implements DependencyGraphNode {
 
     void addIncomingEdge(EdgeState dependencyEdge) {
         if (!incomingEdges.contains(dependencyEdge)) {
+            cachedModuleResolutionFilter = null;
             incomingEdges.add(dependencyEdge);
             incomingHash += dependencyEdge.hashCode();
             if (dependencyEdge.isTransitive()) {
                 transitiveEdgeCount++;
             }
             requeueChildrenOfEndorsingParent(dependencyEdge);
-            cachedModuleResolutionFilter = null;
 
             if (incomingEdges.size() == 1) {
                 updateAncestorsStrictVersions(getStrictVersionsForEdge(dependencyEdge));
@@ -668,15 +668,41 @@ public class NodeState implements DependencyGraphNode {
 
     void removeIncomingEdge(EdgeState dependencyEdge) {
         if (incomingEdges.remove(dependencyEdge)) {
+            cachedModuleResolutionFilter = null;
             incomingHash -= dependencyEdge.hashCode();
             if (dependencyEdge.isTransitive()) {
                 transitiveEdgeCount--;
             }
             requeueChildrenOfEndorsingParent(dependencyEdge);
-            cachedModuleResolutionFilter = null;
             recomputeAncestorsStrictVersions();
             resolveState.onFewerSelected(this);
         }
+    }
+
+    /**
+     * Removes all incoming edges targeting this node. This is faster than individually
+     * calling {@link #removeIncomingEdge(EdgeState)} for each incoming edge.
+     *
+     * @return All removed incoming edges.
+     */
+    List<EdgeState> removeAllIncomingEdges() {
+        if (incomingEdges.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<EdgeState> removedEdges = ImmutableList.copyOf(incomingEdges);
+        incomingEdges.clear();
+        cachedModuleResolutionFilter = null;
+        incomingHash = 0;
+        transitiveEdgeCount = 0;
+
+        for (EdgeState incomingEdge : removedEdges) {
+            requeueChildrenOfEndorsingParent(incomingEdge);
+        }
+        updateAncestorsStrictVersions(StrictVersionConstraints.EMPTY);
+        resolveState.onFewerSelected(this);
+
+        return removedEdges;
     }
 
     /**
@@ -710,8 +736,23 @@ public class NodeState implements DependencyGraphNode {
         return !incomingEdges.isEmpty();
     }
 
-    public void evict() {
-        evicted = true;
+    /**
+     * Mark this node as being evicted by another node in the same component,
+     * after these two nodes entered a capability conflict and the conflict
+     * was resolved with the given node as the winner and this node as a loser.
+     */
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    public void replaceWith(@Nullable NodeState replacement) {
+        assert replacement == null || replacement.getComponent() == getComponent();
+        this.replacement = replacement;
+    }
+
+    /**
+     * The node in the same component as this node, that won against this node
+     * during capability conflict resolution, if any.
+     */
+    public @Nullable NodeState getReplacement() {
+        return replacement;
     }
 
     boolean shouldIncludedInGraphResult() {
@@ -1121,42 +1162,39 @@ public class NodeState implements DependencyGraphNode {
         outgoingEdge.getSelector().getTargetModule().disconnectIncomingEdge(this, outgoingEdge);
     }
 
+    /**
+     * Called for each participant of a conflict after the conflict was resolved.
+     */
     @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public void restart(ComponentState selected) {
-        // Restarting this configuration after conflict resolution.
-        // If this configuration belongs to the select version, queue ourselves up for traversal.
-        // If not, then remove our incoming edges, which triggers them to be moved across to the selected configuration
-        if (component == selected) {
-            if (!evicted) {
-                resolveState.onMoreSelected(this);
-                return;
-            }
-        }
-        if (!incomingEdges.isEmpty()) {
+        if (component == selected && replacement == null) {
+            // We are in the selected component and are not replaced by another node in our own component.
+            // We are the winning node. Queue ourselves up for traversal.
+            resolveState.onMoreSelected(this);
+        } else {
+            // We are the losing node. Retarget all incoming edges so they are attached to their correct nodes.
             restartIncomingEdges();
         }
     }
 
+    /**
+     * Called on losing nodes after conflict resolution to retarget their existing incoming
+     * edges to the winning node. This method must be called after any relevant state is updated
+     * so that retargeting chooses the correct new target node.
+     */
     private void restartIncomingEdges() {
         if (incomingEdges.size() == 1) {
             EdgeState singleEdge = incomingEdges.get(0);
             singleEdge.retarget();
-        } else {
+        } else if (incomingEdges.size() > 1){
             for (EdgeState edge : new ArrayList<>(incomingEdges)) {
                 edge.retarget();
             }
         }
-        // TODO: Restarting incoming edges should ensure they are pointing to the correct node.
-        // If they end up pointing to us after restart, we should not remove them.
-        clearIncomingEdges();
-    }
 
-    private void clearIncomingEdges() {
-        incomingEdges.clear();
-        incomingHash = 0;
-        transitiveEdgeCount = 0;
-        cachedModuleResolutionFilter = null;
-        recomputeAncestorsStrictVersions();
+        // This method is called on a node that fails conflict resolution. If, after retargeting,
+        // we still have incoming edges, something went wrong.
+        assert incomingEdges.isEmpty();
     }
 
     public void deselect() {
@@ -1176,29 +1214,6 @@ public class NodeState implements DependencyGraphNode {
         assert component.getModule().isVirtualPlatform();
         virtualPlatformNeedsRefresh = true;
         resolveState.onFewerSelected(this);
-    }
-
-    /**
-     * Invoked when this node is back to being a pending dependency.
-     * There may be some incoming edges left at that point, but they must all be coming from constraints.
-     */
-    public void clearIncomingConstraints(PendingDependencies pendingDependencies, NodeState backToPendingSource) {
-        if (incomingEdges.isEmpty()) {
-            return;
-        }
-        // Cleaning has to be done on a copied collection because of the recompute happening on selector removal
-        List<EdgeState> remainingIncomingEdges = ImmutableList.copyOf(incomingEdges);
-        clearIncomingEdges();
-        for (EdgeState incomingEdge : remainingIncomingEdges) {
-            assert incomingEdge.isConstraint();
-            NodeState from = incomingEdge.getFrom();
-            if (from != backToPendingSource) {
-                // Only remove edges that come from a different node than the source of the dependency going back to pending
-                // The edges from the "From" will be removed first
-                from.removeOutgoingEdge(incomingEdge);
-            }
-            pendingDependencies.registerConstraintProvider(from);
-        }
     }
 
     void removeOutgoingEdge(EdgeState edge) {
