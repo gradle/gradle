@@ -31,6 +31,7 @@ import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.domain.JavaWildcardType;
 import com.tngtech.archunit.core.domain.PackageMatchers;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
@@ -56,6 +57,9 @@ import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -323,12 +327,8 @@ public interface ArchUnitFixture {
         return new AnnotatedMaybeInSupertypePredicate(predicate);
     }
 
-    static ArchCondition<JavaClass> beAnnotatedOrInPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
-        return ArchConditions.be(annotatedOrInPackageAnnotatedWith(annotationType));
-    }
-
     static ArchCondition<JavaClass> beNullMarkedClass() {
-        return beAnnotatedOrInPackageAnnotatedWith(NullMarked.class).and(not(beAnnotatedWith(NullUnmarked.class)));
+        return ArchConditions.be(annotatedWithOrEnclosedByElementAnnotatedWith(NullMarked.class)).and(not(beAnnotatedWith(NullUnmarked.class)));
     }
 
     static ArchCondition<JavaMethod> beNullUnmarkedMethod() {
@@ -340,6 +340,13 @@ public interface ArchUnitFixture {
      */
     static DescribedPredicate<JavaClass> annotatedOrInPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
         return new AnnotatedOrInPackageAnnotatedPredicate(annotationType);
+    }
+
+    /**
+     * Either the class is directly annotated with the given annotation type or the class is in an element that is annotated with the given annotation type.
+     */
+    static DescribedPredicate<JavaClass> annotatedWithOrEnclosedByElementAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return new AnnotatedOrEnclosedByElementAnnotatedPredicate(annotationType);
     }
 
     class HaveGradleTypeEquivalent extends ArchCondition<JavaMethod> {
@@ -580,6 +587,75 @@ public interface ArchUnitFixture {
                 // Fall back to ArchUnit query
                 return input.isAnnotatedWith(annotationType) || input.getPackage().isAnnotatedWith(annotationType);
             }
+        }
+    }
+
+    class AnnotatedOrEnclosedByElementAnnotatedPredicate extends DescribedPredicate<JavaClass> {
+        private final Class<? extends Annotation> annotationType;
+
+        AnnotatedOrEnclosedByElementAnnotatedPredicate(Class<? extends Annotation> annotationType) {
+            super("annotated (directly or via its package) with @" + annotationType.getName());
+            this.annotationType = annotationType;
+        }
+
+        @Override
+        public boolean test(JavaClass input) {
+            try {
+                // Try to use reflection in order to find `TYPE_USE` annotations
+                // See https://github.com/TNG/ArchUnit/issues/1382
+                Class<?> clazz = input.reflect();
+                return isAnnotatedOrEnclosedByElementAnnotated(clazz);
+            } catch (NoClassDefFoundError e) {
+                // Fall back to ArchUnit query
+                return isAnnotatedOrEnclosedByElementAnnotated(input);
+            }
+        }
+
+        private boolean isAnnotatedOrEnclosedByElementAnnotated(AnnotatedElement annotated) {
+            if (annotated.isAnnotationPresent(annotationType)) {
+                return true;
+            }
+            if (annotated instanceof Class<?> clazz) {
+                Class<?> enclosingClass = clazz.getEnclosingClass();
+                if (enclosingClass != null) {
+                    return isAnnotatedOrEnclosedByElementAnnotated(enclosingClass);
+                }
+                Method enclosingMethod = clazz.getEnclosingMethod();
+                if (enclosingMethod != null) {
+                    return isAnnotatedOrEnclosedByElementAnnotated(enclosingMethod);
+                }
+                Constructor<?> enclosingConstructor = clazz.getEnclosingConstructor();
+                if (enclosingConstructor != null) {
+                    return isAnnotatedOrEnclosedByElementAnnotated(enclosingConstructor);
+                }
+                Package pkg = clazz.getPackage();
+                if (pkg != null) {
+                    return isAnnotatedOrEnclosedByElementAnnotated(pkg);
+                }
+            }
+            if (annotated instanceof Member member) {
+                return isAnnotatedOrEnclosedByElementAnnotated(member.getDeclaringClass());
+            }
+            return false;
+        }
+
+        private boolean isAnnotatedOrEnclosedByElementAnnotated(CanBeAnnotated annotated) {
+            if (annotated.isAnnotatedWith(annotationType)) {
+                return true;
+            }
+            if (annotated instanceof JavaClass javaClass) {
+                if (javaClass.getEnclosingClass().isPresent()) {
+                    return test(javaClass.getEnclosingClass().get());
+                }
+                if (javaClass.getEnclosingCodeUnit().isPresent()) {
+                    return isAnnotatedOrEnclosedByElementAnnotated(javaClass.getEnclosingCodeUnit().get());
+                }
+                return isAnnotatedOrEnclosedByElementAnnotated(javaClass.getPackage());
+            }
+            if (annotated instanceof JavaMember javaMember) {
+                return test(javaMember.getOwner());
+            }
+            return false;
         }
     }
 

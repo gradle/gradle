@@ -23,6 +23,7 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.conditions.ArchConditions;
 import org.gradlebuild.AbstractClass;
 import org.gradlebuild.AllowedMethodTypesClass;
 import org.gradlebuild.ConcreteClass;
@@ -144,7 +145,7 @@ public class ArchUnitFixtureTest {
 
     @Test
     public void checks_for_annotation_presence() {
-        ArchCondition<JavaClass> condition = ArchUnitFixture.beAnnotatedOrInPackageAnnotatedWith(NullMarked.class);
+        ArchCondition<JavaClass> condition = ArchConditions.be(ArchUnitFixture.annotatedOrInPackageAnnotatedWith(NullMarked.class));
         assertNoViolation(checkClassCondition(condition, NullMarkedApiType.class));
         ConditionEvent event = checkClassCondition(condition, NotNullMarkedApiType.class);
         assertTrue(event.isViolation());
@@ -157,6 +158,8 @@ public class ArchUnitFixtureTest {
         ArchCondition<JavaClass> condition = ArchUnitFixture.beNullMarkedClass();
 
         assertNoViolation(checkClassCondition(condition, NullMarkedApiType.class));
+        assertNoViolation(checkClassCondition(condition, NullMarkedApiType.NestedApiType.class));
+        assertNoViolation(checkClassCondition(condition, NotNullMarkedApiType.NullMarkedNestedApiType.class));
 
         ConditionEvent notMarkedEvent = checkClassCondition(condition, NotNullMarkedApiType.class);
         assertTrue(notMarkedEvent.isViolation());
