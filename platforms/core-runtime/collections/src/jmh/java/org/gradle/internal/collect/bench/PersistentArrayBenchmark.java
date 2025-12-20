@@ -127,6 +127,11 @@ public class PersistentArrayBenchmark {
     }
 
     @Benchmark
+    public void forEach(Blackhole blackhole) {
+        protocol.iterable(array).forEach(blackhole::consume);
+    }
+
+    @Benchmark
     public void iterationByIndex(Blackhole blackhole) {
         for (int i = present.size() - 1; i >= 0; i--) {
             blackhole.consume(protocol.get(array, i));
