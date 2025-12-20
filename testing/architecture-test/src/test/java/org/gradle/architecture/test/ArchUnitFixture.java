@@ -594,7 +594,7 @@ public interface ArchUnitFixture {
         private final Class<? extends Annotation> annotationType;
 
         AnnotatedOrEnclosedByElementAnnotatedPredicate(Class<? extends Annotation> annotationType) {
-            super("annotated (directly or via its package) with @" + annotationType.getName());
+            super("annotated (directly or via an enclosing element) with @" + annotationType.getName());
             this.annotationType = annotationType;
         }
 

@@ -164,7 +164,7 @@ public class ArchUnitFixtureTest {
         ConditionEvent notMarkedEvent = checkClassCondition(condition, NotNullMarkedApiType.class);
         assertTrue(notMarkedEvent.isViolation());
         assertThat(eventDescription(notMarkedEvent))
-            .startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NotNullMarkedApiType> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked");
+            .startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NotNullMarkedApiType> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked");
 
         ConditionEvent unmarkedEvent = checkClassCondition(condition, NullUnmarkedApiType.class);
         assertTrue(unmarkedEvent.isViolation());
