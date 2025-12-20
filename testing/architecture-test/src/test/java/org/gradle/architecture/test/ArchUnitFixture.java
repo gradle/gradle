@@ -82,6 +82,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyP
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideOutsideOfPackages;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
@@ -331,6 +332,20 @@ public interface ArchUnitFixture {
         return ArchConditions.be(annotatedWithOrEnclosedByElementAnnotatedWith(NullMarked.class)).and(not(beAnnotatedWith(NullUnmarked.class)));
     }
 
+    static ArchCondition<JavaClass> notBeUnnecessarilyAnnotatedWithNullMarked() {
+        // We can't forbid @NullMarked on top-level classes that are in a @NullMarked package yet
+        // because some of our split packages are not consistently annotated across subprojects.
+        DescribedPredicate<JavaClass> notEnclosedByNullMarkedExceptPackages =
+            inPackageAnnotatedWith(NullMarked.class).or(not(enclosedByElementAnnotatedWith(NullMarked.class)));
+        DescribedPredicate<JavaClass> notUnnecessarilyAnnotatedWithNullMarked =
+            notEnclosedByNullMarkedExceptPackages.or(not(annotatedWith(NullMarked.class)));
+        return ArchConditions.be(notUnnecessarilyAnnotatedWithNullMarked)
+            .as("not be unnecessarily annotated with @" + NullMarked.class.getName())
+            .describeEventsBy((predicateDescription, satisfied) ->
+                (satisfied ? "is not " : "is ") + "unnecessarily annotated with @" + NullMarked.class.getName()
+            );
+    }
+
     static ArchCondition<JavaMethod> beNullUnmarkedMethod() {
         return beAnnotatedWith(NullUnmarked.class);
     }
@@ -347,6 +362,20 @@ public interface ArchUnitFixture {
      */
     static DescribedPredicate<JavaClass> annotatedWithOrEnclosedByElementAnnotatedWith(Class<? extends Annotation> annotationType) {
         return new AnnotatedOrEnclosedByElementAnnotatedPredicate(annotationType);
+    }
+
+    /**
+     * The class is in an element that is annotated with the given annotation type.
+     */
+    static DescribedPredicate<JavaClass> enclosedByElementAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return new EnclosedByElementAnnotatedPredicate(annotationType);
+    }
+
+    /**
+     * The class is in an element that is annotated with the given annotation type.
+     */
+    static DescribedPredicate<JavaClass> inPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return new InPackageAnnotatedPredicate(annotationType);
     }
 
     class HaveGradleTypeEquivalent extends ArchCondition<JavaMethod> {
@@ -568,6 +597,20 @@ public interface ArchUnitFixture {
         }
     }
 
+    class InPackageAnnotatedPredicate extends DescribedPredicate<JavaClass> {
+        private final Class<? extends Annotation> annotationType;
+
+        InPackageAnnotatedPredicate(Class<? extends Annotation> annotationType) {
+            super("annotated via its package with @" + annotationType.getName());
+            this.annotationType = annotationType;
+        }
+
+        @Override
+        public boolean test(JavaClass input) {
+            return input.getPackage().isAnnotatedWith(annotationType);
+        }
+    }
+
     class AnnotatedOrInPackageAnnotatedPredicate extends DescribedPredicate<JavaClass> {
         private final Class<? extends Annotation> annotationType;
 
@@ -586,6 +629,28 @@ public interface ArchUnitFixture {
             } catch (NoClassDefFoundError e) {
                 // Fall back to ArchUnit query
                 return input.isAnnotatedWith(annotationType) || input.getPackage().isAnnotatedWith(annotationType);
+            }
+        }
+    }
+
+    class EnclosedByElementAnnotatedPredicate extends DescribedPredicate<JavaClass> {
+        private final AnnotatedOrEnclosedByElementAnnotatedPredicate delegate;
+
+        EnclosedByElementAnnotatedPredicate(Class<? extends Annotation> annotationType) {
+            super("annotated via an enclosing element with @" + annotationType.getName());
+            this.delegate = new AnnotatedOrEnclosedByElementAnnotatedPredicate(annotationType);
+        }
+
+        @Override
+        public boolean test(JavaClass input) {
+            try {
+                // Try to use reflection in order to find `TYPE_USE` annotations
+                // See https://github.com/TNG/ArchUnit/issues/1382
+                Class<?> clazz = input.reflect();
+                return delegate.isEnclosedByElementAnnotated(clazz);
+            } catch (NoClassDefFoundError e) {
+                // Fall back to ArchUnit query
+                return delegate.isEnclosedByElementAnnotated(input);
             }
         }
     }
@@ -615,6 +680,10 @@ public interface ArchUnitFixture {
             if (annotated.isAnnotationPresent(annotationType)) {
                 return true;
             }
+            return isEnclosedByElementAnnotated(annotated);
+        }
+
+        private boolean isEnclosedByElementAnnotated(AnnotatedElement annotated) {
             if (annotated instanceof Class<?> clazz) {
                 Class<?> enclosingClass = clazz.getEnclosingClass();
                 if (enclosingClass != null) {
@@ -643,6 +712,10 @@ public interface ArchUnitFixture {
             if (annotated.isAnnotatedWith(annotationType)) {
                 return true;
             }
+            return isEnclosedByElementAnnotated(annotated);
+        }
+
+        private boolean isEnclosedByElementAnnotated(CanBeAnnotated annotated) {
             if (annotated instanceof JavaClass javaClass) {
                 if (javaClass.getEnclosingClass().isPresent()) {
                     return test(javaClass.getEnclosingClass().get());

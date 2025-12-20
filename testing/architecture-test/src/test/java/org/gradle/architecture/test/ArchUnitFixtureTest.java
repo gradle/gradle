@@ -177,6 +177,19 @@ public class ArchUnitFixtureTest {
             .startsWith("Method <org.gradlebuild.nonnullapi.notinpackage.NullUnmarkedApiMethod.calculateSomeString()> is annotated with @NullUnmarked");
     }
 
+    @Test
+    public void check_for_unnecessary_jspecify_annotations() {
+        ArchCondition<JavaClass> condition = ArchUnitFixture.notBeUnnecessarilyAnnotatedWithNullMarked();
+
+        assertNoViolation(checkClassCondition(condition, NullMarkedApiType.NestedApiType.class));
+        assertNoViolation(checkClassCondition(condition, NotNullMarkedApiType.NullMarkedNestedApiType.class));
+
+        ConditionEvent unnecessarilyMarkedEvent = checkClassCondition(condition, NullMarkedApiType.UnnecessarilyNullMarkedNestedApiType.class);
+        assertTrue(unnecessarilyMarkedEvent.isViolation());
+        assertThat(eventDescription(unnecessarilyMarkedEvent))
+            .startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NullMarkedApiType$UnnecessarilyNullMarkedNestedApiType> is unnecessarily annotated with @org.jspecify.annotations.NullMarked");
+    }
+
     private static String eventDescription(ConditionEvent event) {
         return String.join(" ", event.getDescriptionLines());
     }
