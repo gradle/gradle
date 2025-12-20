@@ -62,7 +62,6 @@ final class HashCollisionNode {
         return true;
     }
 
-    @SuppressWarnings("manual_array_contains")
     public boolean contains(Object key, int payload) {
         return indexOf(key, payload) >= 0;
     }

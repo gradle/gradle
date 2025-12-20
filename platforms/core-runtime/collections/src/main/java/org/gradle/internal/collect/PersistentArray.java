@@ -38,7 +38,7 @@ public interface PersistentArray<T> extends Iterable<T> {
     }
 
     /// Returns a new persistent array with the given values or the [empty array][#of] when the given array is empty.
-    @SuppressWarnings("unchecked")
+    @SafeVarargs
     static <T> PersistentArray<T> of(T... values) {
         PersistentArray<T> copy = of();
         for (T value : values) {

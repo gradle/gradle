@@ -46,7 +46,7 @@ public interface PersistentSet<K> extends Iterable<K> {
     }
 
     /// Returns a new persistent set containing the unique keys in the given array or the [empty set][#of] when the given array is empty.
-    @SuppressWarnings("unchecked")
+    @SafeVarargs
     static <K> PersistentSet<K> of(K... keys) {
         PersistentSet<K> copy = of();
         for (K key : keys) {
