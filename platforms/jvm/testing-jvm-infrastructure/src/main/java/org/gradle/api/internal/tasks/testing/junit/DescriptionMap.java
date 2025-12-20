@@ -65,7 +65,6 @@ public final class DescriptionMap<V, DV> {
     /**
      * Given a potentially-wrapped value, provides access to the description and the value.
      */
-    @NullMarked
     public interface DescriptionWitness<V, DV> {
         Description getDescription(DV wrappedValue);
 
@@ -77,7 +76,6 @@ public final class DescriptionMap<V, DV> {
      *
      * @param <V> the value type
      */
-    @NullMarked
     public static final class SimpleValueWrapper<V> {
         private static final DescriptionWitness<Object, SimpleValueWrapper<Object>> WITNESS =
             new DescriptionWitness<Object, SimpleValueWrapper<Object>>() {
