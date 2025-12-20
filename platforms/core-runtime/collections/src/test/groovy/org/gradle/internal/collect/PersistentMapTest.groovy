@@ -262,7 +262,7 @@ class PersistentMapTest extends Specification {
 
     def 'modify puts element'() {
         given:
-        def map = PersistentMap.<Integer, String> of()
+        def original = map
 
         when:
         map = map.modify(42, { k, v ->
@@ -272,7 +272,7 @@ class PersistentMapTest extends Specification {
         })
 
         then:
-        map.size() == 1
+        map.size() == original.size() + 1
         map.get(42) == "42"
 
         when:
@@ -283,7 +283,7 @@ class PersistentMapTest extends Specification {
         })
 
         then:
-        map.size() == 1
+        map.size() == original.size() + 1
         map.get(42) == "*42"
 
         when:
@@ -294,7 +294,7 @@ class PersistentMapTest extends Specification {
         })
 
         then:
-        map.size() == 2
+        map.size() == original.size() + 2
         map.get(42) == "*42"
         map.get(37) == "37"
 
@@ -310,9 +310,15 @@ class PersistentMapTest extends Specification {
         })
 
         then:
-        map.size() == 2
+        map.size() == original.size() + 2
         map.get(42) == "**42"
         map.get(37) == "*37"
+
+        where:
+        map                                                          | _
+        PersistentMap.<Integer, String> of()                         | _
+        PersistentMap.<Integer, String> of(1, "one")                 | _
+        PersistentMap.<Integer, String> of(1, "one").assoc(2, "two") | _
     }
 
     def 'modify removes element when function returns null'() {

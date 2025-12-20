@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 
 @Fork(1)
 @Warmup(iterations = 3)
@@ -106,6 +107,34 @@ public class PersistentMapBenchmark {
         for (Object key : protocol.iterable(map)) {
             blackhole.consume(key);
         }
+    }
+
+    @Benchmark
+    public void modifyAbsentCustom(Blackhole blackhole) {
+        Object key = fixture.randomAbsent();
+        blackhole.consume(customModify(key, (k, v) -> v + "*"));
+    }
+
+    @Benchmark
+    public void modifyPresentCustom(Blackhole blackhole) {
+        Object key = fixture.randomPresent();
+        blackhole.consume(customModify(key, (k, cur) -> cur + "*"));
+    }
+
+    private Object customModify(Object key, BiFunction<Object, @Nullable Object, ?> f) {
+        return protocol.put(map, key, f.apply(key, protocol.get(map, key)));
+    }
+
+    @Benchmark
+    public void modifyAbsent(Blackhole blackhole) {
+        Object key = fixture.randomAbsent();
+        blackhole.consume(protocol.modify(map, key, (k, cur) -> cur + "*"));
+    }
+
+    @Benchmark
+    public void modifyPresent(Blackhole blackhole) {
+        Object key = fixture.randomPresent();
+        blackhole.consume(protocol.modify(map, key, (k, cur) -> cur + "*"));
     }
 
     @Benchmark
@@ -192,6 +221,10 @@ public class PersistentMapBenchmark {
 
         @Nullable Object get(Object map, Object key);
 
+        default Object modify(Object map, Object key, BiFunction<? super Object, ? super @Nullable Object, ? extends @Nullable Object> function) {
+            throw new UnsupportedOperationException();
+        }
+
         boolean containsKey(Object map, Object key);
 
         @SuppressWarnings("unchecked")
@@ -211,6 +244,11 @@ public class PersistentMapBenchmark {
         @Override
         public Object put(Object map, Object key, Object val) {
             return ((PersistentMap<Object, Object>) map).assoc(key, val);
+        }
+
+        @Override
+        public Object modify(Object map, Object key, BiFunction<? super Object, ? super @Nullable Object, ?> function) {
+            return ((PersistentMap<Object, Object>) map).modify(key, function);
         }
 
         @Override

@@ -56,9 +56,9 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
         entryCannotBeNull(key, value);
 
         int hash = key.hashCode();
-        MutableBoolean replaced = new MutableBoolean(false);
-        ChampNode<K> newRoot = insertInto(root, key, hash, value, 0, replaced);
-        if (replaced.value) {
+        Modification modification = new Modification(Modification.Kind.INSERT);
+        ChampNode<K> newRoot = insertInto(root, key, hash, value, 0, modification);
+        if (modification.kind == Modification.Kind.UPDATE) {
             return new PersistentMapTrie<>(newRoot, size, hashCode);
         }
         if (newRoot == root) {
@@ -67,32 +67,45 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
         return new PersistentMapTrie<>(newRoot, size + 1, hashCode + hash);
     }
 
-    @SuppressWarnings({"unchecked", "ReferenceEquality"})
     @Override
     public PersistentMap<K, V> dissoc(K key) {
         int hash = key.hashCode();
+        return dissoc(key, hash);
+    }
+
+    @SuppressWarnings("ReferenceEquality")
+    @Override
+    public PersistentMap<K, V> modify(K key, BiFunction<? super K, ? super @Nullable V, ? extends @Nullable V> function) {
+        int hash = key.hashCode();
+        Modification modification = new Modification(Modification.Kind.INSERT);
+        ChampNode<K> newRoot = modify(root, key, hash, function, 0, modification);
+        switch (modification.kind) {
+            case UPDATE:
+                return new PersistentMapTrie<>(newRoot, size, hashCode);
+            case REMOVAL:
+                return dissoc(key, hash);
+            default:
+                return newRoot == root
+                    ? this
+                    : new PersistentMapTrie<>(newRoot, size + 1, hashCode + hash);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "ReferenceEquality"})
+    private PersistentMap<K, V> dissoc(K key, int hash) {
         ChampNode<K> newRoot = deleteFrom(root, key, hash, 0, 1);
         if (newRoot == root) {
             return this;
         }
         int newSize = size - 1;
         if (newSize == 1) {
-            // ✅ Collapse to PersistentMap1. This maintains the invariant that
+            // Collapse to PersistentMap1. This maintains the invariant that
             // PersistentMapTrie always has size >= 2, which allows equals() to only
             // compare with other PersistentMapTrie instances.
             Object[] content = newRoot.content;
             return new PersistentMap1<>((K) content[0], (V) content[1]);
         }
         return new PersistentMapTrie<>(newRoot, newSize, hashCode - hash);
-    }
-
-    @Override
-    public PersistentMap<K, V> modify(K key, BiFunction<? super K, ? super @Nullable V, ? extends @Nullable V> function) {
-        // TODO: optimize to single trie traversal
-        V val = function.apply(key, get(key));
-        return val != null
-            ? assoc(key, val)
-            : dissoc(key);
     }
 
     // TODO: remove NullAway suppression
@@ -168,7 +181,7 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
         int hash2 = k2.hashCode();
         ChampNode<K> root;
         if (hash1 != hash2) {
-            root = branchOnKeys(k1, hash1, v1, k2, hash2, v2, 0, new MutableBoolean(false));
+            root = branchOnKeys(k1, hash1, v1, k2, hash2, v2, 0, new Modification(Modification.Kind.INSERT));
         } else {
             root = new ChampNode<>(
                 0,
@@ -184,15 +197,24 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
      *
      * @return the same node in case the entry is already present in the trie, otherwise a new trie including the given entry.
      */
-    private static <K, V> ChampNode<K> insertInto(ChampNode<K> trie, K key, int hash, V val, int shift, MutableBoolean replaced) {
+    private static <K, V> ChampNode<K> insertInto(ChampNode<K> trie, K key, int hash, V val, int shift, Modification modification) {
         assert shift < 32;
         int mask = mask(hash, shift);
         int bit = 1 << mask;
-        return insertInto(trie, key, hash, mask, bit, val, shift, replaced);
+        return insertInto(trie, key, hash, mask, bit, val, shift, modification);
     }
 
     @SuppressWarnings({"ReferenceEquality", "unchecked"})
-    private static <K, V> ChampNode<K> insertInto(ChampNode<K> trie, K key, int hash, int mask, int bit, V val, int shift, MutableBoolean replaced) {
+    private static <K, V> ChampNode<K> insertInto(
+        ChampNode<K> trie,
+        K key,
+        int hash,
+        int mask,
+        int bit,
+        V val,
+        int shift,
+        Modification modification
+    ) {
 
         int dataMap = trie.dataMap;
         if ((dataMap & bit) == bit) {
@@ -206,14 +228,14 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
                     // Entry already exists
                     return trie;
                 }
-                replaced.value = true;
+                modification.kind = Modification.Kind.UPDATE;
                 return trie.replaceContentAt(valIndex, val);
             }
             int dataHash = data.hashCode();
             Object dataVal = content[keyIndex + 1];
             Object newNode = dataHash == hash
                 ? new HashCollisionNode(hash, new Object[]{data, dataVal, key, val})
-                : branchOnKeys(key, hash, val, data, dataHash, dataVal, shift + BITS, replaced);
+                : branchOnKeys(key, hash, val, data, dataHash, dataVal, shift + BITS, modification);
             return trie.replaceDataWithNode(keyIndex, mask, bit, newNode, 1);
         }
 
@@ -225,7 +247,7 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
 
             if (node instanceof ChampNode<?>) {
                 ChampNode<K> champNode = (ChampNode<K>) node;
-                ChampNode<K> newNode = insertInto(champNode, key, hash, val, shift + BITS, replaced);
+                ChampNode<K> newNode = insertInto(champNode, key, hash, val, shift + BITS, modification);
                 if (newNode == champNode) {
                     // Entry already exists
                     return trie;
@@ -235,7 +257,7 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
 
             HashCollisionNode collision = (HashCollisionNode) node;
             if (collision.hash == hash) {
-                HashCollisionNode newCollision = collision.put(key, val, replaced);
+                HashCollisionNode newCollision = collision.put(key, val, modification);
                 if (collision == newCollision) {
                     // Entry already exists
                     return trie;
@@ -243,7 +265,7 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
                 return trie.replaceContentAt(index, newCollision);
             }
 
-            ChampNode<K> newNode = branchOnCollision(collision, key, hash, val, shift + BITS, replaced);
+            ChampNode<K> newNode = branchOnCollision(collision, key, hash, val, shift + BITS, modification);
             return trie.replaceContentAt(index, newNode);
         }
 
@@ -253,7 +275,7 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
         return new ChampNode<>(newDataMap, nodeMap, newContent);
     }
 
-    private static <K, V> ChampNode<K> branchOnKeys(K k1, int hash1, V v1, K k2, int hash2, V v2, int shift, MutableBoolean replaced) {
+    private static <K, V> ChampNode<K> branchOnKeys(K k1, int hash1, V v1, K k2, int hash2, V v2, int shift, Modification modification) {
         int mask1 = mask(hash1, shift);
         int bit1 = 1 << mask1;
         int mask2 = mask(hash2, shift);
@@ -265,10 +287,10 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
                 mask1 > mask2 ? new Object[]{k2, v2, k1, v1} : new Object[]{k1, v1, k2, v2}
             );
         }
-        return insertInto(new ChampNode<>(bit1, 0, new Object[]{k1, v1}), k2, hash2, mask2, bit2, v2, shift, replaced);
+        return insertInto(new ChampNode<>(bit1, 0, new Object[]{k1, v1}), k2, hash2, mask2, bit2, v2, shift, modification);
     }
 
-    private static <K, V> ChampNode<K> branchOnCollision(HashCollisionNode collision, K key, int hash, V val, int shift, MutableBoolean replaced) {
+    private static <K, V> ChampNode<K> branchOnCollision(HashCollisionNode collision, K key, int hash, V val, int shift, Modification modification) {
         int keyMask = mask(hash, shift);
         int keyBit = 1 << keyMask;
         int collisionMask = mask(collision.hash, shift);
@@ -277,7 +299,125 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
             return new ChampNode<>(keyBit, collisionBit, new Object[]{key, val, collision});
         }
         ChampNode<K> node = new ChampNode<>(0, collisionBit, new Object[]{collision});
-        return insertInto(node, key, hash, keyMask, keyBit, val, shift, replaced);
+        return insertInto(node, key, hash, keyMask, keyBit, val, shift, modification);
+    }
+
+    /**
+     * Modifies a key/value pair in the given trie.
+     *
+     * @return the same node in case the entry is already present in the trie, or if it's being removed, otherwise a new trie including the given entry.
+     */
+    private static <K, V> ChampNode<K> modify(
+        ChampNode<K> trie,
+        K key,
+        int hash,
+        BiFunction<? super K, ? super @Nullable V, ? extends @Nullable V> f,
+        int shift,
+        Modification modification
+    ) {
+        assert shift < 32;
+        int mask = mask(hash, shift);
+        int bit = 1 << mask;
+        return modify(trie, key, hash, mask, bit, f, shift, modification);
+    }
+
+    @SuppressWarnings({"ReferenceEquality", "unchecked"})
+    private static <K, V> ChampNode<K> modify(
+        ChampNode<K> trie,
+        K key,
+        int hash,
+        int mask,
+        int bit,
+        BiFunction<? super K, ? super @Nullable V, ? extends @Nullable V> f,
+        int shift,
+        Modification modification
+    ) {
+
+        int dataMap = trie.dataMap;
+        if ((dataMap & bit) == bit) {
+            int index = index(dataMap, mask, bit);
+            int keyIndex = index << 1;
+            Object[] content = trie.content;
+            Object data = content[keyIndex];
+            if (data == key || data.equals(key)) {
+                int valIndex = keyIndex + 1;
+                Object curVal = content[valIndex];
+                Object newVal = f.apply(key, (V) curVal);
+                if (newVal != null) {
+                    if (curVal == newVal || curVal.equals(newVal)) {
+                        // Entry already exists
+                        return trie;
+                    }
+                    modification.kind = Modification.Kind.UPDATE;
+                    return trie.replaceContentAt(valIndex, newVal);
+                } else {
+                    modification.kind = Modification.Kind.REMOVAL;
+                    return trie;
+                }
+            } else {
+                // Entry does not exist
+                int dataHash = data.hashCode();
+                Object curVal = content[keyIndex + 1];
+                V newVal = f.apply(key, (V) curVal);
+                if (newVal != null) {
+                    Object newNode = dataHash == hash
+                        ? new HashCollisionNode(hash, new Object[]{data, curVal, key, newVal})
+                        : branchOnKeys(key, hash, newVal, data, dataHash, curVal, shift + BITS, modification);
+                    return trie.replaceDataWithNode(keyIndex, mask, bit, newNode, 1);
+                } else {
+                    return trie;
+                }
+            }
+        }
+
+        int nodeMap = trie.nodeMap;
+        if ((nodeMap & bit) == bit) {
+            Object[] content = trie.content;
+            int index = nodeIndex(content, nodeMap, mask, bit);
+            Object node = content[index];
+
+            if (node instanceof ChampNode<?>) {
+                ChampNode<K> champNode = (ChampNode<K>) node;
+                ChampNode<K> newNode = modify(champNode, key, hash, f, shift + BITS, modification);
+                if (newNode != champNode) {
+                    return trie.replaceContentAt(index, newNode);
+                } else {
+                    // Entry already exists
+                    return trie;
+                }
+            }
+
+            HashCollisionNode collision = (HashCollisionNode) node;
+            if (collision.hash != hash) {
+                // Entry does not exist
+                Object newVal = f.apply(key, null);
+                if (newVal != null) {
+                    ChampNode<K> newNode = branchOnCollision(collision, key, hash, newVal, shift + BITS, modification);
+                    return trie.replaceContentAt(index, newNode);
+                } else {
+                    return trie;
+                }
+            } else {
+                HashCollisionNode newCollision = collision.modify(key, f, modification);
+                if (collision != newCollision) {
+                    return trie.replaceContentAt(index, newCollision);
+                } else {
+                    // Entry already exists or it's being removed
+                    return trie;
+                }
+            }
+        } else {
+            // Entry does not exist
+            Object newVal = f.apply(key, null);
+            if (newVal != null) {
+                int newDataMap = dataMap | bit;
+                int newIndex = index(newDataMap, mask, bit);
+                Object[] newContent = ArrayCopy.insertAt(newIndex << 1, trie.content, key, newVal);
+                return new ChampNode<>(newDataMap, nodeMap, newContent);
+            } else {
+                return trie;
+            }
+        }
     }
 
     private static final class ChampMapIterator<K, V> extends ChampIterator<Map.Entry<K, V>> {
