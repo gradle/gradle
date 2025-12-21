@@ -16,8 +16,11 @@
 
 package org.gradle.internal.collect;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 /// Holds keys (and their respective values when `payload == 1`) that share the same hash code.
 final class HashCollisionNode {
@@ -84,7 +87,7 @@ final class HashCollisionNode {
             : new HashCollisionNode(hash, ArrayCopy.append(content, key));
     }
 
-    public <K> HashCollisionNode put(K key, Object val, MutableBoolean updated) {
+    public <K> HashCollisionNode put(K key, Object val, Modification modification) {
         int index = indexOf(key, 1);
         if (index == -1) {
             return new HashCollisionNode(hash, ArrayCopy.append(content, key, val));
@@ -94,8 +97,36 @@ final class HashCollisionNode {
             // entry already exists
             return this;
         }
-        updated.value = true;
+        modification.kind = Modification.Kind.UPDATE;
         return new HashCollisionNode(hash, ArrayCopy.replaceAt(valIndex, content, val));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <K, V> HashCollisionNode modify(K key, BiFunction<? super K, ? super @Nullable V, ? extends @Nullable V> f, Modification modification) {
+        int index = indexOf(key, 1);
+        if (index == -1) {
+            Object newVal = f.apply(key, null);
+            if (newVal == null) {
+                return this;
+            }
+            return new HashCollisionNode(hash, ArrayCopy.append(content, key, newVal));
+        } else {
+            int valIndex = index + 1;
+            Object curVal = content[valIndex];
+
+            Object newVal = f.apply(key, (V) curVal);
+            if (newVal == null) {
+                modification.kind = Modification.Kind.REMOVAL;
+                return this;
+            }
+
+            if (Objects.equals(curVal, newVal)) {
+                // entry already exists
+                return this;
+            }
+            modification.kind = Modification.Kind.UPDATE;
+            return new HashCollisionNode(hash, ArrayCopy.replaceAt(valIndex, content, newVal));
+        }
     }
 
     public HashCollisionNode removeAt(int keyIndex, int payload) {
@@ -106,5 +137,4 @@ final class HashCollisionNode {
     public String toString() {
         return Arrays.toString(content);
     }
-
 }
