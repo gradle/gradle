@@ -72,4 +72,15 @@ open class CCRoundtripBenchmark {
             )
         )
     }
+
+    @Benchmark
+    fun withZstdCompression(bh: Blackhole) {
+        bh.consume(
+            CCLoadScenarios.readWithZstd(
+                CCLoadScenarios.writeWithZstd(
+                    state
+                )
+            )
+        )
+    }
 }

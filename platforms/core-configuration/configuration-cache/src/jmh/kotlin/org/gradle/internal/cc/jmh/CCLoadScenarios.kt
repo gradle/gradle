@@ -16,8 +16,10 @@
 
 package org.gradle.internal.cc.jmh
 
-import org.mockito.kotlin.mock
+import com.github.luben.zstd.ZstdInputStream
+import com.github.luben.zstd.ZstdOutputStream
 import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream
+import org.mockito.kotlin.mock
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.jmh.CCStoreScenarios.compressorOutputStreamFor
@@ -49,12 +51,14 @@ object CCLoadScenarios {
         val uncompressed: ByteArray,
         val snappy: ByteArray,
         val gzip: ByteArray,
+        val zstd: ByteArray,
     )
 
     fun createState(graph: Any): State = State(
         uncompressed = writeUncompressed(graph),
         snappy = writeWithSnappy(graph),
-        gzip = writeWithGZIP(graph)
+        gzip = writeWithGZIP(graph),
+        zstd = writeWithZstd(graph)
     )
 
     fun writeWithGZIP(graph: Any) =
@@ -80,6 +84,18 @@ object CCLoadScenarios {
 
     fun readWithSnappy(bytes: ByteArray) =
         readFrom(FramedSnappyCompressorInputStream(decrypted(bytes)))
+
+    fun writeWithZstd(graph: Any) =
+        writeToByteArrayWith(graph) {
+            KryoBackedEncoder(
+                ZstdOutputStream(
+                    encrypted(it),
+                )
+            )
+        }
+
+    fun readWithZstd(bytes: ByteArray) =
+        readFrom(ZstdInputStream(decrypted(bytes)))
 
     fun writeUncompressed(graph: Any) =
         writeToByteArrayWith(graph) {

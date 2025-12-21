@@ -19,6 +19,7 @@ package org.gradle.internal.cc.jmh
 import org.gradle.internal.cc.jmh.CCLoadScenarios.readUncompressed
 import org.gradle.internal.cc.jmh.CCLoadScenarios.readWithGZIP
 import org.gradle.internal.cc.jmh.CCLoadScenarios.readWithSnappy
+import org.gradle.internal.cc.jmh.CCLoadScenarios.readWithZstd
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.annotations.Fork
 import org.openjdk.jmh.annotations.Measurement
@@ -58,5 +59,10 @@ open class CCLoadBenchmark {
     @Benchmark
     fun withGZIPCompression(bh: Blackhole) {
         bh.consume(readWithGZIP(state.gzip))
+    }
+
+    @Benchmark
+    fun withZstdCompression(bh: Blackhole) {
+        bh.consume(readWithZstd(state.zstd))
     }
 }

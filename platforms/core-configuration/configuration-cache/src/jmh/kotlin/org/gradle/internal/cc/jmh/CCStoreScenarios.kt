@@ -16,8 +16,9 @@
 
 package org.gradle.internal.cc.jmh
 
-import org.mockito.kotlin.mock
+import com.github.luben.zstd.ZstdOutputStream
 import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorOutputStream
+import org.mockito.kotlin.mock
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.extensions.stdlib.useToRun
@@ -52,6 +53,18 @@ object CCStoreScenarios {
         writeTo(
             KryoBackedEncoder(
                 GZIPOutputStream(
+                    BlackholeOutputStream(bh)
+                )
+            ),
+            graph
+        )
+    }
+
+    internal
+    fun withZstdCompression(bh: Blackhole, graph: Any) {
+        writeTo(
+            KryoBackedEncoder(
+                ZstdOutputStream(
                     BlackholeOutputStream(bh)
                 )
             ),

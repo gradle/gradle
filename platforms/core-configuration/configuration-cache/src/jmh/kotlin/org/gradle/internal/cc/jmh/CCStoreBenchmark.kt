@@ -54,4 +54,9 @@ open class CCStoreBenchmark {
     fun withGZIPCompression(bh: Blackhole) {
         CCStoreScenarios.withGZIPCompression(bh, graph)
     }
+
+    @Benchmark
+    fun withZstdCompression(bh: Blackhole) {
+        CCStoreScenarios.withZstdCompression(bh, graph)
+    }
 }

@@ -231,6 +231,7 @@ dependencies {
         api(libs.samplesCheck)          { version { strictly("1.0.3") }}
         api(libs.samplesDiscovery)      { version { strictly("1.0.3") }}
         api(libs.snappy)                { version { strictly("0.5") }}
+        api(libs.zstdJni)               { version { strictly("1.5.7-6") }}
         api(libs.socksProxy)            { version { strictly("4.1.2") } }
         api(libs.spock)                 { version { strictly(spockVersion) }}
         api(libs.spockJUnit4)           { version { strictly(spockVersion) }}

@@ -112,6 +112,7 @@ dependencies {
     jmhImplementation(projects.beanSerializationServices)
     jmhImplementation(projects.encryptionServices)
     jmhImplementation(libs.mockitoKotlin)
+    jmhImplementation(libs.zstdJni)
     jmhImplementation(testFixtures(projects.core))
     jmhRuntimeOnly(projects.instrumentationDeclarations)
     jmhRuntimeOnly(projects.workers)
