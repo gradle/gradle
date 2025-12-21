@@ -16,13 +16,16 @@
 
 package org.gradle.internal.cc.jmh
 
-import org.mockito.kotlin.mock
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.impl.serialize.Codecs
+import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
+import org.gradle.internal.cc.impl.serialize.DefaultConfigurationCacheCodecs
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.MutableIsolateContext
 import org.gradle.internal.serialize.graph.withIsolate
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 
 internal
@@ -37,7 +40,8 @@ fun userTypesCodec() = codecs().userTypesCodec()
 
 
 private
-fun codecs() = Codecs(
+fun codecs(): ConfigurationCacheCodecs = DefaultConfigurationCacheCodecs(
+    modelParameters = modelParameters(),
     directoryFileTreeFactory = mock(),
     fileCollectionFactory = mock(),
     artifactSetConverter = mock(),
@@ -46,9 +50,8 @@ fun codecs() = Codecs(
     filePropertyFactory = mock(),
     fileResolver = mock(),
     instantiator = mock(),
+    instantiatorFactory = mock(),
     fileSystemOperations = mock(),
-    taskNodeFactory = mock(),
-    ordinalGroupFactory = mock(),
     inputFingerprinter = mock(),
     buildOperationRunner = mock(),
     classLoaderHierarchyHasher = mock(),
@@ -57,7 +60,8 @@ fun codecs() = Codecs(
     parameterScheme = mock(),
     actionScheme = mock(),
     attributesFactory = mock(),
-    valueSourceProviderFactory = mock(),
+    attributeDesugaring = mock(),
+    attributeSchemaFactory = mock(),
     calculatedValueContainerFactory = mock(),
     patternSetFactory = mock(),
     fileOperations = mock(),
@@ -65,9 +69,14 @@ fun codecs() = Codecs(
     includedTaskGraph = mock(),
     buildStateRegistry = mock(),
     documentationRegistry = mock(),
+    taskDependencyFactory = mock(),
     javaSerializationEncodingLookup = JavaSerializationEncodingLookup(),
-    flowProviders = mock(),
     transformStepNodeFactory = mock(),
-    attributeDesugaring = mock(),
     problems = mock(),
 )
+
+private
+fun modelParameters(): BuildModelParameters = mock {
+    on { isConfigurationCacheParallelStore } doReturn false
+    on { isConfigurationCacheParallelLoad } doReturn false
+}
