@@ -17,42 +17,49 @@
 package org.gradle.internal.serialize.codecs.core.jos
 
 import org.gradle.internal.reflect.ClassInspector
-
+import java.lang.invoke.MethodHandle
+import java.lang.invoke.MethodHandles
+import java.lang.invoke.MethodType.methodType
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier.isStatic
 
 
 internal
-class MethodCache(
+class ReadResolveCache {
 
     private
-    val predicate: Method.() -> Boolean
-
-) {
-    private
-    val cache = hashMapOf<Class<*>, Method?>()
+    val cache = object : ClassValue<MethodHandle?>() {
+        override fun computeValue(type: Class<*>): MethodHandle? =
+            type.allMethods()
+                .firstAccessibleMatchingMethodOrNull {
+                    isReadResolve()
+                }
+                ?.let {
+                    MethodHandles.lookup()
+                        .unreflect(it)
+                        .asType(methodType(Any::class.java, Any::class.java))
+                }
+    }
 
     fun forObject(value: Any) =
         forClass(value.javaClass)
 
-    fun forClass(type: Class<*>) = cache.computeIfAbsent(type) {
-        it.firstAccessibleMatchingMethodOrNull(predicate)
-    }
+    fun forClass(type: Class<*>): MethodHandle? =
+        cache.get(type)
 }
 
 
 internal
-fun Class<*>.firstAccessibleMatchingMethodOrNull(predicate: Method.() -> Boolean): Method? =
-    allMethods().firstAccessibleMatchingMethodOrNull(predicate)
+fun Method.isReadResolve() =
+    !isStatic(modifiers)
+        && parameterCount == 0
+        && returnType == Any::class.java
+        && name == "readResolve"
 
 
 internal
 fun Iterable<Method>.firstAccessibleMatchingMethodOrNull(predicate: Method.() -> Boolean): Method? =
     find(predicate)?.apply { isAccessible = true }
-
-
-internal
-fun Class<*>.firstMatchingMethodOrNull(predicate: Method.() -> Boolean): Method? =
-    allMethods().find(predicate)
 
 
 internal
