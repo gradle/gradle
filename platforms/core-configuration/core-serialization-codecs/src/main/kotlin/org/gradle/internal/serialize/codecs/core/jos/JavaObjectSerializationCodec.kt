@@ -255,7 +255,7 @@ fun Iterable<Method>.serializationMethodHierarchy(methodName: String, parameterT
     }.map {
         MethodHandles.lookup()
             .unreflect(it)
-            .asType(methodType(Void.TYPE, java.lang.Object::class.java, parameterType))
+            .asType(methodType(Void.TYPE, Any::class.java, parameterType))
     }.toList().asReversed()
 
 
