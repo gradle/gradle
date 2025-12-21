@@ -210,6 +210,7 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
     val samplesCheck = "org.gradle.exemplar:samples-check"
     val samplesDiscovery = "org.gradle.exemplar:samples-discovery"
     val snappy = "org.iq80.snappy:snappy"
+    val lz4Java = "org.lz4:lz4-java"
     val zstdJni = "com.github.luben:zstd-jni"
     val servletApi = "javax.servlet:javax.servlet-api"
     val socksProxy = "com.github.bbottema:java-socks-proxy-server"

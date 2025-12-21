@@ -17,6 +17,9 @@
 package org.gradle.internal.cc.jmh
 
 import com.github.luben.zstd.ZstdOutputStream
+import net.jpountz.lz4.LZ4Factory
+import net.jpountz.lz4.LZ4FrameOutputStream
+import net.jpountz.xxhash.XXHashFactory
 import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorOutputStream
 import org.mockito.kotlin.mock
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
@@ -66,6 +69,69 @@ object CCStoreScenarios {
             KryoBackedEncoder(
                 ZstdOutputStream(
                     BlackholeOutputStream(bh)
+                )
+            ),
+            graph
+        )
+    }
+
+    // Zstd level 1 - fastest compression
+    internal
+    fun withZstdLevel1(bh: Blackhole, graph: Any) {
+        writeTo(
+            KryoBackedEncoder(
+                ZstdOutputStream(BlackholeOutputStream(bh), 1)
+            ),
+            graph
+        )
+    }
+
+    // Zstd level 6 - higher compression, slower
+    internal
+    fun withZstdLevel6(bh: Blackhole, graph: Any) {
+        writeTo(
+            KryoBackedEncoder(
+                ZstdOutputStream(BlackholeOutputStream(bh), 6)
+            ),
+            graph
+        )
+    }
+
+    // Zstd level 9 - high compression
+    internal
+    fun withZstdLevel9(bh: Blackhole, graph: Any) {
+        writeTo(
+            KryoBackedEncoder(
+                ZstdOutputStream(BlackholeOutputStream(bh), 9)
+            ),
+            graph
+        )
+    }
+
+    // LZ4 fast compression (default)
+    internal
+    fun withLz4Fast(bh: Blackhole, graph: Any) {
+        writeTo(
+            KryoBackedEncoder(
+                LZ4FrameOutputStream(BlackholeOutputStream(bh))
+            ),
+            graph
+        )
+    }
+
+    // LZ4 high compression
+    internal
+    fun withLz4Hc(bh: Blackhole, graph: Any) {
+        val lz4Factory = LZ4Factory.fastestInstance()
+        val xxHashFactory = XXHashFactory.fastestInstance()
+        writeTo(
+            KryoBackedEncoder(
+                LZ4FrameOutputStream(
+                    BlackholeOutputStream(bh),
+                    LZ4FrameOutputStream.BLOCKSIZE.SIZE_4MB,
+                    -1L,
+                    lz4Factory.highCompressor(),
+                    xxHashFactory.hash32()
                 )
             ),
             graph

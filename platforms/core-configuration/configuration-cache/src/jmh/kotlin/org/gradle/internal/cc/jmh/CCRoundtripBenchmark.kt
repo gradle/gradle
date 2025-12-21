@@ -83,4 +83,49 @@ open class CCRoundtripBenchmark {
             )
         )
     }
+
+    @Benchmark
+    fun withZstdLevel1(bh: Blackhole) {
+        bh.consume(
+            CCLoadScenarios.readWithZstdLevel(
+                CCLoadScenarios.writeWithZstdLevel(state, 1)
+            )
+        )
+    }
+
+    @Benchmark
+    fun withZstdLevel6(bh: Blackhole) {
+        bh.consume(
+            CCLoadScenarios.readWithZstdLevel(
+                CCLoadScenarios.writeWithZstdLevel(state, 6)
+            )
+        )
+    }
+
+    @Benchmark
+    fun withZstdLevel9(bh: Blackhole) {
+        bh.consume(
+            CCLoadScenarios.readWithZstdLevel(
+                CCLoadScenarios.writeWithZstdLevel(state, 9)
+            )
+        )
+    }
+
+    @Benchmark
+    fun withLz4Fast(bh: Blackhole) {
+        bh.consume(
+            CCLoadScenarios.readWithLz4(
+                CCLoadScenarios.writeWithLz4Fast(state)
+            )
+        )
+    }
+
+    @Benchmark
+    fun withLz4Hc(bh: Blackhole) {
+        bh.consume(
+            CCLoadScenarios.readWithLz4(
+                CCLoadScenarios.writeWithLz4Hc(state)
+            )
+        )
+    }
 }

@@ -18,8 +18,10 @@ package org.gradle.internal.cc.jmh
 
 import org.gradle.internal.cc.jmh.CCLoadScenarios.readUncompressed
 import org.gradle.internal.cc.jmh.CCLoadScenarios.readWithGZIP
+import org.gradle.internal.cc.jmh.CCLoadScenarios.readWithLz4
 import org.gradle.internal.cc.jmh.CCLoadScenarios.readWithSnappy
 import org.gradle.internal.cc.jmh.CCLoadScenarios.readWithZstd
+import org.gradle.internal.cc.jmh.CCLoadScenarios.readWithZstdLevel
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.annotations.Fork
 import org.openjdk.jmh.annotations.Measurement
@@ -64,5 +66,30 @@ open class CCLoadBenchmark {
     @Benchmark
     fun withZstdCompression(bh: Blackhole) {
         bh.consume(readWithZstd(state.zstd))
+    }
+
+    @Benchmark
+    fun withZstdLevel1(bh: Blackhole) {
+        bh.consume(readWithZstdLevel(state.zstdLevel1))
+    }
+
+    @Benchmark
+    fun withZstdLevel6(bh: Blackhole) {
+        bh.consume(readWithZstdLevel(state.zstdLevel6))
+    }
+
+    @Benchmark
+    fun withZstdLevel9(bh: Blackhole) {
+        bh.consume(readWithZstdLevel(state.zstdLevel9))
+    }
+
+    @Benchmark
+    fun withLz4Fast(bh: Blackhole) {
+        bh.consume(readWithLz4(state.lz4Fast))
+    }
+
+    @Benchmark
+    fun withLz4Hc(bh: Blackhole) {
+        bh.consume(readWithLz4(state.lz4Hc))
     }
 }

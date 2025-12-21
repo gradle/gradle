@@ -59,4 +59,29 @@ open class CCStoreBenchmark {
     fun withZstdCompression(bh: Blackhole) {
         CCStoreScenarios.withZstdCompression(bh, graph)
     }
+
+    @Benchmark
+    fun withZstdLevel1(bh: Blackhole) {
+        CCStoreScenarios.withZstdLevel1(bh, graph)
+    }
+
+    @Benchmark
+    fun withZstdLevel6(bh: Blackhole) {
+        CCStoreScenarios.withZstdLevel6(bh, graph)
+    }
+
+    @Benchmark
+    fun withZstdLevel9(bh: Blackhole) {
+        CCStoreScenarios.withZstdLevel9(bh, graph)
+    }
+
+    @Benchmark
+    fun withLz4Fast(bh: Blackhole) {
+        CCStoreScenarios.withLz4Fast(bh, graph)
+    }
+
+    @Benchmark
+    fun withLz4Hc(bh: Blackhole) {
+        CCStoreScenarios.withLz4Hc(bh, graph)
+    }
 }
