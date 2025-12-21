@@ -79,9 +79,4 @@ open class CCStoreBenchmark {
     fun withLz4Fast(bh: Blackhole) {
         CCStoreScenarios.withLz4Fast(bh, graph)
     }
-
-    @Benchmark
-    fun withLz4Hc(bh: Blackhole) {
-        CCStoreScenarios.withLz4Hc(bh, graph)
-    }
 }

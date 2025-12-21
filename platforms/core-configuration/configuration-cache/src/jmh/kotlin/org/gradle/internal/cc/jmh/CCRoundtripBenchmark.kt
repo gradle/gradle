@@ -119,13 +119,4 @@ open class CCRoundtripBenchmark {
             )
         )
     }
-
-    @Benchmark
-    fun withLz4Hc(bh: Blackhole) {
-        bh.consume(
-            CCLoadScenarios.readWithLz4(
-                CCLoadScenarios.writeWithLz4Hc(state)
-            )
-        )
-    }
 }

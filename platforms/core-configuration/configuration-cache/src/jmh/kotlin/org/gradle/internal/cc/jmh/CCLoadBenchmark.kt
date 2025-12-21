@@ -87,9 +87,4 @@ open class CCLoadBenchmark {
     fun withLz4Fast(bh: Blackhole) {
         bh.consume(readWithLz4(state.lz4Fast))
     }
-
-    @Benchmark
-    fun withLz4Hc(bh: Blackhole) {
-        bh.consume(readWithLz4(state.lz4Hc))
-    }
 }

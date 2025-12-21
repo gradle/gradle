@@ -18,10 +18,8 @@ package org.gradle.internal.cc.jmh
 
 import com.github.luben.zstd.ZstdInputStream
 import com.github.luben.zstd.ZstdOutputStream
-import net.jpountz.lz4.LZ4Factory
 import net.jpountz.lz4.LZ4FrameInputStream
 import net.jpountz.lz4.LZ4FrameOutputStream
-import net.jpountz.xxhash.XXHashFactory
 import org.apache.commons.compress.compressors.snappy.FramedSnappyCompressorInputStream
 import org.mockito.kotlin.mock
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
@@ -60,7 +58,6 @@ object CCLoadScenarios {
         val zstdLevel6: ByteArray,
         val zstdLevel9: ByteArray,
         val lz4Fast: ByteArray,
-        val lz4Hc: ByteArray,
     )
 
     fun createState(graph: Any): State = State(
@@ -71,8 +68,7 @@ object CCLoadScenarios {
         zstdLevel1 = writeWithZstdLevel(graph, 1),
         zstdLevel6 = writeWithZstdLevel(graph, 6),
         zstdLevel9 = writeWithZstdLevel(graph, 9),
-        lz4Fast = writeWithLz4Fast(graph),
-        lz4Hc = writeWithLz4Hc(graph)
+        lz4Fast = writeWithLz4Fast(graph)
     )
 
     fun writeWithGZIP(graph: Any) =
@@ -132,23 +128,6 @@ object CCLoadScenarios {
 
     fun readWithLz4(bytes: ByteArray) =
         readFrom(LZ4FrameInputStream(decrypted(bytes)))
-
-    // LZ4 high compression
-    fun writeWithLz4Hc(graph: Any): ByteArray {
-        val lz4Factory = LZ4Factory.fastestInstance()
-        val xxHashFactory = XXHashFactory.fastestInstance()
-        return writeToByteArrayWith(graph) {
-            KryoBackedEncoder(
-                LZ4FrameOutputStream(
-                    encrypted(it),
-                    LZ4FrameOutputStream.BLOCKSIZE.SIZE_4MB,
-                    -1L,
-                    lz4Factory.highCompressor(),
-                    xxHashFactory.hash32()
-                )
-            )
-        }
-    }
 
     fun writeUncompressed(graph: Any) =
         writeToByteArrayWith(graph) {
