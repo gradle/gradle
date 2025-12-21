@@ -64,4 +64,4 @@ fun Iterable<Method>.firstAccessibleMatchingMethodOrNull(predicate: Method.() ->
 
 internal
 fun Class<*>.allMethods() =
-    ClassInspector.inspect(this).allMethods
+    ClassInspector.inspectMethods(this)
