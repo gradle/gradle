@@ -61,28 +61,6 @@ public interface ConsoleMetaData {
      * @return true if Unicode characters can be safely displayed, false otherwise
      */
     default boolean supportsUnicode() {
-        // Check system property override first
-        String unicodeProperty = System.getProperty("org.gradle.terminal.unicode");
-        if (unicodeProperty != null) {
-            String normalizedValue = unicodeProperty.toLowerCase(Locale.ROOT).trim();
-            switch (normalizedValue) {
-                case "enabled":
-                case "force":
-                case "true":
-                    return true;
-                case "disabled":
-                case "false":
-                    return false;
-                case "auto":
-                    // Fall through to auto-detection
-                    break;
-                default:
-                    // Invalid value, fall through to auto-detection with warning
-                    System.err.println("Warning: Invalid value for org.gradle.terminal.unicode: '" + unicodeProperty + "'. Expected 'auto', 'enabled', or 'disabled'. Using auto-detection.");
-                    break;
-            }
-        }
-
         // Auto-detection logic
         // Check for UTF-8 encoding in locale
         String lang = System.getenv("LANG");

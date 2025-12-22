@@ -16,22 +16,38 @@
 
 package org.gradle.api.logging.configuration;
 
+import org.gradle.api.Incubating;
+import org.jspecify.annotations.NullMarked;
+
 /**
  * Specifies how to treat color and dynamic console output.
+ *
+ * @since 9.4.0
  */
+@NullMarked
+@Incubating
 public enum ConsoleUnicodeSupport {
     /**
      * Automatically detect if unicode characters could be used in the output.
+     *
+     * @since 9.4.0
      */
+    @Incubating
     Auto,
 
     /**
      * Enable use of unicode characters in the console output.
+     *
+     * @since 9.4.0
      */
+    @Incubating
     Enable,
 
     /**
      * Disable use of unicode characters in the console output.
+     *
+     * @since 9.4.0
      */
+    @Incubating
     Disable,
 }
