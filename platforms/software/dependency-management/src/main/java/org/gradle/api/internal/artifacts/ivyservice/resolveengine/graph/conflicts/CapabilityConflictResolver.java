@@ -84,7 +84,7 @@ public class CapabilityConflictResolver {
         // If there is only one candidate at the beginning of conflict resolution, select that candidate.
         if (nodes.size() == 1) {
             NodeState onlyNode = nodes.iterator().next();
-            onlyNode.getComponent().getModule().replaceWith(onlyNode.getComponent());
+            onlyNode.getComponent().getModule().changeSelection(onlyNode.getComponent());
             return;
         }
 
@@ -105,14 +105,14 @@ public class CapabilityConflictResolver {
             // losing modules, the winning module always has a selected component.
             Set<ModuleResolveState> seen = new HashSet<>();
             ModuleResolveState winningModule = winner.node.getComponent().getModule();
-            winningModule.replaceWith(winner.node.getComponent());
+            winningModule.changeSelection(winner.node.getComponent());
             winner.node.getComponent().addCause(ComponentSelectionReasons.CONFLICT_RESOLUTION.withDescription(winner.reason));
             seen.add(winningModule);
 
             for (Candidate losingCandidate : candidates) {
                 ModuleResolveState losingModule = losingCandidate.node.getComponent().getModule();
                 if (seen.add(losingModule)) {
-                    losingModule.replaceWith(winner.node.getComponent());
+                    losingModule.changeSelection(winner.node.getComponent());
                 }
             }
         } else {
@@ -124,7 +124,7 @@ public class CapabilityConflictResolver {
 
                 ComponentState component = candidate.node.getComponent();
                 component.rejectForCapabilityConflict(candidate.capability, conflictedNodes);
-                component.getModule().replaceWith(component);
+                component.getModule().changeSelection(component);
             }
         }
     }

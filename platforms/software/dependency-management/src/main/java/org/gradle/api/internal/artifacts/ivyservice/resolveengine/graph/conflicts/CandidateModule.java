@@ -35,5 +35,5 @@ public interface CandidateModule {
      */
     Collection<ComponentState> getVersions();
 
-    void replaceWith(ComponentState selected);
+    void changeSelection(ComponentState selected);
 }
