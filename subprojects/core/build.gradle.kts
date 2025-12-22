@@ -111,6 +111,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.nativePlatform)
 
+    implementation(projects.buildDiscoveryProblems)
     implementation(projects.buildOperationsTrace)
     implementation(projects.groovyLoader)
     implementation(projects.inputTracking)
