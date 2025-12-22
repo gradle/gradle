@@ -265,6 +265,11 @@ class WrapperTest extends AbstractTaskTest {
         Locale.setDefault(originalLocale)
     }
 
+    def "result of Wrapper.getAvailableDistributionTypes() is equal to Wrapper.DistributionType.values()"() {
+        expect:
+        wrapper.availableDistributionTypes == Wrapper.DistributionType.values() as List
+    }
+
     private String getBaseUrl() {
         server.uri.toString()
     }

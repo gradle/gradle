@@ -32,6 +32,11 @@ dependencies {
     }
     implementation(projects.stdlibJavaExtensions)
 
-    implementation(libs.jspecify)
     implementation(libs.slf4jApi)
+
+    compileOnly(libs.jspecify)
+}
+
+errorprone {
+    nullawayEnabled = true
 }

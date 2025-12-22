@@ -37,6 +37,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
@@ -140,8 +141,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     private final GradleBuildEnvironment environment;
     private final AgentStatus agentStatus;
 
-    public GlobalScopeServices(final boolean longLiving, AgentStatus agentStatus, ClassPath additionalModuleClassPath, CurrentGradleInstallation currentGradleInstallation) {
-        super(additionalModuleClassPath, currentGradleInstallation);
+    public GlobalScopeServices(final boolean longLiving, AgentStatus agentStatus, CurrentGradleInstallation currentGradleInstallation) {
+        super(currentGradleInstallation);
         this.agentStatus = agentStatus;
         this.environment = () -> longLiving;
     }
@@ -389,5 +390,10 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     @Provides
     ScriptSourceHasher createScriptSourceHasher() {
         return new DefaultScriptSourceHasher();
+    }
+
+    @Provides
+    protected PluginInspector createPluginInspector(ModelRuleSourceDetector modelRuleSourceDetector) {
+        return new PluginInspector(modelRuleSourceDetector);
     }
 }

@@ -17,6 +17,7 @@ package org.gradle.internal.classloader;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URL;
@@ -91,7 +92,7 @@ public class MultiParentClassLoader extends ClassLoader implements DelegatingCla
 
     @SuppressWarnings("deprecation")
     @Override
-    protected Package getPackage(String name) {
+    protected @Nullable Package getPackage(String name) {
         for (ClassLoader parent : parents) {
             Package p = ClassLoaderUtils.getPackage(parent, name);
             if (p != null) {
@@ -112,7 +113,7 @@ public class MultiParentClassLoader extends ClassLoader implements DelegatingCla
     }
 
     @Override
-    public URL getResource(String name) {
+    public @Nullable URL getResource(String name) {
         for (ClassLoader parent : parents) {
             URL resource = parent.getResource(name);
             if (resource != null) {

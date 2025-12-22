@@ -65,12 +65,12 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
 
         @Override
         public String getBuildPath() {
-            return delegate.getProjectIdentity().getBuildPath().getPath();
+            return delegate.getProjectIdentity().getBuildPath().asString();
         }
 
         @Override
         public String getTaskPath() {
-            return delegate.getPath().getPath();
+            return delegate.getPath().asString();
         }
 
         @Override
@@ -97,7 +97,7 @@ public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
 
         @Override
         public String toString() {
-            return "Task " + delegate.getBuildTreePath().getPath();
+            return "Task " + delegate.getBuildTreePath().asString();
         }
     }
 

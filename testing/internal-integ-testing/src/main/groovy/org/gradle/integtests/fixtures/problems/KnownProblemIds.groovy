@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.problems
 
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.internal.jvm.SupportedJavaVersions
 
 class KnownProblemIds {
@@ -68,7 +69,8 @@ class KnownProblemIds {
         'dependency-variant-resolution': 'Dependency variant resolution',
 
         // groups from integration tests
-        'generic': 'Generic'
+        'generic': 'Generic',
+        'sample-problems': 'Sample Problems',
     ]
 
     /**
@@ -86,14 +88,14 @@ class KnownProblemIds {
         // See compiler.java for the full list of diagnostic codes we use as categories (we replace the dots with dashes)
         'compilation:java:compiler.*' : ['.*'],
         'compilation:java:initialization-failed': ['Java compilation initialization error'],
-        'dependency-version-catalog:alias-not-finished': ['version catalog error'],
-        'dependency-version-catalog:invalid-dependency-notation': ['Dependency version catalog problem'],
-        'dependency-version-catalog:reserved-alias-name': ['version catalog error'],
-        'dependency-version-catalog:catalog-file-does-not-exist': ['version catalog error'],
-        'dependency-version-catalog:toml-syntax-error': ['Dependency version catalog problem'],
-        'dependency-version-catalog:too-many-import-files': ['version catalog error'],
-        'dependency-version-catalog:too-many-import-invocation': ['version catalog error'],
-        'dependency-version-catalog:no-import-files': ['version catalog error'],
+        'dependency-version-catalog:alias-not-finished': [VersionCatalogProblemId.ALIAS_NOT_FINISHED.displayName],
+        'dependency-version-catalog:invalid-dependency-notation': [VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION.displayName],
+        'dependency-version-catalog:reserved-alias-name': [VersionCatalogProblemId.RESERVED_ALIAS_NAME.displayName],
+        'dependency-version-catalog:catalog-file-does-not-exist': [VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST.displayName],
+        'dependency-version-catalog:toml-syntax-error': [VersionCatalogProblemId.TOML_SYNTAX_ERROR.displayName],
+        'dependency-version-catalog:too-many-import-files': [VersionCatalogProblemId.TOO_MANY_IMPORT_FILES.displayName],
+        'dependency-version-catalog:too-many-import-invocation': [VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION.displayName],
+        'dependency-version-catalog:no-import-files': [VersionCatalogProblemId.NO_IMPORT_FILES.displayName],
         'deprecation:buildsrc-script': ['BuildSrc script has been deprecated.'],
         'deprecation:custom-task-action': ['Custom Task action has been deprecated.'],
         'deprecation:executing-gradle-on-jvm-versions-and-lower': ['Executing Gradle on JVM versions ' + (SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1) + ' and lower has been deprecated.'],
@@ -144,6 +146,7 @@ class KnownProblemIds {
         'validation:type-validation:not-cacheable-without-reason': ['Not cacheable without reason'],
         'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache': ['cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'],
         'validation:missing-java-toolchain-plugin': ['Using task ValidatePlugins without applying the Java Toolchain plugin'],
+        'validation:invalid-java-toolchain': ["Running task ValidatePlugins with Java Toolchain lower than ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION}"],
 
         // dependency resolution failures
         'dependency-variant-resolution:configuration-not-compatible': ['Configuration selected by name is not compatible'],
@@ -182,5 +185,6 @@ class KnownProblemIds {
         'generic:type9': ['This is the heading problem text9'],
         'generic:type11': ['inner'],
         'generic:type12': ['outer'],
+        'sample-problems:prototype-project': ['Project is a prototype']
     ]
 }

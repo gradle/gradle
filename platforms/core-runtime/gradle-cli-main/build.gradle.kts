@@ -42,7 +42,7 @@ app {
 dependencies {
     implementation(projects.buildProcessServices)
 
-    implementation(libs.jspecify)
+    compileOnly(libs.jspecify)
 
     manifestClasspath(projects.stdlibJavaExtensions)
     manifestClasspath(projects.buildProcessServices)
@@ -52,4 +52,8 @@ dependencies {
     manifestClasspath(projects.serviceLookup)
 
     agentsClasspath(projects.instrumentationAgent)
+}
+
+errorprone {
+    nullawayEnabled = true
 }

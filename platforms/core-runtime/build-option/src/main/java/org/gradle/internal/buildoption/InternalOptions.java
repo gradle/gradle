@@ -18,14 +18,15 @@ package org.gradle.internal.buildoption;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A service that determines the value for an {@link InternalOption}.
  */
-@ServiceScope(Scope.BuildTree.class)
+@ServiceScope({Scope.CrossBuildSession.class, Scope.BuildTree.class})
 public interface InternalOptions {
     /**
      * Lookup the value for an {@link InternalOption}.
      */
-    <T> Option.Value<T> getOption(InternalOption<T> option);
+    <T extends @Nullable Object> Option.Value<T> getOption(InternalOption<T> option);
 }

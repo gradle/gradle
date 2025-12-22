@@ -25,10 +25,11 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.layout.BuildLayout
+import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildAddedListener
 import org.gradle.internal.build.BuildLifecycleController
-import org.gradle.internal.build.BuildModelControllerServices
+import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildFactory
@@ -62,7 +63,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         getBroadcaster(BuildAddedListener) >> buildAddedListener
     }
     def services = new DefaultServiceRegistry()
-    def modelServices = Mock(BuildModelControllerServices)
+    def buildLayoutFactory = Mock(BuildLayoutFactory)
     def buildTree = Mock(BuildTreeState)
     def factory = new BuildStateFactory(
         buildTree,
@@ -78,16 +79,17 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     )
 
     def setup() {
+        services.add(buildLayoutFactory)
         services.add(Stub(WorkerLeaseService))
         services.add(Stub(BuildTreeWorkGraphController))
         services.add(Stub(ExceptionAnalyser))
         services.add(Stub(BuildOperationRunner))
         services.add(Stub(BuildStateRegistry))
         services.add(Stub(BuildTreeLifecycleControllerFactory))
+        services.add(Stub(BuildLifecycleControllerFactory))
         services.add(Stub(BuildModelParameters))
         services.add(Stub(GradleInternal))
         services.add(Stub(DocumentationRegistry))
-        services.add(modelServices)
 
         _ * buildTree.services >> services
     }
@@ -102,12 +104,16 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def buildDefinition = Stub(BuildDefinition)
         def buildController = buildController()
         services.add(buildController)
+        def rootDir = tmpDir.createDir("root")
+        def rootBuildLayout = Mock(BuildLayout) {
+            rootDirectory >> rootDir
+        }
 
         when:
         def rootBuild = registry.createRootBuild(buildDefinition)
 
         then:
-        1 * modelServices.servicesForBuild(buildDefinition, _) >> Mock(BuildModelControllerServices.Supplier)
+        1 * buildLayoutFactory.getLayoutFor(_) >> rootBuildLayout
         1 * buildAddedListener.buildAdded(_) >> { BuildState addedBuild ->
             notifiedBuild = addedBuild
         }
@@ -320,7 +326,6 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def build = Stub(RootBuildState)
 
         services.add(buildController)
-        modelServices.servicesForBuild(_, _) >> Mock(BuildModelControllerServices.Supplier)
         settings.rootProject >> Stub(ProjectDescriptor) {
             getName() >> "root"
         }

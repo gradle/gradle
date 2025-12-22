@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.util.internal.GUtil;
+import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
@@ -42,7 +43,7 @@ public class Path implements Comparable<Path> {
     public static final String SEPARATOR = ":";
 
     public static Path path(@Nullable String path) {
-        validatePath(path);
+        validatePathInternal(path);
         if (SEPARATOR.equals(path)) {
             return ROOT;
         } else {
@@ -57,6 +58,11 @@ public class Path implements Comparable<Path> {
      */
     @Incubating
     public static void validatePath(@Nullable String path) {
+        validatePathInternal(path);
+    }
+
+    @Contract("null -> fail")
+    private static void validatePathInternal(@Nullable String path) {
         if (Strings.isNullOrEmpty(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
@@ -71,7 +77,7 @@ public class Path implements Comparable<Path> {
     private final String[] segments;
     private final boolean absolute;
     private final int hashCode;
-    private volatile String fullPath;
+    private volatile @Nullable String fullPath;
 
     private Path(String[] segments, boolean absolute) {
         assert !(segments.length == 0 && !absolute) : "Empty relative paths are forbidden";
@@ -84,7 +90,7 @@ public class Path implements Comparable<Path> {
 
     @Override
     public String toString() {
-        return getPath();
+       return asString();
     }
 
     /**
@@ -118,7 +124,24 @@ public class Path implements Comparable<Path> {
         return new Path(concat, absolute);
     }
 
+    /**
+     * Returns string representation of this path.
+     *
+     * @deprecated use {@link #asString()} instead
+     *
+     * @return string representation of this path
+     */
+    @Deprecated
     public String getPath() {
+        return asString();
+    }
+
+    /**
+     * Returns the full path as a string.
+     *
+     * @since 9.2.0
+     */
+    public String asString() {
         if (fullPath == null) {
             fullPath = createFullPath();
         }
@@ -243,7 +266,7 @@ public class Path implements Comparable<Path> {
      * Resolves the given name relative to this path. If an absolute path is provided, it is returned.
      */
     public String absolutePath(String path) {
-        return absolutePath(path(path)).getPath();
+        return absolutePath(path(path)).asString();
     }
 
     public Path absolutePath(Path path) {
@@ -262,7 +285,7 @@ public class Path implements Comparable<Path> {
      * Calculates a path relative to this path. If the given path is not a child of this path, it is returned unmodified.
      */
     public String relativePath(String path) {
-        return relativePath(path(path)).getPath();
+        return relativePath(path(path)).asString();
     }
 
     public Path relativePath(Path path) {
@@ -293,7 +316,7 @@ public class Path implements Comparable<Path> {
         } else if (n == segments.length && absolute) {
             return ROOT;
         } else if (n < 0 || n >= segments.length) {
-            throw new IllegalArgumentException("Cannot remove " + n + " segments from path " + getPath());
+            throw new IllegalArgumentException("Cannot remove " + n + " segments from path " + asString());
         }
 
         return new Path(Arrays.copyOfRange(segments, n, segments.length), absolute);
@@ -301,7 +324,7 @@ public class Path implements Comparable<Path> {
 
     public String segment(int index) {
         if (index < 0 || index >= segments.length) {
-            throw new IllegalArgumentException("Segment index " + index + " is invalid for path " + getPath());
+            throw new IllegalArgumentException("Segment index " + index + " is invalid for path " + asString());
         }
 
         return segments[index];

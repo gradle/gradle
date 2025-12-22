@@ -128,14 +128,25 @@ import org.gradle.tooling.events.test.TestProgressEvent;
 import org.gradle.tooling.events.test.TestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestFailureResult;
+import org.gradle.tooling.events.test.internal.DefaultTestFileAttachmentMetadataEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
-import org.gradle.tooling.events.test.internal.DefaultTestMetadataEvent;
+import org.gradle.tooling.events.test.internal.DefaultTestKeyValueMetadataEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestOutputEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestOutputOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestSkippedResult;
 import org.gradle.tooling.events.test.internal.DefaultTestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestSuccessResult;
+import org.gradle.tooling.events.test.internal.source.DefaultClassSource;
+import org.gradle.tooling.events.test.internal.source.DefaultClasspathResourceSource;
+import org.gradle.tooling.events.test.internal.source.DefaultDirectorySource;
+import org.gradle.tooling.events.test.internal.source.DefaultFilePosition;
+import org.gradle.tooling.events.test.internal.source.DefaultFileSource;
+import org.gradle.tooling.events.test.internal.source.DefaultMethodSource;
+import org.gradle.tooling.events.test.internal.source.DefaultNoSource;
+import org.gradle.tooling.events.test.internal.source.DefaultOtherSource;
+import org.gradle.tooling.events.test.source.FilePosition;
+import org.gradle.tooling.events.test.source.TestSource;
 import org.gradle.tooling.events.transform.TransformFinishEvent;
 import org.gradle.tooling.events.transform.TransformOperationDescriptor;
 import org.gradle.tooling.events.transform.TransformOperationResult;
@@ -184,6 +195,7 @@ import org.gradle.tooling.internal.protocol.events.InternalBuildPhaseDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalFileDownloadResult;
+import org.gradle.tooling.internal.protocol.events.InternalFilePosition;
 import org.gradle.tooling.internal.protocol.events.InternalIncrementalTaskResult;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult.InternalAnnotationProcessorResult;
@@ -201,6 +213,7 @@ import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationR
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult;
 import org.gradle.tooling.internal.protocol.events.InternalRootOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier;
+import org.gradle.tooling.internal.protocol.events.InternalSourceAwareTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalStatusEvent;
 import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskCachedResult;
@@ -215,6 +228,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEventVersion2;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
@@ -242,12 +256,21 @@ import org.gradle.tooling.internal.protocol.problem.InternalProxiedAdditionalDat
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 import org.gradle.tooling.internal.protocol.problem.InternalTaskPathLocation;
+import org.gradle.tooling.internal.protocol.test.source.InternalClassSource;
+import org.gradle.tooling.internal.protocol.test.source.InternalClasspathResourceSource;
+import org.gradle.tooling.internal.protocol.test.source.InternalDirectorySource;
+import org.gradle.tooling.internal.protocol.test.source.InternalFileSource;
+import org.gradle.tooling.internal.protocol.test.source.InternalMethodSource;
+import org.gradle.tooling.internal.protocol.test.source.InternalMissingSource;
+import org.gradle.tooling.internal.protocol.test.source.InternalTestSource;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -625,16 +648,18 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private @Nullable TestMetadataEvent toTestMetadataEvent(InternalProgressEvent event, InternalTestMetadataDescriptor descriptor) {
-        if (event instanceof InternalTestMetadataEvent) {
-            return transformTestMetadata((InternalTestMetadataEvent) event, descriptor);
+        if (event instanceof InternalTestMetadataEventVersion2) {
+            OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
+            return new DefaultTestFileAttachmentMetadataEvent(event.getEventTime(), clientDescriptor, ((InternalTestMetadataEventVersion2)event).getFile(), ((InternalTestMetadataEventVersion2)event).getMediaType());
+        } else if (event instanceof InternalTestMetadataEvent) {
+            OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
+            Map<String, Object> values = ((InternalTestMetadataEvent) event).getValues();
+            Map<String, String> keyValues = new LinkedHashMap<>();
+            values.forEach((key, value) -> keyValues.put(key, String.valueOf(value)));
+            return new DefaultTestKeyValueMetadataEvent(event.getEventTime(), clientDescriptor, keyValues);
         } else {
             return null;
         }
-    }
-
-    private TestMetadataEvent transformTestMetadata(InternalTestMetadataEvent event, InternalTestMetadataDescriptor descriptor) {
-        OperationDescriptor clientDescriptor = addDescriptor(event.getDescriptor(), toDescriptor(descriptor));
-        return new DefaultTestMetadataEvent(event.getEventTime(), clientDescriptor, event.getValues());
     }
 
     private @Nullable ProblemEvent toProblemEvent(InternalProgressEvent progressEvent, InternalProblemDescriptor descriptor) {
@@ -880,13 +905,78 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private TestOperationDescriptor toTestDescriptor(InternalTestDescriptor descriptor) {
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
-        if (descriptor instanceof InternalJvmTestDescriptor) {
+        if (descriptor instanceof InternalSourceAwareTestDescriptor) {
+            TestSource testSource = toTestSource((InternalSourceAwareTestDescriptor) descriptor);
+            InternalSourceAwareTestDescriptor jvmTestDescriptor = (InternalSourceAwareTestDescriptor) descriptor;
+            return new DefaultJvmTestOperationDescriptor(
+                jvmTestDescriptor,
+                parent,
+                toJvmTestKind(jvmTestDescriptor.getTestKind()),
+                jvmTestDescriptor.getSuiteName(),
+                jvmTestDescriptor.getClassName(),
+                jvmTestDescriptor.getMethodName(),
+                testSource
+            );
+        } else if (descriptor instanceof InternalJvmTestDescriptor) {
             InternalJvmTestDescriptor jvmTestDescriptor = (InternalJvmTestDescriptor) descriptor;
-            return new DefaultJvmTestOperationDescriptor(jvmTestDescriptor, parent,
-                toJvmTestKind(jvmTestDescriptor.getTestKind()), jvmTestDescriptor.getSuiteName(), jvmTestDescriptor.getClassName(), jvmTestDescriptor.getMethodName());
+            TestSource testSource = inferLegacyTestSource(jvmTestDescriptor);
+            return new DefaultJvmTestOperationDescriptor(
+                jvmTestDescriptor,
+                parent,
+                toJvmTestKind(jvmTestDescriptor.getTestKind()),
+                jvmTestDescriptor.getSuiteName(),
+                jvmTestDescriptor.getClassName(),
+                jvmTestDescriptor.getMethodName(),
+                testSource);
         } else {
             return new DefaultTestOperationDescriptor(descriptor, parent);
         }
+    }
+
+    private static TestSource inferLegacyTestSource(InternalJvmTestDescriptor descriptor) {
+
+        if (descriptor.getClassName() != null && descriptor.getMethodName() != null) {
+            return new DefaultMethodSource(descriptor.getClassName(), descriptor.getMethodName());
+        } else if (descriptor.getClassName() != null && descriptor.getMethodName() == null) {
+            return new DefaultClassSource(descriptor.getClassName());
+        } else {
+            return DefaultNoSource.getInstance();
+        }
+    }
+
+    private static TestSource toTestSource(InternalSourceAwareTestDescriptor descriptor) {
+        InternalTestSource testSource = descriptor.getSource();
+        return toTestSource(testSource);
+    }
+
+    private static TestSource toTestSource(InternalTestSource testSource) {
+        if (testSource instanceof InternalFileSource) {
+            InternalFileSource fileSource = (InternalFileSource) testSource;
+            return new DefaultFileSource(fileSource.getFile(), toFilePosition(((InternalFileSource) testSource).getPosition()));
+        } else if (testSource instanceof InternalDirectorySource) {
+            return new DefaultDirectorySource(((InternalDirectorySource) testSource).getFile());
+        } else if (testSource instanceof InternalClassSource) {
+            InternalClassSource classSource = (InternalClassSource) testSource;
+            return new DefaultClassSource(classSource.getClassName());
+        } else if (testSource instanceof InternalMethodSource) {
+            InternalMethodSource methodSource = (InternalMethodSource) testSource;
+            return new DefaultMethodSource(methodSource.getClassName(), methodSource.getMethodName());
+        } else if (testSource instanceof InternalClasspathResourceSource) {
+            InternalClasspathResourceSource classpathResourceSource = (InternalClasspathResourceSource) testSource;
+            return new DefaultClasspathResourceSource(classpathResourceSource.getClasspathResourceName(), toFilePosition(classpathResourceSource.getPosition()));
+        } else if (testSource instanceof InternalMissingSource) {
+            return DefaultNoSource.getInstance();
+        } else {
+            return DefaultOtherSource.getInstance();
+        }
+    }
+
+    @Nullable
+    private static FilePosition toFilePosition(@Nullable InternalFilePosition position) {
+        if (position == null) {
+            return null;
+        }
+        return new DefaultFilePosition(position.getLine(), position.getColumn());
     }
 
     private static JvmTestKind toJvmTestKind(String testKind) {
@@ -1229,11 +1319,11 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private static List<Failure> toFailures(@Nullable List<? extends InternalFailure> causes) {
+    public static List<Failure> toFailures(@Nullable Collection<? extends InternalFailure> causes) {
         if (causes == null) {
             return null;
         }
-        List<Failure> failures = new ArrayList<>();
+        List<Failure> failures = new ArrayList<>(causes.size());
         for (InternalFailure cause : causes) {
             Failure f = toFailure(cause);
             if (f != null) {

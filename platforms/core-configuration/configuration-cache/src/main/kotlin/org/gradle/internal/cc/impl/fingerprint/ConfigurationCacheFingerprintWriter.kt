@@ -51,6 +51,7 @@ import org.gradle.initialization.buildsrc.BuildSrcDetector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.FeatureFlag
 import org.gradle.internal.buildoption.FeatureFlagListener
+import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.impl.CoupledProjectsListener
 import org.gradle.internal.cc.impl.InputTrackingState
 import org.gradle.internal.cc.impl.UndeclaredBuildInputListener
@@ -65,9 +66,9 @@ import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.execution.InputVisitor
+import org.gradle.internal.execution.InputVisitor.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
-import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.execution.WorkInputListener
 import org.gradle.internal.extensions.core.fileSystemEntryType
@@ -86,6 +87,7 @@ import java.io.File
 import java.net.URI
 import java.util.EnumSet
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 
 
 @Suppress("LargeClass")
@@ -117,6 +119,10 @@ class ConfigurationCacheFingerprintWriter(
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
+        val isEncrypted: Boolean
+        val encryptionKeyHashCode: HashCode
+        val isFineGrainedPropertyTracking: Boolean
+        val startParameterProperties: Map<String, Any?>
         val gradleUserHomeDir: File
         val allInitScripts: List<File>
         val buildStartTime: Long
@@ -180,12 +186,21 @@ class ConfigurationCacheFingerprintWriter(
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
 
     private
-    val gradleProperties = ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>()
+    val propertyTracking: PropertyTracking
 
+    // set to null, once the snapshot has been written, if ever
     private
-    val gradlePropertiesByPrefix = ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>()
+    val startParameterProjectProperties: AtomicReference<Map<String, Any?>?>
 
     init {
+        val isFineGrainedPropertyTracking = host.isFineGrainedPropertyTracking
+        propertyTracking = when {
+            isFineGrainedPropertyTracking -> FineGrainedPropertyTracking()
+            else -> {
+                logger.info("Configuration Cache fine-grained property tracking is disabled.")
+                NoPropertyTracking
+            }
+        }
         buildScopedSink.initScripts(host.allInitScripts)
         buildScopedSink.write(
             ConfigurationCacheFingerprint.GradleEnvironment(
@@ -196,6 +211,58 @@ class ConfigurationCacheFingerprintWriter(
                 host.ignoredFileSystemCheckInputs
             )
         )
+
+        // defensive copy, since the original state is mutable
+        val startParameterPropertiesSnapshot = host.startParameterProperties.toMap()
+        startParameterProjectProperties = if (isFineGrainedPropertyTracking) {
+            AtomicReference(startParameterPropertiesSnapshot)
+        } else {
+            addStartParameterProjectPropertiesToFingerprint(startParameterPropertiesSnapshot)
+            AtomicReference(null)
+        }
+    }
+
+    private
+    sealed interface PropertyTracking {
+
+        fun shouldTrackPropertyAccess(propertyScope: GradlePropertyScope, propertyName: String): Boolean
+
+        fun shouldTrackPropertiesByPrefix(propertyScope: GradlePropertyScope, prefix: String): Boolean
+    }
+
+    private
+    object NoPropertyTracking : PropertyTracking {
+        override fun shouldTrackPropertyAccess(propertyScope: GradlePropertyScope, propertyName: String): Boolean =
+            false
+
+        override fun shouldTrackPropertiesByPrefix(propertyScope: GradlePropertyScope, prefix: String): Boolean =
+            false
+    }
+
+    private
+    class FineGrainedPropertyTracking : PropertyTracking {
+
+        private
+        val gradleProperties = ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>()
+
+        private
+        val gradlePropertiesByPrefix = ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>()
+
+        override fun shouldTrackPropertyAccess(propertyScope: GradlePropertyScope, propertyName: String): Boolean =
+            (shouldTrackGradlePropertyInput(gradleProperties, propertyScope, propertyName)
+                && !Workarounds.isIgnoredStartParameterProperty(propertyName))
+
+        override fun shouldTrackPropertiesByPrefix(propertyScope: GradlePropertyScope, prefix: String): Boolean =
+            shouldTrackGradlePropertyInput(gradlePropertiesByPrefix, propertyScope, prefix)
+
+        private
+        fun shouldTrackGradlePropertyInput(
+            keysPerScope: ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>,
+            propertyScope: GradlePropertyScope,
+            propertyKey: String
+        ): Boolean = keysPerScope
+            .computeIfAbsent(propertyScope) { newConcurrentHashSet() }
+            .add(propertyKey)
     }
 
     /**
@@ -222,6 +289,11 @@ class ConfigurationCacheFingerprintWriter(
                 buildScopedSink.write(ConfigurationCacheFingerprint.MissingBuildSrcDir(candidateBuildSrc))
             }
         }
+    }
+
+    private
+    fun addStartParameterProjectPropertiesToFingerprint(startParameterPropertiesSnapshot: Map<String, Any?>) {
+        buildScopedSink.write(ConfigurationCacheFingerprint.StartParameterProjectProperties(startParameterPropertiesSnapshot))
     }
 
     override fun scriptSourceObserved(scriptSource: ScriptSource) {
@@ -322,6 +394,12 @@ class ConfigurationCacheFingerprintWriter(
             return
         }
         addSystemPropertyToFingerprint(key, value, consumer)
+    }
+
+    override fun startParameterProjectPropertiesObserved() {
+        startParameterProjectProperties.getAndSet(null)?.let {
+            addStartParameterProjectPropertiesToFingerprint(it)
+        }
     }
 
     private
@@ -507,7 +585,7 @@ class ConfigurationCacheFingerprintWriter(
     private
     fun captureWorkInputs(work: UnitOfWork, relevantInputBehaviors: EnumSet<InputBehavior>) {
         captureWorkInputs(work.displayName) { visitStructure ->
-            work.visitRegularInputs(object : InputVisitor {
+            work.visitMutableInputs(object : InputVisitor {
                 override fun visitInputFileProperty(propertyName: String, behavior: InputBehavior, value: InputFileValueSupplier) {
                     if (relevantInputBehaviors.contains(behavior)) {
                         visitStructure(value.files as FileCollectionInternal)
@@ -946,7 +1024,7 @@ class ConfigurationCacheFingerprintWriter(
         prefix: String,
         snapshot: Map<String, String>
     ) {
-        if (shouldTrackGradlePropertyInput(gradlePropertiesByPrefix, propertyScope, prefix)) {
+        if (propertyTracking.shouldTrackPropertiesByPrefix(propertyScope, prefix)) {
             // TODO:isolated consider tracking per project
             buildScopedSink.write(
                 ConfigurationCacheFingerprint.GradlePropertiesPrefixedBy(
@@ -965,7 +1043,7 @@ class ConfigurationCacheFingerprintWriter(
         propertyValue: Any?
     ) {
         if (!Workarounds.isIgnoredStartParameterProperty(propertyName)
-            && shouldTrackGradlePropertyInput(gradleProperties, propertyScope, propertyName)
+            && propertyTracking.shouldTrackPropertyAccess(propertyScope, propertyName)
         ) {
             // TODO:isolated could tracking per project
             buildScopedSink.write(
@@ -1037,7 +1115,7 @@ class ConfigurationCacheFingerprintWriter(
         location: PropertyTrace
     ) = PropertyTrace.Project(
         path = when (propertyScope) {
-            is GradlePropertyScope.Project -> propertyScope.projectIdentity.buildTreePath.path
+            is GradlePropertyScope.Project -> propertyScope.projectIdentity.buildTreePath.asString()
             is GradlePropertyScope.Build -> propertyScope.buildIdentifier.buildPath
             else -> error("Unexpected property scope $propertyScope")
         },

@@ -29,12 +29,14 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.GlobalDependencySubstitutionRegistry;
+import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
+import org.gradle.internal.service.scopes.BrokenBuildsCapturingListener;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 
@@ -57,6 +59,11 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
             serviceRegistration.add(BuildStateFactory.class);
             serviceRegistration.add(IncludedBuildFactory.class, DefaultIncludedBuildFactory.class);
             serviceRegistration.add(BuildTreeWorkGraphController.class, DefaultIncludedBuildTaskGraph.class);
+        }
+
+        @Provides
+        BuildIncludeListener createBuildIncludeListener() {
+            return new BrokenBuildsCapturingListener();
         }
 
         @Provides
@@ -90,5 +97,5 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
         public CompositeBuildContext createCompositeBuildContext() {
             return new DefaultBuildableCompositeBuildContext();
         }
-    }
+        }
 }

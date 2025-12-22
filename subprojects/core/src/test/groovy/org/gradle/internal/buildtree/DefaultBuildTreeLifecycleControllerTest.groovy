@@ -22,10 +22,13 @@ import org.gradle.internal.DefaultTaskExecutionRequest
 import org.gradle.internal.RunDefaultTasksExecutionRequest
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.ExecutionResult
+import org.gradle.internal.operations.BuildOperationsParameters
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.util.function.Consumer
+
+import static org.gradle.internal.buildtree.BuildTreeWorkController.*
 
 class DefaultBuildTreeLifecycleControllerTest extends Specification {
     def gradle = Mock(GradleInternal)
@@ -35,7 +38,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
     def finishExecutor = Mock(BuildTreeFinishExecutor)
     def startParameter = Mock(StartParameter)
     def buildModelParameters = Mock(BuildModelParameters)
-    def controller = new DefaultBuildTreeLifecycleController(buildController, workController, modelCreator, finishExecutor, TestUtil.stateTransitionControllerFactory(), startParameter, buildModelParameters)
+    def controller = new DefaultBuildTreeLifecycleController(buildController, workController, modelCreator, finishExecutor, TestUtil.stateTransitionControllerFactory(Mock(BuildOperationsParameters)), startParameter, buildModelParameters)
     def reportableFailure = new RuntimeException()
 
     def setup() {
@@ -47,7 +50,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         controller.scheduleAndRunTasks()
 
         then:
-        1 * workController.scheduleAndRunRequestedTasks(null) >> ExecutionResult.succeeded()
+        1 * workController.scheduleAndRunRequestedTasks(null) >> TaskRunResult.ofExecutionResult(ExecutionResult.succeeded())
 
         and:
         1 * finishExecutor.finishBuildTree([]) >> null
@@ -64,7 +67,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * workController.scheduleAndRunRequestedTasks(null) >> ExecutionResult.failed(failure)
+        1 * workController.scheduleAndRunRequestedTasks(null) >> TaskRunResult.ofExecutionResult(ExecutionResult.failed(failure))
 
         and:
         1 * finishExecutor.finishBuildTree([failure]) >> reportableFailure
@@ -79,7 +82,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * workController.scheduleAndRunRequestedTasks(null) >> ExecutionResult.succeeded()
+        1 * workController.scheduleAndRunRequestedTasks(null) >> TaskRunResult.ofExecutionResult(ExecutionResult.succeeded())
 
         and:
         1 * finishExecutor.finishBuildTree([]) >> reportableFailure
@@ -97,7 +100,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         result == "result"
 
         and:
-        1 * workController.scheduleAndRunRequestedTasks(null) >> ExecutionResult.succeeded()
+        1 * workController.scheduleAndRunRequestedTasks(null) >> TaskRunResult.ofExecutionResult(ExecutionResult.succeeded())
 
         and:
         1 * modelCreator.fromBuildModel(action) >> "result"
@@ -146,7 +149,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         e == reportableFailure
 
         and:
-        1 * workController.scheduleAndRunRequestedTasks(null) >> ExecutionResult.failed(failure)
+        1 * workController.scheduleAndRunRequestedTasks(null) >> TaskRunResult.ofExecutionResult(ExecutionResult.failed(failure))
         0 * action._
 
         and:

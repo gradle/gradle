@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
@@ -23,6 +26,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+// This default implementation is referenced by the Develocity plugin in ImportJUnitXmlReports.
+// We must leave this type in until we no longer support a Develocity plugin version that use this API.
+@Deprecated
+@ServiceScope(Scope.Build.class)
+@UsedByScanPlugin("ImportJUnitXmlReports")
 public class DefaultProjectRegistry implements ProjectRegistry, HoldsProjectState {
 
     private final Map<String, ProjectInternal> projects = new HashMap<>();
@@ -53,7 +61,12 @@ public class DefaultProjectRegistry implements ProjectRegistry, HoldsProjectStat
     }
 
     @Override
-    public @Nullable ProjectInternal getProject(String path) {
+    public @Nullable ProjectIdentifier getProject(String path) {
+        return projects.get(path);
+    }
+
+    @Override
+    public @Nullable ProjectInternal getProjectInternal(String path) {
         return projects.get(path);
     }
 

@@ -281,8 +281,8 @@ fun genericTypeOf(type: KmType, argument: KmType): KmType {
 
 
 internal
-fun genericTypeOf(type: KmType, arguments: Iterable<KmType>): KmType {
-    arguments.forEach { genericTypeOf(type, it) }
+fun genericTypeOf(type: KmType, arguments: Iterable<KmTypeProjection>): KmType {
+    type.arguments += arguments
     return type
 }
 

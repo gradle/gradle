@@ -34,6 +34,7 @@ import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.DefaultGradleVersion
+import org.gradle.util.internal.KotlinDslVersion
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
@@ -273,7 +274,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
             "Groovy:        $GroovySystem.version",
             "Ant:           $Main.antVersion",
             "Launcher JVM:  ${Jvm.current()}",
-            "Daemon JVM:    ${Jvm.current().javaHome.absolutePath} (no JDK specified, using current Java home)",
+            "Daemon JVM:    ${Jvm.current().javaHome.absolutePath} (no Daemon JVM specified, using current Java home)",
             "OS:            ${OperatingSystem.current()}",
             ""
         ].join(System.lineSeparator())

@@ -16,6 +16,8 @@
 package org.gradle.ide.sync
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.ide.starter.IdeScenario
+import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -26,6 +28,7 @@ import org.gradle.process.internal.ExecHandleState
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.jspecify.annotations.Nullable
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Timeout
@@ -41,53 +44,75 @@ import java.util.concurrent.Executors
  * Provisioned IDEs are cached in the {@link AbstractIdeSyncTest#getIdeHome} directory.
  * @see <a href="https://github.com/gradle/gradle-ide-starter">gradle-ide-starter</a>
  */
-@Timeout(900)
+// gradle-ide-starter timeout + 30sec for wrap up
+@Timeout(630)
 @CleanupTestDirectory
 abstract class AbstractIdeSyncTest extends Specification {
 
     // https://youtrack.jetbrains.com/articles/IDEA-A-21/IDEA-Latest-Builds-And-Release-Notes
-    final static String IDEA_COMMUNITY_VERSION = "2025.1.3"
+    final static String IDEA_COMMUNITY_VERSION = "2025.2.4"
     // https://developer.android.com/studio/archive
-    final static String ANDROID_STUDIO_VERSION = "2025.1.1.1"
+    final static String ANDROID_STUDIO_VERSION = "2025.1.3.7"
 
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     private final GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
 
+    Integer ideXmxMb = null
+
+    // By default, an IDE is being closed immediately when the job is finished.
+    // For debugging purposes sometimes it's desirable to keep it opened.
+    boolean ideKeepAlive = false
+
     IntegrationTestBuildContext getBuildContext() {
         return IntegrationTestBuildContext.INSTANCE
     }
 
-    /**
-     * Runs a full sync process for the build-under-test with a given Android Studio version.
-     */
-    protected void androidStudioSync(String version) {
-        ideSync("ai-$version")
+    IsolatedProjectsIdeSyncFixture getReport() {
+        return new IsolatedProjectsIdeSyncFixture(projectDirectory)
     }
 
     /**
-     * Runs a full sync process for the build-under-test with a given IntelliJ IDEA Community version.
+     * Runs a full sync with a given Android Studio version as an external process.
+     * Optionally, an {@link IdeScenario} may be provided.
+     * The IDE distribution is automatically downloaded if required.
+     */
+    protected void androidStudioSync(
+        String version,
+        @Nullable IdeScenario scenario = null
+    ) {
+        ideSync("ai-$version", scenario)
+    }
+
+    /**
+     * Runs a full sync with a given IntelliJ IDEA Community version as an external process.
+     * Optionally, an {@link IdeScenario} may be provided.
+     * The IDE distribution is automatically downloaded if required.
      * <p>
      * The version can be optionally suffixed with a "build type", which is one of {@code release}, {@code rc}, {@code eap}.
      * For instance, {@code 2024.2-eap}. When the build type is not provided, it defaults to {@code release}.
      * <p>
      */
-    protected void ideaSync(String version) {
-        ideSync("ic-$version")
+    protected void ideaSync(
+        String version,
+        @Nullable IdeScenario scenario = null
+    ) {
+        ideSync("ic-$version", scenario)
     }
 
-    /**
-     * Runs a full sync with a given IDE as an external process.
-     * The IDE distribution is automatically downloaded if required.
-     */
-    private void ideSync(String ide) {
+    private void ideSync(String ide, IdeScenario scenario) {
+        def scenarioFile = writeScenario(scenario)
         def gradleDist = distribution.gradleHomeDir.toPath()
-        runIdeStarterWith(gradleDist, testDirectory.toPath(), ideHome, ide)
+        runIdeStarterWith(gradleDist, projectDirectory.toPath(), ideHome, testDirectory.toPath(), scenarioFile, ide)
     }
 
     protected TestFile getTestDirectory() {
         temporaryFolder.testDirectory
+    }
+
+    protected TestFile getProjectDirectory() {
+        testDirectory.createDir("project-under-test")
     }
 
     protected TestFile file(Object... path) {
@@ -97,16 +122,40 @@ abstract class AbstractIdeSyncTest extends Specification {
         testDirectory.file(path)
     }
 
+    protected TestFile projectFile(Object... path) {
+        if (path.length == 1 && path[0] instanceof TestFile) {
+            return path[0] as TestFile
+        }
+        projectDirectory.file(path)
+    }
+
     private void runIdeStarterWith(
         Path gradleDist,
         Path testProject,
         Path ideHome,
+        Path testHome,
+        @Nullable Path scenario,
         String ide
     ) {
-        def gradleDistOption = "--gradle-dist=$gradleDist"
-        def projectOption = "--project=$testProject"
-        def ideHomeOption = "--ide-home=$ideHome"
-        def ideOption = "--ide=$ide"
+        def args = [
+            "--gradle-dist=$gradleDist",
+            "--project=$testProject",
+            "--ide-home=$ideHome",
+            "--test-home=$testHome",
+            "--ide=$ide",
+        ]
+
+        if (scenario != null) {
+            args += "--ide-scenario=$scenario"
+        }
+
+        if (ideXmxMb != null) {
+            args += "--ide-xmx=$ideXmxMb"
+        }
+
+        if (ideKeepAlive) {
+            args += "--ide-keep-alive"
+        }
 
         DefaultClientExecHandleBuilder builder = new DefaultClientExecHandleBuilder(
             TestFiles.pathToFileResolver(), Executors.newCachedThreadPool(), new DefaultBuildCancellationToken()
@@ -114,7 +163,7 @@ abstract class AbstractIdeSyncTest extends Specification {
 
         builder
             .setExecutable(findIdeStarter().toString())
-            .args(gradleDistOption, projectOption, ideHomeOption, ideOption)
+            .args(args)
             .setWorkingDir(testDirectory)
             .setStandardOutput(System.out)
             .setErrorOutput(System.err)
@@ -135,16 +184,18 @@ abstract class AbstractIdeSyncTest extends Specification {
     }
 
     private static Path findIdeStarter() {
-        def ideStarterDirs = Files.newDirectoryStream(Paths.get("build/ideStarter")).asList()
-        switch (ideStarterDirs.size()) {
+        def ideStarterPath = System.getProperty("ide.starter.path")
+        assert ideStarterPath != null
+        def ideStarterCandidates = Files.newDirectoryStream(Paths.get(ideStarterPath)).asList()
+        switch (ideStarterCandidates.size()) {
             case 1:
-                def path = ideStarterDirs[0].resolve("bin/app").toAbsolutePath()
+                def path = ideStarterCandidates[0].resolve("bin/app").toAbsolutePath()
                 assert Files.isRegularFile(path): "Unexpected gradle-ide-starter layout"
                 return path
             case 0:
-                throw new IllegalStateException("gradle-ide-starter is missing")
+                throw new IllegalStateException("gradle-ide-starter is missing from '$ideStarterPath'")
             default:
-                throw new IllegalStateException("More than one gradle-ide-starter found: $ideStarterDirs")
+                throw new IllegalStateException("More than one gradle-ide-starter found in '$ideStarterPath': $ideStarterCandidates")
         }
     }
 
@@ -154,5 +205,15 @@ abstract class AbstractIdeSyncTest extends Specification {
             ideHome.mkdirs()
         }
         return ideHome.toPath()
+    }
+
+    @Nullable
+    private Path writeScenario(@Nullable IdeScenario scenario) {
+        if (scenario == null) {
+            return null
+        }
+        def scenarioFile = file("scenario.json").touch().toPath()
+        scenario.writeTo(scenarioFile)
+        return scenarioFile
     }
 }

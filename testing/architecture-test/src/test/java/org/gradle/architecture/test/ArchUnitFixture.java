@@ -52,10 +52,12 @@ import org.gradle.util.TestClassLoader;
 import org.gradle.util.UsesNativeServices;
 import org.gradle.util.UsesNativeServicesExtension;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.CodeSource;
@@ -80,33 +82,28 @@ import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicate
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.beAnnotatedWith;
+import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static java.util.stream.Collectors.toSet;
 
 @NullMarked
 public interface ArchUnitFixture {
-    DescribedPredicate<JavaClass> classes_not_written_in_kotlin = resideOutsideOfPackages(
-        "org.gradle.internal.cc..",
-        "org.gradle.configurationcache..",
-        "org.gradle.internal.configuration.problems..",
-        "org.gradle.internal.encryption..",
-        "org.gradle.internal.extensions.core..",
-        "org.gradle.internal.extensions.stdlib..",
-        "org.gradle.internal.flow.services..",
-        "org.gradle.internal.serialize.beans..",
-        "org.gradle.internal.serialize.codecs..",
-        "org.gradle.internal.serialize.graph..",
-        "org.gradle.internal.isolate.graph..",
-        "org.gradle.internal.isolate.actions..",
-        "org.gradle.kotlin..",
-        "org.gradle.internal.declarativedsl..",
-        "org.gradle.declarative.dsl..",
-        "org.gradle.problems.internal.impl.."
-    ).as("classes written in Java or Groovy");
+    DescribedPredicate<JavaClass> classes_not_written_in_kotlin =
+        not(annotatedOrInPackageAnnotatedWith(kotlin.Metadata.class))
+            .and(resideOutsideOfPackages("org.gradle.kotlin..")) // a few relocated kotlinx-metadata classes violate the nullability annotation rules
+            .as("classes written in Java or Groovy");
 
-    DescribedPredicate<JavaClass> not_synthetic_classes = new DescribedPredicate<JavaClass>("not synthetic classes") {
+    DescribedPredicate<JavaClass> not_synthetic_classes = new DescribedPredicate<>("not synthetic classes") {
         @Override
         public boolean test(JavaClass javaClass) {
             return !javaClass.getModifiers().contains(JavaModifier.SYNTHETIC);
+        }
+    };
+
+    DescribedPredicate<JavaClass> not_anonymous_classes = new DescribedPredicate<>("not anonymous classes") {
+        @Override
+        public boolean test(JavaClass javaClass) {
+            return !javaClass.isAnonymousClass();
         }
     };
 
@@ -328,6 +325,14 @@ public interface ArchUnitFixture {
 
     static ArchCondition<JavaClass> beAnnotatedOrInPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
         return ArchConditions.be(annotatedOrInPackageAnnotatedWith(annotationType));
+    }
+
+    static ArchCondition<JavaClass> beNullMarkedClass() {
+        return beAnnotatedOrInPackageAnnotatedWith(NullMarked.class).and(not(beAnnotatedWith(NullUnmarked.class)));
+    }
+
+    static ArchCondition<JavaMethod> beNullUnmarkedMethod() {
+        return beAnnotatedWith(NullUnmarked.class);
     }
 
     /**
@@ -606,6 +611,10 @@ public interface ArchUnitFixture {
         if (codeSource == null) {
             return null;
         }
-        return Paths.get(codeSource.getLocation().getPath());
+        try {
+            return Paths.get(codeSource.getLocation().toURI());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Failed to convert CodeSource location to URI", e);
+        }
     }
 }

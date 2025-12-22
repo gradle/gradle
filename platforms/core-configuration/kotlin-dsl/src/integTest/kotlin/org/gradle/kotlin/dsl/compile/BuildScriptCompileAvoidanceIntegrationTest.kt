@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.kotlin.dsl.provider.KOTLIN_SCRIPT_COMPILATION_AVOIDANCE_ENABLED_PROPERTY
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import spock.lang.Issue
+import java.nio.file.Files
 
 
 class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceIntegrationTest() {
@@ -35,6 +37,30 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
 
         givenJavaClassInBuildSrcContains("""public void foo() { System.out.println("bar"); }""")
         configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/34916")
+    fun `recompile buildscript when script file name changes but contents is identical`() {
+        val buildScript = """println("bar")""";
+
+        withSettings(
+            """
+            rootProject.buildFileName = "build1.gradle.kts"
+            """
+        )
+        val buildScriptPath = withFile("build1.gradle.kts", buildScript).toPath()
+        configureProject(scriptFileName = "build1.gradle.kts").assertBuildScriptCompiled()
+
+        Files.move(buildScriptPath, buildScriptPath.resolveSibling("build2.gradle.kts"))
+
+        withSettings(
+            """
+            rootProject.buildFileName = "build2.gradle.kts"
+            """
+        )
+        withFile("build2.gradle.kts", buildScript)
+        configureProject(scriptFileName = "build2.gradle.kts").assertBuildScriptCompiled()
     }
 
     @Test
@@ -60,6 +86,42 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractCompileAvoidanceInteg
         require(existing("build-logic/build/libs/build-logic.jar").delete())
 
         configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/34115")
+    fun `avoid buildscript recompilation on problematic non ABI change scenario`() {
+        val className = givenKotlinClassInBuildSrcContains(
+            """
+            fun problemFun() {
+                listOf<String>().forEach { it ->
+                    // do nothing
+                }
+            }
+
+            fun foo() {
+                System.out.println("foo");
+            }
+            """
+        )
+        withUniqueScript("$className().foo()")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
+
+        givenKotlinClassInBuildSrcContains(
+            """
+            fun problemFun() {
+                listOf<String>().forEach { it ->
+                    // do nothing
+                }
+            }
+
+            fun foo() {
+                System.out.println("bar");
+                System.out.println("baz");
+            }
+            """
+        )
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar\nbaz")
     }
 
     @Test

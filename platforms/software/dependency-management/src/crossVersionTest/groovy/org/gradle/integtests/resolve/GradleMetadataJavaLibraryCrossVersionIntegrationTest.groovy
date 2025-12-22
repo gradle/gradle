@@ -72,6 +72,8 @@ class GradleMetadataJavaLibraryCrossVersionIntegrationTest extends CrossVersionI
             }
 
             java {
+                sourceCompatibility = JavaVersion.VERSION_1_8
+                targetCompatibility = JavaVersion.VERSION_1_8
                 if (JavaPluginExtension.metaClass.respondsTo(delegate, 'registerFeature')) {
                     sourceSets {
                         hibernateSupport

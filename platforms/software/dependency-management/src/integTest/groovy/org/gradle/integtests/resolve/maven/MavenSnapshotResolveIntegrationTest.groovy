@@ -56,7 +56,6 @@ dependencies {
         run 'checkDeps'
 
         then:
-        resolve.expectDefaultConfiguration("runtime")
         resolve.expectGraph {
             root(":", ":test:") {
                 snapshot("org:unique:1.0-SNAPSHOT", uniqueVersionModule.uniqueSnapshotVersion)
@@ -523,11 +522,14 @@ task retrieve(type: Sync) {
             $common
 
             //imposing an artificial order so that the parallel build retrieves sequentially, GRADLE-2788
-            retrieve.dependsOn ":a:retrieve"
-            tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
+            tasks.retrieve.dependsOn ":a:retrieve"
         """
 
-        file("a/build.gradle") << common
+        file("a/build.gradle") << """
+            $common
+            tasks.retrieve.dependsOn ":b:retrieve"
+        """
+
         file("b/build.gradle") << common
 
         when: "Module is requested once"
@@ -1081,7 +1083,6 @@ class CheckIsChangingRule implements ComponentMetadataRule {
         run 'checkDeps'
 
         then:
-        resolve.expectDefaultConfiguration("runtime")
         resolve.expectGraph {
             root(":", ":test:") {
                 snapshot("org.gradle.integtests.resolve:unique:1.0-SNAPSHOT", uniqueVersionModule.uniqueSnapshotVersion)

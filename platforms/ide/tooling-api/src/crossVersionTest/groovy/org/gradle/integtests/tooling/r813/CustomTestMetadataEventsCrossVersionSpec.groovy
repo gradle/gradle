@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
+import org.gradle.util.GradleVersion
 
 @ToolingApiVersion(">=8.13")
 @TargetGradleVersion(">=8.13")
@@ -32,6 +33,21 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
     @Override
     ProgressEvents getEvents() {
         return events
+    }
+
+    /**
+     * Between 8.13 and 8.14, the display name changed for test events emitted by the TestEventReporter.
+     */
+    private String if813OrOlderTestDisplayName() {
+        if813OrOlder("Test MyTestInternal(MyTestInternal)", "My test!")
+    }
+
+    private String if813OrOlder(String value813, String otherwise) {
+        if (targetVersion < GradleVersion.version("8.14")) {
+            value813
+        } else {
+            otherwise
+        }
     }
 
     def "reports custom test events with metadata"() {
@@ -79,9 +95,8 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         then:
         testEvents {
             task(":customTest") {
-                root("Custom test root") {
-                    test("MyTestInternal") {
-                        displayName "My test!"
+                nested("Test suite 'Custom test root'") {
+                    test(if813OrOlderTestDisplayName()) {
                         metadata("mykey", "my value")
                     }
                 }
@@ -135,9 +150,8 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         then:
         testEvents {
             task(":customTest") {
-                root("Custom test root") {
-                    test("MyTestInternal") {
-                        displayName "My test!"
+                nested("Test suite 'Custom test root'") {
+                    test(if813OrOlderTestDisplayName()) {
                         metadata("mykey", "myvalue")
                     }
                 }
@@ -167,11 +181,10 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
                         reporter.started(Instant.now())
                         try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
                             myTest.started(Instant.now())
-                            myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
+                            myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout" + System.lineSeparator())
                             myTest.metadata(Instant.now(), "mykey1", "apple")
-                            myTest.metadata(Instant.now(), "mykey2", 10)
-                            myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "More output on stdout")
-                            myTest.metadata(Instant.now(), "mykey3", ["banana", "cherry"])
+                            myTest.metadata(Instant.now(), "mykey2", "10")
+                            myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "More output on stdout" + System.lineSeparator())
                             myTest.succeeded(Instant.now())
                         }
                         reporter.succeeded(Instant.now())
@@ -194,14 +207,70 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         then:
         testEvents {
             task(":customTest") {
-                root("Custom test root") {
-                    test("MyTestInternal") {
-                        displayName "My test!"
+                nested("Test suite 'Custom test root'") {
+                    test(if813OrOlderTestDisplayName()) {
                         output("This is a test output on stdout")
                         output("More output on stdout")
                         metadata("mykey1", "apple")
-                        metadata("mykey2", 10)
-                        metadata("mykey3", ["banana", "cherry"])
+                        metadata("mykey2", "10")
+                    }
+                }
+            }
+        }
+    }
+
+
+    @TargetGradleVersion(">=8.13 <9.4.0")
+    def "reports custom test events with non-String key-values"() {
+        given:
+        buildFile("""
+            import java.time.Instant
+
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        "Custom test root",
+                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
+                    )) {
+                        reporter.started(Instant.now())
+                        try (def myTest = reporter.reportTest("MyTestInternal", "My test!")) {
+                            myTest.started(Instant.now())
+                            myTest.metadata(Instant.now(), "mykey1", Collections.singletonList("value"))
+                            myTest.metadata(Instant.now(), "mykey2", 10)
+                            myTest.succeeded(Instant.now())
+                        }
+                        reporter.succeeded(Instant.now())
+                    }
+                }
+            }
+
+            tasks.register("customTest", CustomTestTask)
+        """)
+
+        when:
+        withConnection {
+            ProjectConnection connection ->
+                connection.newBuild()
+                    .addProgressListener(events, OperationType.TASK, OperationType.TEST, OperationType.TEST_METADATA)
+                    .forTasks('customTest')
+                    .run()
+        }
+
+        then:
+        testEvents {
+            task(":customTest") {
+                nested("Test suite 'Custom test root'") {
+                    test(if813OrOlderTestDisplayName()) {
+                        metadata("mykey1", "[value]")
+                        metadata("mykey2", "10")
                     }
                 }
             }
@@ -264,14 +333,13 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         then:
         testEvents {
             task(":customTest") {
-                root("Custom test root") {
+                nested("Test suite 'Custom test root'") {
                     metadata("myroot", "my root value")
-                    composite("My Group") {
+                    nested(if813OrOlder("Test suite 'My Group'", "Test class My Group")) {
                         metadata("mygroup", "my group value")
-                        composite("My Inner Group") {
+                        nested(if813OrOlder("Test suite 'My Inner Group'", "Test class My Inner Group")) {
                             metadata("myinnergroup", "my inner group value")
-                            test("MyTestInternal") {
-                                displayName "My test!"
+                            test(if813OrOlderTestDisplayName()) {
                                 metadata("mytest", "my test value")
                             }
                         }
@@ -326,10 +394,8 @@ class CustomTestMetadataEventsCrossVersionSpec extends ToolingApiSpecification i
         then:
         testEvents {
             task(":customTest") {
-                root("Custom test root") {
-                    test("MyTestInternal") {
-                        displayName "My test!"
-                    }
+                nested("Test suite 'Custom test root'") {
+                    test(if813OrOlderTestDisplayName())
                 }
             }
         }

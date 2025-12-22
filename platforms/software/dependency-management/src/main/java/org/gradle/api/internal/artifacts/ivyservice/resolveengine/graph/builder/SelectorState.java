@@ -124,7 +124,7 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
 
     public void release() {
         outgoingEdgeCount--;
-        assert outgoingEdgeCount >= 0 : "Inconsistent selector state detected: outgoing edge count cannot be negative";
+        assert outgoingEdgeCount >= 0 : "Inconsistent selector state detected for '" + this + "': outgoing edge count cannot be negative";
         if (outgoingEdgeCount == 0) {
             removeAndMarkSelectorForReuse();
         }
@@ -183,8 +183,8 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
             }
 
             BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
-            if (dependencyState.failure != null) {
-                idResolveResult.failed(dependencyState.failure);
+            if (dependencyState.getSubstitutionFailure() != null) {
+                idResolveResult.failed(dependencyState.getSubstitutionFailure());
             } else {
                 IvyArtifactName firstArtifact = getFirstDependencyArtifact();
                 ComponentOverrideMetadata overrideMetadata = DefaultComponentOverrideMetadata.forDependency(changing, firstArtifact);

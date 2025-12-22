@@ -52,7 +52,7 @@ Alternatively, if you want to serve the docs in a built-in webserver (http://loc
 
     ./gradlew serveDocs -PquickDocs
 
-The flag `-PquickDocs` disables some slow documentation tasks, like creating the DSL reference or the single page user manual PDF or HTML.
+The flag `-PquickDocs` disables some slow documentation tasks, like creating the DSL reference or the single page user manual.
 This will automatically enter continuous build and rebuild the documentation when you make changes. It takes 30-40 seconds to rebuild the documentation in "quick mode".
 
 If you really want to generate just the user manual, you can run:
@@ -63,7 +63,6 @@ But note that the generated documentation might not be fully functional (e.g. li
 
  - A multi-page HTML manual in `build/working/usermanual/render-multi/` for each chapter. There is a 1-1 mapping from `.adoc` file to `.html` file.
  - A single-page HTML manual at `build/working/usermanual/render-single-html/userguide_single.html`
- - A PDF at `build/working/usermanual/render-single-pdf/userguide_single.pdf`
 
 Note that PNG files in the source are generated from ".graphml" files in the same directory.  You can edit these files
 with tools like [yEd](http://www.yworks.com/en/products_yed_about.html) and then generate the associated PNG.

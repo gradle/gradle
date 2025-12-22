@@ -16,8 +16,12 @@
 
 package org.gradle.internal.declarativedsl
 
+import org.gradle.api.internal.plugins.BindsProjectType
+import org.gradle.api.internal.plugins.BuildModel
+import org.gradle.api.internal.plugins.Definition
+import org.gradle.api.internal.plugins.ProjectTypeBinding
+import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
-import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.junit.Before
 import org.junit.Test
@@ -47,9 +51,11 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
 
             import org.gradle.api.provider.Property
             import org.gradle.declarative.dsl.model.annotations.Restricted
+            import ${BuildModel.class.name}
+            import ${Definition.class.name}
 
             @Restricted
-            abstract class Extension {
+            abstract class Extension : ${Definition.class.simpleName}<Extension.Model> {
 
                 @get:Restricted
                 abstract val prop: Property<String>
@@ -62,6 +68,9 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                 @Restricted
                 fun print(data: String): String {
                     throw RuntimeException("Boom String")
+                }
+
+                interface Model : ${BuildModel.class.simpleName} {
                 }
             }
         """
@@ -104,10 +113,12 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             import org.gradle.declarative.dsl.model.annotations.Configuring
             import org.gradle.declarative.dsl.model.annotations.Restricted
             import javax.inject.Inject
+            import ${BuildModel.class.name}
+            import ${Definition.class.name};
 
 
             @Restricted
-            abstract class Extension @Inject constructor(private val objects: ObjectFactory) {
+            abstract class Extension @Inject constructor(private val objects: ObjectFactory) : ${Definition.class.simpleName}<Extension.Model> {
                 val access: Access
 
                 init {
@@ -126,6 +137,9 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                 abstract class Access {
                     @get:Restricted
                     abstract val name: Property<String>?
+                }
+
+                interface Model : ${BuildModel.class.simpleName} {
                 }
             }
         """
@@ -169,10 +183,12 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             import org.gradle.declarative.dsl.model.annotations.Configuring
             import org.gradle.declarative.dsl.model.annotations.Restricted
             import javax.inject.Inject
+            import ${BuildModel.class.name}
+            import ${Definition.class.name}
 
 
             @Restricted
-            abstract class Extension @Inject constructor(private val objects: ObjectFactory) {
+            abstract class Extension @Inject constructor(private val objects: ObjectFactory) : ${Definition.class.simpleName}<Extension.Model> {
                 val access: Access
 
                 init {
@@ -192,6 +208,9 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                 abstract class Access {
                     @get:Restricted
                     abstract val name: Property<String>?
+                }
+
+                interface Model : ${BuildModel.class.simpleName} {
                 }
             }
         """
@@ -233,11 +252,13 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.Property;
+            import ${BuildModel.class.name};
+            import ${Definition.class.name};
 
             import javax.inject.Inject;
 
             @Restricted
-            public abstract class Extension {
+            public abstract class Extension implements ${Definition.class.simpleName}<Extension.Model> {
                 private final Access access;
                 private final ObjectFactory objects;
 
@@ -261,6 +282,8 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                     public abstract Property<String> getName();
                 }
 
+                interface Model extends ${BuildModel.class.simpleName} {
+                }
             }
         """
 
@@ -347,11 +370,17 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
 
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
-            import ${SoftwareType.class.name};
+            import ${BindsProjectType.class.name};
+            import ${ProjectTypeBinding.class.name};
+            import ${ProjectTypeBindingBuilder.class.name};
 
+            @${BindsProjectType.class.simpleName}(RestrictedPlugin.Binding.class)
             public abstract class RestrictedPlugin implements Plugin<Project> {
-                @SoftwareType(name = "restricted", modelPublicType = Extension.class)
-                public abstract Extension getExtension();
+                public static class Binding implements ${ProjectTypeBinding.class.simpleName} {
+                    public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
+                        builder.bindProjectType("restricted",  Extension.class, (context, definition, model) -> { }).withUnsafeDefinition();
+                    }
+                }
 
                 @Override
                 public void apply(Project target) {

@@ -27,7 +27,7 @@ dependencies {
 
     implementation(libs.guava)
 
-    implementation(projects.classloaders)
+    implementation(projects.baseServices)
     implementation(projects.concurrent)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.stdlibJavaExtensions)

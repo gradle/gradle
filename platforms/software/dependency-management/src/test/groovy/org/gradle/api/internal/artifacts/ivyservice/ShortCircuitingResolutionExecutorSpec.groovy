@@ -74,7 +74,7 @@ class ShortCircuitingResolutionExecutorSpec extends Specification {
         def results = dependencyResolver.resolveGraph(legacyParams, params, [])
 
         then:
-        results.visitedGraph.resolutionResult.rootSource.get().dependencies.empty
+        results.visitedGraph.resolutionResult.graphSource.get().rootComponent.dependencies.empty
 
         def visitedArtifacts = results.visitedArtifacts
         def artifactSet = visitedArtifacts.select(Mock(ArtifactSelectionSpec))

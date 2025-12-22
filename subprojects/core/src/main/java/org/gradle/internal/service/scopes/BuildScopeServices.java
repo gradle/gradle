@@ -17,18 +17,22 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
+import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.flow.FlowScope;
 import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -49,10 +53,14 @@ import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.DefaultSharedModelDefaults;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.plugins.DefaultPluginRegistry;
-import org.gradle.api.internal.plugins.PluginInspector;
+import org.gradle.api.internal.plugins.CorePluginRegistryProvider;
+import org.gradle.api.internal.plugins.DefaultPluginManager;
+import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.project.DefaultProjectRegistry;
+import org.gradle.api.internal.plugins.PluginTarget;
+import org.gradle.api.internal.plugins.PluginTargetType;
+import org.gradle.api.internal.project.BuildScopedTaskResolver;
 import org.gradle.api.internal.project.DefaultProjectTaskLister;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.IProjectFactory;
@@ -68,6 +76,7 @@ import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.properties.GradlePropertiesController;
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.internal.provider.ValueSourceProviderFactory;
@@ -75,25 +84,35 @@ import org.gradle.api.internal.provider.sources.process.ExecSpecFactory;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputProviderFactory;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.internal.tasks.TaskStatistics;
+import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.invocation.BuildInvocationDetails;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceProviderNagger;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
 import org.gradle.buildinit.specs.internal.BuildInitSpecRegistry;
+import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.BuildScopeCacheDir;
+import org.gradle.cache.internal.DefaultFileContentCacheFactory;
+import org.gradle.cache.internal.FileContentCacheFactory;
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
+import org.gradle.cache.internal.SplitFileContentCacheFactory;
 import org.gradle.cache.internal.scopes.DefaultBuildScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.caching.internal.BuildCacheServices;
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer;
 import org.gradle.configuration.BuildTreePreparingProjectsPreparer;
 import org.gradle.configuration.CompileOperationFactory;
+import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.DefaultInitScriptProcessor;
 import org.gradle.configuration.DefaultProjectsPreparer;
 import org.gradle.configuration.DefaultScriptPluginFactory;
@@ -101,20 +120,36 @@ import org.gradle.configuration.ImportsReader;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactorySelector;
+import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
+import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.configuration.project.DefaultCompileOperationFactory;
 import org.gradle.configuration.project.PluginsProjectConfigureActions;
+import org.gradle.execution.BuildOperationFiringBuildWorkerExecutor;
+import org.gradle.execution.BuildTaskScheduler;
+import org.gradle.execution.BuildWorkExecutor;
+import org.gradle.execution.DefaultTasksBuildTaskScheduler;
+import org.gradle.execution.DryRunBuildExecutionAction;
 import org.gradle.execution.ProjectConfigurer;
+import org.gradle.execution.SelectedTaskExecutionAction;
+import org.gradle.execution.TaskNameResolvingBuildTaskScheduler;
+import org.gradle.execution.commandline.CommandLineTaskConfigurer;
+import org.gradle.execution.commandline.CommandLineTaskParser;
+import org.gradle.execution.plan.DefaultNodeExecutor;
 import org.gradle.execution.plan.DefaultNodeValidator;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.ExecutionPlanFactory;
 import org.gradle.execution.plan.NodeValidator;
 import org.gradle.execution.plan.OrdinalGroupFactory;
+import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.execution.plan.TaskNodeDependencyResolver;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.execution.plan.WorkNodeDependencyResolver;
 import org.gradle.execution.selection.BuildTaskSelector;
+import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
+import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.internal.BuildOperationBackedScriptCompilationHandler;
@@ -129,9 +164,9 @@ import org.gradle.groovy.scripts.internal.ScriptSourceListener;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.BuildOperationFiringSettingsPreparer;
 import org.gradle.initialization.BuildOperationSettingsProcessor;
-import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
+import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.DefaultToolchainManagement;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.InitScriptHandler;
@@ -145,6 +180,7 @@ import org.gradle.initialization.SettingsFactory;
 import org.gradle.initialization.SettingsLoaderFactory;
 import org.gradle.initialization.SettingsPreparer;
 import org.gradle.initialization.SettingsProcessor;
+import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
 import org.gradle.initialization.buildsrc.BuildSrcProjectConfigurationAction;
@@ -156,7 +192,8 @@ import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildIncluder;
-import org.gradle.internal.build.BuildModelControllerServices;
+import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildOperationFiringBuildWorkPreparer;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -170,12 +207,14 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.code.UserCodeApplicationContext;
+import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.composite.DefaultBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -183,6 +222,7 @@ import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.TaskGraphBuildExecutionAction;
 import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.Stat;
@@ -194,9 +234,11 @@ import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerFactory;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.management.ToolchainManagementInternal;
 import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
@@ -206,6 +248,7 @@ import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
+import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.scripts.ScriptExecutionListener;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.Provides;
@@ -213,9 +256,10 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.CaseSensitivity;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.invocation.DefaultGradle;
 import org.gradle.plugin.management.internal.PluginHandler;
-import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.internal.DefaultExecOperations;
@@ -223,7 +267,11 @@ import org.gradle.process.internal.DefaultExecSpecFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
+import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
+import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
+import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyListener;
 
 import java.util.List;
 
@@ -232,14 +280,19 @@ import java.util.List;
  */
 public class BuildScopeServices implements ServiceRegistrationProvider {
 
-    private final BuildModelControllerServices.Supplier supplier;
+    private final BuildDefinition buildDefinition;
+    private final BuildState buildState;
 
-    public BuildScopeServices(BuildModelControllerServices.Supplier supplier) {
-        this.supplier = supplier;
+    public BuildScopeServices(BuildDefinition buildDefinition, BuildState buildState) {
+        this.buildDefinition = buildDefinition;
+        this.buildState = buildState;
     }
 
-    @SuppressWarnings("unused")
+    @Provides
     void configure(ServiceRegistration registration, ServiceRegistry buildScopeServices, List<GradleModuleServices> serviceProviders) {
+        registration.add(BuildDefinition.class, buildDefinition);
+        registration.add(BuildState.class, buildState);
+
         registration.addProvider(new BuildCacheServices());
 
         registration.add(ExecOperations.class, DefaultExecOperations.class);
@@ -260,11 +313,19 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(ScriptHandlerFactory.class, DefaultScriptHandlerFactory.class);
         registration.add(BuildOutputCleanupRegistry.class, HoldsProjectState.class, DefaultBuildOutputCleanupRegistry.class);
 
-        supplier.applyServicesTo(registration, buildScopeServices);
-
         for (GradleModuleServices services : serviceProviders) {
             services.registerBuildServices(registration);
         }
+    }
+
+    @Provides
+    GradleInternal createGradle(Instantiator instantiator, BuildState buildState, BuildDefinition buildDefinition, ServiceRegistry buildServices) {
+        return instantiator.newInstance(DefaultGradle.class, buildState, buildDefinition.getStartParameter(), buildServices);
+    }
+
+    @Provides
+    BuildLifecycleController createBuildLifecycleController(BuildLifecycleControllerFactory factory, BuildDefinition buildDefinition, ServiceRegistry buildServices) {
+        return factory.newInstance(buildDefinition, buildServices);
     }
 
     @Provides
@@ -356,9 +417,11 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         return new TaskStatistics();
     }
 
-    @Provides
-    protected ProjectRegistry createProjectRegistry() {
-        return new DefaultProjectRegistry();
+    @SuppressWarnings("deprecation")
+    @UsedByScanPlugin("ImportJUnitXmlReports")
+    @Provides({ProjectRegistry.class, org.gradle.api.internal.project.DefaultProjectRegistry.class})
+    protected org.gradle.api.internal.project.DefaultProjectRegistry createProjectRegistry() {
+        return new org.gradle.api.internal.project.DefaultProjectRegistry();
     }
 
     @Provides
@@ -468,6 +531,12 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             taskClassInfoStore,
             new TaskFactory()
         );
+    }
+
+    @Provides
+    protected TaskDependencyFactory createTaskDependencyFactory(BuildState currentBuild) {
+        TaskResolver taskResolver = new BuildScopedTaskResolver(currentBuild);
+        return new DefaultTaskDependencyFactory(taskResolver, null);
     }
 
     @Provides
@@ -589,7 +658,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         Instantiator instantiator,
         GradleProperties gradleProperties,
         BuildOperationRunner buildOperationRunner,
-        TextFileResourceLoader textFileResourceLoader
+        TextFileResourceLoader textFileResourceLoader,
+        BuildIncludeListener buildIncludeListener
     ) {
         return new BuildOperationSettingsProcessor(
             new RootBuildCacheControllerSettingsProcessor(
@@ -602,7 +672,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
                             scriptHandlerFactory
                         ),
                         gradleProperties,
-                        textFileResourceLoader
+                        textFileResourceLoader,
+                        buildIncludeListener
                     )
                 )
             ),
@@ -659,13 +730,26 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected PluginRegistry createPluginRegistry(ClassLoaderScopeRegistry scopeRegistry, PluginInspector pluginInspector) {
-        return new DefaultPluginRegistry(pluginInspector, scopeRegistry.getCoreAndPluginsScope());
+    protected PluginRegistry createPluginRegistry(CorePluginRegistryProvider corePluginRegistryProvider, GradleInternal gradle) {
+        PluginRegistry corePluginRegistry = corePluginRegistryProvider.getCorePluginRegistry();
+        return corePluginRegistry.createChild(gradle.getClassLoaderScope());
     }
 
     @Provides
-    protected BuildScopeServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
-        return new BuildScopeServiceRegistryFactory(services);
+    PluginManagerInternal createPluginManager(
+        ServiceRegistry buildScopeServices,
+        Instantiator instantiator,
+        GradleInternal gradleInternal,
+        PluginRegistry pluginRegistry,
+        InstantiatorFactory instantiatorFactory,
+        BuildOperationRunner buildOperationRunner,
+        UserCodeApplicationContext userCodeApplicationContext,
+        CollectionCallbackActionDecorator decorator,
+        DomainObjectCollectionFactory domainObjectCollectionFactory,
+        InternalProblems problems
+    ) {
+        PluginTarget target = new ImperativeOnlyPluginTarget<>(PluginTargetType.GRADLE, gradleInternal, problems);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(buildScopeServices), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
     }
 
     @Provides
@@ -676,11 +760,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected ComponentTypeRegistry createComponentTypeRegistry() {
         return new DefaultComponentTypeRegistry();
-    }
-
-    @Provides
-    protected PluginInspector createPluginInspector(ModelRuleSourceDetector modelRuleSourceDetector) {
-        return new PluginInspector(modelRuleSourceDetector);
     }
 
     @Provides
@@ -708,6 +787,18 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             }
         });
         return registry;
+    }
+
+    @Provides
+    IntermediateToolingModelProvider createIntermediateToolingModelProvider(
+        BuildOperationExecutor buildOperationExecutor,
+        BuildModelParameters buildModelParameters,
+        ToolingModelParameterCarrier.Factory parameterCarrierFactory,
+        ListenerManager listenerManager
+    ) {
+        ToolingModelProjectDependencyListener projectDependencyListener = listenerManager.getBroadcaster(ToolingModelProjectDependencyListener.class);
+        IntermediateBuildActionRunner runner = new IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model");
+        return new DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory, projectDependencyListener);
     }
 
     @Provides
@@ -777,8 +868,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected SharedModelDefaults createSharedModelDefaults(Instantiator instantiator, SoftwareTypeRegistry softwareTypeRegistry) {
-        return instantiator.newInstance(DefaultSharedModelDefaults.class, softwareTypeRegistry);
+    protected SharedModelDefaults createSharedModelDefaults(Instantiator instantiator, ProjectFeatureDeclarations projectFeatureDeclarations) {
+        return instantiator.newInstance(DefaultSharedModelDefaults.class, projectFeatureDeclarations);
     }
 
     @Provides
@@ -789,5 +880,95 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected BuildInitSpecRegistry createInitProjectSpecRegistry() {
         return new BuildInitSpecRegistry();
+    }
+
+    @Provides
+    OptionReader createOptionReader() {
+        return new OptionReader();
+    }
+
+    @Provides
+    CommandLineTaskParser createCommandLineTaskParser(OptionReader optionReader, BuildTaskSelector taskSelector, BuildState build) {
+        return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector, build);
+    }
+
+    @Provides
+    BuildWorkExecutor createBuildExecuter(
+        GradleInternal gradle,
+        StyledTextOutputFactory textOutputFactory,
+        BuildOperationRunner buildOperationRunner,
+        ConfigurationTimeBarrier configurationTimeBarrier
+    ) {
+        BuildWorkExecutor delegate = new SelectedTaskExecutionAction();
+        BuildWorkExecutor executor;
+        if (gradle.getStartParameter().isDryRun()) {
+            executor = new DryRunBuildExecutionAction(delegate, textOutputFactory, configurationTimeBarrier);
+        } else if (gradle.getStartParameter().isTaskGraph()) {
+            executor = new TaskGraphBuildExecutionAction(delegate, textOutputFactory, configurationTimeBarrier);
+        } else {
+            executor = delegate;
+        }
+        return new BuildOperationFiringBuildWorkerExecutor(executor, buildOperationRunner);
+    }
+
+    @Provides
+    BuildTaskScheduler createBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, ProjectConfigurer projectConfigurer, BuildTaskSelector.BuildSpecificSelector selector, List<BuiltInCommand> builtInCommands, InternalProblems problemsService) {
+        return new DefaultTasksBuildTaskScheduler(projectConfigurer, builtInCommands, new TaskNameResolvingBuildTaskScheduler(commandLineTaskParser, selector, builtInCommands, problemsService));
+    }
+
+    @Provides
+    TaskExecutionPreparer createTaskExecutionPreparer(BuildTaskScheduler buildTaskScheduler, BuildOperationRunner buildOperationRunner, BuildModelParameters buildModelParameters) {
+        return new DefaultTaskExecutionPreparer(buildTaskScheduler, buildOperationRunner, buildModelParameters);
+    }
+
+    @Provides
+    FileContentCacheFactory createFileContentCacheFactory(
+        GlobalCacheLocations globalCacheLocations,
+        BuildScopedCacheBuilderFactory cacheBuilderFactory,
+        FileContentCacheFactory globalCacheFactory,
+        InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
+        ListenerManager listenerManager,
+        FileSystemAccess fileSystemAccess
+    ) {
+        DefaultFileContentCacheFactory localCacheFactory = new DefaultFileContentCacheFactory(
+            listenerManager,
+            fileSystemAccess,
+            cacheBuilderFactory,
+            inMemoryCacheDecoratorFactory
+        );
+        return new SplitFileContentCacheFactory(
+            globalCacheFactory,
+            localCacheFactory,
+            globalCacheLocations
+        );
+    }
+
+    @Provides
+    ConfigurationTargetIdentifier createConfigurationTargetIdentifier(GradleInternal gradle) {
+        return ConfigurationTargetIdentifier.of(gradle);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Provides
+    TaskExecutionGraphInternal createTaskExecutionGraph(
+        PlanExecutor planExecutor,
+        BuildOperationRunner buildOperationRunner,
+        ListenerBuildOperationDecorator listenerBuildOperationDecorator,
+        GradleInternal gradleInternal,
+        ListenerManager listenerManager,
+        ServiceRegistry gradleScopedServices
+    ) {
+        return new DefaultTaskExecutionGraph(
+            planExecutor,
+            new DefaultNodeExecutor(),
+            buildOperationRunner,
+            listenerBuildOperationDecorator,
+            gradleInternal,
+            listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class),
+            listenerManager.createAnonymousBroadcaster(TaskExecutionGraphExecutionListener.class),
+            listenerManager.createAnonymousBroadcaster(org.gradle.api.execution.TaskExecutionListener.class),
+            listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),
+            gradleScopedServices
+        );
     }
 }

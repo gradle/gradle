@@ -19,6 +19,7 @@ package org.gradle.internal.execution.impl
 import org.gradle.api.file.FileCollection
 import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.OutputSnapshotter
+import org.gradle.internal.execution.OutputVisitor
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.snapshot.FileSystemSnapshot
@@ -45,8 +46,8 @@ class DefaultOutputSnapshotterTest extends Specification {
         def result = outputSnapshotter.snapshotOutputs(work, workspace)
 
         then:
-        1 * work.visitOutputs(workspace, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor outputVisitor ->
-            outputVisitor.visitOutputProperty("output", TreeType.FILE, UnitOfWork.OutputFileValueSupplier.fromStatic(root, contents))
+        1 * work.visitOutputs(workspace, _ as OutputVisitor) >> { File workspace, OutputVisitor outputVisitor ->
+            outputVisitor.visitOutputProperty("output", TreeType.FILE, OutputVisitor.OutputFileValueSupplier.fromStatic(root, contents))
         }
         1 * fileCollectionSnapshotter.snapshot(contents) >> outputSnapshot
         0 * _
@@ -62,8 +63,8 @@ class DefaultOutputSnapshotterTest extends Specification {
         outputSnapshotter.snapshotOutputs(work, workspace)
 
         then:
-        1 * work.visitOutputs(workspace, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor outputVisitor ->
-            outputVisitor.visitOutputProperty("output", TreeType.FILE, UnitOfWork.OutputFileValueSupplier.fromStatic(root, contents))
+        1 * work.visitOutputs(workspace, _ as OutputVisitor) >> { File workspace, OutputVisitor outputVisitor ->
+            outputVisitor.visitOutputProperty("output", TreeType.FILE, OutputVisitor.OutputFileValueSupplier.fromStatic(root, contents))
         }
         1 * fileCollectionSnapshotter.snapshot(contents) >> { throw failure }
         0 * _

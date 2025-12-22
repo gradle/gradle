@@ -40,7 +40,6 @@ import org.gradle.util.internal.CollectionUtils;
 
 import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * {@link AbstractLazyModuleComponentResolveMetadata Lazy version} of a {@link IvyModuleResolveMetadata}.
@@ -55,7 +54,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
     private final ImmutableMap<NamespaceId, String> extraAttributes;
     private final String branch;
     // Since a single `Artifact` is shared between configurations, share the metadata type as well.
-    private Map<Artifact, ModuleComponentArtifactMetadata> artifacts;
+    private IdentityHashMap<Artifact, ModuleComponentArtifactMetadata> artifacts;
 
     DefaultIvyModuleResolveMetadata(DefaultMutableIvyModuleResolveMetadata metadata) {
         super(metadata);

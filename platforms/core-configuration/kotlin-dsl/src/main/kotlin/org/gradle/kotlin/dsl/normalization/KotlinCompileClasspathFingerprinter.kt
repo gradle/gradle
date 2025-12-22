@@ -30,13 +30,16 @@ import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprin
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitResult
-import org.jetbrains.kotlin.buildtools.api.CompilationService
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.jvm.AccessibleClassSnapshot
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshot
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation
 import java.io.File
 
 
@@ -44,6 +47,8 @@ internal
 class KotlinCompileClasspathFingerprinter(
     private val classpathSnapshotHashesCache: KotlinDslCompileAvoidanceClasspathHashCache
 ) : FileCollectionFingerprinter {
+
+    private val snapshotter by lazy { Snapshotter() }
 
     override fun getNormalizer(): FileNormalizer {
         throw UnsupportedOperationException("Not implemented")
@@ -53,6 +58,11 @@ class KotlinCompileClasspathFingerprinter(
         val fingerprints: MutableMap<String, HashCode> = mutableMapOf()
 
         fileSystemSnapshot.accept { snapshot ->
+            // if it doesn't exist, we ignore it
+            if (snapshot is MissingFileSnapshot) {
+                return@accept SnapshotVisitResult.CONTINUE
+            }
+
             // if not jar file or class directory, we ignore it
             if (snapshot is RegularFileSnapshot && !snapshot.absolutePath.endsWith(".jar", ignoreCase = true)) {
                 return@accept SnapshotVisitResult.CONTINUE
@@ -75,7 +85,7 @@ class KotlinCompileClasspathFingerprinter(
 
     private
     fun computeHashForFile(file: File): HashCode {
-        val snapshots = compilationService.calculateClasspathSnapshot(file, ClassSnapshotGranularity.CLASS_LEVEL, true).classSnapshots
+        val snapshots = snapshotter.snapshot(file)
         return hash(snapshots)
     }
 
@@ -138,11 +148,20 @@ class CurrentFileCollectionFingerprintImpl(private val fingerprints: Map<String,
     }
 }
 
+private class Snapshotter {
 
-internal
-val compilationService = compilationServiceFor<KotlinCompileClasspathFingerprinter>()
+    private val toolchains = KotlinToolchains.loadImplementation(this::class.java.classLoader)
 
+    private val buildSession = toolchains.createBuildSession()
 
-internal
-inline fun <reified T : Any> compilationServiceFor(): CompilationService =
-    CompilationService.loadImplementation(T::class.java.classLoader)
+    private val jvmToolchains = toolchains.getToolchain(JvmPlatformToolchain::class.java)
+
+    fun snapshot(file: File): Map<String, ClassSnapshot> {
+        val snapshotOperation = jvmToolchains.createClasspathSnapshottingOperation(file.toPath())
+            .apply {
+                this[JvmClasspathSnapshottingOperation.GRANULARITY] = ClassSnapshotGranularity.CLASS_LEVEL
+                this[JvmClasspathSnapshottingOperation.PARSE_INLINED_LOCAL_CLASSES] = true
+            }
+        return buildSession.executeOperation(snapshotOperation).classSnapshots
+    }
+}

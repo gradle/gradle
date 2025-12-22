@@ -102,7 +102,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
 
     @Override
     public File getBuildRootDir() {
-        return getBuildController().getGradle().getServices().get(BuildLayout.class).getRootDirectory();
+        return getBuildServices().get(BuildLayout.class).getRootDirectory();
     }
 
     @Override
@@ -135,7 +135,7 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
                     .details(new RunNestedBuildBuildOperationType.Details() {
                         @Override
                         public String getBuildPath() {
-                            return gradle.getIdentityPath().getPath();
+                            return gradle.getIdentityPath().asString();
                         }
                     });
             }

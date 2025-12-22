@@ -72,11 +72,13 @@ class BuildActionsFactory implements CommandLineActionCreator {
     private final ServiceRegistry loggingServices;
     private final FileCollectionFactory fileCollectionFactory;
     private final ServiceRegistry basicServices;
+    private final CurrentGradleInstallation currentGradleInstallation;
 
-    public BuildActionsFactory(ServiceRegistry loggingServices, ServiceRegistry basicServices) {
+    public BuildActionsFactory(ServiceRegistry loggingServices, ServiceRegistry basicServices, CurrentGradleInstallation currentGradleInstallation) {
         this.basicServices = basicServices;
         this.loggingServices = loggingServices;
         this.fileCollectionFactory = basicServices.get(FileCollectionFactory.class);
+        this.currentGradleInstallation = currentGradleInstallation;
     }
 
     @Override
@@ -173,12 +175,13 @@ class BuildActionsFactory implements CommandLineActionCreator {
         properties.putAll(daemonParameters.getEffectiveSystemProperties());
         System.setProperties(properties);
 
-        BuildProcessState buildProcessState = new BuildProcessState(startParameter.isContinuous(),
+        BuildProcessState buildProcessState = new BuildProcessState(
+            startParameter.isContinuous(),
             AgentStatus.of(daemonParameters.shouldApplyInstrumentationAgent()),
-            ClassPath.EMPTY,
-            CurrentGradleInstallation.locate(),
+            currentGradleInstallation,
             loggingServices,
-            NativeServices.getInstance());
+            NativeServices.getInstance()
+        );
 
         ServiceRegistry globalServices = buildProcessState.getServices();
         globalServices.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();

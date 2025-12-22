@@ -19,7 +19,7 @@ val antVersion = "1.10.15"
 // Don't forget to bump versions in
 // platforms/core-runtime/base-asm/src/main/java/org/gradle/model/internal/asm/AsmConstants.java
 // when upgrading ASM.
-val asmVersion = "9.8"
+val asmVersion = "9.9"
 val awsS3Version = "1.12.780"
 val bouncycastleVersion = "1.81"
 val hamcrestVersion = "3.0"
@@ -28,7 +28,7 @@ val jaxbVersion = "3.0.0"
 val junit5Version = "5.12.2"
 val mavenVersion = "3.9.5"
 val mavenResolverVersion = "1.9.16" // Should remain in-sync with `mavenVersion`
-val nativePlatformVersion = "0.22-milestone-28"
+val nativePlatformVersion = "0.22-milestone-29"
 /**
  * Should be in sync with:
  * tooling API-related docs & snippets
@@ -79,13 +79,13 @@ dependencies {
         api(libs.commonsCompress)       { version { strictly("1.26.1") } }
         api(libs.commonsHttpclient)     { version { strictly("4.5.14") } }
         api(libs.commonsIo)             { version { strictly("2.15.1") }}
-        api(libs.commonsLang)           { version { strictly("3.17.0") }}
+        api(libs.commonsLang)           { version { strictly("3.20.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
-        api(libs.errorProneAnnotations) { version { strictly("2.36.0") } } // don't forget to upgrade errorprone in gradlebuild.code-quality.gradle.kts
+        api(libs.errorProneAnnotations) { version { strictly("2.42.0") } } // don't forget to upgrade errorprone in gradlebuild.code-quality.gradle.kts
         api(libs.fastutil)              { version { strictly("8.5.2") }}
         api(libs.gradleFileEvents)      { version { strictly("0.2.8") }}
-        api(libs.gradleProfiler)        { version { strictly("0.23.0-alpha-1") }}
+        api(libs.gradleProfiler)        { version { strictly("0.24.0-alpha-1") }}
         api(libs.develocityTestAnnotation) { version { strictly("2.0.1") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
@@ -123,7 +123,8 @@ dependencies {
         api(libs.jacksonKotlin)         { version { strictly(jacksonVersion) }}
         api(libs.jakartaActivation)     { version { strictly("2.0.1") }}
         api(libs.jakartaXmlBind)        { version { strictly("3.0.0") }}
-        api(libs.jansi)                 { version { strictly("1.18"); because("2.x changes the API") }}
+        //If JANSI is updated run on a windows terminal CMD.EXE to make sure the ansi control characters are not messing up the output
+        api(libs.jansi)                 { version { strictly("2.4.2") }}
         api(libs.jatl)                  { version { strictly("0.2.3") }}
         api(libs.javaPoet)              { version { strictly("1.13.0") } }
         api(libs.jaxbCore)              { version { strictly(jaxbVersion) }}
@@ -176,6 +177,7 @@ dependencies {
         api(libs.trove4j)               { version { strictly("1.0.20200330") }}
         api(libs.jna)                   { version { strictly(jnaVersion) }}
         api(libs.jnaPlatform)           { version { strictly(jnaVersion) }}
+        api(libs.jnrConstants)          { version { strictly("0.10.4") } }
 
         // TODO upgrade this AGP version to recent version
         api(libs.agp)                   { version { strictly("3.0.0"); because("We use 3.0.0 for internal performance test") }}
@@ -238,7 +240,6 @@ dependencies {
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
         api(libs.testcontainers)        { version { strictly("1.20.4") }}
         api(libs.testcontainersSpock)   { version { strictly("1.20.4") }}
-        api(libs.typesafeConfig)        { version { strictly("1.3.3") }}
         api(libs.xerces)                { version { strictly("2.12.0") }}
         api(libs.xmlunit)               { version { strictly("1.6") }}
     }

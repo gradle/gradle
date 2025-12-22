@@ -1,0 +1,128 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[preparing_to_publish_plugins]]
+= Preparing to Publish Plugins
+
+To share a Gradle plugin, package it into JAR files and generate the accompanying metadata so other builds can resolve and apply it.
+
+Gradle’s publishing plugins add tasks and conventions to prepare artifacts and metadata for distribution to repositories such as a local Maven repository, Maven Central, JFrog Artifactory, or the Gradle Plugin Portal.
+
+== Applying a Publishing Plugin
+
+Apply one or more publishing plugins in your plugin project:
+
+- For the Gradle Plugin Portal: link:https://plugins.gradle.org/plugin/com.gradle.plugin-publish[**Plugin Publish Plugin**]
+- For Maven repositories (e.g., Maven Central, Artifactory, GitHub Packages): <<publishing_maven.adoc#publishing_maven,**Maven Publish Plugin**>>
+- For Ivy repositories: <<publishing_ivy.adoc#publishing_ivy,**Ivy Publish Plugin**>>
+
+[source,kotlin]
+----
+plugins {
+    id("maven-publish")                                         // Maven
+    id("ivy-publish")                                           // Ivy
+    id("com.gradle.plugin-publish") version "<latest-version>"  // Plugin Portal
+}
+----
+
+Applying a publishing plugin registers tasks that assemble your plugin JAR(s) and generate metadata files (POM, Gradle Module Metadata, and the plugin marker module).
+
+== Minimum Configuration
+
+A plugin project must at least declare:
+
+- A **plugin ID** and **implementation class** (so Gradle knows what to apply)
+- A **group** and **version** (so the plugin can be published and resolved)
+
+====
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=publish-1]"]
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=publish-1]"]
+====
+
+This lets Gradle generate the **plugin marker module** (`org.example.greeting.gradle.plugin`) and other metadata required by repositories and consumers.
+
+== Local Publishing and Testing
+
+Before publishing remotely, publish to a local Maven directory:
+
+====
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=publish-2]"]
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=publish-2]"]
+====
+
+Run:
+
+[source,bash]
+----
+./gradlew publish
+----
+
+Gradle writes plugin artifacts and metadata to `build/local-repo`:
+
+[source,text]
+----
+build/local-repo/
+└── org/
+    └── example/
+        ├── greeting/
+        │   └── 1.0.0/
+        │       ├── greeting-1.0.0.jar                 // compiled plugin classes
+        │       ├── greeting-1.0.0.jar.sha1            // checksum (SHA-1)
+        │       ├── greeting-1.0.0.jar.sha256          // checksum (SHA-256)
+        │       ├── greeting-1.0.0.module              // Gradle Module Metadata (variants, capabilities, deps)
+        │       ├── greeting-1.0.0.module.sha1
+        │       ├── greeting-1.0.0.module.sha256
+        │       ├── greeting-1.0.0.pom                 // Maven POM: GAV + dependencies
+        │       ├── greeting-1.0.0.pom.sha1
+        │       ├── greeting-1.0.0.pom.sha256
+        │       └── greeting-1.0.0-sources.jar         // optional (java { withSourcesJar() })
+        │           ├── greeting-1.0.0-sources.jar.sha1
+        │           └── greeting-1.0.0-sources.jar.sha256
+        │
+        └── org.example.greeting.gradle.plugin/
+            └── 1.0.0/
+                ├── org.example.greeting.gradle.plugin-1.0.0.module         // plugin marker metadata
+                ├── org.example.greeting.gradle.plugin-1.0.0.module.sha1
+                ├── org.example.greeting.gradle.plugin-1.0.0.module.sha256
+                ├── org.example.greeting.gradle.plugin-1.0.0.pom            // plugin marker POM
+                ├── org.example.greeting.gradle.plugin-1.0.0.pom.sha1
+                └── org.example.greeting.gradle.plugin-1.0.0.pom.sha256
+----
+
+You’ll see:
+
+- Plugin JAR(s) — compiled classes
+- `.pom` — Maven metadata (coordinates, dependencies)
+- `.module` — Gradle Module Metadata (variants, capabilities)
+- Plugin marker module — enables `plugins { id("…") }` resolution by plugin ID
+- Optional sources JAR — if enabled via `withSourcesJar()`
+- Checksums — integrity files (many repos prefer SHA-256/SHA-512)
+
+To consume locally, point the consumer project’s `pluginManagement` to the local repo:
+
+====
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="settings.gradle.kts[tags=publish-3]"]
+include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="settings.gradle[tags=publish-3]"]
+====
+
+Consumers can then apply your plugin by **ID** without publishing to a public repository.
+
+== Validating
+
+To validate a Plugin Portal publication (no upload):
+
+[listing]
+----
+$ ./gradlew publishPlugins --validate-only
+----

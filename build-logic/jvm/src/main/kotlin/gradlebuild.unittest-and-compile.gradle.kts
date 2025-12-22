@@ -255,16 +255,8 @@ abstract class AddOpensArgumentProvider : CommandLineArgumentProvider {
     @get:Input
     abstract val embedded: Property<Boolean>
 
-    override fun asArguments(): Iterable<String> {
-        return if (unitTest.get() || embedded.get()) {
-            JpmsConfiguration.forDaemonProcesses(jvmVersion.get().toInt(), true) +
-                // https://github.com/gradle/gradle-private/issues/4756
-                "--add-opens=java.base/java.time=ALL-UNNAMED"
-        } else {
-            listOf("--add-opens", "java.base/java.util=ALL-UNNAMED") + // Used in tests by native platform library: WrapperProcess.getEnv
-                listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")   // Used in tests by ClassLoaderUtils
-        }
-    }
+    override fun asArguments(): Iterable<String> =
+        JpmsConfiguration.forDaemonProcesses(jvmVersion.get(), true)
 }
 
 fun Test.addOsAsInputs() {
@@ -274,6 +266,12 @@ fun Test.addOsAsInputs() {
 }
 
 fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "writeTmpPerformanceScenarioDefinitions").contains(name)
+
+/**
+ * If enabled, test JVM will inherit the DEVELOCITY_ACCESS_TOKEN
+ * environment variable. This allows build scans to be published for integration tests.
+ */
+fun Test.inheritDevelocityAccessTokenEnv() = setOf("smoke-test").contains(project.name)
 
 fun Test.usesEmbeddedExecuter() = systemProperties["org.gradle.integtest.executer"]?.equals("embedded") ?: false
 
@@ -304,7 +302,7 @@ fun configureTests() {
     tasks.withType<Test>().configureEach {
 
         configureAndroidUserHome()
-        filterEnvironmentVariables()
+        filterEnvironmentVariables(inheritDevelocityAccessTokenEnv())
 
         maxParallelForks = project.maxParallelForks
 
@@ -463,7 +461,7 @@ fun Test.configureAndroidUserHome() {
  *
  * @return A property that contains the reduced value.
  */
-fun <T: Any> reduceBooleanFlagValues(flags: Map<Property<Boolean>, T>, combiner: (T, T) -> T): Provider<T> {
+fun <T : Any> reduceBooleanFlagValues(flags: Map<Property<Boolean>, T>, combiner: (T, T) -> T): Provider<T> {
     return flags.entries
         .map { entry ->
             entry.key.map {
@@ -476,7 +474,7 @@ fun <T: Any> reduceBooleanFlagValues(flags: Map<Property<Boolean>, T>, combiner:
             })
         }
         .reduce { acc, next ->
-            acc.zip(next) { left , right ->
+            acc.zip(next) { left, right ->
                 when {
                     !left.isPresent -> right
                     !right.isPresent -> left

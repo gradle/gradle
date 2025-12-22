@@ -59,6 +59,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         generateUserManual(project, tasks, layout, extension);
 
         checkXrefLinksInUserManualAreValid(layout, tasks, extension);
+        checkMultiLangSnippetsAreValid(layout, tasks, extension);
         checkLinksInUserManualAreNotMissing(layout, tasks, extension);
     }
 
@@ -243,6 +244,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             task.sources(patternSet -> {
                 patternSet.include("**/*.adoc");
+                patternSet.include("**/*.js");
                 patternSet.exclude("javaProject*Layout.adoc");
                 patternSet.exclude("userguide_single.adoc");
                 patternSet.exclude("snippets/**/*.adoc");
@@ -255,7 +257,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             Map<String, Object> attributes = new HashMap<>();
             attributes.put("icons", "font");
-            attributes.put("source-highlighter", "prettify");
+            configureCodeHighlightingAttributes(attributes);
             attributes.put("toc", "auto");
             attributes.put("toclevels", 1);
             attributes.put("toc-title", "Contents");
@@ -281,6 +283,10 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 sub.include("**/*.png", "**/*.gif", "**/*.jpg", "**/*.svg");
                 sub.into("img");
             });
+            task.from(extension.getUserManual().getRoot().dir("js"), sub -> {
+                sub.include("**/*.js");
+                sub.into("js");
+            });
         });
 
         extension.userManual(userManual -> {
@@ -294,6 +300,12 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
     }
 
+    private static void configureCodeHighlightingAttributes(Map<String, Object> attributes) {
+        attributes.put("source-highlighter", "highlight.js");
+        //attributes.put("highlightjs-theme", "atom-one-dark");
+        attributes.put("highlightjs-languages", "java,groovy,kotlin,toml,gradle,properties,text");
+    }
+
     private void configureForUserGuideSinglePage(AsciidoctorTask task, GradleDocumentationExtension extension, Project project) {
         task.setGroup("documentation");
         task.dependsOn(extension.getUserManual().getStagedDocumentation());
@@ -305,7 +317,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         task.setSourceDir(extension.getUserManual().getStagedDocumentation().get().getAsFile());
 
         Map<String, Object> attributes = new HashMap<>();
-        attributes.put("source-highlighter", "coderay");
+        configureCodeHighlightingAttributes(attributes);
         attributes.put("toc", "macro");
         attributes.put("toclevels", 2);
 
@@ -333,6 +345,14 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
 
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkDeadInternalLinks));
+    }
+
+    private void checkMultiLangSnippetsAreValid(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
+        TaskProvider<FindBadMultiLangSnippets> checkMultiLangSnippets = tasks.register("checkMultiLangSnippets", FindBadMultiLangSnippets.class, task -> {
+            task.getDocumentationRoot().convention(extension.getUserManual().getStagedDocumentation()); // working/usermanual/raw/
+        });
+
+        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkMultiLangSnippets));
     }
 
     private void checkLinksInUserManualAreNotMissing(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {

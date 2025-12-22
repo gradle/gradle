@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.apache.commons.io.FileUtils;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.ExecutionEngine.Execution;
+import org.gradle.internal.execution.Execution;
 import org.gradle.internal.execution.ImmutableUnitOfWork;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
@@ -60,7 +60,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.collect.ImmutableListMultimap.toImmutableListMultimap;
 import static com.google.common.collect.Maps.immutableEntry;
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE;
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE;
 import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE;
 
 /**
@@ -248,7 +248,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
     }
 
     private WorkspaceResult executeInWorkspace(UnitOfWork work, C context, File workspace) {
-        WorkspaceContext workspaceContext = new WorkspaceContext(context, workspace, null, true);
+        WorkspaceContext workspaceContext = new WorkspaceContext(context, workspace);
 
         // We don't need to invalidate the workspace, as there is surely nothing there yet,
         // but we still want to record that this build is writing to the given location, so that

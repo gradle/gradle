@@ -276,7 +276,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         and:
         projectFile.projectConfigurations.size() == 2
         projectFile.projectConfigurations.values().each {
-            it.languageStandard == expectedLanguageStandard
+            assert it.languageStandard == expectedLanguageStandard
         }
 
         where:

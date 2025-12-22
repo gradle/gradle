@@ -18,12 +18,14 @@ package org.gradle.jvm.toolchain
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Assume
 import spock.lang.Issue
 
@@ -561,6 +563,42 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
             .assertOutputContains("Suppressed: java.lang.Exception: Ooops!")
             .assertOutputContains("Suppressed: org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException: Unable to download toolchain matching the requirements ({languageVersion=11, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from 'http://exoticJavaToolchain.invalid/java-11', due to: Attempting to download java toolchain from an insecure URI http://exoticJavaToolchain.invalid/java-11. This is not supported, use a secure URI instead.")
         }
+    }
+
+    // We can create directories and files that exceed Windows max path, but Java cannot execute processes from them https://bugs.openjdk.org/browse/JDK-8315405
+    @Requires(UnitTestPreconditions.NotWindows)
+    def "downloaded archive filename is truncated to meet generic file-system limits"() {
+        def jvm = AvailableJavaHomes.getDifferentVersion()
+        given:
+        def jdkRepository = new JdkRepository(jvm, "jdk-" + ("A" * 300) + ".zip")
+        def uri = jdkRepository.start()
+        jdkRepository.expectHead()
+        jdkRepository.expectGet()
+
+        executer
+            .requireOwnGradleUserHomeDir("needs to not have cached toolchains")
+            .withToolchainDownloadEnabled()
+
+        settingsFile << """
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", singleUrlResolverCode(uri))}
+        """
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jvm.javaVersionMajor})
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        expect:
+        succeeds("compileJava")
+        cleanup:
+        jdkRepository.stop()
     }
 
     private static String failsToResolveResolverCode() {

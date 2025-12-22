@@ -327,7 +327,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         return writingState.runCollectingFingerprintForProject(
             project,
             // always keep project context alive when building models since model requests can come at any point
-            keepAlive || modelParameters.isRequiresToolingModels,
+            keepAlive || modelParameters.isModelBuilding,
             action
         )
     }
@@ -378,8 +378,20 @@ class ConfigurationCacheFingerprintController internal constructor(
     inner class CacheFingerprintWriterHost :
         ConfigurationCacheFingerprintWriter.Host {
 
+        override val isFineGrainedPropertyTracking: Boolean
+            get() = startParameter.isFineGrainedPropertyTracking
+
+        override val isEncrypted: Boolean
+            get() = encryptionService.isEncrypting
+
+        override val encryptionKeyHashCode: HashCode
+            get() = encryptionService.encryptionKeyHashCode
+
         override val gradleUserHomeDir: File
             get() = startParameter.gradleUserHomeDir
+
+        override val startParameterProperties: Map<String, Any?>
+            get() = startParameter.gradleProperties
 
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts
@@ -388,7 +400,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             get() = buildCommencedTimeProvider.currentTime
 
         override val cacheIntermediateModels: Boolean
-            get() = modelParameters.isIntermediateModelCache
+            get() = modelParameters.isCachingModelBuilding
 
         override val modelAsProjectDependency: Boolean
             get() = modelParameters.isModelAsProjectDependency
@@ -450,6 +462,9 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override val gradleUserHomeDir: File
             get() = startParameter.gradleUserHomeDir
+
+        override val startParameterProperties: Map<String, Any?>
+            get() = startParameter.gradleProperties
 
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts

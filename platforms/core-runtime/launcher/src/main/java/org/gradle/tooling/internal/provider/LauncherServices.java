@@ -31,7 +31,6 @@ import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
-import org.gradle.initialization.layout.BuildTreeLocations;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
@@ -39,10 +38,9 @@ import org.gradle.internal.buildevents.BuildLoggerFactory;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildtree.BuildActionRunner;
-import org.gradle.internal.buildtree.BuildTreeActionExecutor;
-import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
-import org.gradle.internal.buildtree.InitDeprecationLoggingActionExecutor;
-import org.gradle.internal.buildtree.InitProblems;
+import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.buildtree.BuildModelParametersFactory;
+import org.gradle.internal.buildtree.BuildTreeLifecycleListener;
 import org.gradle.internal.buildtree.ProblemReportingBuildActionRunner;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -50,6 +48,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.file.StatStatistics;
+import org.gradle.internal.initialization.layout.BuildTreeLocations;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -71,6 +70,7 @@ import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.FileChangeListeners;
+import org.gradle.internal.work.ProjectParallelExecutionController;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
 import org.gradle.launcher.exec.BuildOutcomeReportingBuildActionRunner;
@@ -142,12 +142,13 @@ public class LauncherServices extends AbstractGradleModuleServices {
             Clock clock,
             LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
             BuildOperationNotificationValve buildOperationNotificationValve,
-            BuildTreeModelControllerServices buildModelServices,
+            BuildModelParametersFactory buildModelParametersFactory,
             WorkerLeaseService workerLeaseService,
             BuildLayoutValidator buildLayoutValidator,
             FileSystem fileSystem,
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
-            ValueSnapshotter valueSnapshotter
+            ValueSnapshotter valueSnapshotter,
+            InternalOptions options
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             return new SubscribableBuildActionExecutor(
@@ -171,7 +172,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
                     new RunAsWorkerThreadBuildActionExecutor(
                         workerLeaseService,
                         new RunAsBuildOperationBuildActionExecutor(
-                            new BuildTreeLifecycleBuildActionExecutor(buildModelServices, buildLayoutValidator, valueSnapshotter),
+                            new BuildTreeLifecycleBuildActionExecutor(buildModelParametersFactory, buildLayoutValidator, valueSnapshotter, options),
                             buildOperationRunner,
                             loggingBuildOperationProgressBroadcaster,
                             buildOperationNotificationValve
@@ -201,7 +202,9 @@ public class LauncherServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        BuildTreeActionExecutor createActionExecutor(
+        RootBuildLifecycleBuildActionExecutor createActionExecutor(
+            BuildModelParameters buildModelParameters,
+            ProjectParallelExecutionController projectParallelExecutionController,
             List<BuildActionRunner> buildActionRunners,
             StyledTextOutputFactory styledTextOutputFactory,
             BuildStateRegistry buildStateRegistry,
@@ -227,46 +230,44 @@ public class LauncherServices extends AbstractGradleModuleServices {
             ProblemStream problemStream,
             ExceptionProblemRegistry registry
         ) {
-            return new InitProblems(
-                new InitDeprecationLoggingActionExecutor(
-                    eventEmitter,
-                    startParameter,
-                    problemsService,
-                    problemStream,
-                    new RootBuildLifecycleBuildActionExecutor(
-                        buildStateRegistry,
-                        new BuildCompletionNotifyingBuildActionRunner(
-                            gradleEnterprisePluginManager,
+            return new RootBuildLifecycleBuildActionExecutor(
+                buildModelParameters,
+                projectParallelExecutionController,
+                listenerManager.getBroadcaster(BuildTreeLifecycleListener.class),
+                problemsService,
+                eventEmitter,
+                startParameter,
+                problemStream,
+                buildStateRegistry,
+                new BuildCompletionNotifyingBuildActionRunner(
+                    gradleEnterprisePluginManager,
+                    failureFactory,
+                    new FileSystemWatchingBuildActionRunner(
+                        eventEmitter,
+                        virtualFileSystem,
+                        deploymentRegistry,
+                        statStatisticsCollector,
+                        fileHasherStatisticsCollector,
+                        directorySnapshotterStatisticsCollector,
+                        buildOperationRunner,
+                        options,
+                        new BuildOutcomeReportingBuildActionRunner(
+                            styledTextOutputFactory,
+                            listenerManager,
+                            buildStartedTime,
+                            buildRequestMetaData,
+                            buildLoggerFactory,
                             failureFactory,
-                            new FileSystemWatchingBuildActionRunner(
-                                eventEmitter,
-                                virtualFileSystem,
-                                deploymentRegistry,
-                                statStatisticsCollector,
-                                fileHasherStatisticsCollector,
-                                directorySnapshotterStatisticsCollector,
-                                buildOperationRunner,
-                                options,
-                                new BuildOutcomeReportingBuildActionRunner(
-                                    styledTextOutputFactory,
-                                    listenerManager,
-                                    buildStartedTime,
-                                    buildRequestMetaData,
-                                    buildLoggerFactory,
-                                    failureFactory,
-                                    registry,
-                                    new ProblemReportingBuildActionRunner(
-                                        exceptionAnalyser,
-                                        buildTreeLocations,
-                                        problemReporters,
-                                        new ChainingBuildActionRunner(buildActionRunners)
-                                    )
-                                )
+                            registry,
+                            new ProblemReportingBuildActionRunner(
+                                exceptionAnalyser,
+                                buildTreeLocations,
+                                problemReporters,
+                                new ChainingBuildActionRunner(buildActionRunners)
                             )
                         )
                     )
-                ),
-                problemsService);
+                ));
         }
 
         @Provides

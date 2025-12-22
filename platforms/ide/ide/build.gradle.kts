@@ -15,6 +15,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.modelCore)
     api(projects.platformJvm)
+    api(projects.problemsApi)
     api(projects.serviceProvider)
     api(projects.toolingApi)
 
@@ -28,6 +29,7 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.ear)
     implementation(projects.languageJava)
+    implementation(projects.launcher)
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
     implementation(projects.pluginsJava)
@@ -40,6 +42,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
 
+    runtimeOnly(projects.buildEvents)
     runtimeOnly(projects.languageJvm)
     runtimeOnly(projects.testingBase)
     runtimeOnly(projects.testingJvm)
@@ -70,7 +73,6 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
-    crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
 strictCompile {

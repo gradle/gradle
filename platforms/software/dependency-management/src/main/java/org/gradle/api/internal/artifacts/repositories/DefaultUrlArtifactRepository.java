@@ -32,16 +32,17 @@ import javax.inject.Inject;
 import java.net.URI;
 import java.util.function.Supplier;
 
-public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
+public class DefaultUrlArtifactRepository {
 
-    private Object url;
+    private @Nullable Object url;
+    private @Nullable URI resolvedUrl;
     private boolean allowInsecureProtocol;
-    private final String repositoryType;
     private final FileResolver fileResolver;
+    private final String repositoryType;
     private final Supplier<String> displayNameSupplier;
 
     DefaultUrlArtifactRepository(
-        final FileResolver fileResolver,
+        FileResolver fileResolver,
         final String repositoryType,
         final Supplier<String> displayNameSupplier
     ) {
@@ -50,27 +51,33 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
         this.displayNameSupplier = displayNameSupplier;
     }
 
-    @Override
     public URI getUrl() {
-        return url == null ? null : fileResolver.resolveUri(url);
+        if (url == null) {
+            return null;
+        }
+
+        // We must always resolve the URL in case the backing Object is live/mutable
+        // However, we always try to return the same URI instance if the backing object hasn't changed
+        URI latestUrl = fileResolver.resolveUri(url);
+        if (!latestUrl.equals(resolvedUrl)) {
+            resolvedUrl = latestUrl;
+        }
+
+        return resolvedUrl;
     }
 
-    @Override
     public void setUrl(URI url) {
         this.url = url;
     }
 
-    @Override
     public void setUrl(Object url) {
         this.url = url;
     }
 
-    @Override
     public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
         this.allowInsecureProtocol = allowInsecureProtocol;
     }
 
-    @Override
     public boolean isAllowInsecureProtocol() {
         return allowInsecureProtocol;
     }

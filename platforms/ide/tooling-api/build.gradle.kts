@@ -1,5 +1,3 @@
-import gradlebuild.shade.tasks.ShadedJar
-
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.publish-public-libraries")
@@ -39,22 +37,6 @@ shadedJar {
     ignoredPackages = setOf("org.gradle.tooling.provider.model")
 }
 
-configurations.consumable("shadedTapi") {
-    outgoing.artifact(tasks.named<ShadedJar>("toolingApiShadedJar"))
-    attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>("Shaded"))
-    }
-}
-
-errorprone {
-    disabledChecks.addAll(
-        "EqualsUnsafeCast", // 1 occurrences
-        "FutureReturnValueIgnored", // 1 occurrences
-        "LockNotBeforeTry", // 1 occurrences
-        "ThreadLocalUsage", // 2 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
@@ -68,8 +50,9 @@ dependencies {
 
     api(libs.jspecify)
 
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.core)
-    implementation(projects.buildProcessServices)
+    implementation(projects.functional)
     implementation(projects.logging)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
@@ -104,6 +87,7 @@ dependencies {
     crossVersionTestImplementation(projects.jvmServices)
     crossVersionTestImplementation(projects.internalTesting)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
+    crossVersionTestImplementation(testFixtures(projects.launcher))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)

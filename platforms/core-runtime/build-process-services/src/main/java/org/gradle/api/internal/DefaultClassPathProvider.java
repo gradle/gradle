@@ -17,6 +17,7 @@ package org.gradle.api.internal;
 
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.internal.classpath.ClassPath;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultClassPathProvider implements ClassPathProvider {
     private final ModuleRegistry moduleRegistry;
@@ -26,7 +27,7 @@ public class DefaultClassPathProvider implements ClassPathProvider {
     }
 
     @Override
-    public ClassPath findClassPath(String name) {
+    public @Nullable ClassPath findClassPath(String name) {
         if (name.equals("GRADLE_INSTALLATION_BEACON")) {
             return moduleRegistry.getModule("gradle-installation-beacon").getImplementationClasspath();
         }

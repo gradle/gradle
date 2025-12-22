@@ -23,7 +23,7 @@ import spock.lang.Issue
 
 class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyResolutionTest {
 
-    ResolveTestFixture resolve
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile << """
@@ -34,8 +34,6 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
     @Issue("https://github.com/gradle/gradle/issues/7398")
     def "selects #expected output when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib (compileClasspath)"() {
         given:
-        resolve = new ResolveTestFixture(buildFile, "compileClasspath")
-        resolve.prepare()
         if (compileClasspathPackaging) {
             propertiesFile << """
                 systemProp.org.gradle.java.compile-classpath-packaging=true
@@ -59,6 +57,8 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
                         dependencies {
                           $consumerConf project(':groovyLib')
                         }
+
+                        ${resolve.configureProject("compileClasspath")}
                 """
             }
         }
@@ -75,7 +75,7 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
         }
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":javaLib") {
             root(":javaLib", "org.test:javaLib:1.0") {
                 project(":groovyLib", "org.test:groovyLib:1.0") {
                     variant("apiElements", [
@@ -121,9 +121,6 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
 
     def "selects classes when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib (runtime classes variant)"() {
         given:
-        resolve = new ResolveTestFixture(buildFile, "runtimeClasspath")
-        resolve.prepare()
-
         multiProjectBuild('issue7398', ['groovyLib', 'javaLib']) {
             file('groovyLib').with {
                 file('src/main/groovy/GroovyClass.groovy') << "public class GroovyClass {}"
@@ -142,6 +139,8 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
                         dependencies {
                           $consumerConf project(':groovyLib')
                         }
+
+                        ${resolve.configureProject("runtimeClasspath")}
                 """
             }
         }
@@ -167,7 +166,7 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
         notExecuted(":groovyLib:classes", ":groovyLib:jar")
 
         then:
-        resolve.expectGraph {
+        resolve.expectGraph(":javaLib") {
             root(":javaLib", "org.test:javaLib:1.0") {
                 project(":groovyLib", "org.test:groovyLib:1.0") {
                     variant("runtimeElements", [

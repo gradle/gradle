@@ -38,8 +38,7 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.guava)
     implementation(libs.commonsIo)
-    implementation(libs.ant)
-    implementation(libs.groovy)
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOption)
     implementation(projects.buildProcessServices)
     implementation(projects.buildState)
@@ -56,9 +55,14 @@ dependencies {
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibJavaExtensions)
 
+    runtimeOnly(libs.groovy)
+
+    testImplementation(libs.ant)
     testImplementation(projects.kotlinDsl)
     testImplementation(testFixtures(projects.logging))
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
+
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

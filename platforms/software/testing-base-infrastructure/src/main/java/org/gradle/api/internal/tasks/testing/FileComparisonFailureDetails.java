@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.jspecify.annotations.Nullable;
+
 @org.jspecify.annotations.NullMarked
 public class FileComparisonFailureDetails extends AssertionFailureDetails {
-    private final byte[] expectedContent;
-    private final byte[] actualContent;
+    private final byte @Nullable [] expectedContent;
+    private final byte @Nullable [] actualContent;
 
-    public FileComparisonFailureDetails(String message, String className, String stacktrace, String expected, String actual, byte[] expectedContent, byte[] actualContent) {
+    public FileComparisonFailureDetails(@Nullable String message, String className, String stacktrace, @Nullable String expected, @Nullable String actual, byte @Nullable [] expectedContent, byte @Nullable [] actualContent) {
         super(message, className, stacktrace, expected, actual);
         this.expectedContent = expectedContent;
         this.actualContent = actualContent;
@@ -33,12 +35,12 @@ public class FileComparisonFailureDetails extends AssertionFailureDetails {
     }
 
     @Override
-    public byte[] getExpectedContent() {
+    public byte @Nullable [] getExpectedContent() {
         return expectedContent;
     }
 
     @Override
-    public byte[] getActualContent() {
+    public byte @Nullable [] getActualContent() {
         return actualContent;
     }
 

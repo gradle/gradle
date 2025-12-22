@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.cc.impl.fixtures.GradlePropertiesIncludedBuildFixture
 import org.gradle.internal.cc.impl.fixtures.SystemPropertiesCompositeBuildFixture
 import org.gradle.util.internal.ToBeImplemented
@@ -375,26 +376,29 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         outputContains("Access: '${isPresence ? 'true' : 'two'}'")
 
         where:
-        description               | fileWithAccess    | accessExpr                    | isPresence
-        "project.ext.get()"       | "build.gradle"    | "project.ext.get('foo')"      | false
-        "project.ext.has()"       | "build.gradle"    | "project.ext.has('foo')"      | true
-        "project.ext.properties"  | "build.gradle"    | "project.ext.properties.foo"  | false
-        "project.ext.foo"         | "build.gradle"    | "project.ext.foo"             | false
-        "project.foo"             | "build.gradle"    | "project.foo"                 | false
-        "project script lookup"   | "build.gradle"    | "foo"                         | false
-        "project.hasProperty()"   | "build.gradle"    | "project.hasProperty('foo')"  | true
-        "settings.ext.get()"      | "settings.gradle" | "settings.ext.get('foo')"     | false
-        "settings.ext.has()"      | "settings.gradle" | "settings.ext.has('foo')"     | true
-        "settings.ext.properties" | "settings.gradle" | "settings.ext.properties.foo" | false
-        "settings.ext.foo"        | "settings.gradle" | "settings.ext.foo"            | false
-        "settings.foo"            | "settings.gradle" | "settings.foo"                | false
-        "settings script lookup"  | "settings.gradle" | "foo"                         | false
+        description                        | fileWithAccess    | accessExpr                                                   | isPresence
+        "project.ext.get()"                | "build.gradle"    | "project.ext.get('foo')"                                     | false
+        "project.ext.has()"                | "build.gradle"    | "project.ext.has('foo')"                                     | true
+        "project.ext.properties"           | "build.gradle"    | "project.ext.properties.foo"                                 | false
+        "project.ext.foo"                  | "build.gradle"    | "project.ext.foo"                                            | false
+        "project.foo"                      | "build.gradle"    | "project.foo"                                                | false
+        "project script lookup"            | "build.gradle"    | "foo"                                                        | false
+        "project.hasProperty()"            | "build.gradle"    | "project.hasProperty('foo')"                                 | true
+        "startParameter.projectProperties" | "build.gradle"    | "gradle.startParameter.projectProperties['foo']"             | false
+        "startParameter.projectProperties" | "build.gradle"    | "gradle.startParameter.projectProperties.containsKey('foo')" | true
+        "settings.ext.get()"               | "settings.gradle" | "settings.ext.get('foo')"                                    | false
+        "settings.ext.has()"               | "settings.gradle" | "settings.ext.has('foo')"                                    | true
+        "settings.ext.properties"          | "settings.gradle" | "settings.ext.properties.foo"                                | false
+        "settings.ext.foo"                 | "settings.gradle" | "settings.ext.foo"                                           | false
+        "settings.foo"                     | "settings.gradle" | "settings.foo"                                               | false
+        "settings script lookup"           | "settings.gradle" | "foo"                                                        | false
     }
 
     @ToBeImplemented
-    def "reuses cache when unused project property changes on command-line, if another property is accessed via ext.properties"() {
+    def "reuses cache when unused project property changes on command-line, if accessing #description"() {
         buildFile """
-            project.ext.properties.bar // access another property
+            // access another property that is not changing
+            ${accessExpr}
 
             tasks.register("some")
         """
@@ -412,9 +416,15 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored()
         // Must be:
 //        configurationCache.assertStateLoaded()
+
+        where:
+        description                                 | accessExpr
+        "ext.properties property"                   | "ext.properties.bar"
+        "startParameter.projectProperties property" | "gradle.startParameter.projectProperties['bar']"
+        "startParameter.projectProperties"          | "gradle.startParameter.projectProperties"
     }
 
-    def "reuses cache when project property changes on command-line, but was shadowed via build logic assignment"() {
+    def "reuses cache when project property, accessed via ext, changes on command-line, but was shadowed via build logic assignment"() {
         buildFile """
             project.ext.foo = "script"
             println("Access: '\${project.ext.foo}'")
@@ -540,5 +550,160 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         "project.providers.gradleProperty().isPresent"  | "build.gradle"    | "providers.gradleProperty('foo').isPresent()" | true
         "settings.providers.gradleProperty()"           | "settings.gradle" | "providers.gradleProperty('foo').orNull"      | false
         "settings.providers.gradleProperty().isPresent" | "settings.gradle" | "providers.gradleProperty('foo').isPresent()" | true
+    }
+
+    def "fine-grained property tracking can be disabled via #source"() {
+        given:
+        settingsFile.touch()
+        switch (source) {
+            case 'command-line':
+                executer.beforeExecute {
+                    withArgument "-D${StartParameterBuildOptions.ConfigurationCacheFineGrainedPropertyTracking.PROPERTY_NAME}=false"
+                }
+                break
+            case 'gradle.properties':
+                propertiesFile.writeProperties(
+                    (StartParameterBuildOptions.ConfigurationCacheFineGrainedPropertyTracking.PROPERTY_NAME): "false"
+                )
+                break
+            default:
+                assert false
+        }
+
+        when:
+        configurationCacheRun "help", "-PgradleProp=1", "-PunusedProperty=42"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "help", "-PunusedProperty=42", "-PgradleProp=1"
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        configurationCacheRun "help", "-PgradleProp=2"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "because the set of Gradle properties has changed: the value of 'gradleProp' was changed and 'unusedProperty' was removed."
+
+        where:
+        source << ['command-line', 'gradle.properties']
+    }
+
+    def "reuses cache when start parameter project property used at execution time changes"() {
+        given:
+        buildFile """
+            abstract class FooTask extends DefaultTask {
+                @Inject
+                abstract StartParameter getStartParameter()
+
+                @TaskAction
+                void foo() {
+                    println("Bar: \${startParameter.projectProperties['bar']}")
+                }
+            }
+
+            tasks.register("foo", FooTask)
+        """
+
+        when:
+        configurationCacheRun "foo", "-Pbar=one"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Bar: one")
+
+        when:
+        configurationCacheRun "foo", "-Pbar=two"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Bar: two")
+    }
+
+    def "invalidates cache when project property changes on command-line, if used at configuration time in composite #included build"() {
+        if (included != "buildSrc") {
+            settingsFile """
+                includeBuild('$included')
+            """
+        }
+        buildFile("$included/build.gradle", """
+            def access = gradle.startParameter.projectProperties["foo"]
+            println("Access: '\${access}'")
+        """)
+
+        when:
+        configurationCacheRun "help", "-Pfoo=one"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Access: 'null'")
+
+        when:
+        configurationCacheRun "help", "-Pfoo=two"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Access: 'null'")
+
+        where:
+        included << ["buildSrc", "included"]
+    }
+
+    def "invalidates cache when project property changes on command-line, if used only at execution time via start parameter"() {
+        given:
+        buildFile """
+            tasks.register("foo") {
+                def projectProps = gradle.startParameter.projectProperties
+                doLast {
+                    println("Bar: \${projectProps['bar']}")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "foo", "-Pbar=one"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "Bar: one"
+
+        when:
+        configurationCacheRun "foo", "-Pbar=two"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "Bar: two"
+    }
+
+    @ToBeImplemented
+    def "invalidates cache when project property changes on command-line, if used only at execution time via captured start parameter"() {
+        given:
+        buildFile """
+            tasks.register("foo") {
+                def captured = gradle.startParameter
+                doLast {
+                    println("Bar: \${captured.projectProperties['bar']}")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "foo", "-Pbar=one"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "Bar: one"
+
+        when:
+        configurationCacheRun "foo", "-Pbar=two"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains "Bar: one"
+        // Must be cache miss
     }
 }

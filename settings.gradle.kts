@@ -30,7 +30,7 @@ buildscript {
 plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.configuration-cache-compatibility")
-    id("com.gradle.develocity").version("4.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+    id("com.gradle.develocity").version("4.3") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
     id("io.github.gradle.develocity-conventions-plugin").version("0.12.1")
     id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }
@@ -61,6 +61,8 @@ val core = platform("core") {
         subproject("base-asm")
         subproject("base-services")
         subproject("build-configuration")
+        subproject("build-discovery")
+        subproject("build-discovery-impl")
         subproject("build-operations")
         subproject("build-operations-trace")
         subproject("build-option")
@@ -70,6 +72,7 @@ val core = platform("core") {
         subproject("classloaders")
         subproject("cli")
         subproject("client-services")
+        subproject("collections")
         subproject("concurrent")
         subproject("daemon-main")
         subproject("daemon-protocol")
@@ -119,6 +122,7 @@ val core = platform("core") {
         subproject("configuration-cache")
         subproject("configuration-cache-base")
         subproject("configuration-problems-base")
+        subproject("core-flow-services-api")
         subproject("core-kotlin-extensions")
         subproject("core-serialization-codecs")
         subproject("declarative-dsl-api")
@@ -150,6 +154,9 @@ val core = platform("core") {
         subproject("model-core")
         subproject("model-reflect")
         subproject("model-groovy")
+        subproject("project-features")
+        subproject("project-features-api")
+        subproject("project-features-demos")
     }
 
     // Core Execution Module
@@ -256,7 +263,6 @@ val jvm = platform("jvm") {
     subproject("scala")
     subproject("testing-jvm")
     subproject("testing-jvm-infrastructure")
-    subproject("testing-junit-platform")
     subproject("war")
 }
 

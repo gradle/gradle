@@ -4,16 +4,6 @@ plugins {
 
 description = "Plugins and domain objects for building different native languages"
 
-errorprone {
-    disabledChecks.addAll(
-        "DefaultCharset", // 1 occurrences
-        "JavaLangClash", // 1 occurrences
-        "MixedMutabilityReturnType", // 1 occurrences
-        "UnusedMethod", // 2 occurrences
-        "UnusedVariable", // 10 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)

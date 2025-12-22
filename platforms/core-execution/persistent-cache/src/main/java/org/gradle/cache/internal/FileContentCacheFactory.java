@@ -25,7 +25,7 @@ import java.io.File;
 /**
  * A factory for caches that contain some calculated value for a particular file. Maintains a cross-build in-memory and persistent cache of computed values. The value for a given file is updated when the content of the file changes.
  */
-@ServiceScope({Scope.UserHome.class, Scope.Gradle.class})
+@ServiceScope({Scope.UserHome.class, Scope.Build.class})
 public interface FileContentCacheFactory {
     /**
      * Creates or locates a cache. The contents of the cache are reused across builds, where possible.

@@ -22,10 +22,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.work.ProjectParallelExecutionController;
 
 import java.io.Closeable;
-import java.util.function.Function;
 
 /**
  * Encapsulates the state for a particular build tree.
@@ -33,34 +31,23 @@ import java.util.function.Function;
 @ServiceScope(Scope.BuildTree.class)
 public class BuildTreeState implements Closeable {
     private final ServiceRegistry services;
-    private final DefaultBuildTreeContext context;
 
-    public BuildTreeState(BuildInvocationScopeId buildInvocationScopeId, ServiceRegistry parent, BuildTreeModelControllerServices.Supplier modelServices) {
+    public BuildTreeState(
+        ServiceRegistry buildSessionServices,
+        BuildActionModelRequirements buildActionRequirements,
+        BuildModelParameters buildModelParameters,
+        BuildInvocationScopeId buildInvocationScopeId
+    ) {
         services = ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.BuildTree.class)
             .displayName("build tree services")
-            .parent(parent)
-            .provider(new BuildTreeScopeServices(buildInvocationScopeId, this, modelServices))
+            .parent(buildSessionServices)
+            .provider(new BuildTreeScopeServices(buildActionRequirements, buildModelParameters, buildInvocationScopeId, this))
             .build();
-        context = new DefaultBuildTreeContext(services);
     }
 
     public ServiceRegistry getServices() {
         return services;
-    }
-
-    /**
-     * Runs the given action against the state of this build tree.
-     */
-    public <T> T run(Function<? super BuildTreeContext, T> action) {
-        BuildModelParameters modelParameters = services.get(BuildModelParameters.class);
-        ProjectParallelExecutionController parallelExecutionController = services.get(ProjectParallelExecutionController.class);
-        parallelExecutionController.startProjectExecution(modelParameters.isParallelProjectExecution());
-        try {
-            return action.apply(context);
-        } finally {
-            parallelExecutionController.finishProjectExecution();
-        }
     }
 
     @Override

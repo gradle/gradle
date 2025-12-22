@@ -38,11 +38,11 @@ import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL
 
 @CompileStatic
 class MutableUnitOfWorkBuilder {
-    private Supplier<UnitOfWork.WorkResult> work = { ->
+    private Supplier<WorkOutput.WorkResult> work = { ->
         create.each { it ->
             it.createFile()
         }
-        return UnitOfWork.WorkResult.DID_WORK
+        return WorkOutput.WorkResult.DID_WORK
     }
     private Map<String, Object> inputProperties
     private Map<String, ? extends Collection<? extends File>> inputFiles
@@ -76,7 +76,7 @@ class MutableUnitOfWorkBuilder {
         this.executionHistoryStore = executionHistoryStore
     }
 
-    MutableUnitOfWorkBuilder withWork(Supplier<UnitOfWork.WorkResult> closure) {
+    MutableUnitOfWorkBuilder withWork(Supplier<WorkOutput.WorkResult> closure) {
         work = closure
         return this
     }
@@ -146,7 +146,7 @@ class MutableUnitOfWorkBuilder {
     }
 
     @Immutable
-    private static class SimpleIdentity implements UnitOfWork.Identity {
+    private static class SimpleIdentity implements Identity {
         final String uniqueId
     }
 
@@ -159,7 +159,7 @@ class MutableUnitOfWorkBuilder {
             boolean executed
 
             @Override
-            UnitOfWork.Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+            Identity identify(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
                 new SimpleIdentity("myId")
             }
 
@@ -168,9 +168,14 @@ class MutableUnitOfWorkBuilder {
                 new MutableWorkspaceProvider() {
                     @Override
                     <T> T withWorkspace(String path, MutableWorkspaceProvider.WorkspaceAction<T> action) {
-                        return action.executeInWorkspace(null, executionHistoryStore)
+                        return action.executeInWorkspace(null)
                     }
                 }
+            }
+
+            @Override
+            Optional<ExecutionHistoryStore> getHistory() {
+                return Optional.of(executionHistoryStore)
             }
 
             @Override
@@ -179,12 +184,12 @@ class MutableUnitOfWorkBuilder {
             }
 
             @Override
-            UnitOfWork.WorkOutput execute(UnitOfWork.ExecutionRequest executionRequest) {
+            WorkOutput execute(ExecutionContext executionContext) {
                 def didWork = work.get()
                 executed = true
-                return new UnitOfWork.WorkOutput() {
+                return new WorkOutput() {
                     @Override
-                    UnitOfWork.WorkResult getDidWork() {
+                    WorkOutput.WorkResult getDidWork() {
                         return didWork
                     }
 
@@ -201,13 +206,13 @@ class MutableUnitOfWorkBuilder {
             }
 
             @Override
-            void visitImplementations(UnitOfWork.ImplementationVisitor visitor) {
+            void visitImplementations(ImplementationVisitor visitor) {
                 visitor.visitImplementation(implementationType)
                 additionalImplementations.forEach(visitor::visitAdditionalImplementation)
             }
 
             @Override
-            void visitRegularInputs(UnitOfWork.InputVisitor visitor) {
+            void visitMutableInputs(InputVisitor visitor) {
                 inputProperties.each { propertyName, value ->
                     visitor.visitInputProperty(propertyName, () -> value)
                 }
@@ -215,7 +220,7 @@ class MutableUnitOfWorkBuilder {
                     visitor.visitInputFileProperty(
                         entry.key,
                         NON_INCREMENTAL,
-                        new UnitOfWork.InputFileValueSupplier(
+                        new InputVisitor.InputFileValueSupplier(
                             entry.value,
                             InputNormalizer.ABSOLUTE_PATH,
                             DirectorySensitivity.DEFAULT,
@@ -227,9 +232,9 @@ class MutableUnitOfWorkBuilder {
             }
 
             @Override
-            void visitOutputs(File workspace, UnitOfWork.OutputVisitor visitor) {
+            void visitOutputs(File workspace, OutputVisitor visitor) {
                 outputs.forEach { name, spec ->
-                    visitor.visitOutputProperty(name, spec.treeType, UnitOfWork.OutputFileValueSupplier.fromStatic(spec.root, TestFiles.fixed(spec.root)))
+                    visitor.visitOutputProperty(name, spec.treeType, OutputVisitor.OutputFileValueSupplier.fromStatic(spec.root, TestFiles.fixed(spec.root)))
                 }
             }
 
@@ -241,6 +246,11 @@ class MutableUnitOfWorkBuilder {
             @Override
             boolean shouldCleanupOutputsOnNonIncrementalExecution() {
                 return false
+            }
+
+            @Override
+            MutableUnitOfWork.ExecutionBehavior getExecutionBehavior() {
+                return MutableUnitOfWork.ExecutionBehavior.NON_INCREMENTAL
             }
 
             @Override

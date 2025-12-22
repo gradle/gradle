@@ -3,8 +3,10 @@ plugins {
     id("maven-publish")
 }
 
+// tag::publish-1[]
 group = "org.example"
 version = "1.0"
+// end::publish-1[]
 
 // tag::add-plugin-variant[]
 val gradle7 = sourceSets.create("gradle7")
@@ -47,15 +49,19 @@ configurations.configureEach {
 }
 // end::consume-plugin-variant[]
 
+// tag::publish-1[]
 gradlePlugin {
     plugins.create("greeting") {
         id = "org.example.greeting"
         implementationClass = "org.example.GreetingPlugin"
     }
 }
+// end::publish-1[]
 
+// tag::publish-2[]
 publishing {
     repositories {
         maven { url = uri(layout.buildDirectory.dir("local-repo")) }
     }
 }
+// end::publish-2[]

@@ -59,12 +59,10 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                 }
                 // then: single compilation and classloading
                 compilationCache {
-                    misses(settingsFile, rootBuildFile, leftBuildFile)
-                    hits(rightBuildFile)
+                    misses(settingsFile, rootBuildFile, leftBuildFile, rightBuildFile)
                 }
                 classLoadingCache {
-                    misses(settingsFile, rootBuildFile, leftBuildFile)
-                    hits(rightBuildFile)
+                    misses(settingsFile, rootBuildFile, leftBuildFile, rightBuildFile)
                 }
             }
 
@@ -95,8 +93,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                     hits(leftBuildFile, rootBuildFile, rightBuildFile)
                 }
                 classLoadingCache {
-                    misses(rootBuildFile, leftBuildFile)
-                    hits(rightBuildFile)
+                    misses(rootBuildFile, leftBuildFile, rightBuildFile)
                 }
             }
         }
@@ -182,14 +179,10 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
                 // then: compilation and classloading
                 compilationCache {
-                    misses(leftBuildFile)
-                    hits(rightBuildFile.stage1) // same buildscript block, target type and classpath
-                    misses(rightBuildFile.stage2) // different classpath
+                    misses(leftBuildFile, rightBuildFile)
                 }
                 classLoadingCache {
-                    misses(leftBuildFile)
-                    hits(rightBuildFile.stage1)
-                    misses(rightBuildFile.stage2)
+                    misses(leftBuildFile, rightBuildFile)
                 }
             }
 
@@ -214,9 +207,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                     hits(leftBuildFile, rightBuildFile)
                 }
                 classLoadingCache {
-                    misses(leftBuildFile)
-                    hits(rightBuildFile.stage1)
-                    misses(rightBuildFile.stage2)
+                    misses(leftBuildFile, rightBuildFile)
                 }
             }
         }
@@ -239,7 +230,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
             """
         )
         val settingsFile = cachedSettingsFile(withSettings(""), false, false)
-        val buildFile = cachedBuildFile(withBuildScript("""task<MyTask>("myTask")"""), true)
+        val buildFile = cachedBuildFile(withBuildScript("""tasks.register<MyTask>("myTask")"""), true)
 
         // and: kotlin-dsl cache assertions
         fun KotlinDslCacheFixture.assertCacheHits(run: Int) {

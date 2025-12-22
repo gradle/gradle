@@ -17,6 +17,7 @@
 package org.gradle.api.attributes;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -143,4 +144,11 @@ public interface AttributeContainer extends HasAttributes {
      */
     boolean contains(Attribute<?> key);
 
+    /**
+     * Creates a value of the given type for an Attribute.
+     *
+     * @since 9.3.0
+     */
+    @Incubating
+    <T extends Named> T named(Class<T> type, String name);
 }

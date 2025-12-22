@@ -17,7 +17,6 @@
 package org.gradle.testing.junit.platform
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_ARCHUNIT_VERSION
@@ -59,10 +58,11 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('org.gradle.NestedTest$Inner')
-            .testClass('org.gradle.NestedTest$Inner').assertTestCount(1, 0, 0)
-            .assertTestPassed('innerTest()')
+        def results = resultsFor(testDirectory)
+        results.testPath("org.gradle.NestedTest").onlyRoot()
+            .assertChildCount(1, 0)
+        results.testPathPreNormalized(':org.gradle.NestedTest:org.gradle.NestedTest$Inner').onlyRoot()
+            .assertOnlyChildrenExecuted("innerTest()")
     }
 
     def 'can use nested class as test pattern'() {
@@ -97,11 +97,12 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         succeeds('test', '--tests', 'EnclosingClass$NestedClass.nestedTest')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('EnclosingClass$NestedClass')
-            .testClass('EnclosingClass$NestedClass')
-            .assertTestCount(1, 0, 0)
-            .assertTestPassed('nestedTest')
+        def results = resultsFor(testDirectory)
+        results.testPath("EnclosingClass").onlyRoot()
+            .assertChildCount(1, 0)
+        results.testPathPreNormalized(':EnclosingClass:EnclosingClass$NestedClass').onlyRoot()
+            .assertChildCount(1, 0)
+            .assertChildrenExecuted("nestedTest()")
     }
 
     def 'can filter tests from a superclass'() {
@@ -129,11 +130,10 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         succeeds('test', '--tests', 'SubClass.superTest')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('SubClass')
-            .testClass('SubClass')
-            .assertTestCount(1, 0, 0)
-            .assertTestPassed('superTest')
+        def results = resultsFor(testDirectory)
+        results.testPath("SubClass").onlyRoot()
+            .assertChildCount(1, 0)
+            .assertOnlyChildrenExecuted("superTest()")
     }
 
     /**
@@ -175,11 +175,9 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('DeclaresTestsAsFieldsNotMethodsTest')
-            .testClass('DeclaresTestsAsFieldsNotMethodsTest')
-            .assertTestCount(1, 0, 0)
-            .assertTestPassed('example')
+        def results = resultsFor(testDirectory)
+        results.testPath('DeclaresTestsAsFieldsNotMethodsTest').onlyRoot()
+            .assertChildCount(1, 0)
     }
 
     /**
@@ -221,15 +219,13 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         succeeds('test')
 
         then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('DeclaresTestsAsFieldsNotMethodsTest')
-            .testClass('DeclaresTestsAsFieldsNotMethodsTest')
-            .assertTestCount(1, 0, 0)
-            .assertTestPassed('example')
+        def results = resultsFor(testDirectory)
+        results.testPath('DeclaresTestsAsFieldsNotMethodsTest').onlyRoot()
+            .assertChildCount(1, 0)
     }
 
     /**
-     * This test demonstrates the workaround for the inabilty to filter fields - we can
+     * This test demonstrates the workaround for the inability to filter fields - we can
      * filter based on containing class name.
      */
     @Issue("https://github.com/gradle/gradle/issues/19352")

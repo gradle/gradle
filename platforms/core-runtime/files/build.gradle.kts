@@ -19,7 +19,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
-    implementation(libs.jspecify)
+    compileOnly(libs.jspecify)
 
     testImplementation(projects.native)
     testImplementation(projects.baseServices) {

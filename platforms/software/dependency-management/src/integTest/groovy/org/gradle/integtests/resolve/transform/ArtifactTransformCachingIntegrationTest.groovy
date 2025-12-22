@@ -543,7 +543,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     identifier = "2"
                 }
                 task resolve {
-                    dependsOn(resolveHash, resolveSize)
+                    dependsOn(tasks.resolveHash, tasks.resolveSize)
                 }
             }
 
@@ -653,7 +653,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     identifier = "2"
                 }
                 task resolve {
-                    dependsOn(resolveSize, resolveHash)
+                    dependsOn(tasks.resolveSize, tasks.resolveHash)
                 }
             }
 
@@ -732,13 +732,13 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 task resolve2(type: Resolve) {
                     identifier = "2"
                 }
-                configure([resolve1, resolve2]) {
+                configure([tasks.resolve1, tasks.resolve2]) {
                     artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'value') }
                     }.artifacts
                 }
                 task resolve {
-                    dependsOn(resolve1, resolve2)
+                    dependsOn(tasks.resolve1, tasks.resolve2)
                 }
             }
 
@@ -853,7 +853,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     identifier = "2"
                 }
                 task resolve {
-                    dependsOn(resolveSize, resolveHash)
+                    dependsOn(tasks.resolveSize, tasks.resolveHash)
                 }
             }
 
@@ -1325,7 +1325,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     destinationDirectory = buildDir
                 }
                 artifacts {
-                    compile jar1
+                    compile tasks.jar1
                 }
             }
 
@@ -1372,7 +1372,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     destinationDirectory = buildDir
                 }
                 artifacts {
-                    compile jar1
+                    compile tasks.jar1
                 }
             }
 
@@ -2027,7 +2027,7 @@ resultsFile:
                     }.artifacts
                 }
                 task resolve {
-                    dependsOn(resolveGreen, resolveBlue)
+                    dependsOn(tasks.resolveGreen, tasks.resolveBlue)
                 }
             }
         """
@@ -2302,7 +2302,6 @@ resultsFile:
         journal.assertExists()
 
         when:
-        executer.noDeprecationChecks()
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
         writeLastTransformationAccessTimeToJournal(getWorkspaceRoot(outputDir1), daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
@@ -2455,8 +2454,8 @@ resultsFile:
                     destinationDirectory = buildDir
                 }
                 artifacts {
-                    compile jar1
-                    compile jar2
+                    compile tasks.jar1
+                    compile tasks.jar2
                 }
             }
         """

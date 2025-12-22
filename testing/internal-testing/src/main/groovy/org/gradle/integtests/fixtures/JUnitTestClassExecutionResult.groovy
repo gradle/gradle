@@ -24,6 +24,7 @@ import org.hamcrest.Matcher
 
 import java.time.format.DateTimeFormatter
 import java.util.function.Consumer
+import java.util.stream.Collectors
 
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
 import static org.gradle.integtests.fixtures.TestExecutionResult.EXECUTION_FAILURE
@@ -66,19 +67,62 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         return assertTestsExecuted(testCases.collect { it.displayName } as String[])
     }
 
-    TestClassExecutionResult assertTestCount(int tests, int failures, int errors) {
+    TestClassExecutionResult assertTestCount(int tests, int failures) {
         assert testClassNode.@tests == tests
         assert testClassNode.@failures == failures
-        assert testClassNode.@errors == errors
+        assert testClassNode.@errors == 0
         this
     }
 
-    TestClassExecutionResult assertTestCount(int tests, int skipped, int failures, int errors) {
+    TestClassExecutionResult assertTestCount(int tests, int skipped, int failures) {
         assert testClassNode.@tests == tests
         assert testClassNode.@skipped == skipped
         assert testClassNode.@failures == failures
-        assert testClassNode.@errors == errors
+        assert testClassNode.@errors == 0
         this
+    }
+
+    @Override
+    TestClassExecutionResult assertMetadata(Map<String, String> props) {
+        def properties = testClassNode.properties
+        def found = properties.children().collectEntries { [it.@name.text(), it.@value.text()] }
+        assert found == props
+        this
+    }
+
+    @Override
+    TestClassExecutionResult assertTestMetadata(String name, Map<String, String> props) {
+        def test = testCase(name)
+        def properties = test.properties
+        def found = properties.children().collectEntries { [it.@name.text(), it.@value.text()] }
+        assert found == props
+        this
+    }
+
+    @Override
+    TestClassExecutionResult assertHasFileAttachments(File... files) {
+        def systemOut = testClassNode.'system-out'[0].text()
+        assertHasAllFilesInOutput(systemOut, files)
+        this
+    }
+
+    @Override
+    TestClassExecutionResult assertTestHasFileAttachments(String name, File... files) {
+        def test = testCase(name)
+        String systemOut = test.'system-out'[0].text()
+        assertHasAllFilesInOutput(systemOut, files)
+        this
+    }
+
+    private void assertHasAllFilesInOutput(String systemOut, File... files) {
+        def possibleAttachments = systemOut.lines().filter(it -> it.contains("[[ATTACHMENT|")).collect(Collectors.toList())
+        assert !possibleAttachments.isEmpty()
+
+        files.each { file ->
+            assert possibleAttachments.any {
+                it.contains(file.name)
+            }
+        }
     }
 
     int getTestCount() {

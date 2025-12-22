@@ -17,8 +17,9 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.cache.Cache;
-import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.DeferredResult;
+import org.gradle.internal.execution.Identity;
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.service.scopes.Scope;
@@ -28,5 +29,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface MutableTransformWorkspaceServices extends ReservedFileSystemLocation {
     MutableWorkspaceProvider getWorkspaceProvider();
 
-    Cache<UnitOfWork.Identity, ExecutionEngine.IdentityCacheResult<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache();
+    ExecutionHistoryStore getExecutionHistoryStore();
+
+    Cache<Identity, DeferredResult<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache();
 }

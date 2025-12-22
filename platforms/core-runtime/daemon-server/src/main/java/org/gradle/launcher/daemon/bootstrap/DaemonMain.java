@@ -20,7 +20,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.logging.LoggingManagerFactory;
@@ -40,6 +39,7 @@ import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonLogFile;
 import org.gradle.launcher.daemon.server.DaemonProcessState;
@@ -47,14 +47,19 @@ import org.gradle.launcher.daemon.server.DaemonStopState;
 import org.gradle.launcher.daemon.server.MasterExpirationStrategy;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
+import org.gradle.util.internal.DefaultGradleVersion;
 
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static java.nio.file.Files.newOutputStream;
+import static org.gradle.launcher.daemon.server.DaemonLogFile.DAEMON_LOG_PREFIX;
+import static org.gradle.launcher.daemon.server.DaemonLogFile.DAEMON_LOG_SUFFIX;
 
 /**
  * The entry point for a daemon process.
@@ -70,55 +75,31 @@ public class DaemonMain extends EntryPoint {
 
     @Override
     protected void doAction(String[] args, ExecutionListener listener) {
-        // The first argument is not really used but it is very useful in diagnosing, i.e. running 'jps -m'
+        // The first argument is not really used, but it is very useful in diagnosing, i.e. running 'jps -m'
         if (args.length != 1) {
-            invalidArgs("Following arguments are required: <gradle-version>");
+            invalidArgs();
         }
 
         // Read configuration from stdin
-        List<String> startupOpts;
         File gradleHomeDir;
-        File daemonBaseDir;
-        int idleTimeoutMs;
-        int periodicCheckIntervalMs;
-        boolean singleUse;
-        NativeServicesMode nativeServicesMode;
-        String daemonUid;
-        DaemonPriority priority;
-        List<File> additionalClassPath;
+        DaemonServerConfiguration parameters;
 
-        KryoBackedDecoder decoder = new KryoBackedDecoder(new EncodedStream.EncodedInput(System.in));
         try {
+            KryoBackedDecoder decoder = new KryoBackedDecoder(new EncodedStream.EncodedInput(System.in));
             gradleHomeDir = new File(decoder.readString());
-            daemonBaseDir = new File(decoder.readString());
-            idleTimeoutMs = decoder.readSmallInt();
-            periodicCheckIntervalMs = decoder.readSmallInt();
-            singleUse = decoder.readBoolean();
-            nativeServicesMode = NativeServicesMode.values()[decoder.readSmallInt()];
-            daemonUid = decoder.readString();
-            priority = DaemonPriority.values()[decoder.readSmallInt()];
-            int argCount = decoder.readSmallInt();
-            startupOpts = new ArrayList<String>(argCount);
-            for (int i = 0; i < argCount; i++) {
-                startupOpts.add(decoder.readString());
-            }
-            int additionalClassPathLength = decoder.readSmallInt();
-            additionalClassPath = new ArrayList<File>(additionalClassPathLength);
-            for (int i = 0; i < additionalClassPathLength; i++) {
-                additionalClassPath.add(new File(decoder.readString()));
-            }
+            parameters = readDaemonServerConfiguration(decoder);
         } catch (EOFException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
         NativeServices.initializeOnDaemon(gradleHomeDir, NativeServicesMode.fromSystemProperties());
-        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, priority, startupOpts, nativeServicesMode);
         ServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.get(LoggingManagerFactory.class).createLoggingManager();
 
-        DaemonProcessState daemonProcessState = new DaemonProcessState(parameters, loggingRegistry, loggingManager, DefaultClassPath.of(additionalClassPath));
+        DaemonProcessState daemonProcessState = new DaemonProcessState(parameters, loggingRegistry, loggingManager);
         ServiceRegistry daemonServices = daemonProcessState.getServices();
         File daemonLog = daemonServices.get(DaemonLogFile.class).getFile();
+        File daemonBaseDir = daemonServices.get(DaemonDir.class).getBaseDir();
 
         // Any logging prior to this point will not end up in the daemon log file.
         initialiseLogging(loggingManager, daemonLog);
@@ -127,7 +108,7 @@ public class DaemonMain extends EntryPoint {
         ProcessEnvironment processEnvironment = daemonServices.get(ProcessEnvironment.class);
         processEnvironment.maybeDetachProcess();
 
-        LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
+        LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", parameters.getJvmOptions());
 
         daemonServices.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
 
@@ -143,13 +124,70 @@ public class DaemonMain extends EntryPoint {
             daemonProcessState.stopped(stopState);
         } finally {
             CompositeStoppable.stoppable(daemon, daemonProcessState).stop();
+            //TODO This should actually be used in `GradleUserHomeCleanupService`, but this is in core and core can't use the classes to get the proper daemon log dir name.
+            cleanupOldLogFiles(daemonBaseDir);
         }
     }
 
-    private static void invalidArgs(String message) {
+    private static DaemonServerConfiguration readDaemonServerConfiguration(KryoBackedDecoder decoder) throws EOFException {
+        File daemonBaseDir = new File(decoder.readString());
+        int idleTimeoutMs = decoder.readSmallInt();
+        int periodicCheckIntervalMs = decoder.readSmallInt();
+        boolean singleUse = decoder.readBoolean();
+        NativeServicesMode nativeServicesMode = NativeServicesMode.values()[decoder.readSmallInt()];
+        String daemonUid = decoder.readString();
+        DaemonPriority priority = DaemonPriority.values()[decoder.readSmallInt()];
+        int argCount = decoder.readSmallInt();
+        List<String> startupJvmOpts = new ArrayList<>(argCount);
+        for (int i = 0; i < argCount; i++) {
+            startupJvmOpts.add(decoder.readString());
+        }
+        return new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, priority, startupJvmOpts, nativeServicesMode);
+    }
+
+    private static void invalidArgs() {
         System.out.println("USAGE: <gradle version>");
-        System.out.println(message);
+        System.out.println("Following arguments are required: <gradle-version>");
         System.exit(1);
+    }
+
+    private static final long FOURTEEN_DAYS_MILLIS = TimeUnit.DAYS.toMillis(14);
+
+    /**
+     * Removes all log files in the given folder that haven't been modified for at least 2 weeks
+     *
+     * @param daemonBaseDir The currently used log file
+     */
+    public static void cleanupOldLogFiles(File daemonBaseDir) {
+        try {
+            File[] daemonLogDirectories = daemonBaseDir.listFiles(file ->
+                file.isDirectory() && DefaultGradleVersion.VERSION_PATTERN.matcher(file.getName()).matches());
+            if (daemonLogDirectories == null) {
+                LOGGER.warn("Could not list daemon log directories for cleanup in: {}", daemonBaseDir.getAbsolutePath());
+                return;
+            }
+            long maxAge = System.currentTimeMillis() - FOURTEEN_DAYS_MILLIS;
+            for (File daemonLogDirectory : daemonLogDirectories) {
+                File[] logFiles = daemonLogDirectory.listFiles(f -> f.isFile() && f.getName().endsWith(DAEMON_LOG_SUFFIX) && f.getName().startsWith(DAEMON_LOG_PREFIX));
+                if (logFiles == null) {
+                    LOGGER.warn("Could not list log files for cleanup in: {}", daemonLogDirectory.getAbsolutePath());
+                    return;
+                }
+                for (File logFile : logFiles) {
+                    if (logFile.equals(daemonBaseDir) // Should never happen, but just to be safe
+                        || logFile.lastModified() >= maxAge) {
+                        continue;
+                    }
+
+                    if (!logFile.delete()) {
+                        LOGGER.warn("Could not delete old log file: {}", logFile.getAbsolutePath());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error cleaning up old log files", e);
+        }
+
     }
 
     protected void daemonStarted(Long pid, String uid, Address address, File daemonLog) {
@@ -165,19 +203,8 @@ public class DaemonMain extends EntryPoint {
     }
 
     protected void initialiseLogging(LoggingManagerInternal loggingManager, File daemonLog) {
-        // create log file
-        PrintStream result;
-        try {
-            Files.createParentDirs(daemonLog);
-            // Note that DaemonDiagnostics class reads this log.
-            result = new PrintStream(new FileOutputStream(daemonLog), true, "UTF-8");
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to create daemon log file", e);
-        }
-
+        PrintStream log = createLogFile(daemonLog);
         reducePermissionsOnDaemonLog(daemonLog);
-
-        final PrintStream log = result;
 
         ShutdownHooks.addShutdownHook(new Runnable() {
             @Override
@@ -202,10 +229,20 @@ public class DaemonMain extends EntryPoint {
         loggingManager.start();
     }
 
+    private static PrintStream createLogFile(File daemonLog) {
+        try {
+            Files.createParentDirs(daemonLog);
+            // Note that DaemonDiagnostics class reads this log.
+            return new PrintStream(newOutputStream(daemonLog.toPath()), true, "UTF-8");
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to create daemon log file", e);
+        }
+    }
+
     /**
      * Set the permissions for the daemon log to be only readable/writable by the current user.
      */
-    private void reducePermissionsOnDaemonLog(File daemonLog) {
+    private static void reducePermissionsOnDaemonLog(File daemonLog) {
         //noinspection ResultOfMethodCallIgnored
         daemonLog.setReadable(false, false);
         //noinspection ResultOfMethodCallIgnored

@@ -126,6 +126,7 @@ public class VersionParser implements Transformer<Version, String> {
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
         public boolean isQualified() {
             return baseVersion != this;
         }

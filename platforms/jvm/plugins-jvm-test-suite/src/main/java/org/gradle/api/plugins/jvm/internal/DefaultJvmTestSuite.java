@@ -18,7 +18,6 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.tasks.JvmConstants;
@@ -72,7 +71,6 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * JUnit 4 test framework for backwards compatibility.  Any other test suite will default to using the JUnit Jupiter test framework.
  */
 public abstract class DefaultJvmTestSuite implements JvmTestSuite {
-    private final ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> targets;
     private final SourceSet sourceSet;
     private final String name;
     private final TaskDependencyFactory taskDependencyFactory;
@@ -85,18 +83,12 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
         this.taskDependencyFactory = taskDependencyFactory;
         this.toolchainFactory = new ToolchainFactory(getObjectFactory(), getParentServices(), getInstantiatorFactory());
 
-        this.targets = getObjectFactory().polymorphicDomainObjectContainer(JvmTestSuiteTarget.class);
-        this.targets.registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
+        getTargets().registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
 
-        Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
-        Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
-        Configuration runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
-        Configuration annotationProcessor = configurations.getByName(sourceSet.getAnnotationProcessorConfigurationName());
-
-        implementation.fromDependencyCollector(getDependencies().getImplementation());
-        runtimeOnly.fromDependencyCollector(getDependencies().getRuntimeOnly());
-        compileOnly.fromDependencyCollector(getDependencies().getCompileOnly());
-        annotationProcessor.fromDependencyCollector(getDependencies().getAnnotationProcessor());
+        configurations.named(sourceSet.getCompileOnlyConfigurationName(), compileOnly -> compileOnly.fromDependencyCollector(getDependencies().getCompileOnly()));
+        configurations.named(sourceSet.getImplementationConfigurationName(), implementation -> implementation.fromDependencyCollector(getDependencies().getImplementation()));
+        configurations.named(sourceSet.getRuntimeOnlyConfigurationName(), runtimeOnly -> runtimeOnly.fromDependencyCollector(getDependencies().getRuntimeOnly()));
+        configurations.named(sourceSet.getAnnotationProcessorConfigurationName(), annotationProcessor -> annotationProcessor.fromDependencyCollector(getDependencies().getAnnotationProcessor()));
 
         if (name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             // for the built-in test suite, we don't express an opinion, so we will not add any dependencies
@@ -111,29 +103,17 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         addDefaultTestTarget();
 
-        this.targets.withType(JvmTestSuiteTarget.class).configureEach(target -> {
-            target.getTestTask().configure(this::initializeTestFramework);
-        });
+        getTargets().withType(JvmTestSuiteTarget.class).configureEach(target -> target.getTestTask().configure(this::initializeTestFramework));
 
-        // This is a workaround for strange behavior from the Kotlin plugin.
-        // It seems Kotlin is not doing this anymore in the newest version, so we should re-evaluate
-        // whether we need withDependencies anymore.
-        //
-        // The Kotlin plugin attempts to look at the declared dependencies to know if it needs to add its own dependencies.
-        // We avoid triggering realization of getTestSuiteTestingFramework by only adding our dependencies just before
-        // resolution.
-        implementation.withDependencies(dependencySet ->
-            dependencySet.addAllLater(getTestToolchain().map(JvmTestToolchain::getImplementationDependencies)
-                .orElse(Collections.emptyList()))
-        );
-        runtimeOnly.withDependencies(dependencySet ->
-            dependencySet.addAllLater(getTestToolchain().map(JvmTestToolchain::getRuntimeOnlyDependencies)
-                .orElse(Collections.emptyList()))
-        );
-        compileOnly.withDependencies(dependenciesSet ->
-            dependenciesSet.addAllLater(getTestToolchain().map(JvmTestToolchain::getCompileOnlyDependencies)
-                .orElse(Collections.emptyList()))
-        );
+        addTestFrameworkDependenciesToDependencies();
+    }
+
+    private void addTestFrameworkDependenciesToDependencies() {
+        JvmComponentDependencies dependencies = getDependencies();
+
+        dependencies.getCompileOnly().bundle(getTestToolchain().map(JvmTestToolchain::getCompileOnlyDependencies));
+        dependencies.getImplementation().bundle(getTestToolchain().map(JvmTestToolchain::getImplementationDependencies));
+        dependencies.getRuntimeOnly().bundle(getTestToolchain().map(JvmTestToolchain::getRuntimeOnlyDependencies));
     }
 
     private void initializeTestFramework(Test task) {
@@ -149,7 +129,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             target = getName(); // For now, we'll just name the test task for the single target for the suite with the suite name
         }
 
-        targets.register(target);
+        getTargets().register(target);
     }
 
     protected abstract Property<JvmTestToolchain<?>> getTestToolchain();
@@ -182,9 +162,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     }
 
     @Override
-    public ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> getTargets() {
-        return targets;
-    }
+    public abstract ExtensiblePolymorphicDomainObjectContainer<JvmTestSuiteTarget> getTargets();
 
     @Override
     public void useJUnit() {
@@ -336,7 +314,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         private <T extends JvmTestToolchainParameters> JvmTestToolchain<T> create(Class<? extends JvmTestToolchain<T>> type) {
             IsolationScheme<JvmTestToolchain<?>, JvmTestToolchainParameters> isolationScheme = new IsolationScheme<>(uncheckedCast(JvmTestToolchain.class), JvmTestToolchainParameters.class, JvmTestToolchainParameters.None.class);
-            Class<T> parametersType = isolationScheme.parameterTypeFor(type);
+            Class<T> parametersType = isolationScheme.parameterTypeForOrNull(type);
             T parameters = parametersType == null ? null : objectFactory.newInstance(parametersType);
             ServiceLookup lookup = isolationScheme.servicesForImplementation(parameters, parentServices, Collections.singleton(DependencyFactory.class));
             return new FrameworkCachingJvmTestToolchain<>(instantiatorFactory.decorate(lookup).newInstance(type));

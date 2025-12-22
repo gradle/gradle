@@ -234,7 +234,7 @@ class WorkNodeCodec(
         val groupedNodes = nodes.groupBy(NodeOwner::of)
         writeCollection(groupedNodes.keys) { nodeOwner ->
             val groupPath = nodeOwner.path()
-            writeString(groupPath.path)
+            writeString(groupPath.asString())
         }
 
         val batchedActionNodeSuccessors =
@@ -646,7 +646,7 @@ fun asBuildOperation(displayName: String, contextPath: Path, action: () -> Unit)
         override fun description(): BuildOperationDescriptor.Builder {
             return BuildOperationDescriptor
                 .displayName(displayName)
-                .progressDisplayName(contextPath.path)
+                .progressDisplayName(contextPath.asString())
         }
     }
 

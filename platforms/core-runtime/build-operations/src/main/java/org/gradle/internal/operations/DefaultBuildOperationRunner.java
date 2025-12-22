@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.Cast;
 import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -48,7 +49,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     }
 
     @Override
-    public <T> T call(CallableBuildOperation<T> buildOperation) {
+    public <T extends @Nullable Object> T call(CallableBuildOperation<T> buildOperation) {
         CallableBuildOperationWorker<T> worker = new CallableBuildOperationWorker<T>();
         execute(buildOperation, worker);
         return worker.getReturnValue();
@@ -201,8 +202,8 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context, BuildOperationExecutionListener listener);
     }
 
-    private static class CallableBuildOperationWorker<T> implements BuildOperationWorker<CallableBuildOperation<T>> {
-        private T returnValue;
+    private static class CallableBuildOperationWorker<T extends @Nullable Object> implements BuildOperationWorker<CallableBuildOperation<T>> {
+        private @Nullable T returnValue;
 
         @Override
         public void execute(CallableBuildOperation<T> buildOperation, BuildOperationContext context) throws Exception {
@@ -210,14 +211,16 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         }
 
         public T getReturnValue() {
-            return returnValue;
+            // Strictly speaking this isn't safe, as the method may be called without calling execute() first.
+            // But we don't want to do the sentinel dance here.
+            return Cast.unsafeStripNullable(returnValue);
         }
     }
 
     private static class BuildOperationTrackingListener implements BuildOperationExecutionListener {
         private final CurrentBuildOperationRef currentBuildOperationRef;
         private final BuildOperationExecutionListener delegate;
-        private BuildOperationState originalCurrentBuildOperation;
+        private @Nullable BuildOperationState originalCurrentBuildOperation;
 
         private BuildOperationTrackingListener(CurrentBuildOperationRef currentBuildOperationRef, BuildOperationExecutionListener delegate) {
             this.currentBuildOperationRef = currentBuildOperationRef;
@@ -317,9 +320,9 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     private static class DefaultBuildOperationContext implements ReadableBuildOperationContext {
         private final BuildOperationDescriptor descriptor;
         private final BuildOperationExecutionListener listener;
-        private Throwable failure;
-        private Object result;
-        private String status;
+        private @Nullable Throwable failure;
+        private @Nullable Object result;
+        private @Nullable String status;
 
         public DefaultBuildOperationContext(BuildOperationDescriptor descriptor, BuildOperationExecutionListener listener) {
             this.descriptor = descriptor;

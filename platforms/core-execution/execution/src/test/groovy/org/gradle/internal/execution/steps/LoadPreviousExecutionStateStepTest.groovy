@@ -16,6 +16,8 @@
 
 package org.gradle.internal.execution.steps
 
+import org.gradle.internal.execution.Identity
+import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.PreviousExecutionState
@@ -25,15 +27,16 @@ class LoadPreviousExecutionStateStepTest extends StepSpec<WorkspaceContext> {
 
     def step = new LoadPreviousExecutionStateStep(delegate)
     def uniqueId = "test"
-    def identity = Stub(UnitOfWork.Identity) {
+    def identity = Stub(Identity) {
         getUniqueId() >> uniqueId
     }
     def previousExecutionState = Stub(PreviousExecutionState)
     def delegateResult = Mock(AfterExecutionResult)
+    def work = Stub(MutableUnitOfWork)
 
     def setup() {
         _ * context.identity >> identity
-        _ * context.history >> Optional.of(executionHistoryStore)
+        _ * work.history >> Optional.of(executionHistoryStore)
     }
 
     def "loads execution history and removes untracked outputs when output is not captured"() {

@@ -18,6 +18,7 @@ dependencies {
     integTestImplementation(projects.languageJvm)
     integTestImplementation(projects.platformJvm)
     integTestImplementation(testFixtures(projects.jacoco))
+    integTestImplementation(testFixtures(projects.testingBase))
     integTestImplementation(libs.mockwebserver) {
         exclude(group = "org.bouncycastle").because("MockWebServer uses a different version of BouncyCastle")
     }
@@ -40,4 +41,8 @@ dependencies {
 testFilesCleanup.reportOnly = true
 tasks.isolatedProjectsIntegTest {
     enabled = false
+}
+
+errorprone {
+    nullawayEnabled = true
 }

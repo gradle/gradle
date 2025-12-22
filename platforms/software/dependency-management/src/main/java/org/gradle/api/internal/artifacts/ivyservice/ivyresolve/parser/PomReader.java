@@ -517,7 +517,7 @@ public class PomReader implements PomParent {
             return new MavenDependencyKey(getGroupId(), getArtifactId(), getType(), getClassifier());
         }
 
-        /* (non-Javadoc)
+        /**
          * @see org.apache.ivy.plugins.parser.m2.PomDependencyMgt#getGroupId()
          */
         @Override
@@ -527,7 +527,7 @@ public class PomReader implements PomParent {
             return replaceProps(val);
         }
 
-        /* (non-Javadoc)
+        /**
          * @see org.apache.ivy.plugins.parser.m2.PomDependencyMgt#getArtifactId()
          */
         @Override
@@ -537,7 +537,7 @@ public class PomReader implements PomParent {
             return replaceProps(val);
         }
 
-        /* (non-Javadoc)
+        /**
          * @see org.apache.ivy.plugins.parser.m2.PomDependencyMgt#getVersion()
          */
         @Override

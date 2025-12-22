@@ -20,14 +20,13 @@ import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
-import org.gradle.initialization.layout.BuildTreeLocations
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
-import org.gradle.internal.cc.impl.ConfigurationCacheLoggingParameters
 import org.gradle.internal.cc.impl.Workarounds
 import org.gradle.internal.extensions.core.getInternalFlag
-import org.gradle.internal.extensions.core.getInternalString
+import org.gradle.internal.extensions.core.getStringOrNull
 import org.gradle.internal.extensions.stdlib.unsafeLazy
+import org.gradle.internal.initialization.layout.BuildTreeLocations
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.internal.IncubationLogger
@@ -40,7 +39,6 @@ class ConfigurationCacheStartParameter internal constructor(
     private val startParameter: StartParameterInternal,
     options: InternalOptions,
     private val modelParameters: BuildModelParameters,
-    private val loggingParameters: ConfigurationCacheLoggingParameters,
 ) {
     /**
      * Internal Configuration Cache options.
@@ -67,7 +65,7 @@ class ConfigurationCacheStartParameter internal constructor(
      * The default (when null) is to write the report under `<root build buildDir>/reports/configuration-cache`.
      */
     val customReportOutputDirectory: File? by lazy {
-        options.getInternalString(Options.REPORT_OUTPUT_DIR, null)?.let {
+        options.getStringOrNull(Options.REPORT_OUTPUT_DIR)?.let {
             buildTreeLocations.buildTreeRootDirectory.resolve(it)
         }
     }
@@ -89,40 +87,18 @@ class ConfigurationCacheStartParameter internal constructor(
     val isSharingObjects: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.share-objects", true)
 
     /**
-     * Whether configuration cache storing/loading should be done in parallel.
-     *
-     * Same as [StartParameterInternal.configurationCacheParallel].
-     *
-     * @see StartParameterInternal.configurationCacheParallel
+     * See [org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheFineGrainedPropertyTracking].
      */
-    val isParallelCache: Boolean by lazy {
-        isIsolatedProjects || startParameter.isConfigurationCacheParallel.also { enabled ->
-            if (enabled) {
-                IncubationLogger.incubatingFeatureUsed("Parallel Configuration Cache")
-            }
-        }
-    }
-
-    /**
-     * Whether configuration should be stored in parallel.
-     *
-     * The default is the value of [isParallelCache].
-     */
-    val isParallelStore = isParallelCache && options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-store", true)
-
-    /**
-     * Whether configuration should be loaded in parallel.
-     *
-     * The default is `true`.
-     */
-    val isParallelLoad = options.getInternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
+    val isFineGrainedPropertyTracking: Boolean
+        get() = startParameter.isConfigurationCacheFineGrainedPropertyTracking
 
     val gradleProperties: Map<String, Any?>
-        get() = startParameter.projectProperties
+        get() = startParameter.projectPropertiesUntracked
             .filterKeys { !Workarounds.isIgnoredStartParameterProperty(it) }
 
-    val configurationCacheLogLevel: LogLevel
-        get() = loggingParameters.logLevel
+    val configurationCacheLogLevel: LogLevel by lazy {
+        if (startParameter.isConfigurationCacheQuiet) LogLevel.INFO else LogLevel.LIFECYCLE
+    }
 
     val isIgnoreInputsDuringStore: Boolean
         get() = startParameter.isConfigurationCacheIgnoreInputsDuringStore
@@ -145,7 +121,7 @@ class ConfigurationCacheStartParameter internal constructor(
     /**
      * Whether we should skip creating an entry in case of a cache miss.
      */
-    val isReadOnlyCache : Boolean by lazy {
+    val isReadOnlyCache: Boolean by lazy {
         startParameter.isConfigurationCacheReadOnly.also { enabled ->
             if (enabled) {
                 IncubationLogger.incubatingFeatureUsed("Read-only Configuration Cache")

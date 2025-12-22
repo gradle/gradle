@@ -4,13 +4,6 @@ plugins {
 
 description = "Included build controller and composite build infrastructure"
 
-errorprone {
-    disabledChecks.addAll(
-        "FutureReturnValueIgnored", // 1 occurrences
-        "ThreadLocalUsage", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
@@ -28,14 +21,15 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.classloaders)
-    implementation(projects.time)
+    implementation(projects.collections)
+    implementation(projects.daemonServices)
     implementation(projects.enterpriseLogging)
     implementation(projects.enterpriseOperations)
-    implementation(projects.daemonServices)
     implementation(projects.problemsApi)
     implementation(projects.serviceLookup)
-    implementation(projects.functional)
+    implementation(projects.time)
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
@@ -49,8 +43,11 @@ dependencies {
     integTestImplementation(projects.buildOption)
     integTestImplementation(projects.launcher)
 
-    integTestDistributionRuntimeOnly(projects.distributionsJvm) {
-        because("Requires test-kit: 'java-gradle-plugin' is used in some integration tests which always adds the test-kit dependency.  The 'java-platform' plugin from the JVM platform is used in some tests.")
+    integTestDistributionRuntimeOnly(projects.distributionsFull) {
+        because("""
+          1. Requires test-kit: 'java-gradle-plugin' is used in some integration tests which always adds the test-kit dependency. The 'java-platform' plugin from the JVM platform is used in some tests.
+          2. Has tests with the enterprise plugin
+        """)
     }
 }
 

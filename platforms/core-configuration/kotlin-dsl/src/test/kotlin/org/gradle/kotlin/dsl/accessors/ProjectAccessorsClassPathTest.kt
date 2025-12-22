@@ -42,12 +42,10 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.concurrent.withSynchronousIO
 import org.gradle.kotlin.dsl.fixtures.AbstractDslTest
+import org.gradle.kotlin.dsl.fixtures.compileToDirectory
 import org.gradle.kotlin.dsl.fixtures.eval
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
-import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
-import org.gradle.kotlin.dsl.support.compileToDirectory
-import org.gradle.kotlin.dsl.support.loggerFor
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.gradle.nativeplatform.BuildType
 import org.junit.Assert.assertEquals
@@ -82,7 +80,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 tasks = listOf(),
                 configurations = listOf(),
                 modelDefaults = listOf(),
-                softwareTypeEntries = emptyList(),
+                projectFeatureEntries = emptyList(),
                 containerElementFactories = listOf()
             )
 
@@ -142,7 +140,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     ConfigurationEntry("compile", listOf("api", "implementation"))
                 ),
                 modelDefaults = listOf(),
-                softwareTypeEntries = emptyList(),
+                projectFeatureEntries = emptyList(),
                 containerElementFactories = listOf()
             )
 
@@ -216,7 +214,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     ),
                     configurations = listOf(),
                     modelDefaults = listOf(),
-                    softwareTypeEntries = emptyList(),
+                    projectFeatureEntries = emptyList(),
                     containerElementFactories = listOf()
                 )
 
@@ -265,10 +263,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         require(
             compileToDirectory(
                 binDir,
-                KotlinCompilerOptions(),
                 "bin",
                 kotlinFilesIn(srcDir),
-                loggerFor<ProjectAccessorsClassPathTest>(),
                 classPath.asFiles
             )
         )
@@ -296,7 +292,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 ),
                 configurations = listOf(ConfigurationEntry("api")),
                 modelDefaults = listOf(),
-                softwareTypeEntries = emptyList(),
+                projectFeatureEntries = emptyList(),
                 containerElementFactories = listOf()
             )
 

@@ -15,6 +15,9 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.enterpriseLogging)
+    api(projects.fileCollections)
+    api(projects.files)
+    api(projects.functional)
     api(projects.stdlibJavaExtensions)
     api(projects.loggingApi)
     api(projects.messaging)
@@ -35,12 +38,10 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.baseServicesGroovy)
     implementation(projects.concurrent)
-    implementation(projects.files)
     implementation(projects.modelCore)
 
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
-    implementation(libs.kryo)
     implementation(libs.slf4jApi)
 
     testImplementation(projects.fileCollections)

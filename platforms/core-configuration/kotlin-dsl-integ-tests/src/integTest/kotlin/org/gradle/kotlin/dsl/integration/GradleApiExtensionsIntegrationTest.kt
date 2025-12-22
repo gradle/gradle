@@ -52,7 +52,7 @@ class GradleApiExtensionsIntegrationTest : AbstractKotlinIntegrationTest() {
 
             task("test") {
                 val types = buildList {
-                    val ca = container(A::class)
+                    val ca = objects.domainObjectContainer(A::class)
                     val cb = ca.withType<B>()
                     add(inferredTypeOf(ca))
                     add(inferredTypeOf(cb))
@@ -99,7 +99,7 @@ class GradleApiExtensionsIntegrationTest : AbstractKotlinIntegrationTest() {
             "init.gradle.kts",
             """
             allprojects {
-                container(String::class)
+                objects.domainObjectContainer(String::class)
             }
             """
         )
@@ -120,7 +120,7 @@ class GradleApiExtensionsIntegrationTest : AbstractKotlinIntegrationTest() {
 
         withBuildScript(
             """
-            container(String::class)
+            objects.domainObjectContainer(String::class)
             apply(from = "plugin.gradle.kts")
             """
         )

@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing
 
 import org.gradle.api.GradleException
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestExecuter
@@ -47,6 +48,9 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         suiteDescriptor.id >> testId
         suiteDescriptor.parent >> null
         suiteDescriptor.composite >> true
+        suiteDescriptor.name >> "suite"
+        suiteDescriptor.displayName >> "suite"
+
         def startEvent = Stub(TestStartEvent) {
             getParentId() >> null
         }
@@ -60,28 +64,12 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         }
     }
 
-    def expectTestSuitePasses() {
-        def testId = "test"
-        suiteDescriptor.id >> testId
-        suiteDescriptor.parent >> null
-        suiteDescriptor.composite >> true
-        def startEvent = Stub(TestStartEvent) {
-            getParentId() >> null
-        }
-        def finishEvent = Stub(TestCompleteEvent) {
-            getResultType() >> TestResult.ResultType.SUCCESS
-        }
-
-        _ * testExecuter.execute(_ as TestExecutionSpec, _) >> { TestExecutionSpec testExecutionSpec, TestResultProcessor processor ->
-            processor.started(suiteDescriptor, startEvent)
-            processor.completed(testId, finishEvent)
-        }
-    }
-
     def expectTestPasses() {
         suiteDescriptor.id >> "suite"
         suiteDescriptor.parent >> null
         suiteDescriptor.composite >> true
+        suiteDescriptor.name >> "suite"
+        suiteDescriptor.displayName >> "suite"
 
         testDescriptor.id >> "test"
         testDescriptor.parent >> suiteDescriptor
@@ -114,6 +102,9 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         suiteDescriptor.id >> testId
         suiteDescriptor.parent >> null
         suiteDescriptor.composite >> true
+        suiteDescriptor.name >> "suite"
+        suiteDescriptor.displayName >> "suite"
+
         def startEvent = Stub(TestStartEvent) {
             getParentId() >> null
         }
@@ -134,6 +125,8 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         suiteDescriptor.id >> "suite"
         suiteDescriptor.parent >> null
         suiteDescriptor.composite >> true
+        suiteDescriptor.name >> "suite"
+        suiteDescriptor.displayName >> "suite"
 
         testDescriptor.id >> "test"
         testDescriptor.parent >> suiteDescriptor
@@ -173,7 +166,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
 
         then:
         GradleException e = thrown()
-        e.message.startsWith("There were failing tests. See the report at")
+        assertTestFailuresReported(e)
     }
 
     def "notifies listener of test progress"() {
@@ -295,7 +288,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
 
         then:
         GradleException e = thrown()
-        e.message.startsWith("There were failing tests. See the report at")
+        assertTestFailuresReported(e)
         1 * closure.call()
 
         when:
@@ -303,7 +296,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
 
         then:
         e = thrown()
-        e.message.startsWith("There were failing tests. See the report at")
+        assertTestFailuresReported(e)
         0 * closure.call()
     }
 
@@ -316,7 +309,7 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
 
         then:
         GradleException e = thrown()
-        e.message.startsWith("There were failing tests. See the report at")
+        assertTestFailuresReported(e)
     }
 
     def "does not report task as failed if first suite contained tests"() {
@@ -326,10 +319,19 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
             it.includePatterns = "Foo"
         }
 
+        def testDir = temporaryFolder.createDir("testClasses")
+        testDir.mkdir()
+        new File(testDir, "Foo.class").createNewFile()
+        task.setTestClassesDirs(TestFiles.fixed(testDir))
+
         when:
         task.executeTests()
 
         then:
         noExceptionThrown()
+    }
+
+    private void assertTestFailuresReported(GradleException e) {
+        assert e.message.startsWith("There were failing tests. See the report at:")
     }
 }

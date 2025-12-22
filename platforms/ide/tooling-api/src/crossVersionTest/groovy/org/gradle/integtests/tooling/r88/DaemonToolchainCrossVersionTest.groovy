@@ -23,7 +23,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.GradleConnectionException
-import org.junit.Assume
 
 // 8.8 did not support configuring the set of available Java homes or disabling auto-detection
 @TargetGradleVersion(">=8.9")
@@ -48,8 +47,7 @@ class DaemonToolchainCrossVersionTest extends ToolingApiSpecification implements
 
     def "Given other daemon toolchain version When executing any task Then daemon jvm was set up with expected configuration"() {
         given:
-        def otherJvm = AvailableJavaHomes.getDifferentDaemonVersionFor(targetDist)
-        Assume.assumeNotNull(otherJvm)
+        def otherJvm = requireDifferentVersionJvmCompatibleWithTargetDist()
 
         writeJvmCriteria(otherJvm.javaVersion.majorVersion)
         captureJavaHome()

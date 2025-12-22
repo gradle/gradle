@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
@@ -26,13 +27,18 @@ import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.dependencies.DefaultResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.CapabilitiesResolutionInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultCapabilitiesConflictHandler;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ComponentStateFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
@@ -63,7 +69,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Global resolution state.
@@ -82,8 +87,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final ImmutableAttributes consumerAttributes;
     private final ImmutableAttributesSchema consumerSchema;
     private final ModuleExclusions moduleExclusions;
-    private final DeselectVersionAction deselectVersionAction = new DeselectVersionAction(this);
-    private final ReplaceSelectionWithConflictResultAction replaceSelectionWithConflictResultAction;
     private final ComponentSelectorConverter componentSelectorConverter;
     private final AttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
@@ -117,8 +120,9 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         VersionParser versionParser,
         ConflictResolution conflictResolution,
         List<? extends DependencyMetadata> syntheticDependencies,
-        ModuleConflictHandler moduleConflictHandler,
-        CapabilitiesConflictHandler capabilitiesConflictHandler,
+        ModuleConflictResolver<ComponentState> moduleConflictResolver,
+        ImmutableModuleReplacements moduleReplacements,
+        ImmutableList<CapabilitiesResolutionInternal.CapabilityResolutionRule> capabilityResolutionRules,
         GraphVariantSelector variantSelector
     ) {
         this.idGenerator = idGenerator;
@@ -134,12 +138,12 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         this.versionComparator = versionComparator.asVersionComparator();
         this.versionParser = versionParser;
         this.conflictResolution = conflictResolution;
-        this.moduleConflictHandler = moduleConflictHandler;
-        this.capabilitiesConflictHandler = capabilitiesConflictHandler;
         this.resolveOptimizations = new ResolveOptimizations();
         this.attributeDesugaring = attributeDesugaring;
-        this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
         this.variantSelector = variantSelector;
+
+        this.moduleConflictHandler = new DefaultModuleConflictHandler(moduleConflictResolver, moduleReplacements, this);
+        this.capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler(capabilityResolutionRules, this);
 
         ModuleVersionIdentifier rootModuleVersionId = rootComponentState.getModuleVersionId();
         ComponentIdentifier rootComponentId = rootComponentState.getId();
@@ -182,6 +186,10 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
     public Collection<ModuleResolveState> getModules() {
         return modules.values();
+    }
+
+    public @Nullable ModuleResolveState findModule(ModuleIdentifier moduleId) {
+        return modules.get(moduleId);
     }
 
     Spec<? super DependencyMetadata> getEdgeFilter() {
@@ -232,7 +240,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     public SelectorState computeSelectorFor(DependencyState dependencyState, boolean ignoreVersion) {
         boolean isVirtualPlatformEdge = dependencyState.getDependency() instanceof LenientPlatformDependencyMetadata;
         SelectorState selectorState = selectors.computeIfAbsent(new SelectorCacheKey(dependencyState.getRequested(), ignoreVersion, isVirtualPlatformEdge), req -> {
-            ModuleIdentifier moduleIdentifier = dependencyState.getModuleIdentifier();
+            ModuleIdentifier moduleIdentifier = dependencyState.getModuleIdentifier(getComponentSelectorConverter());
             return new SelectorState(dependencyState, idResolver, this, moduleIdentifier, ignoreVersion);
         });
         selectorState.update(dependencyState);
@@ -280,14 +288,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
     public ModuleExclusions getModuleExclusions() {
         return moduleExclusions;
-    }
-
-    public DeselectVersionAction getDeselectVersionAction() {
-        return deselectVersionAction;
-    }
-
-    public ReplaceSelectionWithConflictResultAction getReplaceSelectionWithConflictResultAction() {
-        return replaceSelectionWithConflictResultAction;
     }
 
     public ComponentSelectorConverter getComponentSelectorConverter() {
@@ -339,14 +339,32 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     }
 
     private static class SelectorCacheKey {
+
         private final ComponentSelector componentSelector;
         private final boolean ignoreVersion;
         private final boolean virtualPlatformEdge;
+        private final int hashCode;
 
-        private SelectorCacheKey(ComponentSelector componentSelector, boolean ignoreVersion, boolean virtualPlatformEdge) {
+        private SelectorCacheKey(
+            ComponentSelector componentSelector,
+            boolean ignoreVersion,
+            boolean virtualPlatformEdge
+        ) {
             this.componentSelector = componentSelector;
             this.ignoreVersion = ignoreVersion;
             this.virtualPlatformEdge = virtualPlatformEdge;
+            this.hashCode = computeHashCode(componentSelector, ignoreVersion, virtualPlatformEdge);
+        }
+
+        private static int computeHashCode(
+            ComponentSelector componentSelector,
+            boolean ignoreVersion,
+            boolean virtualPlatformEdge
+        ) {
+            int result = componentSelector.hashCode();
+            result = 31 * result + Boolean.hashCode(ignoreVersion);
+            result = 31 * result + Boolean.hashCode(virtualPlatformEdge);
+            return result;
         }
 
         @Override
@@ -365,8 +383,9 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
         @Override
         public int hashCode() {
-            return Objects.hash(componentSelector, ignoreVersion, virtualPlatformEdge);
+            return hashCode;
         }
+
     }
 
     /**
@@ -381,5 +400,10 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         //  Are they up-to-date? We should be able to test if these values are still optimal.
         int estimate = (int) (512 * Math.log(numDependencies));
         return Math.max(10, estimate);
+    }
+
+    @Override
+    public String toString() {
+        return root.getDisplayName() + " resolve state";
     }
 }

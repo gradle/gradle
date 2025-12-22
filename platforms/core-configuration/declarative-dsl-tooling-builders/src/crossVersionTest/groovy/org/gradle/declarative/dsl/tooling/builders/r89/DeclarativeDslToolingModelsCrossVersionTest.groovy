@@ -16,6 +16,11 @@
 
 package org.gradle.declarative.dsl.tooling.builders.r89
 
+import org.gradle.api.internal.plugins.BindsProjectType
+import org.gradle.api.internal.plugins.BuildModel
+import org.gradle.api.internal.plugins.Definition
+import org.gradle.api.internal.plugins.ProjectTypeBinding
+import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.declarative.dsl.tooling.builders.AbstractDeclarativeDslToolingModelsCrossVersionTest
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -38,8 +43,8 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent
 import org.gradle.util.GradleVersion
 
-@TargetGradleVersion(">=8.11")
-@ToolingApiVersion('>=8.11')
+@TargetGradleVersion(">=9.4")
+@ToolingApiVersion('>=9.4')
 class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDslToolingModelsCrossVersionTest {
 
     def setup() {
@@ -86,7 +91,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
         listener.hasSeenSomeEvents && listener.configPhaseStartEvents.isEmpty()
     }
 
-    def 'schema contains custom software type from included build'() {
+    def 'schema contains custom project type from included build'() {
         given:
         withSoftwareTypePlugins(targetVersion).prepareToExecute()
 
@@ -217,12 +222,14 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
+            import ${Definition.class.name};
+            import ${BuildModel.class.name};
 
             import java.util.ArrayList;
             import javax.inject.Inject;
 
             @Restricted
-            public abstract class TestSoftwareTypeExtension {
+            public abstract class TestSoftwareTypeExtension implements ${Definition.class.simpleName}<TestSoftwareTypeExtension.Model> {
                 private final Foo foo;
 
                 @Inject
@@ -261,6 +268,8 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
                     public abstract ListProperty<String> getBaz();
                     """ : ""}
                 }
+
+                static class Model implements ${BuildModel.class.simpleName} { }
             }
         """
 
@@ -294,32 +303,39 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import org.gradle.api.Project;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
-            import org.gradle.api.internal.plugins.software.SoftwareType;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.tasks.Nested;
             import javax.inject.Inject;
+            import ${BindsProjectType.class.name};
+            import ${ProjectTypeBinding.class.name};
+            import ${ProjectTypeBindingBuilder.class.name};
 
+            @${BindsProjectType.class.simpleName}(SoftwareTypeImplPlugin.Binding.class)
             abstract public class SoftwareTypeImplPlugin implements Plugin<Project> {
+                static class Binding implements ${ProjectTypeBinding.class.simpleName} {
+                    public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
+                        builder.bindProjectType("testSoftwareType", TestSoftwareTypeExtension.class, (context, definition, model) -> {
+                            context.getProject().getTasks().register("printConfiguration", DefaultTask.class, task -> {
+                                task.doLast("print restricted extension content", t -> {
+                                    System.out.println("id = " + definition.getId().get());
+                                    System.out.println("bar = " + definition.getFoo().getBar().get());
+
+                                    ${gradleVersion >= GradleVersion.version("8.14") ? """
+                                    System.out.println("baz = " + definition.getFoo().getBaz().get());
+                                    """ : ""}
+                                });
+                            });
+                        })
+                        .withUnsafeDefinition();
+                    }
+                }
+
                 @Inject
                 abstract protected ObjectFactory getObjectFactory();
-
-                @SoftwareType(name="testSoftwareType", modelPublicType=TestSoftwareTypeExtension.class)
-                abstract public TestSoftwareTypeExtension getTestSoftwareTypeExtension();
 
                 @Override
                 public void apply(Project target) {
                     System.out.println("Applying " + getClass().getSimpleName());
-                    TestSoftwareTypeExtension extension = getTestSoftwareTypeExtension();
-                    target.getTasks().register("printConfiguration", DefaultTask.class, task -> {
-                        task.doLast("print restricted extension content", t -> {
-                            System.out.println("id = " + extension.getId().get());
-                            System.out.println("bar = " + extension.getFoo().getBar().get());
-
-                            ${gradleVersion >= GradleVersion.version("8.14") ? """
-                            System.out.println("baz = " + extension.getFoo().getBaz().get());
-                            """ : ""}
-                        });
-                    });
                 }
             }
         """
@@ -331,22 +347,28 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import org.gradle.api.Project;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
-            import org.gradle.api.internal.plugins.software.SoftwareType;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.tasks.Nested;
             import javax.inject.Inject;
+            import ${BindsProjectType.class.name};
+            import ${ProjectTypeBinding.class.name};
+            import ${ProjectTypeBindingBuilder.class.name};
 
+            @${BindsProjectType.class.simpleName}(AnotherSoftwareTypeImplPlugin.Binding.class)
             abstract public class AnotherSoftwareTypeImplPlugin implements Plugin<Project> {
+                static class Binding implements ${ProjectTypeBinding.class.simpleName} {
+                    public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
+                        builder.bindProjectType("anotherSoftwareType", TestSoftwareTypeExtension.class, (context, definition, model) -> { })
+                            .withUnsafeDefinition();
+                    }
+                }
+
                 @Inject
                 abstract protected ObjectFactory getObjectFactory();
-
-                @SoftwareType(name="anotherSoftwareType", modelPublicType=AnotherSoftwareTypeExtension.class)
-                abstract public AnotherSoftwareTypeExtension getTestSoftwareTypeExtension();
 
                 @Override
                 public void apply(Project target) {
                     System.out.println("Applying " + getClass().getSimpleName());
-                    AnotherSoftwareTypeExtension extension = getTestSoftwareTypeExtension();
                 }
             }
         """
@@ -358,13 +380,13 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import org.gradle.api.Plugin;
             import org.gradle.api.initialization.Settings;
             import org.gradle.api.internal.SettingsInternal;
-            import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
+            import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
 
+            @SuppressWarnings("UnstableApiUsage")
+            @RegistersSoftwareTypes({SoftwareTypeImplPlugin.class, AnotherSoftwareTypeImplPlugin.class})
             abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
                 @Override
                 public void apply(Settings target) {
-                    ((SettingsInternal)target).getServices().get(SoftwareTypeRegistry.class).register(SoftwareTypeImplPlugin.class, SoftwareTypeRegistrationPlugin.class);
-                    ((SettingsInternal)target).getServices().get(SoftwareTypeRegistry.class).register(AnotherSoftwareTypeImplPlugin.class, SoftwareTypeRegistrationPlugin.class);
                 }
             }
         """

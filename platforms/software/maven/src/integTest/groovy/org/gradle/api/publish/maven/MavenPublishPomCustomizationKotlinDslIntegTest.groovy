@@ -28,12 +28,12 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
     }
 
     @Override
-    protected TestFile getSettingsFile() {
+    TestFile getSettingsFile() {
         return super.getSettingsKotlinFile()
     }
 
     def setup() {
-        requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
+        requireOwnGradleUserHomeDir("need to isolate Kotlin DSL extensions API jar")
     }
 
     def "can customize POM using Kotlin DSL"() {

@@ -22,7 +22,7 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.api.problems.FileLocation
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.integtests.resolve.PluginDslSupport
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.test.precondition.Requires
@@ -30,7 +30,8 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
-class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport, VersionCatalogErrorMessages {
+class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements VersionCatalogErrorMessages {
+    final ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         enableProblemsApiCheck()
@@ -40,6 +41,16 @@ class TomlDependenciesExtensionIntegrationTest extends AbstractVersionCatalogInt
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     TestFile tomlFile = testDirectory.file("gradle/libs.versions.toml")
+
+    String getCommon() {
+        """
+            plugins {
+                id("java-library")
+            }
+
+            ${resolve.configureProject("runtimeClasspath")}
+        """
+    }
 
     def "dependencies declared in TOML file trigger the creation of an extension (notation=#notation)"() {
         tomlFile << """[libraries]
@@ -97,7 +108,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         buildFile """
-            apply plugin: 'java-library'
+            $common
 
             dependencies {
                 implementation libs.my.lib
@@ -125,7 +136,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1").publish()
         buildFile """
-            apply plugin: 'java-library'
+            $common
 
             dependencies {
                 implementation(libs.my.lib) {
@@ -163,7 +174,7 @@ myBundle = ["lib", "lib2"]
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
         buildFile """
-            apply plugin: 'java-library'
+            $common
 
             dependencies {
                 implementation(libs.bundles.myBundle)
@@ -201,7 +212,7 @@ myBundle = ["lib", "lib2"]
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
         buildFile """
-            apply plugin: 'java-library'
+            $common
 
             dependencies {
                 addProvider("implementation", libs.bundles.myBundle)
@@ -238,7 +249,7 @@ myBundle = ["lib", "lib2"]
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1").publish()
         def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.1").publish()
         buildFile """
-            apply plugin: 'java-library'
+            $common
 
             dependencies {
                 implementation(libs.bundles.myBundle) {
@@ -277,7 +288,7 @@ lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
         """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         buildFile """
-            apply plugin: 'java-library'
+            $common
 
             dependencies {
                 implementation project(":other")
@@ -378,7 +389,7 @@ build-src-lib="org.gradle.test:buildsrc-lib:1.0"
             }
         """
         buildFile """
-            apply plugin: 'java-library'
+            $common
 
             dependencies {
                 implementation libs.lib
@@ -435,7 +446,7 @@ from-included="org.gradle.test:other:1.1"
         """
 
         buildFile """
-            apply plugin: 'java-library'
+            $common
 
             dependencies {
                 implementation 'com.acme:included:1.0'
@@ -467,7 +478,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         def other = mavenHttpRepo.module("org.gradle.test", "other", "1.0").publish()
         buildFile """
-            apply plugin: 'java-library'
+            $common
 
             dependencies {
                 implementation libs.my.lib
@@ -508,7 +519,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.1"}
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.1").publish()
         buildFile """
-            apply plugin: 'java-library'
+            $common
 
             dependencies {
                 implementation libs.my.lib
@@ -556,11 +567,11 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
                 implementation libs.my.lib
             }
 
-            tasks.register("checkDeps", CheckDeps) {
+            tasks.register("resolve", Resolve) {
                 input.from(configurations.runtimeClasspath)
             }
 
-            class CheckDeps extends DefaultTask {
+            class Resolve extends DefaultTask {
                 @InputFiles
                 final ConfigurableFileCollection input = project.objects.fileCollection()
 
@@ -577,14 +588,14 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 
         then:
         withConfigurationCache()
-        succeeds ':checkDeps'
+        succeeds ':resolve'
 
         then:
         cc.assertStateStored()
 
         when:
         withConfigurationCache()
-        succeeds ':checkDeps'
+        succeeds ':resolve'
 
         then:
         cc.assertStateLoaded()
@@ -594,7 +605,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
 my-other-lib = {group = "org.gradle.test", name="lib2", version="1.0"}
 """
         withConfigurationCache()
-        succeeds ':checkDeps'
+        succeeds ':resolve'
 
         then:
         cc.assertStateRecreated {
@@ -613,7 +624,7 @@ my-lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
             }
         """
         buildFile """
-            apply plugin: 'java-library'
+            $common
 
             dependencies {
                 implementation myLibs.my.lib
@@ -647,7 +658,7 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version.ref="rich"}
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.1").publish()
         buildFile """
-            apply plugin: 'java-library'
+            $common
 
             dependencies {
                 implementation libs.my.lib
@@ -725,7 +736,7 @@ other-bundle = ["my-lib", "my-lib2"]
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
         buildFile """
-            apply plugin: 'java-library'
+            $common
 
             dependencies {
                 implementation libs.bundles.my.bundle
@@ -864,7 +875,7 @@ dependencyResolutionManagement {
 
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:too-many-import-files'
-            contextualLabel == 'Problem: In version catalog testLibs, importing multiple files are not supported.'
+            contextualLabel == "Problem: In version catalog testLibs, ${VersionCatalogProblemId.TOO_MANY_IMPORT_FILES.displayName.uncapitalize()}."
             details == 'The import consists of multiple files'
             solutions == [ 'Only import a single file' ]
         }
@@ -892,7 +903,7 @@ dependencyResolutionManagement {
 
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:no-import-files'
-            contextualLabel == 'Problem: In version catalog testLibs, no files are resolved to be imported.'
+            contextualLabel == "Problem: In version catalog testLibs, ${VersionCatalogProblemId.NO_IMPORT_FILES.displayName.uncapitalize()}."
             details == 'The imported dependency doesn\'t resolve into any file'
             solutions == [ 'Check the import statement, it should resolve into a single file' ]
         }
@@ -976,7 +987,7 @@ dependencyResolutionManagement {
         """
 
         buildFile """
-            apply plugin: 'java-library'
+            $common
 
             dependencies {
                 implementation libs.com.company.libs.a
@@ -1092,7 +1103,7 @@ my-lib.module = "org.gradle.test:lib"
 """
         def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
         buildFile """
-            apply plugin: 'java-library'
+            $common
 
             dependencies {
                 implementation libs.my.lib

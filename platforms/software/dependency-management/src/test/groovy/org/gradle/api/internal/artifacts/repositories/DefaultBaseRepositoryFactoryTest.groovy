@@ -57,7 +57,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
     final IvyMutableModuleMetadataFactory ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
-    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver);
+    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver)
     final ProviderFactory providerFactory = Mock()
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
@@ -114,6 +114,20 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
         def repo = factory.createMavenCentralRepository()
         repo instanceof DefaultMavenArtifactRepository
         repo.url == centralUrl
+    }
+
+    def "returns the same URL instance"() {
+        given:
+        def url = "https://repo.invalid/"
+
+        when:
+        fileResolver.resolveUri(url) >> { new URI(url) }
+        def repo = factory.createMavenRepository()
+        repo.url = url
+
+        then:
+        !fileResolver.resolveUri(url).is(fileResolver.resolveUri(url))
+        repo.url.is(repo.url)
     }
 
     def createIvyRepository() {
