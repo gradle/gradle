@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.nativeintegration;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.File;
 import java.util.Map;
 
@@ -99,6 +101,7 @@ public interface ProcessEnvironment {
     /**
      * Returns the OS level PID for the current process, or null if not available.
      */
+    @Nullable
     Long maybeGetPid();
 
     /**

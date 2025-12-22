@@ -15,11 +15,12 @@
  */
 package org.gradle.internal.nativeintegration.jna;
 
+import org.gradle.internal.nativeintegration.EnvironmentModificationResult;
 import org.gradle.internal.nativeintegration.NativeIntegrationException;
 import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.nativeintegration.EnvironmentModificationResult;
 import org.gradle.internal.os.OperatingSystem;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,7 @@ import java.util.Map;
 public class UnsupportedEnvironment implements ProcessEnvironment {
     private static final Logger LOGGER = LoggerFactory.getLogger(UnsupportedEnvironment.class);
 
-    private final Long pid;
+    private final @Nullable Long pid;
 
     public UnsupportedEnvironment() {
         pid = extractPIDFromRuntimeMXBeanName();
@@ -42,20 +43,19 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
      *
      * This works on Solaris and should work with any Java VM
      */
-    private Long extractPIDFromRuntimeMXBeanName() {
-        Long pid = null;
+    private static @Nullable Long extractPIDFromRuntimeMXBeanName() {
         String runtimeMXBeanName = ManagementFactory.getRuntimeMXBean().getName();
         int separatorPos = runtimeMXBeanName.indexOf('@');
         if (separatorPos > -1) {
             try {
-                pid = Long.parseLong(runtimeMXBeanName.substring(0, separatorPos));
+                return Long.parseLong(runtimeMXBeanName.substring(0, separatorPos));
             } catch (NumberFormatException e) {
                 LOGGER.debug("Native-platform process: failed to parse PID from Runtime MX bean name: " + runtimeMXBeanName);
             }
         } else {
             LOGGER.debug("Native-platform process: failed to parse PID from Runtime MX bean name");
         }
-        return pid;
+        return null;
     }
 
     @Override
@@ -107,7 +107,7 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
     }
 
     @Override
-    public Long maybeGetPid() {
+    public @Nullable Long maybeGetPid() {
         return pid;
     }
 

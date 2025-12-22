@@ -27,6 +27,7 @@ import org.gradle.internal.file.FileModeMutator;
 import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,7 @@ import java.util.UUID;
 class GenericFileSystem implements FileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(GenericFileSystem.class);
 
+    @Nullable
     private Boolean caseSensitive;
     private final boolean canCreateSymbolicLink;
     private final TemporaryFileProvider temporaryFileProvider;
@@ -69,7 +71,9 @@ class GenericFileSystem implements FileSystem {
 
     @Override
     public boolean isCaseSensitive() {
-        initializeCaseSensitive();
+        if (caseSensitive == null) {
+            caseSensitive = computeCaseSensitive();
+        }
         return caseSensitive;
     }
 
@@ -117,20 +121,18 @@ class GenericFileSystem implements FileSystem {
         }
     }
 
-    private void initializeCaseSensitive() {
-        if (caseSensitive == null) {
 
-            String content = generateUniqueContent();
-            File file = null;
-            try {
-                checkJavaIoTmpDirExists();
-                file = createFile(content);
-                caseSensitive = probeCaseSensitive(file, content);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } finally {
-                FileUtils.deleteQuietly(file);
-            }
+    private boolean computeCaseSensitive() {
+        String content = generateUniqueContent();
+        File file = null;
+        try {
+            checkJavaIoTmpDirExists();
+            file = createFile(content);
+            return probeCaseSensitive(file, content);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            FileUtils.deleteQuietly(file);
         }
     }
 
@@ -158,7 +160,11 @@ class GenericFileSystem implements FileSystem {
     }
 
     private boolean hasContent(File file, String content) throws IOException {
-        return file.exists() && Files.asCharSource(file, StandardCharsets.UTF_8).readFirstLine().equals(content);
+        if (!file.exists()) {
+            return false;
+        }
+        String firstLine = Files.asCharSource(file, StandardCharsets.UTF_8).readFirstLine();
+        return firstLine != null && firstLine.equals(content);
     }
 
     private void checkJavaIoTmpDirExists() throws IOException {
