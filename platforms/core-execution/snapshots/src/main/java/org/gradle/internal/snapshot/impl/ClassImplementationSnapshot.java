@@ -18,7 +18,6 @@ package org.gradle.internal.snapshot.impl;
 
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
@@ -43,14 +42,13 @@ public class ClassImplementationSnapshot extends ImplementationSnapshot {
         return equals(o);
     }
 
-    @NonNull
     @Override
     public HashCode getClassLoaderHash() {
         return classLoaderHash;
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }

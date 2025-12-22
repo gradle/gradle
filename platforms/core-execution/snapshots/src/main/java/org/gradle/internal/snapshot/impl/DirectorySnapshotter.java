@@ -114,7 +114,7 @@ public class DirectorySnapshotter {
      * file snapshots and all the non-filtered directory snapshots in the directory.
      * @return The (possible filtered) snapshot of the directory.
      */
-    public FileSystemLocationSnapshot snapshot(
+    public @Nullable FileSystemLocationSnapshot snapshot(
         String absolutePath,
         SnapshottingFilter.@Nullable DirectoryWalkerPredicate predicate,
         Map<String, ? extends FileSystemLocationSnapshot> previouslyKnownSnapshots,
@@ -257,7 +257,7 @@ public class DirectorySnapshotter {
     private static class PathVisitor extends DirectorySnapshotterStatistics.CollectingFileVisitor {
         private final RelativePathTracker pathTracker = new RelativePathTracker();
         private final FilteredTrackingMerkleDirectorySnapshotBuilder builder;
-        private final SnapshottingFilter.DirectoryWalkerPredicate predicate;
+        private final SnapshottingFilter.@Nullable DirectoryWalkerPredicate predicate;
         private final AtomicBoolean hasBeenFiltered;
         private final FileHasher hasher;
         private final Interner<String> stringInterner;
@@ -518,6 +518,7 @@ public class DirectorySnapshotter {
             return fileName == null ? "" : intern(fileName.toString());
         }
 
+        @Nullable
         public FileSystemLocationSnapshot getResult() {
             return builder.getResult();
         }

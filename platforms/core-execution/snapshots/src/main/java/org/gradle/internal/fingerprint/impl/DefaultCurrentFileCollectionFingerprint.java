@@ -40,7 +40,7 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
     private final FileSystemSnapshot roots;
     private final ImmutableMultimap<String, HashCode> rootHashes;
     private final HashCode strategyConfigurationHash;
-    private HashCode hash;
+    private @Nullable HashCode hash;
 
     public static CurrentFileCollectionFingerprint from(FileSystemSnapshot roots, FingerprintingStrategy strategy, @Nullable  FileCollectionFingerprint candidate) {
         if (roots == FileSystemSnapshot.EMPTY) {
