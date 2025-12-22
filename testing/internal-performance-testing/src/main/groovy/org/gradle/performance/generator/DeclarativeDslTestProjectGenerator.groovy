@@ -220,7 +220,6 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
             import org.gradle.api.experimental.jvm.ApplicationDependencies;
             import org.gradle.api.provider.Property;
             import org.gradle.api.tasks.Nested;
-            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 
             /**
              * Represents an application that runs on the JVM.
@@ -228,12 +227,8 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
             public interface HasJvmApplication {
                 Property<String> getMainClass();
 
+                @Nested
                 ApplicationDependencies getDependencies();
-
-                @HiddenInDefinition
-                default void dependencies(Action<? super ApplicationDependencies> action) {
-                    action.execute(getDependencies());
-                }
             }
         """
 
