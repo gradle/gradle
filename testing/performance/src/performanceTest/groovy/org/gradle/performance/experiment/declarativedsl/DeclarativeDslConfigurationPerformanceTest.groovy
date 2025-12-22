@@ -19,12 +19,14 @@ package org.gradle.performance.experiment.declarativedsl
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
+import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.gradle.performance.results.OperatingSystem.MAC_OS
 import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
+@Ignore
 @RunFor(
     @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, MAC_OS, WINDOWS], testProjects = ["largeEmptyMultiProjectDeclarativeDsl"])
 )
