@@ -16,9 +16,11 @@
 
 package org.gradle.internal.nativeintegration.console;
 
+import org.jspecify.annotations.Nullable;
+
 public class FallbackConsoleDetector implements ConsoleDetector {
     @Override
-    public ConsoleMetaData getConsole() {
+    public @Nullable ConsoleMetaData getConsole() {
         return null;
     }
 
