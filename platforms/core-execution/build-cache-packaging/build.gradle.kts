@@ -28,3 +28,7 @@ dependencies {
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.snapshots))
 }
+
+errorprone {
+    nullawayEnabled = true
+}
