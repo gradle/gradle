@@ -26,7 +26,10 @@ class ProblemWriterRegistry {
     public static final ProblemWriterRegistry INSTANCE = new ProblemWriterRegistry();
 
     // ordered by priority
-    private static final List<SelectiveProblemWriter> WRITERS = Arrays.asList(new JavaCompilationWriter(), new DefaultProblemWriter());
+    private static final List<SelectiveProblemWriter> WRITERS = Arrays.asList(
+        new JavaCompilationWriter(),
+        new TypeValidationWriter(),
+        new DefaultProblemWriter());
 
     private ProblemWriterRegistry() {
     }
