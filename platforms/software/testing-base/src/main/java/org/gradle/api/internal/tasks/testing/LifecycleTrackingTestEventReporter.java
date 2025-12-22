@@ -30,7 +30,6 @@ import java.util.Map;
 class LifecycleTrackingTestEventReporter<T extends TestEventReporterInternal> implements TestEventReporterInternal {
     protected final T delegate;
 
-    @NullMarked
     private enum State {
         CREATED, STARTED, COMPLETED, CLOSED;
     }

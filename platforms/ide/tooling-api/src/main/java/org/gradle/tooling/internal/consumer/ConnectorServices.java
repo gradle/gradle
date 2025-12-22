@@ -74,7 +74,6 @@ public class ConnectorServices {
         return new DefaultGradleConnectorFactory();
     }
 
-    @NullMarked
     private static class DefaultGradleConnectorFactory implements GradleConnectorFactory {
         private final CloseableServiceRegistry ownerRegistry = ConnectorServiceRegistry.create();
 
@@ -94,7 +93,6 @@ public class ConnectorServices {
      * <p>
      * The service registry is used to simplify setting up and tearing down the dependencies.
      */
-    @NullMarked
     private static class ConnectorServiceRegistry implements ServiceRegistrationProvider {
 
         private static CloseableServiceRegistry create() {
