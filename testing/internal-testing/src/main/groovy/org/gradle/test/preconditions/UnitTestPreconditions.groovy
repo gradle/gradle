@@ -363,6 +363,13 @@ class UnitTestPreconditions {
         }
     }
 
+    static final class Jdk25OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_25
+        }
+    }
+
     static final class JdkOracle implements TestPrecondition {
         @Override
         boolean isSatisfied() {

@@ -29,7 +29,10 @@ import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 /**
  * Smoke tests for <a href="https://github.com/bndtools/bnd/blob/master/gradle-plugins/README.md">the BND plugin</a>.
  */
-@Requires(UnitTestPreconditions.Jdk17OrLater)
+@Requires(
+    value = UnitTestPreconditions.Jdk23OrEarlier,
+    reason = "BND Gradle plugin has issues with Java versions later than 23 (will be fixed in next BND release)"
+)
 class BNDSmokeTest extends AbstractPluginValidatingSmokeTest {
     def setup() {
         settingsFile << """

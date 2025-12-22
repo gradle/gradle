@@ -54,6 +54,7 @@ class PromotionProject(
             param("env.JDK8", javaHome(OpenJdk8, Os.LINUX))
             param("env.JDK11", javaHome(OpenJdk11, Os.LINUX))
             param("env.JDK17", javaHome(OpenJdk17, Os.LINUX))
+            // Keep 21 and 25 for tests requiring it specifically: https://github.com/gradle/gradle/pull/35410#discussion_r2460835304
             param("env.JDK21", javaHome(OpenJdk21, Os.LINUX))
             param("env.JDK25", javaHome(OpenJdk25, Os.LINUX))
             param("env.ORG_GRADLE_PROJECT_artifactoryUserName", "%gradle.internal.repository.build-tool.publish.username%")

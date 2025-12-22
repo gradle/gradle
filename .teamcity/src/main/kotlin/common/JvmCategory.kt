@@ -21,7 +21,7 @@ enum class JvmCategory(
     override val version: JvmVersion,
 ) : Jvm {
     MIN_VERSION(JvmVendor.OPENJDK, JvmVersion.JAVA_17),
-    MAX_LTS_VERSION(JvmVendor.OPENJDK, JvmVersion.JAVA_21),
-    MAX_VERSION(JvmVendor.OPENJDK, JvmVersion.JAVA_25),
+    MAX_LTS_VERSION(JvmVendor.OPENJDK, JvmVersion.JAVA_25),
+    MAX_VERSION(JvmVendor.OPENJDK, JvmVersion.JAVA_26),
     ANDROID_PROJECT_SMOKE_TEST_VERSION(JvmVendor.OPENJDK, JvmVersion.JAVA_17),
 }

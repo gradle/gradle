@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import com.google.common.primitives.Bytes
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
+import org.gradle.api.JavaVersion
 import org.gradle.internal.encryption.impl.EncryptionKind
 import org.gradle.internal.encryption.impl.KeyStoreKeySource
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
@@ -217,7 +218,11 @@ class ConfigurationCacheEncryptionIntegrationTest extends AbstractConfigurationC
 
         then:
         // since the key is not fully validated until needed, we only get an error when encrypting
-        failure.assertHasDescription("Invalid AES key length: 35 bytes")
+        failure.assertHasDescription(
+            JavaVersion.current() >= JavaVersion.VERSION_26
+                ? "Invalid key length (35)."
+                : "Invalid AES key length: 35 bytes"
+        )
         // exception error message varies across JCE implementations, but the exception class is predictable
         containsLine(result.error, matchesRegexp(".*java.security.InvalidKeyException.*"))
     }
