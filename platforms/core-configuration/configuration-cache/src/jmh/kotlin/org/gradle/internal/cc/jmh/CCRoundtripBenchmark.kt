@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.jmh
 
+import org.openjdk.jmh.annotations.AuxCounters
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.annotations.Fork
 import org.openjdk.jmh.annotations.Measurement
@@ -24,6 +25,18 @@ import org.openjdk.jmh.annotations.Setup
 import org.openjdk.jmh.annotations.State
 import org.openjdk.jmh.annotations.Warmup
 import org.openjdk.jmh.infra.Blackhole
+
+
+/**
+ * Auxiliary counter to track compressed byte sizes in JMH results.
+ * The field name becomes the column header in results.csv.
+ */
+@State(Scope.Thread)
+@AuxCounters(AuxCounters.Type.EVENTS)
+open class ByteCounter {
+    @Suppress("PropertyName")
+    var `compressedSize`: Long = 0
+}
 
 
 @Fork(value = 2)
@@ -41,82 +54,58 @@ open class CCRoundtripBenchmark {
     }
 
     @Benchmark
-    fun withoutCompression(bh: Blackhole) {
-        bh.consume(
-            CCLoadScenarios.readUncompressed(
-                CCLoadScenarios.writeUncompressed(
-                    state
-                )
-            )
-        )
+    fun withoutCompression(bh: Blackhole, counter: ByteCounter) {
+        val compressed = CCLoadScenarios.writeUncompressed(state)
+        counter.`compressedSize` += compressed.size.toLong()
+        bh.consume(CCLoadScenarios.readUncompressed(compressed))
     }
 
     @Benchmark
-    fun withSnappyCompression(bh: Blackhole) {
-        bh.consume(
-            CCLoadScenarios.readWithSnappy(
-                CCLoadScenarios.writeWithSnappy(
-                    state
-                )
-            )
-        )
+    fun withSnappyCompression(bh: Blackhole, counter: ByteCounter) {
+        val compressed = CCLoadScenarios.writeWithSnappy(state)
+        counter.`compressedSize` += compressed.size.toLong()
+        bh.consume(CCLoadScenarios.readWithSnappy(compressed))
     }
 
     @Benchmark
-    fun withGZIPCompression(bh: Blackhole) {
-        bh.consume(
-            CCLoadScenarios.readWithGZIP(
-                CCLoadScenarios.writeWithGZIP(
-                    state
-                )
-            )
-        )
+    fun withGZIPCompression(bh: Blackhole, counter: ByteCounter) {
+        val compressed = CCLoadScenarios.writeWithGZIP(state)
+        counter.`compressedSize` += compressed.size.toLong()
+        bh.consume(CCLoadScenarios.readWithGZIP(compressed))
     }
 
     @Benchmark
-    fun withZstdCompression(bh: Blackhole) {
-        bh.consume(
-            CCLoadScenarios.readWithZstd(
-                CCLoadScenarios.writeWithZstd(
-                    state
-                )
-            )
-        )
+    fun withZstdCompression(bh: Blackhole, counter: ByteCounter) {
+        val compressed = CCLoadScenarios.writeWithZstd(state)
+        counter.`compressedSize` += compressed.size.toLong()
+        bh.consume(CCLoadScenarios.readWithZstd(compressed))
     }
 
     @Benchmark
-    fun withZstdLevel1(bh: Blackhole) {
-        bh.consume(
-            CCLoadScenarios.readWithZstdLevel(
-                CCLoadScenarios.writeWithZstdLevel(state, 1)
-            )
-        )
+    fun withZstdLevel1(bh: Blackhole, counter: ByteCounter) {
+        val compressed = CCLoadScenarios.writeWithZstdLevel(state, 1)
+        counter.`compressedSize` += compressed.size.toLong()
+        bh.consume(CCLoadScenarios.readWithZstdLevel(compressed))
     }
 
     @Benchmark
-    fun withZstdLevel6(bh: Blackhole) {
-        bh.consume(
-            CCLoadScenarios.readWithZstdLevel(
-                CCLoadScenarios.writeWithZstdLevel(state, 6)
-            )
-        )
+    fun withZstdLevel6(bh: Blackhole, counter: ByteCounter) {
+        val compressed = CCLoadScenarios.writeWithZstdLevel(state, 6)
+        counter.`compressedSize` += compressed.size.toLong()
+        bh.consume(CCLoadScenarios.readWithZstdLevel(compressed))
     }
 
     @Benchmark
-    fun withZstdLevel9(bh: Blackhole) {
-        bh.consume(
-            CCLoadScenarios.readWithZstdLevel(
-                CCLoadScenarios.writeWithZstdLevel(state, 9)
-            )
-        )
+    fun withZstdLevel9(bh: Blackhole, counter: ByteCounter) {
+        val compressed = CCLoadScenarios.writeWithZstdLevel(state, 9)
+        counter.`compressedSize` += compressed.size.toLong()
+        bh.consume(CCLoadScenarios.readWithZstdLevel(compressed))
     }
 
     @Benchmark
-    fun withLz4Fast(bh: Blackhole) {
-        bh.consume(
-            CCLoadScenarios.readWithLz4(
-                CCLoadScenarios.writeWithLz4Fast(state)
-            )
-        )
+    fun withLz4Fast(bh: Blackhole, counter: ByteCounter) {
+        val compressed = CCLoadScenarios.writeWithLz4Fast(state)
+        counter.`compressedSize` += compressed.size.toLong()
+        bh.consume(CCLoadScenarios.readWithLz4(compressed))
     }
 }
