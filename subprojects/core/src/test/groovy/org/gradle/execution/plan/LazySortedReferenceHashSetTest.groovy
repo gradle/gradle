@@ -19,9 +19,15 @@ package org.gradle.execution.plan
 import spock.lang.Issue
 import spock.lang.Specification
 
+import java.util.concurrent.CyclicBarrier
+
 class LazySortedReferenceHashSetTest extends Specification {
 
-    def set = new NodeSets.LazySortedReferenceHashSet<String>({ s1, s2 -> s1.compareTo(s2) })
+    def set = createLazySet()
+
+    private NodeSets.LazySortedReferenceHashSet<String> createLazySet() {
+        new NodeSets.LazySortedReferenceHashSet<String>({ s1, s2 -> s1.compareTo(s2) })
+    }
 
     def "reference set behavior"() {
         expect:
@@ -148,5 +154,64 @@ class LazySortedReferenceHashSetTest extends Specification {
 
         then:
         thrown(NoSuchElementException)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/36081")
+    def "multiple readers should be safe"() {
+        given:
+        def randomizer = new Random(0)
+        def items = (1..size).collect { randomizer.nextInt().collect {it.abs() }.toString() }.toSet()
+        // we build the collection from a single thread
+        def collection = implementation.create(items)
+        CyclicBarrier barrier = new CyclicBarrier(threadCount + 1)
+        def collected = (1..threadCount).toList()
+        (1..threadCount).collect { index ->
+            new Thread() {
+                @Override
+                void run() {
+                    // wait for all threads to be ready
+                    barrier.await()
+                    try {
+                        collected[index - 1] = collection.toList()
+                    } catch (Exception e) {
+                        collected[index - 1] = e
+                    }
+                    // wait for all threads to complete
+                    barrier.await()
+                }
+            }.tap {
+                it.start()
+            }
+        }
+
+        // wait for all threads to be ready
+        barrier.await()
+
+        // wait for all threads to complete
+        barrier.await()
+
+        expect:
+        def exception = collected.find {
+            it instanceof Exception
+        }
+        if (exception) {
+            throw exception
+        }
+        collected.each { sorted ->
+            sorted.eachWithIndex { value, i ->
+                assert i == 0 || sorted[i - 1] <= sorted[i]
+            }
+        }
+
+        where:
+        [size, threadCount, implementation] << [
+            [1, 2, 5, 50, 100, 1000, 10000, 100000],
+            [1, 2, 4, 10, 20, 50],
+            [
+                [ type: "LazySortedReferenceHashSet", create: { source -> createLazySet().tap { set -> set.addAll(source) } } ],
+                // test the test
+                [ type: "TreeSet", create: { source -> new TreeSet<String>().tap { it.addAll(source) } } ]
+            ]
+        ].combinations()
     }
 }
