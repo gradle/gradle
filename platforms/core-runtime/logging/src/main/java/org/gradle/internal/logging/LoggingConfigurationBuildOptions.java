@@ -31,6 +31,7 @@ import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -199,6 +200,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         }
     }
 
+    @NullMarked
     public static class ConsoleUnicodeOption extends StringBuildOption<LoggingConfiguration> {
         public static final String LONG_OPTION = "console-unicode";
         public static final String GRADLE_PROPERTY = "org.gradle.console.unicode";
