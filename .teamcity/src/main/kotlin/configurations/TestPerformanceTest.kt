@@ -24,6 +24,7 @@ import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
 import common.gradleWrapper
 import common.killProcessStep
+import common.setArtifactRules
 import common.skipConditionally
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import model.CIBuildModel
@@ -69,7 +70,7 @@ class TestPerformanceTest(
         description = "Tries to run an adhoc performance test without a database connection to verify this is still working"
 
         applyPerformanceTestSettings()
-        artifactRules = INDIVIDUAL_PERFORAMCE_TEST_ARTIFACT_RULES
+        setArtifactRules(INDIVIDUAL_PERFORAMCE_TEST_ARTIFACT_RULES)
 
         steps {
             killProcessStep(buildTypeThis, KILL_ALL_GRADLE_PROCESSES, os)
