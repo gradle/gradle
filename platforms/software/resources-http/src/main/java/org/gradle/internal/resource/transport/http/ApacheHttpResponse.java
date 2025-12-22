@@ -18,43 +18,55 @@ package org.gradle.internal.resource.transport.http;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
-import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.HttpClientUtils;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
-public class HttpClientResponse implements Closeable {
+/**
+ * An HTTP response from an {@link ApacheCommonsHttpClient}.
+ */
+@NullMarked
+public class ApacheHttpResponse implements HttpClient.Response {
 
     private final String method;
     private final URI effectiveUri;
     private final CloseableHttpResponse httpResponse;
     private boolean closed;
 
-    HttpClientResponse(String method, URI effectiveUri, CloseableHttpResponse httpResponse) {
+    ApacheHttpResponse(String method, URI effectiveUri, CloseableHttpResponse httpResponse) {
         this.method = method;
         this.effectiveUri = effectiveUri;
         this.httpResponse = httpResponse;
     }
 
-    public String getHeader(String name) {
+    @Override
+    public @Nullable String getHeader(String name) {
         Header header = httpResponse.getFirstHeader(name);
         return header == null ? null : header.getValue();
     }
 
+    @Override
     public InputStream getContent() throws IOException {
         HttpEntity entity = httpResponse.getEntity();
         if (entity == null) {
-            throw new IOException(String.format("Response %d: %s has no content!", getStatusLine().getStatusCode(), getStatusLine().getReasonPhrase()));
+            throw new IOException(String.format("Response %d: %s has no content!", getStatusCode(), getStatusReason()));
         }
         return entity.getContent();
     }
 
-    public StatusLine getStatusLine() {
-        return httpResponse.getStatusLine();
+    @Override
+    public int getStatusCode() {
+        return httpResponse.getStatusLine().getStatusCode();
+    }
+
+    @Override
+    public String getStatusReason() {
+        return httpResponse.getStatusLine().getReasonPhrase();
     }
 
     @Override
@@ -65,21 +77,14 @@ public class HttpClientResponse implements Closeable {
         }
     }
 
-    String getMethod() {
+    @Override
+    public String getMethod() {
         return method;
     }
 
-    URI getEffectiveUri() {
+    @Override
+    public URI getEffectiveUri() {
         return effectiveUri;
     }
 
-    boolean wasSuccessful() {
-        int statusCode = getStatusLine().getStatusCode();
-        return statusCode >= 200 && statusCode < 400;
-    }
-
-    boolean wasMissing() {
-        int statusCode = getStatusLine().getStatusCode();
-        return statusCode == 404;
-    }
 }
