@@ -68,7 +68,8 @@ testing/architecture-test/src/changes/accepted-changes/accepted-public-api-chang
 testing/architecture-test/src/changes/archunit-store/internal-api-nullability.txt
 
 # Core automation platform (core/configuration)
-platforms/core-configuration/               @gradle/bt-cortex
+platforms/core-configuration/                           @gradle/bt-cortex
+platforms/core-configuration/isolated-projects-impl     @gradle/bt-cortex @gradle/bt-isolated-projects-project
 testing/smoke-ide-test/                     @gradle/bt-cortex
 subprojects/composite-builds                @gradle/bt-cortex
 
