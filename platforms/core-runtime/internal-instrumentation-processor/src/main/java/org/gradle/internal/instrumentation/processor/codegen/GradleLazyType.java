@@ -30,13 +30,15 @@ public enum GradleLazyType {
     MAP_PROPERTY("org.gradle.api.provider.MapProperty"),
     PROPERTY("org.gradle.api.provider.Property"),
     PROVIDER("org.gradle.api.provider.Provider"),
-    UNSUPPORTED((ClassName) null) {
+    UNSUPPORTED(ClassName.get(Dummy.class)) {
         @Override
         public ClassName asClassName() {
             throw new UnsupportedOperationException("Unsupported type");
         }
     };
 
+    private static class Dummy {}
+    
     @SuppressWarnings("ImmutableEnumChecker")
     private final ClassName className;
 

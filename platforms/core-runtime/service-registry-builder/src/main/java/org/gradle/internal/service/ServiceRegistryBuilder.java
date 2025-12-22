@@ -17,6 +17,7 @@
 package org.gradle.internal.service;
 
 import org.gradle.internal.service.scopes.Scope;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,8 +52,8 @@ public class ServiceRegistryBuilder {
 
     private final List<ServiceRegistry> parents = new ArrayList<ServiceRegistry>();
     private final List<ServiceRegistrationProvider> providers = new ArrayList<ServiceRegistrationProvider>();
-    private String displayName;
-    private Class<? extends Scope> scope;
+    private @Nullable String displayName;
+    private @Nullable Class<? extends Scope> scope;
     private boolean strict;
 
     private ServiceRegistryBuilder() {

@@ -44,6 +44,7 @@ public interface BuildFinishedFileSystemWatchingBuildOperationType extends Build
             }
 
             @Override
+            @Nullable
             public FileSystemWatchingStatistics getStatistics() {
                 return null;
             }

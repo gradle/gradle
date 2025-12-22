@@ -118,6 +118,7 @@ public class TypeUtils {
 
     public static String elementQualifiedName(Element element) {
         if (element instanceof ExecutableElement) {
+            @SuppressWarnings("NullAway")
             String enclosingTypeName = ((TypeElement) element.getEnclosingElement()).getQualifiedName().toString();
             return enclosingTypeName + "." + element.getSimpleName();
         } else if (element instanceof TypeElement) {

@@ -72,6 +72,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT;
 import static org.gradle.internal.snapshot.DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS;
 
@@ -144,7 +145,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         entity.visitOutputTrees((treeName, type, root) -> {
             FileSystemSnapshot treeSnapshots = snapshots.get(treeName);
             try {
-                long entryCount = packTree(treeName, type, treeSnapshots, tarOutput);
+                long entryCount = packTree(treeName, type, checkNotNull(treeSnapshots), tarOutput);
                 entries.addAndGet(entryCount);
             } catch (Exception ex) {
                 throw new RuntimeException(String.format("Could not pack tree '%s': %s", treeName, ex.getMessage()), ex);

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.file.locking;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.RandomAccessFile;
@@ -85,7 +87,7 @@ public class ExclusiveFileAccessManager {
         return System.nanoTime() / (1000L * 1000L);
     }
 
-    private static void maybeCloseQuietly(Closeable closeable) {
+    private static void maybeCloseQuietly(@Nullable Closeable closeable) {
         if (closeable != null) {
             try {
                 closeable.close();

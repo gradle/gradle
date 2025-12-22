@@ -127,3 +127,7 @@ tasks.jar {
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+errorprone {
+    nullawayEnabled = true
+}

@@ -15,10 +15,14 @@ dependencies {
         because("We need org.gradle.internal.file.PathTraversalChecker")
     }
 
+    api(libs.jspecify)
+
     testImplementation(projects.baseServices)
     testImplementation(projects.coreApi)
     testImplementation(projects.native)
     testImplementation(libs.commonsCompress)
+
+    compileOnly(libs.jetbrainsAnnotations)
 
     integTestImplementation(projects.dependencyManagement)
     integTestImplementation(projects.logging)
@@ -27,4 +31,8 @@ dependencies {
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false
+}
+
+errorprone {
+    nullawayEnabled = true
 }

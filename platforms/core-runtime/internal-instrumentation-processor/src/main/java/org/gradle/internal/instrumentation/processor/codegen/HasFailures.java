@@ -28,9 +28,10 @@ public interface HasFailures {
     class FailureInfo {
         @Nullable
         final CallInterceptionRequest request;
+        @Nullable
         final String reason;
 
-        public FailureInfo(@Nullable CallInterceptionRequest request, String reason) {
+        public FailureInfo(@Nullable CallInterceptionRequest request, @Nullable String reason) {
             this.request = request;
             this.reason = reason;
         }
