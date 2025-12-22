@@ -159,7 +159,7 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
                 fileWatcher.startWatching(directoriesToStartWatching);
             }
         } catch (NativeException e) {
-            if (e.getMessage().contains("Already watching path: ")) {
+            if (e.getMessage() != null && e.getMessage().contains("Already watching path: ")) {
                 throw new WatchingNotSupportedException("Unable to watch same file twice via different paths: " + e.getMessage(), e);
             }
             throw e;
