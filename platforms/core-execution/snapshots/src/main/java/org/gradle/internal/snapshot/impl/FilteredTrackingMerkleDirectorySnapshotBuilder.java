@@ -81,7 +81,7 @@ public class FilteredTrackingMerkleDirectorySnapshotBuilder implements Directory
     }
 
     @Override
-    public FileSystemLocationSnapshot leaveDirectory() {
+    public @Nullable FileSystemLocationSnapshot leaveDirectory() {
         FileSystemLocationSnapshot directorySnapshot = delegate.leaveDirectory();
         boolean leftLevelUnfiltered = isCurrentLevelUnfiltered.removeLast();
         isCurrentLevelUnfiltered.addLast(isCurrentLevelUnfiltered.removeLast() && leftLevelUnfiltered);
