@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.internal.cc.operations
 
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.impl.CheckedFingerprint
