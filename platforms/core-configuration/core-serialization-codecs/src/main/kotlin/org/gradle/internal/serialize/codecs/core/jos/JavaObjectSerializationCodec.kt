@@ -51,7 +51,7 @@ import java.lang.reflect.Modifier.isPrivate
  * protocol to be stored in the configuration cache.
  *
  * The implementation is currently limited to serializable classes that
- * either implement the [java.io.Externalizable] interface, or implement the [java.io.Serializable] interface and define one of the following combination of methods:
+ * either implement the [java.io.Externalizable] interface, or implement the [java.io.Serializable] interface and define one of the following combinations of methods:
  * - a `writeObject` method combined with a `readObject` method to control exactly which information to store;
  * - a `writeObject` method with no corresponding `readObject`; `writeObject` must eventually call [ObjectOutputStream.defaultWriteObject];
  * - a `readObject` method with no corresponding `writeObject`; `readObject` must eventually call [ObjectInputStream.defaultReadObject];
@@ -293,7 +293,7 @@ object ExternalizableCodec : Codec<Externalizable> {
             value.writeExternal(recordingObjectOutputStream)
         }
 
-    override suspend fun ReadContext.decode(): Externalizable? =
+    override suspend fun ReadContext.decode(): Externalizable =
         decodePreservingIdentity { id ->
             decodingBeanWithId(id) { bean, _, beanStateReader ->
                 val objectInputStream = ObjectInputStreamAdapter(bean, beanStateReader, this)
