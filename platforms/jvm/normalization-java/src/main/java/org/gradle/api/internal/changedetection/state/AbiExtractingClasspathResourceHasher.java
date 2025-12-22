@@ -83,6 +83,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
     }
 
     @Override
+    @Nullable
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
         ZipEntry zipEntry = zipEntryContext.getEntry();
 
@@ -123,7 +124,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         FULL_HASH() {
             @Nullable
             @Override
-            HashCode handle(RegularFileSnapshot fileSnapshot, IoFunction<RegularFileSnapshot, HashCode> function) {
+            HashCode handle(RegularFileSnapshot fileSnapshot, IoFunction<RegularFileSnapshot, @Nullable HashCode> function) {
                 try {
                     return function.apply(fileSnapshot);
                 } catch (Exception e) {
@@ -134,7 +135,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
 
             @Nullable
             @Override
-            HashCode handle(ZipEntryContent zipEntry, IoFunction<ZipEntryContent, HashCode> function) {
+            HashCode handle(ZipEntryContent zipEntry, IoFunction<ZipEntryContent, @Nullable HashCode> function) {
                 try {
                     return function.apply(zipEntry);
                 } catch (Exception e) {
@@ -146,21 +147,21 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         NONE() {
             @Nullable
             @Override
-            HashCode handle(RegularFileSnapshot fileSnapshot, IoFunction<RegularFileSnapshot, HashCode> function) throws IOException {
+            HashCode handle(RegularFileSnapshot fileSnapshot, IoFunction<RegularFileSnapshot, @Nullable HashCode> function) throws IOException {
                 return function.apply(fileSnapshot);
             }
 
             @Nullable
             @Override
-            HashCode handle(ZipEntryContent zipEntry, IoFunction<ZipEntryContent, HashCode> function) throws IOException {
+            HashCode handle(ZipEntryContent zipEntry, IoFunction<ZipEntryContent, @Nullable HashCode> function) throws IOException {
                 return function.apply(zipEntry);
             }
         };
 
         @Nullable
-        abstract HashCode handle(RegularFileSnapshot fileSnapshot, IoFunction<RegularFileSnapshot, HashCode> function) throws IOException;
+        abstract HashCode handle(RegularFileSnapshot fileSnapshot, IoFunction<RegularFileSnapshot, @Nullable HashCode> function) throws IOException;
 
         @Nullable
-        abstract HashCode handle(ZipEntryContent zipEntry, IoFunction<ZipEntryContent, HashCode> function) throws IOException;
+        abstract HashCode handle(ZipEntryContent zipEntry, IoFunction<ZipEntryContent, @Nullable HashCode> function) throws IOException;
     }
 }

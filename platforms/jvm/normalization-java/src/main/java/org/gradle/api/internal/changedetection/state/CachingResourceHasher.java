@@ -52,6 +52,7 @@ public class CachingResourceHasher implements ResourceHasher {
     }
 
     @Override
+    @Nullable
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
         return delegate.hash(zipEntryContext);
     }
