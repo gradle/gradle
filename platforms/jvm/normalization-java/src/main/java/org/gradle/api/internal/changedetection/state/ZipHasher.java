@@ -110,9 +110,10 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
             ZipEntryContext zipEntryContext = new DefaultZipEntryContext(zipEntry, fullName, rootParentName);
             if (isZipFile(zipEntry.getName())) {
                 zipEntryContext.getEntry().withInputStream(inputStream -> {
-                    fingerprintZipEntries(fullName, rootParentName, fingerprints, new StreamZipInput(inputStream));
-                    return null;
-                });
+                        fingerprintZipEntries(fullName, rootParentName, fingerprints, new StreamZipInput(inputStream));
+                        return Boolean.TRUE; // avoids nullability warnings
+                    }
+                );
             } else {
                 fingerprintZipEntry(zipEntryContext, fingerprints);
             }
@@ -127,7 +128,7 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
     }
 
     private DefaultFileSystemLocationFingerprint newZipMarker(String relativePath) {
-        return new DefaultFileSystemLocationFingerprint(relativePath, FileType.RegularFile, EMPTY_HASH_MARKER);
+        return new DefaultFileSystemLocationFingerprint(relativePath, FileType.RegularFile, ZipHasher.EMPTY_HASH_MARKER);
     }
 
     public interface HashingExceptionReporter {
