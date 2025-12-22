@@ -35,6 +35,14 @@ public class SuiteTestDefinitionProcessor<D extends TestDefinition> implements T
         this.clock = clock;
     }
 
+    private static TestSuiteExecutionException createTestSuiteExecutionException(String baseMessage, Throwable cause) {
+        return new TestSuiteExecutionException(
+            // Include the cause message because we're a GradleException and by default the console will not show the cause message
+            baseMessage + (cause.getMessage() != null ? ": " + cause.getMessage() : "."),
+            cause
+        );
+    }
+
     @Override
     public void startProcessing(TestResultProcessor testResultProcessor) {
         try {
@@ -42,8 +50,7 @@ public class SuiteTestDefinitionProcessor<D extends TestDefinition> implements T
             resultProcessor.started(suiteDescriptor, new TestStartEvent(clock.getCurrentTime()));
             processor.startProcessing(resultProcessor);
         } catch (Throwable t) {
-            String msg = t.getMessage() != null ? String.format("Could not start %s: %s", suiteDescriptor, t.getMessage()) : String.format("Could not start %s.", suiteDescriptor);
-            Throwable rawFailure = new TestSuiteExecutionException(msg, t);
+            Throwable rawFailure = createTestSuiteExecutionException("Could not start " + suiteDescriptor, t);
             resultProcessor.failure(suiteDescriptor.getId(), DefaultTestFailure.fromTestFrameworkStartupFailure(rawFailure));
         }
     }
@@ -53,7 +60,7 @@ public class SuiteTestDefinitionProcessor<D extends TestDefinition> implements T
         try {
             processor.processTestDefinition(testDefinition);
         } catch (Throwable t) {
-            Throwable rawFailure = new TestSuiteExecutionException(String.format("Could not execute %s.", testDefinition.getDisplayName()), t);
+            Throwable rawFailure = createTestSuiteExecutionException("Could not execute " + testDefinition.getDisplayName(), t);
             resultProcessor.failure(suiteDescriptor.getId(), TestFailure.fromTestFrameworkFailure(rawFailure));
         }
     }
@@ -63,7 +70,7 @@ public class SuiteTestDefinitionProcessor<D extends TestDefinition> implements T
         try {
             processor.stop();
         } catch (Throwable t) {
-            Throwable rawFailure = new TestSuiteExecutionException(String.format("Could not complete execution for %s.", suiteDescriptor), t);
+            Throwable rawFailure = createTestSuiteExecutionException("Could not complete execution for " + suiteDescriptor, t);
             resultProcessor.failure(suiteDescriptor.getId(), TestFailure.fromTestFrameworkFailure(rawFailure));
         } finally {
             resultProcessor.completed(suiteDescriptor.getId(), new TestCompleteEvent(clock.getCurrentTime()));
