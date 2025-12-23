@@ -338,8 +338,8 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
             int index = index(dataMap, mask, bit);
             int keyIndex = index << 1;
             Object[] content = trie.content;
-            Object data = content[keyIndex];
-            if (data == key || data.equals(key)) {
+            Object curKey = content[keyIndex];
+            if (curKey == key || curKey.equals(key)) {
                 int valIndex = keyIndex + 1;
                 Object curVal = content[valIndex];
                 Object newVal = f.apply(key, (V) curVal);
@@ -356,13 +356,13 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
                 }
             } else {
                 // Entry does not exist
-                int dataHash = data.hashCode();
+                int curKeyHash = curKey.hashCode();
                 Object curVal = content[keyIndex + 1];
                 V newVal = f.apply(key, (V) curVal);
                 if (newVal != null) {
-                    Object newNode = dataHash == hash
-                        ? new HashCollisionNode(hash, new Object[]{data, curVal, key, newVal})
-                        : branchOnKeys(key, hash, newVal, data, dataHash, curVal, shift + BITS, modification);
+                    Object newNode = curKeyHash == hash
+                        ? new HashCollisionNode(hash, new Object[]{curKey, curVal, key, newVal})
+                        : branchOnKeys(key, hash, newVal, curKey, curKeyHash, curVal, shift + BITS, modification);
                     return trie.replaceDataWithNode(keyIndex, mask, bit, newNode, 1);
                 } else {
                     return trie;

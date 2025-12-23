@@ -85,7 +85,7 @@ final class PersistentArraySmall<T> implements PersistentArray<T> {
         if (obj == this) {
             return true;
         }
-        // ✅ Only compares with PersistentArraySmall. Safe because PersistentArray implementations
+        // Only compares with PersistentArraySmall. Safe because PersistentArray implementations
         // have non-overlapping size ranges (1, 2-32, 33+), so same-content arrays always have the same type.
         if (obj instanceof PersistentArraySmall) {
             PersistentArraySmall<?> other = (PersistentArraySmall<?>) obj;
