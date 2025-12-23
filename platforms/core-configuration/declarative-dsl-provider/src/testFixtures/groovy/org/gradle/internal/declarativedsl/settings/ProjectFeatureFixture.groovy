@@ -862,6 +862,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import org.gradle.api.model.ObjectFactory;
                 import org.gradle.api.Action;
                 import org.gradle.api.tasks.Nested;
+                import ${HiddenInDefinition.class.name};
                 import javax.inject.Inject;
 
                 public abstract class ${publicTypeClassName} implements ${Definition.class.simpleName}<${publicTypeClassName}.FeatureModel> {
@@ -870,13 +871,14 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                     ${maybeInjectedServiceDeclaration}
 
                     @Nested
-                    abstract Fizz getFizz();
+                    public abstract Fizz getFizz();
 
+                    @${HiddenInDefinition.simpleName}
                     public void fizz(Action<? super Fizz> action) {
                         action.execute(getFizz());
                     }
 
-                    interface Fizz {
+                    public interface Fizz {
                         ${maybeNestedInjectedServiceDeclaration}
                         Property<String> getBuzz();
                     }

@@ -38,7 +38,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+        buildFile() << declarativeScriptThatConfiguresOnlyUnsafeTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
         succeeds(":printProjectTypeDefinitionConfiguration", ":printFeatureDefinitionConfiguration")
@@ -228,6 +228,24 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
 
                 feature {
                     text = "foo"
+                }
+            }
+        """
+    }
+
+    static String getDeclarativeScriptThatConfiguresOnlyUnsafeTestProjectFeature() {
+        return """
+            testProjectType {
+                id = "test"
+
+                foo {
+                    bar = "baz"
+                }
+
+                feature {
+                    text = "foo"
+
+                    fizz { }
                 }
             }
         """
