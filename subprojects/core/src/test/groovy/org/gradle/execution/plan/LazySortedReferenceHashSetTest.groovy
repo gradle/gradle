@@ -20,6 +20,7 @@ import spock.lang.Issue
 import spock.lang.Specification
 
 import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.TimeUnit
 
 class LazySortedReferenceHashSetTest extends Specification {
 
@@ -160,13 +161,16 @@ class LazySortedReferenceHashSetTest extends Specification {
     def "multiple readers should be safe"() {
         given:
         def randomizer = new Random(0)
-        def items = (1..size).collect { randomizer.nextInt().collect {it.abs() }.toString() }.toSet()
+        def items = (1..size).collect {
+            randomizer.nextInt().collect { it.abs() }.toString()
+        }.toSet()
+        def control = items.sort()
         // we build the collection from a single thread
         def collection = implementation.create(items)
-        def control = items.sort()
+        // then read it from multiple threads
         CyclicBarrier barrier = new CyclicBarrier(threadCount + 1)
         List<Object> collected = (1..threadCount).toList()
-        (1..threadCount).collect { index ->
+        threadCount.times { index ->
             new Thread() {
                 @Override
                 void run() {
@@ -186,10 +190,10 @@ class LazySortedReferenceHashSetTest extends Specification {
         }
 
         // wait for all threads to be ready
-        barrier.await()
+        barrier.await(5, TimeUnit.SECONDS)
 
         // wait for all threads to complete
-        barrier.await()
+        barrier.await(30, TimeUnit.SECONDS)
 
         expect:
         def exception = collected.find {
@@ -213,9 +217,9 @@ class LazySortedReferenceHashSetTest extends Specification {
             [100000],
             [2, 10, 20, 40],
             [
+                [type: "LazySortedReferenceHashSet", create: { source -> createLazySet().tap { set -> set.addAll(source) } }],
                 // test the test
-                [ type: "TreeSet", create: { source -> new TreeSet<String>().tap { it.addAll(source) ; it.iterator().toList() } } ],
-                [ type: "LazySortedReferenceHashSet", create: { source -> createLazySet().tap { set -> set.addAll(source) } } ]
+                [type: "TreeSet", create: { source -> new TreeSet<String>().tap { it.addAll(source); it.iterator().toList() } }]
             ]
         ].combinations()
     }
