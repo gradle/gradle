@@ -354,6 +354,7 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
             import org.junit.runners.Parameterized;
             import org.junit.runners.Parameterized.Parameters;
             import org.junit.runner.RunWith;
+            import java.util.Collection;
             import java.util.List;
 
             @RunWith(Parameterized.class)
@@ -364,8 +365,8 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
                 }
 
                 @Parameters
-                public static List<?> data() {
-                   return List.of(0, 1);
+                public static Collection data() {
+                   return List.of(new Object[][] { {0}, {1} });
                 }
 
                 @Test public void pass() {}
