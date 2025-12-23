@@ -219,7 +219,7 @@ class LazySortedReferenceHashSetTest extends Specification {
             [
                 [type: "LazySortedReferenceHashSet", create: { source -> createLazySet().tap { set -> set.addAll(source) } }],
                 // test the test
-                [type: "TreeSet", create: { source -> new TreeSet<String>().tap { it.addAll(source); it.iterator().toList() } }]
+                [type: "TreeSet", create: { source -> new TreeSet<String>(source) }]
             ]
         ].combinations()
     }
