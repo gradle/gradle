@@ -29,6 +29,7 @@ import common.gradleWrapper
 import common.killProcessStep
 import common.performanceTestCommandLine
 import common.removeSubstDirOnWindows
+import common.setArtifactRules
 import common.substDirOnWindows
 import jetbrains.buildServer.configs.kotlin.BuildStep
 import jetbrains.buildServer.configs.kotlin.BuildSteps
@@ -60,7 +61,7 @@ class PerformanceTest(
             val buildTypeThis = this
             val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects, performanceTestTaskSuffix)
             applyPerformanceTestSettings(os = os, arch = arch, timeout = type.timeout)
-            artifactRules = INDIVIDUAL_PERFORAMCE_TEST_ARTIFACT_RULES
+            setArtifactRules(INDIVIDUAL_PERFORAMCE_TEST_ARTIFACT_RULES)
 
             params {
                 text(
