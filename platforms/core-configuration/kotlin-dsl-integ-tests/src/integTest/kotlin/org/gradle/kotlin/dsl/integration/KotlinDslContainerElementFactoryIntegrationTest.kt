@@ -16,11 +16,15 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.api.Namer
+import org.gradle.api.internal.AbstractNamedDomainObjectContainer
+import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.plugins.BindsProjectType
 import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectTypeBinding
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.kotlin.dsl.accessors.DCL_ENABLED_PROPERTY_NAME
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.junit.Test
@@ -138,6 +142,10 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
                 import org.gradle.api.Named
                 import org.gradle.api.NamedDomainObjectContainer
                 import org.gradle.api.model.ObjectFactory
+                import ${AbstractNamedDomainObjectContainer::class.java.name}
+                import ${CollectionCallbackActionDecorator::class.java.name}
+                import ${Instantiator::class.java.name}
+                import ${Namer::class.java.name}
                 import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
                 import javax.inject.Inject
                 import ${BindsProjectType::class.java.name}
@@ -167,13 +175,23 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
 
                 abstract class MyExtension @Inject constructor(objectFactory: ObjectFactory) : ${Definition::class.java.simpleName}<Model> {
                     abstract val myElements: NamedDomainObjectContainer<MyElement>
-                    val myElementsConcreteContainer = MyContainerSubtype(objectFactory.domainObjectContainer(MyOtherElement::class.java))
+                    val myElementsConcreteContainer = MyContainerSubtype()
                 }
 
                 interface Model : ${BuildModel::class.java.simpleName} { }
 
-                class MyContainerSubtype @Inject constructor(backingContainer: NamedDomainObjectContainer<MyOtherElement>)
-                    : NamedDomainObjectContainer<MyOtherElement> by backingContainer
+                class MyContainerSubtype : AbstractNamedDomainObjectContainer<MyOtherElement>(
+                    MyOtherElement::class.java,
+                    object : Instantiator {
+                        @Suppress("UNCHECKED_CAST")
+                        override fun <T : Any> newInstance(type: Class<out T>, vararg parameters: Any?): T =
+                            type.constructors.single().newInstance(*parameters) as T
+                    },
+                    Namer(MyOtherElement::getName),
+                    CollectionCallbackActionDecorator.NOOP
+                ) {
+                    override fun doCreate(name: String): MyOtherElement = MyOtherElement(name)
+                }
 
                 ${if (customElementFactoryName != null) """@ElementFactoryName("$customElementFactoryName")""" else ""}
                 abstract class MyElement(val elementName: String) : Named {
@@ -181,7 +199,7 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
                 }
 
                 ${if (customElementFactoryName != null) """@ElementFactoryName("$customElementFactoryName")""" else ""}
-                abstract class MyOtherElement(val elementName: String) : Named {
+                class MyOtherElement(val elementName: String) : Named {
                     override fun getName() = elementName
                 }
                 """.trimIndent()

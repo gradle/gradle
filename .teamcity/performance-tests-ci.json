@@ -1,13 +1,5 @@
 {
   "performanceTests" : [ {
-    "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslConfigurationPerformanceTest.configure",
-    "groups" : [ {
-      "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
-      "coverage" : {
-        "per_commit" : [ "linux", "macOs", "windows" ]
-      }
-    } ]
-  }, {
     "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.clean checkout",
     "groups" : [ {
       "testProject" : "largeEmptyMultiProjectDeclarativeDsl",

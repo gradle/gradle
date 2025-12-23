@@ -20,11 +20,13 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.plugins.Definition;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public interface HasSources<Model extends HasInputSources> {
-    NamedDomainObjectContainer<? extends Sources<Model>> getSources();
+public interface HasSources<Model extends HasInputSources, ModelSources extends HasSources.Sources<Model>> {
+    @HiddenInDefinition
+    NamedDomainObjectContainer<ModelSources> getSources();
 
     interface Sources<Model extends HasInputSources> extends Named, HasResources, Definition<Model> {
         SourceDirectorySet getSourceDirectories();
