@@ -163,8 +163,9 @@ class LazySortedReferenceHashSetTest extends Specification {
         def items = (1..size).collect { randomizer.nextInt().collect {it.abs() }.toString() }.toSet()
         // we build the collection from a single thread
         def collection = implementation.create(items)
+        def control = items.sort()
         CyclicBarrier barrier = new CyclicBarrier(threadCount + 1)
-        def collected = (1..threadCount).toList()
+        List<Object> collected = (1..threadCount).toList()
         (1..threadCount).collect { index ->
             new Thread() {
                 @Override
@@ -197,20 +198,24 @@ class LazySortedReferenceHashSetTest extends Specification {
         if (exception) {
             throw exception
         }
-        collected.each { sorted ->
+        collected.each { List<String> sorted ->
+            assert sorted.size() == items.size()
             sorted.eachWithIndex { value, i ->
-                assert i == 0 || sorted[i - 1] <= sorted[i]
+                // all elements are unique and in order
+                assert i == 0 || sorted[i - 1] < sorted[i]
+                // and identical to control
+                assert control[i] == sorted[i]
             }
         }
 
         where:
         [size, threadCount, implementation] << [
-            [1, 2, 5, 50, 100, 1000, 10000, 100000],
-            [1, 2, 4, 10, 20, 50],
+            [100000],
+            [2, 10, 20, 40],
             [
-                [ type: "LazySortedReferenceHashSet", create: { source -> createLazySet().tap { set -> set.addAll(source) } } ],
                 // test the test
-                [ type: "TreeSet", create: { source -> new TreeSet<String>().tap { it.addAll(source) } } ]
+                [ type: "TreeSet", create: { source -> new TreeSet<String>().tap { it.addAll(source) ; it.iterator().toList() } } ],
+                [ type: "LazySortedReferenceHashSet", create: { source -> createLazySet().tap { set -> set.addAll(source) } } ]
             ]
         ].combinations()
     }
