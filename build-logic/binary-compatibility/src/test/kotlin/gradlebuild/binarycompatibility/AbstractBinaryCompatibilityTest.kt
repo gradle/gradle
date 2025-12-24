@@ -327,7 +327,7 @@ abstract class AbstractBinaryCompatibilityTest {
                         BinaryCompatibilityHelper.setupJApiCmpRichReportRules(
                             this,
                             project,
-                            provider { AcceptedApiChanges.parse(listOf("{acceptedApiChanges:[]}")) },
+                            layout.buildDirectory.dir("empty-dir").get(),
                             rootProject.files("$sourceRoots"),
                             "2.0",
                             file("test-api-changes.json"),

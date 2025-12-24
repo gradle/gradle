@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+
 import gradlebuild.EnrichedReportRenderer
 import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.PublicKotlinDslApi
-import gradlebuild.binarycompatibility.AcceptedApiChanges
 import gradlebuild.binarycompatibility.BinaryCompatibilityHelper
 import gradlebuild.binarycompatibility.CleanAcceptedApiChanges
 import gradlebuild.binarycompatibility.transforms.ExplodeZipAndFindJars
@@ -124,17 +124,15 @@ def extractGradleApiInfo = tasks.register("extractGradleApiInfo", gradlebuild.bi
     baselineUpgradedProperties = baselineUpgradedPropertiesFile
 }
 
-def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradlebuild.binarycompatibility.JapicmpTask) {
-//    throw new RuntimeException("Boom!")
+def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradlebuild.binarycompatibility.JapicmpTaskWithKotlin) {
     def mainApiChangesJsonFile = apiChangesJsonDirectory.file("accepted-public-api-changes.json")
 
-    def acceptedViolations = provider { AcceptedApiChanges.parse(apiChangesJsonDirectory.asFile.listFiles()
-        .findAll { it.name.endsWith(".json") }
-        .collect { providers.fileContents(apiChangesJsonDirectory.file(it.name)).asText.get() }
-    )}
+    def acceptedViolationsFiles = apiChangesJsonDirectory.asFileTree.matching {
+        include("**/*.json")
+    }
 
     def isSnapshot = gradleModule.identity.snapshot
-    inputs.property('acceptedViolations', acceptedViolations.map { it.toAcceptedChangesMap() })
+    inputs.files(acceptedViolationsFiles)
     inputs.property("baseline.version", compatibilityBaselineVersion)
     inputs.property("currentVersion", baseVersion)
     def apiSourceFolders = configurations.currentSources.incoming.artifactView { lenient(true) }.files
@@ -156,7 +154,7 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
     BinaryCompatibilityHelper.setupJApiCmpRichReportRules(
         delegate,
         project,
-        acceptedViolations,
+        apiChangesJsonDirectory,
         apiSourceFolders,
         baseVersion.get(),
         mainApiChangesJsonFile.asFile,
@@ -168,7 +166,7 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
             it.excludedClasses = toPatterns(PublicApi.excludes + PublicKotlinDslApi.excludes)
 
             it.title = "Binary compatibility report for Gradle ${isSnapshot.get() ? "${baseVersion.get()}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
-            it.destinationDir = file("$buildDir/reports/binary-compatibility")
+            it.destinationDir = layout.buildDirectory.dir("reports/binary-compatibility")
             it.reportName = "report.html"
             it.description = """
             <p>See the <a href="https://bt-internal-docs.grdev.net/gbt/how-to/release/release-troubleshooting/#binary-compatibility-check-failed-">documentation</a> for more details.</p>
