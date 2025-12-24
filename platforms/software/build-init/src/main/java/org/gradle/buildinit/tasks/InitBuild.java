@@ -22,6 +22,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
@@ -32,6 +33,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
@@ -86,7 +88,6 @@ public abstract class InitBuild extends DefaultTask {
     private static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 7;
     private static final int DEFAULT_JAVA_VERSION = 21;
 
-    private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
     private String dsl;
@@ -211,6 +212,16 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     /**
+     * The directory of the generated project, defaults to the directory the project is generated in.
+     *
+     * @since 9.4.0
+     */
+    @OutputDirectory
+    @Incubating
+    @Option(option = "into", description = "Set the directory where the project is generated.")
+    public abstract DirectoryProperty getProjectDirectory();
+
+    /**
      * The name of the generated project, defaults to the name of the directory the project is generated in.
      *
      * This property can be set via command-line option '--project-name'.
@@ -220,7 +231,7 @@ public abstract class InitBuild extends DefaultTask {
     @Input
     @ToBeReplacedByLazyProperty
     public String getProjectName() {
-        return projectName == null ? projectDir.getAsFile().getName() : projectName;
+        return projectName == null ? getProjectDirectory().get().getAsFile().getName() : projectName;
     }
 
     /**
@@ -307,8 +318,9 @@ public abstract class InitBuild extends DefaultTask {
             throw new BuildCancelledException();
         }
         getLogger().lifecycle("Generate '{}'", config.getBuildSpec().getDisplayName());
-        generator.generate(config, projectDir);
-        generateWrapper();
+        Directory projectDirectory = getProjectDirectory().get();
+        generator.generate(config, projectDirectory);
+        generateWrapper(projectDirectory);
     }
 
     private BuildInitConfig selectAndConfigureSpec(UserQuestions userQuestions) {
@@ -353,7 +365,7 @@ public abstract class InitBuild extends DefaultTask {
         }
 
         settings.getInitializer().generate(settings.getSettings());
-        generateWrapper();
+        generateWrapper(settings.getSettings().getTarget());
 
         settings.getInitializer().getFurtherReading(settings.getSettings())
             .ifPresent(link -> getLogger().lifecycle(link));
@@ -393,15 +405,14 @@ public abstract class InitBuild extends DefaultTask {
             packageName,
             testFramework,
             insecureProtocol.get(),
-            projectDir,
+            getProjectDirectory().get(),
             javaLanguageVersion,
             generateComments
         );
         return new GenerationSettings(initializer, initSettings);
     }
 
-    private void generateWrapper() {
-        Directory projectDirectory = getLayout().getProjectDirectory();
+    private void generateWrapper(Directory projectDirectory) {
         File unixScript = projectDirectory.file(WrapperDefaults.SCRIPT_PATH).getAsFile();
         File jarFile = projectDirectory.file(WrapperDefaults.JAR_FILE_PATH).getAsFile();
         String jarFileRelativePath = getRelativePath(projectDirectory.getAsFile(), jarFile);
@@ -441,7 +452,7 @@ public abstract class InitBuild extends DefaultTask {
      */
     private void validateBuildDirectory(UserQuestions userQuestions) {
         if (!isPomConversion()) {
-            File projectDirFile = projectDir.getAsFile();
+            File projectDirFile = getProjectDirectory().get().getAsFile();
             File[] existingProjectFiles = projectDirFile.listFiles();
 
             boolean isNotEmptyDirectory = existingProjectFiles != null && existingProjectFiles.length != 0;
@@ -581,7 +592,7 @@ public abstract class InitBuild extends DefaultTask {
         }
 
         BuildConverter converter = projectLayoutRegistry.getBuildConverter();
-        if (converter.canApplyToCurrentDirectory(projectDir)) {
+        if (converter.canApplyToCurrentDirectory(getProjectDirectory().get())) {
             if (userQuestions.askBooleanQuestion("Found a " + converter.getSourceBuildDescription() + " build. Generate a Gradle build from this?", true)) {
                 return converter;
             }
@@ -692,7 +703,7 @@ public abstract class InitBuild extends DefaultTask {
     private String detectType() {
         ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
         BuildConverter buildConverter = projectLayoutRegistry.getBuildConverter();
-        if (buildConverter.canApplyToCurrentDirectory(projectDir)) {
+        if (buildConverter.canApplyToCurrentDirectory(getProjectDirectory().get())) {
             return buildConverter.getId();
         }
         return projectLayoutRegistry.getDefault().getId();
