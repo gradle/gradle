@@ -48,7 +48,7 @@ public class DefaultDynamicLookupRoutine implements DynamicLookupRoutine {
 
     @Override
     public Map<String, ? extends @Nullable Object> getProperties(DynamicObject receiver) {
-        return DeprecationLogger.whileDisabled(() -> receiver.getProperties());
+        return receiver.getProperties();
     }
 
     @Nullable
