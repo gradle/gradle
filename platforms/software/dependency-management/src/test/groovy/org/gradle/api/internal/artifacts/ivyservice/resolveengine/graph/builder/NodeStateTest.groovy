@@ -227,6 +227,7 @@ class NodeStateTest extends Specification {
                         DefaultModuleIdentifier.newId("org", dep),
                         DefaultImmutableVersionConstraint.strictly("1.0")
                     )
+                    getArtifacts() >> []
                 }
             }
         }

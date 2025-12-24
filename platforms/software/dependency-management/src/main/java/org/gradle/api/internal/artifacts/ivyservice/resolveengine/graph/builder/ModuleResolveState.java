@@ -203,22 +203,6 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     /**
-     * Changes the selected target component for this module due to version conflict resolution.
-     */
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private void changeSelection(ComponentState newSelection) {
-        assert this.selected != null;
-        assert newSelection != null;
-        assert this.selected != newSelection;
-        assert newSelection.getModule() == this;
-
-        this.selected = newSelection;
-        this.replaced = false;
-
-        doRestart(newSelection);
-    }
-
-    /**
      * Clears the current selection for the module, to prepare for conflict resolution.
      * - For the current selection, disconnect and remove any outgoing dependencies.
      * - Make all 'selected' component versions selectable.
@@ -239,37 +223,24 @@ public class ModuleResolveState implements CandidateModule {
         replaced = false;
     }
 
-    /**
-     * Overrides the component selection for this module, when this module has been replaced
-     * by another due to capability conflict resolution.
-     */
     @Override
-    public void replaceWith(ComponentState selected) {
-        if (!selected.getModule().getId().equals(getId())) {
-            this.overriddenSelection = true;
-        }
-        this.selected = selected;
-        this.replaced = computeReplaced(selected);
+    public void changeSelection(ComponentState newSelection) {
+        this.selected = newSelection;
+        this.replaced = !newSelection.getModule().getId().equals(getId());
 
         if (replaced) {
-            selected.getModule().getPendingDependencies().retarget(pendingDependencies);
+            this.overriddenSelection = true;
+            newSelection.getModule().getPendingDependencies().retarget(pendingDependencies);
         }
 
-        doRestart(selected);
-    }
-
-    private boolean computeReplaced(ComponentState selected) {
-        // This module might be resolved to a different module, through replacedBy
-        return !selected.getModule().getId().equals(getId());
-    }
-
-    private void doRestart(ComponentState selected) {
-        selectComponentAndEvictOthers(selected);
+        selectComponentAndEvictOthers(newSelection);
         for (ComponentState version : versions.values()) {
-            version.restartIncomingEdges(selected);
+            for (NodeState node : version.getNodes()) {
+                node.restart(newSelection);
+            }
         }
         for (SelectorState selector : selectors) {
-            selector.overrideSelection(selected);
+            selector.overrideSelection(newSelection);
         }
         if (!unattachedEdges.isEmpty()) {
             restartUnattachedEdges();

@@ -306,10 +306,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         return dependencySubstitutionApplicator;
     }
 
-    PendingDependenciesVisitor newPendingDependenciesVisitor() {
-        return new DefaultPendingDependenciesVisitor(this);
-    }
-
     @Nullable
     ResolvedVersionConstraint resolveVersionConstraint(ComponentSelector selector) {
         if (selector instanceof ModuleComponentSelector) {
