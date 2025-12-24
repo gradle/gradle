@@ -29,6 +29,7 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import java.io.File
 
@@ -271,6 +272,53 @@ See the complete report at $REPORT_URL
         assertThat(subject.get().uniqueProblemCount, equalTo(1))
 
         subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 2), "failure"), ProblemSeverity.Deferred)
+        assertThat(subject.get().uniqueProblemCount, equalTo(2))
+    }
+
+    @Test
+    fun `problem causes are as expected`() {
+        val gradleRuntime = ProblemCause.of(PropertyProblem(PropertyTrace.Gradle, StructuredMessage.forText("failure")))
+        assertThat(gradleRuntime.message, equalTo("failure"))
+        assertThat(gradleRuntime.userCodeLocation, equalTo("Gradle runtime"))
+
+        val unknown = ProblemCause.of(PropertyProblem(PropertyTrace.Unknown, StructuredMessage.forText("failure")))
+        assertThat(unknown.message, equalTo("failure"))
+        assertThat(unknown.userCodeLocation, equalTo("unknown location"))
+
+        val projectAtUnknown = ProblemCause.of(PropertyProblem(PropertyTrace.Project(":p1", PropertyTrace.Unknown), StructuredMessage.forText("failure")))
+        assertThat(projectAtUnknown.message, equalTo("failure"))
+        assertThat(projectAtUnknown.userCodeLocation, equalTo("unknown location"))
+    }
+
+    @Test
+    fun `problem traces include tail in comparison`() {
+        val message = StructuredMessage.forText("")
+        val gradle = ProblemCause.of(PropertyProblem(PropertyTrace.Gradle, message))
+        val gradle2 = ProblemCause.of(PropertyProblem(PropertyTrace.Gradle, message))
+        val unknown = ProblemCause.of(PropertyProblem(PropertyTrace.Unknown, message))
+        val project1 = ProblemCause.of(PropertyProblem(PropertyTrace.Project(":p1", PropertyTrace.Gradle), message))
+        val project1b = ProblemCause.of(PropertyProblem(PropertyTrace.Project(":p1", PropertyTrace.Gradle), message))
+        val project2 = ProblemCause.of(PropertyProblem(PropertyTrace.Project(":p2", PropertyTrace.Gradle), message))
+        val project2ThenUnknown = ProblemCause.of(PropertyProblem(PropertyTrace.Project(":p2", PropertyTrace.Unknown), message))
+        assertEquals(gradle, gradle2)
+        assertNotEquals(gradle, unknown)
+        assertEquals(project1, project1b)
+        assertNotEquals(project1, project2)
+        assertNotEquals(project2, project2ThenUnknown)
+    }
+
+    @Test
+    fun `full traces are taken into account for uniqueness`() {
+        val subject = ConfigurationCacheProblemsSummary()
+
+        val prop1InP1 = PropertyTrace.Project(":p1", PropertyTrace.VirtualProperty("prop1", PropertyTrace.Gradle))
+        val prop1InP1b = PropertyTrace.Project(":p1", PropertyTrace.VirtualProperty("prop1", PropertyTrace.Gradle))
+        val prop2InP1 = PropertyTrace.Project(":p1", PropertyTrace.VirtualProperty("prop2", PropertyTrace.Gradle))
+        assertTrue(subject.onProblem(buildLogicProblem(prop1InP1, "failure"), ProblemSeverity.Deferred))
+        assertFalse(subject.onProblem(buildLogicProblem(prop1InP1b, "failure"), ProblemSeverity.Deferred))
+        assertThat(subject.get().uniqueProblemCount, equalTo(1))
+
+        assertTrue(subject.onProblem(buildLogicProblem(prop2InP1, "failure"), ProblemSeverity.Deferred))
         assertThat(subject.get().uniqueProblemCount, equalTo(2))
     }
 
