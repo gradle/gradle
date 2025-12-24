@@ -34,16 +34,20 @@ class ProgressBarTest extends Specification {
     ProgressBar unicodeProgressBar
     ProgressBar taskbarProgressBar
     ConsoleMetaData taskbarConsoleMetaData
+    ConsoleMetaData unicodeConsoleMetaData
 
     def setup() {
-        progressBar = new ProgressBar(Stub(ConsoleMetaData), PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE, 0, 10, false)
-        unicodeProgressBar = new ProgressBar(Stub(ConsoleMetaData), '|', PROGRESS_BAR_WIDTH, '|', ' ' as char, ' ' as char, BUILD_PHASE, 0, 10, true)
+        unicodeConsoleMetaData = Stub(ConsoleMetaData){
+            supportsUnicode() >> true
+        }
+        progressBar = new ProgressBar(Stub(ConsoleMetaData), PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE, 0, 10)
+        unicodeProgressBar = new ProgressBar(unicodeConsoleMetaData, '|', PROGRESS_BAR_WIDTH, '|', ' ' as char, ' ' as char, BUILD_PHASE, 0, 10)
 
         // Create a console metadata that supports taskbar progress
         taskbarConsoleMetaData = Stub(ConsoleMetaData) {
             supportsTaskbarProgress() >> true
         }
-        taskbarProgressBar = new ProgressBar(taskbarConsoleMetaData, PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE, 0, 10, false)
+        taskbarProgressBar = new ProgressBar(taskbarConsoleMetaData, PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE, 0, 10)
     }
 
     private getProgress() {
@@ -166,7 +170,7 @@ class ProgressBarTest extends Specification {
 
     def "unicode progress shows finer granularity"() {
         given:
-        def fineGrainedProgressBar = new ProgressBar(Stub(ConsoleMetaData), '|', 10, '|', ' ' as char, ' ' as char, BUILD_PHASE, 0, 80, true)
+        def fineGrainedProgressBar = new ProgressBar(unicodeConsoleMetaData, '|', 10, '|', ' ' as char, ' ' as char, BUILD_PHASE, 0, 80)
 
         when:
         fineGrainedProgressBar.update(false) // 1/80 = 1.25%

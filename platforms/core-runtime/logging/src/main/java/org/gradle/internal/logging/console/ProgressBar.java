@@ -74,8 +74,6 @@ public class ProgressBar {
     private final char fillerChar;
     private final char incompleteChar;
     private final String suffix;
-    private final boolean useUnicode;
-    private final boolean useTaskbarProgress;
 
     private int current;
     private int total;
@@ -84,7 +82,17 @@ public class ProgressBar {
     private @Nullable String lastElapsedTimeStr;
     private @Nullable List<Span> formatted;
 
-    public ProgressBar(ConsoleMetaData consoleMetaData, String progressBarPrefix, int progressBarWidth, String progressBarSuffix, char completeChar, char incompleteChar, String suffix, int initialProgress, int totalProgress, boolean useUnicode) {
+    public ProgressBar(
+        ConsoleMetaData consoleMetaData,
+        String progressBarPrefix,
+        int progressBarWidth,
+        String progressBarSuffix,
+        char completeChar,
+        char incompleteChar,
+        String suffix,
+        int initialProgress,
+        int totalProgress
+    ) {
         this.consoleMetaData = consoleMetaData;
         this.progressBarPrefix = progressBarPrefix;
         this.progressBarWidth = progressBarWidth;
@@ -94,8 +102,33 @@ public class ProgressBar {
         this.suffix = suffix;
         this.current = initialProgress;
         this.total = totalProgress;
-        this.useUnicode = useUnicode;
-        this.useTaskbarProgress = consoleMetaData.supportsTaskbarProgress();
+    }
+
+    static ProgressBar createProgressBar(ConsoleMetaData consoleMetaData, String initialSuffix, int totalProgress) {
+        // Use Unicode progress bars if terminal supports it, otherwise use ASCII
+        if (consoleMetaData.supportsUnicode()) {
+            // Unicode mode: smooth progress with block characters
+            return new ProgressBar(consoleMetaData,
+                UNICODE_PROGRESS_BAR_PREFIX,
+                PROGRESS_BAR_WIDTH,
+                UNICODE_PROGRESS_BAR_SUFFIX,
+                ' ', // Not used in Unicode mode
+                ' ', // Not used in Unicode mode
+                initialSuffix,
+                0,
+                totalProgress);
+        } else {
+            // ASCII mode: hash-based progress for compatibility
+            return new ProgressBar(consoleMetaData,
+                ASCII_PROGRESS_BAR_PREFIX,
+                PROGRESS_BAR_WIDTH,
+                ASCII_PROGRESS_BAR_SUFFIX,
+                ASCII_PROGRESS_BAR_COMPLETE_CHAR,
+                ASCII_PROGRESS_BAR_INCOMPLETE_CHAR,
+                initialSuffix,
+                0,
+                totalProgress);
+        }
     }
 
     public void moreProgress(int totalProgress) {
@@ -134,8 +167,8 @@ public class ProgressBar {
         String taskbarSequence = buildTaskbarProgressSequence(progressPercent, failing);
         String statusPrefix = trimToConsole(consoleCols, 0, taskbarSequence + progressBarPrefix);
 
-        if (useUnicode) {
-            return getUnicodeFormated(timerEnabled, consoleCols, statusPrefix, progressPercent, elapsedTimeStr);
+        if (consoleMetaData.supportsUnicode()) {
+            return getUnicodeFormatted(timerEnabled, consoleCols, statusPrefix, progressPercent, elapsedTimeStr);
         } else {
             return getAsciiFormatted(timerEnabled, consoleCols, statusPrefix, progressPercent, elapsedTimeStr);
         }
@@ -161,7 +194,7 @@ public class ProgressBar {
             new Span(StyledTextOutput.Style.Header, statusSuffix));
     }
 
-    private List<Span> getUnicodeFormated(boolean timerEnabled, int consoleCols, String statusPrefix, int progressPercent, String elapsedTimeStr) {
+    private List<Span> getUnicodeFormatted(boolean timerEnabled, int consoleCols, String statusPrefix, int progressPercent, String elapsedTimeStr) {
         String coloredProgress;
         String statusSuffix;
         // Unicode mode: use block characters for finer granularity (8x resolution)
@@ -187,7 +220,7 @@ public class ProgressBar {
         double totalEighths = progressBarWidth * 8.0;
         int completedEighths = (int) (progressRatio * totalEighths);
 
-        StringBuilder progress = new StringBuilder();
+        StringBuilder progress = new StringBuilder(progressBarWidth);
         for (int i = 0; i < progressBarWidth; i++) {
             int eighthsAtPosition = i * 8;
             int remainingEighths = min(8, max(0, completedEighths - eighthsAtPosition));
@@ -236,7 +269,7 @@ public class ProgressBar {
      * States: 0=remove, 1=normal, 2=error, 3=indeterminate, 4=paused
      */
     private String buildTaskbarProgressSequence(int progressPercent, boolean isError) {
-        if (!useTaskbarProgress) {
+        if (!consoleMetaData.supportsTaskbarProgress()) {
             return "";
         }
 

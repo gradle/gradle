@@ -124,7 +124,8 @@ public class BuildStatusRenderer implements OutputEventListener {
         timerEnabled = true;
         currentPhase = phase;
         currentPhaseChildren.clear();
-        progressBar = newProgressBar(phase.name().toUpperCase(Locale.ROOT), 0, progressStartEvent.getTotalProgress());
+        int totalProgress = progressStartEvent.getTotalProgress();
+        progressBar = ProgressBar.createProgressBar(consoleMetaData, phase.name().toUpperCase(Locale.ROOT), totalProgress);
     }
 
     private void phaseHasMoreProgress(ProgressStartEvent progressStartEvent) {
@@ -138,39 +139,10 @@ public class BuildStatusRenderer implements OutputEventListener {
     }
 
     private void buildEnded() {
-        progressBar = newProgressBar("WAITING", 0, 1);
+        progressBar = ProgressBar.createProgressBar(consoleMetaData, "WAITING", 1);
         currentPhase = null;
         buildProgressOperationId = null;
         currentPhaseChildren.clear();
         timerEnabled = false;
-    }
-
-    public ProgressBar newProgressBar(String initialSuffix, int initialProgress, int totalProgress) {
-        // Use Unicode progress bars if terminal supports it, otherwise use ASCII
-        boolean useUnicode = consoleMetaData.supportsUnicode();
-
-        return createProgressBar(initialSuffix, initialProgress, totalProgress, useUnicode);
-    }
-
-    private ProgressBar createProgressBar(String initialSuffix, int initialProgress, int totalProgress, boolean useUnicode) {
-        if (useUnicode) {
-            // Unicode mode: smooth progress with block characters
-            return new ProgressBar(consoleMetaData,
-                ProgressBar.UNICODE_PROGRESS_BAR_PREFIX,
-                ProgressBar.PROGRESS_BAR_WIDTH,
-                ProgressBar.UNICODE_PROGRESS_BAR_SUFFIX,
-                ' ', // Not used in Unicode mode
-                ' ', // Not used in Unicode mode
-                initialSuffix, initialProgress, totalProgress, useUnicode);
-        } else {
-            // ASCII mode: hash-based progress for compatibility
-            return new ProgressBar(consoleMetaData,
-                ProgressBar.ASCII_PROGRESS_BAR_PREFIX,
-                ProgressBar.PROGRESS_BAR_WIDTH,
-                ProgressBar.ASCII_PROGRESS_BAR_SUFFIX,
-                ProgressBar.ASCII_PROGRESS_BAR_COMPLETE_CHAR,
-                ProgressBar.ASCII_PROGRESS_BAR_INCOMPLETE_CHAR,
-                initialSuffix, initialProgress, totalProgress, useUnicode);
-        }
     }
 }
