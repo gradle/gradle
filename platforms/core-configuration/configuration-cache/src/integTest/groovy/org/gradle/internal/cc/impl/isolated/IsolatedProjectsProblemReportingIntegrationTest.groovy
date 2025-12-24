@@ -75,6 +75,7 @@ class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedPr
         def customBuildDir = "customBuildDir"
         groovyFile "build.gradle", """
             buildDir = '${customBuildDir}'
+            project.extensions.extraProperties["foobar"] = "hello"
         """
         groovyFile "settings.gradle", """
             include("module")
@@ -99,9 +100,9 @@ class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedPr
         isolatedProjectsFails ':module:help'
 
         then:
-        failure.assertHasFailures(2)
+        failure.assertHasFailures(1)
         problems.assertFailureHasProblems(failure) {
-            withProblem("Plugin 'some-plugin': Project ':module' cannot dynamically look up a property in the parent project ':'")
+            withProblem("Plugin 'some-plugin': Project ':module' cannot dynamically look up a property in the parent project")
         }
         resolveConfigurationCacheReportDirectory(testDirectory.file(customBuildDir), failure.error)?.isDirectory()
     }
