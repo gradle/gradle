@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.configurationcache
 
+import groovy.json.JsonOutput
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -279,6 +280,52 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         expectedFailure3.message.startsWith("Expected problem at #1 to be a string starting with \"Some problem 3\", but was: Some problem 2.")
     }
 
+    def "assertHtmlReportHasProblems validates traces in unique problems"() {
+        when:
+        generateReportFile(2)
+        report().assertContents {
+            problemsWithStackTraceCount = 0
+            withProblem("Some problem 1")
+            withProblem("Some problem 2") {
+                at("foo").at("bar")
+            }
+        }
+        then:
+        def expectedFailure0 = thrown(AssertionError)
+        expectedFailure0.message.contains("Expected at most 0 location matchers for problem #1 but got 2.")
+
+        when:
+        generateReportFile(
+            [
+                "Some problem 1": [[ kind: "Task", path: ":myTask1" ]]
+            ]
+        )
+        report().assertContents {
+            problemsWithStackTraceCount = 0
+            withProblem("Some problem 1") {
+                at(":myTask2")
+            }
+        }
+        then:
+        def expectedFailure1 = thrown(AssertionError)
+        expectedFailure1.message.contains("Expected trace for problem #0 at position 0 to match a string starting with \":myTask2\", but was: :myTask1.")
+
+        expect:
+        generateReportFile(
+            [
+                "Some problem 1": null,
+                "Some problem 2": [[ kind: "Task", path: ":myTask" ], [ kind: "Field", name: "field1" ]]
+            ]
+        )
+        report().assertContents {
+            problemsWithStackTraceCount = 0
+            withProblem("Some problem 1")
+            withProblem("Some problem 2") {
+                at("field1").at(":myTask")
+            }
+        }
+    }
+
     def "assertHtmlReportHasProblems validates unique problems in order"() {
         generateReportFile(["Some problem 1", "Some problem 2"])
 
@@ -310,6 +357,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
 
         expect:
         report().assertContents {
+            totalProblemsCount = 4
             problemsWithStackTraceCount = 0
             withUniqueProblems(
                 "Some problem 1",
@@ -321,39 +369,53 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
 
     private TestFile generateReportFile(int problems, int problemsWithStacktrace = 0) {
         assert problemsWithStacktrace <= problems
-        generateReportFile((0..<problems).collectEntries {index ->
-            def hasStackTrace = index < problemsWithStacktrace
-            [("Some problem ${index+1}".toString()): hasStackTrace ? ["somePart"] : null]
-        })
+        Map<String, List<String>> problemsAndStacktraces = (0..<problems).collectEntries { index ->
+            [
+                "Some problem ${index + 1}".toString(),
+                problemsWithStacktrace > index ? ["somePart"] : null
+            ]
+        }
+        generateReportFile(problemsAndStacktraces.keySet().toList(), [:], problemsAndStacktraces)
     }
 
-    private TestFile generateReportFile(List<String> problems) {
-        generateReportFile(problems.collectEntries { [(it): null] })
+    private TestFile generateReportFile(Map<String, List<String>> problemsAndPropertyTraces = [:], Map<String, List<String>> problemsAndStacktraceParts = [:]) {
+        generateReportFile(problemsAndPropertyTraces.keySet().toList(), problemsAndPropertyTraces, problemsAndStacktraceParts)
     }
 
-    private TestFile generateReportFile(Map<String, List<String>> problemsAndStacktraces) {
-
-        def jsonData = """
-// begin-report-data
-{
-    "totalProblemCount": ${problemsAndStacktraces.size()},
-    "diagnostics": [
-        ${
-            problemsAndStacktraces.collect { problemText, stacktraceParts ->
-                """
-                {
+    private TestFile generateReportFile(List<String> nonUniqueProblems, Map<String, List<String>> problemsAndPropertyTraces = [:], Map<String, List<String>> problemsAndStacktraceParts = [:]) {
+        assert nonUniqueProblems.containsAll(problemsAndPropertyTraces.keySet())
+        assert nonUniqueProblems.containsAll(problemsAndStacktraceParts.keySet())
+        List<String> problemMarkup = []
+        nonUniqueProblems.eachWithIndex { String problemText, int index ->
+            problemMarkup << """
+            {
                     "problem": [{
                         "text": "${problemText}"
                     }]
-                    ${ stacktraceParts?.with { parts -> """,
-                        "error": {
-                            "parts": [ ${parts.collect { "\"${it}\"" }.join(", ")} ]
-                        }
-                    """} ?: ""
+            """ +
+                (problemsAndPropertyTraces[problemText]?.with { problemTraces ->
+                    """,
+                    "trace": ${JsonOutput.prettyPrint(JsonOutput.toJson(problemTraces))}
+                    """
+                } ?: "") +
+                (problemsAndStacktraceParts[problemText]?.with { parts ->
+                    """,
+                    "error": {
+                        "parts": [ ${parts.collect { "\"${it}\"" }.join(", ")} ]
                     }
-                }
-                """
-            }.join(",${NEWLINE}")
+                    """
+                } ?: "") +
+            """
+            }
+            """
+        }
+        def jsonData = """
+// begin-report-data
+{
+    "totalProblemCount": ${nonUniqueProblems.size()},
+    "diagnostics": [
+        ${
+            problemMarkup.join(",${NEWLINE}")
         }
     ]
 }

@@ -245,21 +245,21 @@ abstract class ConfigurationCacheReportFixture {
                     for (int j in expectedProblem.traceSpecs.indices) {
                         def locationSpec = expectedProblem.traceSpecs[j]
                         def trace = problems[problemMessage][j]['trace'] as List
-                        assertLocationMatches(trace, locationSpec)
+                        assertLocationMatches(i, trace, locationSpec)
                     }
                 }
             }
         }
 
-        private void assertLocationMatches(List<Object> trace, TraceSpec location) {
+        private void assertLocationMatches(int index, List<Object> trace, TraceSpec location) {
             def traceList = trace.collect { formatTrace(it) }.reverse(true)
 
             assert location.locationMatchers.size() <= traceList.size():
-                "Expected at most ${traceList.size()} location matchers but got ${location.locationMatchers.size()}. Trace: ${traceList}"
+                "Expected at most ${traceList.size()} location matchers for problem #${index} but got ${location.locationMatchers.size()}. Trace: ${traceList}"
 
             for (int i = 0; i < location.locationMatchers.size(); i++) {
                 assert location.locationMatchers[i].matches(traceList[i]):
-                    "Expected trace at position $i to match ${location.locationMatchers[i]}, but was: ${traceList[i]}. Full trace: ${traceList}"
+                    "Expected trace for problem #${index} at position $i to match ${location.locationMatchers[i]}, but was: ${traceList[i]}. Full trace: ${traceList}"
             }
         }
 
