@@ -64,9 +64,9 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         then:
         failure.assertHasCause("Could not resolve org.hamcrest:hamcrest-core:2.2")
         failure.assertHasCause("Module 'org.hamcrest:hamcrest-core' has been rejected")
-        failure.assertHasErrorOutput("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by [org.hamcrest:hamcrest:2.2(runtime)]")
+        failure.assertHasErrorOutput("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by ['org.hamcrest:hamcrest:2.2' (runtime)]")
         failure.assertHasCause("Module 'org.hamcrest:hamcrest' has been rejected")
-        failure.assertHasErrorOutput("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by [org.hamcrest:hamcrest-core:2.2(runtime)]")
+        failure.assertHasErrorOutput("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by ['org.hamcrest:hamcrest-core:2.2' (runtime)]")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30969")
@@ -901,6 +901,59 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                 module("org.apache.httpcomponents:httpclient:4.5.14")
             }
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35625")
+    def "can use manual alignment and capability conflict detection together"() {
+        mavenRepo.module("org.slf4j", "slf4j-simple", "1.7.36").publish()
+
+        mavenRepo.module("org.slf4j", "slf4j-simple", "1.7.27")
+            .dependsOn(mavenRepo.module("org.slf4j", "slf4j-api", "1.7.27").publish())
+            .publish()
+
+        mavenRepo.module("org.apache.logging.log4j", "log4j-slf4j2-impl", "2.20.0")
+            .dependsOn(mavenRepo.module("org.slf4j", "slf4j-api", "1.7.36").publish())
+            .publish()
+
+        given:
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org.slf4j:slf4j-simple:1.7.27")
+                implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.20.0")
+            }
+
+            def modules = ["org.slf4j:slf4j-api", "org.slf4j:slf4j-simple"]
+            modules.each {
+                dependencies.components.withModule(it) {
+                    def version = id.version
+                    allVariants {
+                        withDependencyConstraints {
+                            modules.each {
+                                add(it + ":" + version)
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        resolve.prepare()
+
+        capability("org.gradlex", "slf4j-impl") {
+            forModule("org.slf4j:slf4j-simple")
+            forModule("org.apache.logging.log4j:log4j-slf4j2-impl")
+        }
+
+        when:
+        fails(':checkDeps')
+
+        then:
+        failure.assertHasCause("Module 'org.slf4j:slf4j-simple' has been rejected")
     }
 
     // region test fixtures

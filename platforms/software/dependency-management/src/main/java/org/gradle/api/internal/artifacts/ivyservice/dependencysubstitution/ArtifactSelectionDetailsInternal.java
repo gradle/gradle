@@ -15,12 +15,23 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ArtifactSelectionDetails;
 import org.gradle.api.artifacts.DependencyArtifactSelector;
 
-import java.util.List;
+import javax.annotation.Nullable;
 
+/**
+ * Internal counterpart to {@link ArtifactSelectionDetails} providing
+ * results of user-provided actions executed against the details.
+ */
 public interface ArtifactSelectionDetailsInternal extends ArtifactSelectionDetails {
-    boolean isUpdated();
-    List<DependencyArtifactSelector> getTargetSelectors();
+
+    /**
+     * Get the user-configured artifact selectors, if any. Null if the user did not
+     * configure any artifact selectors, and the requested selectors should
+     * be used. May be non-null but empty, indicating the user removed all requested selectors.
+     */
+    @Nullable ImmutableList<DependencyArtifactSelector> getConfiguredSelectors();
+
 }

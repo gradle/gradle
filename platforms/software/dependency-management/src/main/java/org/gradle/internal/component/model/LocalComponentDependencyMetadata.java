@@ -83,7 +83,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     @Override
     public String toString() {
-        return "dependency: " + selector + " to-conf: " + dependencyConfiguration;
+        return selector.toString();
     }
 
     @Override

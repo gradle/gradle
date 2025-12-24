@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
-import org.gradle.api.internal.capabilities.CapabilityInternal;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -44,10 +44,12 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
@@ -134,10 +136,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     public ModuleResolveState getModule() {
         return module;
-    }
-
-    public void selectAndRestartModule() {
-        module.replaceWith(this);
     }
 
     @Override
@@ -350,7 +348,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     public void rejectForCapabilityConflict(Capability capability, Collection<NodeState> conflictedNodes) {
         this.rejected = true;
         if (this.capabilityReject == null) {
-            this.capabilityReject = Pair.of(capability, conflictedNodes);
+            this.capabilityReject = Pair.of(capability, new HashSet<>(conflictedNodes));
         } else {
             mergeCapabilityRejects(capability, conflictedNodes);
         }
@@ -361,7 +359,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         if (this.capabilityReject.getLeft().equals(capability)) {
             this.capabilityReject.getRight().addAll(conflictedNodes);
         } else {
-            this.capabilityReject = Pair.of(capability, conflictedNodes);
+            this.capabilityReject = Pair.of(capability, new HashSet<>(conflictedNodes));
         }
     }
 
@@ -379,14 +377,14 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     }
 
-    private String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
-        StringBuilder sb = new StringBuilder("Module '");
-        sb.append(id).append("' has been rejected:\n");
-        sb.append("   Cannot select module with conflict on ");
-        Capability capability = capabilityConflict.left;
-        sb.append("capability '").append(capability.getGroup()).append(":").append(capability.getName()).append(":").append(capability.getVersion()).append("' also provided by ");
-        sb.append(capabilityConflict.getRight());
-        return sb.toString();
+    private static String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
+        return "Module '" + id + "' has been rejected:\n" +
+            "   Cannot select module with conflict on capability '" + formatCapability(capabilityConflict.left) + "' also provided by " +
+            capabilityConflict.getRight().stream().map(NodeState::getDisplayName).sorted().collect(Collectors.toList());
+    }
+
+    private static String formatCapability(Capability capability) {
+        return capability.getGroup() + ":" + capability.getName() + ":" + capability.getVersion();
     }
 
     @Override
@@ -397,12 +395,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public VirtualPlatformState getPlatformState() {
         return module.getPlatformState();
-    }
-
-    public void removeOutgoingEdges() {
-        for (NodeState configuration : getNodes()) {
-            configuration.deselect();
-        }
     }
 
     /**
@@ -439,19 +431,11 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
     }
 
-    CapabilityInternal getImplicitCapability() {
+    public ImmutableCapability getImplicitCapability() {
         return resolveState.getDefaultCapability();
     }
 
-    @Nullable
-    Capability findCapability(String group, String name) {
-        if (id.getGroup().equals(group) && id.getName().equals(name)) {
-            return getImplicitCapability();
-        }
-        return null;
-    }
-
-    boolean hasMoreThanOneSelectedNodeUsingVariantAwareResolution() {
+    public boolean hasMoreThanOneSelectedNodeUsingVariantAwareResolution() {
         int count = 0;
         for (NodeState node : nodes) {
             if (node.isSelectedByVariantAwareResolution()) {
