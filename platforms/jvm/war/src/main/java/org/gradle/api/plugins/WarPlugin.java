@@ -114,8 +114,8 @@ public abstract class WarPlugin implements Plugin<Project> {
     }
 
     private void configureComponent(Project project, PublishArtifact warArtifact) {
-        AttributeContainer attributes = attributesFactory.mutable()
-            .attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
+        AttributeContainer attributes = attributesFactory.mutable();
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, attributes.named(Usage.class, Usage.JAVA_RUNTIME));
         project.getComponents().add(objectFactory.newInstance(WebApplication.class, warArtifact, "master", attributes));
     }
 }
