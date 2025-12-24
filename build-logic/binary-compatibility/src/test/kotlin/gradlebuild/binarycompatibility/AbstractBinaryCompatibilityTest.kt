@@ -308,7 +308,7 @@ abstract class AbstractBinaryCompatibilityTest {
                         baselineUpgradedProperties = oldUpgradedPropertiesFile
                     }
 
-                    tasks.register<JapicmpTask>("checkBinaryCompatibility") {
+                    tasks.register<JapicmpTaskWithKotlin>("checkBinaryCompatibility") {
 
                         dependsOn(":v1:jar", ":v2:jar")
                         inputs.files(extractGradleApiInfo)
@@ -473,10 +473,10 @@ abstract class AbstractBinaryCompatibilityTest {
         }
 
     private
-    fun File.withSettings(text: String = ""): File =
+    fun File.withSettings(@Language("kotlin") text: String = ""): File =
         withFile("settings.gradle.kts", text)
 
     private
-    fun File.withBuildScript(text: String = ""): File =
+    fun File.withBuildScript(@Language("kotlin") text: String = ""): File =
         withFile("build.gradle.kts", text)
 }

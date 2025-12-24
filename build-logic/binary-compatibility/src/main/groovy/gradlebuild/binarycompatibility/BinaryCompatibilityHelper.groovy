@@ -18,8 +18,8 @@ package gradlebuild.binarycompatibility
 
 import gradlebuild.binarycompatibility.filters.AnonymousClassesFilter
 import gradlebuild.binarycompatibility.filters.BridgeForBytecodeUpgradeAdapterClassFilter
-import gradlebuild.binarycompatibility.filters.KotlinInvokeDefaultBridgeFilter
 import gradlebuild.binarycompatibility.filters.KotlinInternalFilter
+import gradlebuild.binarycompatibility.filters.KotlinInvokeDefaultBridgeFilter
 import gradlebuild.binarycompatibility.rules.AcceptedRegressionsRulePostProcess
 import gradlebuild.binarycompatibility.rules.AcceptedRegressionsRuleSetup
 import gradlebuild.binarycompatibility.rules.BinaryBreakingChangesRule
@@ -35,6 +35,7 @@ import gradlebuild.binarycompatibility.rules.SinceAnnotationRuleCurrentGradleVer
 import gradlebuild.binarycompatibility.rules.UpgradePropertiesRulePostProcess
 import gradlebuild.binarycompatibility.rules.UpgradePropertiesRuleSetup
 import japicmp.model.JApiChangeStatus
+import me.champeau.gradle.japicmp.JapicmpTask
 import me.champeau.gradle.japicmp.report.RichReport
 import org.gradle.api.Action
 import org.gradle.api.Project
@@ -64,60 +65,28 @@ class BinaryCompatibilityHelper {
             def mainApiChangesJsonFilePath = mainApiChangesJsonFile.path
             def projectRootDirPath = projectRootDir.asFile.path
 
-            richReport = project.provider {
+            richReport = acceptedViolations.map { violations ->
                 RichReport richReport = project.objects.newInstance(RichReport.class, new Object[0]);
                 richReport.getDestinationDir().convention(project.layout.buildDirectory.dir("reports"));
                 configureReport.execute(richReport)
                 richReport.tap {
-                    def acceptedChangesMap = acceptedViolations.get().toAcceptedChangesMap()
-                    addRule(IncubatingInternalInterfaceAddedRule, [
-                        acceptedApiChanges: acceptedChangesMap,
-                        publicApiPatterns: includedClasses.get(),
-                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
-                        projectRootDir: projectRootDirPath
-                    ])
-                    addRule(MethodsRemovedInInternalSuperClassRule, [
-                        acceptedApiChanges: acceptedChangesMap,
-                        publicApiPatterns: includedClasses.get(),
-                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
-                        projectRootDir: projectRootDirPath
-                    ])
-                    addRule(BinaryBreakingSuperclassChangeRule, [
-                        acceptedApiChanges: acceptedChangesMap,
-                        publicApiPatterns: includedClasses.get(),
-                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
-                        projectRootDir: projectRootDirPath
-                    ])
-                    addRule(BinaryBreakingChangesRule, [
+                    def acceptedChangesMap = violations.toAcceptedChangesMap()
+                    def ruleParams = [
                         acceptedApiChanges: acceptedChangesMap,
                         mainApiChangesJsonFile: mainApiChangesJsonFilePath,
                         projectRootDir: projectRootDirPath
-                    ])
-                    addRule(NullabilityBreakingChangesRule, [
-                        acceptedApiChanges: acceptedChangesMap,
-                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
-                        projectRootDir: projectRootDirPath
-                    ])
-                    addRule(KotlinModifiersBreakingChangeRule, [
-                        acceptedApiChanges: acceptedChangesMap,
-                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
-                        projectRootDir: projectRootDirPath
-                    ])
-                    addRule(JApiChangeStatus.NEW, IncubatingMissingRule, [
-                        acceptedApiChanges: acceptedChangesMap,
-                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
-                        projectRootDir: projectRootDirPath
-                    ])
-                    addRule(JApiChangeStatus.NEW, SinceAnnotationRule, [
-                        acceptedApiChanges: acceptedChangesMap,
-                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
-                        projectRootDir: projectRootDirPath
-                    ])
-                    addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, [
-                        acceptedApiChanges: acceptedChangesMap,
-                        mainApiChangesJsonFile: mainApiChangesJsonFilePath,
-                        projectRootDir: projectRootDirPath
-                    ])
+                    ]
+                    def publicApiRuleParams = ruleParams + [publicApiPatterns: includedClasses.get()]
+                    addRule(IncubatingInternalInterfaceAddedRule, publicApiRuleParams)
+                    addRule(MethodsRemovedInInternalSuperClassRule, publicApiRuleParams)
+                    addRule(BinaryBreakingSuperclassChangeRule, publicApiRuleParams)
+
+                    addRule(BinaryBreakingChangesRule, ruleParams)
+                    addRule(NullabilityBreakingChangesRule, ruleParams)
+                    addRule(KotlinModifiersBreakingChangeRule, ruleParams)
+                    addRule(JApiChangeStatus.NEW, IncubatingMissingRule, ruleParams)
+                    addRule(JApiChangeStatus.NEW, SinceAnnotationRule, ruleParams)
+                    addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, ruleParams)
 
                     addSetupRule(AcceptedRegressionsRuleSetup, acceptedChangesMap)
                     addSetupRule(SinceAnnotationRuleCurrentGradleVersionSetup, [currentVersion: currentVersion])
