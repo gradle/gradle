@@ -62,11 +62,11 @@ public interface ConsoleMetaData {
      */
     default boolean supportsUnicode() {
         // Auto-detection logic
-        // Check for UTF-8 encoding in locale
+        // Check for UTF-8 encoding in locale, including common "UTF8" alias
         String lang = System.getenv("LANG");
         String lcAll = System.getenv("LC_ALL");
-        if ((lang != null && lang.toUpperCase(Locale.ROOT).contains("UTF-8")) ||
-            (lcAll != null && lcAll.toUpperCase(Locale.ROOT).contains("UTF-8"))) {
+        if ((lang != null && (lang.toUpperCase(Locale.ROOT).contains("UTF-8") || lang.toUpperCase(Locale.ROOT).contains("UTF8"))) ||
+            (lcAll != null && (lcAll.toUpperCase(Locale.ROOT).contains("UTF-8") || lcAll.toUpperCase(Locale.ROOT).contains("UTF8")))) {
             return true;
         }
 
@@ -89,7 +89,8 @@ public interface ConsoleMetaData {
                 lowerTerm.contains("contour") ||
                 lowerTerm.contains("foot") ||
                 lowerTerm.contains("mlterm") ||
-                lowerTerm.contains("st") ||
+                lowerTerm.equals("st") ||
+                lowerTerm.startsWith("st-") ||
                 lowerTerm.contains("qterminal") ||
                 lowerTerm.contains("weston")) {
                 return true;
