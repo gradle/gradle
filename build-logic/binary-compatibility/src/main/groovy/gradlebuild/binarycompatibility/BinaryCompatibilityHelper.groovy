@@ -41,13 +41,12 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
-import org.gradle.api.provider.Provider
 
 class BinaryCompatibilityHelper {
     static setupJApiCmpRichReportRules(
         JapicmpTask japicmpTask,
         Project project,
-        Provider<AcceptedApiChanges> acceptedViolations,
+        Directory acceptedViolationsDir,
         FileCollection sourceRoots,
         String currentVersion,
         File mainApiChangesJsonFile,
@@ -65,14 +64,14 @@ class BinaryCompatibilityHelper {
             def mainApiChangesJsonFilePath = mainApiChangesJsonFile.path
             def projectRootDirPath = projectRootDir.asFile.path
 
-            richReport = acceptedViolations.map { violations ->
+            richReport = project.provider {
                 RichReport richReport = project.objects.newInstance(RichReport.class, new Object[0]);
                 richReport.getDestinationDir().convention(project.layout.buildDirectory.dir("reports"));
                 configureReport.execute(richReport)
                 richReport.tap {
-                    def acceptedChangesMap = violations.toAcceptedChangesMap()
+                    def acceptedChanges = new AcceptedViolationsProvider(acceptedViolationsDir)
                     def ruleParams = [
-                        acceptedApiChanges: acceptedChangesMap,
+                        acceptedApiChanges: acceptedChanges,
                         mainApiChangesJsonFile: mainApiChangesJsonFilePath,
                         projectRootDir: projectRootDirPath
                     ]
@@ -88,7 +87,7 @@ class BinaryCompatibilityHelper {
                     addRule(JApiChangeStatus.NEW, SinceAnnotationRule, ruleParams)
                     addRule(JApiChangeStatus.NEW, NewIncubatingAPIRule, ruleParams)
 
-                    addSetupRule(AcceptedRegressionsRuleSetup, acceptedChangesMap)
+                    addSetupRule(AcceptedRegressionsRuleSetup, [acceptedApiChanges: acceptedChanges])
                     addSetupRule(SinceAnnotationRuleCurrentGradleVersionSetup, [currentVersion: currentVersion])
                     addSetupRule(BinaryCompatibilityRepositorySetupRule, [
                         (BinaryCompatibilityRepositorySetupRule.Params.sourceRoots): sourceRoots.collect { it.absolutePath } as Set,
