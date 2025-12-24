@@ -195,13 +195,11 @@ public class ProgressBar {
     }
 
     private List<Span> getUnicodeFormatted(boolean timerEnabled, int consoleCols, String statusPrefix, int progressPercent, String elapsedTimeStr) {
-        String coloredProgress;
-        String statusSuffix;
         // Unicode mode: use block characters for finer granularity (8x resolution)
         String progress = getProgressString();
 
-        coloredProgress = trimToConsole(consoleCols, statusPrefix.length(), progress);
-        statusSuffix = trimToConsole(consoleCols, statusPrefix.length() + coloredProgress.length(),
+        String coloredProgress = trimToConsole(consoleCols, statusPrefix.length(), progress);
+        String statusSuffix = trimToConsole(consoleCols, statusPrefix.length() + coloredProgress.length(),
             renderProgressStatus(timerEnabled, progressPercent, elapsedTimeStr));
 
         lastElapsedTimeStr = elapsedTimeStr;
