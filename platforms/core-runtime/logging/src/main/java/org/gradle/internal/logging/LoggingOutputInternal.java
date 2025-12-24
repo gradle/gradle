@@ -18,6 +18,7 @@ package org.gradle.internal.logging;
 
 import org.gradle.api.logging.LoggingOutput;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -40,7 +41,7 @@ public interface LoggingOutputInternal extends LoggingOutput {
      *
      * <p>Removes standard output and/or error as a side-effect.
      */
-    void attachProcessConsole(ConsoleOutput consoleOutput);
+    void attachProcessConsole(ConsoleOutput consoleOutput, ConsoleUnicodeSupport consoleUnicodeSupport);
 
     /**
      * Adds the given {@link java.io.OutputStream} as a logging destination. The stream receives stdout and stderr logging formatted according to the current logging settings and encoded using the system character encoding. The output also includes color and dynamic text encoded using ANSI control sequences, depending on the requested output format.
