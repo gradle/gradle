@@ -51,13 +51,6 @@ public interface ConsoleMetaData {
      * <p>This is determined by checking terminal capabilities such as UTF-8 encoding support,
      * terminal type, and platform-specific indicators.</p>
      *
-     * <p>Can be controlled via the system property {@code org.gradle.terminal.unicode}:</p>
-     * <ul>
-     *   <li>{@code auto} (default) - Automatically detect Unicode support</li>
-     *   <li>{@code enabled} - Force Unicode mode regardless of detection</li>
-     *   <li>{@code disabled} - Force ASCII mode regardless of detection</li>
-     * </ul>
-     *
      * @return true if Unicode characters can be safely displayed, false otherwise
      */
     default boolean supportsUnicode() {
