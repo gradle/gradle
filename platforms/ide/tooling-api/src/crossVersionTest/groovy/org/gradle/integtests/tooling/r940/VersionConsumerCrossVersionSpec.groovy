@@ -22,21 +22,21 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 @ToolingApiVersion(">=9.4.0")
 class VersionConsumerCrossVersionSpec extends ToolingApiSpecification {
 
-    def "ignores --version and runs tasks"() {
+    def "prints version and ignores tasks when --version is present"() {
         when:
         withConnection { connection ->
             connection.newBuild()
-                .forTasks("help")
+                .forTasks("invalidTask")
                 .withArguments("--version")
                 .run()
         }
 
         then:
-        result.output.contains("BUILD SUCCESSFUL")
-        !result.output.contains("Build time:")
+        result.output.contains("Gradle")
+        !result.output.contains("Task 'invalidTask' not found")
     }
 
-    def "ignores --show-version and runs tasks"() {
+    def "prints version and runs tasks when --show-version is present"() {
         when:
         withConnection { connection ->
             connection.newBuild()
@@ -46,7 +46,7 @@ class VersionConsumerCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
+        result.output.contains("Gradle")
         result.output.contains("BUILD SUCCESSFUL")
-        !result.output.contains("Build time:")
     }
 }

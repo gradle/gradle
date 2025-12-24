@@ -22,17 +22,48 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 @ToolingApiVersion(">=9.4.0")
 class HelpConsumerCrossVersionSpec extends ToolingApiSpecification {
 
-    def "ignores --help and runs tasks"() {
+    def "prints help and ignores tasks when --help is present"() {
         when:
         withConnection { connection ->
             connection.newBuild()
-                .forTasks("help")
+                .forTasks("invalidTask")
                 .withArguments("--help")
                 .run()
         }
 
         then:
-        result.output.contains("BUILD SUCCESSFUL")
-        !result.output.contains("USAGE: gradle")
+        def out = result.output
+        (out.contains("Welcome to Gradle") || out.contains("USAGE: gradle") || out.contains("Help is not supported"))
+        !out.contains("Task 'invalidTask' not found")
+    }
+
+    def "help takes precedence over version flags"() {
+        when:
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks("help")
+                .withArguments("--help", "--version")
+                .run()
+        }
+
+        then:
+        def out = result.output
+        (out.contains("Welcome to Gradle") || out.contains("USAGE: gradle") || out.contains("Help is not supported"))
+        !out.contains("Build time:")  // Version output should not appear
+    }
+
+    def "help takes precedence over show-version flag"() {
+        when:
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks("help")
+                .withArguments("--help", "--show-version")
+                .run()
+        }
+
+        then:
+        def out = result.output
+        (out.contains("Welcome to Gradle") || out.contains("USAGE: gradle") || out.contains("Help is not supported"))
+        !out.contains("BUILD SUCCESSFUL")  // Tasks should not run
     }
 }

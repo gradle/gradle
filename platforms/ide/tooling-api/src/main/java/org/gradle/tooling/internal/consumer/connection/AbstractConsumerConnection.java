@@ -17,17 +17,24 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.PhasedBuildAction;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
+import org.gradle.tooling.model.UnsupportedMethodException;
+import org.gradle.tooling.model.build.BuildEnvironment;
+import org.gradle.tooling.model.build.Help;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public abstract class AbstractConsumerConnection extends HasCompatibilityMapping implements ConsumerConnection {
@@ -66,7 +73,12 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
     @Override
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) {
         if (isHelpOrVersion(operationParameters)) {
-            operationParameters = removeHelpVersionArgs(operationParameters);
+            if (type == Void.class) {
+                // For task execution, handle --help/--version and skip task execution
+                return handleHelpOrVersion(type, operationParameters);
+            }
+            // For model requests, remove help/version args and continue
+            operationParameters = removeHelpVersionArgs(operationParameters, true);
         }
         return getModelProducer().produceModel(type, operationParameters);
     }
@@ -74,7 +86,7 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
     @Override
     public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) {
         if (isHelpOrVersion(operationParameters)) {
-            operationParameters = removeHelpVersionArgs(operationParameters);
+            operationParameters = removeHelpVersionArgs(operationParameters, true);
         }
         return getActionRunner().run(action, operationParameters);
     }
@@ -82,7 +94,7 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
     @Override
     public void run(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters) {
         if (isHelpOrVersion(operationParameters)) {
-            operationParameters = removeHelpVersionArgs(operationParameters);
+            operationParameters = removeHelpVersionArgs(operationParameters, true);
         }
         doRun(phasedBuildAction, operationParameters);
     }
@@ -94,7 +106,7 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
     @Override
     public void runTests(final TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {
         if (isHelpOrVersion(operationParameters)) {
-            operationParameters = removeHelpVersionArgs(operationParameters);
+            operationParameters = removeHelpVersionArgs(operationParameters, true);
         }
         doRunTests(testExecutionRequest, operationParameters);
     }
@@ -118,7 +130,62 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
         return false;
     }
 
-    private ConsumerOperationParameters removeHelpVersionArgs(ConsumerOperationParameters parameters) {
+    @SuppressWarnings("unchecked")
+    private <T> T handleHelpOrVersion(Class<T> type, ConsumerOperationParameters operationParameters) {
+        List<String> args = operationParameters.getArguments();
+        boolean help = args.contains("--help") || args.contains("-h") || args.contains("-?");
+        boolean version = args.contains("--version") || args.contains("-v");
+        boolean showVersion = args.contains("--show-version") || args.contains("-V");
+
+        ConsumerOperationParameters cleanParams = removeHelpVersionArgs(operationParameters, false);
+
+        // Create params for model fetching (no tasks)
+        ConsumerOperationParameters.Builder modelParamsBuilder = ConsumerOperationParameters.builder();
+        modelParamsBuilder.copyFrom(cleanParams);
+        modelParamsBuilder.setEntryPoint(cleanParams.getEntryPointName());
+        modelParamsBuilder.setParameters(cleanParams.getConnectionParameters());
+        modelParamsBuilder.setTasks(Collections.emptyList());
+        ConsumerOperationParameters modelParams = modelParamsBuilder.build();
+
+        try {
+            // --help takes precedence over version flags (matching CLI behavior)
+            if (help) {
+                try {
+                    Help helpModel = getModelProducer().produceModel(Help.class, modelParams);
+                    operationParameters.getStandardOutput().write(helpModel.getRenderedText().getBytes(StandardCharsets.UTF_8));
+                } catch (UnknownModelException e) {
+                    // Fallback if Help model is not supported by this Gradle version
+                    operationParameters.getStandardOutput().write("Help is not supported by this Gradle version.\n".getBytes(StandardCharsets.UTF_8));
+                }
+                return null;
+            }
+
+            if (version || showVersion) {
+                BuildEnvironment env = getModelProducer().produceModel(BuildEnvironment.class, modelParams);
+                try {
+                    String output = env.getVersionInfo();
+                    operationParameters.getStandardOutput().write(output.getBytes(StandardCharsets.UTF_8));
+                } catch (UnsupportedMethodException e) {
+                    // Fallback for older Gradle versions that don't have getVersionInfo()
+                    String fallback = "Gradle " + env.getGradle().getGradleVersion() + "\n";
+                    operationParameters.getStandardOutput().write(fallback.getBytes(StandardCharsets.UTF_8));
+                }
+                if (version) {
+                    return null;
+                }
+            }
+
+            // --show-version: version was printed above, now continue with build
+            if (showVersion) {
+                return getModelProducer().produceModel(type, cleanParams);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
+    }
+
+    private ConsumerOperationParameters removeHelpVersionArgs(ConsumerOperationParameters parameters, boolean warn) {
         ConnectionParameters connectionParams = parameters.getConnectionParameters();
         String entryPoint = parameters.getEntryPointName();
 
@@ -131,7 +198,7 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
             "--version".equals(arg) || "-v".equals(arg) ||
             "--show-version".equals(arg) || "-V".equals(arg));
 
-        if (removed) {
+        if (removed && warn) {
             LOGGER.warn("The Tooling API does not support --help, --version or --show-version arguments for this operation. These arguments have been ignored.");
         }
 
