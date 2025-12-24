@@ -23,6 +23,7 @@ import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.specs.Spec
 import org.gradle.internal.code.UserCodeSource
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.TestUtil
 
 import static org.gradle.util.internal.WrapUtil.toList
@@ -201,6 +202,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         }
     }
 
+    @ExpectDeprecation("The DomainObjectCollection.findAll(Closure) method has been deprecated.")
     def findAllRetainsIterationOrder() {
         container.add("a")
         container.add("b")
@@ -212,6 +214,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
         collection == ["a", "c"]
     }
 
+    @ExpectDeprecation("The DomainObjectCollection.findAll(Closure) method has been deprecated.")
     def findAllDoesNotReturnALiveCollection() {
         container.add("a")
         container.add("b")
