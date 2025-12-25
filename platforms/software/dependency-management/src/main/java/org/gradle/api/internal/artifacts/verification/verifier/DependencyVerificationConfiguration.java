@@ -294,7 +294,6 @@ public class DependencyVerificationConfiguration {
 
     }
 
-    @NullMarked
     public enum KeyringFormat {
         ARMORED,
         BINARY

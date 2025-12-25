@@ -337,7 +337,6 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         });
     }
 
-    @NullMarked
     static class InvokedFlag implements Runnable {
         public boolean invoked = false;
 
@@ -378,7 +377,6 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         return Pair.of(caller, interceptor);
     }
 
-    @NullMarked
     public static class DefaultInterceptedMetaProperty extends InterceptedMetaProperty {
         @Nullable
         private final MetaProperty original;
@@ -456,7 +454,6 @@ public class CallInterceptingMetaClass extends MetaClassImpl implements Adapting
         }
     }
 
-    @NullMarked
     public static class InterceptedMetaMethod extends MetaMethod {
         private final @Nullable MetaMethod original;
         private final InstrumentedGroovyCallsTracker callsTracker;

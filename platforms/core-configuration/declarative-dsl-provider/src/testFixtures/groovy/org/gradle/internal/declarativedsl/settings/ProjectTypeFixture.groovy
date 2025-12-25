@@ -20,13 +20,12 @@ import groovy.transform.SelfType
 import org.gradle.api.internal.plugins.BindsProjectType
 import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.Definition
-import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.plugins.ProjectTypeBinding
+import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
@@ -594,8 +593,7 @@ trait ProjectTypeFixture {
             return """
                 package org.gradle.test;
 
-                import ${Configuring.class.name};
-                import ${Restricted.class.name};
+                import ${HiddenInDefinition.class.name};
 
                 import org.gradle.api.Action;
                 import org.gradle.api.model.ObjectFactory;
@@ -607,15 +605,13 @@ trait ProjectTypeFixture {
 
                 import javax.inject.Inject;
 
-                @Restricted
                 public interface ${effectiveClassName} extends ${Definition.class.simpleName}<${effectiveClassName}.${buildModelTypeClassName}> {
-                    @${Restricted.class.simpleName}
                     Property<String> getId();
 
                     @Nested
                     Foo getFoo();
 
-                    @${Configuring.class.simpleName}
+                    @${HiddenInDefinition.class.simpleName}
                     default void foo(Action<? super Foo> action) {
                         action.execute(getFoo());
                     }
@@ -623,7 +619,6 @@ trait ProjectTypeFixture {
                     ${maybeInjectedServiceDeclaration}
 
                     interface Foo extends ${Definition.class.simpleName}<FooBuildModel> {
-                        @${Restricted.class.simpleName}
                         public abstract Property<String> getBar();
 
                         ${maybeNestedInjectedServiceDeclaration}
@@ -698,8 +693,6 @@ trait ProjectTypeFixture {
             return """
                 package org.gradle.test;
 
-                import ${Restricted.class.name};
-
                 import org.gradle.api.Named;
                 import org.gradle.api.NamedDomainObjectContainer;
                 import org.gradle.api.provider.Property;
@@ -707,7 +700,6 @@ trait ProjectTypeFixture {
                 import ${BuildModel.class.name};
 
                 public abstract class ${publicTypeClassName} implements ${Definition.class.simpleName}<${publicTypeClassName}.ModelType> {
-                    @${Restricted.class.simpleName}
                     public abstract Property<String> getId();
 
                     public abstract NamedDomainObjectContainer<Foo> getFoos();
@@ -724,10 +716,8 @@ trait ProjectTypeFixture {
                             return name;
                         }
 
-                        @${Restricted.class.simpleName}
                         public abstract Property<Integer> getX();
 
-                        @${Restricted.class.simpleName}
                         public abstract Property<Integer> getY();
 
                         @Override
@@ -763,7 +753,6 @@ trait ProjectTypeFixture {
             return """
                 package org.gradle.test;
 
-                import ${Restricted.class.name};
                 import org.gradle.api.Action;
                 import org.gradle.api.model.ObjectFactory;
                 import org.gradle.api.provider.ListProperty;
@@ -771,7 +760,6 @@ trait ProjectTypeFixture {
 
                 import javax.inject.Inject;
 
-                @${Restricted.class.simpleName}
                 public abstract class ${implementationTypeClassName} implements ${publicTypeClassName} {
                     private final Foo foo;
 
@@ -785,7 +773,6 @@ trait ProjectTypeFixture {
                         return foo;
                     }
 
-                    @${Restricted.class.simpleName}
                     public abstract Property<String> getNonPublic();
                 }
             """
@@ -803,8 +790,7 @@ trait ProjectTypeFixture {
                 package org.gradle.test;
 
                 import ${Adding.class.name};
-                import ${Configuring.class.name};
-                import ${Restricted.class.name};
+                import ${HiddenInDefinition.class.name};
 
                 import org.gradle.api.Action;
                 import org.gradle.api.model.ObjectFactory;
@@ -816,24 +802,20 @@ trait ProjectTypeFixture {
 
                 import javax.inject.Inject;
 
-                @${Restricted.class.simpleName}
                 public interface ${publicTypeClassName} extends ${Definition.class.simpleName}<${publicTypeClassName}.ModelType> {
-                    @${Restricted.class.simpleName}
                     Property<String> getId();
 
-                    @${Restricted.class.simpleName}
                     Property<String> getFoo();
 
                     @Nested
                     Bar getBar();
 
-                    @${Configuring.class.simpleName}
+                    @${HiddenInDefinition.class.simpleName}
                     default void bar(Action<? super Bar> action) {
                         action.execute(getBar());
                     }
 
                     abstract interface Bar {
-                        @Restricted
                         Property<String> getBaz();
                     }
 
@@ -880,25 +862,26 @@ trait ProjectTypeFixture {
                 import org.gradle.api.provider.Property;
                 import org.gradle.api.provider.ListProperty;
                 import org.gradle.api.artifacts.dsl.DependencyCollector;
-                import ${Configuring.class.name};
-                import ${Restricted.class.name};
+                import ${HiddenInDefinition.class.name};
                 import ${Adding.class.name};
                 import org.gradle.api.tasks.Nested;
 
                 import java.util.List;
                 import javax.inject.Inject;
 
-                @${Restricted.class.simpleName}
                 public abstract class ${publicTypeClassName} implements ${interfaceName} {
+                    private final Bar bar;
                     private boolean isBarConfigured = false;
 
                     @Inject
-                    public ${publicTypeClassName}() { }
+                    public ${publicTypeClassName}(ObjectFactory objects) {
+                        bar = objects.newInstance(Bar.class);
+                    }
 
                     @Nested
                     abstract public LibraryDependencies getDependencies();
 
-                    @${Configuring.class.simpleName}
+                    @${HiddenInDefinition.class.simpleName}
                     public void dependencies(Action<? super LibraryDependencies> action) {
                         action.execute(getDependencies());
                     }
@@ -911,11 +894,13 @@ trait ProjectTypeFixture {
                     }
 
                     @Nested
-                    public abstract Bar getBar();
+                    public Bar getBar() {
+                        isBarConfigured = true; // TODO: get rid of the side effect in the getter
+                        return bar;
+                    }
 
-                    @${Configuring.class.simpleName}
+                    @${HiddenInDefinition.class.simpleName}
                     public void bar(Action<? super Bar> action) {
-                        isBarConfigured = true;
                         action.execute(getBar());
                     }
 
@@ -963,10 +948,7 @@ trait ProjectTypeFixture {
 
                 import org.gradle.api.artifacts.dsl.Dependencies;
                 import org.gradle.api.artifacts.dsl.DependencyCollector;
-                import ${Restricted.class.name};
 
-
-                @${Restricted.class.simpleName}
                 public interface LibraryDependencies extends Dependencies {
 
                     DependencyCollector getApi();
@@ -998,8 +980,7 @@ trait ProjectTypeFixture {
             return """
                 package org.gradle.test;
 
-                import ${Configuring.class.name};
-                import ${Restricted.class.name};
+                import ${HiddenInDefinition.class.name};
 
                 import org.gradle.api.Action;
                 import org.gradle.api.model.ObjectFactory;
@@ -1010,7 +991,6 @@ trait ProjectTypeFixture {
 
                 import javax.inject.Inject;
 
-                @${Restricted.class.simpleName}
                 public abstract class ${publicTypeClassName} implements ${Definition.class.simpleName}<${publicTypeClassName}.ModelType> {
                     private final Foo foo;
                     private boolean isFooConfigured = false;
@@ -1020,16 +1000,15 @@ trait ProjectTypeFixture {
                         this.foo = objects.newInstance(Foo.class);
                     }
 
-                    @${Restricted.class.simpleName}
                     public abstract Property<String> getId();
 
                     public Foo getFoo() {
+                        isFooConfigured = true; // TODO: get rid of the side effect in the getter
                         return foo;
                     }
 
-                    @${Configuring.class.simpleName}
+                    @${HiddenInDefinition.class.simpleName}
                     public void foo(Action<? super Foo> action) {
-                        isFooConfigured = true;
                         action.execute(foo);
                     }
 
@@ -1040,7 +1019,6 @@ trait ProjectTypeFixture {
 
                         ${maybeNestedInjectedServiceDeclaration}
 
-                        @Restricted
                         public abstract Property<String> getBar();
                     }
 
@@ -1096,7 +1074,6 @@ trait ProjectTypeFixture {
             return """
                 package org.gradle.test;
 
-                import ${Restricted.class.name};
                 import org.gradle.api.Action;
                 import org.gradle.api.model.ObjectFactory;
                 import org.gradle.api.provider.ListProperty;
@@ -1104,7 +1081,6 @@ trait ProjectTypeFixture {
 
                 import javax.inject.Inject;
 
-                @${Restricted.class.simpleName}
                 public interface ${publicTypeClassName} extends ${parentTypeClassName} { }
             """
         }

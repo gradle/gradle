@@ -18,8 +18,8 @@ package configurations
 
 import common.Os
 import common.applyDefaultSettings
+import common.setArtifactRules
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
-import jetbrains.buildServer.configs.kotlin.PublishMode
 import jetbrains.buildServer.configs.kotlin.ReuseBuilds
 import model.CIBuildModel
 import model.PerformanceTestType
@@ -67,10 +67,11 @@ class PerformanceTestsPass(
                     "performanceTestReport"
                 }
 
-            publishArtifacts = PublishMode.ALWAYS
-            artifactRules = """
+            setArtifactRules(
+                """
 testing/$performanceProjectName/build/performance-test-results.zip
-"""
+""",
+            )
             if (performanceTestProject.performanceTests.any { it.testProjects.isNotEmpty() }) {
                 val dependencyBuildIds =
                     performanceTestProject.performanceTests

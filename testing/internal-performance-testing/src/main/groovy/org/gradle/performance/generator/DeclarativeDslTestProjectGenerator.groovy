@@ -220,24 +220,15 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
             import org.gradle.api.experimental.jvm.ApplicationDependencies;
             import org.gradle.api.provider.Property;
             import org.gradle.api.tasks.Nested;
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
             /**
              * Represents an application that runs on the JVM.
              */
-            @Restricted
             public interface HasJvmApplication {
-                @Restricted
                 Property<String> getMainClass();
 
                 @Nested
                 ApplicationDependencies getDependencies();
-
-                @Configuring
-                default void dependencies(Action<? super ApplicationDependencies> action) {
-                    action.execute(getDependencies());
-                }
             }
         """
 
@@ -245,14 +236,11 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
             package org.gradle.api.experimental.jvm;
 
             import org.gradle.api.provider.Property;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
             /**
              * A component that is built for a single Java version.
              */
-            @Restricted
             public interface HasJavaTarget {
-                @Restricted
                 Property<Integer> getJavaVersion();
             }
         """
@@ -262,13 +250,11 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
 
             import org.gradle.api.artifacts.dsl.Dependencies;
             import org.gradle.api.artifacts.dsl.DependencyCollector;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
             /**
              * The declarative dependencies DSL block for an application.
              */
             @SuppressWarnings("UnstableApiUsage")
-            @Restricted
             public interface ApplicationDependencies extends Dependencies {
                 DependencyCollector getImplementation();
                 DependencyCollector getRuntimeOnly();
@@ -284,13 +270,11 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
 
             import org.gradle.api.experimental.jvm.HasJavaTarget;
             import org.gradle.api.experimental.jvm.HasJvmApplication;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
             import ${Definition.class.name};
 
             /**
              * An application implemented using a single version of Java.
              */
-            @Restricted
             public interface JavaApplication extends HasJavaTarget, HasJvmApplication, ${Definition.class.simpleName}<JavaApplicationModel> {
             }
         """

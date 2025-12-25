@@ -37,7 +37,6 @@ abstract public class ComponentReportingTasksPlugin implements Plugin<Project> {
     }
 
     @SuppressWarnings("deprecation")
-    @NullMarked
     private static class ComponentReportAction implements Action<org.gradle.api.reporting.components.ComponentReport> {
         private final String projectName;
 
@@ -53,7 +52,6 @@ abstract public class ComponentReportingTasksPlugin implements Plugin<Project> {
     }
 
     @SuppressWarnings("deprecation")
-    @NullMarked
     private static class DependentComponentsReportAction implements Action<org.gradle.api.reporting.dependents.DependentComponentsReport> {
         private final String projectName;
 

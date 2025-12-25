@@ -82,7 +82,6 @@ public class JUnitTestEventAdapter extends RunListener {
         new AssertErrorMapper()
     );
 
-    @NullMarked
     private static final class TestNode {
         @Nullable
         private final TestNode parent;
@@ -180,7 +179,6 @@ public class JUnitTestEventAdapter extends RunListener {
         return null;
     }
 
-    @NullMarked
     private enum RegistrationMode {
         TEST,
         SUITE,

@@ -38,7 +38,6 @@ import java.util.Set;
 @NullMarked
 @ServiceScope(Scope.BuildSession.class)
 public final class JvmInstallationProblemReporter {
-    @NullMarked
     private static final class ProblemReport {
         // Include auto-detection as it affects visibility of the problem. We do want to report twice if a location was auto-detected and then explicitly configured.
         private final boolean autoDetected;

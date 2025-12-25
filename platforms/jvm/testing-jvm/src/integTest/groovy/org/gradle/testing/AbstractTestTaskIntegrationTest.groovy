@@ -24,6 +24,10 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
 
+import java.time.Duration
+
+import static org.hamcrest.Matchers.greaterThanOrEqualTo
+
 abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     abstract String getStandaloneTestClass()
     abstract String testClass(String className)
@@ -358,6 +362,38 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
 
         expect:
         succeeds("test", "verifyTestOptions", "--warn")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17135")
+    def "records full #type class time"() {
+        given:
+        file('src/test/java/MyTest.java') << """
+            ${testFrameworkImports}
+
+            public class MyTest {
+               ${annotation}
+               public static void setUp() throws InterruptedException {
+                   Thread.sleep(1000);
+               }
+
+               @Test
+               public void test() {
+               }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds 'test'
+
+        then:
+        def results = resultsFor(testDirectory)
+        def testClass = results.testPath(':MyTest').onlyRoot()
+        testClass.assertThatSingleDuration(greaterThanOrEqualTo(Duration.ofMillis(1000)))
+
+        where:
+        type     | annotation
+        "before" | beforeClassAnnotation
+        "after"  | afterClassAnnotation
     }
 
     private String java9Build() {

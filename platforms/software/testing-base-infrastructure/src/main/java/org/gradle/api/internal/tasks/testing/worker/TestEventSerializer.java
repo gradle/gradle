@@ -105,7 +105,6 @@ public class TestEventSerializer {
         return registry;
     }
 
-    @NullMarked
     private static class NullableSerializer<T> implements Serializer<@Nullable T> {
         private final Serializer<T> serializer;
 
@@ -155,7 +154,6 @@ public class TestEventSerializer {
         }
     }
 
-    @NullMarked
     private static class DirectoryBasedTestDefinitionSerializer implements Serializer<DirectoryBasedTestDefinition> {
         @Override
         public DirectoryBasedTestDefinition read(Decoder decoder) throws Exception {
@@ -185,7 +183,6 @@ public class TestEventSerializer {
         }
     }
 
-    @NullMarked
     private static class TestMetadataEventSerializer implements Serializer<TestMetadataEvent> {
         private final MapSerializer<String, String> mapSerializer = new MapSerializer<>(BaseSerializerFactory.STRING_SERIALIZER, BaseSerializerFactory.STRING_SERIALIZER);
         private final Serializer<Path> pathSerializer = BaseSerializerFactory.PATH_SERIALIZER;
@@ -266,7 +263,6 @@ public class TestEventSerializer {
         }
     }
 
-    @NullMarked
     private static class DefaultTestFailureSerializer implements Serializer<TestFailure> {
         private final Serializer<Throwable> throwableSerializer;
 
@@ -446,7 +442,6 @@ public class TestEventSerializer {
         }
     }
 
-    @NullMarked
     private static class DefaultParameterizedTestDescriptorSerializer implements Serializer<DefaultParameterizedTestDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
@@ -487,7 +482,6 @@ public class TestEventSerializer {
         }
     }
 
-    @NullMarked
     private static class TestSourceSerializer implements Serializer<TestSource> {
 
         Serializer<FilePosition> filePositionSerializer = new NullableSerializer<>(new FilePositionSerializer());
@@ -556,7 +550,6 @@ public class TestEventSerializer {
         }
     }
 
-    @NullMarked
     private static class FilePositionSerializer implements Serializer<FilePosition> {
 
         @Override

@@ -204,19 +204,14 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             return """
                 package org.gradle.test;
 
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
-
                 import org.gradle.api.file.DirectoryProperty;
                 import org.gradle.api.file.RegularFileProperty;
                 import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
-                @Restricted
                 public abstract class ${publicTypeClassName} implements ${Definition.class.simpleName}<${publicTypeClassName}.ModelType> {
-                    @Restricted
                     public abstract DirectoryProperty getDir();
 
-                    @Restricted
                     public abstract RegularFileProperty getFile();
 
                     public interface ModelType extends BuildModel {
@@ -261,20 +256,15 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             return """
                 package org.gradle.test;
 
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
-
                 import org.gradle.api.provider.ListProperty;
                 import org.gradle.api.file.Directory;
                 import org.gradle.api.file.RegularFile;
                 import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
-                @Restricted
                 public abstract class ${publicTypeClassName} implements ${Definition.class.simpleName}<${publicTypeClassName}.ModelType> {
-                    @Restricted
                     public abstract ListProperty<Directory> getDirs();
 
-                    @Restricted
                     public abstract ListProperty<RegularFile> getFiles();
 
                     public interface ModelType extends BuildModel {
@@ -316,8 +306,6 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             return """
                 package org.gradle.test;
 
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
-
                 import org.gradle.api.file.Directory;
                 import org.gradle.api.file.RegularFileProperty;
                 import org.gradle.api.file.DirectoryProperty;
@@ -325,12 +313,9 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
-                @Restricted
                 public interface ${publicTypeClassName} extends ${Definition.class.simpleName}<${publicTypeClassName}.ModelType> {
-                    @Restricted
                     Directory getDir();
 
-                    @Restricted
                     RegularFileProperty getFile();
 
                     public interface ModelType extends BuildModel {
@@ -372,8 +357,6 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             return """
                 package org.gradle.test;
 
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
-
                 import org.gradle.api.file.RegularFileProperty;
                 import org.gradle.api.file.DirectoryProperty;
                 import org.gradle.api.file.RegularFile;
@@ -381,12 +364,9 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 import ${Definition.class.name};
                 import ${BuildModel.class.name};
 
-                @Restricted
                 public interface ${publicTypeClassName} extends ${Definition.class.simpleName}<${publicTypeClassName}.ModelType> {
-                    @Restricted
                     DirectoryProperty getDir();
 
-                    @Restricted
                     RegularFile getFile();
 
                     public interface ModelType extends BuildModel {
@@ -428,8 +408,6 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             return """
                 package org.gradle.test;
 
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
-
                 import org.gradle.api.file.Directory;
                 import org.gradle.api.file.RegularFile;
                 import org.gradle.api.file.DirectoryProperty;
@@ -441,7 +419,6 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
 
                 import javax.inject.Inject;
 
-                @Restricted
                 public abstract class ${publicTypeClassName} implements ${Definition.class.simpleName}<${publicTypeClassName}.ModelType> {
 
                     private final Property<Directory> dir;
@@ -453,12 +430,10 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                         file = objects.fileProperty();
                     }
 
-                    @Restricted
                     public Property<Directory> getDir() {
                         return dir;
                     }
 
-                    @Restricted
                     public Property<RegularFile> getFile() {
                         return file;
                     }
@@ -505,8 +480,6 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             return """
                 package org.gradle.test;
 
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
-
                 import org.gradle.api.file.Directory;
                 import org.gradle.api.file.RegularFile;
                 import org.gradle.api.file.DirectoryProperty;
@@ -516,7 +489,6 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
 
                 import javax.inject.Inject;
 
-                @Restricted
                 public abstract class ${publicTypeClassName} implements ${Definition.class.simpleName}<${publicTypeClassName}.ModelType> {
 
                     private Directory dir;
@@ -526,22 +498,18 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                     public ${publicTypeClassName}() {
                     }
 
-                    @Restricted
                     public Directory getDir() {
                         return dir;
                     }
 
-                    @Restricted
                     public void setDir(Directory dir) {
                         this.dir = dir;
                     }
 
-                    @Restricted
                     public RegularFile getFile() {
                         return file;
                     }
 
-                    @Restricted
                     public void setFile(RegularFile file) {
                         this.file = file;
                     }

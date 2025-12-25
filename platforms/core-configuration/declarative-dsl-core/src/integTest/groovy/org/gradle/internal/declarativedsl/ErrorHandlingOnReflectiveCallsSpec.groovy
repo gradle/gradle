@@ -50,22 +50,17 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             package com.example.restricted;
 
             import org.gradle.api.provider.Property
-            import org.gradle.declarative.dsl.model.annotations.Restricted
             import ${BuildModel.class.name}
             import ${Definition.class.name}
 
-            @Restricted
             abstract class Extension : ${Definition.class.simpleName}<Extension.Model> {
 
-                @get:Restricted
                 abstract val prop: Property<String>
 
-                @Restricted
                 fun print(data: Int): String {
                     throw RuntimeException("Boom Int")
                 }
 
-                @Restricted
                 fun print(data: String): String {
                     throw RuntimeException("Boom String")
                 }
@@ -110,33 +105,30 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             import org.gradle.api.Action
             import org.gradle.api.model.ObjectFactory
             import org.gradle.api.provider.Property
-            import org.gradle.declarative.dsl.model.annotations.Configuring
-            import org.gradle.declarative.dsl.model.annotations.Restricted
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
             import javax.inject.Inject
             import ${BuildModel.class.name}
             import ${Definition.class.name};
 
-
-            @Restricted
             abstract class Extension @Inject constructor(private val objects: ObjectFactory) : ${Definition.class.simpleName}<Extension.Model> {
+                @get:HiddenInDefinition
                 val access: Access
 
                 init {
                     this.access = objects.newInstance(Access::class.java)
                 }
 
-                @Configuring
                 fun access(configure: Action<Access>) {
                     throw RuntimeException("Boom Action")
                 }
 
+                @HiddenInDefinition
                 fun access(configure: (Access) -> Unit) {
                     throw RuntimeException("Boom Lambda")
                 }
 
                 abstract class Access {
-                    @get:Restricted
-                    abstract val name: Property<String>?
+                    abstract val name: Property<String>
                 }
 
                 interface Model : ${BuildModel.class.simpleName} {
@@ -180,34 +172,29 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
             import org.gradle.api.Action
             import org.gradle.api.model.ObjectFactory
             import org.gradle.api.provider.Property
-            import org.gradle.declarative.dsl.model.annotations.Configuring
-            import org.gradle.declarative.dsl.model.annotations.Restricted
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
             import javax.inject.Inject
             import ${BuildModel.class.name}
             import ${Definition.class.name}
 
-
-            @Restricted
             abstract class Extension @Inject constructor(private val objects: ObjectFactory) : ${Definition.class.simpleName}<Extension.Model> {
+                @get:HiddenInDefinition
                 val access: Access
 
                 init {
                     this.access = objects.newInstance(Access::class.java)
                 }
 
-                @Configuring
                 fun access(configure: Action<Access>) {
                     throw RuntimeException("Boom Action")
                 }
 
-                @Configuring
                 fun access(configure: (Access) -> Unit) {
                     throw RuntimeException("Boom Lambda")
                 }
 
                 abstract class Access {
-                    @get:Restricted
-                    abstract val name: Property<String>?
+                    abstract val name: Property<String>
                 }
 
                 interface Model : ${BuildModel.class.simpleName} {
@@ -247,8 +234,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
         file("build-logic/src/main/java/com/example/restricted/Extension.java") << """
             package com.example.restricted;
 
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.Property;
@@ -257,11 +243,11 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
 
             import javax.inject.Inject;
 
-            @Restricted
             public abstract class Extension implements ${Definition.class.simpleName}<Extension.Model> {
                 private final Access access;
                 private final ObjectFactory objects;
 
+                @HiddenInDefinition
                 public Access getAccess() {
                     return access;
                 }
@@ -272,13 +258,11 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                     this.access = objects.newInstance(Access.class);
                 }
 
-                @Configuring
                 public void access(Action<? super Access> configure) {
                     throw new RuntimeException("Boom");
                 }
 
                 public abstract static class Access {
-                    @Restricted
                     public abstract Property<String> getName();
                 }
 
