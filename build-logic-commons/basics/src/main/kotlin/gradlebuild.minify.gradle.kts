@@ -16,6 +16,9 @@
 import gradlebuild.basics.classanalysis.Attributes.artifactType
 import gradlebuild.basics.classanalysis.Attributes.minified
 import gradlebuild.basics.transforms.Minify
+import org.gradle.api.internal.attributes.AttributesFactory
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.kotlin.dsl.support.serviceOf
 
 /**
  * A map from artifact name to a set of class name prefixes that should be kept.
@@ -94,17 +97,20 @@ plugins.withId("java-base") {
     afterEvaluate {
         // Without afterEvaluate, configurations.all runs before the configurations' roles are set.
         // This is yet another reason we need configuration factory methods.
+        // workaround for https://github.com/gradle/gradle/issues/12459
+        // note: constraints can't be used here because they end up in gradle module metadata
+        val attributesFactory = gradle.serviceOf<AttributesFactory>()
         configurations.all {
-            val configurationName = this.name
-            if (!isCanBeResolved && !isCanBeConsumed) {
-                dependencies {
-                    constraints {
-                        keepPatterns.forEach { coordinates, _ ->
-                            add(configurationName, coordinates) {
-                                attributes {
-                                    attribute(minified, true)
-                                }
-                            }
+            if (isCanBeResolved && !isCanBeConsumed) {
+                resolutionStrategy.dependencySubstitution.all {
+                    val requested = this.requested as? ModuleComponentSelector ?: return@all
+                    keepPatterns.forEach { coordinates, _ ->
+                        if ("${requested.group}:${requested.module}" == coordinates) {
+                            val updated = DefaultModuleComponentSelector.withAttributes(
+                                requested,
+                                attributesFactory.of(minified, true)
+                            )
+                            useTarget(updated)
                         }
                     }
                 }
