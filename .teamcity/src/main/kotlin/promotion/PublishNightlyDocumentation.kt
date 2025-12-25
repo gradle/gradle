@@ -34,19 +34,9 @@ class PublishNightlyDocumentation(
             "Promotes the latest successful documentation changes on '${branch.branchName}' from Ready for Nightly as a new nightly documentation snapshot"
 
         triggers {
-            branch.nightlyPromotionTriggerHour?.let { triggerHour ->
+            branch.determineNightlyPromotionTriggerHour()?.let { triggerHour ->
                 schedule {
-                    schedulingPolicy =
-                        daily {
-                            this.hour = triggerHour
-                        }
-                    triggerBuild = always()
-                    withPendingChangesOnly = true
-                    enabled = branch.enableVcsTriggers
-                    // https://www.jetbrains.com/help/teamcity/2022.04/configuring-schedule-triggers.html#general-syntax-1
-                    // We want it to be triggered only when there're pending changes in the specific vcs root, i.e. GradleMaster/GradleRelease
-                    triggerRules = "+:root=${VersionedSettingsBranch.fromDslContext().vcsRootId()}:."
-                    branchFilter = "+:<default>"
+                    scheduledTrigger(branch, policy = daily { this.hour = triggerHour }, pendingChangesOnly = true)
                 }
             }
         }
