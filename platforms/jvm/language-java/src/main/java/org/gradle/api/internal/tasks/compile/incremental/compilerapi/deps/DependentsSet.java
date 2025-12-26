@@ -17,11 +17,10 @@
 package org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
+import org.gradle.internal.collect.PersistentSet;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -32,14 +31,18 @@ import java.util.Set;
 public abstract class DependentsSet {
 
     public static DependentsSet dependentClasses(Set<String> privateDependentClasses, Set<String> accessibleDependentClasses) {
-        return dependents(privateDependentClasses, accessibleDependentClasses, Collections.emptySet());
+        return dependentClasses(PersistentSet.copyOf(privateDependentClasses), PersistentSet.copyOf(accessibleDependentClasses));
     }
 
-    public static DependentsSet dependents(Set<String> privateDependentClasses, Set<String> accessibleDependentClasses, Set<GeneratedResource> dependentResources) {
+    public static DependentsSet dependentClasses(PersistentSet<@NonNull String> privateDependentClasses, PersistentSet<@NonNull String> accessibleDependentClasses) {
+        return dependents(privateDependentClasses, accessibleDependentClasses, PersistentSet.of());
+    }
+
+    public static DependentsSet dependents(PersistentSet<@NonNull String> privateDependentClasses, PersistentSet<@NonNull String> accessibleDependentClasses, PersistentSet<@NonNull GeneratedResource> dependentResources) {
         if (privateDependentClasses.isEmpty() && accessibleDependentClasses.isEmpty() && dependentResources.isEmpty()) {
             return empty();
         } else {
-            return new DefaultDependentsSet(ImmutableSet.copyOf(privateDependentClasses), ImmutableSet.copyOf(accessibleDependentClasses), ImmutableSet.copyOf(dependentResources));
+            return new DefaultDependentsSet(privateDependentClasses, accessibleDependentClasses, dependentResources);
         }
     }
 
@@ -58,39 +61,34 @@ public abstract class DependentsSet {
         if (sets.size() == 1) {
             return sets.iterator().next();
         }
-        int privateCount = 0;
-        int accessibleCount = 0;
-        int resourceCount = 0;
+
         for (DependentsSet set : sets) {
             if (set.isDependencyToAll()) {
                 return set;
             }
-            privateCount += set.getPrivateDependentClasses().size();
-            accessibleCount += set.getAccessibleDependentClasses().size();
-            resourceCount += set.getDependentResources().size();
         }
 
-        ImmutableSet.Builder<String> privateDependentClasses = ImmutableSet.builderWithExpectedSize(privateCount);
-        ImmutableSet.Builder<String> accessibleDependentClasses = ImmutableSet.builderWithExpectedSize(accessibleCount);
-        ImmutableSet.Builder<GeneratedResource> dependentResources = ImmutableSet.builderWithExpectedSize(resourceCount);
+        PersistentSet<@NonNull String> privateDependentClasses = PersistentSet.of();
+        PersistentSet<@NonNull String> accessibleDependentClasses = PersistentSet.of();
+        PersistentSet<@NonNull GeneratedResource> dependentResources = PersistentSet.of();
 
         for (DependentsSet set : sets) {
-            privateDependentClasses.addAll(set.getPrivateDependentClasses());
-            accessibleDependentClasses.addAll(set.getAccessibleDependentClasses());
-            dependentResources.addAll(set.getDependentResources());
+            privateDependentClasses = privateDependentClasses.union(set.getPrivateDependentClasses());
+            accessibleDependentClasses = accessibleDependentClasses.union(set.getAccessibleDependentClasses());
+            dependentResources = dependentResources.union(set.getDependentResources());
         }
-        return DependentsSet.dependents(privateDependentClasses.build(), accessibleDependentClasses.build(), dependentResources.build());
+        return DependentsSet.dependents(privateDependentClasses, accessibleDependentClasses, dependentResources);
     }
 
     public abstract boolean isEmpty();
 
     public abstract boolean hasDependentClasses();
 
-    public abstract Set<String> getPrivateDependentClasses();
+    public abstract PersistentSet<@NonNull String> getPrivateDependentClasses();
 
-    public abstract Set<String> getAccessibleDependentClasses();
+    public abstract PersistentSet<@NonNull String> getAccessibleDependentClasses();
 
-    public abstract Set<GeneratedResource> getDependentResources();
+    public abstract PersistentSet<@NonNull GeneratedResource> getDependentResources();
 
     public abstract boolean isDependencyToAll();
 
@@ -99,7 +97,7 @@ public abstract class DependentsSet {
     private DependentsSet() {
     }
 
-    public abstract Set<String> getAllDependentClasses();
+    public abstract PersistentSet<@NonNull String> getAllDependentClasses();
 
     private static class EmptyDependentsSet extends DependentsSet {
         private static final EmptyDependentsSet INSTANCE = new EmptyDependentsSet();
@@ -115,23 +113,23 @@ public abstract class DependentsSet {
         }
 
         @Override
-        public Set<String> getPrivateDependentClasses() {
-            return Collections.emptySet();
+        public PersistentSet<@NonNull String> getPrivateDependentClasses() {
+            return PersistentSet.of();
         }
 
         @Override
-        public Set<String> getAccessibleDependentClasses() {
-            return Collections.emptySet();
+        public PersistentSet<@NonNull String> getAccessibleDependentClasses() {
+            return PersistentSet.of();
         }
 
         @Override
-        public Set<String> getAllDependentClasses() {
-            return Collections.emptySet();
+        public PersistentSet<@NonNull String> getAllDependentClasses() {
+            return PersistentSet.of();
         }
 
         @Override
-        public Set<GeneratedResource> getDependentResources() {
-            return Collections.emptySet();
+        public PersistentSet<@NonNull GeneratedResource> getDependentResources() {
+            return PersistentSet.of();
         }
 
         @Override
@@ -147,11 +145,11 @@ public abstract class DependentsSet {
 
     private static class DefaultDependentsSet extends DependentsSet {
 
-        private final Set<String> privateDependentClasses;
-        private final Set<String> accessibleDependentClasses;
-        private final Set<GeneratedResource> dependentResources;
+        private final PersistentSet<@NonNull String> privateDependentClasses;
+        private final PersistentSet<@NonNull String> accessibleDependentClasses;
+        private final PersistentSet<@NonNull GeneratedResource> dependentResources;
 
-        private DefaultDependentsSet(Set<String> privateDependentClasses, Set<String> accessibleDependentClasses, Set<GeneratedResource> dependentResources) {
+        private DefaultDependentsSet(PersistentSet<@NonNull String> privateDependentClasses, PersistentSet<@NonNull String> accessibleDependentClasses, PersistentSet<@NonNull GeneratedResource> dependentResources) {
             this.privateDependentClasses = privateDependentClasses;
             this.accessibleDependentClasses = accessibleDependentClasses;
             this.dependentResources = dependentResources;
@@ -168,30 +166,28 @@ public abstract class DependentsSet {
         }
 
         @Override
-        public Set<String> getPrivateDependentClasses() {
+        public PersistentSet<@NonNull String> getPrivateDependentClasses() {
             return privateDependentClasses;
         }
 
         @Override
-        public Set<String> getAccessibleDependentClasses() {
+        public PersistentSet<@NonNull String> getAccessibleDependentClasses() {
             return accessibleDependentClasses;
         }
 
         @Override
-        public Set<String> getAllDependentClasses() {
+        public PersistentSet<@NonNull String> getAllDependentClasses() {
             if (privateDependentClasses.isEmpty()) {
                 return accessibleDependentClasses;
             }
             if (accessibleDependentClasses.isEmpty()) {
                 return privateDependentClasses;
             }
-            Set<String> r = new HashSet<>(accessibleDependentClasses);
-            r.addAll(privateDependentClasses);
-            return r;
+            return accessibleDependentClasses.union(privateDependentClasses);
         }
 
         @Override
-        public Set<GeneratedResource> getDependentResources() {
+        public PersistentSet<@NonNull GeneratedResource> getDependentResources() {
             return dependentResources;
         }
 
@@ -229,22 +225,22 @@ public abstract class DependentsSet {
         }
 
         @Override
-        public Set<String> getPrivateDependentClasses() {
+        public PersistentSet<@NonNull String> getPrivateDependentClasses() {
             throw new UnsupportedOperationException("This dependents set does not have dependent classes information.");
         }
 
         @Override
-        public Set<String> getAccessibleDependentClasses() {
+        public PersistentSet<@NonNull String> getAccessibleDependentClasses() {
             throw new UnsupportedOperationException("This dependents set does not have dependent classes information.");
         }
 
         @Override
-        public Set<String> getAllDependentClasses() {
+        public PersistentSet<@NonNull String> getAllDependentClasses() {
             throw new UnsupportedOperationException("This dependents set does not have dependent classes information.");
         }
 
         @Override
-        public Set<GeneratedResource> getDependentResources() {
+        public PersistentSet<@NonNull GeneratedResource> getDependentResources() {
             throw new UnsupportedOperationException("This dependents set does not have dependent resources information.");
         }
 
