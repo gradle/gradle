@@ -277,7 +277,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
 
         then:
         def expectedFailure3 = thrown(AssertionError)
-        expectedFailure3.message.startsWith("Expected problem at #1 to be a string starting with \"Some problem 3\", but was: Some problem 2.")
+        expectedFailure3.message.startsWith("Expected problem message at #1 to be a string starting with \"Some problem 3\", but was: Some problem 2.")
     }
 
     def "assertHtmlReportHasProblems validates traces in unique problems"() {
@@ -296,9 +296,8 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
 
         when:
         generateReportFile(
-            [
-                "Some problem 1": [[ kind: "Task", path: ":myTask1" ]]
-            ]
+            ["Some problem 1"],
+            [[[ kind: "Task", path: ":myTask1" ]]]
         )
         report().assertContents {
             problemsWithStackTraceCount = 0
@@ -312,9 +311,10 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
 
         expect:
         generateReportFile(
+            ["Some problem 1", "Some problem 2"],
             [
-                "Some problem 1": null,
-                "Some problem 2": [[ kind: "Task", path: ":myTask" ], [ kind: "Field", name: "field1" ]]
+                null,
+                [[ kind: "Task", path: ":myTask" ], [ kind: "Field", name: "field1" ]]
             ]
         )
         report().assertContents {
@@ -322,6 +322,32 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
             withProblem("Some problem 1")
             withProblem("Some problem 2") {
                 at("field1").at(":myTask")
+            }
+        }
+
+        and:
+        generateReportFile(
+            [
+                "Some problem 1",
+                "Some problem 1",
+                "Some problem 1"
+            ],
+            [
+                [[ kind: "Task", path: ":myTask1" ], [ kind: "Field", name: "field1" ]],
+                [[ kind: "Task", path: ":myTask2" ], [ kind: "Field", name: "field1" ]],
+                [[ kind: "Task", path: ":myTask2" ], [ kind: "Field", name: "field2" ]],
+            ]
+        )
+        report().assertContents {
+            problemsWithStackTraceCount = 0
+            withProblem("Some problem 1") {
+                at("field1").at(":myTask1")
+            }
+            withProblem("Some problem 1") {
+                at("field1").at(":myTask2")
+            }
+            withProblem("Some problem 1") {
+                at("field2").at(":myTask2")
             }
         }
     }
@@ -333,6 +359,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         report().assertContents {
             problemsWithStackTraceCount = 0
             withUniqueProblems(
+                // expect problems in wrong order
                 "Some problem 2",
                 "Some problem 1"
             )
@@ -340,7 +367,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
 
         then:
         def expectedFailure = thrown(AssertionError)
-        expectedFailure.message.startsWith("Expected problem at #0 to be a string starting with \"Some problem 2\", but was: Some problem 1.")
+        expectedFailure.message.startsWith("Expected problem message at #0 to be a string starting with \"Some problem 2\", but was: Some problem 1.")
 
         expect:
         report().assertContents {
@@ -352,53 +379,30 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         }
     }
 
-    def "assertHtmlReportHasProblems ignores duplicates"() {
-        generateReportFile(["Some problem 1",  "Some problem 2", "Some problem 1", "Some problem 3"])
-
-        expect:
-        report().assertContents {
-            totalProblemsCount = 4
-            problemsWithStackTraceCount = 0
-            withUniqueProblems(
-                "Some problem 1",
-                "Some problem 2",
-                "Some problem 3"
-            )
-        }
-    }
-
     private TestFile generateReportFile(int problems, int problemsWithStacktrace = 0) {
         assert problemsWithStacktrace <= problems
-        Map<String, List<String>> problemsAndStacktraces = (0..<problems).collectEntries { index ->
-            [
-                "Some problem ${index + 1}".toString(),
-                problemsWithStacktrace > index ? ["somePart"] : null
-            ]
+        def problemMessages = (0..<problems).collect { "Some problem ${it+1}".toString() }
+        def problemStacktraces = (0..<problemsWithStacktrace).collect { index ->
+            ["somePart"]
         }
-        generateReportFile(problemsAndStacktraces.keySet().toList(), [:], problemsAndStacktraces)
+        generateReportFile(problemMessages, [], problemStacktraces)
     }
 
-    private TestFile generateReportFile(Map<String, List<String>> problemsAndPropertyTraces = [:], Map<String, List<String>> problemsAndStacktraceParts = [:]) {
-        generateReportFile(problemsAndPropertyTraces.keySet().toList(), problemsAndPropertyTraces, problemsAndStacktraceParts)
-    }
-
-    private TestFile generateReportFile(List<String> nonUniqueProblems, Map<String, List<String>> problemsAndPropertyTraces = [:], Map<String, List<String>> problemsAndStacktraceParts = [:]) {
-        assert nonUniqueProblems.containsAll(problemsAndPropertyTraces.keySet())
-        assert nonUniqueProblems.containsAll(problemsAndStacktraceParts.keySet())
+    private TestFile generateReportFile(List<String> problemMessages, List<List<String>> problemsAndPropertyTraces = [], List<List<String>> problemsAndStacktraceParts = []) {
         List<String> problemMarkup = []
-        nonUniqueProblems.eachWithIndex { String problemText, int index ->
+        problemMessages.eachWithIndex { String problemText, int index ->
             problemMarkup << """
             {
                     "problem": [{
                         "text": "${problemText}"
                     }]
             """ +
-                (problemsAndPropertyTraces[problemText]?.with { problemTraces ->
+                (problemsAndPropertyTraces[index]?.with { problemTraces ->
                     """,
                     "trace": ${JsonOutput.prettyPrint(JsonOutput.toJson(problemTraces))}
                     """
                 } ?: "") +
-                (problemsAndStacktraceParts[problemText]?.with { parts ->
+                (problemsAndStacktraceParts[index]?.with { parts ->
                     """,
                     "error": {
                         "parts": [ ${parts.collect { "\"${it}\"" }.join(", ")} ]
@@ -412,7 +416,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         def jsonData = """
 // begin-report-data
 {
-    "totalProblemCount": ${nonUniqueProblems.size()},
+    "totalProblemCount": ${problemMessages.size()},
     "diagnostics": [
         ${
             problemMarkup.join(",${NEWLINE}")
