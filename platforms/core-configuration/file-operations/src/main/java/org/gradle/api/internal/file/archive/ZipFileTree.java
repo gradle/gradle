@@ -35,8 +35,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.String.format;
@@ -115,14 +116,15 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         });
     }
 
-    private Iterator<ZipArchiveEntry> entriesSortedByName(ZipFile zip) {
-        Map<String, ZipArchiveEntry> entriesByName = new TreeMap<>();
+    private static Iterator<ZipArchiveEntry> entriesSortedByName(ZipFile zip) {
+        // Collect into a list and sort by name to avoid TreeMap overhead and accidental de-duplication by key
         Enumeration<ZipArchiveEntry> entries = zip.getEntries();
+        List<ZipArchiveEntry> list = new ArrayList<>();
         while (entries.hasMoreElements()) {
-            ZipArchiveEntry entry = entries.nextElement();
-            entriesByName.put(entry.getName(), entry);
+            list.add(entries.nextElement());
         }
-        return entriesByName.values().iterator();
+        list.sort(Comparator.comparing(ZipArchiveEntry::getName));
+        return list.iterator();
     }
 
     @Override
