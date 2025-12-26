@@ -21,6 +21,7 @@ import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace
 
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
@@ -55,6 +56,43 @@ class PropertyTraceTest {
                     "`${beanType.name}` bean found in " +
                     "input property `i` of " +
                     "task `:t` of type `${taskType.name}`"
+            )
+        )
+    }
+
+    @Test
+    fun `toString representation takes the entire property trace chain account`() {
+        assertThat(PropertyTrace.Unknown.toString(), equalTo("unknown location"))
+        assertThat(PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).toString(),
+            equalTo("property usage `prop1` of unknown location"))
+        assertThat(PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Project(":proj1", PropertyTrace.Unknown)).toString(),
+            equalTo("property usage `prop1` of project `:proj1` in unknown location"))
+    }
+
+    @Test
+    fun `fullHash takes the entire property trace chain into account`() {
+        assertThat(PropertyTrace.Unknown.fullHash, equalTo(PropertyTrace.Unknown.fullHash))
+        assertThat(PropertyTrace.Unknown.fullHash, not(equalTo(PropertyTrace.Gradle.fullHash)))
+        assertThat(
+            PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).fullHash,
+            equalTo(
+                PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).fullHash
+            )
+        )
+        assertThat(
+            PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).fullHash,
+            not(
+                equalTo(
+                    PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Gradle).fullHash
+                )
+            )
+        )
+        assertThat(
+            PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).fullHash,
+            not(
+                equalTo(
+                    PropertyTrace.Property(PropertyKind.PropertyUsage, "prop2", PropertyTrace.Unknown)
+                )
             )
         )
     }
