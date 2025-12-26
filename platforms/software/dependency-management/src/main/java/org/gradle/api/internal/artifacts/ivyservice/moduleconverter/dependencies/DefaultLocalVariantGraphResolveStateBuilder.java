@@ -58,7 +58,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
@@ -123,7 +122,7 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
             idGenerator.nextVariantId(),
             metadata,
             dependencies,
-            Collections.emptySet()
+            ImmutableList.of()
         );
     }
 
@@ -144,7 +143,7 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
         ImmutableCapabilities capabilities = ImmutableCapabilities.of(Configurations.collectCapabilities(configuration, new HashSet<>(), new HashSet<>()));
 
         // Collect all artifact sets.
-        ImmutableSet.Builder<LocalVariantMetadata> artifactSets = ImmutableSet.builder();
+        ImmutableList.Builder<LocalVariantMetadata> artifactSets = ImmutableList.builder();
         configuration.collectVariants(new ConfigurationInternal.VariantVisitor() {
             @Override
             public void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {

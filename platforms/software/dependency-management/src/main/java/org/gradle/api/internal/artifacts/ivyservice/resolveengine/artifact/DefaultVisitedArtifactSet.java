@@ -88,7 +88,8 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
             new DefaultVariantArtifactResolver(artifactResolver, artifactTypeRegistry, resolvedVariantCache),
             graphVariantSelector,
             consumerSchema,
-            transformRegistry
+            transformRegistry,
+            resolutionFailureHandler
         );
     }
 

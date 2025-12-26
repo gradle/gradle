@@ -24,7 +24,6 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * <p>Note that this type is being replaced by several other interfaces that separate out the data and state required at various stages of dependency resolution.
@@ -67,7 +66,7 @@ public interface ConfigurationMetadata {
     /**
      * Returns the variants of this configuration. Should include at least one value. Exactly one variant must be selected and the artifacts of that variant used.
      */
-    Set<? extends VariantResolveMetadata> getArtifactVariants();
+    ImmutableList<? extends VariantResolveMetadata> getArtifactVariants();
 
     /**
      * Returns the exclusions to apply to this configuration:

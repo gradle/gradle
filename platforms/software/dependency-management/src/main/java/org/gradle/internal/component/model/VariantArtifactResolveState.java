@@ -19,7 +19,6 @@ package org.gradle.internal.component.model;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * State that is used for artifact resolution based on a variant that is selected during graph resolution.
@@ -42,6 +41,6 @@ public interface VariantArtifactResolveState {
      * artifact set should contain the same content, but may be transformed in some way.
      * For example, zipped and unzipped versions of the same content.
      */
-    Set<? extends VariantResolveMetadata> getArtifactVariants();
+    ImmutableList<? extends VariantResolveMetadata> getArtifactVariants();
 
 }

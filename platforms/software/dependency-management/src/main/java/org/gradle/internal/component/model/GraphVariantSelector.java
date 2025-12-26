@@ -241,7 +241,7 @@ public class GraphVariantSelector {
     }
 
     private static boolean variantProvidesClassifier(VariantGraphResolveState variant, String classifier) {
-        Set<? extends VariantResolveMetadata> artifactSets = variant.prepareForArtifactResolution().getArtifactVariants();
+        ImmutableList<? extends VariantResolveMetadata> artifactSets = variant.prepareForArtifactResolution().getArtifactVariants();
         for (VariantResolveMetadata artifactSet : artifactSets) {
             if (artifactSetStrictlyProvidesClassifier(artifactSet, classifier)) {
                 return true;

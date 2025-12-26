@@ -32,7 +32,6 @@ import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import java.util.List;
-import java.util.Set;
 
 public abstract class AbstractConfigurationMetadata implements ModuleConfigurationMetadata {
 
@@ -175,8 +174,8 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     }
 
     @Override
-    public Set<? extends VariantResolveMetadata> getArtifactVariants() {
-        return ImmutableSet.of(new DefaultVariantMetadata(name, getIdentifier(), asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
+    public ImmutableList<? extends VariantResolveMetadata> getArtifactVariants() {
+        return ImmutableList.of(new DefaultVariantMetadata(name, getIdentifier(), asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
     }
 
     @Override

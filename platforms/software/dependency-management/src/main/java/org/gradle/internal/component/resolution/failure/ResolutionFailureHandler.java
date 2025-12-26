@@ -19,6 +19,7 @@ package org.gradle.internal.component.resolution.failure;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState;
@@ -231,6 +232,14 @@ public class ResolutionFailureHandler {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariants(targetVariantSet.getCandidates());
         NoCompatibleArtifactFailure failure = new NoCompatibleArtifactFailure(targetVariantSet.getComponentIdentifier(), targetVariantSet.asDescribable().getDisplayName(), requestedAttributes, assessedCandidates);
+        return describeFailure(failure);
+    }
+
+    public AbstractResolutionFailureException noAvailableArtifactFailure(
+        ComponentIdentifier componentIdentifier,
+        ImmutableAttributes requestedAttributes
+    ) {
+        NoCompatibleArtifactFailure failure = new NoCompatibleArtifactFailure(componentIdentifier, componentIdentifier.getDisplayName(), requestedAttributes, ImmutableList.of());
         return describeFailure(failure);
     }
 

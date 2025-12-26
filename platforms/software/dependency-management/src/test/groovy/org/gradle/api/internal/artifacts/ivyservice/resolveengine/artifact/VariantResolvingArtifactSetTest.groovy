@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
@@ -72,7 +73,7 @@ class VariantResolvingArtifactSetTest extends Specification {
         def subvariant2 = Mock(VariantResolveMetadata)
 
         variant.prepareForArtifactResolution() >> Mock(VariantArtifactResolveState) {
-            getArtifactVariants() >> ([subvariant1, subvariant2] as Set)
+            getArtifactVariants() >> ImmutableList.of(subvariant1, subvariant2)
         }
 
         when:
@@ -100,7 +101,7 @@ class VariantResolvingArtifactSetTest extends Specification {
         def subvariant2 = Mock(VariantResolveMetadata)
 
         variant.prepareForArtifactResolution() >> Mock(VariantArtifactResolveState) {
-            getArtifactVariants() >> ([subvariant1, subvariant2] as Set)
+            getArtifactVariants() >> ImmutableList.of(subvariant1, subvariant2)
         }
 
         def artifacts = Stub(ResolvedArtifactSet)

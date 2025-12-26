@@ -132,7 +132,7 @@ class ProjectMetadataController(
     }
 
     private
-    suspend fun WriteContext.writeVariantArtifactSets(variants: Set<VariantResolveMetadata>) {
+    suspend fun WriteContext.writeVariantArtifactSets(variants: Collection<VariantResolveMetadata>) {
         writeCollection(variants) {
             writeVariantArtifactSet(it)
         }
@@ -190,7 +190,7 @@ class ProjectMetadataController(
         val dependencies = readNonNullList<LocalOriginDependencyMetadata>()
         val files = readFileDependencies().toSet()
         val excludes = readNonNullList<ExcludeMetadata>()
-        val variants = readVariantArtifactSets(factory).toSet()
+        val variants = readVariantArtifactSets(factory)
 
         val dependencyMetadata = DefaultLocalVariantGraphResolveState.VariantDependencyMetadata(
             dependencies, files, excludes,
@@ -242,10 +242,11 @@ class ProjectMetadataController(
     }
 
     private
-    suspend fun ReadContext.readVariantArtifactSets(factory: CalculatedValueContainerFactory): List<LocalVariantMetadata> {
-        return readList {
+    suspend fun ReadContext.readVariantArtifactSets(factory: CalculatedValueContainerFactory): ImmutableList<LocalVariantMetadata> {
+        val read = readList {
             readVariantArtifactSet(factory)
         }
+        return ImmutableList.copyOf(read)
     }
 
     private
