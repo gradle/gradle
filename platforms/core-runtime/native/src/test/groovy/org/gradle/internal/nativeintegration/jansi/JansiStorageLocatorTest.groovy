@@ -34,7 +34,7 @@ class JansiStorageLocatorTest extends Specification {
 
     def "provides storage information if jansi library can be resolved"() {
         given:
-        def platform = 'linux32'
+        def platform = 'Linux/x86_46'
         def nativeLibraryName = 'nativelib.so'
         def jansiLibrary = new JansiLibrary(platform, nativeLibraryName)
 

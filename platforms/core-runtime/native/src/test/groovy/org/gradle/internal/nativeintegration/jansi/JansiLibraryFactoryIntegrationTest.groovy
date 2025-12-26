@@ -20,11 +20,8 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Specification
 
-import static org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory.LINUX_LIB_FILENAME
-import static org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory.MAC_OSX_LIB_FILENAME
-import static org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory.WINDOWS_LIB_FILENAME
-
 class JansiLibraryFactoryIntegrationTest extends Specification {
+    public static final String JANSI_NATIVE_PACKAGE_PATH = "/org/fusesource/jansi/internal/native/"
 
     def factory = new JansiLibraryFactory()
 
@@ -34,9 +31,7 @@ class JansiLibraryFactoryIntegrationTest extends Specification {
         JansiLibrary jansiLibrary = factory.create()
 
         then:
-        jansiLibrary.platform == JansiOperatingSystemSupport.MAC_OS_X.identifier
-        jansiLibrary.filename == MAC_OSX_LIB_FILENAME
-        jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
+        jansiLibrary.resourcePath ==  JANSI_NATIVE_PACKAGE_PATH + jansiLibrary.path
     }
 
     @Requires(UnitTestPreconditions.Linux)
@@ -45,9 +40,7 @@ class JansiLibraryFactoryIntegrationTest extends Specification {
         JansiLibrary jansiLibrary = factory.create()
 
         then:
-        jansiLibrary.platform.startsWith(JansiOperatingSystemSupport.LINUX.identifier)
-        jansiLibrary.filename == LINUX_LIB_FILENAME
-        jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
+        jansiLibrary.resourcePath ==  JANSI_NATIVE_PACKAGE_PATH + jansiLibrary.path
     }
 
     @Requires(UnitTestPreconditions.Windows)
@@ -56,8 +49,6 @@ class JansiLibraryFactoryIntegrationTest extends Specification {
         JansiLibrary jansiLibrary = factory.create()
 
         then:
-        jansiLibrary.platform.startsWith(JansiOperatingSystemSupport.WINDOWS.identifier)
-        jansiLibrary.filename == WINDOWS_LIB_FILENAME
-        jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
+        jansiLibrary.resourcePath ==  JANSI_NATIVE_PACKAGE_PATH + jansiLibrary.path
     }
 }

@@ -25,19 +25,11 @@ public class JansiLibrary {
         this.filename = filename;
     }
 
-    public String getPlatform() {
-        return platform;
-    }
-
-    public String getFilename() {
-        return filename;
-    }
-
     public String getPath() {
         return platform + "/" + filename;
     }
 
     public String getResourcePath() {
-        return "/META-INF/native/" + getPath();
+        return "/org/fusesource/jansi/internal/native/" + getPath();
     }
 }
