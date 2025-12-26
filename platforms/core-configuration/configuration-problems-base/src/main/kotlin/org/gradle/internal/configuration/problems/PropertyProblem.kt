@@ -349,6 +349,13 @@ sealed class PropertyTrace {
             }
         }
 
+    /**
+     * A hash that includes the entire property trace chain into account.
+     *
+     * This is a best effort to achieve deep/full property trace uniqueness.
+     */
+    val fullHash: Int get() = sequence.fold(17) { acc, trace -> 31 * acc + trace.hashCode() }
+
     private
     val tail: PropertyTrace?
         get() = when (this) {

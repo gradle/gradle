@@ -261,7 +261,8 @@ class ProblemSpec {
     @PackageScope
     final Matcher<String> problemText
     @PackageScope
-    final List<TraceSpec> traceSpecs = []
+    @Nullable
+    TraceSpec traceSpec
 
     ProblemSpec(Matcher<String> problemText) {
         this.problemText = problemText
@@ -271,18 +272,14 @@ class ProblemSpec {
      * Defines a specification for the one location of the problem.
      * You can use the returned object to add more elements to the location trace.
      * <p>
-     * Calling this method multiple times adds other locations to the expected list.
-     * The location expectations are order-sensitive.
-     * <p>
      * This doesn't check the stacktrace, but the property trace instead, so it is better suited for serialization failures.
      *
      * @param location the initial location (e.g. task name)
      * @return the spec to further refine the expected location.
      */
     TraceSpec at(String location) {
-        return new TraceSpec().at(location).tap {
-            traceSpecs.add(it)
-        }
+        assert traceSpec == null : "Only one trace spec per problem spec"
+        return traceSpec = new TraceSpec().at(location)
     }
 }
 

@@ -232,20 +232,18 @@ abstract class ConfigurationCacheReportFixture {
             )
 
             if (spec.checkReportProblems) {
-                def problems = problemByMessages()
-                def problemMessages = problems.keySet().toList()
-
+                def problems = problemsFromModel()
                 for (int i in spec.uniqueProblems.indices) {
                     // note that matchers for problem messages in report don't contain location prefixes
-                    def problemMessage = problemMessages[i]
+                    def actualProblem = problems[i]
+                    def actualMessage = formatStructuredMessage(actualProblem["problem"])
                     def expectedProblem = spec.uniqueProblems[i]
 
-                    assert expectedProblem.problemText.matches(problemMessage): "Expected problem at #$i to be ${expectedProblem.problemText}, but was: ${problemMessage}"
+                    assert expectedProblem.problemText.matches(actualMessage): "Expected problem message at #$i to be ${expectedProblem.problemText}, but was: ${actualMessage}"
 
-                    for (int j in expectedProblem.traceSpecs.indices) {
-                        def locationSpec = expectedProblem.traceSpecs[j]
-                        def trace = problems[problemMessage][j]['trace'] as List
-                        assertLocationMatches(i, trace, locationSpec)
+                    if (expectedProblem.traceSpec) {
+                        def trace = actualProblem['trace'] as List
+                        assertLocationMatches(i, trace, expectedProblem.traceSpec)
                     }
                 }
             }
@@ -264,14 +262,11 @@ abstract class ConfigurationCacheReportFixture {
         }
 
         /**
-         * Makes a best effort to collect problem messages from the JS model.
+         * Collects all "diagnostics" that are actual problems.
          */
-        private Map<String, List<Object>> problemByMessages() {
+        private List<Object> problemsFromModel() {
             return (jsModel.diagnostics as List<Object>)
                 .findAll { it['problem'] != null }
-                .groupBy {
-                    formatStructuredMessage(it['problem'])
-                }
         }
 
         private int numberOfProblemsWithStacktrace() {

@@ -470,9 +470,17 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
 
             withProblem("cannot serialize Gradle script object references as these are not supported with the configuration cache.") {
                 at(":myTask").at("upToDate specs")
+            }
+            withProblem("cannot serialize Gradle script object references as these are not supported with the configuration cache.") {
                 at(":myTask").at("cacheIf specs")
+            }
+            withProblem("cannot serialize Gradle script object references as these are not supported with the configuration cache.") {
                 at(":myTask").at("doNotCacheIf specs")
+            }
+            withProblem("cannot serialize Gradle script object references as these are not supported with the configuration cache.") {
                 at(":myTask").at("onlyIf specs")
+            }
+            withProblem("cannot serialize Gradle script object references as these are not supported with the configuration cache.") {
                 at(":myTask").at("actions")
             }
         }
