@@ -29,7 +29,6 @@ import org.gradle.cache.CacheOpenException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeOrigin
-import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
@@ -40,9 +39,6 @@ import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.InputVisitor
-import org.gradle.internal.execution.caching.CachingDisabledReason
-import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
-import org.gradle.internal.execution.history.OverlappingOutputs
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -74,7 +70,6 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import java.io.File
-import java.util.Optional
 
 
 @ServiceScope(Scope.Build::class)
@@ -395,7 +390,6 @@ class StandardKotlinScriptEvaluator(
         transformFactory: ClasspathElementTransformFactoryForLegacy,
         gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
         propertyUpgradeReportConfig: PropertyUpgradeReportConfig,
-        private val cachingDisabledByProperty: Boolean = internalOptions.getOption(CACHING_DISABLED_PROPERTY).get()
 
     ) : BuildScriptCompilationAndInstrumentation(source, workspaceProvider.scripts, fileCollectionFactory, inputFingerprinter, transformFactory, gradleCoreTypeRegistry, propertyUpgradeReportConfig) {
 
@@ -409,21 +403,10 @@ class StandardKotlinScriptEvaluator(
             const val SOURCE_HASH = "sourceHash"
             const val COMPILATION_CLASS_PATH = "compilationClassPath"
             const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
-            val CACHING_DISABLED_PROPERTY: InternalFlag = InternalFlag("org.gradle.internal.kotlin-script-caching-disabled")
-            val CACHING_DISABLED_REASON: CachingDisabledReason = CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching of Kotlin script compilation disabled by property")
         }
 
         override fun getDisplayName(): String =
             "Kotlin DSL script compilation (${programId.templateId})"
-
-
-        override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> {
-            if (cachingDisabledByProperty) {
-                return Optional.of(CACHING_DISABLED_REASON)
-            }
-
-            return super.shouldDisableCaching(detectedOverlappingOutputs)
-        }
 
         override fun visitImmutableInputs(visitor: InputVisitor) {
             super.visitImmutableInputs(visitor)
