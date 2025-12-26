@@ -45,6 +45,8 @@ import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.util.IdentityHashMap
@@ -72,6 +74,7 @@ class SerializedIsolatedActionGraph<G>(
 )
 
 
+@ServiceScope(Scope.BuildTree::class)
 interface IsolationCodecsProvider {
     fun isolationCodecs(): Codec<Any?>
 }

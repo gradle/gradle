@@ -36,6 +36,7 @@ import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.MutableStateAccessAwareProject
 import org.gradle.api.internal.project.ProjectIdentifier
@@ -54,6 +55,7 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.ALLPROJECTS
 import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.CHILD
 import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.DIRECT
@@ -61,7 +63,10 @@ import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.SUBPROJECT
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.isolate.graph.IsolatedActionDeserializer
+import org.gradle.internal.isolate.graph.IsolatedActionSerializer
 import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.DynamicObject
@@ -163,6 +168,31 @@ class ProblemReportingCrossProjectModelAccess(
         private val buildModelParameters: BuildModelParameters,
         private val dynamicCallProblemReporting: DynamicCallProblemReporting,
     ) : MutableStateAccessAwareProject(delegate, referrer) {
+
+        override fun getExtensions(): ExtensionContainerInternal {
+            if (delegate.projectIdentity.isParentOf(referrer.projectIdentity)) {
+                onProjectsCoupled()
+                return delegate.owner.fromMutableState {
+                    IsolatedExtensionsContainer(
+                        it.serviceOf(),
+                        it.extensions,
+                    ) { extensionDetails, isolationException ->
+                        val problem = problemFactory.problem(
+                            message = StructuredMessage.build {
+                                text("Extension $extensionDetails of project ")
+                                reference(delegate)
+                                text(" cannot be serialized")
+                            },
+                            exception = isolationException
+                        )
+                        problems.onProblem(problem)
+                    }
+                }
+            } else {
+                onIsolationViolation("extensions") // TODO: Lets print a more descriptive error here
+                return delegate.extensions
+            }
+        }
 
         override fun onMutableStateAccess(what: String) {
             onIsolationViolation(what)

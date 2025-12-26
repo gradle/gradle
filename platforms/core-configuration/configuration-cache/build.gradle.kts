@@ -28,7 +28,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.dependencyManagement)
     api(projects.fileTemp)
-    api(projects.graphSerialization)
+    api(projects.graphIsolation)
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.native)
