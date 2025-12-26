@@ -58,7 +58,6 @@ import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailu
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.component.resolution.failure.type.NoVariantsWithMatchingCapabilitiesFailure;
-import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -244,15 +243,6 @@ public class ResolutionFailureHandler {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariants(matchingVariants);
         AmbiguousArtifactsFailure failure = new AmbiguousArtifactsFailure(targetVariantSet.getComponentIdentifier(), targetVariantSet.asDescribable().getDisplayName(), requestedAttributes, assessedCandidates);
-        return describeFailure(failure);
-    }
-
-    public AbstractResolutionFailureException unknownArtifactVariantSelectionFailure(
-        ResolvedVariantSet targetVariantSet,
-        ImmutableAttributes requestAttributes,
-        Exception cause
-    ) {
-        UnknownArtifactSelectionFailure failure = new UnknownArtifactSelectionFailure(targetVariantSet.getComponentIdentifier(), targetVariantSet.asDescribable().getDisplayName(), requestAttributes, cause);
         return describeFailure(failure);
     }
 
