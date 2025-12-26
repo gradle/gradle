@@ -49,6 +49,7 @@ import org.gradle.workers.WorkQueue;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -97,11 +98,18 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
         parameters.getAntLibraryClasspath().setFrom(getPmdClasspath());
         parameters.getPmdClasspath().setFrom(getPmdClasspath());
         parameters.getTargetJdk().set(getTargetJdk());
-        parameters.getRuleSets().set(getRuleSets());
+
         parameters.getRuleSetConfigFiles().from(getRuleSetFiles());
         if (getRuleSetConfig() != null) {
             parameters.getRuleSetConfigFiles().from(getRuleSetConfig().asFile());
         }
+        if (getRuleSets().size() == 1 && getRuleSets().get(0).equals("category/java/errorprone.xml")
+                && !parameters.getRuleSetConfigFiles().isEmpty()) {
+            parameters.getRuleSets().set(Collections.emptyList());
+        } else {
+            parameters.getRuleSets().set(getRuleSets());
+        }
+
         parameters.getIgnoreFailures().set(getIgnoreFailures());
         parameters.getConsoleOutput().set(isConsoleOutput());
         parameters.getStdOutIsAttachedToTerminal().set(stdOutIsAttachedToTerminal());
