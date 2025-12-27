@@ -88,6 +88,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
     }
 
     public static final class ForSummary extends PerRootTabRenderer {
+
         public ForSummary(int rootIndex, int perRootInfoIndex) {
             super(rootIndex, perRootInfoIndex);
         }
@@ -96,7 +97,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             htmlWriter.startElement("div");
             renderSummary(info, htmlWriter);
-            if (info.getChildren().isEmpty()) {
+            if (info.isLeaf()) {
                 renderLeafDetails(info, htmlWriter);
             } else {
                 renderContainerDetails(htmlWriter);
@@ -134,7 +135,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
             return childTableRenderers.build();
         }
 
-        private static void addResultTabIfNeeded(
+        private void addResultTabIfNeeded(
             String name,
             TestResult.ResultType resultType,
             List<ChildEntry> children,
@@ -307,9 +308,12 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 );
 
                 htmlWriter.startElement("th").characters("Child").endElement();
-                if (anyNameAndDisplayNameDiffer) {
-                    htmlWriter.startElement("th").characters("Name").endElement();
+                htmlWriter.startElement("th");
+                if (!anyNameAndDisplayNameDiffer) {
+                    htmlWriter.attribute("hidden", "");
                 }
+                htmlWriter.characters("Name").endElement();
+
                 htmlWriter.startElement("th").characters("Tests").endElement();
                 htmlWriter.startElement("th").characters("Failures").endElement();
                 htmlWriter.startElement("th").characters("Skipped").endElement();
@@ -330,17 +334,24 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                     htmlWriter.startElement("td").attribute("class", statusClass);
 
                     String displayName = SerializableTestResult.getCombinedDisplayName(perRootInfo.getResults());
-                    htmlWriter.startElement("a")
-                        .attribute("href", GenericPageRenderer.getUrlTo(
-                            model.getPath(), false,
-                            pair.model.getPath(), pair.model.getChildren().isEmpty()
-                        ))
-                        .characters(displayName).endElement();
+                    // Don't link to leaf tests that don't have their own HTML file
+                    if (pair.model.hasUsefulDetails()) {
+                        htmlWriter.startElement("a")
+                            .attribute("href", GenericPageRenderer.getUrlTo(
+                                model.getPath(), false,
+                                pair.model.getPath(), pair.model.getChildren().isEmpty()
+                            ))
+                            .characters(displayName).endElement();
+                    } else {
+                        htmlWriter.characters(displayName);
+                    }
                     htmlWriter.endElement();
 
-                    if (anyNameAndDisplayNameDiffer) {
-                        htmlWriter.startElement("td").characters(perRootInfo.getResults().get(0).getName()).endElement();
+                    htmlWriter.startElement("td").attribute("class", "path");
+                    if (!anyNameAndDisplayNameDiffer) {
+                        htmlWriter.attribute("hidden", "");
                     }
+                    htmlWriter.characters(perRootInfo.getResults().get(0).getName()).endElement();
 
                     htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getTotalLeafCount())).endElement();
                     htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getFailedLeafCount())).endElement();
@@ -355,30 +366,23 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         }
 
         private static TestResult.ResultType getResultType(PerRootInfo info) {
-            if (info.getChildren().isEmpty()) {
-                // There should only be one result for leaf nodes
+            if (info.isLeaf()) {
+                // For leaf nodes, we use the result type of the single result
                 if (info.getResults().size() > 1) {
                     throw new IllegalStateException("Leaf nodes should only have one result");
                 }
                 return info.getResults().get(0).getResultType();
             }
-            // For container nodes, merge result types, with FAILURE > SUCCESS > SKIPPED.
-            // Skipped is less than success because if there is any non-skipped child, the container is not skipped.
-            TestResult.ResultType bestType = TestResult.ResultType.SKIPPED;
-            for (SerializableTestResult result : info.getResults()) {
-                if (result.getResultType() == TestResult.ResultType.FAILURE) {
-                    // Promote to failure and stop checking, as we can't change any further
-                    bestType = TestResult.ResultType.FAILURE;
-                    break;
-                } else if (result.getResultType() == TestResult.ResultType.SUCCESS) {
-                    // Promote to success, keep checking in case there is a failure
-                    bestType = TestResult.ResultType.SUCCESS;
-                } else if (result.getResultType() != TestResult.ResultType.SKIPPED) {
-                    throw new IllegalStateException("Unknown result type: " + result.getResultType());
-                }
-                // If it's skipped, do nothing, as we either leave as skipped, or would not change from success to skipped
+            // For container nodes, we use the worst result type of its children
+            // This ignores the container's result because containers made out of all skipped tests
+            // may be marked as successful in the result, but we want to show them as skipped if all their children are skipped.
+            if (info.getFailedLeafCount() > 0) {
+                return TestResult.ResultType.FAILURE;
             }
-            return bestType;
+            if (info.getSkippedLeafCount() > 0) {
+                return TestResult.ResultType.SKIPPED;
+            }
+            return TestResult.ResultType.SUCCESS;
         }
 
         private static String getStatusClass(TestResult.ResultType resultType) {

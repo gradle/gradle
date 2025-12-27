@@ -68,6 +68,7 @@ abstract public class AbstractIsolatedCompilerWorkerExecutor implements Compiler
         }
 
         @Override
+        @SuppressWarnings("OverridesJavaxInjectableMethod") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
         public CompilerParameters getParameters() {
             return parameters;
         }

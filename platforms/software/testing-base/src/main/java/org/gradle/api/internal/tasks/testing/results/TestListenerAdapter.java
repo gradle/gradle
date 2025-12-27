@@ -18,9 +18,10 @@ package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.tasks.testing.TestMetadataListener;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestOutputListener;
 import org.gradle.api.tasks.testing.TestResult;
@@ -28,10 +29,12 @@ import org.gradle.api.tasks.testing.TestResult;
 public class TestListenerAdapter implements TestListenerInternal {
     private final TestListener testListener;
     private final TestOutputListener testOutputListener;
+    private final TestMetadataListener testMetadataListener;
 
-    public TestListenerAdapter(TestListener testListener, TestOutputListener testOutputListener) {
+    public TestListenerAdapter(TestListener testListener, TestOutputListener testOutputListener, TestMetadataListener testMetadataListener) {
         this.testListener = testListener;
         this.testOutputListener = testOutputListener;
+        this.testMetadataListener = testMetadataListener;
     }
 
     @Override
@@ -59,6 +62,6 @@ public class TestListenerAdapter implements TestListenerInternal {
 
     @Override
     public void metadata(TestDescriptorInternal testDescriptor, TestMetadataEvent event) {
-        // Ignore
+        testMetadataListener.onMetadata(testDescriptor, event);
     }
 }

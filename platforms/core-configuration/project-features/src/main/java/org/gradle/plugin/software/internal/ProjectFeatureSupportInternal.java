@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.software.internal;
 
-import org.gradle.api.Named;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.Definition;
@@ -33,7 +32,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 public class ProjectFeatureSupportInternal {
+    private static final BuildModel.None NONE = new BuildModel.None();
 
     public interface ProjectFeatureDefinitionContext {
         Object getBuildModel();
@@ -178,21 +180,16 @@ public class ProjectFeatureSupportInternal {
         addProjectFeatureDynamicObjectToDefinition(objectFactory, (DynamicObjectAware) target, context);
     }
 
-
-    public static <T extends Definition<V>, V extends BuildModel> V createBuildModelInstance(ObjectFactory objectFactory, T definition, ProjectFeatureImplementation<T, V> projectFeature) {
-        return createBuildModelInstance(objectFactory, definition, projectFeature.getBuildModelImplementationType());
+    public static <T extends Definition<V>, V extends BuildModel> V createBuildModelInstance(ObjectFactory objectFactory, ProjectFeatureImplementation<T, V> projectFeature) {
+        return createBuildModelInstance(objectFactory, projectFeature.getBuildModelImplementationType());
     }
 
-    public static <V> V createBuildModelInstance(ObjectFactory factory, Object definition, Class<? extends V> buildModelType) {
-        if (Named.class.isAssignableFrom(buildModelType)) {
-            if (Named.class.isAssignableFrom(definition.getClass())) {
-                return factory.newInstance(buildModelType, ((Named) definition).getName());
-            } else {
-                throw new IllegalArgumentException("Cannot infer a name for " + buildModelType.getSimpleName() + " because the parent object of type " + definition.getClass().getSimpleName() + " does not implement Named.");
-            }
-        } else {
-            return factory.newInstance(buildModelType);
+    public static <V> V createBuildModelInstance(ObjectFactory factory, Class<? extends V> buildModelType) {
+        if (buildModelType == BuildModel.None.class) {
+            return uncheckedCast(NONE);
         }
+
+        return factory.newInstance(buildModelType);
     }
 
     private static void addProjectFeatureDynamicObjectToDefinition(

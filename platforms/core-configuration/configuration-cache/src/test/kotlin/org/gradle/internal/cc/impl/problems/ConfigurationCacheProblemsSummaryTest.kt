@@ -21,50 +21,85 @@ import org.gradle.internal.code.DefaultUserCodeSource
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.problems.Location
+import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.io.File
 
+
+const val REPORT_URL: String = "<<REPORT_URL_PLACEHOLDER>>"
+
+const val ACTION: String = "<<ACTION_PLACEHOLDER>>"
 
 class ConfigurationCacheProblemsSummaryTest {
 
     @Test
     fun `keeps track of unique problems upto maxCollectedProblems`() {
-        val subject = ConfigurationCacheProblemsSummary(maxCollectedProblems = 2)
+        val subject = ConfigurationCacheProblemsSummary(maxCollectedProblems = 3)
+
+        // causes for unique problems are collected
         assertTrue(
             "1st problem",
             subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Deferred)
         )
+
+        // non-unique problems are not collected and don't count towards the limit
+        assertFalse(
+            "1st problem (duplicate)",
+            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Deferred)
+        )
+        assertThat(
+            subject.get().uniqueProblemCount,
+            equalTo(1)
+        )
+
+        // hit limit but did not overflow yet
         assertTrue(
             "2nd problem (same message as 1st but different location)",
             subject.onProblem(buildLogicProblem("build.gradle.kts", "failure"), ProblemSeverity.Deferred)
         )
+        assertTrue(
+            "3nd problem (different message from 1st but same location)",
+            subject.onProblem(buildLogicProblem("build.gradle.kts", "failure 2"), ProblemSeverity.Deferred)
+        )
+        assertThat(
+            subject.get().uniqueProblemCount,
+            equalTo(3)
+        )
+        assertFalse(subject.get().overflowed)
+
+        // now we do overflow
         assertFalse(
             "overflow",
             subject.onProblem(buildLogicProblem("build.gradle", "another failure"), ProblemSeverity.Deferred)
         )
         assertThat(
-            subject.get().reportableProblemCauseCount,
-            equalTo(2)
+            subject.get().uniqueProblemCount,
+            equalTo(3)
         )
+        assertTrue(subject.get().overflowed)
     }
 
     @Test
-    fun `keeps track of total problem count`() {
+    fun `keeps track of total problem count regardless of uniqueness`() {
         val subject = ConfigurationCacheProblemsSummary(maxCollectedProblems = 2)
         assertTrue(
             "1st problem",
-            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Deferred)
+            subject.onProblem(buildLogicProblem("build.gradle", "failure 1"), ProblemSeverity.Deferred)
         )
         assertTrue(
             "2nd problem",
-            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Deferred)
+            subject.onProblem(buildLogicProblem("build.gradle", "failure 2"), ProblemSeverity.Deferred)
         )
         assertFalse(
             "overflow",
-            subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Deferred)
+            subject.onProblem(buildLogicProblem("build.gradle", "failure 3"), ProblemSeverity.Deferred)
         )
 
         val summary = subject.get()
@@ -75,9 +110,283 @@ class ConfigurationCacheProblemsSummaryTest {
         )
     }
 
+    @Test
+    fun `problems are deduplicated regardless of severity`() {
+        val subject = ConfigurationCacheProblemsSummary()
+        val trace = buildLogicLocationTrace("build.gradle.kts", 1)
+        val severities = listOf(ProblemSeverity.Deferred, ProblemSeverity.Suppressed, ProblemSeverity.SuppressedSilently)
+        var count = 0
+        val copies = 4
+        val uniqueProblems = severities.size
+        severities.forEachIndexed { index, severity ->
+            (1..copies).forEach { copyIndex ->
+                val unique = copyIndex == 1
+                val accepted = subject.onProblem(buildLogicProblem(trace, severity.name), severity)
+                assertThat(accepted, equalTo(unique))
+                val summary = subject.get()
+                assertThat(summary.totalProblemCount, equalTo(++count))
+                assertThat("$severity $index $copyIndex", summary.uniqueProblemCount, equalTo(index + 1))
+            }
+        }
+
+        // unique problems * copies
+        val expectedTotalProblemCount = uniqueProblems * copies
+        assertThat(subject.get().totalProblemCount, equalTo(expectedTotalProblemCount))
+        // one unique problem per severity
+        assertThat(subject.get().uniqueProblemCount, equalTo(uniqueProblems))
+        // console problems exclude SuppressedSilently
+        assertThat(subject.get().consoleProblemCount, equalTo((uniqueProblems - 1) * copies))
+    }
+
+    @Test
+    fun `console output for only deferred problems`() {
+        val subject = ConfigurationCacheProblemsSummary()
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 1), "failure"), ProblemSeverity.Deferred)
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 2), "failure"), ProblemSeverity.Deferred)
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 2), "failure"), ProblemSeverity.Deferred)
+        checkConsoleText(subject.get(),
+            """
+            3 problems were found $ACTION the configuration cache, 2 of which seem unique.
+            - Build.gradle.kts: line 1: failure
+            - Build.gradle.kts: line 2: failure
+
+            See the complete report at $REPORT_URL
+            """
+        )
+    }
+
+    @Test
+    fun `console output for only suppressed problems`() {
+        val subject = ConfigurationCacheProblemsSummary()
+        val problem1 = buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 1), "failure")
+        val problem2 = buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 2), "failure")
+        subject.onProblem(problem1, ProblemSeverity.Suppressed)
+        subject.onProblem(problem2, ProblemSeverity.Suppressed)
+        subject.onProblem(problem2, ProblemSeverity.Suppressed)
+        checkConsoleText(subject.get(),
+            """
+            3 problems were found $ACTION the configuration cache, 2 of which seem unique.
+            - Build.gradle.kts: line 1: failure
+            - Build.gradle.kts: line 2: failure
+
+            See the complete report at $REPORT_URL
+            """
+        )
+    }
+
+    @Test
+    fun `console output for only silently suppressed problems`() {
+        val subject = ConfigurationCacheProblemsSummary()
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 1), "failure"), ProblemSeverity.SuppressedSilently)
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 2), "failure"), ProblemSeverity.SuppressedSilently)
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 2), "failure"), ProblemSeverity.SuppressedSilently)
+        checkConsoleText(subject.get(),
+            """
+            See the complete report at $REPORT_URL
+            """
+        )
+    }
+
+    @Test
+    fun `console output for deferred and silently suppressed problems`() {
+        val subject = ConfigurationCacheProblemsSummary()
+        val problem0 = buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 1), "failure")
+        val problem1 = buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 2), "failure")
+        val problem2 = buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 3), "failure")
+        subject.onProblem(problem0, ProblemSeverity.Deferred)
+        subject.onProblem(problem1, ProblemSeverity.SuppressedSilently)
+        subject.onProblem(problem2, ProblemSeverity.SuppressedSilently)
+        subject.onProblem(problem2, ProblemSeverity.SuppressedSilently)
+        checkConsoleText(subject.get(),
+            """
+            1 problem was found $ACTION the configuration cache.
+            - Build.gradle.kts: line 1: failure
+
+            See the complete report at $REPORT_URL
+            """
+        )
+    }
+
+    @Test
+    fun `console output includes up to MAX_CONSOLE_PROBLEMS non-suppressed problems`() {
+        val subject = ConfigurationCacheProblemsSummary()
+
+        // start with MAX_CONSOLE_PROBLEMS (deferred)
+        (1..MAX_CONSOLE_PROBLEMS).forEach { index ->
+            subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", index), "a deferred problem"), ProblemSeverity.Deferred)
+        }
+
+        // add a bunch of silently suppressed problems (should be ignored)
+        (100..200).forEach { index ->
+            subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", index), "a silently suppressed problem"), ProblemSeverity.SuppressedSilently)
+        }
+
+        // expect only MAX_CONSOLE_PROBLEMS (deferred)
+        val consoleReportableProblems = (1..MAX_CONSOLE_PROBLEMS)
+            .sortedBy {
+                // line numbers are sorted as strings, as the base implementation currently does
+                it.toString()
+            }.joinToString("\n") { index ->
+                "- Build.gradle.kts: line $index: a deferred problem"
+            }
+        checkConsoleText(subject.get(),
+            """
+$MAX_CONSOLE_PROBLEMS problems were found $ACTION the configuration cache.
+$consoleReportableProblems
+
+See the complete report at $REPORT_URL
+            """
+        )
+
+        // adding one should result in a "plus 1 more problem" message
+        subject.onProblem(buildLogicProblem(buildLogicUserCodeSourceTrace("somefile.gradle.kts"), "another deferred problem"), ProblemSeverity.Deferred)
+        checkConsoleText(subject.get(),
+            """
+${MAX_CONSOLE_PROBLEMS + 1} problems were found $ACTION the configuration cache.
+$consoleReportableProblems
+plus 1 more problem. Please see the report for details.
+
+See the complete report at $REPORT_URL
+            """
+        )
+
+        // adding another should result in a "plus 2 more problems" message
+        subject.onProblem(buildLogicProblem(buildLogicUserCodeSourceTrace("somefile.gradle.kts"), "yet another deferred problem"), ProblemSeverity.Deferred)
+        checkConsoleText(subject.get(),
+            """
+${MAX_CONSOLE_PROBLEMS + 2} problems were found $ACTION the configuration cache.
+$consoleReportableProblems
+plus 2 more problems. Please see the report for details.
+
+See the complete report at $REPORT_URL
+            """
+        )
+    }
+
+    @Test
+    fun `line numbers are taken into account for uniqueness`() {
+        val subject = ConfigurationCacheProblemsSummary()
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 1), "failure"), ProblemSeverity.Deferred)
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 1), "failure"), ProblemSeverity.Deferred)
+        assertThat(subject.get().uniqueProblemCount, equalTo(1))
+
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 2), "failure"), ProblemSeverity.Deferred)
+        assertThat(subject.get().uniqueProblemCount, equalTo(2))
+    }
+
+    @Test
+    fun `location files are taken into account for uniqueness`() {
+        val subject = ConfigurationCacheProblemsSummary()
+        subject.onProblem(buildLogicProblem("build.gradle.kts", "failure"), ProblemSeverity.Deferred)
+        subject.onProblem(buildLogicProblem("build.gradle.kts", "failure"), ProblemSeverity.Deferred)
+        assertThat(subject.get().uniqueProblemCount, equalTo(1))
+
+        subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Deferred)
+        assertThat(subject.get().uniqueProblemCount, equalTo(2))
+    }
+
+    @Test
+    fun `messages are taken into account for uniqueness`() {
+        val subject = ConfigurationCacheProblemsSummary()
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 1), "failure 1"), ProblemSeverity.Deferred)
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 1), "failure 1"), ProblemSeverity.Deferred)
+        assertThat(subject.get().uniqueProblemCount, equalTo(1))
+
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 1), "failure 2"), ProblemSeverity.Deferred)
+        assertThat(subject.get().uniqueProblemCount, equalTo(2))
+    }
+
+    @Test
+    fun `exceptions are NOT taken into account for uniqueness`() {
+        val subject = ConfigurationCacheProblemsSummary()
+        val exception1 = Throwable()
+        val exception2 = Throwable()
+
+        subject.onProblem(buildLogicProblem("build.gradle.kts", "failure", exception1), ProblemSeverity.Deferred)
+        subject.onProblem(buildLogicProblem("build.gradle.kts", "failure", exception2), ProblemSeverity.Deferred)
+        assertThat(subject.get().uniqueProblemCount, equalTo(1))
+    }
+
+    @Test
+    fun `a problem with higher severity replaces a previous problem with the same cause`() {
+        val subject = ConfigurationCacheProblemsSummary()
+
+        val problem = buildLogicProblem("build.gradle", "failure")
+        subject.onProblem(problem, ProblemSeverity.Suppressed)
+        assertThat(subject.get().severityFor(ProblemCause.of(problem)), equalTo(ProblemSeverity.Suppressed))
+
+        subject.onProblem(problem, ProblemSeverity.Deferred)
+        assertThat(subject.get().severityFor(ProblemCause.of(problem)), equalTo(ProblemSeverity.Deferred))
+    }
+
+    @Test
+    @ToBeImplemented("Should sort locations numerically, not lexicographically")
+    fun `console problems are sorted by location and message`() {
+        val subject = ConfigurationCacheProblemsSummary()
+
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 15), "failure 0"), ProblemSeverity.Deferred)
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 10), "failure 3"), ProblemSeverity.Deferred)
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 10), "failure 1"), ProblemSeverity.Deferred)
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 10), "failure 2"), ProblemSeverity.Deferred)
+        subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 5), "failure 4"), ProblemSeverity.Deferred)
+
+        checkConsoleText(subject.get(),
+            """
+            5 problems were found $ACTION the configuration cache.
+            - Build.gradle.kts: line 10: failure 1
+            - Build.gradle.kts: line 10: failure 2
+            - Build.gradle.kts: line 10: failure 3
+            - Build.gradle.kts: line 15: failure 0
+            - Build.gradle.kts: line 5: failure 4
+
+            See the complete report at $REPORT_URL
+            """
+        )
+        // TODO-RC expected:
+//        checkConsoleText(subject.get(),
+//            """
+//            5 problems were found $ACTION the configuration cache.
+//            - Build.gradle.kts: line 5: failure 4
+//            - Build.gradle.kts: line 10: failure 1
+//            - Build.gradle.kts: line 10: failure 2
+//            - Build.gradle.kts: line 10: failure 3
+//            - Build.gradle.kts: line 15: failure 0
+//
+//            See the complete report at $REPORT_URL
+//            """
+//        )
+    }
+
     private
-    fun buildLogicProblem(location: String, message: String) = PropertyProblem(
-        PropertyTrace.BuildLogic(DefaultUserCodeSource(Describables.of(location), null)),
-        StructuredMessage.build { text(message) }
+    fun buildLogicProblem(location: String, message: String, exception: Throwable? = null) = buildLogicProblem(
+        buildLogicUserCodeSourceTrace(location),
+        message,
+        exception
     )
+
+    private
+    fun buildLogicProblem(propertyTrace: PropertyTrace, message: String, exception: Throwable? = null) = PropertyProblem(
+        propertyTrace,
+        StructuredMessage.build { text(message) },
+        exception
+    )
+
+    private
+    fun buildLogicUserCodeSourceTrace(displayName: String): PropertyTrace.BuildLogic =
+        PropertyTrace.BuildLogic(DefaultUserCodeSource(Describables.of(displayName), null))
+
+    private
+    fun buildLogicLocationTrace(displayName: String, lineNumber: Int): PropertyTrace.BuildLogic =
+        PropertyTrace.BuildLogic(Location(Describables.of(displayName), Describables.of(displayName), "/some/path/$displayName", lineNumber))
+
+    private
+    fun checkConsoleText(summary: Summary, expected: String) {
+        val reportFile = File("report.html")
+        val reportFileUrl = ConsoleRenderer().asClickableFileUrl(reportFile)
+        val consoleText = summary.textForConsole(ACTION, reportFile)
+        assertEquals(
+            expected.trimIndent().replace(REPORT_URL, reportFileUrl),
+            consoleText.trimIndent()
+        )
+    }
 }

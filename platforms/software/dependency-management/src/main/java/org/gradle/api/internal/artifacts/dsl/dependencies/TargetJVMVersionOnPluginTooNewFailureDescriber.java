@@ -40,6 +40,7 @@ import java.util.List;
  * attribute.
  */
 public abstract class TargetJVMVersionOnPluginTooNewFailureDescriber extends AbstractJVMVersionTooNewFailureDescriber {
+    @SuppressWarnings("InlineFormatString")
     private static final String JVM_VERSION_TOO_HIGH_TEMPLATE = "Dependency requires at least JVM runtime version %s. This build uses a Java %s JVM.";
 
     private final JavaVersion currentJVMVersion = JavaVersion.current();

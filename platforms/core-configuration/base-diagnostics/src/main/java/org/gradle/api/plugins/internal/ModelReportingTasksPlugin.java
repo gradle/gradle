@@ -38,7 +38,6 @@ abstract public class ModelReportingTasksPlugin implements Plugin<Project> {
     }
 
     @SuppressWarnings("deprecation")
-    @NullMarked
     private static class ModelReportAction implements Action<org.gradle.api.reporting.model.ModelReport> {
         private final String projectName;
 

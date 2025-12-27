@@ -32,6 +32,7 @@ import jetbrains.buildServer.configs.kotlin.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.Dependencies
 import jetbrains.buildServer.configs.kotlin.FailureAction
 import jetbrains.buildServer.configs.kotlin.Project
+import jetbrains.buildServer.configs.kotlin.PublishMode
 import jetbrains.buildServer.configs.kotlin.RelativeId
 import jetbrains.buildServer.configs.kotlin.Requirements
 import jetbrains.buildServer.configs.kotlin.buildSteps.GradleBuildStep
@@ -128,6 +129,11 @@ fun BuildType.addEc2PostBuild(os: Os = Os.LINUX) {
     }
 }
 
+fun BuildTypeSettings.setArtifactRules(rules: String) {
+    artifactRules = rules
+    publishArtifacts = PublishMode.ALWAYS
+}
+
 fun BuildType.applyDefaultSettings(
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
@@ -151,7 +157,7 @@ fun BuildType.applyDefaultSettings(
         build/reports/problems/problems-report.html
         """.trimIndent()
 
-    artifactRules = artifactRuleOverride ?: defaultArtifactRules
+    setArtifactRules(artifactRuleOverride ?: defaultArtifactRules)
     paramsForBuildToolBuild(buildJvm, os, arch)
     params {
         // The promotion job doesn't have a branch, so %teamcity.build.branch% doesn't work.

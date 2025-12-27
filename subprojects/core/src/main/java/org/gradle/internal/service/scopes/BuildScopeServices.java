@@ -192,7 +192,8 @@ import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildIncluder;
-import org.gradle.internal.build.BuildModelControllerServices;
+import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildOperationFiringBuildWorkPreparer;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -206,6 +207,7 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
@@ -236,6 +238,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.management.ToolchainManagementInternal;
 import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
@@ -254,6 +257,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.invocation.DefaultGradle;
 import org.gradle.plugin.management.internal.PluginHandler;
 import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
@@ -263,7 +267,11 @@ import org.gradle.process.internal.DefaultExecSpecFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
+import org.gradle.tooling.provider.model.internal.DefaultIntermediateToolingModelProvider;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
+import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
+import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
+import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyListener;
 
 import java.util.List;
 
@@ -272,14 +280,19 @@ import java.util.List;
  */
 public class BuildScopeServices implements ServiceRegistrationProvider {
 
-    private final BuildModelControllerServices.Supplier supplier;
+    private final BuildDefinition buildDefinition;
+    private final BuildState buildState;
 
-    public BuildScopeServices(BuildModelControllerServices.Supplier supplier) {
-        this.supplier = supplier;
+    public BuildScopeServices(BuildDefinition buildDefinition, BuildState buildState) {
+        this.buildDefinition = buildDefinition;
+        this.buildState = buildState;
     }
 
-    @SuppressWarnings("unused")
+    @Provides
     void configure(ServiceRegistration registration, ServiceRegistry buildScopeServices, List<GradleModuleServices> serviceProviders) {
+        registration.add(BuildDefinition.class, buildDefinition);
+        registration.add(BuildState.class, buildState);
+
         registration.addProvider(new BuildCacheServices());
 
         registration.add(ExecOperations.class, DefaultExecOperations.class);
@@ -300,11 +313,19 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(ScriptHandlerFactory.class, DefaultScriptHandlerFactory.class);
         registration.add(BuildOutputCleanupRegistry.class, HoldsProjectState.class, DefaultBuildOutputCleanupRegistry.class);
 
-        supplier.applyServicesTo(registration, buildScopeServices);
-
         for (GradleModuleServices services : serviceProviders) {
             services.registerBuildServices(registration);
         }
+    }
+
+    @Provides
+    GradleInternal createGradle(Instantiator instantiator, BuildState buildState, BuildDefinition buildDefinition, ServiceRegistry buildServices) {
+        return instantiator.newInstance(DefaultGradle.class, buildState, buildDefinition.getStartParameter(), buildServices);
+    }
+
+    @Provides
+    BuildLifecycleController createBuildLifecycleController(BuildLifecycleControllerFactory factory, BuildDefinition buildDefinition, ServiceRegistry buildServices) {
+        return factory.newInstance(buildDefinition, buildServices);
     }
 
     @Provides
@@ -766,6 +787,18 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             }
         });
         return registry;
+    }
+
+    @Provides
+    IntermediateToolingModelProvider createIntermediateToolingModelProvider(
+        BuildOperationExecutor buildOperationExecutor,
+        BuildModelParameters buildModelParameters,
+        ToolingModelParameterCarrier.Factory parameterCarrierFactory,
+        ListenerManager listenerManager
+    ) {
+        ToolingModelProjectDependencyListener projectDependencyListener = listenerManager.getBroadcaster(ToolingModelProjectDependencyListener.class);
+        IntermediateBuildActionRunner runner = new IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model");
+        return new DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory, projectDependencyListener);
     }
 
     @Provides

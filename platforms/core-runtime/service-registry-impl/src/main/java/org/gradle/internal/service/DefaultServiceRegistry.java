@@ -15,6 +15,9 @@
  */
 package org.gradle.internal.service;
 
+import org.gradle.internal.collect.PersistentArray;
+import org.gradle.internal.collect.PersistentList;
+import org.gradle.internal.collect.PersistentMap;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.jspecify.annotations.Nullable;
@@ -31,10 +34,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Formatter;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
@@ -84,9 +85,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     private final ClassInspector inspector;
     private final OwnServices ownServices;
     private final ServiceProvider allServices;
-    private final ServiceProvider parentServices;
-    @Nullable
-    private final String displayName;
+    private final @Nullable ServiceProvider parentServices;
+    private final @Nullable String displayName;
     private final ServiceProvider thisAsServiceProvider;
 
     private final AtomicReference<State> state = new AtomicReference<State>(State.INIT);
@@ -336,7 +336,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     @Override
-    public Object find(Type serviceType) throws ServiceLookupException {
+    public @Nullable Object find(Type serviceType) throws ServiceLookupException {
         assertValidServiceType(unwrap(serviceType));
         Service provider = getService(serviceType);
         return provider == null ? null : provider.get();
@@ -391,18 +391,24 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     private class OwnServices implements ServiceProvider {
-        private final Map<Class<?>, List<ServiceProvider>> providersByType = new HashMap<Class<?>, List<ServiceProvider>>(16, 0.5f);
         private final CompositeStoppable stoppable = CompositeStoppable.stoppable();
-        private final List<SingletonService> services = new ArrayList<SingletonService>();
-        private final List<AnnotatedServiceLifecycleHandler> lifecycleHandlers = new ArrayList<AnnotatedServiceLifecycleHandler>();
+        private final AtomicReference<ServicesSnapshot> services;
 
         public OwnServices() {
-            providersByType.put(ServiceRegistry.class, Collections.<ServiceProvider>singletonList(new ThisAsService(ServiceAccess.getPublicScope())));
+            final ThisAsService thisServiceRegistry = new ThisAsService(ServiceAccess.getPublicScope());
+            services = new AtomicReference<>(
+                ServicesSnapshot.of(
+                    PersistentMap.of(
+                        ServiceRegistry.class,
+                        PersistentArray.of(thisServiceRegistry)
+                    )
+                )
+            );
         }
 
         @Override
-        public Service getService(Type type, @Nullable ServiceAccessToken token) {
-            List<ServiceProvider> serviceProviders = getProviders(unwrap(type));
+        public @Nullable Service getService(Type type, @Nullable ServiceAccessToken token) {
+            PersistentArray<ServiceProvider> serviceProviders = getProviders(unwrap(type));
             if (serviceProviders.isEmpty()) {
                 return null;
             }
@@ -439,9 +445,11 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             throw new ServiceLookupException(formatter.toString());
         }
 
-        private List<ServiceProvider> getProviders(Class<?> type) {
-            List<ServiceProvider> providers = providersByType.get(type);
-            return providers == null ? Collections.<ServiceProvider>emptyList() : providers;
+        private PersistentArray<ServiceProvider> getProviders(Class<?> type) {
+            @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
+            PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType = services.get().providersByType;
+
+            return providersByType.getOrDefault(type, PersistentArray.of());
         }
 
         @Override
@@ -460,40 +468,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         public void add(SingletonService serviceProvider) {
             assertMutable();
             stoppable.add(serviceProvider);
-            collectProvidersForClassHierarchy(inspector, serviceProvider.getDeclaredServiceTypes(), serviceProvider);
-            services.add(serviceProvider);
-            for (AnnotatedServiceLifecycleHandler annotationHandler : lifecycleHandlers) {
+            ServicesSnapshot snapshot = services.updateAndGet(it -> it.addService(serviceProvider, inspector));
+            for (AnnotatedServiceLifecycleHandler annotationHandler : snapshot.lifecycleHandlers) {
                 notifyAnnotationHandler(annotationHandler, serviceProvider);
-            }
-        }
-
-        public void collectProvidersForClassHierarchy(ClassInspector inspector, List<Class<?>> declaredServiceTypes, ServiceProvider serviceProvider) {
-            for (Class<?> serviceType : declaredServiceTypes) {
-                for (Class<?> type : inspector.getHierarchy(serviceType)) {
-                    if (type.equals(Object.class)) {
-                        continue;
-                    }
-                    if (type.equals(ServiceRegistry.class)) {
-                        // Disallow custom services of type ServiceRegistry, as these are automatically provided
-                        throw new IllegalArgumentException("Cannot define a service of type ServiceRegistry: " + serviceProvider);
-                    }
-                    putServiceType(type, serviceProvider);
-                }
-            }
-        }
-
-        private void putServiceType(Class<?> type, ServiceProvider serviceProvider) {
-            List<ServiceProvider> serviceProviders = providersByType.get(type);
-            if (serviceProviders == null) {
-                serviceProviders = new ArrayList<ServiceProvider>(2);
-                serviceProviders.add(serviceProvider);
-                providersByType.put(type, serviceProviders);
-                return;
-            }
-
-            // Adding of the service provider for the same type may happen when it has multiple declared service types
-            if (!serviceProviders.contains(serviceProvider)) {
-                serviceProviders.add(serviceProvider);
             }
         }
 
@@ -505,6 +482,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             if (instance instanceof AnnotatedServiceLifecycleHandler) {
                 annotationHandlerCreated((AnnotatedServiceLifecycleHandler) instance);
             }
+
+            @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
+            PersistentArray<AnnotatedServiceLifecycleHandler> lifecycleHandlers = services.get().lifecycleHandlers;
+
             for (AnnotatedServiceLifecycleHandler lifecycleHandler : lifecycleHandlers) {
                 for (Class<? extends Annotation> annotation : lifecycleHandler.getAnnotations()) {
                     boolean implementationHasAnnotation = inspector.hasAnnotation(instance.getClass(), annotation);
@@ -518,9 +499,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         void annotationHandlerCreated(AnnotatedServiceLifecycleHandler annotationHandler) {
-            lifecycleHandlers.add(annotationHandler);
-            for (SingletonService candidate : services) {
-                notifyAnnotationHandler(annotationHandler, candidate);
+            ServicesSnapshot snapshot = services.updateAndGet(it -> it.addLifecycleHandler(annotationHandler));
+            for (SingletonService service : snapshot.services) {
+                notifyAnnotationHandler(annotationHandler, service);
             }
         }
 
@@ -589,7 +570,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     private static abstract class ManagedObjectServiceProvider implements ServiceProvider, Service {
         protected final DefaultServiceRegistry owner;
         private final Queue<ServiceProvider> dependents = new ConcurrentLinkedQueue<ServiceProvider>();
-        private volatile Object instance;
+        private volatile @Nullable Object instance;
 
         protected ManagedObjectServiceProvider(DefaultServiceRegistry owner) {
             this.owner = owner;
@@ -613,8 +594,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 synchronized (this) {
                     result = instance;
                     if (result == null) {
-                        setInstance(createServiceInstance());
-                        result = instance;
+                        setInstance(result = createServiceInstance());
                     }
                 }
             }
@@ -640,8 +620,9 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         @Override
         public final synchronized void stop() {
             try {
-                if (instance != null) {
-                    CompositeStoppable.stoppable(dependents).add(instance).stop();
+                Object theInstance = this.instance;
+                if (theInstance != null) {
+                    CompositeStoppable.stoppable(dependents).add(theInstance).stop();
                 }
             } finally {
                 dependents.clear();
@@ -725,7 +706,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
+        public @Nullable Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
             if (!accessScope.contains(token)) {
                 return null;
             }
@@ -749,8 +730,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
     private static abstract class FactoryService extends SingletonService {
         private final ServiceAccessToken accessToken;
-        private Service[] paramServices;
-        private Service decorates;
+        private Service @Nullable [] paramServices;
+        private @Nullable Service decorates;
 
         protected FactoryService(DefaultServiceRegistry owner, ServiceAccessScope accessScope, ServiceAccessToken accessToken, List<? extends Type> serviceTypes) {
             super(owner, accessScope, serviceTypes);
@@ -772,8 +753,17 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             for (int i = 0; i < parameterTypes.length; i++) {
                 Type paramType = parameterTypes[i];
                 if (isEqualToAnyType(paramType, serviceTypes)) {
+                    ServiceProvider parentServices = owner.parentServices;
+                    if (parentServices == null) {
+                        throw new ServiceCreationException(String.format(
+                            "Cannot create service of %s using %s as not parent registry is available to look up required service of type %s for parameter #%s.",
+                            format("type", serviceTypes),
+                            getFactoryDisplayName(),
+                            format(paramType),
+                            i + 1));
+                    }
                     // A decorating factory
-                    Service paramProvider = find(paramType, accessToken, owner.parentServices);
+                    Service paramProvider = find(paramType, accessToken, parentServices);
                     if (paramProvider == null) {
                         throw new ServiceCreationException(String.format("Cannot create service of %s using %s as required service of type %s for parameter #%s is not available in parent registries.",
                             format("type", serviceTypes),
@@ -818,6 +808,10 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         private Object[] assembleParameters() {
+            if (paramServices == null) {
+                throw new IllegalStateException(String.format("Factory %s is not bound or the instance has been created already", getFactoryDisplayName()));
+            }
+
             if (paramServices == NO_DEPENDENTS) {
                 return NO_PARAMS;
             }
@@ -1025,7 +1019,8 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
             try {
                 return getConstructor().newInstance(params);
             } catch (InvocationTargetException e) {
-                throw new ServiceCreationException(String.format("Could not create service of %s.", format("type", serviceTypes)), e.getCause());
+                Throwable cause = e.getCause();
+                throw new ServiceCreationException(String.format("Could not create service of %s.", format("type", serviceTypes)), cause != null ? cause : e);
             } catch (Exception e) {
                 throw new ServiceCreationException(String.format("Could not create service of %s.", format("type", serviceTypes)), e);
             }
@@ -1059,7 +1054,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
+        public @Nullable Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
             for (ServiceProvider serviceProvider : serviceProviders) {
                 Service service = serviceProvider.getService(serviceType, token);
                 if (service != null) {
@@ -1103,7 +1098,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
+        public @Nullable Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
             return parent.getService(serviceType, token);
         }
 
@@ -1312,7 +1307,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         }
 
         @Override
-        public Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
+        public @Nullable Service getService(Type serviceType, @Nullable ServiceAccessToken token) {
             if (!accessScope.contains(token)) {
                 return null;
             }
@@ -1415,6 +1410,85 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 }
                 return false;
             }
+        }
+    }
+
+    /**
+     * Carries a snapshot of the current set of services and lifecycle handlers so they can change together.
+     *
+     * Lifecycle handlers are maintained in a persistent array since there are at most 3 lifecycle handler instances
+     * per registry, and they are iterated frequently (for every service registration).
+     *
+     * Services are maintained in a persistent list since there are many, they are frequently written and iterated very
+     * rarely (once per lifecycle handler).
+     */
+    private static class ServicesSnapshot {
+
+        public static ServicesSnapshot of(PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType) {
+            return new ServicesSnapshot(
+                PersistentList.of(),
+                PersistentArray.of(),
+                providersByType
+            );
+        }
+
+        final PersistentList<SingletonService> services;
+        final PersistentArray<AnnotatedServiceLifecycleHandler> lifecycleHandlers;
+        final PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType;
+
+        private ServicesSnapshot(
+            PersistentList<SingletonService> services,
+            PersistentArray<AnnotatedServiceLifecycleHandler> lifecycleHandlers,
+            PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType
+        ) {
+            this.services = services;
+            this.lifecycleHandlers = lifecycleHandlers;
+            this.providersByType = providersByType;
+        }
+
+        ServicesSnapshot addService(SingletonService service, ClassInspector inspector) {
+            return new ServicesSnapshot(
+                services.plus(service),
+                lifecycleHandlers,
+                collectProvidersForClassHierarchyOf(service, inspector, providersByType)
+            );
+        }
+
+        ServicesSnapshot addLifecycleHandler(AnnotatedServiceLifecycleHandler lifecycleHandler) {
+            return new ServicesSnapshot(
+                services,
+                lifecycleHandlers.plus(lifecycleHandler),
+                providersByType
+            );
+        }
+
+        private static PersistentMap<Class<?>, PersistentArray<ServiceProvider>> collectProvidersForClassHierarchyOf(
+            SingletonService serviceProvider,
+            ClassInspector inspector,
+            PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType
+        ) {
+            PersistentArray<ServiceProvider> newProviders = PersistentArray.of(serviceProvider);
+            for (Class<?> serviceType : serviceProvider.getDeclaredServiceTypes()) {
+                for (Class<?> type : inspector.getHierarchy(serviceType)) {
+                    if (type.equals(Object.class)) {
+                        continue;
+                    }
+                    if (type.equals(ServiceRegistry.class)) {
+                        // Disallow custom services of type ServiceRegistry, as these are automatically provided
+                        throw new IllegalArgumentException("Cannot define a service of type ServiceRegistry: " + serviceProvider);
+                    }
+                    providersByType = providersByType.modify(type, (key, providers) -> {
+                        if (providers == null) {
+                            return newProviders;
+                        } else {
+                            return providers.contains(serviceProvider)
+                                ? providers
+                                : providers.plus(serviceProvider);
+                        }
+                    });
+                }
+            }
+            return providersByType;
         }
     }
 }

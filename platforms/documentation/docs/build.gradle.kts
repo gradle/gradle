@@ -3,6 +3,7 @@ import gradlebuild.basics.googleApisJs
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runBrokenForConfigurationCacheDocsTests
 import gradlebuild.basics.util.getSingleFileProvider
+import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
 import gradlebuild.integrationtests.model.GradleDistribution
 import org.asciidoctor.gradle.jvm.AsciidoctorTask
 import org.gradle.docs.internal.tasks.CheckLinks
@@ -17,6 +18,24 @@ plugins {
     id("org.asciidoctor.jvm.convert")
     id("gradlebuild.documentation")
     id("gradlebuild.generate-samples")
+    id("gradlebuild.android-home-warmup")
+}
+
+androidHomeWarmup {
+    rootProjectDir = project.layout.projectDirectory.dir("../../..")
+    sdkVersions.set(
+        listOf(
+            // Used by declaringConfigurations-kmp (AGP 8.11.2) and declaringConfigurations-android (AGP 8.13.0)
+            // Both use compileSdk 36, and AGP < 9.0 uses build-tools 35.0.0
+            SdkVersion(compileSdk = 36, buildTools = "35.0.0", agpVersion = "8.11.2"),
+
+            // Used by android-application sample (AGP 8.3.0)
+            SdkVersion(compileSdk = 30, buildTools = "34.0.0", agpVersion = "8.3.0"),
+
+            // Used by structuring-software-projects/android-app sample (AGP 8.9.0)
+            SdkVersion(compileSdk = 28, buildTools = "35.0.0", agpVersion = "8.9.0"),
+        ),
+    )
 }
 
 repositories {
@@ -626,6 +645,8 @@ tasks.named("quickTest") {
 tasks.named<Test>("docsTest") {
     useJUnitPlatform()
 
+    dependsOn("androidHomeWarmup")
+
     // The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
     // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
     // so it uses the Gradle distribution from the running build. This is not correct, because
@@ -724,9 +745,6 @@ tasks.named<Test>("docsTest") {
     filter {
         // TODO(https://github.com/gradle/gradle/issues/22538)
         excludeTestsMatching("org.gradle.docs.samples.*.snippet-groovy-cross-compilation_*_crossCompilation")
-        // disable while we're working on https://github.com/gradle/gradle-private/issues/4910
-        excludeTestsMatching("*snippet-dependency-management-declaring-configurations-android_*")
-        excludeTestsMatching("*snippet-dependency-management-declaring-configurations-kmp_*")
     }
 
     if (project.configurationCacheEnabledForDocsTests) {

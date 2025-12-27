@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.objectGraph
 
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.language.Literal
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -51,10 +50,7 @@ class AssignmentResolverTest {
 
     private
     interface Receiver {
-        @get:Restricted
         var x: Int
-
-        @get:Restricted
         var y: Int
     }
 }

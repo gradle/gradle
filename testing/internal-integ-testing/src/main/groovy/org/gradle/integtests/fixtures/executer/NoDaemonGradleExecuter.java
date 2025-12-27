@@ -30,6 +30,7 @@ import org.gradle.process.internal.DefaultClientExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
+import org.gradle.util.DebugUtil;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -55,6 +56,11 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
 
     public NoDaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, GradleVersion gradleVersion, IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, gradleVersion, buildContext);
+    }
+
+    @Override
+    protected boolean isDebuggerAttached() {
+        return DebugUtil.isDebuggerAttached();
     }
 
     @Override

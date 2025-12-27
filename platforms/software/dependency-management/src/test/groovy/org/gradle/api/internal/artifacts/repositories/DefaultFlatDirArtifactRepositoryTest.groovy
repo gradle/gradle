@@ -110,7 +110,7 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
     }
 
     private DefaultFlatDirArtifactRepository newRepo() {
-        def repo = new DefaultFlatDirArtifactRepository(fileCollectionFactory, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, metadataFactory, Mock(InstantiatorFactory), Mock(ObjectFactory), TestUtil.checksumService, new VersionParser())
+        def repo = TestUtil.objectFactory().newInstance(DefaultFlatDirArtifactRepository, fileCollectionFactory, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, metadataFactory, Mock(InstantiatorFactory), Mock(ObjectFactory), TestUtil.checksumService, new VersionParser())
         repo.name = 'repo-name'
         return repo
     }

@@ -33,7 +33,7 @@ include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc
 ====
 
 <1> Inject the `Problem` service into the plugin.
-<2> Create a `ProblemReporter` for the plugin (use the plugin ID as the namespace).
+<2> Create a `ProblemReporter` for the plugin.
 <3> Report a recoverable problem so the build can continue.
 <4> Add optional extra data to the problem.
 

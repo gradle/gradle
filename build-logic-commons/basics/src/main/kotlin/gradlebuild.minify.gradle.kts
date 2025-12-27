@@ -16,6 +16,9 @@
 import gradlebuild.basics.classanalysis.Attributes.artifactType
 import gradlebuild.basics.classanalysis.Attributes.minified
 import gradlebuild.basics.transforms.Minify
+import org.gradle.api.internal.attributes.AttributesFactory
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.kotlin.dsl.support.serviceOf
 
 /**
  * A map from artifact name to a set of class name prefixes that should be kept.
@@ -23,9 +26,13 @@ import gradlebuild.basics.transforms.Minify
  * classes and the classes they depend on. The classes are not relocated, they all
  * remain in their original namespace. This reduces the final Gradle distribution
  * size and makes us more conscious of which parts of a library we really need.
+ *
+ * WARNING: if you decide to do the minification by hand, make sure that you cover all paths of loading classes:
+ * reflection, dynamic loading, etc. and understand how the library works internally.
+ * These changes might break things in subtle ways otherwise.
  */
 val keepPatterns = mapOf(
-    "fastutil" to setOf(
+    "it.unimi.dsi:fastutil" to setOf(
         // For persistence cache
         "it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap",
         // For Java compilation incremental analysis
@@ -51,7 +58,19 @@ val keepPatterns = mapOf(
         "it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet",
         "it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap",
         "it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap",
-    )
+    ),
+    "com.github.jnr:jnr-constants" to setOf(
+        // For signal codes
+        "jnr.constants.platform.Signal",
+        "jnr.constants.platform.aix.Signal",
+        "jnr.constants.platform.darwin.Signal",
+        "jnr.constants.platform.freebsd.Signal",
+        "jnr.constants.platform.openbsd.Signal",
+        "jnr.constants.platform.linux.Signal",
+        "jnr.constants.platform.solaris.Signal",
+        "jnr.constants.Constant",
+        "jnr.constants.ConstantResolver",
+    ),
 )
 plugins.withId("java-base") {
     dependencies {
@@ -64,8 +83,6 @@ plugins.withId("java-base") {
             attributes.attribute(minified, java.lang.Boolean.FALSE)
         }
         /*
-         * This transform exists solely to shrink the size of the fastutil jar from 25MB to 1.7MB.
-         * The keys to the map parameter are used as the names of the files to which to apply the transform - there is only one entry.
          * It would perhaps be better to do this more selectively instead of applying this transform so broadly and having
          * it just no-op in most cases.
          */
@@ -73,21 +90,29 @@ plugins.withId("java-base") {
             from.attribute(minified, false).attribute(artifactType, "jar")
             to.attribute(minified, true).attribute(artifactType, "jar")
             parameters {
-                keepClassesByArtifact = keepPatterns
+                keepClassesByCoordinates = keepPatterns
             }
         }
     }
     afterEvaluate {
         // Without afterEvaluate, configurations.all runs before the configurations' roles are set.
         // This is yet another reason we need configuration factory methods.
+        // workaround for https://github.com/gradle/gradle/issues/12459
+        // note: constraints can't be used here because they end up in gradle module metadata
+        val attributesFactory = gradle.serviceOf<AttributesFactory>()
         configurations.all {
             if (isCanBeResolved && !isCanBeConsumed) {
-                resolutionStrategy.dependencySubstitution {
-                    substitute(module("it.unimi.dsi:fastutil")).using(variant(module("it.unimi.dsi:fastutil:8.5.2")) {
-                        attributes {
-                            attribute(minified, true)
+                resolutionStrategy.dependencySubstitution.all {
+                    val requested = this.requested as? ModuleComponentSelector ?: return@all
+                    keepPatterns.forEach { coordinates, _ ->
+                        if ("${requested.group}:${requested.module}" == coordinates) {
+                            val updated = DefaultModuleComponentSelector.withAttributes(
+                                requested,
+                                attributesFactory.of(minified, true)
+                            )
+                            useTarget(updated)
                         }
-                    })
+                    }
                 }
             }
         }

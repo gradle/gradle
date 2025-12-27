@@ -157,7 +157,7 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
         if (StripperSpec.class.isAssignableFrom(spec)) {
             return CompilerUtil.castCompiler(createStripper());
         }
-        throw new IllegalArgumentException(String.format("Don't know how to compile from a spec of type %s.", spec.getClass().getSimpleName()));
+        throw new IllegalArgumentException(String.format("Don't know how to compile from a spec of type %s.", spec.getSimpleName()));
     }
 
     protected final RuntimeException unavailableTool(String message) {

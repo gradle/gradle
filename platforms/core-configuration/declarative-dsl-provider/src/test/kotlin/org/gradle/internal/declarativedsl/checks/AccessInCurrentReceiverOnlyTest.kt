@@ -20,8 +20,6 @@ package org.gradle.internal.declarativedsl.checks
 
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarative.dsl.checks.runChecks
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
@@ -41,10 +39,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 
 private
 class TopLevelForTest {
-    @Configuring
-    fun inner(f: HasAnnotatedMembers.() -> Unit) = Unit
-
-    @get:Restricted
     val inner: HasAnnotatedMembers
         get() = TODO()
 }
@@ -52,11 +46,9 @@ class TopLevelForTest {
 
 private
 class HasAnnotatedMembers {
-    @get:Restricted
     @get:AccessFromCurrentReceiverOnly
     var x: Int = 0
 
-    @get:Restricted
     var y: Int = 0
 
     @Adding
@@ -64,10 +56,8 @@ class HasAnnotatedMembers {
     @Suppress("FunctionOnlyReturningConstant")
     fun f(): Int = 0
 
-    @Configuring
     fun nested(fn: Nested.() -> Unit) = Unit
 
-    @Restricted
     @AccessFromCurrentReceiverOnly
     fun factory(): Int = "0".toInt()
 }
@@ -75,7 +65,6 @@ class HasAnnotatedMembers {
 
 private
 class Nested {
-    @get:Restricted
     var n = 1
 }
 

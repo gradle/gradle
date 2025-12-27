@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -77,6 +78,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * @param excludeProperties the properties to define the exclude rule.
      * @return this
      */
+    @HiddenInDefinition
     ModuleDependency exclude(Map<String, String> excludeProperties);
 
     /**
@@ -84,6 +86,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @see #exclude(java.util.Map)
      */
+    @HiddenInDefinition
     Set<ExcludeRule> getExcludeRules();
 
     /**
@@ -101,6 +104,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @see #addArtifact(DependencyArtifact)
      */
+    @HiddenInDefinition
     Set<DependencyArtifact> getArtifacts();
 
     /**
@@ -112,6 +116,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @return this
      */
+    @HiddenInDefinition
     ModuleDependency addArtifact(DependencyArtifact artifact);
 
     /**
@@ -126,6 +131,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @see DependencyArtifact
      */
+    @HiddenInDefinition
     DependencyArtifact artifact(@DelegatesTo(value = DependencyArtifact.class, strategy = DELEGATE_FIRST) Closure configureClosure);
 
     /**
@@ -142,6 +148,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 3.1
      */
+    @HiddenInDefinition
     DependencyArtifact artifact(Action<? super DependencyArtifact> configureAction);
 
     /**
@@ -149,6 +156,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @see #setTransitive(boolean)
      */
+    @HiddenInDefinition
     boolean isTransitive();
 
     /**
@@ -159,6 +167,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * @param transitive Whether transitive dependencies should be resolved.
      * @return this
      */
+    @HiddenInDefinition
     ModuleDependency setTransitive(boolean transitive);
 
     /**
@@ -167,6 +176,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * If non-null, this overrides variant-aware dependency resolution and selects the
      * variant in the target component matching the requested configuration name.
      */
+    @HiddenInDefinition
     @Nullable
     String getTargetConfiguration();
 
@@ -181,11 +191,13 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 4.0
      */
+    @HiddenInDefinition
     void setTargetConfiguration(@Nullable String name);
 
     /**
      * {@inheritDoc}
      */
+    @HiddenInDefinition
     @Override
     ModuleDependency copy();
 
@@ -198,6 +210,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * @since 4.8
      */
     @Override
+    @HiddenInDefinition
     AttributeContainer getAttributes();
 
     /**
@@ -209,6 +222,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 4.8
      */
+    @HiddenInDefinition
     @Override
     ModuleDependency attributes(Action<? super AttributeContainer> configureAction);
 
@@ -220,6 +234,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 5.3
      */
+    @HiddenInDefinition
     ModuleDependency capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configureAction);
 
     /**
@@ -231,6 +246,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 5.3
      */
+    @HiddenInDefinition
     List<Capability> getRequestedCapabilities();
 
     /**
@@ -240,6 +256,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 8.11
      */
+    @HiddenInDefinition
     @Incubating
     Set<CapabilitySelector> getCapabilitySelectors();
 
@@ -251,6 +268,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 6.0
      */
+    @HiddenInDefinition
     void endorseStrictVersions();
 
     /**
@@ -258,6 +276,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 6.0
      */
+    @HiddenInDefinition
     void doNotEndorseStrictVersions();
 
     /**
@@ -265,5 +284,6 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @since 6.0
      */
+    @HiddenInDefinition
     boolean isEndorsingStrictVersions();
 }

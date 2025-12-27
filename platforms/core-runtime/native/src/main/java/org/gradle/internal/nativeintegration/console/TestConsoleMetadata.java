@@ -30,12 +30,12 @@ public enum TestConsoleMetadata implements ConsoleMetaData {
     }
 
     @Override
-    public boolean isStdOut() {
+    public boolean isStdOutATerminal() {
         return attachedToStdout;
     }
 
     @Override
-    public boolean isStdErr() {
+    public boolean isStdErrATerminal() {
         return attachedToStderr;
     }
 

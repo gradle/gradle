@@ -57,7 +57,7 @@ public class IntermediateBuildActionRunner {
     }
 
     public boolean isParallel() {
-        return buildModelParameters.isParallelToolingApiActions();
+        return buildModelParameters.isParallelModelBuilding();
     }
 
     public <T> List<T> run(List<Supplier<T>> actions) {

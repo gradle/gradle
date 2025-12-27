@@ -44,7 +44,6 @@ public class TransformingConverter<N, T, R> implements NotationConverter<N, R> {
     }
 
 
-    @NullMarked
     private static class ResultImpl<T> implements NotationConvertResult<T> {
         private boolean hasResult;
         private T result;

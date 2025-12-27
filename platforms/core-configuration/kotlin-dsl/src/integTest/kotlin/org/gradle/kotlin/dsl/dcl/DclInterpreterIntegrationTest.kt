@@ -121,7 +121,6 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                 import org.gradle.api.Project
                 import org.gradle.api.Named
                 import org.gradle.api.NamedDomainObjectContainer
-                import org.gradle.api.internal.plugins.software.SoftwareType
                 import javax.inject.Inject
                 import ${BindsProjectType::class.qualifiedName}
                 import ${BindsProjectFeature::class.qualifiedName}
@@ -175,15 +174,15 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                 }
 
                 interface MyExtensionBuildModel : BuildModel
-                abstract class MyExtension : ${Definition::class.simpleName}<MyExtensionBuildModel> {
-                    abstract val myElements: NamedDomainObjectContainer<MyElement>
+                interface MyExtension : ${Definition::class.simpleName}<MyExtensionBuildModel> {
+                    val myElements: NamedDomainObjectContainer<MyElement>
                 }
 
                 interface MyFeatureBuildModel : BuildModel
 
-                abstract class MyFeatureDefinition : ${Definition::class.simpleName}<MyFeatureBuildModel>
+                interface MyFeatureDefinition : ${Definition::class.simpleName}<MyFeatureBuildModel>
 
-                abstract class MyNestedFeatureDefinition : MyFeatureDefinition()
+                interface MyNestedFeatureDefinition : MyFeatureDefinition
 
                 abstract class MyElement(val elementName: String) : Named {
                     override fun getName() = elementName

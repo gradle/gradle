@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
@@ -79,7 +80,10 @@ abstract class TestWithCompiler : TestWithTempFiles() {
             sourceHash,
             programKind,
             programTarget,
-            temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory)
+            temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory),
+            metadataCompatibilityChecker = object : KotlinMetadataCompatibilityChecker {
+                override fun incompatibleClasspathElements(classPath: ClassPath): List<File> = listOf()
+            }
         ).compile(program)
     }
 
@@ -94,7 +98,10 @@ abstract class TestWithCompiler : TestWithTempFiles() {
     })
 
     private
-    fun scriptSource(): ScriptSource = mock { on { fileName } doReturn "script.gradle.kts" }
+    fun scriptSource(): ScriptSource = mock {
+        on { fileName } doReturn "script.gradle.kts"
+        on { className } doReturn "Script_gradle"
+    }
 }
 
 

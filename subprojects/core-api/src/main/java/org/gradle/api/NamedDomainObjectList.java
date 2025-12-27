@@ -18,6 +18,7 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import org.gradle.api.model.ManagedType;
 import org.gradle.api.specs.Spec;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 
 import java.util.List;
 
@@ -51,12 +52,14 @@ public interface NamedDomainObjectList<T> extends NamedDomainObjectCollection<T>
      * {@inheritDoc}
      */
     @Override
+    @HiddenInDefinition
     NamedDomainObjectList<T> matching(Spec<? super T> spec);
 
     /**
      * {@inheritDoc}
      */
     @Override
+    @HiddenInDefinition
     NamedDomainObjectList<T> matching(Closure spec);
 
     /**

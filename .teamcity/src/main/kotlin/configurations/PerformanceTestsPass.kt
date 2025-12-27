@@ -18,6 +18,7 @@ package configurations
 
 import common.Os
 import common.applyDefaultSettings
+import common.setArtifactRules
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.ReuseBuilds
 import model.CIBuildModel
@@ -66,9 +67,11 @@ class PerformanceTestsPass(
                     "performanceTestReport"
                 }
 
-            artifactRules = """
+            setArtifactRules(
+                """
 testing/$performanceProjectName/build/performance-test-results.zip
-"""
+""",
+            )
             if (performanceTestProject.performanceTests.any { it.testProjects.isNotEmpty() }) {
                 val dependencyBuildIds =
                     performanceTestProject.performanceTests

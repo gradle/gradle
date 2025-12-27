@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.AssignmentAugmentation
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.internal.declarativedsl.analysis.ErrorReason.AugmentingAssignmentNotResolved
@@ -100,13 +99,8 @@ class AugmentationResolutionTest {
 
 
     interface TopLevelReceiver {
-        @get:Restricted
         var data: Data
-
-        @Restricted
         fun newData(): Data
-
-        @get:Restricted
         var str: String
     }
 

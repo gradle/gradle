@@ -75,6 +75,7 @@ public class DefaultOsXJavaHomeCommand implements OsXJavaHomeCommand {
         return Collections.emptySet();
     }
 
+    @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private Reader executeJavaHome() {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         executeCommand(outputStream);

@@ -86,6 +86,10 @@ class JsonWriter(private val writer: Writer) {
         }
     }
 
+    fun jsonList(strings: List<String>) {
+        jsonGenerator.writeArray(strings.toTypedArray(), 0, strings.size)
+    }
+
     fun <T> jsonList(list: Iterable<T>, body: (T) -> Unit) {
         jsonList(list.iterator(), body)
     }

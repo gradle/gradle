@@ -217,7 +217,6 @@ public class DependencyGraphBuilder {
                     capabilitiesConflictHandler.resolveNextConflict();
                 }
             }
-
         }
     }
 
@@ -248,11 +247,6 @@ public class DependencyGraphBuilder {
                 if (selector.canAffectSelection() && module.getSelectors().size() > 0) {
                     // Have an unprocessed/new selector for this module. Need to re-select the target version (if there are any selectors that can be used).
                     performSelection(resolveState, module);
-                }
-
-                // Some corner case results in the edge being marked unused, in that case we should not mark it as unattached.
-                if (edge.isUsed()) {
-                    module.addUnattachedEdge(edge);
                 }
             }
         }
@@ -359,6 +353,64 @@ public class DependencyGraphBuilder {
                 attachMultipleForceOnPlatformFailureToEdges(module);
             }
         }
+
+        assertHasValidGraphStructure(resolveState);
+    }
+
+    /**
+     * Tests for fundamentally broken graphs. Only enabled when assertions are enabled,
+     * as we do not expect any user-constructed graphs to fail these assertions. All valid
+     * and invalid graphs (those with version/module/capability conflicts, or resolution failures)
+     * should pass the assertions in this method.
+     */
+    private static void assertHasValidGraphStructure(ResolveState resolveState) {
+        if (!areAssertsEnabled()) {
+            return;
+        }
+
+        for (ModuleResolveState module : resolveState.getModules()) {
+            for (ComponentState component : module.getVersions()) {
+                for (NodeState node : component.getNodes()) {
+                    for (EdgeState incomingEdge : node.getIncomingEdges()) {
+                        NodeState from = incomingEdge.getFrom();
+                        // TODO: This condition currently fails, but should pass!
+//                        if (!from.getOutgoingEdges().contains(incomingEdge)) {
+//                            throw new IllegalStateException(String.format(
+//                                "Node %s has incoming edge from %s, but source node does not declare outgoing edge.",
+//                                node.getDisplayName(),
+//                                from.getDisplayName()
+//                            ));
+//                        }
+                        if (!from.isSelected()) {
+                            throw new IllegalStateException(String.format(
+                                "Node %s has an incoming edge from %s, but source node is not part of the graph.",
+                                from.getDisplayName(),
+                                node.getDisplayName()
+                            ));
+                        }
+                    }
+//                    for (EdgeState outgoingEdge : node.getOutgoingEdges()) {
+//                        for (NodeState target : outgoingEdge.getTargetNodes()) {
+//                            // TODO: This condition currently fails, but should pass!
+//                            if (!target.getIncomingEdges().contains(outgoingEdge)) {
+//                                throw new IllegalStateException(String.format(
+//                                    "Node %s has an outgoing edge to node %s, but target node does not declare incoming edge.",
+//                                    node.getDisplayName(),
+//                                    target.getDisplayName()
+//                                ));
+//                            }
+//                        }
+//                    }
+                }
+            }
+        }
+    }
+
+    public static boolean areAssertsEnabled() {
+        boolean assertsEnabled = false;
+        //noinspection AssertWithSideEffects
+        assert assertsEnabled = true;
+        return assertsEnabled;
     }
 
     private static boolean isDynamic(SelectorState selector) {

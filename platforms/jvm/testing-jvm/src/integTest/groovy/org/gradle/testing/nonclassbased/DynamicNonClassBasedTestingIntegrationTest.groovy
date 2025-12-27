@@ -60,7 +60,7 @@ class DynamicNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTe
         """
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
         def testResults = resultsFor()

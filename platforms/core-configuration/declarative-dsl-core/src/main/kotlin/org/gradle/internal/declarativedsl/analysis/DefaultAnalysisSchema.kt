@@ -27,6 +27,7 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics.AddAndConfigure
 import org.gradle.declarative.dsl.schema.FunctionSemantics.Builder
 import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement
 import org.gradle.declarative.dsl.schema.FunctionSemantics.Pure
+import org.gradle.declarative.dsl.schema.ConfigureFromGetterOrigin
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaItemMetadata
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
@@ -58,7 +59,7 @@ data class DefaultDataClass(
     override val supertypes: Set<FqName>,
     override val properties: List<DataProperty>,
     override val memberFunctions: List<SchemaMemberFunction>,
-    override val constructors: List<DataConstructor>
+    override val constructors: List<DataConstructor> // TODO: remove this property
 ) : DataClass {
     override fun toString(): String = name.simpleName
 }
@@ -222,7 +223,8 @@ object FunctionSemanticsInternal {
     data class DefaultAccessAndConfigure(
         override val accessor: ConfigureAccessor,
         override val returnType: ReturnType,
-        override val configureBlockRequirement: ConfigureBlockRequirement
+        override val configuredType: DataTypeRef,
+        override val configureBlockRequirement: ConfigureBlockRequirement,
     ) : AccessAndConfigure {
         override val returnValueType: DataTypeRef
             get() = when (returnType) {
@@ -390,6 +392,13 @@ object SchemaItemMetadataInternal {
             override val targetDefinitionClassName: String?,
             override val targetBuildModelClassName: String?
         ) : ProjectFeatureOrigin
+
+        @Serializable
+        @SerialName("configureFromGetterOrigin")
+        data class DefaultConfigureFromGetterOrigin(
+            override val javaClassName: String,
+            override val memberName: String
+        ) : ConfigureFromGetterOrigin
     }
 }
 

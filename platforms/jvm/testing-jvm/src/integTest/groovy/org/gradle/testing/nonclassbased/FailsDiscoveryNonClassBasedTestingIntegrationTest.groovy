@@ -50,7 +50,7 @@ class FailsDiscoveryNonClassBasedTestingIntegrationTest extends AbstractNonClass
         writeTestDefinitions()
 
         when:
-        fails("test", "--info", "-S")
+        fails("test", "-S")
 
         then:
         failure.assertThatCause(matchesRegexp(/Could not complete execution for Gradle Test Executor \d+\./))

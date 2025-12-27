@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.models
 
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.internal.buildtree.ToolingModelRequestContext
 import org.gradle.internal.cc.impl.ConfigurationCacheOperationIO
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore
 import org.gradle.internal.cc.impl.StateType
@@ -29,6 +30,7 @@ import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.tooling.provider.model.UnknownModelException
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 
 
@@ -61,8 +63,13 @@ class IntermediateModelController(
         }
     }
 
-    fun <T> loadOrCreateIntermediateModel(project: ProjectIdentity?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T): T? {
-        val key = ModelKey(project?.buildTreePath, modelName, parameter?.hash)
+    fun loadOrCreateIntermediateModel(
+        project: ProjectIdentity?,
+        modelRequestContext: ToolingModelRequestContext,
+        parameter: ToolingModelParameterCarrier?,
+        creator: () -> ToolingModelBuilderResultInternal
+    ): ToolingModelBuilderResultInternal {
+        val key = ModelKey(project?.buildTreePath, modelRequestContext.modelName, parameter?.hash, modelRequestContext.inResilientContext())
         return loadOrCreateValue(key) {
             try {
                 val model = if (project != null) {
@@ -70,7 +77,7 @@ class IntermediateModelController(
                 } else {
                     creator()
                 }
-                if (model == null) IntermediateModel.NullModel else IntermediateModel.Model(model)
+                IntermediateModel.Model(model)
             } catch (e: UnknownModelException) {
                 IntermediateModel.NoModel(e.message!!)
             }

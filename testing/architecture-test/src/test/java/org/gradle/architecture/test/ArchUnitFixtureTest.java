@@ -23,6 +23,7 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.conditions.ArchConditions;
 import org.gradlebuild.AbstractClass;
 import org.gradlebuild.AllowedMethodTypesClass;
 import org.gradlebuild.ConcreteClass;
@@ -144,7 +145,7 @@ public class ArchUnitFixtureTest {
 
     @Test
     public void checks_for_annotation_presence() {
-        ArchCondition<JavaClass> condition = ArchUnitFixture.beAnnotatedOrInPackageAnnotatedWith(NullMarked.class);
+        ArchCondition<JavaClass> condition = ArchConditions.be(ArchUnitFixture.annotatedOrInPackageAnnotatedWith(NullMarked.class));
         assertNoViolation(checkClassCondition(condition, NullMarkedApiType.class));
         ConditionEvent event = checkClassCondition(condition, NotNullMarkedApiType.class);
         assertTrue(event.isViolation());
@@ -157,11 +158,13 @@ public class ArchUnitFixtureTest {
         ArchCondition<JavaClass> condition = ArchUnitFixture.beNullMarkedClass();
 
         assertNoViolation(checkClassCondition(condition, NullMarkedApiType.class));
+        assertNoViolation(checkClassCondition(condition, NullMarkedApiType.NestedApiType.class));
+        assertNoViolation(checkClassCondition(condition, NotNullMarkedApiType.NullMarkedNestedApiType.class));
 
         ConditionEvent notMarkedEvent = checkClassCondition(condition, NotNullMarkedApiType.class);
         assertTrue(notMarkedEvent.isViolation());
         assertThat(eventDescription(notMarkedEvent))
-            .startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NotNullMarkedApiType> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked");
+            .startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NotNullMarkedApiType> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked");
 
         ConditionEvent unmarkedEvent = checkClassCondition(condition, NullUnmarkedApiType.class);
         assertTrue(unmarkedEvent.isViolation());
@@ -172,6 +175,19 @@ public class ArchUnitFixtureTest {
         assertEquals(1, unmarkedMethodEvents.getViolating().size());
         assertThat(eventDescription(unmarkedMethodEvents.getViolating().iterator().next()))
             .startsWith("Method <org.gradlebuild.nonnullapi.notinpackage.NullUnmarkedApiMethod.calculateSomeString()> is annotated with @NullUnmarked");
+    }
+
+    @Test
+    public void check_for_unnecessary_jspecify_annotations() {
+        ArchCondition<JavaClass> condition = ArchUnitFixture.notBeUnnecessarilyAnnotatedWithNullMarked();
+
+        assertNoViolation(checkClassCondition(condition, NullMarkedApiType.NestedApiType.class));
+        assertNoViolation(checkClassCondition(condition, NotNullMarkedApiType.NullMarkedNestedApiType.class));
+
+        ConditionEvent unnecessarilyMarkedEvent = checkClassCondition(condition, NullMarkedApiType.UnnecessarilyNullMarkedNestedApiType.class);
+        assertTrue(unnecessarilyMarkedEvent.isViolation());
+        assertThat(eventDescription(unnecessarilyMarkedEvent))
+            .startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NullMarkedApiType$UnnecessarilyNullMarkedNestedApiType> is unnecessarily annotated with @org.jspecify.annotations.NullMarked");
     }
 
     private static String eventDescription(ConditionEvent event) {

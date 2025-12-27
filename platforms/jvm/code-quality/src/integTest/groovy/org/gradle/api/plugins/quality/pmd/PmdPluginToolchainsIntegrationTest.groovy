@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.quality.integtest.fixtures.PmdCoverage
+import org.gradle.test.fixtures.Flaky
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 
@@ -33,6 +34,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
         executer.withArgument("--info")
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4688")
     def "uses jdk from toolchains set through java plugin"() {
         Assume.assumeTrue(fileLockingIssuesSolved())
         Assume.assumeTrue(PmdCoverage.supportsJdkVersion(versionNumber, jdk.javaVersionMajor))

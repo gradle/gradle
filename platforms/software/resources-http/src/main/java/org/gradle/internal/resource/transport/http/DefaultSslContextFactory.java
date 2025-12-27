@@ -86,7 +86,6 @@ public class DefaultSslContextFactory implements SslContextFactory {
         }
     }
 
-    @NullMarked
     private static class SslContextLoader {
         private static final Logger LOGGER = LoggerFactory.getLogger(SslContextLoader.class);
 

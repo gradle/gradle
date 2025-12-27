@@ -64,7 +64,6 @@ public class InstrumentedExecutionAccess {
         listener().disallowedAtExecutionInjectedServiceAccessed(injectedServiceType, getterName, consumer);
     }
 
-    @NullMarked
     public interface Listener {
         void disallowedAtExecutionInjectedServiceAccessed(Class<?> injectedServiceType, String propertyName, String consumer);
     }

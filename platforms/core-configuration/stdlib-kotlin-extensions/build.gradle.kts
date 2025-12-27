@@ -24,3 +24,7 @@ dependencies {
     api(libs.kotlinStdlib)
     implementation(projects.stdlibJavaExtensions)
 }
+
+errorprone {
+    nullawayEnabled = true
+}

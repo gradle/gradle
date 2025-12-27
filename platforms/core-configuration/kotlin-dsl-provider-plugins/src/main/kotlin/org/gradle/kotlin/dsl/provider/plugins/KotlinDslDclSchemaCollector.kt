@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.provider.plugins
 
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.SettingsInternal
@@ -105,13 +106,14 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
             types.flatMap { type ->
                 type.memberFunctions.mapNotNull { function ->
                     function.metadata.dataOfTypeOrNull<ContainerElementFactory>()?.let { factory ->
-                        val containerType = typeOf(type, classLoader)
-                            ?: return@let null
                         val elementDclType = typeRefContext.resolveRef(factory.elementType) as? DataClass
                             ?: return@let null
                         val elementType = typeOf(elementDclType, classLoader)
                             ?: return@let null
-                        ContainerElementFactoryEntry<TypeOf<*>>(function.simpleName, containerType, elementType)
+                        // Since the invoke operator for NDOCs has just `NDOC<T>` as the receiver (but not the more concrete type), we should generalize the accessor to NDOC<T> even if the
+                        // container type is more specific. It's OK since the accessor name is based on the element type and there should not be different accessors for one element type.
+                        val containerType = parameterizedTypeOfRawGenericClass(listOf(TypeProjection(elementType.concreteClass, TypeProjectionKind.NONE)), NamedDomainObjectContainer::class.java)
+                        ContainerElementFactoryEntry(function.simpleName, containerType, elementType)
                     }
                 }
             }

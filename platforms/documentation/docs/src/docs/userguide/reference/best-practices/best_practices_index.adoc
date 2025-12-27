@@ -17,13 +17,29 @@
 
 The table below provides a complete list of documented Gradle Best Practices.
 
-****
-There are currently *31 Best Practices*.
-****
+++++
+<div style="border: 2px solid #ddd; padding: 1.25em; margin: 10px 0;">
+  There are currently <strong><span id="best-practices-total">X</span> Best Practices</strong><span id="best-practices-filtered-text"></span>.
+</div>
+++++
 
 Use this as a quick reference to track newly added recommendations, check adoption status, or explore areas for improving your build:
 
+++++
+<div style="margin: 10px 0;">
+  <label for="section-filter" style="margin-right: 10px;">Filter by Section:</label>
+  <select id="section-filter" style="margin-right: 20px; width: auto;">
+    <option value="">All Sections</option>
+  </select>
+  <label for="version-filter" style="margin-right: 10px;">Filter by Version:</label>
+  <select id="version-filter" style="width: auto;">
+    <option value="">All Versions</option>
+  </select>
+</div>
+++++
+
 [.table]
+[#best-practices-table]
 |===
 | Title | Section | Added in Gradle Version
 
@@ -56,6 +72,7 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_tasks.adoc#avoid_provider_get_outside_task_action,Do not call `get()` on a Provider outside a Task action>> | Task | 9.1.0
 | <<best_practices_tasks.adoc#dont_resolve_configurations_before_task_execution,Don't resolve Configurations before Task Execution>> | Task | 9.1.0
 | <<best_practices_tasks.adoc#avoid_eager_file_collection_apis,Avoid using eager APIs on File Collections>> | Task | 9.1.0
+| <<best_practices_tasks.adoc#default_path_sensitivities,Prefer `@PathSensitivity.NONE` for file inputs and `@PathSensitivity.RELATIVE` for directories>> | Task | 9.2.0
 
 | <<best_practices_performance.adoc#use_utf8_encoding,Enable UTF‑8>> | Performance | 9.0.0
 | <<best_practices_performance.adoc#use_build_cache,Use the Build Cache>> | Performance | 9.1.0
@@ -64,4 +81,9 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_performance.adoc#prefer_bin_distribution,Prefer the `-bin` Gradle Distribution>> | Performance | 9.4.0
 
 | <<best_practices_security.adoc#best_practices_for_security,Validate the Gradle Distribution SHA-256 Checksum>> | Security | 9.1.0
+| <<best_practices_security.adoc#validate_wrapper_checksum,Validate the Gradle Wrapper on every Upgrade>> | Security | 9.3.0
 |===
+
+++++
+<script src="js/best-practices-filter-sort.js"></script>
+++++

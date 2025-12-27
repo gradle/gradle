@@ -42,7 +42,7 @@ jobs:
         run: |
           ./gradlew performance:writePerformanceTimes -Porg.gradle.performance.db.url=${{ env.PERFORMANCE_DB_URL }} -Porg.gradle.performance.db.username=${{ env.PERFORMANCE_DB_USERNAME }}
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: Update performance test durations
           branch: bot-update-performance-test-durations

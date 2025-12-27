@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.tasks.testing.TestResult;
 import org.hamcrest.Matcher;
 
+import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +90,14 @@ public interface TestPathRootExecutionResult {
     TestPathRootExecutionResult assertDisplayName(Matcher<? super String> matcher);
 
     TestPathRootExecutionResult assertFailureMessages(Matcher<? super String> matcher);
+
+    /**
+     * Asserts that there is only one duration recorded for the test path, and that it matches the given matcher.
+     *
+     * @param matcher the matcher to verify the duration
+     * @return {@code this}
+     */
+    TestPathRootExecutionResult assertThatSingleDuration(Matcher<? super Duration> matcher);
 
     String getFailureMessages();
 

@@ -27,12 +27,13 @@ fun BuildType.applyPerformanceTestSettings(
     timeout: Int = 30,
 ) {
     applyDefaultSettings(os = os, arch = arch, timeout = timeout)
-    artifactRules =
+    setArtifactRules(
         """
         build/report-*-performance-tests.zip => .
         build/report-*-performance.zip => $HIDDEN_ARTIFACT_DESTINATION
         build/report-*PerformanceTest.zip => $HIDDEN_ARTIFACT_DESTINATION
-        """.trimIndent()
+        """.trimIndent(),
+    )
     detectHangingBuilds = false
     requirements {
         requiresNotEc2Agent()

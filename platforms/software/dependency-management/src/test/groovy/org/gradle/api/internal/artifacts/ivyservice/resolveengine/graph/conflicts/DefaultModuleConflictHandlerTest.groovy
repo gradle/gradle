@@ -110,7 +110,7 @@ class DefaultModuleConflictHandlerTest extends Specification {
             def selected = details.candidates.find { it.id.version == '2' }
             details.select(selected)
         }
-        1 * targetModule.replaceWith(selectedVersion)
+        1 * targetModule.changeSelection(selectedVersion)
         0 * resolver._
 
         then:

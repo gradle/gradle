@@ -58,7 +58,7 @@ internal class DefaultConfigurationCacheDegradationController(
     }
 
     private fun collectDegradationReasons(): DegradationDecision =
-        if (buildModelParameters.isRequiresToolingModels) {
+        if (buildModelParameters.isModelBuilding) {
             DegradationDecision.shouldNotDegrade
         } else {
             DegradationDecision(collectTaskDegradationReasons(), collectFeatureDegradationReasons())

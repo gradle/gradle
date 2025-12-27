@@ -875,7 +875,7 @@ dependencyResolutionManagement {
 
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:too-many-import-files'
-            contextualLabel == 'Problem: In version catalog testLibs, importing multiple files are not supported.'
+            contextualLabel == "Problem: In version catalog testLibs, ${VersionCatalogProblemId.TOO_MANY_IMPORT_FILES.displayName.uncapitalize()}."
             details == 'The import consists of multiple files'
             solutions == [ 'Only import a single file' ]
         }
@@ -903,7 +903,7 @@ dependencyResolutionManagement {
 
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:no-import-files'
-            contextualLabel == 'Problem: In version catalog testLibs, no files are resolved to be imported.'
+            contextualLabel == "Problem: In version catalog testLibs, ${VersionCatalogProblemId.NO_IMPORT_FILES.displayName.uncapitalize()}."
             details == 'The imported dependency doesn\'t resolve into any file'
             solutions == [ 'Check the import statement, it should resolve into a single file' ]
         }

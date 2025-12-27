@@ -3,6 +3,7 @@ package configurations
 import common.Os.LINUX
 import common.buildScanTagParam
 import common.getBuildScanCustomValueParam
+import common.setArtifactRules
 import model.CIBuildModel
 import model.Stage
 
@@ -32,9 +33,10 @@ class BuildDistributions(
             publishBuildStatusToGithub(model)
         }
 
-        artifactRules =
+        setArtifactRules(
             """$artifactRules
 packaging/distributions-full/build/distributions/*.zip => distributions
 platforms/core-runtime/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
-"""
+""",
+        )
     })

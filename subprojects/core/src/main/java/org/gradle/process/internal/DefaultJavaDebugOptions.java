@@ -47,7 +47,7 @@ public class DefaultJavaDebugOptions implements JavaDebugOptions {
         return Objects.hash(getEnabled().get(), getHost().getOrNull(), getPort().get(), getServer().get(), getSuspend().get());
     }
 
-    @SuppressWarnings("BoxedPrimitiveEquality")
+    @SuppressWarnings({"BoxedPrimitiveEquality", "ReferenceEquality"}) //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     @Override
     public boolean equals(Object o) {
         if (this == o) {

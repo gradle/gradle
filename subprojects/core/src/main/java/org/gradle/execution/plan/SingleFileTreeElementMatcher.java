@@ -16,8 +16,8 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FilePermissions;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFilePermissions;
 import org.gradle.api.specs.Spec;
@@ -38,6 +38,7 @@ public class SingleFileTreeElementMatcher {
         this.stat = stat;
     }
 
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public boolean elementWithRelativePathMatches(Spec<FileTreeElement> filter, File element, String relativePathString) {
         // A better solution for output files would be to record the type of the output file and then using this type here instead of looking at the disk.
         // Though that is more involved and as soon as the file has been produced, the right file type will be detected here as well.

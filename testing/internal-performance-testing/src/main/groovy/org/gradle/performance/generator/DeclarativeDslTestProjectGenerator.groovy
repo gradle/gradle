@@ -17,6 +17,12 @@
 package org.gradle.performance.generator
 
 import groovy.transform.CompileStatic
+import org.gradle.api.internal.plugins.BindsProjectType
+import org.gradle.api.internal.plugins.BuildModel
+import org.gradle.api.internal.plugins.Definition
+import org.gradle.api.internal.plugins.ProjectTypeBinding
+import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
+import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
 
 import static org.gradle.test.fixtures.dsl.GradleDsl.DECLARATIVE
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
@@ -198,11 +204,9 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
             import org.gradle.api.experimental.java.StandaloneJavaApplicationPlugin;
             import org.gradle.api.initialization.Settings;
             import org.gradle.api.internal.SettingsInternal;
-            import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
+            import ${RegistersProjectFeatures.class.name};
 
-            @RegistersSoftwareTypes({
-                    StandaloneJavaApplicationPlugin.class,
-            })
+            @${RegistersProjectFeatures.class.simpleName}(StandaloneJavaApplicationPlugin.class)
             public class JvmEcosystemPlugin implements Plugin<Settings> {
                 @Override
                 public void apply(Settings target) { }
@@ -216,24 +220,15 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
             import org.gradle.api.experimental.jvm.ApplicationDependencies;
             import org.gradle.api.provider.Property;
             import org.gradle.api.tasks.Nested;
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
             /**
              * Represents an application that runs on the JVM.
              */
-            @Restricted
             public interface HasJvmApplication {
-                @Restricted
                 Property<String> getMainClass();
 
                 @Nested
                 ApplicationDependencies getDependencies();
-
-                @Configuring
-                default void dependencies(Action<? super ApplicationDependencies> action) {
-                    action.execute(getDependencies());
-                }
             }
         """
 
@@ -241,14 +236,11 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
             package org.gradle.api.experimental.jvm;
 
             import org.gradle.api.provider.Property;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
             /**
              * A component that is built for a single Java version.
              */
-            @Restricted
             public interface HasJavaTarget {
-                @Restricted
                 Property<Integer> getJavaVersion();
             }
         """
@@ -258,13 +250,11 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
 
             import org.gradle.api.artifacts.dsl.Dependencies;
             import org.gradle.api.artifacts.dsl.DependencyCollector;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
             /**
              * The declarative dependencies DSL block for an application.
              */
             @SuppressWarnings("UnstableApiUsage")
-            @Restricted
             public interface ApplicationDependencies extends Dependencies {
                 DependencyCollector getImplementation();
                 DependencyCollector getRuntimeOnly();
@@ -280,13 +270,26 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
 
             import org.gradle.api.experimental.jvm.HasJavaTarget;
             import org.gradle.api.experimental.jvm.HasJvmApplication;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import ${Definition.class.name};
 
             /**
              * An application implemented using a single version of Java.
              */
-            @Restricted
-            public interface JavaApplication extends HasJavaTarget, HasJvmApplication {
+            public interface JavaApplication extends HasJavaTarget, HasJvmApplication, ${Definition.class.simpleName}<JavaApplicationModel> {
+            }
+        """
+
+        file javaSourceDir, 'JavaApplicationModel.java', """
+            package org.gradle.api.experimental.java;
+
+            import org.gradle.api.experimental.jvm.HasJavaTarget;
+            import org.gradle.api.experimental.jvm.HasJvmApplication;
+            import ${BuildModel.class.name};
+
+            /**
+             * An application implemented using a single version of Java.
+             */
+            public interface JavaApplicationModel extends HasJavaTarget, HasJvmApplication, ${BuildModel.class.simpleName} {
             }
         """
 
@@ -295,28 +298,38 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
 
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
-            import org.gradle.api.internal.plugins.software.SoftwareType;
+            import ${ProjectTypeBinding.class.name};
+            import ${ProjectTypeBindingBuilder.class.name};
+            import ${BindsProjectType.class.name};
             import org.gradle.api.plugins.ApplicationPlugin;
 
             /**
-             * Creates a declarative {@link JavaApplication} DSL model, applies the official Java application plugin,
-             * and links the declarative model to the official plugin.
+             * Creates a declarative {@link JavaApplication} DSL model, and applies the official Java application plugin
              */
+            @${BindsProjectType.class.simpleName}(StandaloneJavaApplicationPlugin.Binding.class)
             abstract public class StandaloneJavaApplicationPlugin implements Plugin<Project> {
-                @SoftwareType(name = "javaApplication", modelPublicType = JavaApplication.class)
-                abstract public JavaApplication getApplication();
+
+                static class Binding implements ${ProjectTypeBinding.class.simpleName} {
+                    public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
+                        builder.bindProjectType(
+                            "javaApplication",
+                            JavaApplication.class,
+                            (context, definition, model) -> {
+                                model.getJavaVersion().convention(definition.getJavaVersion());
+                                model.getMainClass().convention(definition.getMainClass());
+                                model.getDependencies().getImplementation().bundle(definition.getDependencies().getImplementation().getDependencies());
+                                model.getDependencies().getRuntimeOnly().bundle(definition.getDependencies().getRuntimeOnly().getDependencies());
+                                model.getDependencies().getCompileOnly().bundle(definition.getDependencies().getCompileOnly().getDependencies());
+
+                                context.getProject().getPlugins().apply(ApplicationPlugin.class);
+                            }
+                        ).withUnsafeDefinition();
+                    }
+                }
 
                 @Override
                 public void apply(Project project) {
-                    JavaApplication dslModel = getApplication();
 
-                    project.getPlugins().apply(ApplicationPlugin.class);
-
-                    linkDslModelToPlugin(project, dslModel);
-                }
-
-                private void linkDslModelToPlugin(Project project, JavaApplication dslModel) {
-                    // not done for the purposes of this perf test
                 }
             }
         """

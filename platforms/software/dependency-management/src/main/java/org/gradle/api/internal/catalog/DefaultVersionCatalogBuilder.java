@@ -52,7 +52,6 @@ import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
 import org.gradle.util.internal.TextUtil;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
@@ -67,8 +66,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static org.gradle.api.internal.catalog.parser.DependenciesModelHelper.ALIAS_REGEX;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.VERSION_CATALOG_PROBLEMS;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwError;
@@ -125,12 +125,12 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     private final Map<String, BundleModel> bundles = new LinkedHashMap<>();
     private final Lazy<DefaultVersionCatalog> model = Lazy.unsafe().of(this::doBuild);
     private final Supplier<DependencyResolutionServices> dependencyResolutionServicesSupplier;
-    private Import importedCatalog = null;
+    private @Nullable Import importedCatalog = null;
     private final StrictVersionParser strictVersionParser;
 
     private final Property<String> description;
 
-    private String currentContext;
+    private @Nullable String currentContext;
 
     @Inject
     public DefaultVersionCatalogBuilder(
@@ -215,7 +215,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
 
     private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
         return builder.
-            id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), "version catalog error", GradleCoreProblemGroup.versionCatalog())
+            id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), catalogProblemId.getDisplayName(), GradleCoreProblemGroup.versionCatalog())
             .contextualLabel(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
             .severity(ERROR);
@@ -225,7 +225,6 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         throw throwError(problemsService, "Invalid catalog definition", ImmutableList.of(problem));
     }
 
-    @NonNull
     private String getProblemInVersionCatalog() {
         return DefaultCatalogProblemBuilder.getProblemInVersionCatalog(name) + ", ";
     }
@@ -241,7 +240,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         Set<ResolvedArtifactResult> artifacts = cnf.getIncoming().getArtifacts().getArtifacts();
         if (artifacts.size() > 1) {
             throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
-                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "importing multiple files are not supported.", TOO_MANY_IMPORT_FILES)
+                configureVersionCatalogError(builder, getProblemInVersionCatalog() + uncapitalize(TOO_MANY_IMPORT_FILES.getDisplayName()) + ".", TOO_MANY_IMPORT_FILES)
                     .details("The import consists of multiple files")
                     .solution("Only import a single file")));
         }
@@ -254,7 +253,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             withContext("catalog " + resolvedArtifactResult.getVariant().getOwner(), () -> importCatalogFromFile(file));
         } else {
             throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
-                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "no files are resolved to be imported.", NO_IMPORT_FILES)
+                configureVersionCatalogError(builder, getProblemInVersionCatalog() + uncapitalize(NO_IMPORT_FILES.getDisplayName()) + ".", NO_IMPORT_FILES)
                     .details("The imported dependency doesn't resolve into any file")
                     .solution("Check the import statement, it should resolve into a single file")));
         }
@@ -302,7 +301,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         }
         if (!modelFile.exists()) {
             throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
-                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "import of external catalog file failed.", CATALOG_FILE_DOES_NOT_EXIST)
+                configureVersionCatalogError(builder, getProblemInVersionCatalog() + uncapitalize(CATALOG_FILE_DOES_NOT_EXIST.getDisplayName()) + ".", CATALOG_FILE_DOES_NOT_EXIST)
                     .details("File '" + modelFile + "' doesn't exist")
                     .solution("Make sure that the catalog file '" + modelFile.getName() + "' exists before importing it")));
         }
@@ -335,15 +334,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     public String version(String alias, String version) {
         StrictVersionParser.RichVersion richVersion = strictVersionParser.parse(version);
         version(alias, vc -> {
-            if (richVersion.require != null) {
-                vc.require(richVersion.require);
-            }
-            if (richVersion.prefer != null) {
-                vc.prefer(richVersion.prefer);
-            }
-            if (richVersion.strictly != null) {
-                vc.strictly(richVersion.strictly);
-            }
+            configureRequiredRichVersion(vc, richVersion);
         });
         return alias;
     }
@@ -392,7 +383,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             for (String prefix : FORBIDDEN_LIBRARY_ALIAS_PREFIX) {
                 if (normalizedAlias.equals(prefix) || normalizedAlias.startsWith(prefix + ".")) {
                     throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
-                        configureVersionCatalogError(builder, getProblemInVersionCatalog() + "alias '" + alias + "' is not a valid alias.", RESERVED_ALIAS_NAME)
+                        configureVersionCatalogError(builder, getProblemInVersionCatalog() + "alias '" + alias + "' is a reserved alias.", RESERVED_ALIAS_NAME)
                             .details("Prefix for dependency shouldn't be equal to '" + prefix + "'")
                             .solution("Use a different alias which prefix is not equal to " + quotedOxfordListOf(FORBIDDEN_LIBRARY_ALIAS_PREFIX, "or"))));
                 }
@@ -409,15 +400,13 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         }
     }
 
-    @NonNull
     private RuntimeException throwAliasCatalogException(String alias, Collection<String> reservedNames) {
         throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
-            configureVersionCatalogError(builder, getProblemInVersionCatalog() + "alias '" + alias + "' is not a valid alias.", RESERVED_ALIAS_NAME)
+            configureVersionCatalogError(builder, getProblemInVersionCatalog() + "alias '" + alias + "' is a reserved alias.", RESERVED_ALIAS_NAME)
                 .details("Alias '" + alias + "' is a reserved name in Gradle which prevents generation of accessors.")
                 .solution("Use a different alias which doesn't contain " + getExcludedNames(reservedNames) + ".")));
     }
 
-    @NonNull
     public static String getExcludedNames(Collection<String> reservedNames) {
         String namesOrName = quotedOxfordListOf(reservedNames, "or");
         if (reservedNames.size() == 1) {
@@ -438,10 +427,10 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     @Override
     public void bundle(String alias, List<String> aliases) {
         validateAlias(AliasType.BUNDLE, alias);
-        ImmutableList<String> components = ImmutableList.copyOf(aliases.stream()
+        ImmutableList<String> components = aliases.stream()
             .map(AliasNormalizer::normalize)
             .map(this::intern)
-            .collect(Collectors.toList()));
+            .collect(toImmutableList());
         BundleModel previous = bundles.put(AliasNormalizer.normalize(intern(alias)), new BundleModel(components, currentContext));
         if (previous != null) {
             LOGGER.warn("Duplicate entry for bundle '{}': {} is replaced with {}", alias, previous.getComponents(), components);
@@ -469,7 +458,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         private final String group;
         private final String name;
         private final String versionRef;
-        private final String context;
+        private final @Nullable String context;
 
         private VersionReferencingDependencyModel(String group, String name, String versionRef) {
             this.group = group;
@@ -486,7 +475,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
                     ProblemSpec configurator = configureVersionCatalogError(builder, getProblemInVersionCatalog() + "version reference '" + versionRef + "' doesn't exist.", UNDEFINED_VERSION_REFERENCE)
                         .details("Dependency '" + group + ":" + name + "' references version '" + versionRef + "' which doesn't exist")
                         .solution("Declare '" + versionRef + "' in the catalog");
-                    if (!versionConstraints.keySet().isEmpty()) {
+                    if (!versionConstraints.isEmpty()) {
                         configurator.solution("Use one of the following existing versions: " + quotedOxfordListOf(versionConstraints.keySet(), "or"));
                     }
                 }));
@@ -499,7 +488,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     private class VersionReferencingPluginModel implements Supplier<PluginModel> {
         private final String id;
         private final String versionRef;
-        private final String context;
+        private final @Nullable String context;
 
         private VersionReferencingPluginModel(String id, String versionRef) {
             this.id = id;
@@ -515,7 +504,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
                     ProblemSpec configurator = configureVersionCatalogError(builder, getProblemInVersionCatalog() + "version reference '" + versionRef + "' doesn't exist.", UNDEFINED_VERSION_REFERENCE)
                         .details("Plugin '" + id + "' references version '" + versionRef + "' which doesn't exist")
                         .solution("Declare '" + versionRef + "' in the catalog");
-                    if (!versionConstraints.keySet().isEmpty()) {
+                    if (!versionConstraints.isEmpty()) {
                         configurator.solution("Use one of the following existing versions: " + quotedOxfordListOf(versionConstraints.keySet(), "or"));
                     }
                 }));
@@ -557,15 +546,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         public void version(String version) {
             StrictVersionParser.RichVersion richVersion = owner.strictVersionParser.parse(version);
             version(vc -> {
-                if (richVersion.require != null) {
-                    vc.require(richVersion.require);
-                }
-                if (richVersion.prefer != null) {
-                    vc.prefer(richVersion.prefer);
-                }
-                if (richVersion.strictly != null) {
-                    vc.strictly(richVersion.strictly);
-                }
+                configureRequiredRichVersion(vc, richVersion);
             });
         }
 
@@ -578,6 +559,18 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         @Override
         public void withoutVersion() {
             version("");
+        }
+    }
+
+    private static void configureRequiredRichVersion(MutableVersionConstraint vc, StrictVersionParser.RichVersion richVersion) {
+        if (richVersion.require != null) {
+            vc.require(richVersion.require);
+        }
+        if (richVersion.prefer != null) {
+            vc.prefer(richVersion.prefer);
+        }
+        if (richVersion.strictly != null) {
+            vc.strictly(richVersion.strictly);
         }
     }
 
@@ -611,15 +604,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         public void version(String version) {
             StrictVersionParser.RichVersion richVersion = owner.strictVersionParser.parse(version);
             version(vc -> {
-                if (richVersion.require != null) {
-                    vc.require(richVersion.require);
-                }
-                if (richVersion.prefer != null) {
-                    vc.prefer(richVersion.prefer);
-                }
-                if (richVersion.strictly != null) {
-                    vc.strictly(richVersion.strictly);
-                }
+                configureRequiredRichVersion(vc, richVersion);
             });
         }
 

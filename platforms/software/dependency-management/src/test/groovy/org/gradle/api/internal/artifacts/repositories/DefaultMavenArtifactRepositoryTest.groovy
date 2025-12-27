@@ -354,12 +354,13 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     }
 
     private DefaultMavenArtifactRepository newRepo() {
-        def repo = new DefaultMavenArtifactRepository(
+        def repo = TestUtil.objectFactory().newInstance(DefaultMavenArtifactRepository, new DefaultMavenArtifactRepository.DefaultDescriber(),
             resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(),
             artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, externalResourceFileStore,
             Mock(FileResourceRepository), mavenMetadataFactory, SnapshotTestUtil.isolatableFactory(),
             TestUtil.objectFactory(), urlArtifactRepositoryFactory, TestUtil.checksumService, providerFactory, new VersionParser())
         repo.name = 'repo'
+        repo.allowInsecureContinueWhenDisabled.convention(false)
         return repo
     }
 

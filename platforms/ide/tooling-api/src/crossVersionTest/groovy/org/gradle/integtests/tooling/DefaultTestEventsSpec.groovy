@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling;
+package org.gradle.integtests.tooling
 
 import groovy.transform.CompileStatic
-import org.gradle.integtests.tooling.fixture.ProgressEvents;
+import org.gradle.integtests.tooling.fixture.ProgressEvents
 
 @CompileStatic
 class DefaultTestEventsSpec implements TestEventsSpec {

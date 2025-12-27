@@ -170,10 +170,12 @@ object SchemaSerialization {
             polymorphic(SchemaItemMetadata::class) {
                 subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultContainerElementFactory::class)
                 subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultProjectFeatureOrigin::class)
+                subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultConfigureFromGetterOrigin::class)
             }
             polymorphic(SchemaMemberOrigin::class) {
                 subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultContainerElementFactory::class)
                 subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultProjectFeatureOrigin::class)
+                subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultConfigureFromGetterOrigin::class)
             }
             polymorphic(DataType.TypeVariableUsage::class) {
                 subclass(DataTypeInternal.DefaultTypeVariableUsage::class)

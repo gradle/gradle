@@ -37,7 +37,6 @@ public final class BootstrapMethod {
         return new BootstrapMethod(constantDynamic.getBootstrapMethod(), new ConstantDynamicBootstrapArguments(constantDynamic));
     }
 
-    @NullMarked
     private static class ConstantDynamicBootstrapArguments extends AbstractList<Object> {
         private final ConstantDynamic constantDynamic;
 

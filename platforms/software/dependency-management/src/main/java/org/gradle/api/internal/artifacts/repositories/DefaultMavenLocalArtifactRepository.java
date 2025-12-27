@@ -45,12 +45,14 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.net.URI;
 
-public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository implements MavenArtifactRepository {
+public abstract class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRepository implements MavenArtifactRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenResolver.class);
     private final ChecksumService checksumService;
 
+    @Inject
     public DefaultMavenLocalArtifactRepository(FileResolver fileResolver, RepositoryTransportFactory transportFactory,
                                                LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder, InstantiatorFactory instantiatorFactory,
                                                FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
@@ -65,7 +67,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
                                                ChecksumService checksumService,
                                                VersionParser versionParser
     ) {
-        super(fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, null, versionParser);
+        super(new DefaultDescriber(), fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, authenticationContainer, null, fileResourceRepository, metadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, null, versionParser);
         this.checksumService = checksumService;
     }
 
@@ -88,7 +90,8 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
             null,
             null,
             injector,
-            checksumService);
+            checksumService,
+            false);
     }
 
     @Override

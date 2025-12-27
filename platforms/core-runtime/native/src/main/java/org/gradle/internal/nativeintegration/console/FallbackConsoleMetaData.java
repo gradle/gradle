@@ -27,12 +27,12 @@ public enum FallbackConsoleMetaData implements ConsoleMetaData {
     }
 
     @Override
-    public boolean isStdOut() {
+    public boolean isStdOutATerminal() {
         return attached;
     }
 
     @Override
-    public boolean isStdErr() {
+    public boolean isStdErrATerminal() {
         return attached;
     }
 

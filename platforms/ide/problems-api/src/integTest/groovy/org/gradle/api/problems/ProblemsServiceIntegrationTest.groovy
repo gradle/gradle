@@ -484,6 +484,25 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/35914")
+    def "build failure message does not contain duplicate information"() {
+        given:
+        disableProblemsApiCheck()
+        def solution = 'Look up the samples index for real-life examples'
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().throwing(new RuntimeException(), problemId) { spec ->
+                spec.solution("$solution")
+            }
+        """
+
+        when:
+        fails('reportProblem')
+
+        then:
+        errorOutput.count(solution) == 1
+    }
+
     static String problemIdScript() {
         """${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("generic", "group label");
            ${ProblemId.name} problemId = ${ProblemId.name}.create("type", "label", problemGroup)"""

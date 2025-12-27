@@ -31,8 +31,9 @@ import java.util.concurrent.atomic.AtomicInteger
  * A Proxy Server used for testing that proxies are correctly supported.
  */
 class TestProxyServer extends ExternalResource {
+    int port
+
     private HttpProxyServer proxyServer
-    private int port
     private AtomicInteger requestCountInternal = new AtomicInteger()
 
     @Override

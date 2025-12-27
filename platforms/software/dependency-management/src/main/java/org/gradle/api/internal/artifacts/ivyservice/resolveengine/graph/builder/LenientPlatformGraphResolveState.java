@@ -197,7 +197,7 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
         }
 
         /**
-         * The variant that is selected when another lenient platform targets this component.
+         * The variant that is selected when a virtual platform edge targets this component.
          *
          * @param platformId The consuming platform.
          */
@@ -427,6 +427,7 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
                     DefaultModuleComponentIdentifier.newId(module.getId(), moduleVersionIdentifier.getVersion()),
                     virtualPlatformState.getSelectedPlatformId(),
                     virtualPlatformState.isForced(),
+                    true,
                     true
                 ));
             }
@@ -528,7 +529,8 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
                 targetComponentId,
                 platformId,
                 virtualPlatformState.isForced(),
-                false
+                false,
+                true
             );
         }
 

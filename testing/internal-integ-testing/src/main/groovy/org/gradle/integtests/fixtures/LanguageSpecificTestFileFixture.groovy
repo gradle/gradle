@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
+import groovy.transform.CompileStatic
 import groovy.transform.SelfType
 import org.gradle.test.fixtures.file.TestFile
 import org.intellij.lang.annotations.Language
@@ -25,7 +26,8 @@ import org.intellij.lang.annotations.Language
  *
  * @see Language
  */
-@SelfType(AbstractIntegrationSpec)
+@CompileStatic
+@SelfType(CommonTestFilesFixture)
 trait LanguageSpecificTestFileFixture {
 
     /**
@@ -39,7 +41,7 @@ trait LanguageSpecificTestFileFixture {
      * <b>Appends</b> provided code to the given build file.
      */
     TestFile buildFile(String buildFile, @GroovyBuildScriptLanguage String append) {
-        file(buildFile) << append
+        userActionRootDir.file(buildFile) << append
     }
 
     /**
@@ -60,7 +62,7 @@ trait LanguageSpecificTestFileFixture {
      * <b>Appends</b> provided code to the given settings file.
      */
     TestFile settingsFile(String settingsFile, @GroovySettingsScriptLanguage String append) {
-        file(settingsFile) << append
+        userActionRootDir.file(settingsFile) << append
     }
 
     /**
@@ -81,7 +83,7 @@ trait LanguageSpecificTestFileFixture {
      * <b>Appends</b> provided code to the given init script file.
      */
     TestFile initScriptFile(String initScriptFile, @GroovyInitScriptLanguage String append) {
-        file(initScriptFile) << append
+        userActionRootDir.file(initScriptFile) << append
     }
 
     /**
@@ -95,7 +97,7 @@ trait LanguageSpecificTestFileFixture {
      * <b>Appends</b> provided code to the given Java file.
      */
     TestFile javaFile(String targetFile, @Language('java') String append) {
-        file(targetFile) << append
+        userActionRootDir.file(targetFile) << append
     }
 
     /**
@@ -116,7 +118,7 @@ trait LanguageSpecificTestFileFixture {
      * </ul>
      */
     TestFile groovyFile(String targetFile, @Language('groovy') String append) {
-        file(targetFile) << append
+        userActionRootDir.file(targetFile) << append
     }
 
     /**
@@ -139,7 +141,7 @@ trait LanguageSpecificTestFileFixture {
      * Consider specialized methods for Kotlin scripts.
      */
     TestFile kotlinFile(String targetFile, @Language('kotlin') String append) {
-        file(targetFile) << append
+        userActionRootDir.file(targetFile) << append
     }
 
     /**
@@ -156,6 +158,13 @@ trait LanguageSpecificTestFileFixture {
      */
     TestFile versionCatalogFile(@Language("toml") String append) {
         versionCatalogFile << append
+    }
+
+    /**
+     * <b>Appends</b> provided content to the {@link #getPropertiesFile()}.
+     */
+    TestFile propertiesFile(@Language("properties") String append) {
+        propertiesFile << append
     }
 
     /**

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.dom.resolution
 
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.analysis.ErrorReason.UnresolvedAssignmentRhs
@@ -171,58 +170,40 @@ class GenericFunctionResolutionTest {
 
     @Suppress("unused")
     interface Receiver {
-        @Restricted
         fun <T> boxOfT(): Box<T>
 
-        @Restricted
         fun <T> boxOfString(): Box<String>
 
-        @Restricted
         fun <T> boxOfInt(): Box<Int>
 
-        @Restricted
         fun <T> tToBoxOfT(t: T): Box<T>
 
-        @Restricted
         fun <T> tToBoxOfBoxOfT(t: T): Box<Box<T>>
 
-        @Restricted
         fun <T> boxOfBoxOfString(): Box<Box<String>>
 
-        @Restricted
         fun <T> boxOfBoxOfInt(): Box<Box<Int>>
 
-        @Restricted
         fun boxOfSub(): Box<Sub>
 
-        @Restricted
         fun boxOutOfSub(): BoxOut<Sub>
 
-        @Restricted
         fun boxOutOfSuper(): BoxOut<Super>
 
-        @Restricted
         fun <T> tToBoxOutOfT(t: T): BoxOut<T>
 
-        @Restricted
         fun sub(): Sub
 
-        @get:Restricted
         var boxOfString: Box<String>
 
-        @get:Restricted
         var boxOfBoxOfString: Box<Box<String>>
 
-        @get:Restricted
         var boxOfSuper: Box<Super>
 
-        @get:Restricted
         var boxOutOfSuper: BoxOut<Super>
 
-        @get:Restricted
         var boxOutOfBoxOutOfSuper: BoxOut<BoxOut<Super>>
 
-        @get:Restricted
         var pairOfStringAndInt: Pair<String, Int>
     }
 

@@ -123,6 +123,7 @@ dependencies {
         api(libs.jacksonKotlin)         { version { strictly(jacksonVersion) }}
         api(libs.jakartaActivation)     { version { strictly("2.0.1") }}
         api(libs.jakartaXmlBind)        { version { strictly("3.0.0") }}
+        //If JANSI is updated run on a windows terminal CMD.EXE to make sure the ansi control characters are not messing up the output
         api(libs.jansi)                 { version { strictly("2.4.2") }}
         api(libs.jatl)                  { version { strictly("0.2.3") }}
         api(libs.javaPoet)              { version { strictly("1.13.0") } }

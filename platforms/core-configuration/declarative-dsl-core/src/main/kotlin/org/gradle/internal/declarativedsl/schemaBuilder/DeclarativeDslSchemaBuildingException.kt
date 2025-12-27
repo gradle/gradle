@@ -21,7 +21,6 @@ import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationE
 class DeclarativeDslSchemaBuildingException(message: String, context: List<SchemaBuildingContextElement>) :
     DeclarativeDslInterpretationException(message + context.asReversed().joinToString("\n", "\n") { "  in ${it.userRepresentation}" })
 
-internal
 fun SchemaBuildingHost.schemaBuildingFailure(message: String): Nothing = throw DeclarativeDslSchemaBuildingException(message, context)
 
 

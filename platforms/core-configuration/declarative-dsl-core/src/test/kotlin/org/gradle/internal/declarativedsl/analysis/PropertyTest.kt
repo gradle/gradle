@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.assertIs
 import org.gradle.internal.declarativedsl.demo.resolve
@@ -71,10 +70,7 @@ class PropertyTest {
     @Suppress("unused")
     private
     interface MyReceiver {
-        @get:Restricted
         val x: Int
-
-        @get:Restricted
         var y: Int
     }
 
@@ -89,7 +85,7 @@ class PropertyTest {
                         DataTypeInternal.DefaultIntDataType.ref,
                         DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
                         hasDefaultValue = false,
-                        isHiddenInDeclarativeDsl = false,
+                        isHiddenInDefinition = false,
                         isDirectAccessOnly = false,
                         claimedFunctions = emptyList()
                     )

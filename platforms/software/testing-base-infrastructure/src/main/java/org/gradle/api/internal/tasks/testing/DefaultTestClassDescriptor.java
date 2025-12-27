@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.internal.tasks.testing.source.DefaultClassSource;
+import org.gradle.api.tasks.testing.source.TestSource;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.Nullable;
 
@@ -36,7 +38,11 @@ public class DefaultTestClassDescriptor extends DefaultTestSuiteDescriptor {
 
     @UsedByScanPlugin("test-distribution")
     public DefaultTestClassDescriptor(Object id, String className, @Nullable String classDisplayName) {
-        super(id, className);
+        this(id, className, classDisplayName, new DefaultClassSource(className));
+    }
+
+    public DefaultTestClassDescriptor(Object id, String className, @Nullable String classDisplayName, TestSource source) {
+        super(id, className, source);
         this.classDisplayName = classDisplayName == null ? className : classDisplayName;
     }
 

@@ -176,7 +176,6 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
         errorCollectingListener.rethrowErrors();
     }
 
-    @NullMarked
     private static class ErrorCollectingListener extends RunListener {
         private final List<Throwable> errors = new ArrayList<>();
 
@@ -282,7 +281,6 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
         }
     }
 
-    @NullMarked
     private final class FilteredGradleRequest extends Request {
         private final Runner runner;
 

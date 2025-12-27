@@ -28,6 +28,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ManagedType;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 
 import java.util.Set;
 
@@ -54,6 +55,7 @@ import java.util.Set;
  */
 @ManagedType
 @NonExtensible
+@HiddenInDefinition
 @SuppressWarnings("JavadocReference")
 public interface DependencyCollector {
     /**

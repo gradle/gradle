@@ -17,8 +17,6 @@
 package org.gradle.internal.declarativedsl.analysis.transformation
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionError
@@ -110,7 +108,6 @@ class OriginReplacementTest {
     val schema = schemaFromTypes(TopLevelReceiver::class, this::class.nestedClasses)
 
     interface TopLevelReceiver {
-        @Configuring
         fun configuring(fn: InnerReceiver.() -> Unit)
 
         @Adding
@@ -118,29 +115,23 @@ class OriginReplacementTest {
     }
 
     interface InnerReceiver {
-        @Restricted
         fun value(): Value
 
-        @Restricted
         fun value(arg: Value): Value
 
         @Adding
         fun addingValue(value: Value): Value
 
-        @get:Restricted
         val utils: Utils
 
-        @get:Restricted
         var property: Value
     }
 
     interface Utils {
-        @Restricted
         fun value(): Value
     }
 
     interface Value {
-        @Restricted
         fun anotherValue(): Value
     }
 }

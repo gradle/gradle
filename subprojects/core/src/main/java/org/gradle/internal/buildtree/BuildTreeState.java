@@ -32,12 +32,17 @@ import java.io.Closeable;
 public class BuildTreeState implements Closeable {
     private final ServiceRegistry services;
 
-    public BuildTreeState(BuildInvocationScopeId buildInvocationScopeId, ServiceRegistry parent, BuildTreeModelControllerServices.Supplier modelServices) {
+    public BuildTreeState(
+        ServiceRegistry buildSessionServices,
+        BuildActionModelRequirements buildActionRequirements,
+        BuildModelParameters buildModelParameters,
+        BuildInvocationScopeId buildInvocationScopeId
+    ) {
         services = ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.BuildTree.class)
             .displayName("build tree services")
-            .parent(parent)
-            .provider(new BuildTreeScopeServices(buildInvocationScopeId, this, modelServices))
+            .parent(buildSessionServices)
+            .provider(new BuildTreeScopeServices(buildActionRequirements, buildModelParameters, buildInvocationScopeId, this))
             .build();
     }
 

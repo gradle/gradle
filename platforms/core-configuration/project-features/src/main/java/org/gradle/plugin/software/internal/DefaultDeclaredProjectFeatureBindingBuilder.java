@@ -41,24 +41,26 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
 
     @Nullable private Class<?> dslImplementationType;
     @Nullable private Class<?> buildModelImplementationType;
+    private ProjectFeatureBindingDeclaration.Safety definitionSafety = ProjectFeatureBindingDeclaration.Safety.SAFE;
 
     public DefaultDeclaredProjectFeatureBindingBuilder(
-        Class<T> dslType,
+        Class<T> definitionType,
         Class<V> buildModelType,
         TargetTypeInformation<?> targetDefinitionType,
         Path path,
         ProjectFeatureApplyAction<T, V, ?> transform
     ) {
         this.targetDefinitionType = targetDefinitionType;
-        this.dslType = dslType;
+        this.dslType = definitionType;
         this.buildModelType = buildModelType;
         this.path = path;
         this.transform = transform;
     }
 
     private static <T extends Definition<V>, V extends BuildModel> ProjectFeatureBindingDeclaration<T, V> bindingOf(
-        Class<T> dslType,
-        @Nullable Class<? extends T> dslImplementationType,
+        Class<T> definitionType,
+        @Nullable Class<? extends T> definitionImplementationType,
+        ProjectFeatureBindingDeclaration.Safety definitionSafety,
         Path path,
         TargetTypeInformation<?> targetDefinitionType,
         Class<V> buildModelType,
@@ -73,12 +75,17 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
 
             @Override
             public Class<T> getDefinitionType() {
-                return dslType;
+                return definitionType;
             }
 
             @Override
             public Optional<Class<? extends T>> getDefinitionImplementationType() {
-                return Optional.ofNullable(dslImplementationType);
+                return Optional.ofNullable(definitionImplementationType);
+            }
+
+            @Override
+            public Safety getDefinitionSafety() {
+                return definitionSafety;
             }
 
             @Override
@@ -104,14 +111,20 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
     }
 
     @Override
-    public DeclaredProjectFeatureBindingBuilder<T, V> withDefinitionImplementationType(Class<? extends T> implementationType) {
+    public DeclaredProjectFeatureBindingBuilder<T, V> withUnsafeDefinitionImplementationType(Class<? extends T> implementationType) {
         this.dslImplementationType = implementationType;
-        return this;
+        return withUnsafeDefinition();
     }
 
     @Override
     public DeclaredProjectFeatureBindingBuilder<T, V> withBuildModelImplementationType(Class<? extends V> implementationType) {
         this.buildModelImplementationType = implementationType;
+        return this;
+    }
+
+    @Override
+    public DeclaredProjectFeatureBindingBuilder<T, V> withUnsafeDefinition() {
+        this.definitionSafety = ProjectFeatureBindingDeclaration.Safety.UNSAFE;
         return this;
     }
 
@@ -128,6 +141,7 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
         return DefaultDeclaredProjectFeatureBindingBuilder.bindingOf(
             dslType,
             Cast.uncheckedCast(dslImplementationType),
+            definitionSafety,
             path,
             targetDefinitionType,
             buildModelType,

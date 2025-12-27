@@ -91,8 +91,10 @@ fun reflect(
     objectOrigin: ObjectOrigin,
     context: ReflectionContext,
 ): ObjectReflection {
-    val type = with(context.typeRefContext) {
-        getDataType(objectOrigin)
+    val type by lazy {
+        with(context.typeRefContext) {
+            getDataType(objectOrigin)
+        }
     }
     return when (objectOrigin) {
         is ObjectOrigin.DelegatingObjectOrigin -> reflect(objectOrigin.canonical(), context)

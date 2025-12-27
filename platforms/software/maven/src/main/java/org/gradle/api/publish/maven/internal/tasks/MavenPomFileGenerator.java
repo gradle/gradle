@@ -41,13 +41,13 @@ import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.maven.MavenPomCiManagement;
 import org.gradle.api.publish.maven.MavenPomContributor;
+import org.gradle.api.publish.maven.MavenPomDeploymentRepository;
 import org.gradle.api.publish.maven.MavenPomDeveloper;
 import org.gradle.api.publish.maven.MavenPomIssueManagement;
 import org.gradle.api.publish.maven.MavenPomLicense;
 import org.gradle.api.publish.maven.MavenPomMailingList;
 import org.gradle.api.publish.maven.MavenPomOrganization;
 import org.gradle.api.publish.maven.MavenPomRelocation;
-import org.gradle.api.publish.maven.MavenPomDeploymentRepository;
 import org.gradle.api.publish.maven.MavenPomScm;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependency;
 import org.gradle.api.publish.maven.internal.dependencies.MavenPomDependencies;
@@ -61,7 +61,6 @@ import org.gradle.util.internal.GUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -309,11 +308,11 @@ public final class MavenPomFileGenerator {
     private static void insertGradleMetadataMarker(XmlProvider xmlProvider) {
         String comment = Joiner.on("").join(
             Streams.concat(
-                Arrays.stream(MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES),
-                Stream.of(MetaDataParser.GRADLE_6_METADATA_MARKER)
-            )
-            .map(content -> "<!-- " + content + " -->\n  ")
-            .iterator()
+                    MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES.stream(),
+                    Stream.of(MetaDataParser.GRADLE_6_METADATA_MARKER)
+                )
+                .map(content -> "<!-- " + content + " -->\n  ")
+                .iterator()
         );
 
         StringBuilder builder = xmlProvider.asString();

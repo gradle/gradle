@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.BuildCacheKeyInternal;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.MutableUnitOfWork;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionOutputState;
@@ -32,7 +32,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
-public class StoreExecutionStateStep<C extends PreviousExecutionContext & CachingContext, R extends AfterExecutionResult> implements Step<C, R> {
+public class StoreExecutionStateStep<C extends PreviousExecutionContext & CachingContext, R extends AfterExecutionResult> extends MutableStep<C, R> {
     private final Step<? super C, ? extends R> delegate;
 
     public StoreExecutionStateStep(
@@ -42,9 +42,9 @@ public class StoreExecutionStateStep<C extends PreviousExecutionContext & Cachin
     }
 
     @Override
-    public R execute(UnitOfWork work, C context) {
+    protected R executeMutable(MutableUnitOfWork work, C context) {
         R result = delegate.execute(work, context);
-        context.getHistory()
+        work.getHistory()
             .ifPresent(history -> context.getCachingState().getCacheKeyCalculatedState()
                 .flatMap(cacheKeyCalculatedState -> result.getAfterExecutionOutputState()
                     .filter(afterExecutionState -> result.getExecution().isSuccessful() || shouldPreserveFailedState(context, afterExecutionState))

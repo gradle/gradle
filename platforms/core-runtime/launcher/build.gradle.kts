@@ -13,7 +13,6 @@ dependencies {
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.buildState)
-    api(projects.classloaders)
     api(projects.cli)
     api(projects.concurrent)
     api(projects.core)
@@ -52,12 +51,16 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.buildProcessServices)
+    implementation(projects.classloaders)
+    implementation(projects.collections)
     implementation(projects.enterpriseOperations)
-    implementation(projects.functional)
     implementation(projects.io)
     implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.slf4jApi)
+    // Required directly by CliTextPrinter (uses Ant Main and Groovy ReleaseInfo)
+    implementation(libs.ant)
+    implementation(libs.groovy)
 
     runtimeOnly(projects.gradleCliMain)
     runtimeOnly(projects.declarativeDslProvider)

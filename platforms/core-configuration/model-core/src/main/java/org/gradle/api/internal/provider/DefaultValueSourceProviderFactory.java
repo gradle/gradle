@@ -163,7 +163,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
     @Nullable
     private <T, P extends ValueSourceParameters> Class<P> extractParametersTypeOf(Class<? extends ValueSource<T, P>> valueSourceType) {
-        return isolationScheme.parameterTypeFor(valueSourceType, 1);
+        return isolationScheme.parameterTypeForOrNull(valueSourceType, 1);
     }
 
     private <P extends ValueSourceParameters> void configureParameters(@Nullable P parameters, Action<? super ValueSourceSpec<P>> configureAction) {

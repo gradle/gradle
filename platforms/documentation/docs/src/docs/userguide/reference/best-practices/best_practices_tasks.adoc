@@ -304,7 +304,7 @@ However, calling some available methods from this interface—such as `.size()`,
 The same is possible using Kotlin stdlib collection extension methods or Groovy GDK collection extensions.
 Converting a `Configuration` to a `Set<File>` also discards any implicit task dependencies it carries.
 
-You should avoid using these methods when configuring your build. 
+You should avoid using these methods when configuring your build.
 Instead, use the methods defined directly on the Gradle interfaces - this is a necessary _first step_ towards preventing eager resolutions.
 Be sure to use <<lazy_configuration.adoc#working_with_files_in_lazy_properties,lazy types and APIs>> that defer resolution to wire task dependencies and inputs correctly.
 Some methods that cause resolution are not obvious.
@@ -409,3 +409,68 @@ The output reveals that the `lib` project is now built when the `:app:goodClassp
 
 === Tags
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`, `<<tags_reference.adoc#tag:configurations,#configurations>>`
+
+
+[[default_path_sensitivities]]
+== Use `@PathSensitivity.NONE` for file inputs and `@PathSensitivity.RELATIVE` for directories
+
+Use link:{javadocPath}/org/gradle/api/tasks/PathSensitivity.html#NONE[`@PathSensitivity.NONE`] for file inputs and link:{javadocPath}/org/gradle/api/tasks/PathSensitivity.html#RELATIVE[`@PathSensitivity.RELATIVE`] for directory inputs.
+
+=== Explanation
+
+Tasks should generally care about the **contents** of their input files, not their location on disk.
+
+When annotating file-based input properties (for example, `@InputFile` or `@InputFiles` collections), use `@PathSensitivity.NONE`.
+This tells Gradle to ignore the path and only consider the file contents when determining whether a task is up-to-date.
+
+For directory-based inputs (for example, `@InputDirectory` or `@InputFiles` collections), use `@PathSensitivity.RELATIVE`.
+This tells Gradle to also consider only the name of the directory (ignoring its absolute location) and to relativize the paths of all files within that directory to it when doing up-to-date checks.
+
+Using `PathSensitivity.NAME_ONLY` or `@PathSensitivity.ABSOLUTE` is generally incorrect.
+
+`PathSensitivity.NAME_ONLY` tells Gradle to consider a file's name in addition to its contents, which is rarely useful.
+
+
+`@PathSensitivity.ABSOLUTE` tells Gradle to consider a file's complete absolute path.
+This prevents <<build_cache.adoc#build_cache,Build Cache>> and <<configuration_cache.adoc#config_cache,Configuration Cache>> hits across different machines or checkout locations, making your build non-relocatable.
+It can also lead to confusing behavior where the same build produces different task outcomes when run from different directories.
+If no `@PathSensitive` annotation is provided, `PathSensitivity.ABSOLUTE` is the default.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/preferPathSensitivityNone-avoid/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/preferPathSensitivityNone-avoid/groovy",files="build.gradle[]"]
+====
+
+<1> The `AnimalSearchTask` task type uses a file input property annotated with `@PathSensitivity.ABSOLUTE`.  This means that the absolute path of the input file is used to determine if the task is `UP-TO-DATE` or if it can be loaded from cache.  Yet the path is irrelevant for the operation of the task's `@TaskAction`, which only cares about file contents.
+<2> The `copy` task will move the _exact same_ `candidates.txt` to different destination directories, depending on if the `useAlternateInput` project property is set.
+<3> The `search` task is wired to use as input whatever the file the `copy` task moved to its `destinationDir`. Despite the contents of the file being the same, when enabling the `-PuseAlternateInput` after a successful build, the `search` task will be out-of-date due to its different directory, and the search will be rerun.
+
+==== Do this Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/preferPathSensitivityNone-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/preferPathSensitivityNone-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/preferPathSensitivityNone-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/preferPathSensitivityNone-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> Everything remains the same, except that the input property is now annotated with `@PathSensitivity.NONE`.  Only the contents of this input file matter to this task.  When the `search` task is rerun with `-PuseAlternateInput`, it remains `UP-TO-DATE`.
+
+=== References
+
+- <<build_cache_concepts.adoc#relocatability,Input Relocatability>>
+
+=== Tags
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`

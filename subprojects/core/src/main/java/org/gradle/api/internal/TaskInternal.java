@@ -54,7 +54,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
     Spec<? super TaskInternal> getOnlyIf();
 
     /**
-     * Return the reason for not to track state.
+     * Returns the combined reasons to not track state in a single String.
      *
      * Gradle considers the task as untracked if the reason is present.
      * When not tracking state, a reason must be present. Hence the {@code Optional} represents the state of enablement, too.
@@ -63,6 +63,22 @@ public interface TaskInternal extends Task, Configurable<Task> {
      */
     @Internal
     Optional<String> getReasonNotToTrackState();
+
+    /**
+     * Returns the individual reasons to not track the task state.  This is used for serializing the reasons to the
+     * configuration cache.
+     */
+    @Internal
+    Set<String> getReasonsNotToTrackState();
+
+    /**
+     * Sets a condition to not track the task state when the given spec matches.  This condition will be evaluated when the return
+     * value of {@link #getReasonNotToTrackState()} is queried.
+     *
+     * @param reason - the reason for not tracking the task state when the condition matches
+     * @param spec - the condition to evaluate
+     */
+    void doNotTrackStateIf(String reason, Spec<? super TaskInternal> spec);
 
     @Internal
     boolean isCompatibleWithConfigurationCache();

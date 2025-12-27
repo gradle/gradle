@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
-import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints
 import org.gradle.api.specs.Specs
+import org.gradle.internal.collect.PersistentSet
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.VariantGraphResolveState
@@ -209,7 +209,7 @@ class NodeStateTest extends Specification {
     }
 
     def root(List<String> strictDependencies = []) {
-        def root = node(strictDependencies)
+        def root = node(strictDependencies, true)
         visit(root)
         root
     }
@@ -219,7 +219,7 @@ class NodeStateTest extends Specification {
         node.ancestorsStrictVersions
     }
 
-    private NodeState node(List<String> strictDependencies = []) {
+    private NodeState node(List<String> strictDependencies = [], boolean root = false) {
         def state = Stub(VariantGraphResolveState) {
             getDependencies() >> strictDependencies.collect { dep ->
                 Mock(DependencyMetadata) {
@@ -227,19 +227,25 @@ class NodeStateTest extends Specification {
                         DefaultModuleIdentifier.newId("org", dep),
                         DefaultImmutableVersionConstraint.strictly("1.0")
                     )
+                    getArtifacts() >> []
                 }
             }
         }
 
         def component = Stub(ComponentState)
-        def node = new NodeState(idIdx++, component, resolveState, state, true)
+        def node
+        if (root) {
+            node = new RootNode(idIdx++, component, resolveState, [], state)
+        } else {
+            node = new NodeState(idIdx++, component, resolveState, state, true)
+        }
         component.nodes >> [node]
         node.collectOwnStrictVersions(new ModuleExclusions().nothing())
         node
     }
 
     private static StrictVersionConstraints modules(List<String> names) {
-        StrictVersionConstraints.of(ImmutableSet.copyOf(
+        StrictVersionConstraints.of(PersistentSet.copyOf(
             names.collect { DefaultModuleIdentifier.newId("org", it) }
         ))
     }

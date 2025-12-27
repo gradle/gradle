@@ -16,9 +16,10 @@
 
 package org.gradle.testing.nonclassbased
 
-import spock.lang.Ignore
-
-@Ignore
+/**
+ * More tests that exercise and demonstrate incorrect Non-Class-Based Testing setups,
+ * based on an engine that doesn't return any tests.
+ */
 class NoResultsNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
     @Override
     List<TestEngines> getEnginesToSetup() {
@@ -48,7 +49,7 @@ class NoResultsNonClassBasedTestingIntegrationTest extends AbstractNonClassBased
         writeTestDefinitions(DEFAULT_DEFINITIONS_LOCATION)
 
         when:
-        fails("test", "--info")
+        fails("test")
 
         then:
         sourcesPresentAndNoTestsFound()

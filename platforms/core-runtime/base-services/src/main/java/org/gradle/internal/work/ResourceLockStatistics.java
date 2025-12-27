@@ -20,6 +20,7 @@ import org.gradle.api.Describable;
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Responsible for collecting statistics about resource lock acquisition and usage
@@ -63,7 +64,7 @@ public interface ResourceLockStatistics {
      * @param locks the resources which the operation is performed on
      * @param factory a factory which performs the operation
      */
-    <T> T measure(String operation, Iterable<? extends Describable> locks, Factory<T> factory);
+    <T extends @Nullable Object> T measure(String operation, Iterable<? extends Describable> locks, Factory<T> factory);
 
     /**
      * Called when the statistics collection is complete and any results should be reported.

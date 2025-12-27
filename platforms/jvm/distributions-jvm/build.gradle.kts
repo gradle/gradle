@@ -10,6 +10,7 @@ dependencies {
     agentsRuntimeOnly(projects.instrumentationAgent)
 
     pluginsRuntimeOnly(platform(projects.distributionsBasics))
+    pluginsRuntimeOnly(platform(projects.distributionsPublishing))
 
     pluginsRuntimeOnly(projects.baseIdePlugins)
     pluginsRuntimeOnly(projects.codeQuality)
@@ -26,6 +27,8 @@ dependencies {
     pluginsRuntimeOnly(projects.pluginsJvmTestSuite)
     pluginsRuntimeOnly(projects.pluginsTestReportAggregation)
     pluginsRuntimeOnly(projects.pluginsVersionCatalog)
+    pluginsRuntimeOnly(projects.publish)
+    pluginsRuntimeOnly(projects.signing)
     pluginsRuntimeOnly(projects.scala)
     pluginsRuntimeOnly(projects.war)
 

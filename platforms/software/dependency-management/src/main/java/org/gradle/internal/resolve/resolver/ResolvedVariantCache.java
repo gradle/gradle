@@ -90,6 +90,7 @@ public class ResolvedVariantCache  {
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
         public boolean equals(Object obj) {
             if (obj == this) {
                 return true;

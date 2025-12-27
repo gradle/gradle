@@ -6,12 +6,6 @@ plugins {
 
 description = "Report type classes and plugins for reporting (build dashboard, report container)"
 
-errorprone {
-    disabledChecks.addAll(
-        "EqualsUnsafeCast", // 1 occurrences
-    )
-}
-
 val implementationResources: Configuration by configurations.creating
 
 repositories {

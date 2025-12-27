@@ -161,6 +161,7 @@ public class CompileTransaction {
         return stashedFiles;
     }
 
+    @SuppressWarnings("CheckReturnValue") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private void deleteEmptyDirectoriesAfterCompilation(List<StashedFile> stashedFiles) {
         ImmutableSet<File> outputDirectories = getOutputDirectories();
         Set<File> potentiallyEmptyFolders = stashedFiles.stream()
@@ -177,6 +178,7 @@ public class CompileTransaction {
         rollbackStashedFiles(stashResult);
     }
 
+    @SuppressWarnings("CheckReturnValue") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private void deleteGeneratedFiles(ApiCompilerResult compilerResult) {
         PatternSet classesToDelete = getNewGeneratedClasses(compilerResult);
         Map<GeneratedResource.Location, PatternSet> resourcesToDelete = getNewGeneratedResources(compilerResult);

@@ -231,6 +231,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     }
 
     @Override
+    @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public boolean readFrom(Object path) {
         if (fileResolver == null) {
             return false;

@@ -19,7 +19,10 @@ import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.util.GradleVersion
+import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
+import spock.lang.Issue
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
@@ -225,6 +228,60 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/31966")
+    @Issue("https://github.com/gradle/gradle/issues/18875")
+    def "pom conversion to #scriptDsl including dependency with exclusions propagates exclusions"() {
+        given:
+        targetDir.file("pom.xml").write("""
+            <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+                <modelVersion>4.0.0</modelVersion>
+                <groupId>util</groupId>
+                <artifactId>util</artifactId>
+                <version>2.5</version>
+                <packaging>jar</packaging>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.example</groupId>
+                        <artifactId>example-lib</artifactId>
+                        <version>1.0</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>org.unwanted</groupId>
+                                <artifactId>unwanted-lib</artifactId>
+                            </exclusion>
+                            <exclusion>
+                                <groupId>org.other.bad.lib</groupId>
+                                <artifactId>dangerous-lib</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                </dependencies>
+            </project>
+        """.trim())
+
+        when:
+        succeeds('init', '--dsl', scriptDsl.id, '--overwrite')
+
+        then:
+        def buildFile = rootProjectDslFixtureFor(scriptDsl).buildFile
+        buildFile.assertContents(containsString(TextUtil.toPlatformLineSeparators("""
+dependencies {
+    api(libs.org.example.example.lib) {
+        // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent, see: https://docs.gradle.org/${GradleVersion.current().version}/userguide/build_init_plugin.html#sec:pom_maven_conversion
+        $unWantedLibExclude
+
+        // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent, see: https://docs.gradle.org/${GradleVersion.current().version}/userguide/build_init_plugin.html#sec:pom_maven_conversion
+        $dangerousLibExclude
+    }
+}""")))
+
+        where:
+        scriptDsl   | unWantedLibExclude                                                        | dangerousLibExclude
+        GROOVY      | "exclude(group: 'org.unwanted', module: 'unwanted-lib')"                  | "exclude(group: 'org.other.bad.lib', module: 'dangerous-lib')"
+        KOTLIN      | 'exclude(mapOf("group" to "org.unwanted", "module" to "unwanted-lib"))'   | 'exclude(mapOf("group" to "org.other.bad.lib", "module" to "dangerous-lib"))'
     }
 
     def "proper links"() {

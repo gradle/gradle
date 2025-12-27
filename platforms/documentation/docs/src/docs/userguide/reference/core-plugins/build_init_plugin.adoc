@@ -187,7 +187,10 @@ The conversion process has the following features:
 * Supports packaging of sources, tests, and javadocs
 * Supports TestNG runner
 * Generates global exclusions from Maven enforcer plugin settings
+* Generates dependency excludes from Maven `exclusions`
 * Provides <<build_init_plugin.adoc#sec:allow_insecure,an option for handling Maven repositories located at URLs using `http`>>
+
+NOTE: Due to fundamental differences between Maven and Gradle, not all features of a Maven build can be converted to Gradle. For example, Maven exclusions work differently from Gradle exclusions. The generated Gradle build should be considered a starting point for further refinement.
 
 [[sec:allow_insecure]]
 ==== The `--insecure-protocol` option

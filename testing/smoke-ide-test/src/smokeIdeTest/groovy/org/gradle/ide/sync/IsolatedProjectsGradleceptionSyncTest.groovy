@@ -36,7 +36,7 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
         ideaSync(IDEA_COMMUNITY_VERSION)
 
         then:
-        report.assertHtmlReportHasNoProblems()
+        report.htmlReport().assertHasNoProblems()
     }
 
     def "can sync gradle/gradle incrementally without error"() {

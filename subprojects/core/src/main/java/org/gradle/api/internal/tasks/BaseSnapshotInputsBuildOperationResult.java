@@ -181,6 +181,7 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
         return model;
     }
 
+    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private static <K, V, U> Collector<Map.Entry<K, V>, ?, LinkedHashMap<K, U>> toLinkedHashMap(Function<? super V, ? extends U> valueMapper) {
         return Collectors.toMap(
             Map.Entry::getKey,
@@ -201,6 +202,7 @@ public abstract class BaseSnapshotInputsBuildOperationResult implements CustomOp
     }
 
     @UsedByScanPlugin("The value names are used as part of Build Scan data and cannot be changed - new values can be added")
+    @SuppressWarnings("NonCanonicalType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     enum FilePropertyAttribute {
 
         // When adding new values, be sure to comment which Gradle version started emitting the attribute.

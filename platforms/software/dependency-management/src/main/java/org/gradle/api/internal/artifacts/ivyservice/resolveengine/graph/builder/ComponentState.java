@@ -176,15 +176,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return componentIdentifier;
     }
 
-    /**
-     * Restarts all incoming edges for this component, queuing them up for processing.
-     */
-    public void restartIncomingEdges(ComponentState selected) {
-        for (NodeState node : nodes) {
-            node.restart(selected);
-        }
-    }
-
     public void setSelectors(ModuleSelectors<SelectorState> selectors) {
         this.selectors = selectors;
     }
@@ -227,6 +218,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         graphResolveState = result.getGraphState();
     }
 
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private boolean tryResolveVirtualPlatform() {
         if (module.isVirtualPlatform()) {
             for (ComponentState version : module.getAllVersions()) {
@@ -396,12 +388,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public VirtualPlatformState getPlatformState() {
         return module.getPlatformState();
-    }
-
-    public void removeOutgoingEdges() {
-        for (NodeState node : getNodes()) {
-            node.deselect();
-        }
     }
 
     /**

@@ -111,6 +111,7 @@ import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
 import org.gradle.plugin.internal.PluginScheme;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderRegistrant;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -218,8 +219,16 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected DefaultToolingModelBuilderRegistry decorateToolingModelRegistry(DefaultToolingModelBuilderRegistry buildScopedToolingModelBuilders, BuildOperationRunner buildOperationRunner, ProjectStateRegistry projectStateRegistry) {
-        return buildScopedToolingModelBuilders.createChild();
+    protected DefaultToolingModelBuilderRegistry decorateToolingModelRegistry(
+        DefaultToolingModelBuilderRegistry buildScopedToolingModelBuilders,
+        BuildOperationRunner buildOperationRunner,
+        ProjectStateRegistry projectStateRegistry,
+        List<ToolingModelBuilderRegistrant> toolingModelBuilderRegistrants
+    ) {
+        DefaultToolingModelBuilderRegistry registry = buildScopedToolingModelBuilders.createChild();
+        boolean isRootProject = project.getParent() == null;
+        toolingModelBuilderRegistrants.forEach(provider -> provider.registerForProject(registry, isRootProject));
+        return registry;
     }
 
     @Provides

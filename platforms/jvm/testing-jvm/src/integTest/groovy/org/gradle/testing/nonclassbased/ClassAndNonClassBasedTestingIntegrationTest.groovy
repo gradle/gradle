@@ -16,8 +16,15 @@
 
 package org.gradle.testing.nonclassbased
 
+import org.gradle.api.tasks.testing.TestResult
+import testengines.TestEnginesFixture.TestEngines
+
 /**
  * Tests that exercise and demonstrate a TestEngines that runs both class and non-class test definitions.
+ * <p>
+ * Note that the {@link TestEngines#RESOURCE_AND_CLASS_BASED} engine is not a complete implementation of
+ * a class-based testing engine, it will only execute the class and because of this only reports results properly for
+ * test classes in the default package.
  */
 class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
     @Override
@@ -61,14 +68,14 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
         }
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
         if (classesPresent) {
-            classBasedTestsExecuted()
+            resultsFor().testPathPreNormalized(":SomeTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
         }
         if (nonClassDefinitionsPresent) {
-            nonClassBasedTestsExecuted()
+            nonClassBasedTestsExecuted(false)
         }
 
         where:
@@ -108,10 +115,58 @@ class ClassAndNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedT
         writeTestDefinitions(definitionsLocation)
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
-        classBasedTestsExecuted()
-        nonClassBasedTestsExecuted()
+        resultsFor().testPathPreNormalized(":SomeTest").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        nonClassBasedTestsExecuted(false)
+    }
+
+    def "when multiple engines do class-based testing and create different class tests with the same name, this is handled sensibly"() {
+        given:
+
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+                    }
+                }
+            }
+        """
+
+        if (classesPresent) {
+            writeTestClasses()
+        }
+        if (nonClassDefinitionsPresent) {
+            writeTestDefinitions()
+        }
+
+        when:
+        succeeds("test")
+
+        then:
+        if (classesPresent) {
+            def results = resultsFor()
+            results.testPathPreNormalized(":SomeTest").onlyRoot().assertChildCount(1, 0)
+            results.testPathPreNormalized(":SomeTest:testMethod()").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        }
+        if (nonClassDefinitionsPresent) {
+            nonClassBasedTestsExecuted(false)
+        }
+
+        where:
+        classesPresent | nonClassDefinitionsPresent
+        true           | true
+        true           | false
+        false          | true
     }
 }

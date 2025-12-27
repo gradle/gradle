@@ -47,7 +47,17 @@ public class MoreMemorySampleModifier implements SampleModifier {
         File propertiesFile = new File(projectDir, "gradle.properties");
         Properties properties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : new Properties();
         String existingArgs = properties.getProperty(ORG_GRADLE_JVMARGS, "");
-        properties.setProperty(ORG_GRADLE_JVMARGS, "-Xmx1024m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError " + existingArgs);
+        StringBuilder overrideArgs = new StringBuilder(existingArgs);
+        if (!existingArgs.contains("-Xmx")) {
+            overrideArgs.append(" -Xmx512m");
+        }
+        if (!existingArgs.contains("-XX:MaxMetaspaceSize")) {
+            overrideArgs.append(" -XX:MaxMetaspaceSize=512m");
+        }
+        if (!existingArgs.contains("-XX:+HeapDumpOnOutOfMemoryError")) {
+            overrideArgs.append(" -XX:+HeapDumpOnOutOfMemoryError");
+        }
+        properties.setProperty(ORG_GRADLE_JVMARGS, overrideArgs.toString());
         GUtil.saveProperties(properties, propertiesFile);
     }
 }

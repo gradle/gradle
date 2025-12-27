@@ -36,7 +36,6 @@ public class InstrumentedGroovyCallsHelper {
         }
     }
 
-    @NullMarked
     public interface ThrowingCallable<T> {
         @Nullable
         T call() throws Throwable;

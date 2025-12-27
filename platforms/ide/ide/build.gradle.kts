@@ -29,6 +29,7 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.ear)
     implementation(projects.languageJava)
+    implementation(projects.launcher)
     implementation(projects.loggingApi)
     implementation(projects.platformBase)
     implementation(projects.pluginsJava)

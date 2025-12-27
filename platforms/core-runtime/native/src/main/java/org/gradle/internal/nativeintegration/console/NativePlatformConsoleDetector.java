@@ -39,14 +39,14 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
             return null;
         }
 
-        boolean stdout = terminals.isTerminal(Stdout);
-        boolean stderr = terminals.isTerminal(Stderr);
+        boolean isStdoutATerminal = terminals.isTerminal(Stdout);
+        boolean isStderrATerminal = terminals.isTerminal(Stderr);
 
         try {
-            if (stdout) {
-                return new NativePlatformConsoleMetaData(stdout, stderr, terminals.getTerminal(Stdout));
-            } else if (stderr) {
-                return new NativePlatformConsoleMetaData(stdout, stderr, terminals.getTerminal(Stderr));
+            if (isStdoutATerminal) {
+                return new NativePlatformConsoleMetaData(isStdoutATerminal, isStderrATerminal, terminals.getTerminal(Stdout));
+            } else if (isStderrATerminal) {
+                return new NativePlatformConsoleMetaData(isStdoutATerminal, isStderrATerminal, terminals.getTerminal(Stderr));
             } else {
                 return null;
             }

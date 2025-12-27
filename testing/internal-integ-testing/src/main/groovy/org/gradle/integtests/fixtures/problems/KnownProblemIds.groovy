@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.problems
 
+import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.internal.jvm.SupportedJavaVersions
 
 class KnownProblemIds {
@@ -87,14 +88,14 @@ class KnownProblemIds {
         // See compiler.java for the full list of diagnostic codes we use as categories (we replace the dots with dashes)
         'compilation:java:compiler.*' : ['.*'],
         'compilation:java:initialization-failed': ['Java compilation initialization error'],
-        'dependency-version-catalog:alias-not-finished': ['version catalog error'],
-        'dependency-version-catalog:invalid-dependency-notation': ['Dependency version catalog problem'],
-        'dependency-version-catalog:reserved-alias-name': ['version catalog error'],
-        'dependency-version-catalog:catalog-file-does-not-exist': ['version catalog error'],
-        'dependency-version-catalog:toml-syntax-error': ['Dependency version catalog problem'],
-        'dependency-version-catalog:too-many-import-files': ['version catalog error'],
-        'dependency-version-catalog:too-many-import-invocation': ['version catalog error'],
-        'dependency-version-catalog:no-import-files': ['version catalog error'],
+        'dependency-version-catalog:alias-not-finished': [VersionCatalogProblemId.ALIAS_NOT_FINISHED.displayName],
+        'dependency-version-catalog:invalid-dependency-notation': [VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION.displayName],
+        'dependency-version-catalog:reserved-alias-name': [VersionCatalogProblemId.RESERVED_ALIAS_NAME.displayName],
+        'dependency-version-catalog:catalog-file-does-not-exist': [VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST.displayName],
+        'dependency-version-catalog:toml-syntax-error': [VersionCatalogProblemId.TOML_SYNTAX_ERROR.displayName],
+        'dependency-version-catalog:too-many-import-files': [VersionCatalogProblemId.TOO_MANY_IMPORT_FILES.displayName],
+        'dependency-version-catalog:too-many-import-invocation': [VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION.displayName],
+        'dependency-version-catalog:no-import-files': [VersionCatalogProblemId.NO_IMPORT_FILES.displayName],
         'deprecation:buildsrc-script': ['BuildSrc script has been deprecated.'],
         'deprecation:custom-task-action': ['Custom Task action has been deprecated.'],
         'deprecation:executing-gradle-on-jvm-versions-and-lower': ['Executing Gradle on JVM versions ' + (SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1) + ' and lower has been deprecated.'],

@@ -57,7 +57,6 @@ public class InPlaceClasspathBuilder implements ClasspathBuilder {
         }
     }
 
-    @NullMarked
     private static class ZipEntryBuilder implements EntryBuilder {
         private final ZipArchiveOutputStream outputStream;
         private final Set<String> dirs = new HashSet<>();
@@ -147,7 +146,6 @@ public class InPlaceClasspathBuilder implements ClasspathBuilder {
         action.execute(new DirectoryEntryBuilder(destinationDir));
     }
 
-    @NullMarked
     private static class DirectoryEntryBuilder implements EntryBuilder {
         private final File baseDir;
 

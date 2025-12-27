@@ -28,7 +28,7 @@ gradlePlugin {
 
 // Add a source set and a task for a functional test suite
 def functionalTest = sourceSets.create('functionalTest')
-gradlePlugin.testSourceSets(functionalTest)
+gradlePlugin.testSourceSet(functionalTest)
 
 configurations[functionalTest.implementationConfigurationName].extendsFrom(configurations.testImplementation)
 

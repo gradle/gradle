@@ -18,10 +18,7 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.FqName
-import org.gradle.internal.declarativedsl.hasDeclarativeAnnotation
-import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
-import kotlin.reflect.KVisibility
 
 
 @Suppress("LongParameterList")
@@ -32,22 +29,17 @@ fun schemaFromTypes(
     externalObjects: Map<FqName, KClass<*>> = emptyMap(),
     defaultImports: List<FqName> = emptyList(),
     configureLambdas: ConfigureLambdaHandler = kotlinFunctionAsConfigureLambda,
-    propertyExtractor: PropertyExtractor = DefaultPropertyExtractor(isPublicAndRestricted),
-    functionExtractor: FunctionExtractor = DefaultFunctionExtractor(configureLambdas, isPublicAndRestricted),
+    propertyExtractor: PropertyExtractor = DefaultPropertyExtractor(),
+    functionExtractor: FunctionExtractor =
+        CompositeFunctionExtractor(
+            listOf(
+                GetterBasedConfiguringFunctionExtractor(::isValidNestedModelType),
+                DefaultFunctionExtractor(configureLambdas)
+            )
+        ),
     augmentationsProvider: AugmentationsProvider = CompositeAugmentationsProvider(emptyList()),
     typeDiscovery: TypeDiscovery = TypeDiscovery.none
 ): AnalysisSchema =
     DataSchemaBuilder(typeDiscovery, propertyExtractor, functionExtractor, augmentationsProvider).schemaFromTypes(
         topLevelReceiver, types, externalFunctionDiscovery.discoverTopLevelFunctions(), externalObjects, defaultImports,
     )
-
-
-val isPublic: MemberFilter = MemberFilter { member: KCallable<*> ->
-    member.visibility == KVisibility.PUBLIC
-}
-
-
-val isPublicAndRestricted: MemberFilter = MemberFilter { member: KCallable<*> ->
-    member.visibility == KVisibility.PUBLIC &&
-        member.annotationsWithGetters.any(hasDeclarativeAnnotation)
-}

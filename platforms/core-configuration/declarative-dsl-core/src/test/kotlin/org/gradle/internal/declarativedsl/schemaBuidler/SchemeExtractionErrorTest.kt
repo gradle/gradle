@@ -17,8 +17,6 @@
 package org.gradle.internal.declarativedsl.schemaBuidler
 
 import org.gradle.api.provider.ListProperty
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationException
 import org.gradle.internal.declarativedsl.assertFailsWith
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -38,9 +36,9 @@ class SchemeExtractionErrorTest {
         )
         assertEquals(
             "Illegal 'IN' variance\n" +
-                "  in type argument 'in kotlin.String?'\n" +
-                "  in return value type 'kotlin.collections.MutableList<in kotlin.String?>?'\n" +
-                "  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverGetterReturn<T>.getList(): kotlin.collections.MutableList<in kotlin.String?>?'\n" +
+                "  in type argument 'in kotlin.String'\n" +
+                "  in return value type 'kotlin.collections.List<in kotlin.String>'\n" +
+                "  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverGetterReturn<T>.getList(): kotlin.collections.MutableList<in kotlin.String>'\n" +
                 "  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverGetterReturn'",
             exception.message
         )
@@ -48,8 +46,7 @@ class SchemeExtractionErrorTest {
 
     @Suppress("unused")
     abstract class ReceiverGetterReturn<T> {
-        @Restricted
-        abstract fun getList(): MutableList<in String?>?
+        abstract fun getList(): MutableList<in String>
     }
 
     @Test
@@ -60,7 +57,7 @@ class SchemeExtractionErrorTest {
         assertEquals(
             "Illegal 'OUT' variance\n" +
                 "  in type argument 'out kotlin.String'\n" +
-                "  in return value type 'kotlin.collections.MutableList<out kotlin.String>'\n" +
+                "  in return value type 'kotlin.collections.List<out kotlin.String>'\n" + // (List instead of MutableList because type.classifier is lossy in collection mutability)
                 "  in member 'var org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverPropertyReturn.x: kotlin.collections.MutableList<out kotlin.String>'\n" +
                 "  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverPropertyReturn'",
             exception.message,
@@ -69,7 +66,6 @@ class SchemeExtractionErrorTest {
 
     abstract class ReceiverPropertyReturn {
 
-        @get:Restricted
         var x: MutableList<out String> = mutableListOf()
     }
 
@@ -79,7 +75,7 @@ class SchemeExtractionErrorTest {
             block = {
                 schemaFromTypes(
                     ReceiverFunctionParam::class,
-                    listOf(ListProperty::class, ReceiverFunctionParam::class)
+                    listOf(ListProperty::class, ReceiverFunctionParam::class),
                 )
             }
         )
@@ -94,7 +90,6 @@ class SchemeExtractionErrorTest {
     }
 
     abstract class ReceiverFunctionParam {
-        @Restricted
         abstract fun size(list: ListProperty<in String>): Int
     }
 
@@ -104,7 +99,7 @@ class SchemeExtractionErrorTest {
             block = {
                 schemaFromTypes(
                     ReceiverFunctionReturn::class,
-                    listOf(ListProperty::class, ReceiverFunctionReturn::class)
+                    listOf(ListProperty::class, ReceiverFunctionReturn::class),
                 )
             }
         )
@@ -121,7 +116,6 @@ class SchemeExtractionErrorTest {
     @Suppress("unused")
     abstract class ReceiverFunctionReturn {
 
-        @Restricted
         abstract fun mood(): ListProperty<in String>
     }
 
@@ -147,7 +141,6 @@ class SchemeExtractionErrorTest {
     }
 
     interface UsageOfTypeOutsideSchema {
-        @Configuring
         fun configure(fn: File.() -> Unit)
     }
 }

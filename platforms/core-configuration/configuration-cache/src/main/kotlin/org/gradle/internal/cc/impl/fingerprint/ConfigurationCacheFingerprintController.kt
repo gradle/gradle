@@ -327,7 +327,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         return writingState.runCollectingFingerprintForProject(
             project,
             // always keep project context alive when building models since model requests can come at any point
-            keepAlive || modelParameters.isRequiresToolingModels,
+            keepAlive || modelParameters.isModelBuilding,
             action
         )
     }
@@ -400,7 +400,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             get() = buildCommencedTimeProvider.currentTime
 
         override val cacheIntermediateModels: Boolean
-            get() = modelParameters.isIntermediateModelCache
+            get() = modelParameters.isCachingModelBuilding
 
         override val modelAsProjectDependency: Boolean
             get() = modelParameters.isModelAsProjectDependency

@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.Dependencies
 import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
-import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
@@ -158,7 +157,6 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
         }
     }
 
-    override fun constructors(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
     override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
 
     private

@@ -171,6 +171,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
         return state;
     }
 
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private void validate(SettingsInternal settings) {
         settings.getProjectRegistry().getAllProjects().forEach(project -> {
             if (project.getPath().equals(BUILD_SRC_PROJECT_PATH)) {

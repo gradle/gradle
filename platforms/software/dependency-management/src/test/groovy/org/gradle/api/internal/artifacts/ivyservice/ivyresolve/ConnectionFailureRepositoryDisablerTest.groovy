@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
+import org.apache.http.NoHttpResponseException
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
 import spock.lang.Specification
 import spock.lang.Subject
@@ -30,7 +31,7 @@ class ConnectionFailureRepositoryDisablerTest extends Specification {
         def repositoryId2 = 'def'
 
         when:
-        boolean disabled = disabler.tryDisableRepository(repositoryId1, exception)
+        boolean disabled = disabler.tryDisableRepository(repositoryId1, exception, false)
 
         then:
         disabled
@@ -38,7 +39,7 @@ class ConnectionFailureRepositoryDisablerTest extends Specification {
         disabler.disabledRepositories.contains(repositoryId1)
 
         when:
-        disabled = disabler.tryDisableRepository(repositoryId1, exception)
+        disabled = disabler.tryDisableRepository(repositoryId1, exception, false)
 
         then:
         disabled
@@ -46,7 +47,7 @@ class ConnectionFailureRepositoryDisablerTest extends Specification {
         disabler.disabledRepositories.contains(repositoryId1)
 
         when:
-        disabled = disabler.tryDisableRepository(repositoryId2, exception)
+        disabled = disabler.tryDisableRepository(repositoryId2, exception, false)
 
         then:
         disabled
@@ -60,7 +61,7 @@ class ConnectionFailureRepositoryDisablerTest extends Specification {
 
     def "does not disable repository for #type"() {
         when:
-        boolean disabled = disabler.tryDisableRepository('abc', exception)
+        boolean disabled = disabler.tryDisableRepository('abc', exception, false)
 
         then:
         !disabled
@@ -70,6 +71,16 @@ class ConnectionFailureRepositoryDisablerTest extends Specification {
         type                                        | exception
         'NullPointerException'                      | createNestedException(new NullPointerException())
         'HttpErrorStatusCodeException with status ' | createUnauthorizedException()
+    }
+
+    def "disables repository when max retries reached for transient error"() {
+        when:
+        boolean disabled = disabler.tryDisableRepository('abc', new NoHttpResponseException("No response from server"), true)
+
+        then:
+        disabled
+        disabler.disabledRepositories.size() == 1
+        disabler.disabledRepositories.contains('abc')
     }
 
     static RuntimeException createInternalServerException() {

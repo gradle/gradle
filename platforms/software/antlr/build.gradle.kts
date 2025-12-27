@@ -4,12 +4,6 @@ plugins {
 
 description = "Adds support for generating parsers from Antlr grammars."
 
-errorprone {
-    disabledChecks.addAll(
-        "Finally", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.core)
     api(projects.coreApi)

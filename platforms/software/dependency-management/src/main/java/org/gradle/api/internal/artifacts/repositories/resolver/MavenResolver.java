@@ -70,7 +70,9 @@ public class MavenResolver extends ExternalResourceResolver {
         @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
         @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory,
         Instantiator injector,
-        ChecksumService checksumService) {
+        ChecksumService checksumService,
+        boolean continueOnConnectionFailure
+    ) {
         super(descriptor, transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
@@ -81,7 +83,8 @@ public class MavenResolver extends ExternalResourceResolver {
             componentMetadataSupplierFactory,
             versionListerFactory,
             injector,
-            checksumService);
+            checksumService,
+            continueOnConnectionFailure);
         this.mavenMetaDataLoader = mavenMetaDataLoader;
         this.root = rootUri;
     }

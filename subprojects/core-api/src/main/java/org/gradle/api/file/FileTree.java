@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
@@ -36,6 +37,7 @@ import java.util.Set;
  * <p>The order of the files in a {@code FileTree} is not stable, even on a single computer.
  */
 @HasInternalProtocol
+@HiddenInDefinition
 public interface FileTree extends FileCollection {
     /**
      * <p>Restricts the contents of this tree to those files matching the given filter. The filtered tree is live, so

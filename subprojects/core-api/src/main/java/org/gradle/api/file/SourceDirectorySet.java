@@ -22,6 +22,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy;
 import org.gradle.model.internal.core.UnmanagedStruct;
 import org.jspecify.annotations.Nullable;
@@ -46,6 +47,7 @@ import java.util.function.Function;
  */
 @UnmanagedStruct
 @NotToBeMigratedToLazy
+@HiddenInDefinition
 public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, Describable {
 
     /**

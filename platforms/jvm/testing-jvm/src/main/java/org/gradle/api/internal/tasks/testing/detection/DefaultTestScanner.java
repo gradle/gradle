@@ -25,8 +25,6 @@ import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Set;
@@ -41,8 +39,6 @@ import java.util.regex.Pattern;
  * Test definitions include both class-based and non-class-based tests.
  */
 public class DefaultTestScanner implements TestDetector {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTestScanner.class);
-
     private static final Pattern ANONYMOUS_CLASS_NAME = Pattern.compile(".*\\$\\d+");
     private final FileTree candidateClassFiles;
     private final Set<File> candidateDefinitionDirs;
@@ -88,19 +84,8 @@ public class DefaultTestScanner implements TestDetector {
             }
         });
         candidateDefinitionDirs.forEach(dir -> {
-            boolean isValid = false;
-            if (!dir.exists()) {
-                LOGGER.warn("Test definitions directory does not exist: " + dir.getAbsolutePath());
-            } else if (!dir.isDirectory()) {
-                LOGGER.warn("Test definitions directory is not a directory: " + dir.getAbsolutePath());
-            } else {
-                isValid = true;
-            }
-
-            if (isValid) {
-                TestDefinition testDefinition = new DirectoryBasedTestDefinition(dir);
-                testDefinitionProcessor.processTestDefinition(testDefinition);
-            }
+            TestDefinition testDefinition = new DirectoryBasedTestDefinition(dir);
+            testDefinitionProcessor.processTestDefinition(testDefinition);
         });
     }
 

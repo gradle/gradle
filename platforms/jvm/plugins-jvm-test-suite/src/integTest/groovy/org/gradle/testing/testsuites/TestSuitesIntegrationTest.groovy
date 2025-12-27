@@ -1040,9 +1040,10 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         fails("assertCopyCanBeResolved")
         failureDescriptionContains("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
         failureHasCause("""Method call not allowed
-  Calling configuration method 'copy()' is not allowed for configuration 'testImplementation', which has permitted usage(s):
-  \tDeclarable - this configuration can have dependencies added to it
-  This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'.""")
+  Calling configuration method 'copy()' is not allowed for configuration 'testImplementation'
+    'testImplementation' has the following permitted usage(s):
+    \tDeclarable - this configuration can have dependencies added to it
+    This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'.""")
     }
 
     def "configuring different test suites with different framework versions is allowed"() {

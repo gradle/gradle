@@ -137,6 +137,7 @@ public class ResourceVersionLister implements VersionLister {
         return listedVersions;
     }
 
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private List<String> filterOutMatchesWithOverlappingPatterns(List<String> listedVersions, ExternalResourceName currentVersionListPattern, Collection<ExternalResourceName> versionListPatterns) {
         List<String> remaining = Lists.newArrayList(listedVersions);
         for (ExternalResourceName otherVersionListPattern : versionListPatterns) {

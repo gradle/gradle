@@ -57,7 +57,7 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
     final IvyMutableModuleMetadataFactory ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
-    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver);
+    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver)
     final ProviderFactory providerFactory = Mock()
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(

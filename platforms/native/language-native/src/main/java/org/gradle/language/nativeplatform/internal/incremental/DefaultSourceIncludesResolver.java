@@ -169,6 +169,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         return tokenLookup.tokensFor(expression);
     }
 
+    @SuppressWarnings("MixedMutabilityReturnType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private Collection<Expression> resolveTokenConcatenationToTokens(MacroLookup visibleMacros, Expression expression, ExpressionVisitor visitor, TokenLookup tokenLookup) {
         Expression left = expression.getArguments().get(0);
         Expression right = expression.getArguments().get(1);

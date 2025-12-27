@@ -49,6 +49,7 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.KParameter
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
 import kotlin.reflect.KTypeProjection
@@ -59,6 +60,9 @@ import kotlin.reflect.typeOf
 
 interface SchemaBuildingHost {
     val topLevelReceiverClass: KClass<*>
+
+    fun classMembers(kClass: KClass<*>): ClassMembersForSchema
+    fun declarativeSupertypesHierarchy(kClass: KClass<*>): Iterable<MaybeDeclarativeClassInHierarchy>
 
     fun containerTypeRef(kClass: KClass<*>): DataTypeRef
     fun modelTypeRef(kType: KType): DataTypeRef
@@ -72,10 +76,10 @@ interface SchemaBuildingHost {
 fun <R> SchemaBuildingHost.inContextOfModelClass(kClass: KClass<*>, doBuildSchema: () -> R): R =
     inContextOf(SchemaBuildingContextElement.ModelClassContextElement(kClass), doBuildSchema)
 
-fun <R> SchemaBuildingHost.inContextOfModelMember(kCallable: KCallable<*>, doBuildSchema: () -> R): R =
+inline fun <R> SchemaBuildingHost.inContextOfModelMember(kCallable: KCallable<*>, doBuildSchema: () -> R): R =
     inContextOf(SchemaBuildingContextElement.ModelMemberContextElement(kCallable), doBuildSchema)
 
-fun <R> SchemaBuildingHost.withTag(tagContextElement: TagContextElement, doBuildSchema: () -> R): R =
+inline fun <R> SchemaBuildingHost.withTag(tagContextElement: TagContextElement, doBuildSchema: () -> R): R =
     inContextOf(tagContextElement, doBuildSchema)
 
 sealed interface SchemaBuildingContextElement {
@@ -99,14 +103,18 @@ sealed interface SchemaBuildingContextElement {
 
 object SchemaBuildingTags {
     fun parameter(name: String) = TagContextElement("parameter '$name'")
+    fun parameter(parameter: KParameter) = TagContextElement("parameter '${parameter.name ?: "(no name)"}'")
+    fun parameter(parameter: SupportedKParameter) = TagContextElement("parameter '${parameter.name ?: "(no name)"}'")
     fun receiverType(kClass: KClass<*>) = TagContextElement("receiver type '$kClass'")
     fun varargType(kType: KType) = TagContextElement("vararg type '$kType'")
     fun returnValueType(kType: KType) = TagContextElement("return value type '$kType'")
+    fun returnValueType(supportedType: SupportedTypeProjection.SupportedType) = TagContextElement("return value type '${supportedType.toKType()}'")
     fun externalObject(fqName: FqName) = TagContextElement("external object '${fqName.qualifiedName}'")
     fun namedDomainObjectContainer(name: String) = TagContextElement("nested named domain object container '$name'")
     fun elementTypeOfContainerSubtype(kClass: KClass<*>) = TagContextElement("element type of named domain object container subtype '$kClass'")
     fun typeArgument(argument: KTypeProjection) = TagContextElement("type argument '$argument'")
     fun configuredType(kType: KType) = TagContextElement("configured type '$kType'")
+    fun configuredType(supportedType: SupportedTypeProjection.SupportedType) = TagContextElement("configured type '${supportedType.toKType()}'")
 
     fun schemaClass(dataType: DataType.ClassDataType) = TagContextElement("schema type '${dataType.name}'")
     fun schemaFunction(function: SchemaFunction) = with(function) { TagContextElement("schema function '${simpleName}(${parameters.joinToString { "${it.name}: ${it.type}" }}): ${returnValueType}'") }
@@ -117,7 +125,7 @@ object SchemaBuildingTags {
     fun schemaTypeConstructor(constructor: DataConstructor) = TagContextElement("$constructor(${constructor.parameters.joinToString { "${it.name}: ${it.type}" }})")
 }
 
-private inline fun <R> SchemaBuildingHost.inContextOf(contextElement: SchemaBuildingContextElement, doBuildSchema: () -> R): R =
+inline fun <R> SchemaBuildingHost.inContextOf(contextElement: SchemaBuildingContextElement, doBuildSchema: () -> R): R =
     try {
         enterSchemaBuildingContext(contextElement)
         doBuildSchema()
@@ -146,6 +154,15 @@ class DataSchemaBuilder(
 
         override val context: List<SchemaBuildingContextElement>
             get() = currentContextStack
+
+        private val classMembersCache = mutableMapOf<KClass<*>, ClassMembersForSchema>()
+        private val declarativeSupertypesCache = mutableMapOf<KClass<*>, Iterable<MaybeDeclarativeClassInHierarchy>>()
+
+        override fun classMembers(kClass: KClass<*>): ClassMembersForSchema =
+            classMembersCache.getOrPut(kClass) { collectMembersForSchema(this, kClass) }
+
+        override fun declarativeSupertypesHierarchy(kClass: KClass<*>) =
+            declarativeSupertypesCache.getOrPut(kClass) { collectDeclarativeSuperclassHierarchy(kClass) }
 
         override fun containerTypeRef(kClass: KClass<*>): DataTypeRef {
             if (kClass.typeParameters.isNotEmpty()) {
@@ -424,7 +441,7 @@ class DataSchemaBuilder(
         val propertyOriginalTypes = mutableMapOf<KClass<*>, MutableMap<String, KType>>()
 
         private
-        val claimedFunctions = mutableMapOf<KClass<*>, MutableSet<KFunction<*>>>()
+        val claimedFunctions = mutableMapOf<KClass<*>, MutableSet<KCallable<*>>>()
 
         private val mutableSyntheticTypes = mutableMapOf<String, DataClass>()
 
@@ -441,7 +458,8 @@ class DataSchemaBuilder(
             propertyOriginalTypes.getOrPut(kClass) { mutableMapOf() }[property.name] = originalType
         }
 
-        fun claimFunction(kClass: KClass<*>, kFunction: KFunction<*>) {
+        // TODO replace with a generic schema member inclusion tracking mechanism
+        fun claimFunction(kClass: KClass<*>, kFunction: KCallable<*>) {
             claimedFunctions.getOrPut(kClass) { mutableSetOf() }.add(kFunction)
         }
 
@@ -455,7 +473,7 @@ class DataSchemaBuilder(
 
         fun getAllProperties(kClass: KClass<*>): List<DataProperty> = properties[kClass]?.values.orEmpty().toList()
 
-        fun getClaimedFunctions(kClass: KClass<*>): Set<KFunction<*>> = claimedFunctions[kClass].orEmpty()
+        fun getClaimedFunctions(kClass: KClass<*>): Set<KCallable<*>> = claimedFunctions[kClass].orEmpty()
 
         fun getProperty(kClass: KClass<*>, name: String) = properties[kClass]?.get(name)
         fun getPropertyType(kClass: KClass<*>, name: String) = propertyOriginalTypes[kClass]?.get(name)
@@ -474,7 +492,12 @@ class DataSchemaBuilder(
         val allTypesToVisit = buildSet {
             fun visit(type: KClass<*>) {
                 if (add(type)) {
-                    typeDiscovery.getClassesToVisitFrom(typeDiscoveryServices, type).forEach(::visit)
+                    typeDiscovery.getClassesToVisitFrom(typeDiscoveryServices, type)
+                        .forEach {
+                            if (!it.isHidden) {
+                                visit(it.kClass)
+                            }
+                        }
                 }
             }
             types.forEach(::visit)
@@ -489,7 +512,7 @@ class DataSchemaBuilder(
                         it.claimedFunctions.forEach { f -> claimFunction(type, f) }
                         addProperty(
                             type,
-                            DefaultDataProperty(it.name, it.returnType, it.propertyMode, it.hasDefaultValue, it.isHiddenInDeclarativeDsl, it.isDirectAccessOnly),
+                            DefaultDataProperty(it.name, it.returnType, it.propertyMode, it.hasDefaultValue, it.isHiddenInDefinition, it.isDirectAccessOnly),
                             it.originalReturnType
                         )
                     }
@@ -514,8 +537,7 @@ class DataSchemaBuilder(
             else -> {
                 val properties = preIndex.getAllProperties(kClass)
                 val functions = functionExtractor.memberFunctions(host, kClass, preIndex).toList()
-                val constructors = functionExtractor.constructors(host, kClass, preIndex).toList()
-                DefaultDataClass(kClass.fqName, kClass.java.name, listOf(), supertypesOf(kClass), properties, functions, constructors)
+                DefaultDataClass(kClass.fqName, kClass.java.name, listOf(), supertypesOf(kClass), properties, functions, emptyList())
                     .also { host.dataClassToKClass[it] = kClass }
             }
         }

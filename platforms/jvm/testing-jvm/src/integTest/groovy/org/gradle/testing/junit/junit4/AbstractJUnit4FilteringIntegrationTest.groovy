@@ -18,6 +18,7 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
 
@@ -110,12 +111,7 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         succeedsWithTestTaskArguments("test")
 
         then:
-        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
-        testResult.testPath("ParameterizedFoo", "").onlyRoot().assertOnlyChildrenExecuted("[0]", "[1]", "[2]", "[3]", "[4]")
-        for (int i = 0; i < 5; i++) {
-            testResult.testPath(":ParameterizedFoo:[$i]").onlyRoot().assertChildCount(1, 0)
-            testResult.testPath(":ParameterizedFoo:[$i]:pass[$i]").onlyRoot().assertHasResult(passedTestOutcome)
-        }
+        verifyParameterizedTestResults()
     }
 
     @Issue("GRADLE-3112")
@@ -127,8 +123,18 @@ abstract class AbstractJUnit4FilteringIntegrationTest extends AbstractTestFilter
         succeedsWithTestTaskArguments("test", "--tests", "*ParameterizedFoo.pass*")
 
         then:
+        verifyParameterizedTestResults()
+    }
+
+    void verifyParameterizedTestResults() {
         GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
-        testResult.testPath("ParameterizedFoo", "").onlyRoot().assertOnlyChildrenExecuted("[0]", "[1]", "[2]", "[3]", "[4]")
+        def fooResults = testResult.testPath("ParameterizedFoo", "").onlyRoot()
+        if (passedTestOutcome == TestResult.ResultType.SUCCESS) {
+            fooResults.assertOnlyChildrenExecuted("[0]", "[1]", "[2]", "[3]", "[4]")
+        } else {
+            fooResults.assertOnlyChildrenExecuted()
+            fooResults.assertChildrenSkipped("[0]", "[1]", "[2]", "[3]", "[4]")
+        }
         for (int i = 0; i < 5; i++) {
             testResult.testPath(":ParameterizedFoo:[$i]").onlyRoot().assertChildCount(1, 0)
             testResult.testPath(":ParameterizedFoo:[$i]:pass[$i]").onlyRoot().assertHasResult(passedTestOutcome)

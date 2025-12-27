@@ -175,7 +175,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         private final HashSet<String> processedEntries;
         private final ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder;
 
-
+        @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
         public ClasspathFingerprintingVisitor(HashSet<String> processedEntries, ImmutableMap.Builder<String, FileSystemLocationFingerprint> builder) {
             this.processedEntries = processedEntries;
             this.builder = builder;

@@ -19,13 +19,9 @@ package org.gradle.api.plugins.instrumentation;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.plugins.Definition;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.jspecify.annotations.NonNull;
 
-@Restricted
 public interface InstrumentClassesDefinition extends Definition<@NonNull InstrumentClassesModel> {
-    @Restricted
     RegularFileProperty getConfigFile();
-    @Restricted
     DirectoryProperty getDestinationDirectory();
 }

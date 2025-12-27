@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.sink;
 
+import org.fusesource.jansi.AnsiPrintStream;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.console.AnsiConsole;
 import org.gradle.internal.logging.console.ColorMap;
@@ -25,8 +26,10 @@ import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.util.function.Supplier;
 
@@ -63,16 +66,16 @@ public class ConsoleConfigureAction {
     }
 
     private static void configureAutoConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
-        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+        if (consoleMetaData.isStdOutATerminal() && consoleMetaData.isStdErrATerminal()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
             // This avoids interleaving problems when stdout and stderr end up at the same location
             Console console = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsoleWithErrorOutputOnStdout(console, consoleMetaData, false);
-        } else if (consoleMetaData.isStdOut()) {
+        } else if (consoleMetaData.isStdOutATerminal()) {
             // Write rich content to stdout and plain content to stderr
             Console stdoutConsole = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsole(stdoutConsole, stderr, consoleMetaData, false);
-        } else if (consoleMetaData.isStdErr()) {
+        } else if (consoleMetaData.isStdErrATerminal()) {
             // Write plain content to stdout and rich content to stderr
             Console stderrConsole = consoleForStdErr(stderr, consoleMetaData, renderer.getColourMap());
             renderer.addRichConsole(stdout, stderrConsole, true);
@@ -82,7 +85,7 @@ public class ConsoleConfigureAction {
     }
 
     private static void configurePlainConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
-        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+        if (consoleMetaData.isStdOutATerminal() && consoleMetaData.isStdErrATerminal()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
             // This avoids interleaving problems when stdout and stderr end up at the same location
             renderer.addPlainConsoleWithErrorOutputOnStdout(stdout);
@@ -92,7 +95,7 @@ public class ConsoleConfigureAction {
     }
 
     private static void configureColoredConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
-        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+        if (consoleMetaData.isStdOutATerminal() && consoleMetaData.isStdErrATerminal()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console.
             // Assume that they are attached to the same console.
             // This avoids interleaving problems when stdout and stderr end up at the same location.
@@ -107,7 +110,7 @@ public class ConsoleConfigureAction {
     }
 
     private static void configureRichConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr, boolean verbose) {
-        if (consoleMetaData.isStdOut() && consoleMetaData.isStdErr()) {
+        if (consoleMetaData.isStdOutATerminal() && consoleMetaData.isStdErrATerminal()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console.
             // Assume that they are attached to the same console.
             // This avoids interleaving problems when stdout and stderr end up at the same location.
@@ -128,10 +131,25 @@ public class ConsoleConfigureAction {
     }
 
     private static Console consoleForStdOut(OutputStream stdout, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
-        return consoleFor(stdout, org.fusesource.jansi.AnsiConsole::out, consoleMetaData, colourMap);
+        return consoleFor(stdout, () -> installJansiStream(org.fusesource.jansi.AnsiConsole.out()), consoleMetaData, colourMap);
     }
 
     private static Console consoleForStdErr(OutputStream stderr, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
-        return consoleFor(stderr, org.fusesource.jansi.AnsiConsole::err, consoleMetaData, colourMap);
+        return consoleFor(stderr, () -> installJansiStream(org.fusesource.jansi.AnsiConsole.err()), consoleMetaData, colourMap);
+    }
+
+    /**
+     * If any changes are made to the use of JANSI here, try out gradle on a windows CMD.EXE terminal.
+     *
+     * @return the installed ansiPrintStream
+     */
+    private static OutputStream installJansiStream(AnsiPrintStream ansiPrintStream) {
+        try {
+            ansiPrintStream.install();
+        } catch (IOException e) {
+            // compiler appeasement, no exception should be thrown according to the jansi code
+            throw new UncheckedIOException(e);
+        }
+        return ansiPrintStream;
     }
 }

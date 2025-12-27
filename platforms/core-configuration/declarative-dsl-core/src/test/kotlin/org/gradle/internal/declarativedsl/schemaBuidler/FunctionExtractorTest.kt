@@ -17,8 +17,6 @@
 package org.gradle.internal.declarativedsl.schemaBuidler
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.ParameterSemantics
@@ -84,8 +82,8 @@ class FunctionExtractorTest {
         assertFailsWith<DeclarativeDslSchemaBuildingException> { schemaFromTypes(HasMapSubtypeFactory::class, listOf(HasMapSubtypeFactory::class)) }.run {
             Assert.assertEquals(
                 """
-                    |Illegal type 'kotlin.collections.MutableMap<K, V>': functions returning Map types are not supported
-                    |  in return value type 'kotlin.collections.MutableMap<K, V>'
+                    |Illegal type 'kotlin.collections.Map<K, V>': functions returning Map types are not supported
+                    |  in return value type 'kotlin.collections.Map<K, V>'
                     |  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.HasMapSubtypeFactory.mapSubtypeFactory(): kotlin.collections.MutableMap<K, V>'
                     |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.HasMapSubtypeFactory'
                 """.trimMargin(), message
@@ -131,17 +129,14 @@ class FunctionExtractorTest {
     }
 
     abstract class ReceiverFour {
-        @Configuring
         abstract fun configuring(item: Int, configure: ReceiverFour.() -> Unit)
     }
 
     abstract class HasMapFactory {
-        @Restricted
         abstract fun mapFactory(): Map<String, String>
     }
 
     abstract class HasMapSubtypeFactory {
-        @Restricted
         abstract fun <K, V> mapSubtypeFactory(): MutableMap<K, V>
     }
 

@@ -34,6 +34,7 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
 import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
@@ -147,6 +148,11 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
             .orElse(javaToolchainService.launcherFor(it -> {}));
         javaLauncher = objectFactory.property(JavaLauncher.class).convention(javaLauncherConvention);
         javaLauncher.finalizeValueOnRead();
+
+        // The task will only be up-to-date if it has outputs, those outputs are up-to-date,
+        // and the Java launcher can be probed (i.e. javaLanguageVersion is not UNKNOWN)
+        doNotTrackStateIf("Java launcher cannot be probed",
+            task -> javaLauncher.map(launcher -> launcher.getMetadata().getLanguageVersion()).get() == DefaultJavaLanguageVersion.UNKNOWN);
     }
 
     @TaskAction
@@ -559,7 +565,7 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      *
      * @since 5.2
      */
-    @Input
+    @Internal("covered by getJavaLauncher().getMetadata().getLanguageVersion()")
     @ToBeReplacedByLazyProperty
     public JavaVersion getJavaVersion() {
         return JavaVersion.toVersion(getJavaLauncher().get().getMetadata().getLanguageVersion().asInt());

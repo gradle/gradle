@@ -59,4 +59,17 @@ public interface ProjectFeatureBindingDeclaration<T extends Definition<V>, V ext
      * feature is referenced.
      */
     ProjectFeatureApplyAction<T, ?, V> getTransform();
+
+    /**
+     * Whether the definition of this binding is considered safe or unsafe.
+     */
+    Safety getDefinitionSafety();
+
+    /**
+     * Represents the safety of some aspect of the binding.
+     */
+    enum Safety {
+        SAFE,
+        UNSAFE
+    }
 }

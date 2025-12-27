@@ -1271,14 +1271,39 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (!isProperUsage(properUsages)) {
             String currentUsageDesc = UsageDescriber.describeCurrentUsage(this);
             String properUsageDesc = ProperMethodUsage.summarizeProperUsage(properUsages);
-            String msgTemplate = "Calling configuration method '%s' is not allowed for configuration '%s', which has permitted usage(s):\n" +
-                "%s\n" +
-                "This method is only meant to be called on configurations which allow the %susage(s): '%s'.";
+            @SuppressWarnings("InlineFormatString")
+            String prefixTemplate = "Calling configuration method '%s' is not allowed for configuration '%s'";
+            @SuppressWarnings("InlineFormatString")
+            String suffixTemplate = "This method is only meant to be called on configurations which allow the %susage(s): '%s'.";
+            GradleException ex = new GradleException(
+                String.format(
+                    prefixTemplate + ", which has permitted usage(s):\n%s\n" + suffixTemplate,
+                    methodName,
+                    getName(),
+                    currentUsageDesc,
+                    allowDeprecated ? "" : "(non-deprecated) ",
+                    properUsageDesc
+                )
+            );
 
-            GradleException ex = new GradleException(String.format(msgTemplate, methodName, getName(), currentUsageDesc, allowDeprecated ? "" : "(non-deprecated) ", properUsageDesc));
             ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
             throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
-                spec.contextualLabel(ex.getMessage());
+                spec.contextualLabel(
+                    String.format(
+                        prefixTemplate,
+                        methodName,
+                        getName()
+                    )
+                );
+                spec.details(
+                    String.format(
+                        "'%s' has the following permitted usage(s):\n%s\n" + suffixTemplate,
+                        getName(),
+                        currentUsageDesc,
+                        allowDeprecated ? "" : "(non-deprecated) ",
+                        properUsageDesc
+                    )
+                );
                 spec.severity(Severity.ERROR);
             });
         } else if (isExclusivelyDeprecatedUsage(properUsages)) {

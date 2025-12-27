@@ -25,19 +25,27 @@ interface TypeDiscovery {
         val propertyExtractor: PropertyExtractor
     }
 
-    fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>>
+    data class DiscoveredClass(val kClass: KClass<*>, val isHidden: Boolean)
+
+    fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<DiscoveredClass>
 
     companion object {
         val none = object : TypeDiscovery {
-            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> = emptyList()
+            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<DiscoveredClass> = emptyList()
         }
     }
 }
 
 
 class CompositeTypeDiscovery(internal val implementations: Iterable<TypeDiscovery>) : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
-        implementations.flatMapTo(mutableSetOf()) { it.getClassesToVisitFrom(typeDiscoveryServices, kClass) }
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
+        implementations.flatMap { it.getClassesToVisitFrom(typeDiscoveryServices, kClass) }
+            .groupBy { it.kClass }.entries.map { (kClass, discovered) -> TypeDiscovery.DiscoveredClass(kClass, discovered.all { it.isHidden }) }
+}
+
+class FilteringTypeDiscovery(private val delegate: TypeDiscovery, val typeFilter: (KClass<*>) -> Boolean) : TypeDiscovery {
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
+        if (typeFilter(kClass)) delegate.getClassesToVisitFrom(typeDiscoveryServices, kClass).filter { typeFilter(it.kClass) } else emptyList()
 }
 
 

@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.results.DefaultTestResult;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.jspecify.annotations.NullMarked;

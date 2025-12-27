@@ -16,6 +16,8 @@
 
 package org.gradle.internal.service;
 
+import org.jspecify.annotations.Nullable;
+
 class DefaultServiceAccessToken implements ServiceAccessToken {
 
     private final int id;
@@ -27,7 +29,7 @@ class DefaultServiceAccessToken implements ServiceAccessToken {
     }
 
     @Override
-    public final boolean equals(Object o) {
+    public final boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }

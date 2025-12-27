@@ -20,12 +20,6 @@ plugins {
 
 description = "JVM invocation and inspection abstractions"
 
-errorprone {
-    disabledChecks.addAll(
-        "DefaultCharset", // 2 occurrences
-    )
-}
-
 dependencies {
     api(projects.loggingApi)
     api(projects.stdlibJavaExtensions)

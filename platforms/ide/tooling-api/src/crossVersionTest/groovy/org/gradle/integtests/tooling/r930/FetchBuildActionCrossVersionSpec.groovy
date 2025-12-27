@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r930
 
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
@@ -43,6 +44,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         result.modelValue == ['root']
     }
 
+    @TargetGradleVersion("<9.4.0")
     def "returns a failure for GradleBuild model if settings script fails due to #description"() {
         given:
         settingsFile.delete()

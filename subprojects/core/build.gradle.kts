@@ -42,17 +42,6 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
     extendsFrom(configurations.implementation.get())
 }
 
-errorprone {
-    disabledChecks.addAll(
-        "NonApiType", // 1 occurrences
-        "NonCanonicalType", // 16 occurrences
-        "ReferenceEquality", // 2 occurrences
-        "StreamResourceLeak", // 6 occurrences
-        "TypeParameterShadowing", // 1 occurrences
-        "TypeParameterUnusedInFormals", // 2 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseAsm)
     api(projects.baseServices)
@@ -70,6 +59,7 @@ dependencies {
     api(projects.buildProcessServices)
     api(projects.classloaders)
     api(projects.cli)
+    api(projects.collections)
     api(projects.concurrent)
     api(projects.coreApi)
     api(projects.declarativeDslApi)
@@ -275,6 +265,7 @@ dependencies {
     integTestImplementation(libs.littleproxy)
     integTestImplementation(testFixtures(projects.native))
     integTestImplementation(testFixtures(projects.fileTemp))
+    integTestImplementation(testFixtures(projects.launcher))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("This is required by ProjectBuilder, but ProjectBuilder cannot declare :distributions-core as a dependency due to conflicts with other distributions.")

@@ -23,21 +23,31 @@ package org.gradle.api.internal.catalog.problems;
  */
 public enum VersionCatalogProblemId {
 
-    ACCESSOR_NAME_CLASH,
-    CATALOG_FILE_DOES_NOT_EXIST,
-    INVALID_ALIAS_NOTATION,
-    INVALID_DEPENDENCY_NOTATION,
-    INVALID_PLUGIN_NOTATION,
-    INVALID_MODULE_NOTATION,
-    TOO_MANY_IMPORT_FILES,
-    NO_IMPORT_FILES,
-    TOO_MANY_IMPORT_INVOCATION,
-    RESERVED_ALIAS_NAME,
-    TOML_SYNTAX_ERROR,
-    TOO_MANY_ENTRIES,
-    UNDEFINED_ALIAS_REFERENCE,
-    UNDEFINED_VERSION_REFERENCE,
-    UNSUPPORTED_FILE_FORMAT,
-    UNSUPPORTED_FORMAT_VERSION,
-    ALIAS_NOT_FINISHED
+    ACCESSOR_NAME_CLASH("Accessor name clash"),
+    CATALOG_FILE_DOES_NOT_EXIST("Import of external catalog file failed"),
+    INVALID_ALIAS_NOTATION("The alias notation is invalid"),
+    RESERVED_ALIAS_NAME("The alias is reserved"),
+    INVALID_DEPENDENCY_NOTATION("The dependency notation is not valid"),
+    INVALID_PLUGIN_NOTATION("The plugin notation is not valid"),
+    INVALID_MODULE_NOTATION("The module notation is not valid"),
+    TOO_MANY_IMPORT_FILES("Importing multiple files is not supported"),
+    NO_IMPORT_FILES("No files were resolved to be imported"),
+    TOO_MANY_IMPORT_INVOCATION("The 'from' method can only be called once"),
+    TOML_SYNTAX_ERROR("TOML syntax error"),
+    TOO_MANY_ENTRIES("Too many entries"),
+    UNDEFINED_ALIAS_REFERENCE("Bundle declares dependency on non-existent alias"),
+    UNDEFINED_VERSION_REFERENCE("The version reference doesn't exist"),
+    UNSUPPORTED_FILE_FORMAT("The file format is not supported"),
+    UNSUPPORTED_FORMAT_VERSION("The format version is not supported"),
+    ALIAS_NOT_FINISHED("Dependency alias builder was not finished");
+
+    private final String displayName;
+
+    VersionCatalogProblemId(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
 }

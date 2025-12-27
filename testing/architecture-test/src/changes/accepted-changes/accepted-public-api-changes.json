@@ -17,6 +17,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getSoftwareTypeRegistry()",
+            "acceptation": "Internal and unpublished API",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
             "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.dependencyLocking(org.gradle.api.Action)",
             "acceptation": "faulty since detection",

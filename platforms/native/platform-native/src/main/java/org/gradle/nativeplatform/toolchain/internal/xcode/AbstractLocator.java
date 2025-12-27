@@ -33,6 +33,7 @@ public abstract class AbstractLocator {
 
     protected abstract List<String> getXcrunFlags();
 
+    @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public File find() {
         synchronized (this) {
             if (cachedLocation == null) {

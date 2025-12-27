@@ -36,7 +36,6 @@ import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.vfs.FileSystemAccess;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -47,7 +46,6 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     private static final InternalOption<@Nullable String> CACHING_DISABLED_PROPERTY = StringInternalOption.of("org.gradle.internal.transform-caching-disabled");
 
     private final ExecutionEngine executionEngine;
-    private final FileSystemAccess fileSystemAccess;
     private final InternalOptions internalOptions;
     private final TransformExecutionListener transformExecutionListener;
     private final ImmutableTransformWorkspaceServices immutableWorkspaceServices;
@@ -58,7 +56,6 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
 
     public DefaultTransformInvocationFactory(
         ExecutionEngine executionEngine,
-        FileSystemAccess fileSystemAccess,
         InternalOptions internalOptions,
         TransformExecutionListener transformExecutionListener,
         ImmutableTransformWorkspaceServices immutableWorkspaceServices,
@@ -68,7 +65,6 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
         BuildOperationProgressEventEmitter progressEventEmitter
     ) {
         this.executionEngine = executionEngine;
-        this.fileSystemAccess = fileSystemAccess;
         this.internalOptions = internalOptions;
         this.transformExecutionListener = transformExecutionListener;
         this.immutableWorkspaceServices = immutableWorkspaceServices;
@@ -93,16 +89,31 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
 
         boolean cachingDisabledByProperty = isCachingDisabledByProperty(transform);
 
-        // TODO This is a workaround for script compilation that is triggered via the "early" execution
-        //      engine created in DependencyManagementBuildScopeServices. We should unify the execution
-        //      engines instead.
-        ExecutionEngine effectiveEngine;
-        if (producerProject == null) {
-            // Non-project-bound transforms run in a global immutable workspace,
-            // and are identified by a non-normalized identity
-            // See comments on NonNormalizedIdentityImmutableTransformExecution
+        if (producerProject != null && transform.requiresInputChanges()) {
+            // Incremental project artifact transforms are executed in a project-bound mutable workspace
+            MutableTransformWorkspaceServices workspaceServices = producerProject.getServices().get(MutableTransformWorkspaceServices.class);
+            identityCache = workspaceServices.getIdentityCache();
+            execution = new MutableTransformExecution(
+                transform,
+                inputArtifact,
+                dependencies,
+                subject,
+                producerProject,
+
+                transformExecutionListener,
+                buildOperationRunner,
+                progressEventEmitter,
+                fileCollectionFactory,
+                inputFingerprinter,
+                workspaceServices.getWorkspaceProvider(),
+                workspaceServices.getExecutionHistoryStore(),
+
+                cachingDisabledByProperty
+            );
+        } else {
+            // Immutable transforms and transforms without a producer project are executed in a global immutable workspace
             identityCache = immutableWorkspaceServices.getIdentityCache();
-            execution = new NonNormalizedIdentityImmutableTransformExecution(
+            execution = new ImmutableTransformExecution(
                 transform,
                 inputArtifact,
                 dependencies,
@@ -113,55 +124,12 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
                 progressEventEmitter,
                 fileCollectionFactory,
                 inputFingerprinter,
-                fileSystemAccess,
                 immutableWorkspaceServices.getWorkspaceProvider(),
 
                 cachingDisabledByProperty
             );
-            effectiveEngine = executionEngine;
-        } else {
-            effectiveEngine = producerProject.getServices().get(ExecutionEngine.class);
-            if (!transform.requiresInputChanges()) {
-                // Non-incremental project artifact transforms also run in an immutable workspace
-                identityCache = immutableWorkspaceServices.getIdentityCache();
-                execution = new NormalizedIdentityImmutableTransformExecution(
-                    transform,
-                    inputArtifact,
-                    dependencies,
-                    subject,
-
-                    transformExecutionListener,
-                    buildOperationRunner,
-                    progressEventEmitter,
-                    fileCollectionFactory,
-                    inputFingerprinter,
-                    immutableWorkspaceServices.getWorkspaceProvider(),
-
-                    cachingDisabledByProperty
-                );
-            } else {
-                // Incremental project artifact transforms run in project-bound mutable workspace
-                MutableTransformWorkspaceServices workspaceServices = producerProject.getServices().get(MutableTransformWorkspaceServices.class);
-                identityCache = workspaceServices.getIdentityCache();
-                execution = new MutableTransformExecution(
-                    transform,
-                    inputArtifact,
-                    dependencies,
-                    subject,
-                    producerProject,
-
-                    transformExecutionListener,
-                    buildOperationRunner,
-                    progressEventEmitter,
-                    fileCollectionFactory,
-                    inputFingerprinter,
-                    workspaceServices.getWorkspaceProvider(),
-
-                    cachingDisabledByProperty
-                );
-            }
         }
-        return effectiveEngine.createRequest(execution)
+        return executionEngine.createRequest(execution)
             .executeDeferred(identityCache)
             .map(result -> result
                 .map(successfulResult -> successfulResult.resolveForInputArtifact(inputArtifact))
