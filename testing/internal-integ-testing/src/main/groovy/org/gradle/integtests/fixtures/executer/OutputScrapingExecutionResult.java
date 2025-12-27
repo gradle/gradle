@@ -50,7 +50,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         at java.base/java.lang.Thread.dumpStack(Thread.java:1383)
 
      Explanations for parts of it:
-        - ^\s*(at\s+)?: start of line, spaces, optional "at"
+        - ^\s*(at\s+)\s*: start of line, spaces, "at" (is optional in general, but works better for our purposes if we ignore those edge cases) and more spaces
         - ([\w\.]+/)?: optional Module Name (chars, dots, slash), like "java.base/"
         - ([a-zA-Z_$][\w.$]+): fully qualified class name, like "java.lang.String"
         - \.([\w$_<>]+): method name, like ".valueOf"
@@ -62,7 +62,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             - "[\w+\.$-\\/ ŝ]+\.(java|kt|scala|groovy|gradle|gradle.kts)": matches lines that provide a source file but no line number
     */
     static final Pattern STACK_TRACE_ELEMENT = Pattern.compile(
-        "^\\s*(at\\s+)?([\\w\\.]+/)?([a-zA-Z_$][\\w.$]+)\\.([\\w$_<>]+)\\s*\\((Native Method|Unknown Source|[\\w+\\.$-\\\\/ ŝ]+:\\d+|[\\w+\\.$-\\\\/ ŝ]+\\.(java|kt|scala|groovy|gradle|gradle.kts))\\)(\\x1B\\[0K)?"
+        "^\\s*at\\s*([\\w\\.]+/)?([a-zA-Z_$][\\w.$]+)\\.([\\w$_<>]+)\\s*\\((Native Method|Unknown Source|[\\w+\\.$-\\\\/ ŝ]+:\\d+|[\\w+\\.$-\\\\/ ŝ]+\\.(java|kt|scala|groovy|gradle|gradle.kts))\\)(\\x1B\\[0K)?"
     );
     private static final String TASK_PREFIX = "> Task ";
 

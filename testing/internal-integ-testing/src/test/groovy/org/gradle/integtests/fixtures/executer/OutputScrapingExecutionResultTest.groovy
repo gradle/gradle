@@ -79,6 +79,7 @@ class OutputScrapingExecutionResultTest extends AbstractExecutionResultTest {
         line << [
                 '''\t1. candidate: Thing(String, String, ProjectLayout)''',
                 '''\tapiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)''',
+                '''org.gradle.api.tasks.compile.JavaCompile.setSource(): at test.MyPlugin(MyPlugin.java:13)''',
         ]
     }
 
