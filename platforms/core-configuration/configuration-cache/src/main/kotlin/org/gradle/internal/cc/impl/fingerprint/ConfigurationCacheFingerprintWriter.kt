@@ -141,7 +141,10 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    val buildScopedWriter = ScopedFingerprintWriter<ConfigurationCacheFingerprint>(buildScopedContext)
+    val buildScopedWriter = ScopedFingerprintWriter<ConfigurationCacheFingerprint>(
+        buildScopedContext,
+        releaseProjectLocks = true
+    )
 
     private
     val buildScopedSink = BuildScopedSink(host, buildScopedWriter)
