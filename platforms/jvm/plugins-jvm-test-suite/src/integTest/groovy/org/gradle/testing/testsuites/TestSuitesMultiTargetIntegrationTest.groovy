@@ -29,7 +29,7 @@ class TestSuitesMultiTargetIntegrationTest extends AbstractIntegrationSpec imple
     Jvm otherJvm
 
     def setup() {
-        otherJvm = AvailableJavaHomes.differentVersion
+        otherJvm = AvailableJavaHomes.differentVersionOrNull
         assumeNotNull(otherJvm)
     }
 

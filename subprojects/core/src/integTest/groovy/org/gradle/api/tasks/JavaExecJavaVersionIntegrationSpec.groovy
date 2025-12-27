@@ -70,6 +70,10 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec impleme
         assertExecutedWith(Jvm.current())
 
         when:
+        /**
+         * We are checking for a *differentJdk* via the {@link IntegTestPreconditions.DifferentJdkAvailable}, so
+         * shouldn't this be {@link AvailableJavaHomes#getDifferentJdk} instead?
+         */
         def otherJdk = AvailableJavaHomes.differentVersion
         runWith(otherJdk)
         succeeds "runHelloWorld", "--info"

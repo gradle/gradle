@@ -302,14 +302,14 @@ class IntegTestPreconditions {
     static class JavaHomeWithDifferentVersionAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.differentVersion != null
+            return AvailableJavaHomes.differentVersionAvailable;
         }
     }
 
     static class JavaHomeWithTwoDifferentVersionsAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            def firstDifferent = AvailableJavaHomes.differentVersion
+            def firstDifferent = AvailableJavaHomes.differentVersionOrNull
             return firstDifferent != null && AvailableJavaHomes.getDifferentVersion(firstDifferent.javaVersion) != null
         }
     }
@@ -328,7 +328,7 @@ class IntegTestPreconditions {
     static class DifferentJdkAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.differentJdk != null
+            return AvailableJavaHomes.isDifferentJdkAvailable();
         }
     }
 

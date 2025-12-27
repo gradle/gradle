@@ -160,6 +160,10 @@ assert classesDir.directory
         IntegTestPreconditions.NotEmbeddedExecutor,
     ], reason = "must run with specific JDK different from the current test JDK")
     def "java home from environment should be used to run build"() {
+        /**
+         * We are checking for a *differentVersion* via the {@link IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable}, so
+         * shouldn't this be {@link AvailableJavaHomes#getDifferentVersion} instead?
+         */
         def alternateJdk = AvailableJavaHomes.differentJdk
 
         buildFile << """
@@ -185,6 +189,10 @@ assert classesDir.directory
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "java home from gradle properties should be used to run build"() {
+        /**
+         * We are checking for a *differentVersion* via the {@link IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable}, so
+         * shouldn't this be {@link AvailableJavaHomes#getDifferentVersion} instead?
+         */
         def jvm = AvailableJavaHomes.differentJdk
         def alternateJavaHome = jvm.javaHome
 
