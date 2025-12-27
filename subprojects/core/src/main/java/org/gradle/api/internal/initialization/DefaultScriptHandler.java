@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -59,6 +60,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     private final ClassLoaderScope classLoaderScope;
     private final DependencyResolutionServices dependencyResolutionServices;
     private final BuildLogicBuilder buildLogicBuilder;
+    private final ProviderFactory providerFactory;
 
     // The following values are relatively expensive to create, so defer creation until required
     private RepositoryHandler repositoryHandler;
@@ -76,12 +78,14 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         ScriptSource scriptSource,
         DependencyResolutionServices dependencyResolutionServices,
         ClassLoaderScope classLoaderScope,
-        BuildLogicBuilder buildLogicBuilder
+        BuildLogicBuilder buildLogicBuilder,
+        ProviderFactory providerFactory
     ) {
         this.dependencyResolutionServices = dependencyResolutionServices;
         this.scriptResource = scriptSource.getResource().getLocation();
         this.classLoaderScope = classLoaderScope;
         this.buildLogicBuilder = buildLogicBuilder;
+        this.providerFactory = providerFactory;
         JavaEcosystemSupport.configureServices(dependencyResolutionServices.getAttributesSchema(), dependencyResolutionServices.getAttributeDescribers(), dependencyResolutionServices.getObjectFactory());
     }
 
@@ -215,5 +219,10 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
             LOGGER.debug("Eager creation of script class loader for {}. This may result in performance issues.", scriptResource.getDisplayName());
         }
         return classLoaderScope.getLocalClassLoader();
+    }
+
+    @Override
+    public ProviderFactory getProviders() {
+        return providerFactory;
     }
 }
