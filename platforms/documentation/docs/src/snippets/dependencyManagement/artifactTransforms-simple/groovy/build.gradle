@@ -50,8 +50,9 @@ dependencies {
 
 tasks.register("resolve") {
     def files = configurations.runtimeClasspath.incoming.files
-    def fileNames = files.collect { it.name }
+    inputs.files(files)
     doLast {
+        def fileNames = files.collect { it.name }
         assert fileNames.contains("guava-33.2.1-jre-transformed.jar")
     }
 }
