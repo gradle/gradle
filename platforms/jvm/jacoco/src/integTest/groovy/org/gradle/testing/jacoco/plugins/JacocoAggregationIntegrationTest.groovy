@@ -638,7 +638,6 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
             """
 
         when:
-        executer.withStackTraceChecksDisabled()
         def result = fails(":application:testCodeCoverageReport", "--continue")
 
         then:
