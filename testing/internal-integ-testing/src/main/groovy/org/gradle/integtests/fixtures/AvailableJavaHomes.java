@@ -354,10 +354,37 @@ public abstract class AvailableJavaHomes {
 
     /**
      * Returns a JDK that has a different Java version to the current one, and which is supported by the Gradle version under test.
+     *
+     * @throws IllegalStateException - If no different JDK can be found.
+     */
+    @Nonnull
+    public static Jvm getDifferentVersion() {
+        final Jvm jvm = getDifferentVersionOrNull();
+        if (jvm == null) {
+            throw new IllegalStateException(
+                "Unable to find a JDK with different version from the current one (" + Jvm.current().getJavaVersion() + "). \n" +
+                    "Please install additional JDKs or make sure the appropriate environment variables are set."
+            );
+        }
+        return jvm;
+    }
+
+
+    /**
+     * Returns a JDK that has a different Java version to the current one, and which is supported by the Gradle version under test,
+     * or {@code null} if no such JDK is available.
      */
     @Nullable
-    public static Jvm getDifferentVersion() {
+    public static Jvm getDifferentVersionOrNull() {
         return getSupportedJdk(element -> !element.getLanguageVersion().equals(Jvm.current().getJavaVersion()));
+    }
+
+    /**
+     * Returns whether  a JDK that has a different Java version to the current one, and which is supported by the Gradle version under test,
+     * is available.
+     */
+    public static boolean isDifferentVersionAvailable() {
+        return getDifferentVersionOrNull() != null;
     }
 
     /**
