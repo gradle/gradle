@@ -1,4 +1,4 @@
-name: Check commits
+name: Check merge
 on:
   merge_group:
   workflow_dispatch:
@@ -89,3 +89,41 @@ jobs:
                   exit 1
               fi
           done
+
+  # check that remote project refs are tagged
+  check_remote_project_ref:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Install Groovy
+        run: sudo apt-get install groovy
+      - name: Check remote project refs are tagged
+        run: groovy .github/workflows/CheckRemoteProjectRef.groovy androidSmokeTestProjectRef
+
+  # Aggregator job - only runs if all checks succeed
+  check_merge:
+    needs: [check_bad_merge, check_wrapper, check_remote_project_ref]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: All checks passed
+        run: |
+          # check_bad_merge can be skipped if base ref is not master, which is fine
+          if [ "${{ needs.check_bad_merge.result }}" == "failure" ]; then
+            echo "check_bad_merge failed"
+            exit 1
+          fi
+          if [ "${{ needs.check_wrapper.result }}" != "success" ]; then
+            echo "check_wrapper failed"
+            exit 1
+          fi
+          if [ "${{ needs.check_remote_project_ref.result }}" != "success" ]; then
+            echo "check_remote_project_ref failed"
+            exit 1
+          fi
+          echo "✓ All checks passed"
+
