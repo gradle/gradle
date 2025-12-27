@@ -328,7 +328,7 @@ class IntegTestPreconditions {
     static class DifferentJdkAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return AvailableJavaHomes.differentJdk != null
+            return AvailableJavaHomes.isDifferentJdkAvailable();
         }
     }
 

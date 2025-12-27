@@ -59,6 +59,7 @@ import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
@@ -311,10 +312,36 @@ public abstract class AvailableJavaHomes {
 
     /**
      * Returns a JDK that has a different Java home than the current one, and which is supported by the Gradle version under test.
+     *
+     * @throws IllegalStateException - If no different JDK can be found.
+     */
+    @Nonnull
+    public static Jvm getDifferentJdk() {
+        final Jvm jvm = getDifferentJdkOrNull();
+        if (jvm == null) {
+            throw new IllegalStateException(
+                "Unable to find a JDK different from the current one (" + Jvm.current().getJavaHome() + "). \n" +
+                "Please install additional JDKs or make sure the appropriate environment variables are set."
+            );
+        }
+        return jvm;
+    }
+
+    /**
+     * Returns a JDK that has a different Java home than the current one, and which is supported by the Gradle version under test,
+     * or {@code null} if no such JDK is available.
      */
     @Nullable
-    public static Jvm getDifferentJdk() {
+    public static Jvm getDifferentJdkOrNull() {
         return getSupportedJdk(element -> !isCurrentJavaHome(element));
+    }
+
+    /**
+     * Returns whether a JDK that has a different Java home than the current one, and which is supported by the Gradle version under test,
+     * is available.
+     */
+    public static boolean isDifferentJdkAvailable() {
+        return getDifferentJdkOrNull() != null;
     }
 
     /**
