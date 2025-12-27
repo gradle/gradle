@@ -16,9 +16,14 @@
 
 package org.gradle.java.compile
 
+import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.integtests.fixtures.CompiledLanguage
 
 class JavaIncrementalCompileIntegrationTest extends AbstractIncrementalCompileIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
-    boolean incremental = true
+
+    @Override
+    Class<?> getLanguageBasePluginClass() {
+        return JavaBasePlugin
+    }
 }

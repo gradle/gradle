@@ -85,7 +85,7 @@ class TestTaskCustomExecuterIntegrationTest extends AbstractIntegrationSpec impl
         fails("test")
 
         then:
-        failureDescriptionContains("Execution failed for task ':test'.")
+        failureDescriptionContains("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
         failureCauseContains("Bad executer always fails")
 
         then:
@@ -122,7 +122,7 @@ class TestTaskCustomExecuterIntegrationTest extends AbstractIntegrationSpec impl
         fails("test")
 
         then:
-        failureDescriptionContains("Execution failed for task ':test'.")
+        failureDescriptionContains("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
         failureCauseContains("Bad executer always fails")
 
         resultsFor()
@@ -166,7 +166,7 @@ class TestTaskCustomExecuterIntegrationTest extends AbstractIntegrationSpec impl
         fails("test")
 
         then:
-        failureDescriptionContains("Execution failed for task ':test'.")
+        failureDescriptionContains("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
         failureCauseContains("Bad executer always fails")
 
         resultsFor()
@@ -212,7 +212,7 @@ class TestTaskCustomExecuterIntegrationTest extends AbstractIntegrationSpec impl
         fails("test")
 
         then:
-        failureDescriptionContains("Execution failed for task ':test'.")
+        failureDescriptionContains("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
         failureCauseContains("Properly failing executer always fails")
 
         resultsFor()
@@ -280,7 +280,7 @@ class TestTaskCustomExecuterIntegrationTest extends AbstractIntegrationSpec impl
         fails("test")
 
         then:
-        failureDescriptionContains("Execution failed for task ':test'.")
+        failureDescriptionContains("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
         failureCauseContains("Remote executors cannot be used as no Develocity server is configured. Try setting maxLocalExecutors > 0.")
 
         if (shouldShowFailure) {

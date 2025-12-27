@@ -97,7 +97,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         assertNoProjectCaches(dir)
-        failure.assertHasDescription("Execution failed for task ':build'.")
+        failure.assertHasDescription("Execution failed for task ':build' (registered in build file 'build.gradle').")
         failure.assertHasCause("Directory '$dir' does not contain a Gradle build.")
     }
 

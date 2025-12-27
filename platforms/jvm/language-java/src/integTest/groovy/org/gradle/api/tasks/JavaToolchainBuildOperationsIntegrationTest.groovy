@@ -481,7 +481,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         withInstallations(jdkMetadata).fails(task)
         def events = toolchainEvents(task)
         then:
-        failureDescriptionStartsWith("Execution failed for task '${task}'.")
+        failureDescriptionStartsWith("Execution failed for task '${task}' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
         failureHasCause("Compilation failed; see the compiler output below.")
         result.assertHasErrorOutput("Foo.java:2: error: cannot find symbol")
         assertToolchainUsages(events, jdkMetadata, "JavaCompiler")
@@ -505,7 +505,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         withInstallations(jdkMetadata).fails(task)
         def events = toolchainEvents(task)
         then:
-        failureDescriptionStartsWith("Execution failed for task '${task}'.")
+        failureDescriptionStartsWith("Execution failed for task '${task}' (registered by plugin 'org.gradle.jvm-test-suite').")
         failureHasCause("There were failing tests.")
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }
@@ -528,7 +528,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         withInstallations(jdkMetadata).fails(task)
         def events = toolchainEvents(task)
         then:
-        failureDescriptionStartsWith("Execution failed for task '${task}'.")
+        failureDescriptionStartsWith("Execution failed for task '${task}' (registered by plugin 'org.gradle.java').")
         failureCauseContains("Javadoc generation failed")
         assertToolchainUsages(events, jdkMetadata, "JavadocTool")
     }

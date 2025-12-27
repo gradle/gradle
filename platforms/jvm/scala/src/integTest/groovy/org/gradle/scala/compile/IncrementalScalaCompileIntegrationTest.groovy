@@ -53,7 +53,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/scala/IPerson.scala').assertIsFile().copyFrom(file('NewIPerson.scala'))
 
         then:
-        runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
+        runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala' (registered in build file 'build.gradle').")
     }
 
     @Issue("gradle/gradle#13392")
@@ -66,7 +66,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         when: // Update interface, compile should fail
         file('src/main/scala/IPerson.scala').assertIsFile().copyFrom(file('NewIPerson.scala'))
 
-        runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
+        runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala' (registered in build file 'build.gradle').")
 
         then:
         // both files must exist (same content as in previous compilation)
@@ -103,7 +103,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         //the build should fail because the interface the scala class needs has changed
-        runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
+        runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala' (registered in build file 'build.gradle').")
     }
 
     @Issue("gradle/gradle#8421")

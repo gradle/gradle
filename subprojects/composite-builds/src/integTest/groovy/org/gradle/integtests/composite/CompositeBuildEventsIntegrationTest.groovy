@@ -392,16 +392,16 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         outputContains("build C finished")
 
         events(17)
-        loggedOncePerBuild("buildListener.buildFinished failure=org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken'.", [':buildB'])
-        loggedOncePerBuild("gradle.buildFinished failure=org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken'.", [':buildB'])
+        loggedOncePerBuild("buildListener.buildFinished failure=org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken' (registered in build file '../buildB/build.gradle').", [':buildB'])
+        loggedOncePerBuild("gradle.buildFinished failure=org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken' (registered in build file '../buildB/build.gradle').", [':buildB'])
         loggedOncePerBuild('buildListener.buildFinished failure=null', [':buildC'])
         loggedOncePerBuild('gradle.buildFinished failure=null', [':buildC'])
         // Root build also receives the failures from its children, including the buildFinished { } failures
-        loggedOncePerBuild("buildListener.buildFinished failure=[org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken'., java.lang.RuntimeException: build B broken, java.lang.RuntimeException: build C broken]", [':'])
-        loggedOncePerBuild("gradle.buildFinished failure=[org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken'., java.lang.RuntimeException: build B broken, java.lang.RuntimeException: build C broken]", [':'])
+        loggedOncePerBuild("buildListener.buildFinished failure=[org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken' (registered in build file '../buildB/build.gradle')., java.lang.RuntimeException: build B broken, java.lang.RuntimeException: build C broken]", [':'])
+        loggedOncePerBuild("gradle.buildFinished failure=[org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken' (registered in build file '../buildB/build.gradle')., java.lang.RuntimeException: build B broken, java.lang.RuntimeException: build C broken]", [':'])
 
         failure.assertHasFailures(4)
-        failure.assertHasDescription("Execution failed for task ':buildB:broken'.")
+        failure.assertHasDescription("Execution failed for task ':buildB:broken' (registered in build file '../buildB/build.gradle').")
             .assertHasFileName("Build file '${buildB.buildFile}'")
             .assertHasLineNumber(11)
         failure.assertHasDescription("build A broken")
