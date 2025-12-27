@@ -360,6 +360,10 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         IntegTestPreconditions.NotEmbeddedExecutor,
     ], reason = "must run with different JDK")
     def "property ordering is consistent"() {
+        /**
+         * We are checking for a *differentVersion* via the {@link IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable}, so
+         * shouldn't this be {@link AvailableJavaHomes#getDifferentVersion} instead?
+         */
         def differentJdk = AvailableJavaHomes.differentJdk
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
         (1..100).each { index ->
