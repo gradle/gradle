@@ -62,7 +62,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             - "[\w+\.$-\\/ ŝ]+\.(java|kt|scala|groovy|gradle|gradle.kts)": matches lines that provide a source file but no line number
     */
     static final Pattern STACK_TRACE_ELEMENT = Pattern.compile(
-        "^\\s*(at\\s+)?([\\w\\.]+/)?([a-zA-Z_$][\\w.$]+)\\.([\\w$_<>]+)\\s*\\((Native Method|Unknown Source|[\\w+\\.$-\\\\/ ŝ]+:\\d+|[\\w+\\.$-\\\\/ ŝ]+\\.(java|kt|scala|groovy|gradle|gradle.kts))\\)(\\x1B\\[0K)?"
+        "^\\s*at\\s*([\\w\\.]+/)?([a-zA-Z_$][\\w.$]+)\\.([\\w$_<>]+)\\s*\\((Native Method|Unknown Source|[\\w+\\.$-\\\\/ ŝ]+:\\d+|[\\w+\\.$-\\\\/ ŝ]+\\.(java|kt|scala|groovy|gradle|gradle.kts))\\)(\\x1B\\[0K)?"
     );
     private static final String TASK_PREFIX = "> Task ";
 
