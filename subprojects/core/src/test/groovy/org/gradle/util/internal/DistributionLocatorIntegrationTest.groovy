@@ -16,42 +16,62 @@
 
 package org.gradle.util.internal
 
-import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
-@Requires(UnitTestPreconditions.Online)
 class DistributionLocatorIntegrationTest extends Specification {
-    private static final int CONNECTION_TIMEOUT_SECONDS = 60 * 1000
-    private static final int READ_TIMEOUT_SECONDS = 60 * 1000
     def locator = new DistributionLocator()
-    def distributions = new ReleasedVersionDistributions()
 
-    def "locates release versions"() {
+    def "generates correct URI for release versions"() {
         expect:
-        urlExist(locator.getDistributionFor(GradleVersion.version("0.8")))
-        urlExist(locator.getDistributionFor(GradleVersion.version("0.9.1")))
-        urlExist(locator.getDistributionFor(GradleVersion.version("1.0-milestone-3")))
-        urlExist(locator.getDistributionFor(GradleVersion.version("1.12")))
+        locator.getDistributionFor(GradleVersion.version("0.8")).toString() == "https://services.gradle.org/distributions/gradle-0.8-bin.zip"
+        locator.getDistributionFor(GradleVersion.version("0.9.1")).toString() == "https://services.gradle.org/distributions/gradle-0.9.1-bin.zip"
+        locator.getDistributionFor(GradleVersion.version("1.0-milestone-3")).toString() == "https://services.gradle.org/distributions/gradle-1.0-milestone-3-bin.zip"
+        locator.getDistributionFor(GradleVersion.version("1.12")).toString() == "https://services.gradle.org/distributions/gradle-1.12-bin.zip"
+        locator.getDistributionFor(GradleVersion.version("8.5")).toString() == "https://services.gradle.org/distributions/gradle-8.5-bin.zip"
     }
 
-    /**
-     * If this test fails, it means that the snapshot in `released-versions.json` is no longer available.
-     * You need to update that entry with a recent snapshot by hand.
-     */
-    def "locates snapshot versions"() {
+    def "generates correct URI for snapshot versions"() {
         expect:
-        urlExist(locator.getDistributionFor(distributions.mostRecentReleaseSnapshot.version))
+        locator.getDistributionFor(GradleVersion.version("8.5-20240101120000+0000")).toString() == "https://services.gradle.org/distributions-snapshots/gradle-8.5-20240101120000+0000-bin.zip"
+        locator.getDistributionFor(GradleVersion.version("9.0-SNAPSHOT")).toString() == "https://services.gradle.org/distributions-snapshots/gradle-9.0-SNAPSHOT-bin.zip"
     }
 
-    void urlExist(URI url) {
-        def connection = url.toURL().openConnection() as HttpURLConnection
-        connection.setConnectTimeout(CONNECTION_TIMEOUT_SECONDS)
-        connection.setReadTimeout(READ_TIMEOUT_SECONDS)
-        connection.requestMethod = "HEAD"
-        connection.connect()
-        assert connection.responseCode == 200
+    def "generates correct URI for different distribution types"() {
+        expect:
+        locator.getDistributionFor(GradleVersion.version("8.5"), "bin").toString() == "https://services.gradle.org/distributions/gradle-8.5-bin.zip"
+        locator.getDistributionFor(GradleVersion.version("8.5"), "all").toString() == "https://services.gradle.org/distributions/gradle-8.5-all.zip"
+        locator.getDistributionFor(GradleVersion.version("8.5"), "src").toString() == "https://services.gradle.org/distributions/gradle-8.5-src.zip"
+    }
+
+    def "uses custom base URL from system property"() {
+        given:
+        def originalBaseUrl = System.getProperty("org.gradle.internal.services.base.url")
+        System.setProperty("org.gradle.internal.services.base.url", "https://custom.example.com")
+
+        expect:
+        DistributionLocator.getBaseUrl() == "https://custom.example.com"
+        locator.getDistributionFor(GradleVersion.version("8.5")).toString() == "https://custom.example.com/distributions/gradle-8.5-bin.zip"
+
+        cleanup:
+        if (originalBaseUrl != null) {
+            System.setProperty("org.gradle.internal.services.base.url", originalBaseUrl)
+        } else {
+            System.clearProperty("org.gradle.internal.services.base.url")
+        }
+    }
+
+    def "uses default base URL when system property is not set"() {
+        given:
+        def originalBaseUrl = System.getProperty("org.gradle.internal.services.base.url")
+        System.clearProperty("org.gradle.internal.services.base.url")
+
+        expect:
+        DistributionLocator.getBaseUrl() == "https://services.gradle.org"
+
+        cleanup:
+        if (originalBaseUrl != null) {
+            System.setProperty("org.gradle.internal.services.base.url", originalBaseUrl)
+        }
     }
 }
