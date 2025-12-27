@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -364,9 +363,9 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
         }
 
         @Override
-        public Set<? extends VariantResolveMetadata> getArtifactVariants() {
+        public ImmutableList<? extends VariantResolveMetadata> getArtifactVariants() {
             String name = variant.getName();
-            return ImmutableSet.of(new DefaultVariantMetadata(
+            return ImmutableList.of(new DefaultVariantMetadata(
                 name,
                 new ComponentConfigurationIdentifier(componentId, name),
                 Describables.of(componentId, "variant", variant.getDisplayName()),

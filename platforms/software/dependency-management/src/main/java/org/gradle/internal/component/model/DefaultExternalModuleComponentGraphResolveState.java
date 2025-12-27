@@ -32,7 +32,6 @@ import org.gradle.internal.lazy.Lazy;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
@@ -170,7 +169,7 @@ public class DefaultExternalModuleComponentGraphResolveState<G extends ExternalM
         }
 
         @Override
-        public Set<? extends VariantResolveMetadata> getArtifactVariants() {
+        public ImmutableList<? extends VariantResolveMetadata> getArtifactVariants() {
             return configuration.getArtifactVariants();
         }
     }

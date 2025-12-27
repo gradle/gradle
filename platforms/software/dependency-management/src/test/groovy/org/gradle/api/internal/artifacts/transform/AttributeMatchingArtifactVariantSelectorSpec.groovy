@@ -141,11 +141,10 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
         def selector = newSelector()
 
         when:
-        def result = selector.select(variantSetOf(variants), requestedAttributes, false)
+        selector.select(variantSetOf(variants), requestedAttributes, false)
 
         then:
-        result instanceof BrokenResolvedArtifactSet
-        result.failure instanceof ArtifactSelectionException
+        def failure = thrown(ArtifactSelectionException)
 
         1 * attributeMatcher.matchMultipleCandidates(_, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.findCandidateTransformationChains(variants, requestedAttributes) >> transformedVariants

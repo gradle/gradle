@@ -48,7 +48,7 @@ public class DefaultLocalVariantGraphResolveState implements LocalVariantGraphRe
         long instanceId,
         LocalVariantGraphResolveMetadata metadata,
         CalculatedValue<VariantDependencyMetadata> dependencies,
-        Set<LocalVariantMetadata> artifactSets
+        ImmutableList<LocalVariantMetadata> artifactSets
     ) {
         this.instanceId = instanceId;
         this.metadata = metadata;
@@ -134,11 +134,11 @@ public class DefaultLocalVariantGraphResolveState implements LocalVariantGraphRe
     private static class DefaultLocalVariantArtifactResolveState implements VariantArtifactResolveState {
 
         private final ComponentIdentifier componentId;
-        private final Set<LocalVariantMetadata> artifactSets;
+        private final ImmutableList<LocalVariantMetadata> artifactSets;
 
         public DefaultLocalVariantArtifactResolveState(
             ComponentIdentifier componentId,
-            Set<LocalVariantMetadata> artifactSets
+            ImmutableList<LocalVariantMetadata> artifactSets
         ) {
             this.componentId = componentId;
             this.artifactSets = artifactSets;
@@ -166,7 +166,7 @@ public class DefaultLocalVariantGraphResolveState implements LocalVariantGraphRe
         }
 
         @Override
-        public Set<LocalVariantMetadata> getArtifactVariants() {
+        public ImmutableList<LocalVariantMetadata> getArtifactVariants() {
             return artifactSets;
         }
 

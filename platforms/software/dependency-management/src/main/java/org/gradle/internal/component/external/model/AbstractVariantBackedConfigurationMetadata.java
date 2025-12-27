@@ -37,7 +37,6 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * An immutable {@link ConfigurationMetadata} wrapper around a {@link ComponentVariant}.
@@ -121,8 +120,8 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
     }
 
     @Override
-    public Set<? extends VariantResolveMetadata> getArtifactVariants() {
-        return ImmutableSet.of(variant);
+    public ImmutableList<? extends VariantResolveMetadata> getArtifactVariants() {
+        return ImmutableList.of(variant);
     }
 
     @Override
