@@ -18,7 +18,7 @@ package org.gradle.internal
 import org.gradle.api.Action
 import spock.lang.Specification
 
-class MutableActionSetTest extends Specification {
+class WrapperCleanupActionSetTest extends Specification {
     final MutableActionSet<String> broadcast = new MutableActionSet<String>()
 
     def broadcastsEventsToAction() {

@@ -15,7 +15,8 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.cache.PersistentCache
+import org.gradle.cache.CleanableStore
+import org.gradle.cache.HasCleanupAction
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -203,7 +204,7 @@ class DefaultCacheFactoryTest extends Specification {
         and:
         factory.visitCaches(new CacheVisitor() {
             @Override
-            void visit(PersistentCache cache) {
+            <T extends CleanableStore & HasCleanupAction> void visit(T cache) {
                 visited << cache.displayName.split(' ')[0]
             }
         })
@@ -229,7 +230,7 @@ class DefaultCacheFactoryTest extends Specification {
         and:
         factory.visitCaches(new CacheVisitor() {
             @Override
-            void visit(PersistentCache cache) {
+            <T extends CleanableStore & HasCleanupAction> void visit(T cache) {
                 visited << cache.displayName.split(' ')[0]
             }
         })
