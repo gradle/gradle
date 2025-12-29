@@ -309,12 +309,12 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         MutableBoolean wasCreated = new MutableBoolean(false);
         descriptorsByUniqueId.computeIfAbsent(node.getUniqueId(), uniqueId -> {
             wasCreated.set(true);
-            boolean isTestClassId = isTestClassIdentifier(node);
-            if (isTestClassId) {
-                return createTestContainerDescriptor(node);
-            }
 
             if (node.getType().isContainer()) {
+                boolean isTestClassId = isTestClassIdentifier(node);
+                if (isTestClassId) {
+                    return createTestContainerDescriptor(node);
+                }
                 String displayName = node.getDisplayName();
                 Optional<TestDescriptorInternal> parentId = node.getParentId().map(descriptorsByUniqueId::get);
                 if (parentId.isPresent()) {
