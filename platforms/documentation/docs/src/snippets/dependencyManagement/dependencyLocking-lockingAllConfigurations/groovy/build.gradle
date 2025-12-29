@@ -15,7 +15,7 @@ tasks.register('resolveAndLockAll') {
         assert gradle.startParameter.writeDependencyLocks : "$path must be run from the command line with the `--write-locks` flag"
     }
     doLast {
-        configurations.findAll {
+        configurations.matching {
             // Add any custom filtering on the configurations to be resolved
             it.canBeResolved
         }.each { it.resolve() }

@@ -176,6 +176,7 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainO
     }
 
     @Override
+    @Deprecated
     public Set<T> findAll(Closure spec) {
         return delegate.findAll(spec);
     }
