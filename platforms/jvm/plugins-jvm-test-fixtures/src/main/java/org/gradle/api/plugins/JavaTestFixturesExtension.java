@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.plugins.jvm.JvmLibraryDependencies;
 import org.gradle.api.tasks.Nested;
-import org.gradle.declarative.dsl.model.annotations.Configuring;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 
 /**
  * The extension for the JavaTestFixturesPlugin to add dependencies to the test fixtures.
@@ -45,7 +45,7 @@ public interface JavaTestFixturesExtension {
      *
      * @since 9.4.0
      */
-    @Configuring
+    @HiddenInDefinition
     default void dependencies(Action<JvmLibraryDependencies> configure) {
         configure.execute(getDependencies());
     }
