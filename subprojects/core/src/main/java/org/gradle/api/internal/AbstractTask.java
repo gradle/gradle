@@ -279,7 +279,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public void setTaskActions(List<InputChangesAwareTaskAction> taskActions) {
+    public void restoreTaskActions(List<InputChangesAwareTaskAction> taskActions) {
         actions = taskActions;
     }
 

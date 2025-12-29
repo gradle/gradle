@@ -52,7 +52,7 @@ public interface TaskInternal extends Task, Configurable<Task> {
      *
      * @param taskActions the actions to restore
      */
-    void setTaskActions(List<InputChangesAwareTaskAction> taskActions);
+    void restoreTaskActions(List<InputChangesAwareTaskAction> taskActions);
 
     @Internal
     boolean hasTaskActions();

@@ -227,7 +227,7 @@ class TaskNodeCodec(
     private
     suspend fun ReadContext.readTaskActions(task: TaskInternal) {
         withVirtualPropertyTrace(TaskVirtualProperty.ACTIONS) {
-            task.taskActions = readCollectionInto(::ArrayList) { readNonNull() }
+            task.restoreTaskActions(readCollectionInto(::ArrayList) { readNonNull() })
         }
     }
 
