@@ -310,7 +310,7 @@ In the JUnit XML report, the data is represented as:
 
 This information is captured for both class-based and non-class-based tests, and includes data published during test construction as well as setup/teardown phases.
 
-<a name="config-cache"></a>
+<a id="config-cache"></a>
 ## Configuration Cache improvements
 
 The [Configuration Cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds. This feature can significantly improve build performance.
