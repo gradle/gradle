@@ -25,5 +25,6 @@ internal
 data class ModelKey(
     val identityPath: Path?,
     val modelName: String,
-    val parameterHash: HashCode?
+    val parameterHash: HashCode?,
+    val isResilient: Boolean,
 ) : ValueObject

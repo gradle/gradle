@@ -26,10 +26,11 @@ import kotlin.reflect.KClass
  */
 internal
 class FixedTypeDiscovery(private val keyClass: KClass<*>?, private val discoverClasses: List<KClass<*>>) : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
+    private val result by lazy { discoverClasses.distinct().map { TypeDiscovery.DiscoveredClass(it, isHidden = false) } }
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
         when (kClass) {
-            keyClass -> discoverClasses.distinct()
-            typeDiscoveryServices.host.topLevelReceiverClass -> if (keyClass == null) discoverClasses.distinct() else emptyList()
+            keyClass -> result
+            typeDiscoveryServices.host.topLevelReceiverClass -> if (keyClass == null) result else emptyList()
             else -> emptyList()
         }
 }

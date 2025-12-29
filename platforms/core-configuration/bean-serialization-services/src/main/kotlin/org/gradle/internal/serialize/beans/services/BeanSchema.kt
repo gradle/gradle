@@ -127,7 +127,7 @@ fun isRelevantDeclaringClass(declaringClass: Class<*>): Boolean =
 
 private
 val irrelevantDeclaringClasses = setOf(
-    Object::class.java,
+    Any::class.java,
     DefaultTask::class.java,
     ConventionTask::class.java
 )
@@ -165,10 +165,8 @@ val Field.isStatic
 
 private
 val abstractTaskRelevantFields = listOf(
-    "actions",
     "enabled",
     "timeout",
-    "onlyIfSpec",
     "logger",
 )
 

@@ -3,6 +3,7 @@ package configurations
 import common.Os
 import common.buildScanTagParam
 import common.getBuildScanCustomValueParam
+import common.setArtifactRules
 import model.CIBuildModel
 import model.Stage
 
@@ -31,10 +32,11 @@ class CompileAll(
                 ).joinToString(" "),
         )
 
-        artifactRules =
+        setArtifactRules(
             """$artifactRules
 platforms/core-runtime/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
-"""
+""",
+        )
     }) {
     companion object {
         fun buildTypeId(model: CIBuildModel) = buildTypeId(model.projectId)

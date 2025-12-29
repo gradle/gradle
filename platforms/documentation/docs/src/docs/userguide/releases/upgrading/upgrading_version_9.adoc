@@ -41,6 +41,12 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== The `java-gradle-plugin` plugin now adds the `gradleApi()` dependency to the `compileOnlyApi` scope
+
+The dependency on `gradleApi()` added by the `java-gradle-plugin` will be added to the `compileOnlyApi` scope instead of `api`.
+
+For most plugin projects, this change should be transparent and without any side effects.
+
 ==== Stricter validation for published plugins
 
 For plugin builds that apply any of the `com.gradle.plugin-publish`, `ivy-publish`, or `maven-publish` plugins, Gradle now automatically enables stricter validation of plugin code.
@@ -81,6 +87,10 @@ tasks.withType<CodeNarc>().configureEach {
     compilationClasspath = files()
 }
 ----
+
+==== Upgrade to Kotlin 2.3.0
+
+The embedded Kotlin has been upgraded from 2.2.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.0[Kotlin 2.3.0].
 
 === Deprecations
 
@@ -130,7 +140,7 @@ The method on the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[W
 
 Use link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.DistributionType.html#values()[`Wrapper.DistributionType.values()`] to obtain the available distribution types instead.
 
-[[deprecate_unpublished_project_dependencies]]
+[[publishing_dependency_on_unpublished_project]]
 ==== Deprecation of publishing dependencies on unpublished projects
 
 When publishing a project, Gradle resolves project dependencies to the coordinates of the target project's publication.

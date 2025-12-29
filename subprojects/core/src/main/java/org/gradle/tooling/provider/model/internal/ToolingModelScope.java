@@ -17,10 +17,11 @@
 package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A scope that allows {@link #getModel(String, ToolingModelParameterCarrier) building models}
+ * A scope that allows {@link #getModel(ToolingModelRequestContext, ToolingModelParameterCarrier) building models}
  * for a given {@link #getTarget() target}.
  */
 public interface ToolingModelScope {
@@ -38,6 +39,5 @@ public interface ToolingModelScope {
      *
      * @return the created model (null is a valid model)
      */
-    @Nullable
-    Object getModel(String modelName, @Nullable ToolingModelParameterCarrier parameter);
+    ToolingModelBuilderResultInternal getModel(ToolingModelRequestContext modelRequestContext, @Nullable ToolingModelParameterCarrier parameter);
 }

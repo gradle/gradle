@@ -32,15 +32,18 @@ public class GradleDocsHtmlAsciidoctorExtensionRegistry implements ExtensionRegi
     private static final String HEADER_HTML_PATH = "/header.html";
     private static final String FOOTER_HTML_PATH = "/footer.html";
 
-    private String headHtml;
-    private String headerHtml;
-    private String footerHtml;
+    private final String headHtml;
+    private final String headerHtml;
+    private final String footerHtml;
 
+    public GradleDocsHtmlAsciidoctorExtensionRegistry() {
+        this.headHtml = loadResource(HEAD_HTML_PATH);
+        this.headerHtml = loadResource(HEADER_HTML_PATH);
+        this.footerHtml = loadResource(FOOTER_HTML_PATH);
+    }
 
     @Override
     public void register(Asciidoctor asciidoctor) {
-        initializeHtmlToInject();
-
         JavaExtensionRegistry registry = asciidoctor.javaExtensionRegistry();
 
         registry.docinfoProcessor(new NavigationDocinfoProcessor(new HashMap<>(), headHtml));
@@ -50,13 +53,6 @@ public class GradleDocsHtmlAsciidoctorExtensionRegistry implements ExtensionRegi
         Map<String, Object> footerOptions = new HashMap<>();
         footerOptions.put("location", ":footer");
         registry.docinfoProcessor(new NavigationDocinfoProcessor(footerOptions, footerHtml));
-    }
-
-
-    private void initializeHtmlToInject() {
-        headHtml = loadResource(HEAD_HTML_PATH);
-        headerHtml = loadResource(HEADER_HTML_PATH);
-        footerHtml = loadResource(FOOTER_HTML_PATH);
     }
 
     private String loadResource(String resourcePath) {

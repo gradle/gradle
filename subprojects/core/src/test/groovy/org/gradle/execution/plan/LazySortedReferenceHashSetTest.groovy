@@ -19,9 +19,16 @@ package org.gradle.execution.plan
 import spock.lang.Issue
 import spock.lang.Specification
 
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.TimeUnit
+
 class LazySortedReferenceHashSetTest extends Specification {
 
-    def set = new NodeSets.LazySortedReferenceHashSet<String>({ s1, s2 -> s1.compareTo(s2) })
+    def set = createLazySet()
+
+    private NodeSets.LazySortedReferenceHashSet<String> createLazySet() {
+        new NodeSets.LazySortedReferenceHashSet<String>({ s1, s2 -> s1.compareTo(s2) })
+    }
 
     def "reference set behavior"() {
         expect:
@@ -148,5 +155,72 @@ class LazySortedReferenceHashSetTest extends Specification {
 
         then:
         thrown(NoSuchElementException)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/36081")
+    def "multiple readers should be safe"() {
+        given:
+        def randomizer = new Random(0)
+        def items = (1..size).collect {
+            randomizer.nextInt().collect { it.abs() }.toString()
+        }.toSet()
+        def control = items.sort()
+        // we build the collection from a single thread
+        def collection = implementation.create(items)
+        // then read it from multiple threads
+        CyclicBarrier barrier = new CyclicBarrier(threadCount + 1)
+        List<Object> collected = (1..threadCount).toList()
+        threadCount.times { index ->
+            new Thread() {
+                @Override
+                void run() {
+                    // wait for all threads to be ready
+                    barrier.await()
+                    try {
+                        collected[index - 1] = collection.toList()
+                    } catch (Exception e) {
+                        collected[index - 1] = e
+                    }
+                    // wait for all threads to complete
+                    barrier.await()
+                }
+            }.tap {
+                it.start()
+            }
+        }
+
+        // wait for all threads to be ready
+        barrier.await(5, TimeUnit.SECONDS)
+
+        // wait for all threads to complete
+        barrier.await(30, TimeUnit.SECONDS)
+
+        expect:
+        def exception = collected.find {
+            it instanceof Exception
+        }
+        if (exception) {
+            throw exception
+        }
+        collected.each { List<String> sorted ->
+            assert sorted.size() == items.size()
+            sorted.eachWithIndex { value, i ->
+                // all elements are unique and in order
+                assert i == 0 || sorted[i - 1] < sorted[i]
+                // and identical to control
+                assert control[i] == sorted[i]
+            }
+        }
+
+        where:
+        [size, threadCount, implementation] << [
+            [100000],
+            [2, 10, 20, 40],
+            [
+                [type: "LazySortedReferenceHashSet", create: { source -> createLazySet().tap { set -> set.addAll(source) } }],
+                // test the test
+                [type: "TreeSet", create: { source -> new TreeSet<String>(source) }]
+            ]
+        ].combinations()
     }
 }

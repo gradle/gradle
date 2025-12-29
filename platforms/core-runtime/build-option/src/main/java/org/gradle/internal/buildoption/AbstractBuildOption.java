@@ -125,9 +125,4 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
             return origin;
         }
     }
-
-    @Override
-    public void applyFromEnvVar(Map<String, String> envVars, T settings) {
-        // Default is no-op
-    }
 }

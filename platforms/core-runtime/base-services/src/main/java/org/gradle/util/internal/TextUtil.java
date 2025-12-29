@@ -16,10 +16,11 @@
 
 package org.gradle.util.internal;
 
-import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
+import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -41,6 +42,7 @@ import java.util.stream.Stream;
  */
 public class TextUtil {
     private static final Pattern WHITESPACE = Pattern.compile("\\s*");
+    private static final Pattern LINE_SEPARATORS = Pattern.compile("\r\n|\r|\n");
     private static final Pattern NON_UNIX_LINE_SEPARATORS = Pattern.compile("\r\n|\r");
     private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
     private static final Pattern UPPER_CASE = Pattern.compile("(?=\\p{Upper})");
@@ -82,14 +84,24 @@ public class TextUtil {
     }
 
     /**
-     * Converts all line separators in the specified non-null {@link CharSequence} to the specified line separator.
+     * Converts all line separators in the specified non-null string to the specified line separator.
      */
-    public static String replaceLineSeparatorsOf(CharSequence string, String bySeparator) {
-        return replaceAll("\r\n|\r|\n", string, bySeparator);
+    public static String replaceLineSeparatorsOf(String string, String bySeparator) {
+        if (isMultiLeLine(string)) {
+            return replaceAll(LINE_SEPARATORS, string, bySeparator);
+        } else {
+            return string;
+        }
     }
 
-    private static String replaceAll(String regex, CharSequence inString, String byString) {
-        return replaceAll(Pattern.compile(regex), inString, byString);
+    private static boolean isMultiLeLine(String string) {
+        for (int i = 0; i < string.length(); i++) {
+            char c = string.charAt(i);
+            if (c == '\n' || c == '\r') {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String replaceAll(Pattern pattern, CharSequence inString, String byString) {
@@ -99,7 +111,8 @@ public class TextUtil {
     /**
      * Converts all line separators in the specified string to the platform's line separator.
      */
-    public static String toPlatformLineSeparators(String str) {
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String toPlatformLineSeparators(@Nullable String str) {
         return str == null ? null : replaceLineSeparatorsOf(str, getPlatformLineSeparator());
     }
 
@@ -108,6 +121,7 @@ public class TextUtil {
      *
      * @return null if the given string is null
      */
+    @Contract("null -> null; !null -> !null")
     @Nullable
     public static String normaliseLineSeparators(@Nullable String str) {
         return str == null ? null : convertLineSeparatorsToUnix(str);
@@ -127,7 +141,7 @@ public class TextUtil {
      * with Java 6 on old Gradle versions because StringUtils require SQLException which
      * is absent from Java 6.
      */
-    public static boolean isBlank(String str) {
+    public static boolean isBlank(@Nullable String str) {
         int strLen;
         if (str == null || (strLen = str.length()) == 0) {
             return true;
@@ -148,7 +162,8 @@ public class TextUtil {
      * with Java 6 on old Gradle versions because StringUtils require SQLException which
      * is absent from Java 6.
      */
-    public static String capitalize(String str) {
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String capitalize(@Nullable String str) {
         if (str == null || str.length() == 0) {
             return str;
         }
@@ -159,7 +174,8 @@ public class TextUtil {
      * Escapes the toString() representation of {@code obj} for use in a literal string.
      * This is useful for interpolating variables into script strings, as well as in other situations.
      */
-    public static String escapeString(Object obj) {
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String escapeString(@Nullable Object obj) {
         return obj == null ? null : escapeJavaStyleString(obj.toString(), false, false);
     }
 
@@ -168,7 +184,8 @@ public class TextUtil {
      * with Java 6 on old Gradle versions because StringUtils require SQLException which
      * is absent from Java 6.
      */
-    private static String escapeJavaStyleString(String str, boolean escapeSingleQuotes, boolean escapeForwardSlash) {
+    @Contract("null, _, _ -> null; !null, _, _ -> !null")
+    private static @Nullable String escapeJavaStyleString(@Nullable String str, boolean escapeSingleQuotes, boolean escapeForwardSlash) {
         if (str == null) {
             return null;
         }
@@ -369,18 +386,18 @@ public class TextUtil {
     /**
      * Converts an arbitrary string to a camel-case string which can be used in a Java identifier. Eg, with_underscores -&gt; withUnderscores
      */
-    public static String toCamelCase(CharSequence string) {
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String toCamelCase(@Nullable CharSequence string) {
         return toCamelCase(string, false);
     }
 
-    /**
-     * Converts an arbitrary string to a lower camel-case string which can be used in a Java identifier. Eg, with_underscores -&gt; withUnderscores
-     */
-    public static String toLowerCamelCase(CharSequence string) {
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String toLowerCamelCase(@Nullable CharSequence string) {
         return toCamelCase(string, true);
     }
 
-    private static String toCamelCase(CharSequence string, boolean lower) {
+    @Contract("null, _ -> null; !null, _ -> !null")
+    private static @Nullable String toCamelCase(@Nullable CharSequence string, boolean lower) {
         if (string == null) {
             return null;
         }

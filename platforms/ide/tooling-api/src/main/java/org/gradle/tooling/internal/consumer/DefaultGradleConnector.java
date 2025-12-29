@@ -101,11 +101,6 @@ public class DefaultGradleConnector extends GradleConnector implements ProjectCo
         return this;
     }
 
-    public GradleConnector useClasspathDistribution() {
-        distribution = distributionFactory.getClasspathDistribution();
-        return this;
-    }
-
     @Override
     public GradleConnector useBuildDistribution() {
         distribution = null;

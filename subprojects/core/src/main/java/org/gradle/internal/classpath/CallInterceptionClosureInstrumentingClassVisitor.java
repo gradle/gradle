@@ -68,13 +68,11 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
         this.interceptorFilter = interceptorFilter;
     }
 
-    @NullMarked
     private enum MethodInstrumentationStrategy {
         /**
          * Whenever the closure's delegate is set, we want to make sure that the call interception hooks are added to the new delegate's metaclass.
          */
         SET_DELEGATE("setDelegate", getMethodDescriptor(Type.VOID_TYPE, getType(Object.class)), true, (classData, mv) -> {
-            @NullMarked
             class MethodVisitorScopeImpl extends MethodVisitorScope {
                 public MethodVisitorScopeImpl(MethodVisitor methodVisitor) {
                     super(methodVisitor);
@@ -113,7 +111,6 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
             String methodNameToVisit = isValidDoCallMethod ? "doCall$original" : methodData.name;
             MethodVisitor original = clazz.visitor.visitMethod(methodData.access, methodNameToVisit, methodData.descriptor, methodData.signature, methodData.exceptions);
             if (isValidDoCallMethod) {
-                @NullMarked
                 class MethodVisitorScopeImpl extends MethodVisitorScope {
                     public MethodVisitorScopeImpl(MethodVisitor methodVisitor) {
                         super(methodVisitor);
@@ -180,7 +177,6 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
         }),
 
         ADD_MAKE_EFFECTIVELY_INSTRUMENTED_METHOD("makeEffectivelyInstrumented", "()V", true, (classData, methodData) -> {
-            @NullMarked
             class MethodVisitorScopeImpl extends MethodVisitorScope {
                 public MethodVisitorScopeImpl(MethodVisitor methodVisitor) {
                     super(methodVisitor);
@@ -217,7 +213,6 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
         public final boolean generateIfNotPresent;
         private final BiFunction<ClassData, MethodData, MethodVisitor> methodVisitorFactory;
 
-        @NullMarked
         static final class MethodData {
             public final int access;
             public final String name;
@@ -238,7 +233,6 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
             }
         }
 
-        @NullMarked
         static final class ClassData {
             public final ClassVisitor visitor;
             public final String className;

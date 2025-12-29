@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.settings
 
-
+import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.hamcrest.CoreMatchers.allOf
@@ -157,14 +157,11 @@ class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSp
         file("included-settings-plugin/src/main/java/com/example/restricted/Extension.java") << """
             package com.example.restricted;
 
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
             import org.gradle.api.provider.Property;
+            import ${VisibleInDefinition.name};
 
-            import javax.inject.Inject;
-
-            @Restricted
+            @${VisibleInDefinition.simpleName}
             public abstract class Extension {
-                @Restricted
                 public abstract Property<String> getId();
             }
         """

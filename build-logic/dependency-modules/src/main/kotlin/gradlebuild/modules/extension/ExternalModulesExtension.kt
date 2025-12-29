@@ -26,9 +26,9 @@ abstract class ExternalModulesExtension(bundleGroovyMajor: Int) {
         else -> error("Unsupported Groovy major version: $bundleGroovyMajor")
     }
 
-    val configurationCacheReportVersion = "1.27"
+    val configurationCacheReportVersion = "1.30"
     val gradleIdeStarterVersion = "0.8.2"
-    val kotlinVersion = "2.2.21"
+    val kotlinVersion = "2.3.0"
 
     fun futureKotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
 

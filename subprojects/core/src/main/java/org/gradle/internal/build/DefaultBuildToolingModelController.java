@@ -18,18 +18,22 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.Try;
 import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 public class DefaultBuildToolingModelController implements BuildToolingModelController {
 
-    private final BuildLifecycleController buildController;
+    protected final BuildLifecycleController buildController;
     private final BuildState buildState;
     private final ToolingModelBuilderLookup buildScopeLookup;
 
@@ -57,8 +61,9 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         }
 
         // Force configuration of the build and locate builder for default project
-        ProjectState targetProject = buildController.withProjectsConfigured(gradle -> gradle.getDefaultProject().getOwner());
-        return doLocate(targetProject, toolingModelContext);
+        ProjectState defaultProject = buildController.withProjectsConfigured(gradle -> gradle.getDefaultProject().getOwner());
+        Try<ToolingModelScope> toolingModelScope = doLocate(defaultProject, toolingModelContext, Try.successful(null));
+        return checkNotNull(toolingModelScope.get());
     }
 
     @Override
@@ -66,24 +71,46 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
         if (target.getOwner() != buildState) {
             throw new IllegalArgumentException("Project has unexpected owner.");
         }
+
         // Force configuration of the containing build and then locate the builder for target project
-        configureProjectsForModel(target, toolingModelContext.getModelName());
-        return doLocate(target, toolingModelContext);
+        Try<Void> buildConfiguration = configureBuild();
+        Try<ToolingModelScope> toolingModelScope = doLocate(target, toolingModelContext, buildConfiguration);
+        return checkNotNull(toolingModelScope.get());
     }
 
-    protected void configureProjectsForModel(ProjectState target, String modelName) {
-        buildController.configureProjects();
+    protected Try<Void> configureBuild() {
+        return tryRunConfiguration(buildController::configureProjects);
     }
 
-    protected ToolingModelScope doLocate(ProjectState target, ToolingModelRequestContext toolingModelContext) {
-        return new ProjectToolingScope(target, toolingModelContext.getModelName(), toolingModelContext.getParameter().isPresent());
+    protected Try<ToolingModelScope> doLocate(ProjectState targetProject, ToolingModelRequestContext toolingModelContext, Try<Void> buildConfiguration) {
+        return buildConfiguration.map(__ -> new ProjectToolingScope(targetProject, toolingModelContext));
+    }
+
+    protected static Try<Void> tryRunConfiguration(Runnable configuration) {
+        return Try.ofFailable(() -> {
+            configuration.run();
+            return null;
+        });
     }
 
     private static abstract class AbstractToolingScope implements ToolingModelScope {
         abstract ToolingModelBuilderLookup.Builder locateBuilder() throws UnknownModelException;
 
         @Override
-        public Object getModel(String modelName, @Nullable ToolingModelParameterCarrier parameter) {
+        public ToolingModelBuilderResultInternal getModel(ToolingModelRequestContext modelRequestContext, @Nullable ToolingModelParameterCarrier parameter) {
+            Object model = buildModelWithParameter(parameter);
+            if (!(model instanceof ToolingModelBuilderResultInternal)) {
+                return ToolingModelBuilderResultInternal.of(model);
+            }
+
+            ToolingModelBuilderResultInternal resultInternal = (ToolingModelBuilderResultInternal) model;
+            if (!modelRequestContext.inResilientContext()) {
+                resultInternal.throwFailureIfPresent();
+            }
+            return resultInternal;
+        }
+
+        private Object buildModelWithParameter(@Nullable ToolingModelParameterCarrier parameter) {
             ToolingModelBuilderLookup.Builder builder = locateBuilder();
             if (parameter == null) {
                 return builder.build(null);
@@ -121,12 +148,11 @@ public class DefaultBuildToolingModelController implements BuildToolingModelCont
 
         public ProjectToolingScope(
             ProjectState targetProject,
-            String modelName,
-            boolean parameter
+            ToolingModelRequestContext toolingModelRequestContext
         ) {
             this.targetProject = targetProject;
-            this.modelName = modelName;
-            this.parameter = parameter;
+            this.modelName = toolingModelRequestContext.getModelName();
+            this.parameter = toolingModelRequestContext.getParameter().isPresent();
         }
 
         @Nullable

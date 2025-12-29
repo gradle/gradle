@@ -14,6 +14,7 @@ dependencies {
     api(projects.logging)
     api(projects.messaging)
     api(projects.modelCore)
+    api(projects.problemsApi)
     api(projects.projectFeatures)
     api(projects.projectFeaturesApi)
 

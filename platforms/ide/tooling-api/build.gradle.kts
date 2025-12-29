@@ -51,7 +51,6 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.buildDiscoveryImpl)
-    implementation(projects.buildProcessServices)
     implementation(projects.core)
     implementation(projects.functional)
     implementation(projects.logging)
@@ -79,7 +78,6 @@ dependencies {
     testFixturesImplementation(testFixtures(projects.enterpriseLogging))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
-    testFixturesImplementation(testFixtures(projects.testingJvm))
 
     integTestImplementation(projects.jvmServices)
     integTestImplementation(projects.persistentCache)
@@ -89,10 +87,10 @@ dependencies {
     crossVersionTestImplementation(projects.jvmServices)
     crossVersionTestImplementation(projects.internalTesting)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
+    crossVersionTestImplementation(testFixtures(projects.launcher))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)
-    crossVersionTestImplementation(testFixtures(projects.testingJvm))
     crossVersionTestRuntimeOnly(libs.cglib) {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
     }

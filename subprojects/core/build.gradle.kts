@@ -59,6 +59,7 @@ dependencies {
     api(projects.buildProcessServices)
     api(projects.classloaders)
     api(projects.cli)
+    api(projects.collections)
     api(projects.concurrent)
     api(projects.coreApi)
     api(projects.declarativeDslApi)
@@ -264,6 +265,7 @@ dependencies {
     integTestImplementation(libs.littleproxy)
     integTestImplementation(testFixtures(projects.native))
     integTestImplementation(testFixtures(projects.fileTemp))
+    integTestImplementation(testFixtures(projects.launcher))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("This is required by ProjectBuilder, but ProjectBuilder cannot declare :distributions-core as a dependency due to conflicts with other distributions.")

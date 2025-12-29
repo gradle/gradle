@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform
 
-import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent
 import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
+import org.gradle.api.tasks.testing.TestFileAttachmentDataEvent
 import org.gradle.internal.id.IdGenerator
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.FixedClock
@@ -89,7 +89,7 @@ class JUnitPlatformTestExecutionListenerTest extends Specification {
         }
         and:
         1 * mockResultProcessor.published(id) { e ->
-            assert e instanceof DefaultTestFileAttachmentDataEvent
+            assert e instanceof TestFileAttachmentDataEvent
             assert e.path.isAbsolute()
             assert Files.isSameFile(e.path, workingDir.toPath().toAbsolutePath())
             assert e.mediaType == "application/directory"
@@ -97,7 +97,7 @@ class JUnitPlatformTestExecutionListenerTest extends Specification {
         }
         and:
         1 * mockResultProcessor.published(id) { e ->
-            assert e instanceof DefaultTestFileAttachmentDataEvent
+            assert e instanceof TestFileAttachmentDataEvent
             assert e.path.isAbsolute()
             assert !Files.exists(e.path)
             assert Files.isSameFile(e.path, nonExistent.path.toAbsolutePath())

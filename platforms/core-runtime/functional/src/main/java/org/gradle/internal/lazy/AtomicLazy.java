@@ -47,9 +47,7 @@ class AtomicLazy<T extends @Nullable Object> implements Lazy<T> {
             }
             supplier = null;
         }
-        @SuppressWarnings("NullAway") // The value holds null only if T is nullable.
-        // The unchecked cast strips "@Nullable" from result to allow returning it without triggering another NullAway warning.
-        T result = Cast.uncheckedNonnullCast(value.get());
-        return result;
+        // value now holds a valid value of type T from supplier, so we can strip unconditional nullability from it.
+        return Cast.unsafeStripNullable(Cast.uncheckedCast(value.get()));
     }
 }

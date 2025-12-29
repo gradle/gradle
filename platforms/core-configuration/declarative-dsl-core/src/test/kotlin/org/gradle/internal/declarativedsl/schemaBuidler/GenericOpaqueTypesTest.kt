@@ -16,8 +16,6 @@
 
 package org.gradle.internal.declarativedsl.schemaBuidler
 
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataType.ParameterizedTypeInstance.TypeArgument.ConcreteTypeArgument
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
@@ -118,13 +116,10 @@ class GenericOpaqueTypesTest {
 
     @Suppress("unused")
     class Schema {
-        @Restricted
         fun <T> id(t: T): T = t
 
-        @Restricted
         fun <T> myListOf(t1: T, t2: T): List<T> = listOf(t1, t2)
 
-        @Restricted
         fun factoryFunctionTakingListOfLists(listOfLists: List<List<String>>): String = listOfLists.joinToString()
     }
 
@@ -133,10 +128,8 @@ class GenericOpaqueTypesTest {
 
     @Suppress("unused")
     interface OuterTypeWithGenericInside {
-        @Configuring
         fun configure(f: GenericType<String>.() -> Unit)
     }
 }
 
-@Restricted
 fun myMap(): Map<Int, GenericType<String>> = emptyMap()

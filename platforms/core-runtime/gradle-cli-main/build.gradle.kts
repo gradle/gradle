@@ -53,3 +53,7 @@ dependencies {
 
     agentsClasspath(projects.instrumentationAgent)
 }
+
+errorprone {
+    nullawayEnabled = true
+}

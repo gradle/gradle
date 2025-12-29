@@ -18,6 +18,8 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.launcher.cli.internal.VersionInfoRenderer;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
@@ -51,7 +53,7 @@ public class BuildEnvironmentBuilder implements ToolingModelBuilder {
         List<String> jvmArgs = currentProcess.getJvmOptions().getAllImmutableJvmArgs();
 
         DefaultBuildIdentifier buildIdentifier = new DefaultBuildIdentifier(target.getRootDir());
-
-        return new DefaultBuildEnvironment(buildIdentifier, gradleUserHomeDir, gradleVersion, javaHome, jvmArgs);
+        String versionInfo = VersionInfoRenderer.render(Jvm.current().toString());
+        return new DefaultBuildEnvironment(buildIdentifier, gradleUserHomeDir, gradleVersion, javaHome, jvmArgs, versionInfo);
     }
 }

@@ -74,6 +74,7 @@ interface GenericTestExecutionResult {
         KOTLIN_TEST,
         SCALA_TEST,
         XC_TEST,
+        SPEK,
         CUSTOM,
         ;
 

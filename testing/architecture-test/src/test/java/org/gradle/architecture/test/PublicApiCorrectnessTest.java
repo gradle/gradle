@@ -17,10 +17,15 @@
 package org.gradle.architecture.test;
 
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import kotlin.Pair;
 import kotlin.jvm.functions.Function1;
 import kotlin.reflect.KClass;
@@ -45,6 +50,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.type;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.codeUnits;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static org.gradle.architecture.test.ArchUnitFixture.beAbstractClass;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
@@ -67,7 +73,7 @@ public class PublicApiCorrectnessTest {
             .or(primitive)
             // NOTE: we don't want to include java.util.function here because Gradle public API uses custom types like org.gradle.api.Action and org.gradle.api.Spec
             // Mixing these custom types with java.util.function types would make the public API harder to use, especially for plugin authors.
-            .or(resideInAnyPackage("java.lang", "java.util", "java.util.concurrent", "java.util.regex", "java.lang.reflect", "java.io", "java.time")
+            .or(resideInAnyPackage("java.lang", "java.util", "java.util.concurrent", "java.util.regex", "java.lang.reflect", "java.io", "java.nio.file", "java.time")
                 .or(type(byte[].class))
                 .or(type(URI.class))
                 .or(type(URL.class))
@@ -125,4 +131,29 @@ public class PublicApiCorrectnessTest {
     public static final ArchRule named_domain_object_collection_implementations_override_named_method = classes()
         .that(implement(NamedDomainObjectCollection.class))
         .should(overrideMethod("named", new Class<?>[] {Spec.class}, NamedDomainObjectCollection.class));
+
+    @ArchTest
+    public static final ArchRule contract_annotations_not_used_in_public_api = codeUnits()
+        .that(are(public_api_methods))
+        .should(notBeAnnotatedWith(jetbrainsContractAnnotation()));
+
+    private static ArchCondition<JavaCodeUnit> notBeAnnotatedWith(DescribedPredicate<JavaAnnotation<?>> annotations) {
+        return new ArchCondition<>("not be annotated with " + annotations.getDescription()) {
+            @Override
+            public void check(JavaCodeUnit item, ConditionEvents events) {
+                if (item.getAnnotations().stream().anyMatch(annotations)) {
+                    events.add(new SimpleConditionEvent(item, false, item.getFullName() + " is annotated with " + annotations.getDescription()));
+                }
+            }
+        };
+    }
+
+    private static DescribedPredicate<JavaAnnotation<?>> jetbrainsContractAnnotation() {
+        return new DescribedPredicate<>("JetBrains @Contract annotation") {
+            @Override
+            public boolean test(JavaAnnotation<?> javaAnnotation) {
+                return "org.jetbrains.annotations.Contract".equals(javaAnnotation.getRawType().getName());
+            }
+        };
+    }
 }

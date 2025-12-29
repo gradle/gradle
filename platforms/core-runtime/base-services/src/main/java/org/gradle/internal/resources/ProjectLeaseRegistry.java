@@ -20,6 +20,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -67,7 +68,7 @@ public interface ProjectLeaseRegistry {
      * If no locks were held at the time the method was called, then no attempt will be made to reacquire a lock on completion.
      * While blocking to reacquire the project lock, all worker leases held by the thread will be released and reacquired once the project lock is obtained.
      */
-    <T> T runAsIsolatedTask(Factory<T> action);
+    <T extends @Nullable Object> T runAsIsolatedTask(Factory<T> action);
 
     /**
      * Releases any project state locks or task execution locks currently held by the current thread and executes the {@link Factory}.

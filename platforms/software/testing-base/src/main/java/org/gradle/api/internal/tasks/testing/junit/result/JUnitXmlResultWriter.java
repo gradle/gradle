@@ -20,7 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
-import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;

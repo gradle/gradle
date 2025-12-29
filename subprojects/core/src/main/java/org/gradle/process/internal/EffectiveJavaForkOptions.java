@@ -101,7 +101,6 @@ public class EffectiveJavaForkOptions {
             '}';
     }
 
-    @NullMarked
     public static class ReadOnlyJvmOptions {
         private final JvmOptions delegate;
 
