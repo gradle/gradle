@@ -106,6 +106,24 @@ Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.12.0[1.12.0
 This API will be removed in Gradle 10 with no direct replacement.
 `DomainObjectCollection.matching(Spec)` is a similar API for selecting elements without evaluating the contents of the container immediately.
 
+[[deprecate_apply_false_in_precompiled_script_plugins]]
+==== Deprecation of `apply false` in precompiled script plugins
+The use of `apply false` in <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins, precompiled script plugins>> has been deprecated and will become an error in Gradle 10.0.0.
+
+Using `apply false` does not have any effect in precompiled script plugins (the plugin is still applied), and it can lead to confusion for users who expect it to prevent the plugin from being applied.
+Plugins used in precompiled script plugins are already available on the classpath, so using `apply false` would do nothing.
+
+To fix this deprecation, remove the plugin declaration from the precompiled script plugin:
+.my-plugin.gradle.kts
+[source,kotlin]
+----
+plugins {
+    // Delete the following line to remove the deprecation warning:
+    id("org.gradle.test-retry") apply false
+    // The plugin will still be on the classpath, but it will not be applied as part of this precompiled script plugin.
+}
+----
+
 [[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier
 
