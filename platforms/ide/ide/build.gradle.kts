@@ -24,6 +24,8 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.baseServicesGroovy)
+    implementation(projects.buildProcessServices)
+    implementation(projects.classloaders)
     implementation(projects.ear)
     implementation(projects.languageJava)
     implementation(projects.loggingApi)
