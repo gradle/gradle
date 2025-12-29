@@ -437,7 +437,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest.help with lazy and eager tasks",
+    "testId" : "org.gradle.performance.crossbuild.TaskAvoidancePerformanceTest.help with lazy and eager tasks",
     "groups" : [ {
       "testProject" : "largeJavaMultiProject",
       "coverage" : {
