@@ -156,6 +156,11 @@ public final class ProjectIdentity implements DisplayName {
         return projectName;
     }
 
+    public boolean isParentOf(ProjectIdentity other) {
+        return getBuildPath().equals(other.getBuildPath()) &&
+            other.getProjectPath().startsWith(getProjectPath());
+    }
+
     @Override
     public String getDisplayName() {
         return displayName.getDisplayName();
