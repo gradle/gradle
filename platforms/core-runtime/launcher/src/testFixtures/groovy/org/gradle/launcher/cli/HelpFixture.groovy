@@ -37,6 +37,7 @@ USAGE: gradle [option...] [task...]
 --configure-on-demand              Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds. [incubating]
 --no-configure-on-demand           Disables the use of configuration on demand. [incubating]
 --console                          Specifies which type of console output to generate. Values are 'plain', 'colored', 'auto' (default), 'rich' or 'verbose'.
+--console-unicode                  Specifies which character types are allowed in console output to generate. Values are 'auto' (default), 'disable' or 'enable'.
 --continue                         Continue task execution after a task failure.
 --no-continue                      Stop task execution after a task failure.
 -D, --system-prop                  Set system property of the JVM (e.g. -Dmyprop=myvalue).
