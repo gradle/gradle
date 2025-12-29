@@ -35,13 +35,13 @@ class ConstantToDependentsMappingMergerTest extends Specification {
         ConstantToDependentsMapping mapping = merger.merge(newMapping, null, [] as Set)
 
         then:
-        mapping.getConstantDependentsForClass("a").accessibleDependentClasses == ["1", "2"] as Set
-        mapping.getConstantDependentsForClass("b").accessibleDependentClasses == ["3"] as Set
-        mapping.getConstantDependentsForClass("c").accessibleDependentClasses == [] as Set
+        mapping.getConstantDependentsForClass("a").accessibleDependentClasses as Set == ["1", "2"] as Set
+        mapping.getConstantDependentsForClass("b").accessibleDependentClasses as Set == ["3"] as Set
+        mapping.getConstantDependentsForClass("c").accessibleDependentClasses as Set == [] as Set
 
-        mapping.getConstantDependentsForClass("a").privateDependentClasses == [] as Set
-        mapping.getConstantDependentsForClass("b").privateDependentClasses == [] as Set
-        mapping.getConstantDependentsForClass("c").privateDependentClasses == ["4"] as Set
+        mapping.getConstantDependentsForClass("a").privateDependentClasses as Set == [] as Set
+        mapping.getConstantDependentsForClass("b").privateDependentClasses as Set == [] as Set
+        mapping.getConstantDependentsForClass("c").privateDependentClasses as Set == ["4"] as Set
     }
 
     def "merges new mappings with old mappings"() {
@@ -61,13 +61,13 @@ class ConstantToDependentsMappingMergerTest extends Specification {
         ConstantToDependentsMapping mapping = merger.merge(newMapping, oldMapping, ["a", "b", "c"] as Set)
 
         then:
-        mapping.getConstantDependentsForClass("a").accessibleDependentClasses == ["1", "2"] as Set
-        mapping.getConstantDependentsForClass("b").accessibleDependentClasses == [] as Set
-        mapping.getConstantDependentsForClass("c").accessibleDependentClasses == ["4"] as Set
+        mapping.getConstantDependentsForClass("a").accessibleDependentClasses as Set == ["1", "2"] as Set
+        mapping.getConstantDependentsForClass("b").accessibleDependentClasses as Set == [] as Set
+        mapping.getConstantDependentsForClass("c").accessibleDependentClasses as Set == ["4"] as Set
 
-        mapping.getConstantDependentsForClass("a").privateDependentClasses == [] as Set
-        mapping.getConstantDependentsForClass("b").privateDependentClasses == ["3"] as Set
-        mapping.getConstantDependentsForClass("c").privateDependentClasses == [] as Set
+        mapping.getConstantDependentsForClass("a").privateDependentClasses as Set == [] as Set
+        mapping.getConstantDependentsForClass("b").privateDependentClasses as Set == ["3"] as Set
+        mapping.getConstantDependentsForClass("c").privateDependentClasses as Set == [] as Set
     }
 
     def "removes all removed classes from mapping on merge"() {
@@ -89,7 +89,7 @@ class ConstantToDependentsMappingMergerTest extends Specification {
         mapping.getConstantDependentsForClass("c").accessibleDependentClasses.isEmpty()
 
         mapping.getConstantDependentsForClass("a").privateDependentClasses.isEmpty()
-        mapping.getConstantDependentsForClass("b").privateDependentClasses == ["3"] as Set
+        mapping.getConstantDependentsForClass("b").privateDependentClasses as Set == ["3"] as Set
         mapping.getConstantDependentsForClass("c").privateDependentClasses.isEmpty()
 
     }
@@ -109,8 +109,8 @@ class ConstantToDependentsMappingMergerTest extends Specification {
         ConstantToDependentsMapping mapping = merger.merge(newMapping, oldMapping, ["a", "b"] as Set)
 
         then:
-        mapping.getConstantDependentsForClass("a").accessibleDependentClasses == ["1"] as Set
-        mapping.getConstantDependentsForClass("b").accessibleDependentClasses == [] as Set
+        mapping.getConstantDependentsForClass("a").accessibleDependentClasses as Set == ["1"] as Set
+        mapping.getConstantDependentsForClass("b").accessibleDependentClasses as Set == [] as Set
     }
 
     def "does not remove classes that are not in new mapping from mapping on merge"() {
@@ -127,8 +127,8 @@ class ConstantToDependentsMappingMergerTest extends Specification {
         ConstantToDependentsMapping mapping = merger.merge(newMapping, oldMapping, [] as Set)
 
         then:
-        mapping.getConstantDependentsForClass("a").accessibleDependentClasses == ["1", "2"] as Set
-        mapping.getConstantDependentsForClass("b").accessibleDependentClasses == ["2"] as Set
+        mapping.getConstantDependentsForClass("a").accessibleDependentClasses as Set == ["1", "2"] as Set
+        mapping.getConstantDependentsForClass("b").accessibleDependentClasses as Set == ["2"] as Set
     }
 
     def "removes all removed classes from visited"() {
@@ -145,8 +145,8 @@ class ConstantToDependentsMappingMergerTest extends Specification {
         ConstantToDependentsMapping mapping = merger.merge(newMapping, oldMapping, ["1", "4"] as Set)
 
         then:
-        mapping.getConstantDependentsForClass("a").accessibleDependentClasses == ["2"] as Set
-        mapping.getConstantDependentsForClass("b").accessibleDependentClasses == ["2"] as Set
+        mapping.getConstantDependentsForClass("a").accessibleDependentClasses as Set == ["2"] as Set
+        mapping.getConstantDependentsForClass("b").accessibleDependentClasses as Set == ["2"] as Set
     }
 
 }
