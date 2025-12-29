@@ -25,6 +25,8 @@ import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 
 
 class PropertyTraceTest {
@@ -62,38 +64,32 @@ class PropertyTraceTest {
 
     @Test
     fun `toString representation takes the entire property trace chain account`() {
-        assertThat(PropertyTrace.Unknown.toString(), equalTo("unknown location"))
-        assertThat(PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).toString(),
-            equalTo("property usage `prop1` of unknown location"))
-        assertThat(PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Project(":proj1", PropertyTrace.Unknown)).toString(),
-            equalTo("property usage `prop1` of project `:proj1` in unknown location"))
+        assertEquals(PropertyTrace.Unknown.toString(), "unknown location")
+        assertEquals(
+            PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).toString(),
+            "property usage `prop1` of unknown location",
+        )
+        assertEquals(
+            PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Project(":proj1", PropertyTrace.Unknown)).toString(),
+            "property usage `prop1` of project `:proj1` in unknown location",
+        )
     }
 
     @Test
     fun `fullHash takes the entire property trace chain into account`() {
-        assertThat(PropertyTrace.Unknown.fullHash, equalTo(PropertyTrace.Unknown.fullHash))
-        assertThat(PropertyTrace.Unknown.fullHash, not(equalTo(PropertyTrace.Gradle.fullHash)))
-        assertThat(
+        assertEquals(PropertyTrace.Unknown.fullHash, PropertyTrace.Unknown.fullHash)
+        assertNotEquals(PropertyTrace.Unknown.fullHash, PropertyTrace.Gradle.fullHash)
+        assertEquals(
             PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).fullHash,
-            equalTo(
-                PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).fullHash
-            )
+            PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).fullHash
         )
-        assertThat(
+        assertNotEquals(
             PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).fullHash,
-            not(
-                equalTo(
-                    PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Gradle).fullHash
-                )
-            )
+            PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Gradle).fullHash
         )
-        assertThat(
+        assertNotEquals(
             PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).fullHash,
-            not(
-                equalTo(
-                    PropertyTrace.Property(PropertyKind.PropertyUsage, "prop2", PropertyTrace.Unknown)
-                )
-            )
+            PropertyTrace.Property(PropertyKind.PropertyUsage, "prop2", PropertyTrace.Unknown)
         )
     }
 }
