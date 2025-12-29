@@ -42,6 +42,16 @@ const val MAX_PROBLEM_EXCEPTIONS = 5
 /**
  * Collects problems and produces a summary upon request.
  *
+ * The primary use case for the summary is to collect information to be presented on the console.
+ *
+ * <h2>Problem uniqueness</h2>
+ *
+ * For the console, a problem is unique if there are no other problems with same message, top location frame and documentation link.
+ *
+ * However, for the report, problem uniqueness takes also takes the full location stack into account.
+ *
+ * <h2>Thread safety</h2>
+ *
  * This class is thread-safe.
  */
 internal
@@ -79,7 +89,7 @@ class ConfigurationCacheProblemsSummary(
     var incompatibleFeatureCount: Int = 0
 
     /**
-     * Unique problem causes observed among all reported problems.
+     * Report-unique problem causes observed among all reported problems.
      *
      * We also track severity per cause to provide useful ordering of problems when reporting the summary.
      */
@@ -102,10 +112,10 @@ class ConfigurationCacheProblemsSummary(
     fun get(): Summary = lock.withLock {
         Summary(
             totalProblemCount = totalProblemCount,
-            uniqueProblemCount = problemCauses.size,
+            reportUniqueProblemCount = problemCauses.size,
             deferredProblemCount = deferredProblemCount,
             consoleProblemCount = totalProblemCount - suppressedSilentlyProblemCount,
-            consoleProblemCauses = ImmutableMap.copyOf(problemCauses.filterValues { it != ProblemSeverity.SuppressedSilently }),
+            consoleProblemCauses = problemCausesForConsole(),
             originalProblemExceptions = ImmutableList.copyOf(originalProblemExceptions),
             overflowed = overflowed,
             maxCollectedProblems = maxCollectedProblems,
@@ -115,8 +125,22 @@ class ConfigurationCacheProblemsSummary(
     }
 
     /**
+     * Returns a map with problem causes for the console.
+     *
+     * For the console, only the top level location matters,
+     * so multiple deep problem causes may map to a single shallow cause.
+     */
+    private
+    fun problemCausesForConsole(): ImmutableMap<ProblemCause, ProblemSeverity> =
+        ImmutableMap.copyOf(
+            // silently-suppressed problems (i.e. under graceful degradation) are not relevant to the console
+            problemCauses.filterValues { it != ProblemSeverity.SuppressedSilently }
+                .mapKeys { (k, _) -> k.asShallow() }
+        )
+
+    /**
      * Returns`true` if the problem was accepted, `false` if it was rejected because the maximum number of unique problems was reached,
-     * or it was not unique.
+     * or the problem was not report-unique.
      */
     fun onProblem(problem: PropertyProblem, severity: ProblemSeverity): Boolean {
         lock.withLock {
@@ -214,6 +238,8 @@ class Summary(
      * This should exclude problems with severity [ProblemSeverity.SuppressedSilently], which are still
      * accounted for in [totalProblemCount] and shown in the HTML report, but intentionally omitted
      * from the console to keep output noise low during graceful degradation.
+     *
+     * Also, these problems are console-unique (which is different from report-unique, which take the full property trace chain into account).
      */
     private
     val consoleProblemCauses: Map<ProblemCause, ProblemSeverity>,
@@ -221,7 +247,9 @@ class Summary(
     /**
      * Count of problems that should appear in the HTML report.
      */
-    val uniqueProblemCount: Int,
+    @get:VisibleForTesting
+    internal
+    val reportUniqueProblemCount: Int,
 
     val originalProblemExceptions: List<Throwable>,
 
@@ -243,7 +271,8 @@ class Summary(
     val incompatibleFeatureCount: Int
 ) {
 
-    private
+    @VisibleForTesting
+    internal
     val consoleUniqueProblemCount = consoleProblemCauses.size
 
     /**
@@ -335,7 +364,7 @@ class Summary(
     @VisibleForTesting
     internal
     fun severityFor(of: ProblemCause): ProblemSeverity? =
-        this.consoleProblemCauses[of]
+        this.consoleProblemCauses[of.asShallow()]
 }
 
 
@@ -380,14 +409,29 @@ internal
 data class ProblemCause(
     val userCodeLocation: String,
     val message: String,
-    val documentationSection: DocumentationSection?
+    val documentationSection: DocumentationSection?,
+    private val traceHash: Int?
 ) {
+    /**
+     * A problem cause may reflect the full [org.gradle.internal.configuration.problems.PropertyTrace] stack (as required by the CC report) or
+     * (if they are shallow) just the top location (as required by the console).
+     */
+    private
+    val isShallowTrace: Boolean get() = traceHash == null
+
+    fun asShallow(): ProblemCause =
+        if (isShallowTrace)
+            this
+        else
+            ProblemCause(userCodeLocation, message, documentationSection, null)
+
     companion object {
         fun of(problem: PropertyProblem) = problem.run {
             ProblemCause(
                 trace.containingUserCode,
                 message.render(),
-                documentationSection
+                documentationSection,
+                trace.fullHash
             )
         }
     }

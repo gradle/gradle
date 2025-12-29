@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures.configurationcache
 
-
 import groovy.transform.PackageScope
 import groovy.transform.ToString
 import junit.framework.AssertionFailedError
@@ -25,6 +24,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.executer.LogContent
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.ConfigureUtil
 import org.hamcrest.BaseMatcher
 import org.hamcrest.Description
 import org.hamcrest.Matcher
@@ -71,7 +71,8 @@ class ConfigurationCacheProblemsFixture {
     }
 
     /**
-     * Creates a fixture to assert on the report based on the file URL written in the build output. The report URL may be absent in the output.
+     * Creates a fixture to assert on the report based on the file URL written in the build output. The report URL may be absent in the output
+     *  (happens when there are inputs but no problems, unless <code>--info</code> is enabled).
      *
      * @param output the output of the build
      */
@@ -142,7 +143,7 @@ class ConfigurationCacheProblemsFixture {
         assert summary.uniqueProblems == uniqueCount
         assert summary.messages.size() == spec.uniqueProblems.size()
         for (int i in spec.uniqueProblems.indices) {
-            assert spec.uniqueProblems[i].matches(summary.messages[i])
+            assert spec.uniqueProblems[i].problemText.matches(summary.messages[i])
         }
     }
 
@@ -253,6 +254,58 @@ ${text}
     }
 }
 
+/**
+ * A specification for one expected unique problem. One problem may be reported in several locations.
+ */
+class ProblemSpec {
+    // TODO(mlopatkin) Can we merge this with ItemSpec?
+    @PackageScope
+    final Matcher<String> problemText
+    @PackageScope
+    @Nullable
+    TraceSpec traceSpec
+
+    ProblemSpec(Matcher<String> problemText) {
+        this.problemText = problemText
+    }
+
+    /**
+     * Defines a specification for the one location of the problem.
+     * You can use the returned object to add more elements to the location trace.
+     * <p>
+     * This doesn't check the stacktrace, but the property trace instead, so it is better suited for serialization failures.
+     *
+     * @param location the initial location (e.g. task name)
+     * @return the spec to further refine the expected location.
+     */
+    TraceSpec at(String location) {
+        assert traceSpec == null : "Only one trace spec per problem spec"
+        return traceSpec = new TraceSpec().at(location)
+    }
+}
+
+/**
+ * A specification for one location of the problem/input.
+ */
+class TraceSpec {
+    @PackageScope
+    final List<Matcher<String>> locationMatchers = []
+
+    /**
+     * Adds another location to the expected trace.
+     * For a trace to match, all defined locations must be present in proper order, but the trace can be longer. E.g.
+     * {@code at(":foo")} matches all fields of the task {@code :foo}, and {@code at(":foo").at("bar")} matches
+     * the field {@code bar} of the task and all its contents.
+     *
+     * @param location the location, e.g. task name, bean class name or field name
+     * @return this spec instance
+     */
+    TraceSpec at(String location) {
+        locationMatchers.add(startsWith(location))
+        return this
+    }
+}
+
 abstract class ItemSpec {
 
     abstract ItemSpec expect(Matcher<String> itemMatcher)
@@ -350,7 +403,7 @@ abstract class ItemSpec {
 class HasConfigurationCacheProblemsSpec {
 
     @PackageScope
-    final List<Matcher<String>> uniqueProblems = []
+    final List<ProblemSpec> uniqueProblems = []
 
     @PackageScope
     ItemSpec inputs = ItemSpec.IGNORING
@@ -448,6 +501,13 @@ class HasConfigurationCacheProblemsSpec {
         return withProblem(startsWith(problem))
     }
 
+    HasConfigurationCacheProblemsSpec withProblem(String problem, @DelegatesTo(value = ProblemSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> locationClosure) {
+        def spec = new ProblemSpec(startsWith(problem))
+        ConfigureUtil.configure(locationClosure, spec)
+        uniqueProblems.add(spec)
+        return this
+    }
+
     /**
      * Adds an expectation for a displayed problem.
      * The number and order of actual problems must match the expected.
@@ -459,7 +519,7 @@ class HasConfigurationCacheProblemsSpec {
      * @return this
      */
     HasConfigurationCacheProblemsSpec withProblem(Matcher<String> problem) {
-        uniqueProblems.add(problem)
+        uniqueProblems.add(new ProblemSpec(problem))
         return this
     }
 
