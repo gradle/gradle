@@ -39,12 +39,12 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
     private TestFile reportFile = reportDir.file("configuration-cache-report.html")
     private def fixture = new ConfigurationCacheProblemsFixture(rootDir)
 
-    def report() {
-        fixture.htmlReport()
+    ConfigurationCacheReportFixture report() {
+        return fixture.htmlReport()
     }
 
-    def report(TestFile reportFile) {
-        fixture.htmlReport("See the complete report at " + new ConsoleRenderer().asClickableFileUrl(reportFile))
+    ConfigurationCacheReportFixture report(TestFile reportFile) {
+        return fixture.htmlReport("See the complete report at " + new ConsoleRenderer().asClickableFileUrl(reportFile))
     }
 
     def "findReportFile finds a single report dir"() {
@@ -391,7 +391,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
     private TestFile generateReportFile(List<String> problemMessages, List<List<String>> problemsAndPropertyTraces = [], List<List<String>> problemsAndStacktraceParts = []) {
         List<String> problemMarkup = []
         problemMessages.eachWithIndex { String problemText, int index ->
-            problemMarkup << """
+            def fragment = """
             {
                     "problem": [{
                         "text": "${problemText}"
@@ -412,6 +412,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
             """
             }
             """
+            problemMarkup << fragment.toString()
         }
         def jsonData = """
 // begin-report-data

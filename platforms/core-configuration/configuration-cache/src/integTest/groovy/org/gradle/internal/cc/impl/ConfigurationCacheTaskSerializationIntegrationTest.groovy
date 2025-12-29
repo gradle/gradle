@@ -464,7 +464,8 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         configurationCacheFails "myTask"
 
         then:
-        problems.htmlReport(failure).assertContents {
+        // test HTML report directly as console output has only one unique problem as it ignores deep property traces
+        problems.htmlReport(failure.error).assertContents {
             totalProblemsCount = 5
             problemsWithStackTraceCount = 0
 

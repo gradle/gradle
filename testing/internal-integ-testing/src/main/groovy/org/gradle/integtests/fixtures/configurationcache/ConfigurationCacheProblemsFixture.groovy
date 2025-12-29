@@ -71,7 +71,8 @@ class ConfigurationCacheProblemsFixture {
     }
 
     /**
-     * Creates a fixture to assert on the report based on the file URL written in the build output. The report URL may be absent in the output.
+     * Creates a fixture to assert on the report based on the file URL written in the build output. The report URL may be absent in the output
+     *  (happens when there are inputs but no problems, unless <code>--info</code> is enabled).
      *
      * @param output the output of the build
      */
