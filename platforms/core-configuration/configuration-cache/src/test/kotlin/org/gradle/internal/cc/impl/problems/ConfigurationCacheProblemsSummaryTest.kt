@@ -55,10 +55,8 @@ class ConfigurationCacheProblemsSummaryTest {
             "1st problem (duplicate)",
             subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Deferred)
         )
-        assertThat(
-            subject.get().consoleUniqueProblemCount,
-            equalTo(1)
-        )
+        assertThat(subject.get().reportUniqueProblemCount, equalTo(1))
+        assertThat(subject.get().consoleUniqueProblemCount, equalTo(1))
 
         // hit limit but did not overflow yet
         assertTrue(
@@ -69,10 +67,8 @@ class ConfigurationCacheProblemsSummaryTest {
             "3nd problem (different message from 1st but same location)",
             subject.onProblem(buildLogicProblem("build.gradle.kts", "failure 2"), ProblemSeverity.Deferred)
         )
-        assertThat(
-            subject.get().consoleUniqueProblemCount,
-            equalTo(3)
-        )
+        assertThat(subject.get().reportUniqueProblemCount, equalTo(3))
+        assertThat(subject.get().consoleUniqueProblemCount, equalTo(3))
         assertFalse(subject.get().overflowed)
 
         // now we do overflow
@@ -80,10 +76,8 @@ class ConfigurationCacheProblemsSummaryTest {
             "overflow",
             subject.onProblem(buildLogicProblem("build.gradle", "another failure"), ProblemSeverity.Deferred)
         )
-        assertThat(
-            subject.get().consoleUniqueProblemCount,
-            equalTo(3)
-        )
+        assertThat(subject.get().reportUniqueProblemCount, equalTo(3))
+        assertThat(subject.get().consoleUniqueProblemCount, equalTo(3))
         assertTrue(subject.get().overflowed)
     }
 
@@ -270,14 +264,16 @@ See the complete report at $REPORT_URL
         val subject = ConfigurationCacheProblemsSummary()
         subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 1), "failure"), ProblemSeverity.Deferred)
         subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 1), "failure"), ProblemSeverity.Deferred)
+        assertThat(subject.get().reportUniqueProblemCount, equalTo(1))
         assertThat(subject.get().consoleUniqueProblemCount, equalTo(1))
 
         subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 2), "failure"), ProblemSeverity.Deferred)
+        assertThat(subject.get().reportUniqueProblemCount, equalTo(2))
         assertThat(subject.get().consoleUniqueProblemCount, equalTo(2))
     }
 
     @Test
-    fun `problem causes are as expected`() {
+    fun `problem causes are built from problems as expected`() {
         val gradleRuntime = ProblemCause.of(PropertyProblem(PropertyTrace.Gradle, StructuredMessage.forText("failure")))
         assertThat(gradleRuntime.message, equalTo("failure"))
         assertThat(gradleRuntime.userCodeLocation, equalTo("Gradle runtime"))
@@ -292,7 +288,7 @@ See the complete report at $REPORT_URL
     }
 
     @Test
-    fun `problem traces include tail in comparison`() {
+    fun `problem causes include property trace tail in comparison`() {
         val message = StructuredMessage.forText("")
         val gradle = ProblemCause.of(PropertyProblem(PropertyTrace.Gradle, message))
         val gradle2 = ProblemCause.of(PropertyProblem(PropertyTrace.Gradle, message))
@@ -306,6 +302,11 @@ See the complete report at $REPORT_URL
         assertEquals(project1, project1b)
         assertNotEquals(project1, project2)
         assertNotEquals(project2, project2ThenUnknown)
+        // problem causes that are different may have same shallow versions
+        assertEquals(project1.asShallow(), project1.asShallow())
+        assertEquals(project1.asShallow(), project2.asShallow())
+        // problem causes that do not have deep traces are different from their shallow versions
+        assertNotEquals(unknown, unknown.asShallow())
     }
 
     @Test
@@ -320,15 +321,16 @@ See the complete report at $REPORT_URL
         val prop1InP2 = PropertyTrace.Project(":p2", prop1)
         assertTrue(subject.onProblem(buildLogicProblem(prop1InP1a, "failure"), ProblemSeverity.Deferred))
         assertFalse(subject.onProblem(buildLogicProblem(prop1InP1b, "failure"), ProblemSeverity.Deferred))
+        assertThat(subject.get().reportUniqueProblemCount, equalTo(1))
         assertThat(subject.get().consoleUniqueProblemCount, equalTo(1))
 
         assertTrue(subject.onProblem(buildLogicProblem(prop2InP1, "failure"), ProblemSeverity.Deferred))
-        assertThat(subject.get().consoleUniqueProblemCount, equalTo(1))
         assertThat(subject.get().reportUniqueProblemCount, equalTo(2))
+        assertThat(subject.get().consoleUniqueProblemCount, equalTo(1))
 
         assertTrue(subject.onProblem(buildLogicProblem(prop1InP2, "failure"), ProblemSeverity.Deferred))
-        assertThat(subject.get().consoleUniqueProblemCount, equalTo(1))
         assertThat(subject.get().reportUniqueProblemCount, equalTo(3))
+        assertThat(subject.get().consoleUniqueProblemCount, equalTo(1))
     }
 
     @Test
@@ -336,9 +338,11 @@ See the complete report at $REPORT_URL
         val subject = ConfigurationCacheProblemsSummary()
         subject.onProblem(buildLogicProblem("build.gradle.kts", "failure"), ProblemSeverity.Deferred)
         subject.onProblem(buildLogicProblem("build.gradle.kts", "failure"), ProblemSeverity.Deferred)
+        assertThat(subject.get().reportUniqueProblemCount, equalTo(1))
         assertThat(subject.get().consoleUniqueProblemCount, equalTo(1))
 
         subject.onProblem(buildLogicProblem("build.gradle", "failure"), ProblemSeverity.Deferred)
+        assertThat(subject.get().reportUniqueProblemCount, equalTo(2))
         assertThat(subject.get().consoleUniqueProblemCount, equalTo(2))
     }
 
@@ -347,9 +351,11 @@ See the complete report at $REPORT_URL
         val subject = ConfigurationCacheProblemsSummary()
         subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 1), "failure 1"), ProblemSeverity.Deferred)
         subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 1), "failure 1"), ProblemSeverity.Deferred)
+        assertThat(subject.get().reportUniqueProblemCount, equalTo(1))
         assertThat(subject.get().consoleUniqueProblemCount, equalTo(1))
 
         subject.onProblem(buildLogicProblem(buildLogicLocationTrace("build.gradle.kts", 1), "failure 2"), ProblemSeverity.Deferred)
+        assertThat(subject.get().reportUniqueProblemCount, equalTo(2))
         assertThat(subject.get().consoleUniqueProblemCount, equalTo(2))
     }
 
@@ -361,6 +367,7 @@ See the complete report at $REPORT_URL
 
         subject.onProblem(buildLogicProblem("build.gradle.kts", "failure", exception1), ProblemSeverity.Deferred)
         subject.onProblem(buildLogicProblem("build.gradle.kts", "failure", exception2), ProblemSeverity.Deferred)
+        assertThat(subject.get().reportUniqueProblemCount, equalTo(1))
         assertThat(subject.get().consoleUniqueProblemCount, equalTo(1))
     }
 
