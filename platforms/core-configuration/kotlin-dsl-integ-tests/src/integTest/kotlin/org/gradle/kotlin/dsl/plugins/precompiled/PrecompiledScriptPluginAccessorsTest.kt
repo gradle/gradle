@@ -52,6 +52,7 @@ import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
+import spock.lang.Issue
 import java.io.File
 
 
@@ -271,6 +272,71 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         //            """
         //        )
         //    )
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/14437")
+    @Test
+    fun `fails the build with help message for plugin spec with apply false`() {
+
+        withDefaultSettings().appendText(
+            """
+            rootProject.name = "invalid-plugin"
+            """
+        )
+
+        withKotlinDslPlugin()
+
+        withPrecompiledKotlinScript(
+            "invalid-plugin.gradle.kts",
+            """
+            plugins {
+                id("a.plugin") apply false
+            }
+            """
+        )
+
+        assertThat(
+            buildFailureOutput("assemble"),
+            containsMultiLineString(
+                """
+                Invalid plugin request [id: 'a.plugin', apply: false]. Plugin requests from precompiled scripts must not use 'apply false' as all plugins will be applied. Please remove 'apply false' from the offending request.
+                """
+            )
+        )
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/17246")
+    @Test
+    fun `fails the build with help message for plugin spec with apply false in settings plugin`() {
+
+        withDefaultSettings().appendText(
+            """
+            rootProject.name = "invalid-plugin"
+            """
+        )
+
+        withKotlinDslPlugin()
+
+        withPrecompiledKotlinScript(
+            "invalid-plugin.settings.gradle.kts",
+            """
+            plugins {
+                id("a.plugin") apply false
+            }
+            """
+        )
+
+        build("assemble")
+
+        // TODO Should fail:
+        //        assertThat(
+        //            buildFailureOutput("assemble"),
+        //            containsMultiLineString(
+        //                """
+        //                Invalid plugin request [id: 'a.plugin', apply: false]. Plugin requests from precompiled scripts must not use 'apply false' as all plugins will be applied. Please remove 'apply false' from the offending request.
+        //                """
+        //            )
+        //        )
     }
 
     @Test

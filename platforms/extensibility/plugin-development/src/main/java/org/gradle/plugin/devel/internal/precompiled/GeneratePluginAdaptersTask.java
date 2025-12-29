@@ -39,6 +39,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.management.PluginRequest;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
 import org.gradle.util.GradleVersion;
@@ -113,13 +114,19 @@ public abstract class GeneratePluginAdaptersTask extends DefaultTask {
 
     private void validatePluginRequests(PrecompiledGroovyScript scriptPlugin, PluginRequests pluginRequests) {
         Set<String> validationErrors = new HashSet<>();
-        for (PluginRequest pluginRequest : pluginRequests) {
+        for (PluginRequestInternal pluginRequest : pluginRequests) {
             if (pluginRequest.getVersion() != null) {
                 validationErrors.add(String.format("Invalid plugin request %s. " +
                         "Plugin requests from precompiled scripts must not include a version number. " +
                         "Please remove the version from the offending request and make sure the module containing the " +
                         "requested plugin '%s' is an implementation dependency",
                     pluginRequest, pluginRequest.getId()));
+            }
+            if (!pluginRequest.isApply()) {
+                validationErrors.add(String.format("Invalid plugin request %s. " +
+                        "Plugin requests from precompiled scripts must not use 'apply false' as all plugins will be applied. " +
+                        "Please remove 'apply false' from the offending request.",
+                    pluginRequest));
             }
         }
         if (!validationErrors.isEmpty()) {

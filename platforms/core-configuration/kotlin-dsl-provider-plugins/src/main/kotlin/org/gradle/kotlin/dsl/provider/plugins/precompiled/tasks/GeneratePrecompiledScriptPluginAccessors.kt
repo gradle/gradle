@@ -270,7 +270,10 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
             return "Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. " +
                 "Please remove the version from the offending request and make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $projectDesc."
         }
-        // TODO:kotlin-dsl validate apply false
+        if (!pluginRequest.isApply) {
+            return "Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not use 'apply false' as all plugins will be applied. " +
+                "Please remove 'apply false' from the offending request."
+        }
         return null
     }
 
