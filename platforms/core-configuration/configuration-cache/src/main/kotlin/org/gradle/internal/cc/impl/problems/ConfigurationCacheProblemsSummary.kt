@@ -135,7 +135,7 @@ class ConfigurationCacheProblemsSummary(
         ImmutableMap.copyOf(
             // silently-suppressed problems (i.e. under graceful degradation) are not relevant to the console
             problemCauses.filterValues { it != ProblemSeverity.SuppressedSilently }
-                .mapKeys { (k, _) -> k.asShallowTrace() }
+                .mapKeys { (k, _) -> k.asShallow() }
         )
 
     /**
@@ -364,7 +364,7 @@ class Summary(
     @VisibleForTesting
     internal
     fun severityFor(of: ProblemCause): ProblemSeverity? =
-        this.consoleProblemCauses[of.asShallowTrace()]
+        this.consoleProblemCauses[of.asShallow()]
 }
 
 
@@ -410,17 +410,17 @@ data class ProblemCause(
     val userCodeLocation: String,
     val message: String,
     val documentationSection: DocumentationSection?,
-    val traceHash: Int?
+    private val traceHash: Int?
 ) {
     /**
      * A problem cause may reflect the full [org.gradle.internal.configuration.problems.PropertyTrace] stack (as required by the CC report) or
      * (if they are shallow) just the top location (as required by the console).
      */
     private
-    val shallowTrace get() = traceHash == null
+    val isShallowTrace: Boolean get() = traceHash == null
 
-    fun asShallowTrace(): ProblemCause =
-        if (shallowTrace)
+    fun asShallow(): ProblemCause =
+        if (isShallowTrace)
             this
         else
             ProblemCause(userCodeLocation, message, documentationSection, null)
