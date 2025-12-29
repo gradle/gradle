@@ -307,7 +307,7 @@ class ConsoleMetaDataSupportsUnicodeTest extends Specification {
         env.setEnvironmentVariable('LANG', 'en_US.UTF8')
 
         then:
-        !consoleMetaData.supportsUnicode()
+        consoleMetaData.supportsUnicode()
     }
 
     // Test implementation class that uses default supportsUnicode method
