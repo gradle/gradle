@@ -47,8 +47,6 @@ notForAccessorGeneration {
 testing {
     suites {
         create("archTest", JvmTestSuite::class) {
-            useJUnitJupiter()
-
             project.jvmCompile {
                 addCompilationFrom(sources)
             }
@@ -64,6 +62,9 @@ testing {
             targets {
                 all {
                     testTask.configure {
+                        useJUnitPlatform {
+                            includeEngines("archunit")
+                        }
                         testClassesDirs += sharedArchTestClasses.filter { it.isDirectory }
                         classpath += sourceSets["main"].output.classesDirs
                         systemProperty("package.cycle.exclude.patterns", packageCyclesExtension.excludePatterns.get().joinToString(","))
