@@ -239,7 +239,7 @@ class Summary(
      * accounted for in [totalProblemCount] and shown in the HTML report, but intentionally omitted
      * from the console to keep output noise low during graceful degradation.
      *
-     * Also, these problems are console-unique (but not necessarily report unique, which take the full property trace chain into account).
+     * Also, these problems are console-unique (which is different from report-unique, which take the full property trace chain into account).
      */
     private
     val consoleProblemCauses: Map<ProblemCause, ProblemSeverity>,
