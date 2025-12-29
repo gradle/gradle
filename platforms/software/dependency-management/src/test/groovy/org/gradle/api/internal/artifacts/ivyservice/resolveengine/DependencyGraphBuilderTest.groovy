@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableSet
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
@@ -1112,7 +1111,7 @@ class DependencyGraphBuilderTest extends Specification {
                 ImmutableList.copyOf(artifacts)
             )
 
-        def artifactSets = ImmutableSet.of(
+        def artifactSets = ImmutableList.of(
             new LocalVariantMetadata(
                 name,
                 new ComponentConfigurationIdentifier(componentId, name),

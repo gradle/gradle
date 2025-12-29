@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependencies
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.model.GraphVariantSelector;
+import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
 /**
@@ -36,6 +37,7 @@ public class ArtifactSelectionServices {
     private final GraphVariantSelector graphVariantSelector;
     private final ImmutableAttributesSchema consumerSchema;
     private final VariantTransformRegistry transformRegistry;
+    private final ResolutionFailureHandler failureHandler;
 
     public ArtifactSelectionServices(
         ArtifactVariantSelector variantSelector,
@@ -44,7 +46,8 @@ public class ArtifactSelectionServices {
         VariantArtifactResolver variantResolver,
         GraphVariantSelector graphVariantSelector,
         ImmutableAttributesSchema consumerSchema,
-        VariantTransformRegistry transformRegistry
+        VariantTransformRegistry transformRegistry,
+        ResolutionFailureHandler failureHandler
     ) {
         this.variantSelector = variantSelector;
         this.resolvedVariantTransformer = new ResolvedVariantTransformer(transformedVariantFactory, dependenciesResolver);
@@ -52,6 +55,7 @@ public class ArtifactSelectionServices {
         this.graphVariantSelector = graphVariantSelector;
         this.consumerSchema = consumerSchema;
         this.transformRegistry = transformRegistry;
+        this.failureHandler = failureHandler;
     }
 
     public ArtifactVariantSelector getArtifactVariantSelector() {
@@ -77,4 +81,9 @@ public class ArtifactSelectionServices {
     public VariantTransformRegistry getTransformRegistry() {
         return transformRegistry;
     }
+
+    public ResolutionFailureHandler getFailureHandler() {
+        return failureHandler;
+    }
+
 }
