@@ -21,6 +21,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.util.GroovyNullMarked
 import org.gradle.util.internal.TextUtil
+import org.jspecify.annotations.NullMarked
 import spock.lang.Specification
 
 import javax.annotation.Nullable
@@ -1595,6 +1596,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
+    @NullMarked
     private static class MockServiceProvider implements ServiceProvider {
         private final ParentServices parentServices
         private final Map<Object, Service> services = [:]

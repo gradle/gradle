@@ -19,11 +19,13 @@ package org.gradle.internal.service;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 class TypeStringFormatter {
 
     static String format(Type type) {
         if (type instanceof Class) {
-            Class<?> aClass = (Class) type;
+            Class<?> aClass = uncheckedCast(type);
             Class<?> enclosingClass = aClass.getEnclosingClass();
             if (enclosingClass != null) {
                 String ownName = aClass.isAnonymousClass() ? "<anonymous>" : aClass.getSimpleName();
