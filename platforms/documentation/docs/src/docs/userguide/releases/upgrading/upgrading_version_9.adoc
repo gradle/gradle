@@ -124,6 +124,25 @@ plugins {
 }
 ----
 
+[[deprecate_version_in_precompiled_settings_script_plugins]]
+==== Deprecation of `version` in precompiled settings script plugins
+The use of `version` in <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins, precompiled script plugins>> has been deprecated and will become an error in Gradle 10.0.0.
+
+Using `version` does not have any effect in precompiled script plugins and can lead to confusion for users who expect it to change the version of the plugin being applied.
+Plugins used in precompiled script plugins are already available on the classpath and have their versions determined by the precompiled script plugin's build file.
+
+To fix this deprecation, remove the `version` call for the plugin declaration in the precompiled script plugin:
+.my-plugin.gradle.kts
+[source,kotlin]
+----
+plugins {
+    // Before:
+    id("org.gradle.test-retry") version "x.y.z"
+    // After:
+    id("org.gradle.test-retry")
+}
+----
+
 [[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier
 
