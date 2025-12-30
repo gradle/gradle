@@ -158,10 +158,28 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
         recreateTaskDirectories()
 
+        generateProjectScriptPluginsAccessors()
+
+        // In the future, accessors could also be generated here, but for now we just validate the plugins.
+        validateNonProjectScriptPluginsPlugins()
+    }
+
+    private fun generateProjectScriptPluginsAccessors() {
         val projectScriptPlugins = selectProjectScriptPlugins()
         if (projectScriptPlugins.isNotEmpty()) {
             asyncIOScopeFactory.newScope().useToRun {
                 generateTypeSafeAccessorsFor(projectScriptPlugins)
+            }
+        }
+    }
+
+    private fun validateNonProjectScriptPluginsPlugins() {
+        val nonProjectScriptPlugins = selectNonProjectScriptPlugins()
+        if (nonProjectScriptPlugins.isNotEmpty()) {
+            asyncIOScopeFactory.newScope().useToRun {
+                // Load and validate plugins of non-project script plugins without generating accessors
+                // We consume the sequence to force evaluation
+                scriptPluginPluginsFor(nonProjectScriptPlugins).forEach { _ -> }
             }
         }
     }
@@ -213,10 +231,10 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         scriptPluginsById[scriptPlugin.id]?.appliedPlugins ?: emptyList()
 
     private
-    fun scriptPluginPluginsFor(projectScriptPlugins: List<PrecompiledScriptPlugin>) = sequence {
+    fun scriptPluginPluginsFor(scriptPlugins: List<PrecompiledScriptPlugin>) = sequence {
         val loader = createPluginsClassLoader()
         try {
-            for (plugin in projectScriptPlugins) {
+            for (plugin in scriptPlugins) {
                 yield(loader.scriptPluginPluginsFor(plugin))
             }
         } finally {
@@ -270,7 +288,10 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
             return "Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. " +
                 "Please remove the version from the offending request and make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $projectDesc."
         }
-        // TODO:kotlin-dsl validate apply false
+        if (!pluginRequest.isApply) {
+            return "Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not use 'apply false' as all plugins will be applied. " +
+                "Please remove 'apply false' from the offending request."
+        }
         return null
     }
 
@@ -304,6 +325,9 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     private
     fun selectProjectScriptPlugins() = plugins.get().filter { it.scriptType == KotlinScriptType.PROJECT }
+
+    private
+    fun selectNonProjectScriptPlugins() = plugins.get().filter { it.scriptType != KotlinScriptType.PROJECT }
 
     private
     fun createPluginsClassLoader(): ClassLoader =
