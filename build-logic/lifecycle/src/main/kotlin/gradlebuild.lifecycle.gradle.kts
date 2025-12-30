@@ -89,12 +89,18 @@ fun TaskContainer.registerEarlyFeedbackRootLifecycleTasks() {
         dependsOn(":base-services:createBuildReceipt")
     }
 
+    register("checkBuildLogic") {
+        description = "Run check on all build logic builds - to be run locally and on CI for early feedback"
+        group = "verification"
+        dependsOn(
+            gradle.includedBuilds.map { it.task(":check") }
+        )
+    }
+
     register(sanityCheck) {
         description = "Run all basic checks (without tests) - to be run locally and on CI for early feedback"
         group = "verification"
         dependsOn(
-            gradle.includedBuild("build-logic-commons").task(":check"),
-            gradle.includedBuild("build-logic").task(":check"),
             ":docs:checkstyleApi",
             ":internal-build-reports:allIncubationReportsZip",
             ":architecture-test:checkBinaryCompatibility",
