@@ -285,7 +285,10 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             root(":", ":depsub:") {
                 edge("org.utils:impl:1.3", "org.utils:impl:1.5") {
                     forced()
-                    edge("org.utils:api:1.5", "org.utils:api:1.6").selectedByRule()
+                    edge("org.utils:api:1.5", "org.utils:api:1.6") {
+                        forced()
+                        selectedByRule()
+                    }
                 }
             }
         }
@@ -1571,6 +1574,7 @@ Required by:
             root(":", ":depsub:") {
                 edge('org:lib:1.0', 'org:lib:1.1') {
                     artifact(classifier: 'classy')
+                    forced()
                     selectedByRule()
                 }
                 module('org:other:1.0') {

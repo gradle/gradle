@@ -17,19 +17,22 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.component.ComponentSelectorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -43,6 +46,12 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.BY_ANCESTOR;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONSTRAINT;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.FORCED;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.REQUESTED;
 
 /**
  * Represents the edges in the dependency graph.
@@ -138,8 +147,7 @@ class EdgeState implements DependencyGraphEdge {
         return getSelectedComponent();
     }
 
-    @Override
-    public SelectorState getSelector() {
+    SelectorState getSelector() {
         assert selector != null : "No selector for " + this;
         return selector;
     }
@@ -331,6 +339,11 @@ class EdgeState implements DependencyGraphEdge {
         return new GraphVariantSelectionResult(legacyVariants, false);
     }
 
+    @Override
+    public boolean isFromLock() {
+        return dependencyState.isFromLock();
+    }
+
     public static class GraphVariantSelectionResult {
 
         private final List<? extends VariantGraphResolveState> variants;
@@ -479,8 +492,46 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public ComponentSelectionReason getReason() {
-        return selector.getSelectionReason();
+    public ComponentSelectionReasonInternal getReason() {
+        ImmutableSet.Builder<ComponentSelectionDescriptorInternal> dependencyReasons = ImmutableSet.builderWithExpectedSize(4);
+        visitSelectionReasons(dependencyReasons::add);
+        return ComponentSelectionReasons.of(dependencyReasons.build());
+    }
+
+    @Override
+    public void visitSelectionReasons(Consumer<ComponentSelectionDescriptorInternal> visitor) {
+        visitor.accept(getMainReason());
+
+        ImmutableList<ComponentSelectionDescriptorInternal> ruleDescriptors = dependencyState.getRuleDescriptors();
+        if (!ruleDescriptors.isEmpty()) {
+            ruleDescriptors.forEach(visitor);
+        }
+
+        if (dependencyState.isForced()) {
+            visitor.accept(FORCED);
+        }
+    }
+
+    private ComponentSelectionDescriptorInternal getMainReason() {
+        if (selector != null && selector.isVersionProvidedByAncestor()) {
+            return withDependencyReason(BY_ANCESTOR);
+        } else if (dependencyState.getDependency().isConstraint()) {
+            return withSelectorReason(withDependencyReason(CONSTRAINT));
+        } else {
+            return withSelectorReason(withDependencyReason(REQUESTED));
+        }
+    }
+
+    private ComponentSelectionDescriptorInternal withDependencyReason(ComponentSelectionDescriptorInternal dependencyDescriptor) {
+        String reason = dependencyState.getDependency().getReason();
+        if (reason != null) {
+            dependencyDescriptor = dependencyDescriptor.withDescription(Describables.of(reason));
+        }
+        return dependencyDescriptor;
+    }
+
+    private ComponentSelectionDescriptorInternal withSelectorReason(ComponentSelectionDescriptorInternal descriptor) {
+        return selector == null ? descriptor : selector.maybeEnhanceReason(descriptor);
     }
 
     @Override

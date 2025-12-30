@@ -23,11 +23,11 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
@@ -42,7 +42,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
 
     private final ModuleVersionIdentifier moduleVersion;
     private Set<ResolvedDependencyResult> dependents = new LinkedHashSet<>();
-    private final ComponentSelectionReason selectionReason;
+    private final ComponentSelectionReasonInternal selectionReason;
     private final ComponentIdentifier componentId;
     private final ImmutableList<ResolvedVariantResult> selectedVariants;
     private final Map<Long, ResolvedVariantResult> selectedVariantsById;
@@ -54,7 +54,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
 
     public DefaultResolvedComponentResult(
         ModuleVersionIdentifier moduleVersion,
-        ComponentSelectionReason selectionReason,
+        ComponentSelectionReasonInternal selectionReason,
         ComponentIdentifier componentId,
         ImmutableMap<Long, ResolvedVariantResult> selectedVariants,
         ImmutableList<ResolvedVariantResult> allVariants,
@@ -115,7 +115,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     }
 
     @Override
-    public ComponentSelectionReason getSelectionReason() {
+    public ComponentSelectionReasonInternal getSelectionReason() {
         return selectionReason;
     }
 
