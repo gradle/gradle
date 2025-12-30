@@ -36,7 +36,7 @@ class DocsTestTrigger(
     model: CIBuildModel,
     docsTestProject: DocsTestProject,
 ) : OsAwareBaseGradleBuildType(os = docsTestProject.os, init = {
-        id("${asDocsTestId(model, docsTestProject.os)}_Trigger")
+        id("${asDocsTestId(model, os)}_Trigger")
         name = docsTestProject.name + " (Trigger)"
         type = Type.COMPOSITE
 
