@@ -34,7 +34,7 @@ class TestPerformanceTest(
     model: CIBuildModel,
     stage: Stage,
 ) : OsAwareBaseGradleBuildType(os = Os.LINUX, stage, init = {
-        val os = Os.LINUX
+        val os = os
         val buildTypeThis = this
         val testProject = "smallJavaMultiProject"
 
