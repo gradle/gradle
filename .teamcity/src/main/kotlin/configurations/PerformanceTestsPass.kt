@@ -16,7 +16,6 @@
 
 package configurations
 
-import common.Os
 import common.applyDefaultSettings
 import common.setArtifactRules
 import jetbrains.buildServer.configs.kotlin.ParameterDisplay
@@ -36,7 +35,7 @@ class PerformanceTestsPass(
             val performanceTestSpec = performanceTestProject.spec
             name = performanceTestProject.name + " (Trigger)"
 
-            val os = Os.LINUX
+            val os = os
             val type = performanceTestSpec.type
 
             applyDefaultSettings(os)
