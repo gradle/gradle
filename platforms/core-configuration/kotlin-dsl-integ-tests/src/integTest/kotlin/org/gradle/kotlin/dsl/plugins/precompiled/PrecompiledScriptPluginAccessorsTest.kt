@@ -240,7 +240,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         )
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/17246")
+    @Issue("https://github.com/gradle/gradle/issues/17246")
     @Test
     fun `fails the build with help message for plugin spec with version in settings plugin`() {
 
@@ -258,20 +258,18 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             plugins {
                 id("a.plugin") version "1.0"
             }
+
             """
         )
 
-        build("assemble")
-
-        // TODO Should fail:
-        //    assertThat(
-        //        buildFailureOutput("assemble"),
-        //        containsMultiLineString(
-        //            """
-        //            Invalid plugin request [id: 'a.plugin', version: '1.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin 'a.plugin' is an implementation dependency of root project 'invalid-plugin'.
-        //            """
-        //        )
-        //    )
+        assertThat(
+            buildFailureOutput("assemble"),
+            containsMultiLineString(
+                """
+                Invalid plugin request [id: 'a.plugin', version: '1.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin 'a.plugin' is an implementation dependency of root project 'invalid-plugin'.
+                """
+            )
+        )
     }
 
     @Issue("https://github.com/gradle/gradle/issues/14437")
@@ -305,7 +303,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         )
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/17246")
+    @Issue("https://github.com/gradle/gradle/issues/17246")
     @Test
     fun `fails the build with help message for plugin spec with apply false in settings plugin`() {
 
@@ -326,17 +324,14 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             """
         )
 
-        build("assemble")
-
-        // TODO Should fail:
-        //        assertThat(
-        //            buildFailureOutput("assemble"),
-        //            containsMultiLineString(
-        //                """
-        //                Invalid plugin request [id: 'a.plugin', apply: false]. Plugin requests from precompiled scripts must not use 'apply false' as all plugins will be applied. Please remove 'apply false' from the offending request.
-        //                """
-        //            )
-        //        )
+        assertThat(
+            buildFailureOutput("assemble"),
+            containsMultiLineString(
+                """
+                Invalid plugin request [id: 'a.plugin', apply: false]. Plugin requests from precompiled scripts must not use 'apply false' as all plugins will be applied. Please remove 'apply false' from the offending request.
+                """
+            )
+        )
     }
 
     @Test

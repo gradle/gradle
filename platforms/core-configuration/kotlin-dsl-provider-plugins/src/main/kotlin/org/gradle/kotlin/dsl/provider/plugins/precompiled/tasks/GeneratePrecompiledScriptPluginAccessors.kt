@@ -158,10 +158,28 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
         recreateTaskDirectories()
 
+        generateProjectScriptPluginsAccessors()
+
+        // In the future, accessors could also be generated here, but for now we just validate the plugins.
+        validateNonProjectScriptPluginsPlugins()
+    }
+
+    private fun generateProjectScriptPluginsAccessors() {
         val projectScriptPlugins = selectProjectScriptPlugins()
         if (projectScriptPlugins.isNotEmpty()) {
             asyncIOScopeFactory.newScope().useToRun {
                 generateTypeSafeAccessorsFor(projectScriptPlugins)
+            }
+        }
+    }
+
+    private fun validateNonProjectScriptPluginsPlugins() {
+        val nonProjectScriptPlugins = selectNonProjectScriptPlugins()
+        if (nonProjectScriptPlugins.isNotEmpty()) {
+            asyncIOScopeFactory.newScope().useToRun {
+                // Load and validate plugins of non-project script plugins without generating accessors
+                // We consume the sequence to force evaluation
+                scriptPluginPluginsFor(nonProjectScriptPlugins).forEach { _ -> }
             }
         }
     }
@@ -213,10 +231,10 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         scriptPluginsById[scriptPlugin.id]?.appliedPlugins ?: emptyList()
 
     private
-    fun scriptPluginPluginsFor(projectScriptPlugins: List<PrecompiledScriptPlugin>) = sequence {
+    fun scriptPluginPluginsFor(scriptPlugins: List<PrecompiledScriptPlugin>) = sequence {
         val loader = createPluginsClassLoader()
         try {
-            for (plugin in projectScriptPlugins) {
+            for (plugin in scriptPlugins) {
                 yield(loader.scriptPluginPluginsFor(plugin))
             }
         } finally {
@@ -307,6 +325,9 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     private
     fun selectProjectScriptPlugins() = plugins.get().filter { it.scriptType == KotlinScriptType.PROJECT }
+
+    private
+    fun selectNonProjectScriptPlugins() = plugins.get().filter { it.scriptType != KotlinScriptType.PROJECT }
 
     private
     fun createPluginsClassLoader(): ClassLoader =
