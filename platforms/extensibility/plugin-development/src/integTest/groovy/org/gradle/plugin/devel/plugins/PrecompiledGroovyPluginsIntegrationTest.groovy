@@ -610,6 +610,29 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         failureDescriptionContains("Invalid plugin request [id: 'some-plugin', version: '42.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin 'some-plugin' is an implementation dependency")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/14437")
+    def "fails the build with help message for plugin spec with apply false"() {
+        given:
+        enablePrecompiledPluginsInBuildSrc()
+        file("buildSrc/src/main/groovy/plugins/foo.gradle") << """
+            plugins {
+                id 'some-plugin' apply false
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id 'foo'
+            }
+        """
+
+        when:
+        fails("help")
+
+        then:
+        failureDescriptionContains("Invalid plugin request [id: 'some-plugin', apply: false]. Plugin requests from precompiled scripts must not use 'apply false' as all plugins will be applied. Please remove 'apply false' from the offending request.")
+    }
+
     def "can use classes from project sources"() {
         given:
         enablePrecompiledPluginsInBuildSrc()
