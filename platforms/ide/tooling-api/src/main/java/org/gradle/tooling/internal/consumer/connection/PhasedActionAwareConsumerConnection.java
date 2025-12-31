@@ -47,7 +47,7 @@ public class PhasedActionAwareConsumerConnection extends ParameterAcceptingConsu
     }
 
     @Override
-    public void run(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters) {
+    protected void doRun(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters) {
         InternalPhasedActionConnection connection = (InternalPhasedActionConnection) getDelegate();
         PhasedActionResultListener listener = new DefaultPhasedActionResultListener(getHandler(phasedBuildAction.getProjectsLoadedAction()),
             getHandler(phasedBuildAction.getBuildFinishedAction()));
