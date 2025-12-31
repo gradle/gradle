@@ -77,18 +77,14 @@ androidHomeWarmup {
 tasks {
 
     /**
-     * Anroid project git URI.
-     * Currently points to a clone of Now in Android.
+     * Android project git URI and commit.
+     * Configured via gradle property: androidSmokeTestProjectRef=https://github.com/gradle/nowinandroid.git#<commitId>
      *
-     * Note that you can change it to `file:///path/to/your/nowinandroid-clone/.git`
+     * Note that you can change it to `file:///path/to/your/nowinandroid-clone/.git#<commitId>`
      * if you need to iterate quickly on changes to it.
      */
-    val androidProjectGitUri = "https://github.com/gradle/nowinandroid.git"
-
     val androidProject by registering(RemoteProject::class) {
-        remoteUri = androidProjectGitUri
-        // latest https://github.com/gradle/nowinandroid/tree/smoke-tests-main as of 2025-12-17
-        ref = "e117bd4ee30c7eb1ab3bbdc47f73a3fd0317b64b"
+        setRemoteUriAndRefFromGradleProperty("androidSmokeTestProjectRef")
     }
 
     val gradleBuildCurrent by registering(RemoteProject::class) {
