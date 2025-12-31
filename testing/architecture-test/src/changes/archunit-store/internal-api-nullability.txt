@@ -290,7 +290,6 @@ Class <org.gradle.api.internal.changedetection.TaskExecutionModeResolver> is not
 Class <org.gradle.api.internal.classpath.DefaultPluginModuleRegistry> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DefaultPluginModuleRegistry.java:0)
 Class <org.gradle.api.internal.classpath.EffectiveClassPath> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (EffectiveClassPath.java:0)
 Class <org.gradle.api.internal.classpath.ManifestUtil> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ManifestUtil.java:0)
-Class <org.gradle.api.internal.classpath.Module> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (Module.java:0)
 Class <org.gradle.api.internal.classpath.ModuleRegistry> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ModuleRegistry.java:0)
 Class <org.gradle.api.internal.classpath.PluginModuleRegistry> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (PluginModuleRegistry.java:0)
 Class <org.gradle.api.internal.classpath.UnknownModuleException> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (UnknownModuleException.java:0)

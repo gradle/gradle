@@ -68,6 +68,10 @@ public class RuntimeApiInfo {
         return getResource("api-mapping.txt");
     }
 
+    public URL getRelocatedApiPackagesResource() {
+        return getResource("org/gradle/api/internal/runtimeshaded/api-relocated.txt");
+    }
+
     private URL getResource(String resource) {
         URL url = classLoader.getResource(resource);
         if (url == null) {
