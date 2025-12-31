@@ -18,6 +18,7 @@ package org.gradle.internal.logging.sink;
 
 import org.fusesource.jansi.AnsiPrintStream;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
 import org.gradle.internal.logging.console.AnsiConsole;
 import org.gradle.internal.logging.console.ColorMap;
 import org.gradle.internal.logging.console.Console;
@@ -38,8 +39,8 @@ public class ConsoleConfigureAction {
     private ConsoleConfigureAction() {
     }
 
-    public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput) {
-        execute(renderer, consoleOutput, getConsoleMetaData(), renderer.getOriginalStdOut(), renderer.getOriginalStdErr());
+    public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput, ConsoleUnicodeSupport consoleUnicodeSupport) {
+        execute(renderer, consoleOutput, getConsoleMetaData(consoleUnicodeSupport), renderer.getOriginalStdOut(), renderer.getOriginalStdErr());
     }
 
     public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata, OutputStream stdout, OutputStream stderr) {
@@ -56,13 +57,12 @@ public class ConsoleConfigureAction {
         }
     }
 
-    private static ConsoleMetaData getConsoleMetaData() {
+    private static ConsoleMetaData getConsoleMetaData(ConsoleUnicodeSupport consoleUnicodeSupport) {
         ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
         ConsoleMetaData metaData = consoleDetector.getConsole();
-        if (metaData != null) {
-            return metaData;
-        }
-        return FallbackConsoleMetaData.NOT_ATTACHED;
+        return UnicodeProxyConsoleMetaData.create(
+            metaData != null ? metaData : FallbackConsoleMetaData.NOT_ATTACHED,
+            consoleUnicodeSupport);
     }
 
     private static void configureAutoConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
