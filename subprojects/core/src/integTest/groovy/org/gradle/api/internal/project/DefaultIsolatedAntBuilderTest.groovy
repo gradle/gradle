@@ -56,7 +56,7 @@ class DefaultIsolatedAntBuilderTest {
 
     @Before
     void attachAppender() {
-        classpath = moduleRegistry.getExternalModule("groovy").getClasspath().asFiles
+        classpath = moduleRegistry.getModule("groovy").implementationClasspath.asFiles
     }
 
     @After

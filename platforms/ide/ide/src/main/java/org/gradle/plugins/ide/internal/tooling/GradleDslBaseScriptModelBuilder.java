@@ -33,7 +33,6 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Stream;
 
 @NullMarked
 public class GradleDslBaseScriptModelBuilder implements BuildScopeModelBuilder {
@@ -68,10 +67,9 @@ public class GradleDslBaseScriptModelBuilder implements BuildScopeModelBuilder {
     }
 
     private static ClassPath getKotlinScriptTemplatesClassPath(ModuleRegistry moduleRegistry) {
-        return Stream.of("gradle-core")
-            .map(moduleRegistry::getModule)
-            .flatMap(it -> it.getAllRequiredModules().stream())
-            .flatMap(it -> it.getClasspath().getAsFiles().stream())
+        return moduleRegistry.getRuntimeClasspath("gradle-core")
+            .getAsFiles()
+            .stream()
             .filter(GradleDslBaseScriptModelBuilder::isNeededOnScriptTemplateClassPath)
             .sorted()
             .reduce(ClassPath.EMPTY, (classPath, file) -> classPath.plus(Collections.singleton(file)), ClassPath::plus);

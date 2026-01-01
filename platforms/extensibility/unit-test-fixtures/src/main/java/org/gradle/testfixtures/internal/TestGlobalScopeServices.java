@@ -41,7 +41,7 @@ import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.List;
 
 public class TestGlobalScopeServices extends GlobalScopeServices {
     public TestGlobalScopeServices() {
@@ -98,7 +98,7 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
         }
 
         @Override
-        public Module getExternalModule(String name) throws UnknownModuleException {
+        public @Nullable Module findModule(String name) throws UnknownModuleException {
             return this;
         }
 
@@ -108,8 +108,13 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
         }
 
         @Override
-        public @Nullable Module findModule(String name) throws UnknownModuleException {
-            return this;
+        public String getName() {
+            return "test";
+        }
+
+        @Override
+        public List<String> getDependencyNames() {
+            return Collections.emptyList();
         }
 
         @Override
@@ -118,28 +123,8 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
         }
 
         @Override
-        public ClassPath getRuntimeClasspath() {
-            return classpath;
-        }
-
-        @Override
-        public ClassPath getClasspath() {
-            return classpath;
-        }
-
-        @Override
-        public Set<Module> getRequiredModules() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<Module> getAllRequiredModules() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public ClassPath getAllRequiredModulesClasspath() {
-            return classpath;
+        public @Nullable ModuleAlias getAlias() {
+            return null;
         }
 
     }
