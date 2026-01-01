@@ -111,7 +111,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.cache.Cache;
 import org.gradle.cache.ManualEvictionInMemoryCache;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildModelLifecycleListener;
@@ -122,11 +121,11 @@ import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.transform.TransformedVariantConverter;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.DeferredResult;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.Identity;
+import org.gradle.internal.execution.IdentityCache;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.impl.DefaultIdentityCache;
 import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.NonLockingMutableWorkspaceProvider;
 import org.gradle.internal.hash.ChecksumService;
@@ -270,7 +269,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         @Provides
         MutableTransformWorkspaceServices createTransformWorkspaceServices(ProjectLayout projectLayout, ExecutionHistoryStore executionHistoryStore) {
             Supplier<File> baseDirectory = projectLayout.getBuildDirectory().dir(".transforms").map(Directory::getAsFile)::get;
-            Cache<Identity, DeferredResult<TransformWorkspaceResult>> identityCache = new ManualEvictionInMemoryCache<>();
+            IdentityCache<TransformWorkspaceResult> identityCache = DefaultIdentityCache.of(new ManualEvictionInMemoryCache<>());
             return new MutableTransformWorkspaceServices() {
                 @Override
                 public MutableWorkspaceProvider getWorkspaceProvider() {
@@ -283,7 +282,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 }
 
                 @Override
-                public Cache<Identity, DeferredResult<TransformWorkspaceResult>> getIdentityCache() {
+                public IdentityCache<TransformWorkspaceResult> getIdentityCache() {
                     return identityCache;
                 }
 

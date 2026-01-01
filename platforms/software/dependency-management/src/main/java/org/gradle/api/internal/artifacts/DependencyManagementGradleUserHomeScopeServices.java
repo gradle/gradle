@@ -24,9 +24,8 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCaches;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformWorkspaceServices;
 import org.gradle.api.internal.artifacts.transform.ToPlannedTransformStepConverter;
-import org.gradle.api.internal.artifacts.transform.TransformExecutionResult;
+import org.gradle.api.internal.artifacts.transform.TransformExecutionResult.TransformWorkspaceResult;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.cache.Cache;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategyFactory;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
@@ -36,7 +35,8 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.DeferredResult;
-import org.gradle.internal.execution.Identity;
+import org.gradle.internal.execution.IdentityCache;
+import org.gradle.internal.execution.impl.DefaultIdentityCache;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.CacheBasedImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
@@ -101,7 +101,8 @@ public class DependencyManagementGradleUserHomeScopeServices implements ServiceR
         CacheBuilder cacheBuilder = cacheBuilderFactory
             .createCacheBuilder(CacheLayout.TRANSFORMS.getName())
             .withDisplayName("Artifact transforms cache");
-        CrossBuildInMemoryCache<Identity, DeferredResult<TransformExecutionResult.TransformWorkspaceResult>> identityCache = crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(result -> result.getResult().isSuccessful());
+        CrossBuildInMemoryCache<String, DeferredResult<TransformWorkspaceResult>> inMemoryCache = crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(result -> result.getResult().isSuccessful());
+        IdentityCache<TransformWorkspaceResult> identityCache = DefaultIdentityCache.of(inMemoryCache);
         CacheBasedImmutableWorkspaceProvider workspaceProvider = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(cacheBuilder, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory, unscopedCacheBuilderFactory);
         return new ImmutableTransformWorkspaceServices() {
             @Override
@@ -110,7 +111,7 @@ public class DependencyManagementGradleUserHomeScopeServices implements ServiceR
             }
 
             @Override
-            public Cache<Identity, DeferredResult<TransformExecutionResult.TransformWorkspaceResult>> getIdentityCache() {
+            public IdentityCache<TransformWorkspaceResult> getIdentityCache() {
                 return identityCache;
             }
 
