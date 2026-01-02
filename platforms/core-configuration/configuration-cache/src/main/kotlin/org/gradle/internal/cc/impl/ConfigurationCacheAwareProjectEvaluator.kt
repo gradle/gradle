@@ -22,7 +22,6 @@ import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 
 
-internal
 class ConfigurationCacheAwareProjectEvaluator(
     private val delegate: ProjectEvaluator,
     private val controller: ConfigurationCacheFingerprintController

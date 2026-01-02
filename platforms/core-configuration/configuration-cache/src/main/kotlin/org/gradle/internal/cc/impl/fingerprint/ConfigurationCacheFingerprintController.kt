@@ -74,7 +74,6 @@ import java.util.function.Supplier
  */
 @ServiceScope(Scope.BuildTree::class)
 @Suppress("LongParameterList")
-internal
 class ConfigurationCacheFingerprintController internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val modelParameters: BuildModelParameters,
@@ -298,6 +297,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     // Start fingerprinting if not already started and not already committed,
     // This should be strict, but currently this method may be called multiple times when a
     // build invocation both runs tasks and queries models
+    internal
     fun maybeStartCollectingFingerprint(parameters: ConfigurationCacheFingerprintStartParameters) {
         writingState = writingState.maybeStart(parameters)
     }
@@ -306,6 +306,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         writingState = writingState.pause()
     }
 
+    internal
     fun commitFingerprintTo(
         buildScopedFingerprint: ConfigurationCacheStateFile,
         projectScopedFingerprint: ConfigurationCacheStateFile
