@@ -94,6 +94,7 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.cli)
     implementation(projects.clientServices)
+    implementation(projects.daemonLogging)
     implementation(projects.daemonServices)
     implementation(projects.dependencyManagement)
     implementation(projects.enterpriseLogging)

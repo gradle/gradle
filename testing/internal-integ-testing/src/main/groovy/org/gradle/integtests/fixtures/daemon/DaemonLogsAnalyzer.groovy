@@ -26,6 +26,7 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.GradleVersion
 
 import static org.gradle.integtests.fixtures.RetryConditions.daemonStoppedWithSocketExceptionOnWindows
+import static org.gradle.launcher.daemon.server.DaemonLogFile.getDaemonLogFileName
 
 class DaemonLogsAnalyzer implements DaemonsFixture {
     private final File daemonLogsDir
@@ -72,7 +73,7 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
     }
 
     List<DaemonFixture> getVisible() {
-        return registry.all.collect { daemonForLogFile(new File(daemonLogsDir, "daemon-${it.pid}.out.log")) }
+        return registry.all.collect { daemonForLogFile(new File(daemonLogsDir, getDaemonLogFileName(it.pid))) }
     }
 
     DaemonFixture daemonForLogFile(File logFile) {
