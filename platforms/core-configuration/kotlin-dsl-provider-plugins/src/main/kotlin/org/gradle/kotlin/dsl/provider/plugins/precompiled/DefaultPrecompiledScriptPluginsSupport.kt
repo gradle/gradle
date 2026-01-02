@@ -43,9 +43,7 @@ import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
-import org.gradle.kotlin.dsl.provider.inClassPathMode
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.DefaultPrecompiledScriptPluginsSupport.Companion.PRECOMPILED_SCRIPT_MANUAL
-import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.ConfigurePrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.ExtractPrecompiledScriptPluginPlugins
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateExternalPluginSpecBuilders
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompiledScriptPluginAccessors
@@ -261,22 +259,12 @@ fun Project.enableScriptCompilationOf(
             generatePrecompiledScriptPluginAccessors.flatMap { it.metadataOutputDir }
         )
 
-        if (inClassPathMode()) {
-
-            val configurePrecompiledScriptDependenciesResolver by registering(ConfigurePrecompiledScriptDependenciesResolver::class) {
-                dependsOn(generatePrecompiledScriptPluginAccessors)
-                metadataDir.set(generatePrecompiledScriptPluginAccessors.flatMap { it.metadataOutputDir })
-                classPathFiles.from(compileClasspath)
-                val objects = objects
-                onConfigure { resolverEnvironment ->
-                    configureKotlinCompilerArguments(objects, resolverEnvironment)
-                }
-            }
-
-            registerBuildScriptModelTask(
-                configurePrecompiledScriptDependenciesResolver
-            )
-        }
+        // This is necessary for TAPI builders to provide implicit imports for accessors of precompiled scripts outside of buildSrc
+        // With precompiled scripts from buildSrc, the accessors generation always happens as part of configuring the build
+        // This makes it so that it happens as part of IDE sync
+        registerBuildScriptModelTask(
+            generatePrecompiledScriptPluginAccessors
+        )
     }
 }
 
