@@ -310,6 +310,40 @@ In the JUnit XML report, the data is represented as:
 
 This information is captured for both class-based and non-class-based tests, and includes data published during test construction as well as setup/teardown phases.
 
+<a id="config-cache"></a>
+## Configuration Cache improvements
+
+The [Configuration Cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds. This feature can significantly improve build performance.
+
+### Clearer Attribution for Closures and Lambdas
+
+Identifying the source of configuration cache violations can be challenging when a task contains multiple lambdas or closures.
+Common examples include task actions like `doFirst`/`doLast`, or task predicates such as `onlyIf`, `upToDateWhen`, and `cacheIf`/`doNotCacheIf`. 
+Previously, if one of these closures captured an unsupported type (such as a reference to the enclosing script), the [problem report](userguide/reporting_problems.html#sec:generated_html_report) was often ambiguous:
+
+```kotlin
+fun myFalse() = false
+
+fun noOp() { } 
+
+tasks.register("myTask") {
+    outputs.cacheIf { myFalse() }
+    outputs.doNotCacheIf("reason") { myFalse() }
+    outputs.upToDateWhen { myFalse() }
+    onlyIf { myFalse() }
+    doLast { noOp() }
+}
+```    
+
+In earlier versions, the report would reference a cryptic generated class name, leaving you to guess which specific block was the culprit:
+
+![before-action-attribution-in-cc-report.png](release-notes-assets/before-action-attribution-in-cc-report.png)
+
+Starting with this release, the [Configuration Cache report](userguide/configuration_cache_debugging.html#config_cache:troubleshooting) now explicitly identifies the type of action or spec associated with each lambda. 
+This provides the necessary context to pinpoint and fix the violation immediately:
+
+![action-attribution-in-cc-report.png](release-notes-assets/action-attribution-in-cc-report.png)
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
