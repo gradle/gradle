@@ -315,10 +315,11 @@ This information is captured for both class-based and non-class-based tests, and
 
 The [Configuration Cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds. This feature can significantly improve build performance.
 
-### Improved attribution for lambdas/closures in configuration cache problem reporting
+### Clearer Attribution for Closures and Lambdas
 
-In previous releases, when a task contained multiple lambdas or closures - for example, `doFirst`/`doLast` actions, or `onlyIf`/`upToDateWhen`/`cacheIf`/`doNotCacheIf` specs -  
-that captured unsupported types (such as a reference to the enclosing script), like below:
+Identifying the source of configuration cache violations can be challenging when a task contains multiple lambdas or closures.
+Common examples include task actions like `doFirst`/`doLast`, or task predicates such as `onlyIf`, `upToDateWhen`, and `cacheIf`/`doNotCacheIf`. 
+Previously, if one of these closures captured an unsupported type (such as a reference to the enclosing script), the [problem report](userguide/reporting_problems.html#sec:generated_html_report) was often ambiguous:
 
 ```kotlin
 fun myFalse() = false
@@ -334,13 +335,12 @@ tasks.register("myTask") {
 }
 ```    
 
-it was difficult to identify which specific lambda was responsible for a given configuration cache problem:
+In earlier versions, the report would reference a cryptic generated class name, leaving you to guess which specific block was the culprit:
 
 ![before-action-attribution-in-cc-report.png](release-notes-assets/before-action-attribution-in-cc-report.png)
 
-The user was left wondering: *what lambda is `Build_gradle$$$result$1$1`?* 
-
-The configuration cache report now includes the type of action or spec associated with each lambda, making it significantly easier to identify the source of the issue.
+Starting with this release, the [Configuration Cache report](userguide/configuration_cache_debugging.html#config_cache:troubleshooting) now explicitly identifies the type of action or spec associated with each lambda. 
+This provides the necessary context to pinpoint and fix the violation immediately:
 
 ![action-attribution-in-cc-report.png](release-notes-assets/action-attribution-in-cc-report.png)
 
