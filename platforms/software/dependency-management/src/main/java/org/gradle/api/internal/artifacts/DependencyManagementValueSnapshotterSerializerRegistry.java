@@ -105,6 +105,7 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         register(ComponentFileArtifactIdentifier.class, new ComponentFileArtifactIdentifierSerializer());
         register(TransformedComponentFileArtifactIdentifier.class, new TransformedComponentFileArtifactIdentifierSerializer());
         register(DefaultModuleComponentIdentifier.class, Cast.uncheckedCast(componentIdentifierSerializer));
+        register(DefaultProjectComponentIdentifier.class, Cast.uncheckedCast(componentIdentifierSerializer));
         register(AttributeContainer.class, attributeContainerSerializer);
         registerWithFactory(ResolvedVariantResult.class, () -> new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer));
         register(ComponentSelectionDescriptorInternal.class, new ComponentSelectionDescriptorSerializer(componentSelectionDescriptorFactory));
