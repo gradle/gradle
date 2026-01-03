@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -55,7 +54,7 @@ public class DependencyResultSerializer {
             long selectedId = decoder.readSmallLong();
             return new DetachedResolvedGraphDependency(requested, selectedId, null, null, constraint, null);
         } else if (resultByte == FAILED) {
-            ComponentSelectionReason reason = componentSelectionReasonSerializer.read(decoder);
+            ComponentSelectionReasonInternal reason = componentSelectionReasonSerializer.read(decoder);
             ModuleVersionResolveException failure = failures.get(requested);
             return new DetachedResolvedGraphDependency(requested, null, reason, failure, constraint, null);
         } else {

@@ -17,14 +17,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
@@ -246,27 +247,34 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         nodes.add(node);
     }
 
-    private ComponentSelectionReason cachedReason;
+    private @Nullable ComponentSelectionReasonInternal cachedReason;
 
     @Override
-    public ComponentSelectionReason getSelectionReason() {
+    public ComponentSelectionReasonInternal getSelectionReason() {
+        if (cachedReason == null) {
+            cachedReason = computeReason();
+        }
+        return cachedReason;
+    }
+
+    private ComponentSelectionReasonInternal computeReason() {
         if (root) {
             return ComponentSelectionReasons.root();
         }
-        if (cachedReason != null) {
-            return cachedReason;
-        }
-        ComponentSelectionReasonInternal reason = ComponentSelectionReasons.empty();
-        for (final SelectorState selectorState : module.getSelectors()) {
+
+        ImmutableSet.Builder<ComponentSelectionDescriptorInternal> builder = ImmutableSet.builder();
+        for (SelectorState selectorState : module.getSelectors()) {
             if (selectorState.getFailure() == null) {
-                selectorState.addReasonsForSelector(reason);
+                selectorState.visitSelectionReasons(builder::add);
             }
         }
-        for (ComponentSelectionDescriptorInternal selectionCause : VersionConflictResolutionDetails.mergeCauses(selectionCauses)) {
-            reason.addCause(selectionCause);
+
+        for (DependencyGraphEdge incomingEdge : module.getAllIncomingEdges()) {
+            incomingEdge.visitSelectionReasons(builder::add);
         }
-        cachedReason = reason;
-        return reason;
+
+        builder.addAll(VersionConflictResolutionDetails.mergeCauses(selectionCauses));
+        return ComponentSelectionReasons.of(builder.build());
     }
 
     boolean hasStrongOpinion() {
