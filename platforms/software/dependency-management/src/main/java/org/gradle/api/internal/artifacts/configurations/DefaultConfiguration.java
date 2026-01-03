@@ -475,7 +475,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
+    @Deprecated
     public Set<File> resolve() {
+        DeprecationLogger.deprecateMethod(Configuration.class, "resolve")
+            .replaceWith("getIncoming().getFiles()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_configuration_resolve")
+            .nagUser();
+
         warnOrFailOnInvalidUsage("resolve()", ProperMethodUsage.RESOLVABLE);
         return getFiles();
     }
