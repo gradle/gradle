@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit.vintage
-
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.junit.junit4.AbstractJUnit4FilteringIntegrationTest
-
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
-
-@TargetCoverage({ JUNIT_VINTAGE })
-class JUnitVintageFilteringIntegrationTest extends AbstractJUnit4FilteringIntegrationTest implements JUnitVintageMultiVersionTest {
-}
+/**
+ * This package contains tests that should be specific to the JUnit Jupiter engine.
+ * <p>
+ * Jupiter began with JUnit 5.  These should run against JUnit 5 and JUnit 6.
+ */
+package org.gradle.testing.junit.junit5.jupiter;
