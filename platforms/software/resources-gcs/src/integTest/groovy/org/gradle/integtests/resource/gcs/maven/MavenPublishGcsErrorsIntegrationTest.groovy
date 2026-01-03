@@ -76,7 +76,7 @@ class MavenPublishGcsErrorsIntegrationTest extends AbstractMavenPublishIntegTest
         then:
         fails 'publish'
 
-        failure.assertHasDescription("Execution failed for task ':publishPubPublicationToMavenRepository'.")
+        failure.assertHasDescription("Execution failed for task ':publishPubPublicationToMavenRepository' (registered by plugin 'org.gradle.maven-publish').")
         failure.assertHasCause("Failed to publish publication 'pub' to repository 'maven'")
         failure.assertHasCause("Could not write to resource '${module.artifact.uri}'.")
         failure.assertHasCause("403 Forbidden")

@@ -361,7 +361,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         def failure = runAndFail('copy')
 
         then:
-        failure.assertHasDescription("Execution failed for task ':copy'.")
+        failure.assertHasDescription("Execution failed for task ':copy' (registered in build file 'build.gradle').")
         failure.assertThatCause(CoreMatchers.startsWith("Cannot expand ZIP"))
 
         where:
@@ -384,7 +384,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         def failure = runAndFail('copy')
 
         then:
-        failure.assertHasDescription("Execution failed for task ':copy'.")
+        failure.assertHasDescription("Execution failed for task ':copy' (registered in build file 'build.gradle').")
         failure.assertThatCause(CoreMatchers.startsWith("Unable to expand TAR"))
 
         where:

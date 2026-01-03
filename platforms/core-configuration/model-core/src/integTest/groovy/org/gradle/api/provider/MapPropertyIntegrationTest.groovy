@@ -191,7 +191,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         fails('thing')
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (registered in build file 'build.gradle').")
         failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
@@ -255,7 +255,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         fails('thing')
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (registered in build file 'build.gradle').")
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
@@ -504,54 +504,54 @@ task thing {
         when:
         fails('wrongValueTypeDsl')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map using an instance of type java.lang.Integer.')
 
         when:
         fails('wrongRuntimeKeyType')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyType'.")
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyType' (registered in build file 'build.gradle').")
         failure.assertHasCause('Cannot get the value of a property of type java.util.Map with key type java.lang.String as the source contains a key of type java.lang.Integer.')
         when:
         fails('wrongRuntimeValueType')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueType'.")
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueType' (registered in build file 'build.gradle').")
         failure.assertHasCause('Cannot get the value of a property of type java.util.Map with value type java.lang.String as the source contains a value of type java.lang.Integer.')
 
         when:
         fails('wrongPropertyTypeDsl')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map using a provider of type java.lang.Integer.')
 
         when:
         fails('wrongPropertyTypeApi')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi'.")
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi' (registered in build file 'build.gradle').")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map using a provider of type java.lang.Integer.')
 
         when:
         fails('wrongRuntimeKeyTypeDsl')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map with key type java.lang.String and value type java.lang.String using a provider with key type java.lang.Integer and value type java.lang.String.')
 
         when:
         fails('wrongRuntimeValueTypeDsl')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map with key type java.lang.String and value type java.lang.String using a provider with key type java.lang.String and value type java.lang.Integer.')
 
         when:
         fails('wrongRuntimeKeyTypeApi')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyTypeApi'.")
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyTypeApi' (registered in build file 'build.gradle').")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map with key type java.lang.String and value type java.lang.String using a provider with key type java.lang.Integer and value type java.lang.String.')
 
         when:
         fails('wrongRuntimeValueTypeApi')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueTypeApi'.")
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueTypeApi' (registered in build file 'build.gradle').")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map with key type java.lang.String and value type java.lang.String using a provider with key type java.lang.String and value type java.lang.Integer.')
     }
 
@@ -713,7 +713,7 @@ task thing {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
 

@@ -75,7 +75,7 @@ class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':codenarcTest'.")
+        failure.assertHasDescription("Execution failed for task ':codenarcTest' (registered by plugin 'org.gradle.codenarc').")
         failure.assertThatCause(startsWith("CodeNarc rule violations were found. See the report at:"))
         !report("main").text.contains("Class2")
         report("test").text.contains("testclass2")

@@ -35,7 +35,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
         ExecutionFailure failure = executer.withTasks("build").runWithFailure()
 
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+        failure.assertHasDescription("Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
         failure.assertHasCause(CompilationFailedException.COMPILATION_FAILED_DETAILS_BELOW)
         failure.assertHasResolution(CompilationFailedException.RESOLUTION_MESSAGE)
     }
@@ -49,7 +49,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
         ExecutionFailure failure = executer.withTasks("build").runWithFailure()
 
-        failure.assertHasDescription("Execution failed for task ':compileTestJava'.")
+        failure.assertHasDescription("Execution failed for task ':compileTestJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
         failure.assertHasCause(CompilationFailedException.COMPILATION_FAILED_DETAILS_BELOW)
         failure.assertHasResolution(CompilationFailedException.RESOLUTION_MESSAGE)
     }
@@ -62,7 +62,7 @@ class JavaProjectIntegrationTest extends AbstractIntegrationTest {
 
         ExecutionFailure failure = executer.withTasks("javadoc").runWithFailure()
 
-        failure.assertHasDescription("Execution failed for task ':javadoc'.")
+        failure.assertHasDescription("Execution failed for task ':javadoc' (registered by plugin 'org.gradle.java').")
         failure.assertHasCause("Javadoc generation failed.")
     }
 

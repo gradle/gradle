@@ -418,7 +418,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         fails("run")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':run'")
+        failure.assertHasDescription("Execution failed for task ':run' (registered in build file 'build.gradle').")
             .assertHasCause("Working directory '${file("does/not/exist")}' does not exist.")
             .assertHasNoCause("No such file or directory")
     }
@@ -436,7 +436,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         fails("run")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':run'")
+        failure.assertHasDescription("Execution failed for task ':run' (registered in build file 'build.gradle').")
             .assertHasCause("Working directory '${file("is/not/dir")}' is not a directory.")
     }
 

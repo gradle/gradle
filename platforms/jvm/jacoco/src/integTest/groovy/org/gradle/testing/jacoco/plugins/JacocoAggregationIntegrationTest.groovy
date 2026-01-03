@@ -569,7 +569,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         fails(":application:testCodeCoverageReport")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':direct:test'.")
+        failure.assertHasDescription("Execution failed for task ':direct:test' (registered by plugin 'org.gradle.jvm-test-suite').")
             .assertThatCause(startsWith("There were failing tests"))
         result.assertTasksNotScheduled(':application:testCodeCoverageReport"')
 

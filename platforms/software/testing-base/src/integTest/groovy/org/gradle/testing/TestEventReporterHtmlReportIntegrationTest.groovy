@@ -194,14 +194,14 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         fails("failing1", "failing2", "--continue")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':failing1'.")
+        failure.assertHasDescription("Execution failed for task ':failing1' (registered in build file 'build.gradle').")
         failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing1"))
         resultsFor("tests/failing1")
             .testPath(":failing1 suite")
             .onlyRoot()
             .assertChildCount(1, 1)
 
-        failure.assertHasDescription("Execution failed for task ':failing2'.")
+        failure.assertHasDescription("Execution failed for task ':failing2' (registered in build file 'build.gradle').")
         failure.assertHasErrorOutput("See the report at: " + resultsUrlFor("failing2"))
         resultsFor("tests/failing2")
             .testPath(":failing2 suite")

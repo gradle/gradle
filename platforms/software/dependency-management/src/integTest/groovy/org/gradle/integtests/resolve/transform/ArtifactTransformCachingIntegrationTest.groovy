@@ -1563,7 +1563,7 @@ resultsFile:
         fails ":app:resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':app:resolve'.")
+        failure.assertHasDescription("Execution failed for task ':app:resolve' (registered in build file 'build.gradle').")
         failure.assertResolutionFailure(":app:compile")
 
         where:
@@ -1640,7 +1640,7 @@ resultsFile:
         fails ":app:resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':app:resolve'.")
+        failure.assertHasDescription("Execution failed for task ':app:resolve' (registered in build file 'build.gradle').")
         failure.assertResolutionFailure(":app:compile")
         failure.hasErrorOutput("Received status code 500 from server: broken")
 

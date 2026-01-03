@@ -123,7 +123,7 @@ class GroovyBasePluginIntegrationTest extends AbstractIntegrationSpec {
         fails "compileGroovy"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileGroovy'.")
+        failure.assertHasDescription("Execution failed for task ':compileGroovy' (registered by plugin 'org.gradle.groovy-base').")
         failure.assertHasCause "Cannot infer Groovy class path because no Groovy Jar was found on class path: "
     }
 
