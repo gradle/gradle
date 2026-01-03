@@ -55,7 +55,7 @@ public class ExponentialBackoff<S extends ExponentialBackoff.Signal> {
     }
 
     /**
-     * Retries the given query until it returns a 'sucessful' result.
+     * Retries the given query until it returns a 'successful' result.
      *
      * @param query which returns non-null value when successful.
      * @param <T> the result type.
