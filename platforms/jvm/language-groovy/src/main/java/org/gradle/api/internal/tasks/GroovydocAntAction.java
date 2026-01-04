@@ -66,6 +66,9 @@ public abstract class GroovydocAntAction extends AntWorkAction<GroovydocParamete
                 putIfNotNull(args, "doctitle", parameters.getDocTitle().getOrNull());
                 putIfNotNull(args, "header", parameters.getHeader().getOrNull());
                 putIfNotNull(args, "footer", parameters.getFooter().getOrNull());
+                if (isAtLeast(version, "4.0.27")) {
+                    putIfNotNull(args, "javaVersion", parameters.getJavaVersion().getOrNull());
+                }
                 putIfNotNull(args, "overview", parameters.getOverview().getOrNull());
 
                 ant.invokeMethod("taskdef", ImmutableMap.of(
