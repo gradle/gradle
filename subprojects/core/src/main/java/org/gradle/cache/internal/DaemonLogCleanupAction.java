@@ -97,11 +97,11 @@ public class DaemonLogCleanupAction implements MonitoredCleanupAction {
         for (File logFile : logFiles) {
             if (logFile.lastModified() < maxAge) {
                 try {
-                    LOGGER.debug("Deleting old daemon log file at {}", logFile);
-                    deleter.deleteRecursively(logFile);
+                    LOGGER.debug("Deleting old daemon log file: {}", logFile);
+                    deleter.delete(logFile);
                     progressMonitor.incrementDeleted();
                 } catch (IOException e) {
-                    LOGGER.warn("Could not delete old log file: {}", logFile.getAbsolutePath(), e);
+                    LOGGER.warn("Could not delete old daemon log file: {}", logFile.getAbsolutePath(), e);
                     progressMonitor.incrementSkipped();
                 }
             } else {
