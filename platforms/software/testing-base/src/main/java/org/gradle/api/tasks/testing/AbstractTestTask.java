@@ -395,7 +395,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * Adds a closure to be notified when output from the test received. A {@link TestDescriptor} and {@link TestOutputEvent} instance are
      * passed to the closure as a parameter.
      *
-     * <pre class='autoTested'>
+     * <pre class='autoTestedWithDeprecations'>
      * apply plugin: 'java'
      *
      * test {

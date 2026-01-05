@@ -65,7 +65,11 @@ executed Test ${maybeParentheses('test')}(AÆTest)
                 ${testFrameworkDependencies}
             }
             test.${configureTestFramework}
-            test.beforeTest { println "executed " + it }
+            test.addTestListener(new TestListener() {
+                void beforeTest(TestDescriptor descriptor) {
+                    println "executed " + descriptor
+                }
+            })
         """
 
         when:

@@ -148,9 +148,11 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  *   jvmArgs('-XX:MaxPermSize=256m')
  *
  *   // listen to events in the test execution lifecycle
- *   beforeTest { descriptor -&gt;
- *      logger.lifecycle("Running test: " + descriptor)
- *   }
+ *   addTestListener(new TestListener() {
+ *      void beforeTest(TestDescriptor descriptor) {
+ *          logger.lifecycle("Running test: " + descriptor)
+ *      }
+ *   })
  *
  *   // fail the 'test' task on the first test failure
  *   failFast = true
@@ -159,7 +161,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  *   dryRun = true
  *
  *   // listen to standard out and standard error of the test JVM(s)
- *   onOutput { descriptor, event -&gt;
+ *   addTestOutputListener { descriptor, event -&gt;
  *      logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
  *   }
  * }

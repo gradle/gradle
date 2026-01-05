@@ -48,7 +48,7 @@ class TestNGLoggingOutputCaptureIntegrationTest extends MultiVersionIntegrationS
                             all {
                                 testTask.configure {
                                     reports.junitXml.outputPerTestCase = true
-                                    onOutput { test, event -> print "\$test -> \$event.message" }
+                                    addTestOutputListener { test, event -> print "\$test -> \$event.message" }
                                 }
                             }
                         }
