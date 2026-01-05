@@ -46,7 +46,7 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
 
         for (String extension : EXTENSIONS) {
             File candidate = new File(dir, basename + extension);
-            if (isCandidateFile(candidate)) {
+            if (candidate.isFile()) {
                 if (selectedCandidate == null) {
                     selectedCandidate = candidate;
                 } else {
@@ -55,12 +55,11 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
             }
         }
 
-        return new ScriptResolutionResult(dir, basename, selectedCandidate, ignoredCandidates);
-    }
+        if (selectedCandidate != null) {
+            notifyListener(selectedCandidate);
+        }
 
-    private boolean isCandidateFile(File candidate) {
-        notifyListener(candidate);
-        return candidate.isFile();
+        return new ScriptResolutionResult(dir, basename, selectedCandidate, ignoredCandidates);
     }
 
     @Override

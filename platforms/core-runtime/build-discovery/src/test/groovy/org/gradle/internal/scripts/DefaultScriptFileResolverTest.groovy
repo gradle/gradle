@@ -76,4 +76,26 @@ class DefaultScriptFileResolverTest extends Specification {
         result.ignoredCandidates.isEmpty()
     }
 
+    def "listener should only be notified once, not for each extension checked"() {
+        given:
+        new File(testDir, "build.gradle").createNewFile()
+        new File(testDir, "build.gradle.kts").createNewFile()
+        new File(testDir, "build.gradle.dcl").createNewFile()
+
+        def notificationCount = 0
+        def listener = new ScriptFileResolvedListener() {
+            @Override
+            void onScriptFileResolved(File scriptFile) {
+                notificationCount++
+            }
+        }
+
+        when:
+        def resolver = new DefaultScriptFileResolver(listener)
+        resolver.resolveScriptFile(testDir, "build")
+
+        then:
+        notificationCount == 1
+    }
+
 }
