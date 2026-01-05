@@ -51,7 +51,6 @@ import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
-import javax.annotation.WillCloseWhenClosed;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +77,7 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
     @Nullable
     private CollectThenExecuteTestDefinitionConsumer testClassExecutor;
     @Nullable
-    private BackwardsCompatibleLauncherSession launcherSession;
+    private LauncherSession launcherSession;
     @Nullable
     private ClassLoader junitClassLoader;
 
@@ -101,7 +100,7 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
     @Override
     protected TestDefinitionConsumer<TestDefinition> createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
-        launcherSession = BackwardsCompatibleLauncherSession.open();
+        launcherSession = LauncherFactory.openSession();
         ClassLoader junitClassLoader = Thread.currentThread().getContextClassLoader();
         testClassExecutor = new CollectThenExecuteTestDefinitionConsumer(threadSafeResultProcessor, launcherSession, junitClassLoader, spec, idGenerator, clock);
         return testClassExecutor;
@@ -120,13 +119,13 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         private final List<DiscoverySelector> selectors = new ArrayList<>();
 
         private final TestResultProcessor resultProcessor;
-        private final BackwardsCompatibleLauncherSession launcherSession;
+        private final LauncherSession launcherSession;
         private final ClassLoader junitClassLoader;
         private final JUnitPlatformSpec spec;
         private final IdGenerator<?> idGenerator;
         private final Clock clock;
 
-        CollectThenExecuteTestDefinitionConsumer(TestResultProcessor resultProcessor, BackwardsCompatibleLauncherSession launcherSession, ClassLoader junitClassLoader, JUnitPlatformSpec spec, IdGenerator<?> idGenerator, Clock clock) {
+        CollectThenExecuteTestDefinitionConsumer(TestResultProcessor resultProcessor, LauncherSession launcherSession, ClassLoader junitClassLoader, JUnitPlatformSpec spec, IdGenerator<?> idGenerator, Clock clock) {
             this.resultProcessor = resultProcessor;
             this.launcherSession = launcherSession;
             this.junitClassLoader = junitClassLoader;
@@ -280,40 +279,6 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
             return !filter.getIncludedTests().isEmpty()
                 || !filter.getIncludedTestsCommandLine().isEmpty()
                 || !filter.getExcludedTests().isEmpty();
-        }
-    }
-
-    private static final class BackwardsCompatibleLauncherSession implements AutoCloseable {
-
-        static BackwardsCompatibleLauncherSession open() {
-            try {
-                LauncherSession launcherSession = LauncherFactory.openSession();
-                return new BackwardsCompatibleLauncherSession(launcherSession);
-            } catch (NoSuchMethodError ignore) {
-                // JUnit Platform version on test classpath does not yet support launcher sessions
-                return new BackwardsCompatibleLauncherSession(LauncherFactory.create(), () -> {});
-            }
-        }
-
-        private final Launcher launcher;
-        private final Runnable onClose;
-
-        BackwardsCompatibleLauncherSession(@WillCloseWhenClosed LauncherSession session) {
-            this(session.getLauncher(), session::close);
-        }
-
-        BackwardsCompatibleLauncherSession(Launcher launcher, Runnable onClose) {
-            this.launcher = launcher;
-            this.onClose = onClose;
-        }
-
-        Launcher getLauncher() {
-            return launcher;
-        }
-
-        @Override
-        public void close() {
-            onClose.run();
         }
     }
 }
