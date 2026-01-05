@@ -25,6 +25,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import static org.gradle.wrapper.Download.UNKNOWN_VERSION;
@@ -45,17 +46,13 @@ public class GradleWrapperMain {
         parser.option(GRADLE_USER_HOME_OPTION, GRADLE_USER_HOME_DETAILED_OPTION).hasArgument();
         parser.option(GRADLE_QUIET_OPTION, GRADLE_QUIET_DETAILED_OPTION);
 
-        SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
-        converter.configure(parser);
-
         ParsedCommandLine options = parser.parse(args);
-
-        Properties systemProperties = System.getProperties();
-        systemProperties.putAll(converter.convert(options, new HashMap<String, String>()));
 
         File gradleUserHome = gradleUserHome(options);
 
-        addSystemProperties(systemProperties, gradleUserHome, rootDir);
+        Map<String, String> commandLineSystemProperties = getCommandLineSystemProperties(parser, options);
+
+        addSystemProperties(commandLineSystemProperties, gradleUserHome, rootDir);
 
         Logger logger = logger(options);
 
@@ -69,10 +66,21 @@ public class GradleWrapperMain {
                 new BootstrapMainStarter());
     }
 
-    private static void addSystemProperties(Properties systemProperties, File gradleUserHome, File rootDir) {
+    private static Map<String, String> getCommandLineSystemProperties(CommandLineParser parser, ParsedCommandLine options) {
+        SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
+        converter.configure(parser);
+        return converter.convert(options, new HashMap<String, String>());
+    }
+
+    private static void addSystemProperties(Map<String, String> commandLineSystemProperties, File gradleUserHome, File rootDir) {
+        Properties systemProperties = System.getProperties();
         // The location with highest priority needs to come last here, as it overwrites any previous entries.
+        // 3. project level properties
         systemProperties.putAll(PropertiesFileHandler.getSystemProperties(new File(rootDir, "gradle.properties")));
+        // 2. User level properties
         systemProperties.putAll(PropertiesFileHandler.getSystemProperties(new File(gradleUserHome, "gradle.properties")));
+        // 1. command-line properties
+        systemProperties.putAll(commandLineSystemProperties);
     }
 
     private static File rootDir(File wrapperJar) {
