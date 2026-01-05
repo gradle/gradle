@@ -209,7 +209,7 @@ class NodeStateTest extends Specification {
     }
 
     def root(List<String> strictDependencies = []) {
-        def root = node(strictDependencies)
+        def root = node(strictDependencies, true)
         visit(root)
         root
     }
@@ -219,7 +219,7 @@ class NodeStateTest extends Specification {
         node.ancestorsStrictVersions
     }
 
-    private NodeState node(List<String> strictDependencies = []) {
+    private NodeState node(List<String> strictDependencies = [], boolean root = false) {
         def state = Stub(VariantGraphResolveState) {
             getDependencies() >> strictDependencies.collect { dep ->
                 Mock(DependencyMetadata) {
@@ -227,12 +227,18 @@ class NodeStateTest extends Specification {
                         DefaultModuleIdentifier.newId("org", dep),
                         DefaultImmutableVersionConstraint.strictly("1.0")
                     )
+                    getArtifacts() >> []
                 }
             }
         }
 
         def component = Stub(ComponentState)
-        def node = new NodeState(idIdx++, component, resolveState, state, true)
+        def node
+        if (root) {
+            node = new RootNode(idIdx++, component, resolveState, [], state)
+        } else {
+            node = new NodeState(idIdx++, component, resolveState, state, true)
+        }
         component.nodes >> [node]
         node.collectOwnStrictVersions(new ModuleExclusions().nothing())
         node

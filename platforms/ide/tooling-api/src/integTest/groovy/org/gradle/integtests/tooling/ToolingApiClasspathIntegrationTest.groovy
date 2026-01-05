@@ -57,6 +57,7 @@ class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
                     def shadedTapiJar = files.find { it.name ==~ /gradle-tooling-api.*\\.jar/ }
                     assert shadedTapiJar != null
                     println "SHADED_TAPI_JAR_SIZE: " + shadedTapiJar.size() + " bytes"
+                    println shadedTapiJar
                 }
             }
         """

@@ -29,7 +29,7 @@ import static org.gradle.internal.SafeFileLocationUtils.toSafeFileName
 
 class SafeFileLocationUtilsTest extends Specification {
 
-    private static final String TRUNCATED_PREFIX = '_cut_'
+    private static final String TRUNCATED_PREFIX = '__'
 
     def "toSafeFileName preserves Unicode and replaces problematic characters"() {
         expect:
@@ -110,13 +110,13 @@ class SafeFileLocationUtilsTest extends Specification {
         then:
         // Prove our test string is what it says it is, since it may not be obvious to the reader
         stringWithExactlyMaxSafeFileNameChars.length() == MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES
-        // This gets shortened because it is at the byte limit, it comes out as 254 as the entire multi-byte char is removed
-        toSafeFileName(stringWithExactlyMaxSafeFileNameChars, false).getBytes(StandardCharsets.UTF_8).length == 254
+        // This gets shortened because it is at the byte limit, it comes out as 119 as the entire multi-byte char is removed
+        toSafeFileName(stringWithExactlyMaxSafeFileNameChars, false).getBytes(StandardCharsets.UTF_8).length == 119
 
         when:
         def stringWithOneMoreThanMaxSafeBytes = 'A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES + 1)
         then:
-        toSafeFileName(stringWithOneMoreThanMaxSafeBytes, false).getBytes(StandardCharsets.UTF_8).length == 255
+        toSafeFileName(stringWithOneMoreThanMaxSafeBytes, false).getBytes(StandardCharsets.UTF_8).length == 120
 
         when:
         def stringWithExactlyMaxSafeBytesWithUnicode = ('Θ' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES / 2)) +
@@ -155,9 +155,9 @@ class SafeFileLocationUtilsTest extends Specification {
         // Prove our test string is what it says it is, since it may not be obvious to the reader
         stringWithUnicodeThatSitsOnByteLimit.getBytes(StandardCharsets.UTF_8).length == MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES + 1
         // The truncation should remove the multi-byte character to avoid invalid UTF-8
-        // resulting in a string of 254 bytes, not 255 bytes
-        toSafeFileName(stringWithUnicodeThatSitsOnByteLimit, false).getBytes(StandardCharsets.UTF_8).length == 254
-        toSafeFileName(stringWithUnicodeThatSitsOnByteLimit, false) == TRUNCATED_PREFIX + 'A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - 1) + '-72GHCULK4CDNS'
+        // resulting in a string of 119 bytes, not 120 bytes
+        toSafeFileName(stringWithUnicodeThatSitsOnByteLimit, false).getBytes(StandardCharsets.UTF_8).length == 119
+        toSafeFileName(stringWithUnicodeThatSitsOnByteLimit, false) == TRUNCATED_PREFIX + 'A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - 1) + '-R2C8IVGQO8MJ4'
     }
 
     def "toSafeFileName handles null input"() {

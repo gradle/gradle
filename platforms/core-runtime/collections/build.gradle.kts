@@ -30,6 +30,7 @@ gradleModule {
 
 dependencies {
     api(libs.jspecify)
+    api(libs.jsr305)
 
     implementation(projects.stdlibJavaExtensions)
 
@@ -55,13 +56,13 @@ jmh {
     includes.addAll(
 //        "PersistentArrayBenchmark",
 //        "PersistentArrayBenchmark.append",
-//        "PersistentArrayBenchmark.iteration",
-//        "PersistentArrayBenchmark.randomAccess",
-//        "PersistentArrayBenchmark.indexBasedIteration",
 //        "PersistentArrayBenchmark.constructionOneByOne",
+//        "PersistentArrayBenchmark.iterator",
+//        "PersistentArrayBenchmark.iterationByIndex",
+//        "PersistentArrayBenchmark.randomAccess",
 //        "PersistentSetBenchmark",
 //        "PersistentSetBenchmark.iteration",
-//        "PersistentSetBenchmark.randomLookup",
+//        "PersistentSetBenchmark.contains(Absent|Present)",
 //        "PersistentSetBenchmark.remove",
 //        "PersistentSetBenchmark.removeAbsent",
 //        "PersistentSetBenchmark.removePresent",
@@ -72,8 +73,10 @@ jmh {
 //        "PersistentMapBenchmark.modify",
 //        "PersistentMapBenchmark.constructionOneByOne",
 //        "PersistentMapBenchmark.iteration",
-//        "PersistentMapBenchmark.randomUpdate",
-//        "PersistentMapBenchmark.randomLookup",
+//        "PersistentMapBenchmark.putNew",
+//        "PersistentMapBenchmark.updateExisting",
+//        "PersistentMapBenchmark.(putNew|updateExisting)",
+//        "PersistentMapBenchmark.get",
 //        "PersistentMapBenchmark.removeAbsent",
 //        "PersistentMapBenchmark.removePresent",
 //        "PersistentSetPolymorphismBenchmark.groupByRandom",

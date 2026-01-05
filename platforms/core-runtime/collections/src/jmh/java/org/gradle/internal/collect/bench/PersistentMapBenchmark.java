@@ -32,7 +32,10 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 
 @Fork(1)
 @Warmup(iterations = 3)
@@ -42,6 +45,7 @@ public class PersistentMapBenchmark {
 
     public enum MapType {
         HashMap(true, new HashMapMapProtocol()),
+        ConcurrentHashMap(true, new HashMapMapProtocol()),
         TreeMap(true, new TreeMapMapProtocol()),
         fastutil(true, new FastutilMapProtocol()),
         guava(false, new GuavaMapProtocol()),
@@ -106,6 +110,34 @@ public class PersistentMapBenchmark {
     }
 
     @Benchmark
+    public void modifyAbsentCustom(Blackhole blackhole) {
+        Object key = fixture.randomAbsent();
+        blackhole.consume(customModify(key, (k, v) -> v + "*"));
+    }
+
+    @Benchmark
+    public void modifyPresentCustom(Blackhole blackhole) {
+        Object key = fixture.randomPresent();
+        blackhole.consume(customModify(key, (k, cur) -> cur + "*"));
+    }
+
+    private Object customModify(Object key, BiFunction<Object, @Nullable Object, ?> f) {
+        return protocol.put(map, key, f.apply(key, protocol.get(map, key)));
+    }
+
+    @Benchmark
+    public void modifyAbsent(Blackhole blackhole) {
+        Object key = fixture.randomAbsent();
+        blackhole.consume(protocol.modify(map, key, (k, cur) -> cur + "*"));
+    }
+
+    @Benchmark
+    public void modifyPresent(Blackhole blackhole) {
+        Object key = fixture.randomPresent();
+        blackhole.consume(protocol.modify(map, key, (k, cur) -> cur + "*"));
+    }
+
+    @Benchmark
     public void putNew(Blackhole blackhole) {
         if (type.mutable) {
             // non-applicable
@@ -154,8 +186,12 @@ public class PersistentMapBenchmark {
     }
 
     @Benchmark
-    public void randomLookup(Blackhole blackhole) {
+    public void getPresent(Blackhole blackhole) {
         blackhole.consume(protocol.get(map, fixture.randomPresent()));
+    }
+
+    @Benchmark
+    public void getAbsent(Blackhole blackhole) {
         blackhole.consume(protocol.get(map, fixture.randomAbsent()));
     }
 
@@ -185,6 +221,10 @@ public class PersistentMapBenchmark {
 
         @Nullable Object get(Object map, Object key);
 
+        default Object modify(Object map, Object key, BiFunction<? super Object, ? super @Nullable Object, ? extends @Nullable Object> function) {
+            throw new UnsupportedOperationException();
+        }
+
         boolean containsKey(Object map, Object key);
 
         @SuppressWarnings("unchecked")
@@ -204,6 +244,11 @@ public class PersistentMapBenchmark {
         @Override
         public Object put(Object map, Object key, Object val) {
             return ((PersistentMap<Object, Object>) map).assoc(key, val);
+        }
+
+        @Override
+        public Object modify(Object map, Object key, BiFunction<? super Object, ? super @Nullable Object, ?> function) {
+            return ((PersistentMap<Object, Object>) map).modify(key, function);
         }
 
         @Override
@@ -260,18 +305,26 @@ public class PersistentMapBenchmark {
 
         @Override
         public Object put(Object map, Object key, Object val) {
-            ((HashMap<Object, Object>) map).put(key, val);
+            ((Map<Object, Object>) map).put(key, val);
             return map;
         }
 
         @Override
         public boolean containsKey(Object map, Object key) {
-            return ((HashMap<Object, Object>) map).containsKey(key);
+            return ((Map<Object, Object>) map).containsKey(key);
         }
 
         @Override
         public Object get(Object map, Object key) {
-            return ((HashMap<Object, Object>) map).get(key);
+            return ((Map<Object, Object>) map).get(key);
+        }
+    }
+
+    static class ConcurrentHashMapMapProtocol extends HashMapMapProtocol {
+
+        @Override
+        public Object newInstance() {
+            return new ConcurrentHashMap<>();
         }
     }
 

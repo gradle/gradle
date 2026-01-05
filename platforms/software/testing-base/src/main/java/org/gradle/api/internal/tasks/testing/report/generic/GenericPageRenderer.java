@@ -189,7 +189,21 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                     directlyBelowRootTabsRenderer.add("run " + (i + 1), perRootInfoTabsRenderers.get(i));
                 }
             }
-            rootTabsRenderer.add(rootDisplayNames.get(rootIndex), new ReportRenderer<TestTreeModel, SimpleHtmlWriter>() {
+            String rootState = "successGroup";
+            for (PerRootInfo info : infos) {
+                if (info.getFailedLeafCount() > 0) {
+                    // Failures are the most serious state
+                    rootState = "failureGroup";
+                    break;
+                }
+                if (info.getSkippedLeafCount() == info.getTotalLeafCount()) {
+                    // If everything is skipped, show that
+                    rootState = "skippedGroup";
+                    break;
+                }
+            }
+
+            rootTabsRenderer.add(rootDisplayNames.get(rootIndex), rootState, new ReportRenderer<TestTreeModel, SimpleHtmlWriter>() {
                 @Override
                 public void render(TestTreeModel model, SimpleHtmlWriter output) throws IOException {
                     String displayName = SerializableTestResult.getCombinedDisplayName(infos.get(0).getResults());

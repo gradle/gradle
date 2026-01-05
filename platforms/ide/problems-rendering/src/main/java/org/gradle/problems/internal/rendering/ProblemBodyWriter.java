@@ -49,7 +49,7 @@ class ProblemBodyWriter implements PartialProblemWriter {
         }
 
         // print solutions
-        if (!problem.getSolutions().isEmpty()) {
+        if (options.isRenderSolutions() && !problem.getSolutions().isEmpty()) {
             for (String solution : problem.getSolutions()) {
                 output.printf("%n");
 

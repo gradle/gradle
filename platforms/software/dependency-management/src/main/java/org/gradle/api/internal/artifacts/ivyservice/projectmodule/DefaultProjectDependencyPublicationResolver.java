@@ -143,7 +143,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
                 .withContext("A dependency was declared on " + project.getDisplayName() + ", but that project does not declare any publications.")
                 .withAdvice("Ensure " + project.getDisplayName() + " declares at least one publication.")
                 .willBecomeAnErrorInGradle10()
-                .withUpgradeGuideSection(8, "publishing_dependency_on_unpublished_project")
+                .withUpgradeGuideSection(9, "publishing_dependency_on_unpublished_project")
                 .nagUser();
 
             // These synthetic coordinates are problematic, since they are not the real coordinates of the target project. The target project is not actually published.

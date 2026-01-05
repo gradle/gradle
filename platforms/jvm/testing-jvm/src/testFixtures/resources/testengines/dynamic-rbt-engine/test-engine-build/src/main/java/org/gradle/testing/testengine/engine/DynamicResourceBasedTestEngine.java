@@ -85,6 +85,7 @@ public class DynamicResourceBasedTestEngine implements TestEngine {
                 test.addChild(dynamicTest);
                 listener.dynamicTestRegistered(dynamicTest);
                 listener.executionStarted(dynamicTest);
+                LOGGER.info(() -> "Executing dynamic test");
                 listener.executionFinished(dynamicTest, TestExecutionResult.successful());
 
                 listener.executionFinished(test, TestExecutionResult.successful());

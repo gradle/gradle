@@ -21,6 +21,7 @@ import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectTypeBinding
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.declarative.dsl.tooling.builders.AbstractDeclarativeDslToolingModelsCrossVersionTest
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -216,8 +217,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             package org.gradle.test;
 
             import org.gradle.declarative.dsl.model.annotations.Adding;
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import ${HiddenInDefinition.name};
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
@@ -228,7 +228,6 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import java.util.ArrayList;
             import javax.inject.Inject;
 
-            @Restricted
             public abstract class TestSoftwareTypeExtension implements ${Definition.class.simpleName}<TestSoftwareTypeExtension.Model> {
                 private final Foo foo;
 
@@ -240,14 +239,13 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
                     getId().convention("<no id>");
                 }
 
-                @Restricted
                 public abstract Property<String> getId();
 
+                @${HiddenInDefinition.simpleName}
                 public Foo getFoo() {
                     return foo;
                 }
 
-                @Configuring
                 public void foo(Action<? super Foo> action) {
                     action.execute(foo);
                 }
@@ -260,11 +258,9 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
                         """ : ""}
                     }
 
-                    @Restricted
                     public abstract Property<String> getBar();
 
                     ${gradleVersion >= GradleVersion.version("8.14") ? """
-                    @Restricted
                     public abstract ListProperty<String> getBaz();
                     """ : ""}
                 }
@@ -277,8 +273,6 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             package org.gradle.test;
 
             import org.gradle.declarative.dsl.model.annotations.Adding;
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
@@ -286,7 +280,6 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
 
             import javax.inject.Inject;
 
-            @Restricted
             public abstract class AnotherSoftwareTypeExtension extends TestSoftwareTypeExtension {
                 @Inject
                 public AnotherSoftwareTypeExtension(ObjectFactory objects) {

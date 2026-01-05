@@ -77,7 +77,6 @@ public class GradleBuildBuilder implements BuildScopeModelBuilder {
         return new ResilientGradleBuildCreator(target).create();
     }
 
-    @NullMarked
     private class ResilientGradleBuildCreator {
         private final BuildState target;
         private final Map<BuildState, DefaultGradleBuild> all = new LinkedHashMap<>();

@@ -16,26 +16,36 @@
 
 package org.gradle.internal.collect.bench;
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
 
 record SetFixture(Random random, List<Object> present, List<Object> absent) {
 
     public static SetFixture of(int size) {
         Random random = new Random(1234);
+
         List<Object> present = new ArrayList<>(size);
         List<Object> absent = new ArrayList<>(size);
 
-        AtomicInteger counter = new AtomicInteger(0);
-        random.ints(2 * size).forEach(it -> {
-            if (counter.getAndIncrement() % 2 == 0) {
-                present.add(it);
-            } else {
-                absent.add(it);
+        IntOpenHashSet presentSet = new IntOpenHashSet(size);
+        while (present.size() < size) {
+            int next = random.nextInt();
+            if (presentSet.add(next)) {
+                present.add(next);
             }
-        });
+        }
+
+        IntOpenHashSet absentSet = new IntOpenHashSet(size);
+        while (absent.size() < size) {
+            int next = random.nextInt();
+            if (!presentSet.contains(next) && absentSet.add(next)) {
+                absent.add(next);
+            }
+        }
+
         return new SetFixture(random, present, absent);
     }
 

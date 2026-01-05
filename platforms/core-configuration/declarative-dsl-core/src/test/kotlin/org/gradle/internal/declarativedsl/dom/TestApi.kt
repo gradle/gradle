@@ -17,8 +17,6 @@
 package org.gradle.internal.declarativedsl.dom
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 
 
 @Suppress("unused")
@@ -29,28 +27,21 @@ class TestApi {
         @Adding
         fun addAndConfigure(name: String, configure: TopLevelElement.() -> Unit): TopLevelElement
 
-        @get:Restricted
         var complexValueOne: ComplexValueOne
 
-        @get:Restricted
         var complexValueOneFromUtils: ComplexValueOne
 
-        @get:Restricted
         var complexValueTwo: ComplexValueTwo
 
         @Adding
         fun justAdd(name: String): TopLevelElement
 
-        @Configuring
         fun nested(configure: NestedReceiver.() -> Unit)
 
-        @Restricted
         fun one(complexValueTwo: ComplexValueTwo): ComplexValueOne
 
-        @Restricted
         fun two(name: String): ComplexValueTwo
 
-        @get:Restricted
         val utils: Utils
     }
 
@@ -59,38 +50,29 @@ class TestApi {
     class ComplexValueTwo
 
     interface TopLevelElement {
-        @get:Restricted
         var name: String
 
-        @get:Restricted
         var number: Int
     }
 
     interface NestedReceiver {
-        @get:Restricted
         var number: Int
 
-        @get:Restricted
         var otherNumber: Int
 
-        @get:Restricted
         var enum: Enum
 
         @Adding
         fun add(): MyNestedElement
 
-        @get:Restricted
         var listOfComplexValueOne: List<ComplexValueOne>
 
-        @Restricted
         fun <T> mySingletonList(t: T): List<T>
 
-        @Configuring
         fun configure(configure: NestedReceiver.() -> Unit)
     }
 
     interface Utils {
-        @Restricted
         fun oneUtil(): ComplexValueOne
     }
 

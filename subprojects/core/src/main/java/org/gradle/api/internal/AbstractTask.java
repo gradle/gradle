@@ -279,6 +279,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
+    public void restoreTaskActions(List<InputChangesAwareTaskAction> taskActions) {
+        actions = taskActions;
+    }
+
+    @Override
     public boolean hasTaskActions() {
         return actions != null && !actions.isEmpty();
     }
@@ -398,6 +403,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public Spec<? super TaskInternal> getOnlyIf() {
         return onlyIfSpec;
+    }
+
+    @Override
+    public void restoreOnlyIf(Spec<? super TaskInternal> onlyIf) {
+        onlyIfSpec = Cast.uncheckedCast(onlyIf);
     }
 
     @Override

@@ -183,8 +183,13 @@ public class DefaultListenerManager implements ScopedListenerManager {
     }
 
     private <T> EventBroadcast<T> getBroadcasterInternal(Class<T> listenerClass) {
+        // Try once before locking to avoid contention
+        EventBroadcast<T> broadcaster = Cast.uncheckedCast(broadcasters.get(listenerClass));
+        if (broadcaster != null) {
+            return broadcaster;
+        }
         synchronized (lock) {
-            EventBroadcast<T> broadcaster = Cast.uncheckedCast(broadcasters.get(listenerClass));
+            broadcaster = Cast.uncheckedCast(broadcasters.get(listenerClass));
             if (broadcaster == null) {
                 if (listenerClass.getAnnotation(StatefulListener.class) != null) {
                     broadcaster = new ParallelEventBroadcast<>(listenerClass);
@@ -192,13 +197,14 @@ public class DefaultListenerManager implements ScopedListenerManager {
                     broadcaster = new ExclusiveEventBroadcast<>(listenerClass);
                 }
 
-                broadcasters.put(listenerClass, broadcaster);
                 for (ListenerDetails listener : allListeners.values()) {
                     broadcaster.maybeAdd(listener);
                 }
                 for (ListenerDetails logger : allLoggers.values()) {
                     broadcaster.maybeSetLogger(logger);
                 }
+
+                broadcasters.put(listenerClass, broadcaster);
             }
             return broadcaster;
         }

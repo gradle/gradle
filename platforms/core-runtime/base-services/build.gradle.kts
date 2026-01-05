@@ -26,6 +26,7 @@ dependencies {
     api(projects.buildOperations)
     api(projects.classloaders)
     api(projects.concurrent)
+    api(projects.declarativeDslApi)
     api(projects.fileTemp)
     api(projects.hashing)
     api(projects.serviceLookup)

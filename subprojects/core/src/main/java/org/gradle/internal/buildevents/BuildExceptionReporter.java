@@ -22,6 +22,8 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -405,7 +407,11 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         Collection<InternalProblem> all = failure.getProblems();
         for (InternalProblem problem : all) {
-            resolutions.addAll(problem.getSolutions());
+            // TODO (donat) integrate type validation failure rendering with problems-rendering and get rid of the special-casing here
+            ProblemGroup group = problem.getDefinition().getId().getGroup();
+            if (!GradleCoreProblemGroup.validation().type().equals(group) && !GradleCoreProblemGroup.validation().property().equals(group)) {
+                resolutions.addAll(problem.getSolutions());
+            }
         }
 
         for (Failure cause : failure.getCauses()) {

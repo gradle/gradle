@@ -539,7 +539,7 @@ org:leaf:2.0 -> 1.0
 
         then:
         outputContains """
-org:leaf:1.0 (selected by rule)
+org:leaf:1.0
   Variant runtime:
     | Attribute Name             | Provided     | Requested |
     |----------------------------|--------------|-----------|
@@ -547,6 +547,9 @@ org:leaf:1.0 (selected by rule)
     | org.gradle.libraryelements | jar          |           |
     | org.gradle.status          | release      |           |
     | org.gradle.usage           | java-runtime |           |
+   Selection reasons:
+      - Selected by rule
+      - Forced
 
 org:leaf:1.0
 \\--- org:foo:1.0
@@ -801,7 +804,7 @@ org:foo:1.0 -> 2.0
 
         then:
         outputContains """
-org:baz:2.0 (selected by rule)
+org:baz:2.0
   Variant runtime:
     | Attribute Name             | Provided     | Requested |
     |----------------------------|--------------|-----------|
@@ -809,6 +812,9 @@ org:baz:2.0 (selected by rule)
     | org.gradle.libraryelements | jar          |           |
     | org.gradle.status          | release      |           |
     | org.gradle.usage           | java-runtime |           |
+   Selection reasons:
+      - Selected by rule
+      - Forced
 
 org:baz:1.1 -> 2.0
 \\--- conf
@@ -1357,7 +1363,11 @@ org:middle:1.0 -> 2.0 FAILED
 
         then:
         outputContains """
-org:middle:2.0+ (selected by rule) FAILED
+org:middle:2.0+ FAILED
+   Selection reasons:
+      - Was requested: didn't match version 1.0
+      - Selected by rule
+      - Forced
    Failures:
       - Could not find any version that matches org:middle:2.0+.
         Versions that do not match: 1.0
@@ -2597,13 +2607,15 @@ org:bar: FAILED
    Failures:
       - Could not resolve org:bar:{reject all versions}.
           - Module 'org:bar' has been rejected:
-               Dependency path: 'root project :' (compileClasspath) --> 'org:bar:[1.0,)'
+               Dependency path: 'root project :' (compileClasspath) --> 'org:bar:[1.0,)' because of the following reason: rejected versions 1.2, 1.1, 1.0
                Constraint path: 'root project :' (compileClasspath) --> 'org:bar:{reject all versions}' because of the following reason: Nope, you won't use this
 
 org:bar:{reject all versions} FAILED
 \\--- compileClasspath
 
 org:bar:[1.0,) FAILED
+   Selection reasons:
+      - Was requested: rejected versions 1.2, 1.1, 1.0
    Failures:
       - Could not resolve org:bar:[1.0,). (already reported)
 
@@ -2614,13 +2626,15 @@ org:foo: (by constraint) FAILED
    Failures:
       - Could not resolve org:foo:{reject 1.0 & 1.1 & 1.2}.
           - Cannot find a version of 'org:foo' that satisfies the version constraints:
-               Dependency path: 'root project :' (compileClasspath) --> 'org:foo:[1.0,)'
+               Dependency path: 'root project :' (compileClasspath) --> 'org:foo:[1.0,)' because of the following reason: rejected versions 1.2, 1.1, 1.0
                Constraint path: 'root project :' (compileClasspath) --> 'org:foo:{reject 1.0 & 1.1 & 1.2}'
 
 org:foo:{reject 1.0 & 1.1 & 1.2} FAILED
 \\--- compileClasspath
 
 org:foo:[1.0,) FAILED
+   Selection reasons:
+      - Was requested: rejected versions 1.2, 1.1, 1.0
    Failures:
       - Could not resolve org:foo:[1.0,). (already reported)
 
@@ -2676,8 +2690,8 @@ org:foo:1.0
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
-      - By constraint
       - Was requested: rejected versions 1.2, 1.1
+      - By constraint
 
 org:foo:{reject 1.2} -> 1.0
 \\--- compileClasspath
@@ -2994,8 +3008,8 @@ org:foo:1.5
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
    Selection reasons:
-      - By constraint
       - By ancestor
+      - By constraint
 
 org:foo:{strictly 1.5} -> 1.5
 \\--- compileClasspath
