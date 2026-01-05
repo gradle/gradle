@@ -40,16 +40,8 @@ class DefaultScriptFileResolverTest extends Specification {
 
     def "all known extensions should be recognized"() {
         given:
-        def selected = new File(testDir, "build.gradle")
-        selected.createNewFile()
-
-        def recognizedButIgnored = [
-            "build.gradle.kts", "build.gradle.dcl"
-        ].collect {
-            def f = new File(testDir, it)
-            f.createNewFile()
-            f
-        }
+        def selected = createFiles(testDir, ["build.gradle"])[0]
+        def recognizedButIgnored = createFiles(testDir, ["build.gradle.kts", "build.gradle.dcl"])
 
         when:
         def resolver = new DefaultScriptFileResolver()
@@ -63,9 +55,7 @@ class DefaultScriptFileResolverTest extends Specification {
 
     def "when no script file is found, resolution result should be empty"() {
         given:
-        ["settings.gradle", "settings.gradle.kts"].each {
-            new File(testDir, it).createNewFile()
-        }
+        createFiles(testDir, ["settings.gradle", "settings.gradle.kts"])
 
         when:
         def resolver = new DefaultScriptFileResolver()
@@ -78,24 +68,63 @@ class DefaultScriptFileResolverTest extends Specification {
 
     def "listener should only be notified once, not for each extension checked"() {
         given:
-        new File(testDir, "build.gradle").createNewFile()
-        new File(testDir, "build.gradle.kts").createNewFile()
-        new File(testDir, "build.gradle.dcl").createNewFile()
-
-        def notificationCount = 0
-        def listener = new ScriptFileResolvedListener() {
-            @Override
-            void onScriptFileResolved(File scriptFile) {
-                notificationCount++
-            }
-        }
+        createFiles(testDir, ["build.gradle", "build.gradle.kts", "build.gradle.dcl"])
+        def listener = new CountingListener()
 
         when:
         def resolver = new DefaultScriptFileResolver(listener)
         resolver.resolveScriptFile(testDir, "build")
 
         then:
-        notificationCount == 1
+        listener.count == 1
+    }
+
+    def "custom-named script files can be resolved"() {
+        given:
+        def selected = createFiles(testDir, ["custom.gradle"])[0]
+        def recognizedButIgnored = createFiles(testDir, ["custom.gradle.kts", "custom.gradle.dcl"])
+
+        when:
+        def resolver = new DefaultScriptFileResolver()
+        def result = resolver.resolveScriptFile(testDir, "custom")
+
+        then:
+        result.selectedCandidate == selected
+        result.ignoredCandidates == recognizedButIgnored
+    }
+
+    def "listener should only be notified once for custom-named build files"() {
+        given:
+        createFiles(testDir, ["a.gradle", "a.gradle.kts", "a.gradle.dcl"])
+        def listener = new CountingListener()
+
+        when:
+        def resolver = new DefaultScriptFileResolver(listener)
+        resolver.resolveScriptFile(testDir, "a")
+
+        then:
+        listener.count == 1
+    }
+
+    static class CountingListener implements ScriptFileResolvedListener {
+        private int count = 0
+
+        @Override
+        void onScriptFileResolved(File scriptFile) {
+            count++
+        }
+
+        int getCount() {
+            return count
+        }
+    }
+
+    static List<File> createFiles(File dir, List<String> filenames) {
+        return filenames.collect {
+            def f = new File(dir, it)
+            f.createNewFile()
+            f
+        }
     }
 
 }

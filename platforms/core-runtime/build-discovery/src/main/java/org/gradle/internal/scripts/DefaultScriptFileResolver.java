@@ -46,17 +46,16 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
 
         for (String extension : EXTENSIONS) {
             File candidate = new File(dir, basename + extension);
-            if (candidate.isFile()) {
-                if (selectedCandidate == null) {
+            if (selectedCandidate == null) {
+                notifyListener(candidate);
+                if (candidate.isFile()) {
                     selectedCandidate = candidate;
-                } else {
+                }
+            } else {
+                if (candidate.isFile()) {
                     ignoredCandidates.add(candidate);
                 }
             }
-        }
-
-        if (selectedCandidate != null) {
-            notifyListener(selectedCandidate);
         }
 
         return new ScriptResolutionResult(dir, basename, selectedCandidate, ignoredCandidates);
