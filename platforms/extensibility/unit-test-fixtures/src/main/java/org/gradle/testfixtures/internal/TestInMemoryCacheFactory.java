@@ -59,7 +59,8 @@ public class TestInMemoryCacheFactory implements CacheFactory {
 
     @Override
     public FineGrainedPersistentCache openFineGrained(File cacheDir, String displayName, FineGrainedCacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
-        return null;
+        GFileUtils.mkdirs(cacheDir);
+        return new InMemoryFineGrainedCache(cacheDir, displayName, cacheCleanupStrategy != null ? cacheCleanupStrategy.getCleanupStrategy() : CacheCleanupStrategy.NO_CLEANUP);
     }
 
     public PersistentCache open(File cacheDir, String displayName) {
@@ -172,6 +173,80 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         @Override
         public String getDisplayName() {
             return "InMemoryCache '" + displayName + "' " + cacheDir;
+        }
+
+        @Override
+        public String toString() {
+            return getDisplayName();
+        }
+    }
+
+    private static class InMemoryFineGrainedCache implements FineGrainedPersistentCache {
+
+        private final File cacheDir;
+        private final String displayName;
+        private final CacheCleanupStrategy cleanupStrategy;
+        private boolean closed;
+
+        public InMemoryFineGrainedCache(File cacheDir, String displayName, CacheCleanupStrategy cleanupStrategy) {
+            this.cacheDir = cacheDir;
+            this.displayName = displayName;
+            this.cleanupStrategy = cleanupStrategy;
+        }
+
+        @Override
+        public FineGrainedPersistentCache open() {
+            return this;
+        }
+
+        @Override
+        public <T> T useCache(String key, Supplier<? extends T> action) {
+            assertNotClosed();
+            synchronized (this) {
+                return action.get();
+            }
+        }
+
+        @Override
+        public void useCache(String key, Runnable action) {
+            useCache(key, () -> {
+                action.run();
+                return null;
+            });
+        }
+
+        private void assertNotClosed() {
+            if (closed) {
+                throw new IllegalStateException("cache is closed");
+            }
+        }
+
+        @Override
+        public void close() {
+            cleanup();
+            closed = true;
+        }
+
+        @Override
+        public File getBaseDir() {
+            return cacheDir;
+        }
+
+        @Override
+        public Collection<File> getReservedCacheFiles() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "InMemoryFineGrainedCache '" + displayName + "' " + cacheDir;
+        }
+
+        @Override
+        public void cleanup() {
+            synchronized (this) {
+                cleanupStrategy.clean(this, Instant.now());
+            }
         }
 
         @Override

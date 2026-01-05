@@ -267,11 +267,6 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
 
         @Override
-        public File getCacheDir(String key) {
-            return reference.cache.getCacheDir(key);
-        }
-
-        @Override
         public FineGrainedPersistentCache open() {
             return reference.cache.open();
         }

@@ -22,5 +22,5 @@ package org.gradle.cache;
  */
 public interface FineGrainedCacheCleanupStrategy {
 
-    CacheCleanupStrategy getCleanupStrategy(FineGrainedPersistentCache cache);
+    CacheCleanupStrategy getCleanupStrategy();
 }

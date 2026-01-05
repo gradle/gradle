@@ -70,12 +70,7 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         this.gcFile = new File(baseDir, "gc.properties");
         this.locksDir = new File(baseDir, "locks");
         this.guard = ProducerGuard.adaptive();
-        this.cleanupExecutor = new DefaultCacheCleanupExecutor(this, gcFile, cleanupStrategy.getCleanupStrategy(this));
-    }
-
-    @Override
-    public File getCacheDir(String key) {
-        return new File(baseDir, key);
+        this.cleanupExecutor = new DefaultCacheCleanupExecutor(this, gcFile, cleanupStrategy.getCleanupStrategy());
     }
 
     @Override
