@@ -82,7 +82,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
         )
 
         build("help").run {
-            assertThat(output, containsString("my-plugin settings plugin applied"))
+            assertOutputContains("my-plugin settings plugin applied")
         }
     }
 
@@ -130,8 +130,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
         )
 
         build("help").run {
-            assertThat(output, containsString("base-plugin settings plugin applied"))
-            assertThat(output, containsString("my-plugin settings plugin applied"))
+            assertOutputContains("base-plugin settings plugin applied")
+            assertOutputContains("my-plugin settings plugin applied")
         }
     }
 
@@ -216,8 +216,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
         build(file("external-plugin"), "publish")
 
         build("help").run {
-            assertThat(output, containsString("base-plugin settings plugin applied"))
-            assertThat(output, containsString("my-plugin settings plugin applied"))
+            assertOutputContains("base-plugin settings plugin applied")
+            assertOutputContains("my-plugin settings plugin applied")
         }
     }
 
