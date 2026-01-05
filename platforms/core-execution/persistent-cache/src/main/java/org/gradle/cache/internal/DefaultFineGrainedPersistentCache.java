@@ -167,4 +167,9 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         Preconditions.checkArgument(!normalizedKey.startsWith("/") && !normalizedKey.endsWith("/"), "Cache key path must be relative and not end with a slash: '%s'", key);
         return normalizedKey;
     }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
 }

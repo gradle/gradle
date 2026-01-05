@@ -17,6 +17,8 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
+import org.gradle.cache.FineGrainedCacheCleanupStrategy;
+import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
@@ -53,6 +55,11 @@ public class TestInMemoryCacheFactory implements CacheFactory {
             initializer.accept(cache);
         }
         return cache;
+    }
+
+    @Override
+    public FineGrainedPersistentCache openFineGrained(File cacheDir, String displayName, FineGrainedCacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
+        return null;
     }
 
     public PersistentCache open(File cacheDir, String displayName) {
