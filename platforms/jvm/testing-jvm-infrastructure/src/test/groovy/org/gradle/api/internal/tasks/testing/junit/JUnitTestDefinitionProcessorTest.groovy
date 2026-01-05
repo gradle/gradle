@@ -221,22 +221,22 @@ class JUnitTestDefinitionProcessorTest extends Specification {
 
         then:
         1 * processor.started({ it.id == 1 }, { it.parentId == null })
-        1 * processor.started({ it.id == 2 && it.name == testMethodName && it.className == testClass.name }, { it.parentId == 1 })
-        1 * processor.failure(2, { assertRuntimeExceptionWith(it, "broken") })
-        1 * processor.completed(2, { it.resultType == null })
+        1 * processor.started({ it.id == testId && it.name == testMethodName && it.className == testClass.name }, { it.parentId == 1 })
+        1 * processor.failure(testId, { assertRuntimeExceptionWith(it, "broken") })
+        1 * processor.completed(testId, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
 
         where:
-        testClass                             |testMethodName
-        ABrokenTestClass                      |'broken'
-        ABrokenJunit3TestClass                |'testBroken'
-        ATestClassWithBrokenRunner            |'initializationError'
-        ATestClassWithUnconstructibleRunner   |'initializationError'
-        ATestClassWithBrokenBeforeClassMethod |'classMethod'
-        ATestClassWithBrokenConstructor       |'test'
-        ATestClassWithBrokenBeforeMethod      |'test'
-        ATestClassWithBrokenSuiteMethod       |'initializationError'
+        testClass                             | testMethodName        | testId
+        ABrokenTestClass                      | 'broken'              | 2
+        ABrokenJunit3TestClass                | 'testBroken'          | 2
+        ATestClassWithBrokenRunner            | 'executionError'      | 2
+        ATestClassWithUnconstructibleRunner   | 'initializationError' | 2
+        ATestClassWithBrokenBeforeClassMethod | 'classMethod'         | 3
+        ATestClassWithBrokenConstructor       | 'test'                | 2
+        ATestClassWithBrokenBeforeMethod      | 'test'                | 2
+        ATestClassWithBrokenSuiteMethod       | 'initializationError' | 2
     }
 
     def "broken set-up reports failure"() {
@@ -245,11 +245,11 @@ class JUnitTestDefinitionProcessorTest extends Specification {
 
         then:
         1 * processor.started({ it.id == 1 }, { it.parentId == null })
-        1 * processor.started({ it.id == 2 && it.name == ATestSetUpWithBrokenSetUp.name }, { it.parentId == null })
-        1 * processor.started({ it.id == 3 && it.name == AJunit3TestClass.name }, { it.parentId == 2})
-        1 * processor.failure(3, { assertRuntimeExceptionWith(it, "broken") })
+        1 * processor.started({ it.id == 3 && it.name == ATestSetUpWithBrokenSetUp.name }, { it.parentId == null })
+        1 * processor.started({ it.id == 4 && it.name == AJunit3TestClass.name }, { it.parentId == 3 })
+        1 * processor.failure(4, { assertRuntimeExceptionWith(it, "broken") })
+        1 * processor.completed(4, { it.resultType == null })
         1 * processor.completed(3, { it.resultType == null })
-        1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
     }

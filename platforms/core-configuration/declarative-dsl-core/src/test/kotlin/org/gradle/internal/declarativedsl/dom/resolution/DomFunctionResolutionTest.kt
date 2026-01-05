@@ -16,8 +16,6 @@
 
 package org.gradle.internal.declarativedsl.dom.resolution
 
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.dom.data.collectToMap
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.convertBlockToDocument
@@ -67,17 +65,14 @@ class DomFunctionResolutionTest {
 
     interface TopLevel {
         @Suppress("unused")
-        @Configuring
         fun itemNamed(name: String, configure: Item.() -> Unit)
 
         @Suppress("unused")
-        @Restricted
         fun stringFactory(): String
     }
 
     interface Item {
         @Suppress("unused")
-        @get:Restricted
         var x: Int
     }
 }

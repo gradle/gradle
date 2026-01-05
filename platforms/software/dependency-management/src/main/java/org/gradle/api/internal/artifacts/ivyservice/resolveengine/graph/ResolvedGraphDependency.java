@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
 
@@ -45,7 +45,7 @@ public interface ResolvedGraphDependency {
      * Not null only when failure is not null.
      */
     @Nullable
-    ComponentSelectionReason getReason();
+    ComponentSelectionReasonInternal getReason();
 
     boolean isConstraint();
 

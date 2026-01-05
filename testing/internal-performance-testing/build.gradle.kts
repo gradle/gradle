@@ -51,7 +51,6 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.concurrent)
     implementation(projects.core)
-    implementation(projects.wrapperShared)
     implementation(projects.projectFeaturesApi)
 
     implementation(libs.commonsIo)

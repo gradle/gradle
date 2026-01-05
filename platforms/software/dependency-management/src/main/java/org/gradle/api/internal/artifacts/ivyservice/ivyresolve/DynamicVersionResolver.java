@@ -60,8 +60,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.hasCriticalFailure;
-import static org.gradle.internal.resolve.ResolveExceptionAnalyzer.isCriticalFailure;
 import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Failed;
 import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Resolved;
 
@@ -107,7 +105,7 @@ public class DynamicVersionResolver {
         BuildableComponentIdResolveResult result
     ) {
         LOGGER.debug("Attempting to resolve version for {} using repositories {}", requested, repositoryNames);
-        List<Throwable> errors = new ArrayList<>();
+        RepositoryFailureCollector errors = new RepositoryFailureCollector();
 
         List<RepositoryResolveState> resolveStates = new ArrayList<>(repositories.size());
         for (ModuleComponentRepository<ExternalModuleComponentGraphResolveState> repository : repositories) {
@@ -117,15 +115,15 @@ public class DynamicVersionResolver {
         final RepositoryChainModuleResolution latestResolved = findLatestModule(resolveStates, errors);
         if (latestResolved != null) {
             LOGGER.debug("Using {} from {}", latestResolved.component.getId(), latestResolved.repository);
-            for (Throwable error : errors) {
+            for (Throwable error : errors.getFailures()) {
                 LOGGER.debug("Discarding resolve failure.", error);
             }
 
             found(result, resolveStates, latestResolved);
             return;
         }
-        if (!errors.isEmpty()) {
-            result.failed(new ModuleVersionResolveException(requested, errors));
+        if (!errors.getFailures().isEmpty()) {
+            result.failed(new ModuleVersionResolveException(requested, errors.getFailures()));
         } else {
             notFound(result, requested, resolveStates);
         }
@@ -151,14 +149,14 @@ public class DynamicVersionResolver {
     }
 
     @Nullable
-    private RepositoryChainModuleResolution findLatestModule(List<RepositoryResolveState> resolveStates, Collection<Throwable> failures) {
+    private RepositoryChainModuleResolution findLatestModule(List<RepositoryResolveState> resolveStates, RepositoryFailureCollector failures) {
         LinkedList<RepositoryResolveState> queue = new LinkedList<>(resolveStates);
 
         LinkedList<RepositoryResolveState> missing = new LinkedList<>();
 
         // A first pass to do local resolves only
         RepositoryChainModuleResolution best = findLatestModule(queue, failures, missing);
-        if (hasCriticalFailure(failures)) {
+        if (failures.hasFatalError()) {
             return null;
         }
         if (best != null) {
@@ -173,25 +171,21 @@ public class DynamicVersionResolver {
 
     @Nullable
     @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private RepositoryChainModuleResolution findLatestModule(LinkedList<RepositoryResolveState> queue, Collection<Throwable> failures, Collection<RepositoryResolveState> missing) {
+    private RepositoryChainModuleResolution findLatestModule(LinkedList<RepositoryResolveState> queue, RepositoryFailureCollector failures, Collection<RepositoryResolveState> missing) {
         RepositoryChainModuleResolution best = null;
         while (!queue.isEmpty()) {
             RepositoryResolveState request = queue.removeFirst();
             try {
                 request.resolve();
             } catch (Exception t) {
-                failures.add(t);
-                if (isCriticalFailure(t)) {
-                    queue.clear();
-                }
+                handleFailure(queue, request, failures, t);
                 continue;
             }
             switch (request.resolvedVersionMetadata.getState()) {
                 case Failed:
-                    failures.add(request.resolvedVersionMetadata.getFailure());
-                    if (isCriticalFailure(request.resolvedVersionMetadata.getFailure())) {
-                        queue.clear();
-                    }
+                    ModuleVersionResolveException failure = request.resolvedVersionMetadata.getFailure();
+                    assert failure != null; // Failure cannot be null in Failed state
+                    handleFailure(queue, request, failures, failure);
                     break;
                 case Missing:
                 case Unknown:
@@ -212,6 +206,15 @@ public class DynamicVersionResolver {
         }
 
         return best;
+    }
+
+    private static void handleFailure(List<RepositoryResolveState> queue, RepositoryResolveState request, RepositoryFailureCollector failures, Exception t) {
+        failures.addFailure(t);
+        if (request.isRepositoryDisabled() && !request.isContinueOnConnectionFailure()) {
+            // Clear the queue only if repo is now disabled, and we can't continue with it disabled
+            queue.clear();
+            failures.markFatalError();
+        }
     }
 
     @Nullable
@@ -399,6 +402,14 @@ public class DynamicVersionResolver {
             attemptCollector.applyTo(target);
             target.unmatched(unmatchedVersions);
             target.rejections(rejectedVersions);
+        }
+
+        public boolean isContinueOnConnectionFailure() {
+            return repository.isContinueOnConnectionFailure();
+        }
+
+        public boolean isRepositoryDisabled() {
+            return repository.isRepositoryDisabled();
         }
     }
 

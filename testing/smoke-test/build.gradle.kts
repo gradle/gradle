@@ -87,8 +87,8 @@ tasks {
 
     val androidProject by registering(RemoteProject::class) {
         remoteUri = androidProjectGitUri
-        // latest https://github.com/gradle/nowinandroid/tree/smoke-tests-main as of 2025-11-05
-        ref = "da342a6162b300e7d2cb15887d9cec3bb927c83e"
+        // latest https://github.com/gradle/nowinandroid/tree/smoke-tests-main as of 2025-12-17
+        ref = "e117bd4ee30c7eb1ab3bbdc47f73a3fd0317b64b"
     }
 
     val gradleBuildCurrent by registering(RemoteProject::class) {

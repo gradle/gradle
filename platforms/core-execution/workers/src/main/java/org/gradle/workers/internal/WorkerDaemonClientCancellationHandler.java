@@ -54,7 +54,6 @@ public class WorkerDaemonClientCancellationHandler implements Stoppable {
         }
     }
 
-    @NullMarked
     private class KillWorkers implements Runnable {
         @Override
         public void run() {

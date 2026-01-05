@@ -348,10 +348,13 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
                 }
 
                 @Test
-                public void runFirst() {}
+                public void runFirst() {
+                    System.out.println("runFirst");
+                }
 
                 @Test(dependsOnMethods = "runFirst")
                 public void testGet2() {
+                    System.out.println("testGet2");
                     Assert.assertEquals(true, true);
                 }
 

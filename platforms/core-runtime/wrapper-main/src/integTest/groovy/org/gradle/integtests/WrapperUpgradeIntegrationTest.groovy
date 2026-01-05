@@ -36,7 +36,7 @@ class WrapperUpgradeIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.configure(keyStore)
         server.start()
 
-        prepareWrapper()
+        prepareWrapper().run()
         wrapperExecuter
             .withArguments(keyStore.getTrustStoreArguments())
             .withCommandLineGradleOpts("-Dorg.gradle.internal.services.base.url=https://localhost:${server.port}")

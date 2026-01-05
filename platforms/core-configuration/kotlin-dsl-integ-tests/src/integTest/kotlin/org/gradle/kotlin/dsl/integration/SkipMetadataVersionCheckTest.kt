@@ -20,9 +20,8 @@ import org.apache.commons.io.FilenameUtils
 import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
-import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
+import org.gradle.kotlin.dsl.fixtures.compileToDirectory
 import org.gradle.kotlin.dsl.support.SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME
-import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.zipTo
 import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.VersionNumber
@@ -35,7 +34,6 @@ import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
-import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -163,10 +161,8 @@ class SkipMetadataVersionCheckTest : AbstractKotlinIntegrationTest() {
             val binDir = File("$directory/bin")
             compileToDirectory(
                 binDir,
-                KotlinCompilerOptions(),
                 "test",
                 listOf(sourceFile),
-                LoggerFactory.getLogger(SkipMetadataVersionCheckTest::class.java),
                 emptyList()
             )
 

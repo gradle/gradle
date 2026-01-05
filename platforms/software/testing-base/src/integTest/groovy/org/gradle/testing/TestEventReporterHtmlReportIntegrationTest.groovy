@@ -130,15 +130,10 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
 
         then:
         def results = aggregateResults()
-        results.testPath(":doubled suite:doubled test")
-            .singleRootWithRun(1)
-            .assertHasResult(TestResult.ResultType.SUCCESS)
-        results.testPath(":doubled suite:doubled test")
-            .singleRootWithRun(2)
-            .assertHasResult(TestResult.ResultType.SUCCESS)
         results
             .testPath(":doubled suite")
             .onlyRoot()
+            .assertOnlyChildrenExecuted("doubled test", "doubled test")
             .assertMetadata(ImmutableListMultimap.of(
                 "index", "0",
                 "index", "1"
@@ -363,29 +358,17 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                 }
             }
 
-            tasks.register("myTest", CustomTestTask)
+            tasks.register("test", CustomTestTask)
             """
 
         when:
-        succeeds("myTest")
+        succeeds("test")
 
 
         then:
-        def content = file("build/reports/tests/myTest/index.html").text
-        def expectedResults = theResults.toSorted(GUtil.caseInsensitive())
-        def actualResults = []
-        def startIndex = 0
-        while (true) {
-            def nextTestIndex = content.indexOf(identifyingString, startIndex)
-            if (nextTestIndex == -1) {
-                break
-            }
-            def endOfTestIndex = content.indexOf("</a>", nextTestIndex)
-            assert endOfTestIndex != -1 : "Could not find end of test link in HTML report"
-            actualResults << content.substring(nextTestIndex + identifyingString.length(), endOfTestIndex)
-            startIndex = endOfTestIndex
-        }
-        assert actualResults == expectedResults
+        def tests = resultsFor(testDirectory)
+        def testNames = theResults.collect { "the test is: " + it }.toSorted(GUtil.caseInsensitive())
+        tests.testPath(":").onlyRoot().assertOnlyChildrenExecuted(*testNames)
     }
 
     def passingTask(String name, boolean print = false) {

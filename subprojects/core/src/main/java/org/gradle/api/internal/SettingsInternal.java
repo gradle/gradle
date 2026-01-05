@@ -25,7 +25,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.declarative.dsl.model.annotations.Adding;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.ProjectDescriptorInternal;
@@ -43,19 +43,26 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
     String BUILD_SRC = BuildLogicFiles.BUILD_SOURCE_DIRECTORY;
 
     @Override
+    @HiddenInDefinition
     StartParameter getStartParameter();
 
+    @HiddenInDefinition
     ScriptSource getSettingsScript();
 
+    @HiddenInDefinition
     ProjectDescriptorRegistry getProjectRegistry();
 
+    @HiddenInDefinition
     ProjectDescriptorInternal getDefaultProject();
 
+    @HiddenInDefinition
     void setDefaultProject(ProjectDescriptorInternal defaultProject);
 
     @Override
+    @HiddenInDefinition
     GradleInternal getGradle();
 
+    @HiddenInDefinition
     List<IncludedBuildSpec> getIncludedBuilds();
 
     /**
@@ -63,6 +70,7 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
      *
      * Gradle runtime.
      */
+    @HiddenInDefinition
     ClassLoaderScope getBaseClassLoaderScope();
 
     /**
@@ -70,17 +78,22 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
      *
      * Gradle runtime + this object's script's additions.
      */
+    @HiddenInDefinition
     ClassLoaderScope getClassLoaderScope();
 
+    @HiddenInDefinition
     ServiceRegistry getServices();
 
     @Override
+    @HiddenInDefinition
     BuildCacheConfigurationInternal getBuildCache();
 
     @Override
+    @HiddenInDefinition
     DependencyResolutionManagementInternal getDependencyResolutionManagement();
 
     @Override
+    @HiddenInDefinition
     CacheConfigurationsInternal getCaches();
 
     /**
@@ -100,7 +113,6 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
      *
      * @see FileOperations#uri
      */
-    @Restricted
     @Incubating
     default URI uri(String path) {
         return getServices().get(FileOperations.class).uri(path);

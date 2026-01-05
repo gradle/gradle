@@ -20,12 +20,12 @@ public interface ConsoleMetaData {
     /**
      * Returns true if the current process' stdout is attached to the console.
      */
-    boolean isStdOut();
+    boolean isStdOutATerminal();
 
     /**
      * Returns true if the current process' stderr is attached to the console.
      */
-    boolean isStdErr();
+    boolean isStdErrATerminal();
 
     /**
      * <p>Returns the number of columns available in the console.</p>

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.TestFailure;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -29,7 +30,6 @@ import java.util.Map;
 class LifecycleTrackingTestEventReporter<T extends TestEventReporterInternal> implements TestEventReporterInternal {
     protected final T delegate;
 
-    @NullMarked
     private enum State {
         CREATED, STARTED, COMPLETED, CLOSED;
     }

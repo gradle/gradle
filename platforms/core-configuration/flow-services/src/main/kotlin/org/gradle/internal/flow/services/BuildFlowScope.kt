@@ -154,7 +154,7 @@ open class BuildFlowScope @Inject internal constructor(
 
     private
     fun <P : FlowParameters, T : FlowAction<P>> parametersTypeOf(action: Class<T>): Class<P>? =
-        isolationScheme.parameterTypeFor(action)
+        isolationScheme.parameterTypeForOrNull(action)
 }
 
 

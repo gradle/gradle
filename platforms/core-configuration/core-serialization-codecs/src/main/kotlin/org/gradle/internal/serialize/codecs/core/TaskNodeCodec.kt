@@ -96,12 +96,16 @@ class TaskNodeCodec(
             writeLong(task.taskIdentity.id)
             writeNullableString(task.reasonTaskIsIncompatibleWithConfigurationCache.orElse(null))
 
+            // Interesting fact: changing the order in which stuff is written may break builds,
+            // if writing something triggers a side effect that modifies stuff written later.
+            // For example, serializing a file collection may trigger dependency resolution callbacks.
+            // At least one dependency management test was relying on the callback modifying a list referenced by the task action.
             withDebugFrame({ taskType.name }) {
                 withTaskOf(taskType, task, userTypesCodec) {
                     writeUpToDateSpec(task)
-                    writeCollection(task.outputs.cacheIfSpecs)
-                    writeCollection(task.outputs.doNotCacheIfSpecs)
+                    writeCacheabilitySpecs(task)
                     writeReasonNotToTrackState(task)
+                    writeOnlyIfSpec(task)
                     beanStateWriterFor(task.javaClass).run {
                         writeStateOf(task)
                         withTaskReferencesAllowed {
@@ -110,6 +114,7 @@ class TaskNodeCodec(
                             )
                         }
                     }
+                    writeTaskActions(task)
                     writeDestroyablesOf(task)
                     writeLocalStateOf(task)
                     writeRequiredServices(task)
@@ -130,13 +135,14 @@ class TaskNodeCodec(
 
         withTaskOf(taskType, task, userTypesCodec) {
             readUpToDateSpec(task)
-            readCollectionInto { task.outputs.cacheIfSpecs.uncheckedCast() }
-            readCollectionInto { task.outputs.doNotCacheIfSpecs.uncheckedCast() }
+            readCacheabilitySpecs(task)
             readReasonNotToTrackState(task)
+            readOnlyIfSpec(task)
             beanStateReaderFor(task.javaClass).run {
                 readStateOf(task)
             }
             readRegisteredPropertiesOf(task)
+            readTaskActions(task)
             readDestroyablesOf(task)
             readLocalStateOf(task)
             readRequiredServices(task)
@@ -152,14 +158,37 @@ class TaskNodeCodec(
             writeBoolean(false)
         } else {
             writeBoolean(true)
-            write(task.outputs.upToDateSpec)
+            withVirtualPropertyTrace(TaskVirtualProperty.UP_TO_DATE) {
+                write(task.outputs.upToDateSpec)
+            }
         }
     }
 
     private
     suspend fun ReadContext.readUpToDateSpec(task: TaskInternal) {
         if (readBoolean()) {
-            task.outputs.upToDateWhen(readNonNull<Spec<Task>>())
+            withVirtualPropertyTrace(TaskVirtualProperty.UP_TO_DATE) {
+                task.outputs.upToDateWhen(readNonNull<Spec<Task>>())
+            }
+        }
+    }
+
+    private suspend fun WriteContext.writeCacheabilitySpecs(task: TaskInternal) {
+        withVirtualPropertyTrace(TaskVirtualProperty.CACHE_IF) {
+            writeCollection(task.outputs.cacheIfSpecs)
+        }
+        withVirtualPropertyTrace(TaskVirtualProperty.DO_NOT_CACHE_IF) {
+            writeCollection(task.outputs.doNotCacheIfSpecs)
+        }
+    }
+
+    private
+    suspend fun ReadContext.readCacheabilitySpecs(task: TaskInternal) {
+        withVirtualPropertyTrace(TaskVirtualProperty.CACHE_IF) {
+            readCollectionInto { task.outputs.cacheIfSpecs.uncheckedCast() }
+        }
+        withVirtualPropertyTrace(TaskVirtualProperty.DO_NOT_CACHE_IF) {
+            readCollectionInto { task.outputs.doNotCacheIfSpecs.uncheckedCast() }
         }
     }
 
@@ -172,6 +201,34 @@ class TaskNodeCodec(
     fun ReadContext.readReasonNotToTrackState(task: TaskInternal) {
         val reasonsNotToTrackState = readStringsSet()
         reasonsNotToTrackState.forEach { reason -> task.doNotTrackState(reason) }
+    }
+
+    private
+    suspend fun WriteContext.writeOnlyIfSpec(task: TaskInternal) {
+        withVirtualPropertyTrace(TaskVirtualProperty.ONLY_IF) {
+            write(task.onlyIf)
+        }
+    }
+
+    private
+    suspend fun ReadContext.readOnlyIfSpec(task: TaskInternal) {
+        withVirtualPropertyTrace(TaskVirtualProperty.ONLY_IF) {
+            task.restoreOnlyIf(readNonNull())
+        }
+    }
+
+    private
+    suspend fun WriteContext.writeTaskActions(task: TaskInternal) {
+        withVirtualPropertyTrace(TaskVirtualProperty.ACTIONS) {
+            writeCollection(task.taskActions)
+        }
+    }
+
+    private
+    suspend fun ReadContext.readTaskActions(task: TaskInternal) {
+        withVirtualPropertyTrace(TaskVirtualProperty.ACTIONS) {
+            task.restoreTaskActions(readCollectionInto(::ArrayList) { readNonNull() })
+        }
     }
 
     private
@@ -240,6 +297,22 @@ suspend fun <T> T.withTaskOf(
             }
         }
     }
+}
+
+
+private
+enum class TaskVirtualProperty(val traceName: String) {
+    ACTIONS("actions"),
+    CACHE_IF("cacheIf specs"),
+    DO_NOT_CACHE_IF("doNotCacheIf specs"),
+    ONLY_IF("onlyIf specs"),
+    UP_TO_DATE("upToDate specs"),
+}
+
+
+private
+inline fun <T : MutableIsolateContext> T.withVirtualPropertyTrace(virtualProperty: TaskVirtualProperty, block: T.() -> Unit) {
+    withPropertyTrace(PropertyTrace.VirtualProperty(virtualProperty.traceName, trace), block)
 }
 
 

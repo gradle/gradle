@@ -94,7 +94,7 @@ class StageTrigger(
         }
 
         if (generateTriggers) {
-            val enableTriggers = model.branch.enableVcsTriggers
+            val enableTriggers = model.branch.isMainBranch || model.branch.isLegacyRelease
             if (stage.trigger == Trigger.EACH_COMMIT) {
                 val effectiveTriggerBranches = mutableListOf(model.branch.branchName)
 

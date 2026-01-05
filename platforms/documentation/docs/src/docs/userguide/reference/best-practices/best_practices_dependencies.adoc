@@ -18,7 +18,7 @@
 [[use_version_catalogs]]
 == Use Version Catalogs to Centralize Dependency Versions
 
-Use Version Catalogs provide a centralized, declarative way to manage dependency versions throughout a build.
+Version Catalogs provide a centralized, declarative way to manage dependency versions throughout a build.
 
 === Explanation
 

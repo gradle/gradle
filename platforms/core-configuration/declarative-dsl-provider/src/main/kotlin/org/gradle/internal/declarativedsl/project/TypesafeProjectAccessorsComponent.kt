@@ -62,7 +62,7 @@ class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : ObjectC
             returnType = DataTypeRefInternal.DefaultName(DefaultFqName.parse(projectAccessorsClass.qualifiedName!!)),
             propertyMode = DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly,
             hasDefaultValue = true,
-            isHiddenInDeclarativeDsl = false,
+            isHiddenInDefinition = false,
             isDirectAccessOnly = false,
             claimedFunctions = emptyList()
         )
@@ -103,9 +103,9 @@ class ProjectPropertyAccessorRuntimeResolver : RuntimePropertyResolver {
 
 private
 class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> {
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> {
         return if (kClass.isGeneratedAccessors()) {
-            allClassesReachableFromGetters(typeDiscoveryServices.host, kClass)
+            allClassesReachableFromGetters(typeDiscoveryServices.host, kClass).map { TypeDiscovery.DiscoveredClass(it, false) }
         } else {
             emptyList()
         }
@@ -115,7 +115,7 @@ class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
     fun allClassesReachableFromGetters(host: SchemaBuildingHost, kClass: KClass<*>) = buildSet {
         fun visit(kClass: KClass<*>) {
             if (add(kClass)) {
-                val properties = propertyFromTypesafeProjectGetters.extractProperties(host, kClass)
+                val properties = DefaultPropertyExtractor().extractProperties(host, kClass)
                 val typesFromGetters = properties.mapNotNull { it.originalReturnType.classifier as? KClass<*> }
                 typesFromGetters.forEach(::visit)
             }
@@ -128,14 +128,8 @@ private
 class TypesafeProjectPropertyProducer : PropertyExtractor {
     override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
         if (kClass.isGeneratedAccessors()) {
-            propertyFromTypesafeProjectGetters.extractProperties(host, kClass, propertyNamePredicate)
+            DefaultPropertyExtractor().extractProperties(host, kClass, propertyNamePredicate)
         } else emptyList()
-}
-
-
-private
-val propertyFromTypesafeProjectGetters = DefaultPropertyExtractor { property ->
-    (property.returnType.classifier as? KClass<*>)?.isGeneratedAccessors() == true
 }
 
 
