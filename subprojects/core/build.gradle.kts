@@ -135,10 +135,6 @@ dependencies {
         because("it needs to forward calls from instrumented code to the Kotlin standard library")
     }
 
-    runtimeOnly(projects.kotlinDsl) {
-        because("KotlinScriptPluginFactory is loaded dynamically at runtime by ScriptPluginFactorySelector")
-    }
-
     // Libraries that are not used in this project but required in the distribution
     runtimeOnly(libs.groovyAstbuilder)
     runtimeOnly(libs.groovyDateUtil)
