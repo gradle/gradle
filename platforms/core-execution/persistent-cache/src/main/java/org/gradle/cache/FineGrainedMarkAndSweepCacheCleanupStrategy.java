@@ -17,25 +17,25 @@
 package org.gradle.cache;
 
 /**
- * A {@link FineGrainedCacheCleanupStrategy} that uses a {@link FineGrainedCacheEntryStaleMarker} to determine which entries are stale.
+ * A {@link FineGrainedCacheCleanupStrategy} that uses a {@link FineGrainedCacheEntrySoftDeleter} to determine which entries are soft deleted.
  */
 public interface FineGrainedMarkAndSweepCacheCleanupStrategy extends FineGrainedCacheCleanupStrategy {
 
     /**
-     * Returns a {@link FineGrainedCacheEntryStaleMarker} that can be used to determine which entries are stale.
+     * Returns a {@link FineGrainedCacheEntrySoftDeleter} that can be used to determine which entries are soft deleted.
      */
-    FineGrainedCacheEntryStaleMarker getStaleChecker(FineGrainedPersistentCache cache);
+    FineGrainedCacheEntrySoftDeleter getSoftDeleter(FineGrainedPersistentCache cache);
 
-    interface FineGrainedCacheEntryStaleMarker {
+    interface FineGrainedCacheEntrySoftDeleter {
         /**
-         * Returns true if the entry is stale.
+         * Returns true if the entry is soft deleted.
          */
-        boolean isStale(String key);
+        boolean isSoftDeleted(String key);
 
         /**
-         * Unstales the entry.
+         * Removes soft delete marker. Entry is not soft deleted anymore after that.
          * It's advised that this is called when cache lock is held at the end of the operation that acquired the entry lock.
          */
-        void unstale(String key);
+        void removeSoftDeleteMarker(String key);
     }
 }
