@@ -28,6 +28,7 @@ dependencies {
 
     implementation(libs.commonsLang)
     implementation(libs.guava)
+    implementation(libs.junitPlatform)
     implementation(libs.slf4jApi)
 
     testImplementation(projects.serviceRegistryImpl)

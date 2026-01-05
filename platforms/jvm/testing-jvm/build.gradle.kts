@@ -48,6 +48,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.guava)
+    implementation(libs.junitPlatform)
     implementation(libs.slf4jApi)
 
     compileOnly(libs.junit) {
