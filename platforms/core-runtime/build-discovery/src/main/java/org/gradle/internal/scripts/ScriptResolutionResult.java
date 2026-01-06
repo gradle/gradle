@@ -68,17 +68,17 @@ public class ScriptResolutionResult {
         return ignoredCandidates;
     }
 
-    public static ScriptResolutionResult fromSingleFile(String basename, File scriptFile) {
-        Objects.requireNonNull(basename);
-        Objects.requireNonNull(scriptFile);
-        return new ScriptResolutionResult(scriptFile.getParentFile(), basename, scriptFile, Collections.emptyList());
-    }
-
     public String getBasename() {
         return basename;
     }
 
     public File getDirectory() {
         return directory;
+    }
+
+    public static ScriptResolutionResult fromSingleFile(String basename, File scriptFile) {
+        Objects.requireNonNull(basename);
+        Objects.requireNonNull(scriptFile);
+        return new ScriptResolutionResult(scriptFile.getParentFile(), basename, scriptFile, Collections.emptyList());
     }
 }
