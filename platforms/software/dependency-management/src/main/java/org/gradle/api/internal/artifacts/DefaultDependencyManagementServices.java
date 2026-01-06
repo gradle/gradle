@@ -76,8 +76,10 @@ import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFac
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultUrlArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.artifacts.repositories.distribution.AvailableDistributionModules;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenVariantAttributesFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformInvocationFactory;
@@ -389,7 +391,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
             ChecksumService checksumService,
             ProviderFactory providerFactory,
-            VersionParser versionParser
+            VersionParser versionParser,
+            AvailableDistributionModules availableModules,
+            MavenVariantAttributesFactory mavenAttributesFactory
         ) {
             return new DefaultBaseRepositoryFactory(
                 localMavenRepositoryLocator,
@@ -414,7 +418,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 urlArtifactRepositoryFactory,
                 checksumService,
                 providerFactory,
-                versionParser
+                versionParser,
+                availableModules,
+                mavenAttributesFactory
             );
         }
 

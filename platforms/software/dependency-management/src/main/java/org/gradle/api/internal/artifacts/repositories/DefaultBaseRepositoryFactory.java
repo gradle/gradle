@@ -31,8 +31,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModu
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.repositories.distribution.AvailableDistributionModules;
+import org.gradle.api.internal.artifacts.repositories.distribution.GradleDistributionRepository;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenVariantAttributesFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -81,6 +84,8 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final ChecksumService checksumService;
     private final ProviderFactory providerFactory;
     private final VersionParser versionParser;
+    private final AvailableDistributionModules availableModules;
+    private final MavenVariantAttributesFactory mavenAttributesFactory;
 
     public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
                                         FileResolver fileResolver,
@@ -104,7 +109,9 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                                         ChecksumService checksumService,
                                         ProviderFactory providerFactory,
-                                        VersionParser versionParser
+                                        VersionParser versionParser,
+                                        AvailableDistributionModules availableModules,
+                                        MavenVariantAttributesFactory mavenAttributesFactory
     ) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
@@ -130,11 +137,25 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.checksumService = checksumService;
         this.providerFactory = providerFactory;
         this.versionParser = versionParser;
+        this.availableModules = availableModules;
+        this.mavenAttributesFactory = mavenAttributesFactory;
     }
 
     @Override
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
         return objectFactory.newInstance(DefaultFlatDirArtifactRepository.class, fileCollectionFactory, transportFactory, locallyAvailableResourceFinder, artifactFileStore, ivyMetadataFactory, instantiatorFactory, objectFactory, checksumService, versionParser);
+    }
+
+    @Override
+    public ArtifactRepository createGradleDistributionRepository() {
+        return new GradleDistributionRepository(
+            objectFactory,
+            versionParser,
+            instantiatorFactory,
+            availableModules,
+            moduleIdentifierFactory,
+            mavenAttributesFactory
+        );
     }
 
     @Override
@@ -179,7 +200,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         return createMavenRepository(new DefaultMavenArtifactRepository.DefaultDescriber());
     }
 
-    public MavenArtifactRepository createMavenRepository(Transformer<String, MavenArtifactRepository> describer) {
+    private MavenArtifactRepository createMavenRepository(Transformer<String, MavenArtifactRepository> describer) {
         MavenArtifactRepository repository = objectFactory.newInstance(DefaultMavenArtifactRepository.class, describer, fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, createAuthenticationContainer(), externalResourcesFileStore, fileResourceRepository, mavenMetadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, providerFactory, versionParser);
         repository.getAllowInsecureContinueWhenDisabled().convention(false);
         return repository;
@@ -211,4 +232,5 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
             return repository.getName() + '(' + url + ')';
         }
     }
+
 }

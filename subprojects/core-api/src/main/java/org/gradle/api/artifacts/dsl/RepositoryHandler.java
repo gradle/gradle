@@ -20,6 +20,7 @@ import groovy.lang.DelegatesTo;
 import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SimpleType;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.ExclusiveContentRepository;
@@ -94,6 +95,16 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      */
     @HiddenInDefinition
     FlatDirectoryArtifactRepository flatDir(Action<? super FlatDirectoryArtifactRepository> action);
+
+    /**
+     * Adds a repository that resolves dependencies from the Gradle distribution.
+     *
+     * @return The Gradle distribution repository.
+     *
+     * @since 9.4.0
+     */
+    @Incubating
+    ArtifactRepository gradleDistribution();
 
     /**
      * Adds a repository which looks in Gradle Central Plugin Repository for dependencies.

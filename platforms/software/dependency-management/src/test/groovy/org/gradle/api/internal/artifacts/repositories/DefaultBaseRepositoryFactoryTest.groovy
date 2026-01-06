@@ -26,8 +26,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModu
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
+import org.gradle.api.internal.artifacts.repositories.distribution.AvailableDistributionModules
+import org.gradle.api.internal.artifacts.repositories.distribution.GradleDistributionRepository
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
+import org.gradle.api.internal.artifacts.repositories.metadata.MavenVariantAttributesFactory
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
@@ -43,6 +46,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultBaseRepositoryFactoryTest extends Specification {
+
     final LocalMavenRepositoryLocator localMavenRepoLocator = Mock()
     final FileResolver fileResolver = Mock()
     final FileCollectionFactory fileCollectionFactory = Mock()
@@ -61,13 +65,31 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final ProviderFactory providerFactory = Mock()
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
-            localMavenRepoLocator, fileResolver, fileCollectionFactory, transportFactory, locallyAvailableResourceFinder,
-            artifactIdentifierFileStore, externalResourceFileStore, pomParser, metadataParser, authenticationSchemeRegistry, ivyContextManager, moduleIdentifierFactory,
-            TestUtil.instantiatorFactory(), Mock(FileResourceRepository), mavenMetadataFactory, ivyMetadataFactory, SnapshotTestUtil.isolatableFactory(), TestUtil.objectFactory(),
-            CollectionCallbackActionDecorator.NOOP,
-            urlArtifactRepositoryFactory,
-            TestUtil.checksumService,
-            providerFactory, new VersionParser()
+        localMavenRepoLocator,
+        fileResolver,
+        fileCollectionFactory,
+        transportFactory,
+        locallyAvailableResourceFinder,
+        artifactIdentifierFileStore,
+        externalResourceFileStore,
+        pomParser,
+        metadataParser,
+        authenticationSchemeRegistry,
+        ivyContextManager,
+        moduleIdentifierFactory,
+        TestUtil.instantiatorFactory(),
+        Mock(FileResourceRepository),
+        mavenMetadataFactory,
+        ivyMetadataFactory,
+        SnapshotTestUtil.isolatableFactory(),
+        TestUtil.objectFactory(),
+        CollectionCallbackActionDecorator.NOOP,
+        urlArtifactRepositoryFactory,
+        TestUtil.checksumService,
+        providerFactory,
+        new VersionParser(),
+        Stub(AvailableDistributionModules),
+        Stub(MavenVariantAttributesFactory)
     )
 
     def testCreateFlatDirResolver() {
@@ -141,4 +163,13 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
         def repo = factory.createMavenRepository()
         repo instanceof DefaultMavenArtifactRepository
     }
+
+    def "creates distribution repository"() {
+        when:
+        def repo = factory.createGradleDistributionRepository()
+
+        then:
+        repo instanceof GradleDistributionRepository
+    }
+
 }
