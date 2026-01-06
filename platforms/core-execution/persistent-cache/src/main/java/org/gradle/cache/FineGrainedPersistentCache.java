@@ -19,6 +19,7 @@ package org.gradle.cache;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.Closeable;
+import java.io.File;
 import java.util.function.Supplier;
 
 /**
@@ -33,6 +34,11 @@ public interface FineGrainedPersistentCache extends Closeable, CleanableStore, H
      * Opens this cache and returns self.
      */
     FineGrainedPersistentCache open();
+
+    /**
+     * Calculates a lock file for a key.
+     */
+    File getLockFile(String key);
 
     /**
      * Performs some work against the cache.

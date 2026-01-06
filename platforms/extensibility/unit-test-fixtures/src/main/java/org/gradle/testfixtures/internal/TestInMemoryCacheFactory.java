@@ -200,6 +200,11 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
+        public File getLockFile(String key) {
+            return new File(cacheDir, "locks/" + key + ".lock");
+        }
+
+        @Override
         public <T> T useCache(String key, Supplier<? extends T> action) {
             assertNotClosed();
             synchronized (this) {

@@ -122,7 +122,7 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         FileLock lock = null;
         LockOptions lockOptions = DefaultLockOptions.mode(Exclusive);
         while (lock == null) {
-            File lockFile = getLockFile(key);
+            File lockFile = getLockFileWithoutValidation(key);
             // Gradle will never create and delete file.lock immediately, so we
             // save a few cycles on a first use case by not checking the validity of locks if it doesn't exist yet
             boolean shouldCheckLockValidity = lockFile.exists();
@@ -135,7 +135,13 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         return lock;
     }
 
-    private File getLockFile(String key) {
+    @Override
+    public File getLockFile(String key) {
+        validateKey(key);
+        return getLockFileWithoutValidation(key);
+    }
+
+    private File getLockFileWithoutValidation(String key) {
         return new File(locksDir, key + ".lock");
     }
 

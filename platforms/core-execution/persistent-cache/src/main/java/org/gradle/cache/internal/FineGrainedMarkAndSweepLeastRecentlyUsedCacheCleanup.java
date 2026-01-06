@@ -130,9 +130,14 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
             // Then delete soft deletion markers
             softDeleter.removeSoftDeleteMarker(key);
             softDeleter.removeSoftGcFile(key);
-            // After delete directory
-            // TODO, delete file lock
-            return FileUtils.deleteQuietly(file);
+            // And finally delete a folder
+            FileUtils.deleteQuietly(file);
+            if (!file.exists()) {
+                // And if folder is not present anymore, delete also a lock file
+                cache.getLockFile(key).delete();
+                return true;
+            }
+            return false;
         }
 
         private String pathToCacheKey(File file) {
