@@ -106,16 +106,39 @@ class DefaultScriptFileResolverTest extends Specification {
         listener.count == 1
     }
 
+    def "listener will be notified with all the possible files before selected"() {
+        given:
+        createFiles(testDir, [selectedCandidate])
+        CountingListener listener = new CountingListener()
+
+        when:
+        def resolver = new DefaultScriptFileResolver(listener)
+        resolver.resolveScriptFile(testDir, "build")
+
+        then:
+        listener.notifiedFiles == expectedNotifiedFiles
+
+        where:
+        selectedCandidate        | expectedNotifiedFiles
+        "build.gradle"           | ["build.gradle"]
+        "build.gradle.kts"       | ["build.gradle", "build.gradle.kts"]
+        "build.gradle.dcl"       | ["build.gradle", "build.gradle.kts", "build.gradle.dcl"]
+    }
+
     static class CountingListener implements ScriptFileResolvedListener {
-        private int count = 0
+        private List<String> notifiedFileNames = []
 
         @Override
         void onScriptFileResolved(File scriptFile) {
-            count++
+            notifiedFileNames.add(scriptFile.getName())
         }
 
         int getCount() {
-            return count
+            return notifiedFileNames.size()
+        }
+
+        List<String> getNotifiedFiles() {
+            return notifiedFileNames
         }
     }
 

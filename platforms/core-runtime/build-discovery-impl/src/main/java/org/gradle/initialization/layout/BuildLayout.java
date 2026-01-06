@@ -34,7 +34,7 @@ public class BuildLayout extends SettingsLocation {
      *
      * @param rootDirectory the root directory of the build
      * @param settingsFileResolution the settings file resolution result. {@code null} means explicitly no settings.
-     *                               A non-null value can be a non-existent file, which is semantically equivalent to an empty file.
+     * A non-null value can be a non-existent file, which is semantically equivalent to an empty file.
      * @param scriptFileResolver the script file resolver
      */
     public BuildLayout(File rootDirectory, @Nullable ScriptResolutionResult settingsFileResolution, ScriptFileResolver scriptFileResolver) {
@@ -46,12 +46,9 @@ public class BuildLayout extends SettingsLocation {
      * Was a build definition found?
      */
     public boolean isBuildDefinitionMissing() {
-        ScriptResolutionResult buildFileResolution = scriptFileResolver.resolveScriptFile(
-            getRootDirectory(),
-            BuildLogicFiles.BUILD_FILE_BASENAME
-        );
-
-        return getSettingsFile() != null && !getSettingsFile().exists() && !buildFileResolution.isScriptFound();
+        return getSettingsFile() != null &&
+            !getSettingsFile().exists() &&
+            !scriptFileResolver.resolveScriptFile(getRootDirectory(), BuildLogicFiles.BUILD_FILE_BASENAME).isScriptFound();
     }
 
     /**
