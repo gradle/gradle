@@ -43,12 +43,12 @@ import java.io.File
 import java.util.Properties
 
 /**
- * Given a configuration, produces a .properties for each artifact in the configuration.
- * The properties file describes the artifact's dependencies, so that its runtime classpath
- * can be analyzed and reconstructed later.
+ * Given a configuration, produces a .properties for each node in the configuration's resolved
+ * graph. The properties file describes the node's dependencies, and stores its associated artifact,
+ * so that classpaths derived from the graph can be analyzed and reconstructed later.
  *
  * This task assumes each component in the graph has a single variant and each variant
- * has a single file.
+ * has at most one artifact.
  */
 @DisableCachingByDefault(because = "Unable to snapshot ComponentIdentifier") // Can be made cacheable after https://github.com/gradle/gradle/pull/36174
 abstract class GenerateClasspathModuleProperties : DefaultTask() {
