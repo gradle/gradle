@@ -17,31 +17,106 @@
 package org.gradle.api.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.jspecify.annotations.Nullable;
 
-import java.util.IdentityHashMap;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 public final class ConfigurationStateDB {
-    private final IdentityHashMap<Configuration, List<String>> declarationAlternatives = new IdentityHashMap<>();
-    private final IdentityHashMap<Configuration, List<String>> resolutionAlternatives = new IdentityHashMap<>();
 
-    public List<String> getDeclarationAlternatives(Configuration configuration) {
+    public static final class ConsistentResolution {
+        public final ConfigurationInternal versionsSource;
+        public final String reason;
+
+        public ConsistentResolution(ConfigurationInternal versionsSource, String reason) {
+            this.versionsSource = versionsSource;
+            this.reason = reason;
+        }
+    }
+
+    private final ArrayList<String> ids = new ArrayList<>();
+    private final Int2ObjectOpenHashMap<List<String>> declarationAlternatives = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectOpenHashMap<List<String>> resolutionAlternatives = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectOpenHashMap<String> descriptions = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectOpenHashMap<ConsistentResolution> consistentResolutions = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectOpenHashMap<FileCollectionInternal> intrinsicFiles = new Int2ObjectOpenHashMap<>();
+
+    public int register(String name) {
+        int id = ids.size();
+        ids.add(name);
+        return id;
+    }
+
+    public String getName(int id) {
+        return ids.get(id);
+    }
+
+    public List<String> getDeclarationAlternatives(int configuration) {
         return declarationAlternatives.getOrDefault(configuration, ImmutableList.of());
     }
 
-    public List<String> getResolutionAlternatives(Configuration configuration) {
+    public List<String> getResolutionAlternatives(int configuration) {
         return resolutionAlternatives.getOrDefault(configuration, ImmutableList.of());
     }
 
-    public void addDeclarationAlternatives(DefaultConfiguration files, String[] alternativesForDeclaring) {
+    public void addDeclarationAlternatives(int files, String[] alternativesForDeclaring) {
         declarationAlternatives.compute(files, (k, v) -> concat(v, alternativesForDeclaring));
     }
 
-    public void addResolutionAlternatives(DefaultConfiguration files, String[] alternativesForResolving) {
+    public void addResolutionAlternatives(int files, String[] alternativesForResolving) {
         resolutionAlternatives.compute(files, (k, v) -> concat(v, alternativesForResolving));
+    }
+
+    public @Nullable String getDescription(int configuration) {
+        return descriptions.get(configuration);
+    }
+
+    public void setDescription(int configuration, @Nullable String description) {
+        if (description == null) {
+            descriptions.remove(configuration);
+        } else {
+            descriptions.put(configuration, description);
+        }
+    }
+
+    public void copy(int from, int to) {
+        List<String> strings = declarationAlternatives.get(from);
+        if (strings != null) {
+            declarationAlternatives.put(to, strings);
+        }
+        strings = resolutionAlternatives.get(from);
+        if (strings != null) {
+            resolutionAlternatives.put(to, strings);
+        }
+        String description = descriptions.get(from);
+        if (description != null) {
+            descriptions.put(to, description);
+        }
+    }
+
+    public FileCollectionInternal getIntrinsicFiles(int configuration, Supplier<FileCollectionInternal> supplier) {
+        return intrinsicFiles.computeIfAbsent(configuration, c -> supplier.get());
+    }
+
+    public void enableConsistentResolution(int configuration, ConfigurationInternal versionsSource) {
+        consistentResolutions.put(configuration, new ConsistentResolution(versionsSource, "version resolved in " + versionsSource + " by consistent resolution"));
+    }
+
+    public @Nullable ConfigurationInternal getConsistentResolutionSource(int configuration) {
+        ConsistentResolution consistentResolution = getConsistentResolution(configuration);
+        return consistentResolution != null ? consistentResolution.versionsSource : null;
+    }
+
+    public @Nullable ConsistentResolution getConsistentResolution(int configuration) {
+        return consistentResolutions.get(configuration);
+    }
+
+    public void disableConsistentResolution(int configuration) {
+        consistentResolutions.remove(configuration);
     }
 
     private static List<String> concat(@Nullable List<String> v, String[] alternativesForResolving) {
@@ -52,17 +127,6 @@ public final class ConfigurationStateDB {
             builder.addAll(v);
             builder.add(alternativesForResolving);
             return builder.build();
-        }
-    }
-
-    public void copy(Configuration from, Configuration to) {
-        List<String> strings = declarationAlternatives.get(from);
-        if (strings != null) {
-            declarationAlternatives.put(to, strings);
-        }
-        strings = resolutionAlternatives.get(from);
-        if (strings != null) {
-            resolutionAlternatives.put(to, strings);
         }
     }
 }
