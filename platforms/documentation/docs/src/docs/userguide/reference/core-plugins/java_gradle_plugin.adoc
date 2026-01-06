@@ -47,7 +47,7 @@ Properties that don't participate in up-to-date checks should be annotated with 
 
 Any failed validations will result in a warning message.
 
-For each plugin you are developing, add an entry to the `gradlePlugin {}` script block:
+For each plugin you are developing, register it into the `gradlePlugin {}` script block:
 
 .Using the gradlePlugin {} block.
 ====
@@ -55,7 +55,10 @@ include::sample[dir="snippets/java/javaGradlePlugin/kotlin",files="build.gradle.
 include::sample[dir="snippets/java/javaGradlePlugin/groovy",files="build.gradle[tags=gradle-plugin-block]"]
 ====
 
-The `gradlePlugin {}` block defines the plugins being built by the project including the `id` and `implementationClass` of the plugin.
+The `gradlePlugin {}` block defines the plugins being built by the project.
+The plugin `id` is set from the registration name, here `org.gradle.sample.simple-plugin`.
+Then, you define the `implementationClass` of the plugin, here `org.gradle.sample.SimplePlugin`.
+
 From this data about the plugins being developed, Gradle can automatically:
 
 * Generate the plugin descriptor in the `jar` file's `META-INF` directory.
