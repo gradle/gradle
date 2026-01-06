@@ -19,7 +19,6 @@ package org.gradle.cache.internal;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
@@ -103,9 +102,9 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
 
     @Override
     public <T> T useCache(String key, Supplier<? extends T> action) {
-        String normalizedKey = normalizeCacheKey(key);
-        return guard.guardByKey(normalizedKey, () -> {
-            try (@SuppressWarnings("unused") FileLock lock = acquireLock(normalizedKey)) {
+        validateKey(key);
+        return guard.guardByKey(key, () -> {
+            try (@SuppressWarnings("unused") FileLock lock = acquireLock(key)) {
                 return action.get();
             }
         });
@@ -119,11 +118,11 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         });
     }
 
-    private FileLock acquireLock(String normalizedKey) {
+    private FileLock acquireLock(String key) {
         FileLock lock = null;
         LockOptions lockOptions = DefaultLockOptions.mode(Exclusive);
         while (lock == null) {
-            File lockFile = getLockFile(normalizedKey);
+            File lockFile = getLockFile(key);
             // Gradle will never create and delete file.lock immediately, so we
             // save a few cycles on a first use case by not checking the validity of locks if it doesn't exist yet
             boolean shouldCheckLockValidity = lockFile.exists();
@@ -157,10 +156,8 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         }
     }
 
-    private static String normalizeCacheKey(String key) {
-        String normalizedKey = FilenameUtils.separatorsToUnix(key);
-        Preconditions.checkArgument(!normalizedKey.startsWith("/") && !normalizedKey.endsWith("/"), "Cache key path must be relative and not end with a slash: '%s'", key);
-        return normalizedKey;
+    private static void validateKey(String key) {
+        Preconditions.checkArgument(!key.contains("/") && !key.contains("\\"), "Cache key path must not contain file separator: '%s'", key);
     }
 
     @Override

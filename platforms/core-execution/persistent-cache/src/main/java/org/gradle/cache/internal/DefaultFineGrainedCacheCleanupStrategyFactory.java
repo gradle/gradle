@@ -37,8 +37,8 @@ public class DefaultFineGrainedCacheCleanupStrategyFactory implements FineGraine
     }
 
     @Override
-    public FineGrainedMarkAndSweepCacheCleanupStrategy markAndSweepCleanupStrategy(int cacheDepth, Supplier<Long> cacheEntryRetentionTimestamp, Supplier<CleanupFrequency> frequency) {
-        FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup cleanup = new FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup(cacheDepth, fileAccessTimeJournal, cacheEntryRetentionTimestamp);
+    public FineGrainedMarkAndSweepCacheCleanupStrategy markAndSweepCleanupStrategy(Supplier<Long> cacheEntryRetentionTimestamp, Supplier<CleanupFrequency> frequency) {
+        FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup cleanup = new FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup(fileAccessTimeJournal, cacheEntryRetentionTimestamp);
         CacheCleanupStrategy cacheCleanupStrategy = cacheCleanupStrategyFactory.create(cleanup, frequency);
         return new FineGrainedMarkAndSweepCacheCleanupStrategy() {
             @Override

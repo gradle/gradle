@@ -32,5 +32,5 @@ public interface FineGrainedCacheCleanupStrategyFactory {
      *
      * The entry is first marked as stale if older than 'cacheEntryRetentionTimestamp' and only then deleted after a certain period of time.
      */
-    FineGrainedMarkAndSweepCacheCleanupStrategy markAndSweepCleanupStrategy(int cacheDepth, Supplier<Long> cacheEntryRetentionTimestamp, Supplier<CleanupFrequency> frequency);
+    FineGrainedMarkAndSweepCacheCleanupStrategy markAndSweepCleanupStrategy(Supplier<Long> cacheEntryRetentionTimestamp, Supplier<CleanupFrequency> frequency);
 }

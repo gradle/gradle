@@ -38,12 +38,10 @@ import static org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy.FineG
 
 public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements CleanupAction {
 
-    private final int cacheDepth;
     private final FileAccessTimeJournal journal;
     private final Supplier<Long> removeUnusedEntriesOlderThan;
 
-    public FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup(int cacheDepth, FileAccessTimeJournal journal, Supplier<Long> removeUnusedEntriesOlderThan) {
-        this.cacheDepth = cacheDepth;
+    public FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup(FileAccessTimeJournal journal, Supplier<Long> removeUnusedEntriesOlderThan) {
         this.journal = journal;
         this.removeUnusedEntriesOlderThan = removeUnusedEntriesOlderThan;
     }
@@ -54,7 +52,7 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
 
         FineGrainedPersistentCache cache = (FineGrainedPersistentCache) cleanableStore;
         MarkAndSweepCacheEntrySoftDeleter softDeleter = (MarkAndSweepCacheEntrySoftDeleter) getSoftDeleter(cache);
-        CleanupAction cleanupAction = new MarkAndSweepCleanupAction(cache, cacheDepth, journal, removeUnusedEntriesOlderThan, softDeleter);
+        CleanupAction cleanupAction = new MarkAndSweepCleanupAction(cache, journal, removeUnusedEntriesOlderThan, softDeleter);
         CleanableStore decoratedCleanableStore = new CleanableStore() {
             @Override
             public File getBaseDir() {
@@ -91,12 +89,11 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
 
         public MarkAndSweepCleanupAction(
             FineGrainedPersistentCache cache,
-            int cacheDepth,
             FileAccessTimeJournal journal,
             Supplier<Long> removeUnusedEntriesOlderThan,
             MarkAndSweepCacheEntrySoftDeleter softDeleter
         ) {
-            super(new SingleDepthFilesFinder(cacheDepth),  journal, removeUnusedEntriesOlderThan);
+            super(new SingleDepthFilesFinder(1),  journal, removeUnusedEntriesOlderThan);
             this.cache = cache;
             this.softDeleter = softDeleter;
             this.removeUnusedEntriesOlderThan = removeUnusedEntriesOlderThan;
@@ -106,7 +103,7 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
         protected boolean doDeletion(File file) {
             validatePath(file);
             String key = pathToCacheKey(file);
-            return cache.useCache(pathToCacheKey(file), () -> {
+            return cache.useCache(key, () -> {
                 if (shouldBeSoftDeleted(key)) {
                     softDeleter.softDelete(key);
                     return false;
