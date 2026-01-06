@@ -136,6 +136,23 @@ tasks.validatePlugins {
 }
 ```
 
+### Simpler plugin registration
+
+Plugin builds that use the `java-gradle-plugin` can now register each plugin with less ceremony.
+The plugin ID is now set to the registration's name by default:
+
+```kotlin
+gradlePlugin {
+    plugins {
+        register("my.plugin-id") {
+            implementationClass = "my.PluginClass"
+        }
+    }
+}
+```
+
+See the [Java Gradle Plugin](userguide/java_gradle_plugin.html#sec:gradle_plugin_dev_usage) plugin documentation for more information.
+
 ## Tooling integration improvements
 
 This release adds a few enhancements to the built-in Tooling API models:
