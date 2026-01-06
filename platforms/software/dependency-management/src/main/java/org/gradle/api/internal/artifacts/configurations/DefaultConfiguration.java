@@ -197,9 +197,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private final AtomicInteger copyCount = new AtomicInteger();
 
-    private List<String> declarationAlternatives = ImmutableList.of();
-    private List<String> resolutionAlternatives = ImmutableList.of();
-
     private final CalculatedModelValue<Optional<ResolverResults>> currentResolveState;
 
     private @Nullable ConfigurationInternal consistentResolutionSource;
@@ -1095,8 +1092,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         copiedConfiguration.withDependencyActions = withDependencyActions;
         copiedConfiguration.dependencyResolutionListeners = dependencyResolutionListeners.copy();
 
-        copiedConfiguration.declarationAlternatives = declarationAlternatives;
-        copiedConfiguration.resolutionAlternatives = resolutionAlternatives;
+        copiedConfiguration.configurationServices.getConfigurationStateDB().copy(this, copiedConfiguration);
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
@@ -1561,34 +1557,22 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public List<String> getDeclarationAlternatives() {
-        return declarationAlternatives;
+        return configurationServices.getConfigurationStateDB().getDeclarationAlternatives(this);
     }
 
     @Override
     public List<String> getResolutionAlternatives() {
-        return resolutionAlternatives;
+        return configurationServices.getConfigurationStateDB().getResolutionAlternatives(this);
     }
 
     @Override
     public void addDeclarationAlternatives(String... alternativesForDeclaring) {
-        this.declarationAlternatives = ImmutableList.<String>builder()
-            .addAll(declarationAlternatives)
-            .addAll(Arrays.asList(alternativesForDeclaring))
-            .build();
+        configurationServices.getConfigurationStateDB().addDeclarationAlternatives(this, alternativesForDeclaring);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @implNote Usage: This method can only be called on resolvable configurations and will throw an exception if
-     * called on a configuration that does not permit this usage.
-     */
     @Override
     public void addResolutionAlternatives(String... alternativesForResolving) {
-        this.resolutionAlternatives = ImmutableList.<String>builder()
-            .addAll(resolutionAlternatives)
-            .addAll(Arrays.asList(alternativesForResolving))
-            .build();
+        configurationServices.getConfigurationStateDB().addResolutionAlternatives(this, alternativesForResolving);
     }
 
     @Override

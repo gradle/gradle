@@ -53,4 +53,5 @@ public interface ConfigurationServicesBundle {
     InternalProblems getProblems();
     AttributeDesugaring getAttributeDesugaring();
     ResolveExceptionMapper getExceptionMapper();
+    ConfigurationStateDB getConfigurationStateDB();
 }

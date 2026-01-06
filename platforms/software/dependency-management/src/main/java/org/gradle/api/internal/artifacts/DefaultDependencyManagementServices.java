@@ -32,6 +32,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConfigurationServicesBundle;
+import org.gradle.api.internal.ConfigurationStateDB;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
@@ -600,6 +601,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                       AttributeDesugaring attributeDesugaring,
                                                                       ResolveExceptionMapper exceptionMapper) {
             return new DefaultConfigurationServicesBundle(
+                new ConfigurationStateDB(),
                 buildOperationRunner,
                 projectStateRegistry,
                 calculatedValueContainerFactory,

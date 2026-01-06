@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ConfigurationServicesBundle
+import org.gradle.api.internal.ConfigurationStateDB
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
@@ -67,6 +68,7 @@ class DefaultConfigurationContainerSpec extends Specification {
 
 
     ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
+        new ConfigurationStateDB(),
         buildOperationRunner,
         projectStateRegistry,
         calculatedValueContainerFactory,
