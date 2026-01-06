@@ -20,6 +20,7 @@ dependencies {
     api(projects.workerMain)
 
     api(libs.jspecify)
+    api(libs.junitPlatform)
 
     implementation(projects.io)
     implementation(projects.serviceLookup)
@@ -28,7 +29,6 @@ dependencies {
 
     implementation(libs.commonsLang)
     implementation(libs.guava)
-    implementation(libs.junitPlatform)
     implementation(libs.slf4jApi)
 
     testImplementation(projects.serviceRegistryImpl)

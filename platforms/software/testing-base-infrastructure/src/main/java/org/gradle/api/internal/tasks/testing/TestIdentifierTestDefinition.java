@@ -17,10 +17,12 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
+import org.jspecify.annotations.NullMarked;
 import org.junit.platform.launcher.TestIdentifier;
 
 import java.util.Objects;
 
+@NullMarked
 public final class TestIdentifierTestDefinition implements TestDefinition {
     private final TestIdentifier testIdentifier;
 
