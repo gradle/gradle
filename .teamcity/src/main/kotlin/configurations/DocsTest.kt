@@ -91,7 +91,7 @@ class DocsTest(
             "docs:docsTest docs:checkSamples",
             os = os,
             arch = os.defaultArch,
-            timeout = if (os == Os.WINDOWS) 90 else 60,
+            timeout = if (os == Os.WINDOWS || os == Os.LINUX) 90 else 60,
             extraParameters =
                 listOf(
                     buildScanTagParam(docsTestType.docsTestName),
