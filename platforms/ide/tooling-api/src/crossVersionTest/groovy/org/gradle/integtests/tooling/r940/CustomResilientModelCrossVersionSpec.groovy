@@ -29,8 +29,8 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import static org.gradle.integtests.tooling.r940.CustomResilientModelCrossVersionSpec.ModelAction.QueryStrategy.EDITABLE_BUILDS_FIRST
 import static org.gradle.integtests.tooling.r940.CustomResilientModelCrossVersionSpec.ModelAction.QueryStrategy.ROOT_BUILD_FIRST
 
-@ToolingApiVersion('>=9.3')
-@TargetGradleVersion('>=9.4')
+@ToolingApiVersion('>=9.3.0')
+@TargetGradleVersion('>=9.4.0')
 class CustomResilientModelCrossVersionSpec extends ToolingApiSpecification {
 
     private static final List<String> IP_CONFIGURE_ON_DEMAND_FLAGS = [

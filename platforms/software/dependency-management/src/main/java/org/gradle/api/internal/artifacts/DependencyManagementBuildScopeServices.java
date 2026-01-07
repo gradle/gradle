@@ -75,7 +75,6 @@ import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
@@ -83,8 +82,6 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.buildoption.FeatureFlags;
-import org.gradle.internal.classpath.ClasspathBuilder;
-import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.event.ListenerManager;
@@ -93,7 +90,6 @@ import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -135,6 +131,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         registration.add(ResolverProviderFactories.class);
         registration.add(DefaultProjectDependencyFactory.class);
         registration.add(DependencyManagementManagedTypesFactory.class);
+        registration.add(RuntimeShadedJarFactory.class);
     }
 
     @Provides
@@ -214,11 +211,6 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
             DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
             attributesFactory
         );
-    }
-
-    @Provides
-    RuntimeShadedJarFactory createRuntimeShadedJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, BuildOperationRunner buildOperationRunner) {
-        return new RuntimeShadedJarFactory(jarCache, progressLoggerFactory, classpathWalker, classpathBuilder, buildOperationRunner);
     }
 
     @Provides

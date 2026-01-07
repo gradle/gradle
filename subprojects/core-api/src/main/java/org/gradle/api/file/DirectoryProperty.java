@@ -18,6 +18,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.model.ManagedType;
 import org.gradle.api.provider.Provider;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -33,6 +34,7 @@ import java.io.File;
  * @see org.gradle.api.model.ObjectFactory#directoryProperty() Create an instance of this manually.
  */
 @ManagedType
+@HiddenInDefinition
 public interface DirectoryProperty extends FileSystemLocationProperty<Directory> {
     /**
      * Returns a {@link FileTree} that allows the files and directories contained in this directory to be queried.

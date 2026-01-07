@@ -20,6 +20,7 @@ import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
@@ -74,6 +75,7 @@ import java.util.SortedSet;
  *
  * @param <T> The type of objects in this collection.
  */
+@HiddenInDefinition
 public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T> {
 
     /**

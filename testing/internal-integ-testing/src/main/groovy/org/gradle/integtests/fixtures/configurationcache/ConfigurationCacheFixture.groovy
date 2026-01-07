@@ -442,7 +442,7 @@ class ConfigurationCacheFixture {
         }
 
         int getProblemsWithStackTrace() {
-            return problems.inject(0) { a, b -> a + (b.hasStackTrace ? b.count : 0) }
+            return problems.inject(0) { a, b -> a + (b.hasStackTrace ? 1 : 0) }
         }
 
         String getProblemsString() {

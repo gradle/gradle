@@ -77,7 +77,7 @@ class FlakyTestQuarantine(
         name = "Flaky Test Quarantine - ${testCoverage.asName()}"
         description = "Run all flaky tests skipped multiple times"
 
-        applyDefaultSettings(os = os, arch = arch, buildJvm = BuildToolBuildJvm, timeout = 180)
+        applyDefaultSettings(os = os, arch = arch, buildJvm = BuildToolBuildJvm, timeout = 60)
 
         if (os == Os.LINUX) {
             steps {

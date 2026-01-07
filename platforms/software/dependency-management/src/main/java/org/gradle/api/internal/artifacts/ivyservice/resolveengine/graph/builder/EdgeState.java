@@ -16,18 +16,23 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.component.ComponentSelectorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -41,6 +46,12 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.BY_ANCESTOR;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONSTRAINT;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.FORCED;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.REQUESTED;
 
 /**
  * Represents the edges in the dependency graph.
@@ -70,15 +81,23 @@ class EdgeState implements DependencyGraphEdge {
 
     private @Nullable NodeState resolvedVariant;
     private boolean unattached;
-    private boolean used;
 
-    EdgeState(NodeState from, DependencyState dependencyState, ResolveState resolveState) {
+    public EdgeState(
+        NodeState from,
+        DependencyMetadata metadata,
+        ComponentSelector requested,
+        ImmutableList<ComponentSelectionDescriptorInternal> ruleDescriptors,
+        @Nullable ModuleVersionResolveException resolveFailure,
+        ResolveState resolveState
+    ) {
         this.from = from;
-        this.dependencyState = dependencyState;
-        this.dependencyMetadata = dependencyState.getDependency();
+        this.dependencyMetadata = metadata;
         this.resolveState = resolveState;
         this.isTransitive = from.isTransitive() && dependencyMetadata.isTransitive();
         this.isConstraint = dependencyMetadata.isConstraint();
+
+        // TODO: DependencyState should eventually be merged into EdgeState
+        this.dependencyState = new DependencyState(metadata, requested, ruleDescriptors, resolveFailure);
     }
 
     boolean computeSelector(StrictVersionConstraints ancestorsStrictVersions, boolean deferSelection) {
@@ -128,8 +147,7 @@ class EdgeState implements DependencyGraphEdge {
         return getSelectedComponent();
     }
 
-    @Override
-    public SelectorState getSelector() {
+    SelectorState getSelector() {
         assert selector != null : "No selector for " + this;
         return selector;
     }
@@ -146,22 +164,14 @@ class EdgeState implements DependencyGraphEdge {
             return;
         }
 
-        if (isConstraint) {
-            // Need to double check that the target still has hard edges to it
-            ModuleResolveState module = targetComponent.getModule();
-            if (module.isPending()) {
-                selector.getTargetModule().removeUnattachedEdge(this);
-                from.makePending(this);
-                module.registerConstraintProvider(from);
-                return;
-            }
-        }
+        // We should never try to attach edges to a node in a module that has no incoming hard edges.
+        assert !targetComponent.getModule().isPending();
 
         calculateTargetNodes(targetComponent);
-        for (NodeState targetNode : targetNodes) {
-            targetNode.addIncomingEdge(this);
-        }
         if (!targetNodes.isEmpty()) {
+            for (NodeState targetNode : targetNodes) {
+                targetNode.addIncomingEdge(this);
+            }
             selector.getTargetModule().removeUnattachedEdge(this);
         }
     }
@@ -212,7 +222,7 @@ class EdgeState implements DependencyGraphEdge {
     @Override
     public ImmutableAttributes getAttributes() {
         ModuleResolveState module = selector.getTargetModule();
-        ComponentSelectorInternal componentSelector = (ComponentSelectorInternal) dependencyState.getDependency().getSelector();
+        ComponentSelectorInternal componentSelector = (ComponentSelectorInternal) dependencyMetadata.getSelector();
         return resolveState.getAttributesFactory().safeConcat(module.getMergedConstraintAttributes(), componentSelector.getAttributes());
     }
 
@@ -225,7 +235,7 @@ class EdgeState implements DependencyGraphEdge {
             // Broken version
             return;
         }
-        if (isConstraint && !isVirtualDependency()) {
+        if (isConstraint) {
             List<NodeState> nodes = targetComponent.getNodes();
             for (NodeState node : nodes) {
                 if (node.isSelected() && !node.isRoot()) {
@@ -261,7 +271,7 @@ class EdgeState implements DependencyGraphEdge {
         try {
             targetVariants = selectTargetVariants(targetComponentState);
         } catch (AttributeMergingException mergeError) {
-            targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), () -> {
+            targetNodeSelectionFailure = new ModuleVersionResolveException(getRequested(), () -> {
                 Attribute<?> attribute = mergeError.getAttribute();
                 Object constraintValue = mergeError.getLeftValue();
                 Object dependencyValue = mergeError.getRightValue();
@@ -270,12 +280,15 @@ class EdgeState implements DependencyGraphEdge {
             return;
         } catch (Exception t) {
             // Failure to select the target variant/configurations from this component, given the dependency attributes/metadata.
-            targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), t);
+            targetNodeSelectionFailure = new ModuleVersionResolveException(getRequested(), t);
             return;
         }
 
         for (VariantGraphResolveState targetVariant : targetVariants.getVariants()) {
             NodeState targetNodeState = resolveState.getNode(targetComponent, targetVariant, targetVariants.isSelectedByVariantAwareResolution());
+            while (targetNodeState.getReplacement() != null) {
+                targetNodeState = targetNodeState.getReplacement();
+            }
             this.targetNodes.add(targetNodeState);
         }
     }
@@ -303,7 +316,7 @@ class EdgeState implements DependencyGraphEdge {
 
         // Use attribute matching if it is supported.
         if (!targetComponentState.getCandidatesForGraphVariantSelection().getVariantsForAttributeMatching().isEmpty()) {
-            Set<CapabilitySelector> capabilitySelectors = dependencyState.getDependency().getSelector().getCapabilitySelectors();
+            Set<CapabilitySelector> capabilitySelectors = dependencyMetadata.getSelector().getCapabilitySelectors();
             VariantGraphResolveState selected = variantSelector.selectByAttributeMatching(
                 attributes,
                 capabilitySelectors,
@@ -326,6 +339,11 @@ class EdgeState implements DependencyGraphEdge {
         return new GraphVariantSelectionResult(legacyVariants, false);
     }
 
+    @Override
+    public boolean isFromLock() {
+        return dependencyState.isFromLock();
+    }
+
     public static class GraphVariantSelectionResult {
 
         private final List<? extends VariantGraphResolveState> variants;
@@ -344,10 +362,6 @@ class EdgeState implements DependencyGraphEdge {
             return selectedByVariantAwareResolution;
         }
 
-    }
-
-    private boolean isVirtualDependency() {
-        return selector.getDependencyMetadata() instanceof LenientPlatformDependencyMetadata;
     }
 
     @Override
@@ -478,8 +492,46 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public ComponentSelectionReason getReason() {
-        return selector.getSelectionReason();
+    public ComponentSelectionReasonInternal getReason() {
+        ImmutableSet.Builder<ComponentSelectionDescriptorInternal> dependencyReasons = ImmutableSet.builderWithExpectedSize(4);
+        visitSelectionReasons(dependencyReasons::add);
+        return ComponentSelectionReasons.of(dependencyReasons.build());
+    }
+
+    @Override
+    public void visitSelectionReasons(Consumer<ComponentSelectionDescriptorInternal> visitor) {
+        visitor.accept(getMainReason());
+
+        ImmutableList<ComponentSelectionDescriptorInternal> ruleDescriptors = dependencyState.getRuleDescriptors();
+        if (!ruleDescriptors.isEmpty()) {
+            ruleDescriptors.forEach(visitor);
+        }
+
+        if (dependencyState.isForced()) {
+            visitor.accept(FORCED);
+        }
+    }
+
+    private ComponentSelectionDescriptorInternal getMainReason() {
+        if (selector != null && selector.isVersionProvidedByAncestor()) {
+            return withDependencyReason(BY_ANCESTOR);
+        } else if (dependencyState.getDependency().isConstraint()) {
+            return withSelectorReason(withDependencyReason(CONSTRAINT));
+        } else {
+            return withSelectorReason(withDependencyReason(REQUESTED));
+        }
+    }
+
+    private ComponentSelectionDescriptorInternal withDependencyReason(ComponentSelectionDescriptorInternal dependencyDescriptor) {
+        String reason = dependencyState.getDependency().getReason();
+        if (reason != null) {
+            dependencyDescriptor = dependencyDescriptor.withDescription(Describables.of(reason));
+        }
+        return dependencyDescriptor;
+    }
+
+    private ComponentSelectionDescriptorInternal withSelectorReason(ComponentSelectionDescriptorInternal descriptor) {
+        return selector == null ? descriptor : selector.maybeEnhanceReason(descriptor);
     }
 
     @Override
@@ -540,14 +592,6 @@ class EdgeState implements DependencyGraphEdge {
         return unattached;
     }
 
-    void markUsed() {
-        this.used = true;
-    }
-
-    void markUnused() {
-        this.used = false;
-    }
-
     /**
      * Indicates whether the edge is currently listed as outgoing in a node.
      * It can be either a full edge or an edge to a virtual platform.
@@ -555,7 +599,7 @@ class EdgeState implements DependencyGraphEdge {
      * @return true if used, false otherwise
      */
     boolean isUsed() {
-        return used;
+        return selector != null;
     }
 
     public boolean isArtifactOnlyEdge() {

@@ -18,20 +18,15 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.HasDefaultValue
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
 import org.gradle.declarative.dsl.schema.DataProperty.PropertyMode
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode
 import java.util.Locale
+import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
-import kotlin.reflect.KMutableProperty
-import kotlin.reflect.KProperty
+import kotlin.reflect.KClassifier
 import kotlin.reflect.KType
-import kotlin.reflect.KVisibility
-import kotlin.reflect.full.instanceParameter
-import kotlin.reflect.full.memberFunctions
-import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.allSuperclasses
 
 
 interface PropertyExtractor {
@@ -43,7 +38,6 @@ interface PropertyExtractor {
         }
     }
 }
-
 
 class CompositePropertyExtractor(internal val extractors: Iterable<PropertyExtractor>) : PropertyExtractor {
     override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> = buildList {
@@ -74,71 +68,79 @@ data class CollectedPropertyInformation(
     val returnType: DataTypeRef,
     val propertyMode: PropertyMode,
     val hasDefaultValue: Boolean,
-    val isHiddenInDeclarativeDsl: Boolean,
+    val isHiddenInDefinition: Boolean,
     val isDirectAccessOnly: Boolean,
-    val claimedFunctions: List<KFunction<*>>
+    val claimedFunctions: List<KCallable<*>>
 )
 
-
-class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = isPublicAndRestricted) : PropertyExtractor {
+class DefaultPropertyExtractor : PropertyExtractor {
     override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean) =
         (propertiesFromAccessorsOf(host, kClass, propertyNamePredicate) + memberPropertiesOf(host, kClass, propertyNamePredicate)).distinctBy { it }
 
     private
     fun propertiesFromAccessorsOf(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<CollectedPropertyInformation> {
-        val functionsByName = kClass.memberFunctions.groupBy { it.name }
+        val functions = host.classMembers(kClass).potentiallyDeclarativeMembers.filter { it.kind == MemberKind.FUNCTION }
+        val functionsByName = functions.groupBy { it.name }
+
         val getters = functionsByName
             .filterKeys { it.startsWith("get") && it.substringAfter("get").firstOrNull()?.isUpperCase() == true }
-            .mapValues { (_, functions) -> functions.singleOrNull { fn -> fn.parameters.all { it == fn.instanceParameter } } }
-            .filterValues { it != null && includeMemberFilter.shouldIncludeMember(it) }
+            .mapValues { (_, functions) -> functions.singleOrNull { fn -> fn.parameters.isEmpty() } }
+            .filterValues { it != null && it.returnType.classifier.isValidPropertyType }
         return getters.mapNotNull { (name, getter) ->
             checkNotNull(getter)
-            host.inContextOfModelMember(getter) {
+            host.inContextOfModelMember(getter.kCallable) {
                 val nameAfterGet = name.substringAfter("get")
                 val propertyName = nameAfterGet.replaceFirstChar { it.lowercase(Locale.getDefault()) }
-                if (!propertyNamePredicate(propertyName))
+                if (!propertyNamePredicate(propertyName)) {
                     return@inContextOfModelMember null
+                }
+                val setter = functionsByName["set$nameAfterGet"]?.find { fn -> fn.parameters.singleOrNull()?.type == getter.returnType }
 
                 val type = getter.returnTypeToRefOrError(host)
-                val isHidden = getter.annotations.any { it is HiddenInDeclarativeDsl }
-                val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
-                val setter = functionsByName["set$nameAfterGet"]?.find { fn -> fn.parameters.singleOrNull { it != fn.instanceParameter }?.type == getter.returnType }
-                val mode = run {
-                    if (setter != null) DefaultPropertyMode.DefaultReadWrite else DefaultPropertyMode.DefaultReadOnly
-                }
-                CollectedPropertyInformation(propertyName, getter.returnType, type, mode, true, isHidden, isDirectAccessOnly, listOfNotNull(getter, setter))
+                val isDirectAccessOnly = getter.kCallable.annotations.any { it is AccessFromCurrentReceiverOnly }
+                CollectedPropertyInformation(
+                    propertyName,
+                    getter.returnType.toKType(),
+                    type,
+                    if (setter != null) DefaultPropertyMode.DefaultReadWrite else DefaultPropertyMode.DefaultReadOnly,
+                    hasDefaultValue = true,
+                    isHiddenInDefinition = false,
+                    isDirectAccessOnly = isDirectAccessOnly,
+                    claimedFunctions = listOfNotNull(getter.kCallable, setter?.kCallable)
+                )
             }
         }
     }
 
     private
-    fun memberPropertiesOf(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<CollectedPropertyInformation> = kClass.memberProperties
-        .filter { property ->
-            includeMemberFilter.shouldIncludeMember(property)
-                && property.visibility == KVisibility.PUBLIC
-                && propertyNamePredicate(property.name)
+    fun memberPropertiesOf(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<CollectedPropertyInformation> =
+        host.classMembers(kClass).potentiallyDeclarativeMembers.filter { it.kind.isProperty }.filter { property ->
+            propertyNamePredicate(property.name) && property.returnType.classifier.isValidPropertyType
         }.map { property ->
-            host.inContextOfModelMember(property) {
+            host.inContextOfModelMember(property.kCallable) {
                 kPropertyInformation(host, property)
             }
         }
 
     private
-    fun kPropertyInformation(host: SchemaBuildingHost, property: KProperty<*>): CollectedPropertyInformation {
-        val isReadOnly = property !is KMutableProperty<*>
-        val isHidden = property.annotationsWithGetters.any { it is HiddenInDeclarativeDsl }
-        val isDirectAccessOnly = property.annotationsWithGetters.any { it is AccessFromCurrentReceiverOnly }
+    fun kPropertyInformation(host: SchemaBuildingHost, property: SupportedCallable): CollectedPropertyInformation {
+        val isReadOnly = property.kind == MemberKind.READ_ONLY_PROPERTY
+        val annotationsWithGetters = property.kCallable.annotationsWithGetters
+        val isDirectAccessOnly = annotationsWithGetters.any { it is AccessFromCurrentReceiverOnly }
         return CollectedPropertyInformation(
             property.name,
-            property.returnType,
+            property.returnType.toKType(),
             property.returnTypeToRefOrError(host),
             if (isReadOnly) DefaultPropertyMode.DefaultReadOnly else DefaultPropertyMode.DefaultReadWrite,
             hasDefaultValue = run {
-                isReadOnly || property.annotationsWithGetters.none { it is HasDefaultValue && !it.value }
+                isReadOnly || annotationsWithGetters.none { it is HasDefaultValue && !it.value }
             },
-            isHiddenInDeclarativeDsl = isHidden,
+            isHiddenInDefinition = false,
             isDirectAccessOnly = isDirectAccessOnly,
             claimedFunctions = emptyList()
         )
     }
+
+    private val KClassifier.isValidPropertyType: Boolean // FIXME: Property API gets in the way, we don't want to import Provider-typed properties
+        get() = this is KClass<*> && allSuperclasses.none { it.java.name == "org.gradle.api.provider.Provider" }
 }

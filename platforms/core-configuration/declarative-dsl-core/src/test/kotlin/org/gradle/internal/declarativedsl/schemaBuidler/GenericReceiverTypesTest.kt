@@ -17,8 +17,6 @@
 package org.gradle.internal.declarativedsl.schemaBuidler
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.ResolutionError
@@ -115,10 +113,8 @@ class GenericReceiverTypesTest {
 
     @Suppress("unused")
     interface Schema {
-        @Configuring
         fun sub1(configure: GenericSubtypeIntString.() -> Unit)
 
-        @Configuring
         fun sub2(configure: GenericSubtypeStringBoolean.() -> Unit)
     }
 
@@ -127,25 +123,19 @@ class GenericReceiverTypesTest {
      */
     @Suppress("unused")
     interface GenericSuperType<T1, T2> {
-        @get:Restricted
         var int: Int
 
-        @get:Restricted
         var str: String
 
-        @get:Restricted
         var bool: Boolean
 
         @Adding
         fun addT1(t1: T1)
 
-        @Restricted
         fun t1(): T1
 
-        @Restricted
         fun t2(): T2
 
-        @Configuring
         fun nested(configure: Nested.() -> Unit)
     }
 
@@ -163,13 +153,11 @@ class GenericReceiverTypesTest {
 
     @Suppress("unused")
     interface Nested {
-        @get:Restricted
         var nestedStr: String
     }
 
     @Suppress("unused")
     interface SchemaConfiguringGenericType {
-        @Configuring
         fun sup(configure: GenericSuperType<Int, String>.() -> Unit)
     }
 

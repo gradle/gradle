@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import japicmp.model.JApiClass;
 import japicmp.model.JApiCompatibility;
 import japicmp.model.JApiCompatibilityChange;
+import japicmp.model.JApiCompatibilityChangeType;
 import japicmp.model.JApiConstructor;
 import japicmp.model.JApiHasAnnotations;
 import japicmp.model.JApiImplementedInterface;
@@ -27,13 +28,20 @@ import me.champeau.gradle.japicmp.report.Violation;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
 
-    private static final List<JApiCompatibilityChange> IGNORED_CHANGE_TYPES = ImmutableList.of(
-        JApiCompatibilityChange.METHOD_REMOVED_IN_SUPERCLASS, // the removal of the method will be reported
-        JApiCompatibilityChange.INTERFACE_REMOVED,            // the removed methods will be reported
-        JApiCompatibilityChange.INTERFACE_ADDED               // the added methods will be reported
+    private static final List<JApiCompatibilityChangeType> IGNORED_CHANGE_TYPES = ImmutableList.of(
+        JApiCompatibilityChangeType.METHOD_REMOVED_IN_SUPERCLASS, // the removal of the method will be reported
+        JApiCompatibilityChangeType.INTERFACE_REMOVED,            // the removed methods will be reported
+        JApiCompatibilityChangeType.INTERFACE_ADDED               // the added methods will be reported
+    );
+
+    private static final Set<JApiCompatibilityChangeType> ANNOTATION_RELATED_CHANGES = Set.of(
+        JApiCompatibilityChangeType.ANNOTATION_MODIFIED,
+        JApiCompatibilityChangeType.ANNOTATION_REMOVED,
+        JApiCompatibilityChangeType.ANNOTATION_ADDED
     );
 
     public BinaryBreakingChangesRule(Map<String, Object> params) {
@@ -44,7 +52,10 @@ public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
     @SuppressWarnings("unchecked")
     public Violation maybeViolation(final JApiCompatibility member) {
         if (!member.isBinaryCompatible()) {
-            if ((member instanceof JApiClass) && (member.getCompatibilityChanges().isEmpty())) {
+
+            removeAnnotationChanges(member);
+
+            if ((member instanceof JApiClass) && member.getCompatibilityChanges().isEmpty()) {
                 // A member of the class breaks binary compatibility.
                 // That will be handled when the member is passed to `maybeViolation`.
                 return null;
@@ -60,7 +71,7 @@ public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
                 }
             }
             for (JApiCompatibilityChange change : member.getCompatibilityChanges()) {
-                if (IGNORED_CHANGE_TYPES.contains(change)) {
+                if (IGNORED_CHANGE_TYPES.contains(change.getType())) {
                     return null;
                 }
             }
@@ -72,6 +83,12 @@ public class BinaryBreakingChangesRule extends AbstractGradleViolationRule {
             return acceptOrReject(member, Violation.notBinaryCompatible(member));
         }
         return null;
+    }
+
+    // Annotation-related violations are not fully supported by japicmp plugin yet.
+    // See https://github.com/melix/japicmp-gradle-plugin/issues/92
+    private void removeAnnotationChanges(JApiCompatibility member) {
+        member.getCompatibilityChanges().removeIf(change -> ANNOTATION_RELATED_CHANGES.contains(change.getType()));
     }
 
 }

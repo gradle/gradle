@@ -22,48 +22,53 @@ import java.util.Arrays;
 /// implementations.
 ///
 /// In general, these should be as efficient as possible, contain
-/// no branching code, and minimize [System] calls.
+/// no branching code, and minimize copying.
 /// In practice, it gets [complicated][#insertAtPushingRight(int, Object\[\], Object\[\], int, int, int)].
 final class ArrayCopy {
 
     static final Object[] EMPTY_ARRAY = new Object[0];
 
     static Object[] append(Object[] array, Object newElement) {
-        Object[] newArray = Arrays.copyOf(array, array.length + 1);
+        Object[] newArray = new Object[array.length + 1];
+        System.arraycopy(array, 0, newArray, 0, array.length);
         newArray[array.length] = newElement;
         return newArray;
     }
 
     static Object[] append(Object[] array, Object e1, Object e2) {
         int length = array.length;
-        Object[] newArray = Arrays.copyOf(array, length + 2);
+        Object[] newArray = new Object[length + 2];
+        System.arraycopy(array, 0, newArray, 0, length);
         newArray[length] = e1;
         newArray[length + 1] = e2;
         return newArray;
     }
 
     static Object[] replaceAt(int index, Object[] array, Object newElement) {
-        Object[] newArray = Arrays.copyOf(array, array.length);
+        Object[] newArray = new Object[array.length];
+        System.arraycopy(array, 0, newArray, 0, array.length);
         newArray[index] = newElement;
         return newArray;
     }
 
     static Object[] insertAt(int index, Object[] array, Object newElement) {
-        Object[] newArray = Arrays.copyOf(array, array.length + 1);
+        Object[] newArray = new Object[array.length + 1];
+        System.arraycopy(array, 0, newArray, 0, index);
         System.arraycopy(array, index, newArray, index + 1, array.length - index);
         newArray[index] = newElement;
         return newArray;
     }
 
     static Object[] insertAt(int index, Object[] array, Object e1, Object e2) {
-        Object[] newArray = Arrays.copyOf(array, array.length + 2);
+        Object[] newArray = new Object[array.length + 2];
+        System.arraycopy(array, 0, newArray, 0, index);
         System.arraycopy(array, index, newArray, index + 2, array.length - index);
         newArray[index] = e1;
         newArray[index + 1] = e2;
         return newArray;
     }
 
-    // 🤔 Note: This has different behavior based on payload (0 vs 1).
+    // Implementation note: This has different behavior based on payload (0 versus 1).
     // For payload=0: array length stays the same (insert + remove 1 element)
     // For payload=1: array length decreases by 1 (insert 1 + remove 2 elements = net -1)
     // This asymmetry is because for maps we're removing a key-value pair (2 elements)

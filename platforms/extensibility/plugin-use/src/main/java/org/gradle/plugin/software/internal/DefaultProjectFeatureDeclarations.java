@@ -31,6 +31,7 @@ import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilderInternal;
 import org.gradle.api.internal.plugins.ProjectFeatureBinding;
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilderInternal;
 import org.gradle.api.internal.plugins.ProjectTypeBinding;
+import org.gradle.api.internal.plugins.TargetTypeInformation;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -48,7 +49,6 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -58,6 +58,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.singletonList;
 
 /**
  * Default implementation of {@link ProjectFeatureDeclarations} that registers project types.
@@ -119,11 +121,26 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
                 .solution("Remove one of the plugins from the build.")
                 .severity(Severity.ERROR)
             );
-            throwTypeValidationException("Project feature '" + projectFeatureName + "' is registered by multiple plugins:", Collections.singletonList(duplicateRegistrationProblem));
+            throwTypeValidationException("Project feature '" + projectFeatureName + "' is registered by multiple plugins:", singletonList(duplicateRegistrationProblem));
         }
 
         if (binding.getDefinitionSafety() == ProjectFeatureBindingDeclaration.Safety.SAFE) {
             validateDefinitionSafety(binding);
+        }
+
+        if (binding.targetDefinitionType() instanceof TargetTypeInformation.BuildModelTargetTypeInformation &&
+            ((TargetTypeInformation.BuildModelTargetTypeInformation<?>) binding.targetDefinitionType()).buildModelType.equals(BuildModel.None.class)) {
+
+            InternalProblem bindingTypeProblem = problemReporter.internalCreate(builder -> builder
+                .id("bind=to-build-model-none", "Project features binds to BuildModel.None", GradleCoreProblemGroup.configurationUsage())
+                .details("A project feature cannot bind to 'BuildModel.None' as its target build model type.")
+                .contextualLabel("Project feature '" + projectFeatureName + "' is bound to 'BuildModel.None'")
+                .solution("Bind to a target definition type instead.")
+                .solution("Bind to a concrete build model type other than 'BuildModel.None'.")
+                .severity(Severity.ERROR)
+            );
+
+            throwTypeValidationException("Project feature '" + projectFeatureName + "' is bound to an invalid type:", singletonList(bindingTypeProblem));
         }
 
         projectFeatureImplementationsBuilder.put(
