@@ -295,7 +295,7 @@ public class ModuleResolveState implements CandidateModule {
 
     public void removeUnattachedEdge(EdgeState edge) {
         if (unattachedEdges.remove(edge)) {
-            edge.markAttached();
+            edge.markNotUnattached();
         }
     }
 
@@ -402,8 +402,9 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     void disconnectIncomingEdge(NodeState removalSource, EdgeState incomingEdge) {
-        incomingEdge.clearSelector();
+        // Remove the unattached edge first, as clearing the selector may trigger re-selection and mutate the unattached edge
         removeUnattachedEdge(incomingEdge);
+        incomingEdge.clearSelector();
         if (!incomingEdge.isConstraint()) {
             pendingDependencies.decreaseHardEdgeCount();
             if (pendingDependencies.isPending()) {
