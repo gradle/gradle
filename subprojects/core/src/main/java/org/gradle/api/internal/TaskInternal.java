@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.VerificationException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.logging.StandardOutputCapture;
@@ -166,22 +167,27 @@ public interface TaskInternal extends Task, Configurable<Task> {
      * @return the constructed failure message
      */
     @Internal
-    default String buildFailureMessage() {
+    default String buildFailureMessage(Throwable cause) {
         UserCodeSource source = getTaskIdentity().getUserCodeSource();
         String sourceDesc = source.getDisplayName().getDisplayName();
 
-        boolean isUnknownSource = source == UserCodeSource.UNKNOWN;
-        boolean isCreatedByRule = source == UserCodeSource.BY_RULE;
+        boolean isVerificationFailure = cause instanceof VerificationException;
 
         String createdBy;
-        if (isUnknownSource) {
+        if (isVerificationFailure) {
             createdBy = "";
-        } else if (isCreatedByRule) {
-            createdBy = " (registered by Rule)";
         } else {
-            boolean isPluginSource = sourceDesc.contains("plugin");
-            String preposition = isPluginSource ? "by" : "in";
-            createdBy = String.format(" (registered %s %s)", preposition, sourceDesc);
+            boolean isUnknownSource = source == UserCodeSource.UNKNOWN;
+            boolean isCreatedByRule = source == UserCodeSource.BY_RULE;
+            if (isUnknownSource) {
+                createdBy = "";
+            } else if (isCreatedByRule) {
+                createdBy = " (registered by Rule)";
+            } else {
+                boolean isPluginSource = sourceDesc.contains("plugin");
+                String preposition = isPluginSource ? "by" : "in";
+                createdBy = String.format(" (registered %s %s)", preposition, sourceDesc);
+            }
         }
 
         return String.format("Execution failed for %s%s.", this, createdBy);

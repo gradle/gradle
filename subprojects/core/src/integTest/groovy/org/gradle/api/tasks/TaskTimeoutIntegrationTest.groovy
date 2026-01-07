@@ -174,7 +174,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "test"
-            failure.assertHasDescription("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
+            failure.assertHasDescription("Execution failed for task ':test'.")
             failure.assertHasCause("Timeout has been exceeded")
         }
     }

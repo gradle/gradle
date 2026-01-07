@@ -81,7 +81,7 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "test", "-PinputFile=different-file.txt"
-        failure.assertHasDescription("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
+        failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
         failure.assertHasResolutions(SCAN)
     }

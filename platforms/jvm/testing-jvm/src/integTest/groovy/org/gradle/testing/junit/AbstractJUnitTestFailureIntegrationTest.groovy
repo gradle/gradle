@@ -324,7 +324,7 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
         } else {
             // In JUnit 4.0 to 4.4, a test class with an initialization error results in a test process failure; not a test execution failure,
             // so we cannot assert on test results. From 4.5 onwards, we get proper test execution failures.
-            failure.assertHasDescription("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
+            failure.assertHasDescription("Execution failed for task ':test'.")
             failure.assertThatCause(startsWith("Could not execute test class 'org.gradle.Unloadable'."))
         }
     }

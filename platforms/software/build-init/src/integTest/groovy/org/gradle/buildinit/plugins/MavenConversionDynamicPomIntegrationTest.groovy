@@ -86,7 +86,7 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
 
         then:
         // when tests fail, jar may not exist
-        failure.assertHasDescription("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
+        failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
     }
 
@@ -115,7 +115,7 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
 
         then:
         // when tests fail, jar may not exist
-        failure.assertHasDescription("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
+        failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
     }
 
@@ -180,7 +180,7 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
 
         then:
         // when tests fail, jar may not exist
-        failure.assertHasDescription("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
+        failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
     }
 
