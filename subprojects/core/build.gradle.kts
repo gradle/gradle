@@ -8,14 +8,6 @@ configurations {
     register("reports")
 }
 
-tasks.classpathManifest {
-    optionalProjects.add("gradle-kotlin-dsl")
-    // The gradle-runtime-api-info.jar is added by a 'distributions-...' project if it is on the (integration test) runtime classpath.
-    // It contains information services in ':core' need to reason about the complete Gradle distribution.
-    // To allow parts of ':core' code to be instantiated in unit tests without relying on this functionality, the dependency is optional.
-    optionalProjects.add("gradle-runtime-api-info")
-}
-
 // Instrumentation interceptors for tests
 // Separated from the test source set since we don't support incremental annotation processor with Java/Groovy joint compilation
 val testInterceptors = sourceSets.create("testInterceptors") {
