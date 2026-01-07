@@ -16,7 +16,6 @@
 
 package org.gradle.cache.internal;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.FileUtils;
 import org.gradle.cache.CleanableStore;
@@ -28,13 +27,13 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.function.Supplier;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy.FineGrainedCacheEntrySoftDeleter;
 
 public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements CleanupAction {
@@ -49,7 +48,7 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
 
     @Override
     public void clean(CleanableStore cleanableStore, CleanupProgressMonitor progressMonitor) {
-        Preconditions.checkArgument(cleanableStore instanceof FineGrainedPersistentCache, "Expected a FineGrainedPersistentCache but got: %s", cleanableStore.getClass());
+        checkArgument(cleanableStore instanceof FineGrainedPersistentCache, "Expected a FineGrainedPersistentCache but got: %s", cleanableStore.getClass());
 
         FineGrainedPersistentCache cache = (FineGrainedPersistentCache) cleanableStore;
         MarkAndSweepCacheEntrySoftDeleter softDeleter = (MarkAndSweepCacheEntrySoftDeleter) getSoftDeleter(cache);
@@ -109,30 +108,28 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
         }
 
         @Override
-        protected boolean doDeletion(File file) {
-            validatePath(file);
-            String key = pathToCacheKey(file);
+        protected boolean doDeletion(File path) {
+            String key = getPathAsCacheKey(path);
+            if (!shouldBeSoftDeleted(key) && !shouldBeHardDeleted(key)) {
+                return false;
+            }
             return cache.useCache(key, () -> {
                 if (shouldBeSoftDeleted(key)) {
                     softDeleter.softDelete(key);
                     return false;
                 } else if (shouldBeHardDeleted(key)) {
-                    return hardDelete(file, key);
+                    return hardDelete(path, key);
                 }
                 return false;
             });
         }
 
-        private void validatePath(File file) {
-            if (!file.toPath().startsWith(cache.getBaseDir().toPath())) {
-                throw new IllegalStateException(String.format("Cannot delete '%s' as it's not a subpath of cache at '%s'.", file.getAbsolutePath(), cache.getBaseDir().getAbsolutePath()));
-            }
-        }
-
-        private boolean hardDelete(File file, String key) {
+        private boolean hardDelete(File path, String key) {
             try {
                 // First delete content
-                FileUtils.cleanDirectory(file);
+                if (path.isDirectory()) {
+                    FileUtils.cleanDirectory(path);
+                }
             } catch (IOException e) {
                 return false;
             }
@@ -140,8 +137,8 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
             softDeleter.removeSoftDeleteMarker(key);
             softDeleter.removeSoftGcFile(key);
             // And finally delete a folder
-            FileUtils.deleteQuietly(file);
-            if (!file.exists()) {
+            FileUtils.deleteQuietly(path);
+            if (!path.exists()) {
                 // And if folder is not present anymore, delete also a lock file
                 File locksDir = new File(cache.getBaseDir(), FineGrainedPersistentCache.LOCKS_DIR_NAME);
                 FileUtils.deleteQuietly(new File(locksDir, key + ".lock"));
@@ -184,9 +181,10 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
             return osName.contains("windows");
         }
 
-        private String pathToCacheKey(File file) {
-            Path relativized = cache.getBaseDir().toPath().relativize(file.toPath());
-            return relativized.toString();
+        private String getPathAsCacheKey(File path) {
+            checkArgument(path.getParentFile().equals(cache.getBaseDir()),
+                "Expected a path '%s' to be a direct child of cache at '%s'.", path.getAbsolutePath(), cache.getBaseDir().getAbsolutePath());
+            return path.getName();
         }
 
         private boolean shouldBeSoftDeleted(String key) {
