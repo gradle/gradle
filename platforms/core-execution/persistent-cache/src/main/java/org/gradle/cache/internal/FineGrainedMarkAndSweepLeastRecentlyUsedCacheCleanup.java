@@ -32,6 +32,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.function.Supplier;
 
 import static org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy.FineGrainedCacheEntrySoftDeleter;
@@ -100,6 +101,14 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
         }
 
         @Override
+        public void clean(CleanableStore cleanableStore, CleanupProgressMonitor progressMonitor) {
+            // First perform regular mark-and-sweep cleanup for entries
+            super.clean(cleanableStore, progressMonitor);
+            // Then clean up any orphaned lock files left behind
+            cleanupOrphanLocks();
+        }
+
+        @Override
         protected boolean doDeletion(File file) {
             validatePath(file);
             String key = pathToCacheKey(file);
@@ -134,10 +143,45 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
             FileUtils.deleteQuietly(file);
             if (!file.exists()) {
                 // And if folder is not present anymore, delete also a lock file
-                cache.getLockFile(key).delete();
+                FileUtils.deleteQuietly(cache.getLockFile(key));
                 return true;
             }
             return false;
+        }
+
+        private void cleanupOrphanLocks() {
+            File baseDir = cache.getBaseDir();
+            File locksDir = new File(baseDir, "locks");
+            File[] lockFiles = locksDir.listFiles();
+            if (lockFiles == null) {
+                return;
+            }
+            for (File lockFile : lockFiles) {
+                String name = lockFile.getName();
+                String key = name.substring(0, name.length() - ".lock".length());
+                File entryDir = new File(baseDir, key);
+                if (!entryDir.exists()) {
+                    deleteOrphanLock(lockFile, key);
+                }
+            }
+        }
+
+        private void deleteOrphanLock(File lockFile, String key) {
+            if (isWindows()) {
+                // On Windows, deleting an opened file by another process will fail anyway
+                FileUtils.deleteQuietly(lockFile);
+            } else {
+                // On Unix-like systems, acquire the lock via useCache() first to ensure no other process is using it
+                cache.useCache(key, () -> FileUtils.deleteQuietly(lockFile));
+            }
+        }
+
+        /**
+         * We don't have dependency to base-services to use OperatingSystem.current() here.
+         */
+        private static boolean isWindows() {
+            String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
+            return osName.contains("windows");
         }
 
         private String pathToCacheKey(File file) {

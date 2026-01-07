@@ -26,6 +26,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 import java.util.concurrent.TimeUnit
+import java.util.function.Supplier
 
 class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specification {
     @Rule
@@ -143,17 +144,16 @@ class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specifica
         gcProps.text = "keep"
         def locksDir = new File(cacheDir, "locks")
         locksDir.mkdirs()
-        def someLock = new File(locksDir, "x.lock")
-        someLock.text = "locked"
+        def gcFolder = new File(cacheDir, "gc")
+        gcFolder.mkdirs()
+        // Create a cache entry
+        def recent = createCacheEntryDir(now)
 
         // Make them look very old so they would be eligible if not reserved
         long fiveDaysAgo = now - TimeUnit.DAYS.toMillis(5)
         gcProps.lastModified = fiveDaysAgo
         locksDir.lastModified = fiveDaysAgo
-        someLock.lastModified = fiveDaysAgo
-
-        // Also create a normal recent entry so cleanup iterates
-        def recent = createCacheEntryDir(now)
+        gcFolder.lastModified = fiveDaysAgo
 
         when:
         cleanupAction.clean(cache, progressMonitor)
@@ -162,12 +162,39 @@ class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specifica
         // Reserved items are not deleted
         gcProps.exists()
         locksDir.exists()
-        someLock.exists()
+        gcFolder.exists()
         recent.exists()
 
-        // And journal is not asked to delete last access time for reserved files
+        // And journal is not invoked for reserved files
         1 * fileAccessTimeJournal.getLastAccessTime(recent)
         0 * fileAccessTimeJournal.getLastAccessTime(_)
+        0 * fileAccessTimeJournal.deleteLastAccessTime(_)
+    }
+
+    def "deletes orphan lock files while keeping non-orphan locks"() {
+        given:
+        long now = System.currentTimeMillis()
+
+        // Create locks dir and an orphan lock file
+        def locksDir = new File(cacheDir, "locks")
+        locksDir.mkdirs()
+        def orphanLock = new File(locksDir, "orphan.lock")
+        orphanLock.text = "locked"
+
+        // Create a cache entry and a corresponding non-orphan lock
+        def entry = createCacheEntryDir(now)
+        def nonOrphanLock = new File(locksDir, entry.name + ".lock")
+        nonOrphanLock.text = "locked"
+
+        when:
+        cleanupAction.clean(cache, progressMonitor)
+
+        then:
+        !orphanLock.exists()
+        nonOrphanLock.exists()
+        entry.exists()
+
+        // No journal deletions due to lock-only changes
         0 * fileAccessTimeJournal.deleteLastAccessTime(_)
     }
 
@@ -206,7 +233,7 @@ class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specifica
         String getDisplayName() { return displayName }
 
         @Override
-        <T> T useCache(String key, java.util.function.Supplier<? extends T> action) { return action.get() }
+        <T> T useCache(String key, Supplier<? extends T> action) { return action.get() }
 
         @Override
         void useCache(String key, Runnable action) { action.run() }
