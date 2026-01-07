@@ -147,6 +147,33 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         1 * whenContended.accept(_)
     }
 
+    def "can recognize that it's NOT first lock access even if lock file is deleted"() {
+        given:
+        def file = tmpDir.file("lock-file.bin")
+        def action = Mock(Consumer)
+
+        when:
+        def lock = createLock(Exclusive, file, manager, action)
+
+        then:
+        lock.lockFile.exists()
+
+        when:
+        def lock2 = createLock(Exclusive, file, manager2)
+
+        then:
+        !lock.lockFile.exists()
+        !lock2.lockFile.exists()
+        lock.lockFile == lock2.lockFile
+        lock.isFirstLockAccess()
+        !lock2.isFirstLockAccess()
+        1 * action.accept(_) >> { FileLockReleasedSignal signal ->
+            lock.lockFile.delete()
+            lock.close()
+            signal.trigger()
+        }
+    }
+
     FileLock createLock(FileLockManager.LockMode lockMode, File file, FileLockManager lockManager = manager, Consumer<FileLockReleasedSignal> whenContended = null) {
         def lock = lockManager.lock(file, DefaultLockOptions.mode(lockMode), "foo", "operation", whenContended)
         openedLocks << lock

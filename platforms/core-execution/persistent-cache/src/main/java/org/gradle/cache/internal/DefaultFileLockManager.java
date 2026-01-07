@@ -47,6 +47,7 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -153,6 +154,7 @@ public class DefaultFileLockManager implements FileLockManager {
         private final int port;
         private final long lockId;
         private final boolean isUseCrossVersionImplementation;
+        private final AtomicBoolean isFirstLockAccess = new AtomicBoolean(false);
 
         public DefaultFileLock(File target, LockOptions options, String displayName, String operationDisplayName, int port, @Nullable Consumer<FileLockReleasedSignal> whenContended) throws Throwable {
             this.port = port;
@@ -177,7 +179,7 @@ public class DefaultFileLockManager implements FileLockManager {
             }
 
             LockStateSerializer stateProtocol = options.isUseCrossVersionImplementation() ? new Version1LockStateSerializer() : new DefaultLockStateSerializer();
-            this.lockStateAccess = new LockStateAccess(stateProtocol);
+            this.lockStateAccess = new LockStateAccess(stateProtocol, () -> isFirstLockAccess.set(true));
             lockFileAccess = new LockFileAccess(lockFile, lockStateAccess);
             try {
                 if (whenContended != null) {
@@ -318,11 +320,16 @@ public class DefaultFileLockManager implements FileLockManager {
             if (lock == null || !lockFile.exists()) {
                 return false;
             }
-            Long openedLockId = readLockIdFromFileAccess();
+            Long lockIdFromFileAccess = readLockIdFromFileAccess();
             Long lockIdFromFile = readLockIdFromLockFile();
             // If the lock id cannot be read from lock file access,
             // something is wrong with lock file access, assume lock is not valid
-            return openedLockId != null && openedLockId.equals(lockIdFromFile);
+            return lockIdFromFileAccess != null && lockIdFromFileAccess.equals(lockIdFromFile);
+        }
+
+        @Override
+        public boolean isFirstLockAccess() {
+            return isFirstLockAccess.get();
         }
 
         @Nullable
@@ -338,7 +345,7 @@ public class DefaultFileLockManager implements FileLockManager {
 
         @Nullable
         private Long readLockIdFromLockFile() {
-            try(RandomAccessFile randomAccessFile = new RandomAccessFile(lockFile, "r")) {
+            try (RandomAccessFile randomAccessFile = new RandomAccessFile(lockFile, "r")) {
                 return lockStateAccess.readLockId(randomAccessFile);
             } catch (IOException e) {
                 // File may not exist or may be corrupted.
