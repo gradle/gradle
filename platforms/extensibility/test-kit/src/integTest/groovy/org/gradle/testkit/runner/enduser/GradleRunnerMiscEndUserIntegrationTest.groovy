@@ -75,7 +75,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
             }
         }
 
-        def testKitJar = jarsDir.listFiles().find { it.name.contains "test-kit" }
+        def testKitJar = jarsDir.listFiles().find { it.name.contains("test-kit") && it.name.endsWith(".jar") }
         buildFile << """
             dependencies {
                 testImplementation fileTree(dir: 'jars', include: '*.jar')
