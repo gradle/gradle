@@ -18,6 +18,8 @@ package org.gradle.integtests
 import groovy.io.FileType
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.wrapper.GradleWrapperMain
+import spock.lang.Issue
 
 import java.nio.file.Files
 
@@ -51,4 +53,29 @@ class WrapperIntegrationTest extends AbstractWrapperIntegrationSpec {
         result.assertHasErrorOutput("does not appear to contain a Gradle distribution.")
         result.assertTaskScheduled(":hello")
     }
+
+    @Issue('https://github.com/gradle/gradle/issues/36189')
+    def "Wrapper applies system properties priority ordering in line with documented priority"() {
+        given:
+        def commandLineProperties = ["test.commandLine": "commandLine"]
+        def userHome = testDirectory.createDir("systemPropertyPriority/userHome")
+        userHome.file("gradle.properties") << """
+        systemProp.test.userHome=userHome
+        systemProp.test.commandLine=userHome
+"""
+        def projectRoot = testDirectory.createDir("systemPropertyPriority/projectRoot")
+        projectRoot.file("gradle.properties") << """
+        systemProp.test.projectRoot=projectRoot
+        systemProp.test.userHome=projectRoot
+        systemProp.test.commandLine=projectRoot
+"""
+        when:
+        GradleWrapperMain.addSystemProperties(commandLineProperties, userHome, projectRoot)
+
+        then:
+        assert "commandLine" == System.getProperty("test.commandLine")
+        assert "userHome" == System.getProperty("test.userHome")
+        assert "projectRoot" == System.getProperty("test.projectRoot")
+    }
+
 }
