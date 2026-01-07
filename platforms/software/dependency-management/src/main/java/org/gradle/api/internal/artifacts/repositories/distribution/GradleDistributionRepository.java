@@ -74,6 +74,7 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 import org.gradle.util.GradleVersion;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -90,6 +91,7 @@ public class GradleDistributionRepository extends AbstractResolutionAwareArtifac
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final MavenVariantAttributesFactory mavenAttributesFactory;
 
+    @Inject
     public GradleDistributionRepository(
         ObjectFactory objectFactory,
         VersionParser versionParser,

@@ -22,9 +22,9 @@ import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.repositories.distribution.AvailableDistributionModules
 import org.gradle.api.internal.artifacts.repositories.distribution.GradleDistributionRepository
@@ -34,13 +34,13 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenVariantAttri
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry
-import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
+import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -52,10 +52,6 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final FileCollectionFactory fileCollectionFactory = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
-    final DefaultArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
-    final DefaultExternalResourceFileStore externalResourceFileStore = Stub()
-    final MetaDataParser pomParser = Mock()
-    final GradleModuleMetadataParser metadataParser = Mock()
     final ivyContextManager = Mock(IvyContextManager)
     final AuthenticationSchemeRegistry authenticationSchemeRegistry = new DefaultAuthenticationSchemeRegistry()
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
@@ -63,6 +59,14 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final IvyMutableModuleMetadataFactory ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver)
     final ProviderFactory providerFactory = Mock()
+    final VersionParser versionParser = new VersionParser()
+
+    final ObjectFactory objectFactory = TestUtil.createTestServices {
+        it.add(AvailableDistributionModules, Mock(AvailableDistributionModules))
+        it.add(MavenVariantAttributesFactory, Mock(MavenVariantAttributesFactory))
+        it.add(VersionParser, versionParser)
+        it.add(ImmutableModuleIdentifierFactory, moduleIdentifierFactory)
+    }.get(ObjectFactory)
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
         localMavenRepoLocator,
@@ -70,10 +74,10 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
         fileCollectionFactory,
         transportFactory,
         locallyAvailableResourceFinder,
-        artifactIdentifierFileStore,
-        externalResourceFileStore,
-        pomParser,
-        metadataParser,
+        Stub(FileStoreAndIndexProvider),
+        Stub(VersionSelectorScheme),
+        AttributeTestUtil.attributesFactory(),
+        TestUtil.objectInstantiator(),
         authenticationSchemeRegistry,
         ivyContextManager,
         moduleIdentifierFactory,
@@ -82,14 +86,12 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
         mavenMetadataFactory,
         ivyMetadataFactory,
         SnapshotTestUtil.isolatableFactory(),
-        TestUtil.objectFactory(),
+        objectFactory,
         CollectionCallbackActionDecorator.NOOP,
         urlArtifactRepositoryFactory,
         TestUtil.checksumService,
         providerFactory,
-        new VersionParser(),
-        Stub(AvailableDistributionModules),
-        Stub(MavenVariantAttributesFactory)
+        versionParser
     )
 
     def testCreateFlatDirResolver() {
