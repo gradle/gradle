@@ -106,11 +106,6 @@ public final class WrapperCredentials {
         return token;
     }
 
-    @Nullable
-    public String basicUserInfo() {
-        return basicUserInfo;
-    }
-
     private static Map.Entry<String, String> mapEntry(String key, String value) {
         return new AbstractMap.SimpleImmutableEntry<>(key, value);
     }
