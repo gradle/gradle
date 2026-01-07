@@ -73,8 +73,9 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
     }
 
     @Override
-    public DefaultFineGrainedPersistentCache open() {
+    public FineGrainedPersistentCache open() {
         try {
+            alreadyCleaned.set(false);
             FileUtils.forceMkdir(baseDir);
         } catch (Throwable e) {
             throw new CacheOpenException(String.format("Could not open %s.", this), e);
