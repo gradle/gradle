@@ -27,7 +27,6 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Locale;
@@ -35,6 +34,7 @@ import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy.FineGrainedCacheEntrySoftDeleter;
+import static org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy.SOFT_DELETION_DURATION;
 
 public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements CleanupAction {
 
@@ -80,8 +80,6 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
     }
 
     private static class MarkAndSweepCleanupAction extends LeastRecentlyUsedCacheCleanup {
-
-        private static final Duration SOFT_DELETION_DURATION = Duration.ofHours(6);
 
         private final FineGrainedPersistentCache cache;
         private final MarkAndSweepCacheEntrySoftDeleter softDeleter;

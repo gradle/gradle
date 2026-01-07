@@ -16,10 +16,19 @@
 
 package org.gradle.cache;
 
+import java.time.Duration;
+
 /**
  * A {@link FineGrainedCacheCleanupStrategy} that uses a {@link FineGrainedCacheEntrySoftDeleter} to determine which entries are soft deleted.
+ *
+ * This strategy first marks entries as soft deleted and after a {@link FineGrainedMarkAndSweepCacheCleanupStrategy#SOFT_DELETION_DURATION} period of time hard deletes them.
+ * The process that reads/writes to cache, can use {@link FineGrainedCacheEntrySoftDeleter#isSoftDeleted(String)} to determine which entries are soft deleted.
+ * Soft deleted entries should then not be read without the lock.
+ * The process can remove the soft delete marker via {@link FineGrainedCacheEntrySoftDeleter#removeSoftDeleteMarker(String)} if it determines the entry should not be hard deleted.
  */
 public interface FineGrainedMarkAndSweepCacheCleanupStrategy extends FineGrainedCacheCleanupStrategy {
+
+    Duration SOFT_DELETION_DURATION = Duration.ofHours(6);
 
     /**
      * Returns a {@link FineGrainedCacheEntrySoftDeleter} that can be used to determine which entries are soft deleted.
