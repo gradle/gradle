@@ -32,7 +32,7 @@ class MyPlugin extends RuleSource {
 // end::internal-view-mutation[]
 
 // tag::build-script[]
-apply plugin: '`MyPlugin.groovy`'
+apply plugin: MyPlugin
 model {
     components {
         my(MyComponent)
