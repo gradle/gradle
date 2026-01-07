@@ -272,11 +272,6 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
 
         @Override
-        public File getLockFile(String key) {
-            return reference.cache.getLockFile(key);
-        }
-
-        @Override
         public <T> T useCache(String key, Supplier<? extends T> action) {
             return reference.cache.useCache(key, action);
         }

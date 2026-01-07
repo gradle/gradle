@@ -143,7 +143,8 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
             FileUtils.deleteQuietly(file);
             if (!file.exists()) {
                 // And if folder is not present anymore, delete also a lock file
-                FileUtils.deleteQuietly(cache.getLockFile(key));
+                File locksDir = new File(cache.getBaseDir(), FineGrainedPersistentCache.LOCKS_DIR_NAME);
+                FileUtils.deleteQuietly(new File(locksDir, key + ".lock"));
                 return true;
             }
             return false;
@@ -151,14 +152,13 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
 
         private void cleanupOrphanLocks() {
             File baseDir = cache.getBaseDir();
-            File locksDir = new File(baseDir, "locks");
-            File[] lockFiles = locksDir.listFiles();
+            File locksDir = new File(baseDir, FineGrainedPersistentCache.LOCKS_DIR_NAME);
+            File[] lockFiles = locksDir.listFiles((dir, name) -> name.endsWith(".lock"));
             if (lockFiles == null) {
                 return;
             }
             for (File lockFile : lockFiles) {
-                String name = lockFile.getName();
-                String key = name.substring(0, name.length() - ".lock".length());
+                String key = lockFile.getName().replace(".lock", "");
                 File entryDir = new File(baseDir, key);
                 if (!entryDir.exists()) {
                     deleteOrphanLock(lockFile, key);

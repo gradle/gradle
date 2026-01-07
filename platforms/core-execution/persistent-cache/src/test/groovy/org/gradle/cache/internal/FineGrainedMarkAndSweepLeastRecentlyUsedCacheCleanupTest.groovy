@@ -117,7 +117,8 @@ class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specifica
         softGc.lastModified = sevenHoursAgo
 
         // Create a lock file for the entry that should be removed on hard delete
-        def lockFile = cache.getLockFile(key)
+        def locksDir = new File(cacheDir, FineGrainedPersistentCache.LOCKS_DIR_NAME)
+        def lockFile = new File(locksDir, key + ".lock")
         lockFile.parentFile.mkdirs()
         lockFile.text = "locked"
 
@@ -176,7 +177,7 @@ class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specifica
         long now = System.currentTimeMillis()
 
         // Create locks dir and an orphan lock file
-        def locksDir = new File(cacheDir, "locks")
+        def locksDir = new File(cacheDir, FineGrainedPersistentCache.LOCKS_DIR_NAME)
         locksDir.mkdirs()
         def orphanLock = new File(locksDir, "orphan.lock")
         orphanLock.text = "locked"
@@ -243,12 +244,5 @@ class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specifica
 
         @Override
         void cleanup() {}
-
-        @Override
-        File getLockFile(String key) {
-            File locksDir = new File(baseDir, "locks")
-            locksDir.mkdirs()
-            return new File(locksDir, key + ".lock")
-        }
     }
 }

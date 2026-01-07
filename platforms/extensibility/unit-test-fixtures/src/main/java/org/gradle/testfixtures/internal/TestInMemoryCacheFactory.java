@@ -200,13 +200,9 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
-        public File getLockFile(String key) {
-            return new File(cacheDir, "locks/" + key + ".lock");
-        }
-
-        @Override
         public <T> T useCache(String key, Supplier<? extends T> action) {
             assertNotClosed();
+            validateKey(key);
             synchronized (this) {
                 return action.get();
             }
@@ -257,6 +253,12 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         @Override
         public String toString() {
             return getDisplayName();
+        }
+
+        private static void validateKey(String key) {
+            if (key.contains("/") || key.contains("\\")) {
+                throw new IllegalArgumentException(String.format("Cache key path must not contain file separator: '%s'", key));
+            }
         }
     }
 }

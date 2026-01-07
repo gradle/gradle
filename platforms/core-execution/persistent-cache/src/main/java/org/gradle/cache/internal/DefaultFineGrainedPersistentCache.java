@@ -41,12 +41,12 @@ import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
  *
  * It uses exclusive locks for cache entries that are immediately released when action finished.
  * This implementation is suitable for work that writes cache entry only once and reads frequently.
- *
- * Locks are stored in `locks` subdirectory.
  */
 public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentCache {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFineGrainedPersistentCache.class);
+
+    private static final LockOptions EXCLUSIVE_LOCKING_MODE = DefaultLockOptions.mode(Exclusive);
 
     private final ProducerGuard<String> guard;
     private final File gcFile;
@@ -67,7 +67,7 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         this.displayName = displayName;
         this.fileLockManager = fileLockManager;
         this.gcFile = new File(baseDir, "gc.properties");
-        this.locksDir = new File(baseDir, "locks");
+        this.locksDir = new File(baseDir, LOCKS_DIR_NAME);
         this.guard = ProducerGuard.adaptive();
         this.cleanupExecutor = new DefaultCacheCleanupExecutor(this, gcFile, cleanupStrategy.getCleanupStrategy());
     }
@@ -120,25 +120,18 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
 
     private FileLock acquireLock(String key) {
         FileLock lock = null;
-        LockOptions lockOptions = DefaultLockOptions.mode(Exclusive);
         while (lock == null) {
             File lockFile = getLockFileWithoutValidation(key);
             // Gradle will never create and delete file.lock immediately, so we
             // save a few cycles on a first use case by not checking the validity of locks if it doesn't exist yet
             boolean shouldCheckLockValidity = lockFile.exists();
-            lock = fileLockManager.lock(lockFile, lockOptions, displayName, "");
+            lock = fileLockManager.lock(lockFile, EXCLUSIVE_LOCKING_MODE, displayName, "");
             if (shouldCheckLockValidity && !lock.isValid()) {
                 lock.close();
                 lock = null;
             }
         }
         return lock;
-    }
-
-    @Override
-    public File getLockFile(String key) {
-        validateKey(key);
-        return getLockFileWithoutValidation(key);
     }
 
     private File getLockFileWithoutValidation(String key) {
