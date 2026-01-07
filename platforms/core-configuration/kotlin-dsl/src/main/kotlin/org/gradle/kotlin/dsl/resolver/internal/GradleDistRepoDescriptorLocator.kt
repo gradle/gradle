@@ -42,7 +42,7 @@ class GradleDistRepoDescriptorLocator(
 
     private
     val repositoryName
-        get() = if (gradleVersion.snapshot) "distributions-snapshots" else "distributions"
+        get() = if (gradleVersion.isSnapshot) "distributions-snapshots" else "distributions"
 
     val gradleDistRepository
         get(): GradleDistRepoDescriptor {
@@ -162,7 +162,7 @@ class GradleDistRepoDescriptorLocator(
 
 data class GradleDistVersion(
     val versionStr: String,
-    val snapshot: Boolean = versionStr.contains('+')
+    val isSnapshot: Boolean = versionStr.contains('+')
 )
 
 data class GradleDistRepoDescriptor(

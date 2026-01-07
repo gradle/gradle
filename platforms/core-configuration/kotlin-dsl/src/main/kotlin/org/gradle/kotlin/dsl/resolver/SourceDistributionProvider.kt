@@ -96,7 +96,7 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
             artifact()
         }
         patternLayout {
-            if (repoLocator.gradleVersion.snapshot) {
+            if (repoLocator.gradleVersion.isSnapshot) {
                 ivy("/dummy") // avoids a lookup that interferes with version listing
             }
             artifact(gradleDistRepository.artifactPattern)
@@ -106,7 +106,7 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
 
     private
     fun dependencyVersion(gradleVersion: GradleDistVersion) =
-        if (gradleVersion.snapshot) toVersionRange(gradleVersion.versionStr) else gradleVersion
+        if (gradleVersion.isSnapshot) toVersionRange(gradleVersion.versionStr) else gradleVersion
 
     private
     fun toVersionRange(gradleVersion: String) =
