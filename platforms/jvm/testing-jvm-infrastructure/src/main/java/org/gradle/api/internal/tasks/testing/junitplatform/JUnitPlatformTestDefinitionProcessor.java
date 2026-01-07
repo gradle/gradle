@@ -44,7 +44,6 @@ import org.junit.platform.engine.support.descriptor.FileSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
-import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
 import org.junit.platform.launcher.TestPlan;
@@ -77,8 +76,6 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
     @Nullable
     private CollectThenExecuteTestDefinitionConsumer testClassExecutor;
     @Nullable
-    private LauncherSession launcherSession;
-    @Nullable
     private ClassLoader junitClassLoader;
 
     public JUnitPlatformTestDefinitionProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
@@ -100,9 +97,8 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
     @Override
     protected TestDefinitionConsumer<TestDefinition> createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
-        launcherSession = LauncherFactory.openSession();
         ClassLoader junitClassLoader = Thread.currentThread().getContextClassLoader();
-        testClassExecutor = new CollectThenExecuteTestDefinitionConsumer(threadSafeResultProcessor, launcherSession, junitClassLoader, spec, idGenerator, clock);
+        testClassExecutor = new CollectThenExecuteTestDefinitionConsumer(threadSafeResultProcessor, junitClassLoader, spec, idGenerator, clock);
         return testClassExecutor;
     }
 
@@ -110,7 +106,6 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
     public void stop() {
         if (startedProcessing) {
             Objects.requireNonNull(testClassExecutor).processAllTestDefinitions();
-            Objects.requireNonNull(launcherSession).close();
             super.stop();
         }
     }
@@ -119,15 +114,13 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         private final List<DiscoverySelector> selectors = new ArrayList<>();
 
         private final TestResultProcessor resultProcessor;
-        private final LauncherSession launcherSession;
         private final ClassLoader junitClassLoader;
         private final JUnitPlatformSpec spec;
         private final IdGenerator<?> idGenerator;
         private final Clock clock;
 
-        CollectThenExecuteTestDefinitionConsumer(TestResultProcessor resultProcessor, LauncherSession launcherSession, ClassLoader junitClassLoader, JUnitPlatformSpec spec, IdGenerator<?> idGenerator, Clock clock) {
+        CollectThenExecuteTestDefinitionConsumer(TestResultProcessor resultProcessor, ClassLoader junitClassLoader, JUnitPlatformSpec spec, IdGenerator<?> idGenerator, Clock clock) {
             this.resultProcessor = resultProcessor;
-            this.launcherSession = launcherSession;
             this.junitClassLoader = junitClassLoader;
             this.spec = spec;
             this.idGenerator = idGenerator;
@@ -161,7 +154,7 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         private void processAllTestDefinitions() {
             LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest();
             TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, spec.getBaseDefinitionsDir());
-            Launcher launcher = Objects.requireNonNull(launcherSession).getLauncher();
+            Launcher launcher = LauncherFactory.create();
             if (spec.isDryRun()) {
                 TestPlan testPlan = launcher.discover(discoveryRequest);
                 executeDryRun(testPlan, executionListener);
