@@ -1,0 +1,78 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[best_practices_for_laziness]]
+= Best Practices for Laziness
+
+[[map_versus_flatmap]]
+== Be Careful with `map` vs. `flatMap` when Wiring Properties
+
+Using `flatMap` on a `TaskProvider` to extract an input property will sever the automatic task dependency chain, causing build failures or incorrect incremental results.
+
+=== Explanation
+
+The primary difference between `map` and `flatMap` in the <<lazy_configuration.adoc#lazy_configuration_faqs,Provider API>> is how they handle the producer information.
+When you use `map`, Gradle treats the transformation as a continuation of the existing provider; the task dependency (the _producer_) remains attached.
+
+In contrast, `flatMap` is designed to transform one provider into a completely different provider.
+If you use `flatMap` to extract a property from a task (e.g., `task.flatMap { it.someProperty }`), Gradle often loses the connection to the original task that owns that property.
+The code will look logically correct but fails at execution time because the producer task is never added to the task graph.
+
+Key rules:
+
+- Don't ever call .`get()` inside a closure. Calling `.get()` realizes the value immediately, breaking lazy configuration and task dependency tracking.
+- If you need to transform a file's content, ensure the file's provider is what you are mapping over, not the task itself.
+
+==== Don't Do This
+
+In this example, using `flatMap` on the `TaskProvider` results in a new Provider that has _forgotten_ it was produced by `GeneratorTask`:
+
+[source,kotlin]
+----
+val generator = tasks.register<GeneratorTask>("generate") {
+    outputFile.set(layout.buildDirectory.file("out.txt"))
+}
+
+val consumer = tasks.register<ConsumerTask>("consume") {
+    // FOOTGUN: flatMap here loses the dependency on the 'generator' task
+    // Gradle will try to run 'consume' without running 'generate' first
+    inputContent.set(generator.flatMap { it.outputFile.map { file -> file.asFile.readText() } })
+}
+----
+
+==== Do This Instead
+
+Chain the transformations directly off the property itself.
+By mapping the `RegularFileProperty` directly, the producer information is carried through the `Provider`:
+
+[source,kotlin]
+----
+val generator = tasks.register<GeneratorTask>("generate") {
+    outputFile.set(layout.buildDirectory.file("out.txt"))
+}
+
+val consumer = tasks.register<ConsumerTask>("consume") {
+    // CORRECT: Map the property directly.
+    // The resulting Provider<String> still "knows" it comes from the 'generator' task.
+    inputContent.set(generator.flatMap { it.outputFile }.map { it.asFile.readText() })
+}
+----
+
+=== References
+
+- <<lazy_configuration.adoc#sec:working_with_task_output_properties,Working with Task Output Properties>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:task-configuration-avoidance,#task-configuration-avoidance>>`
