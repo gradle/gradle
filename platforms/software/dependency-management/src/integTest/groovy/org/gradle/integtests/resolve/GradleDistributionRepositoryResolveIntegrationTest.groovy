@@ -16,7 +16,11 @@
 
 package org.gradle.integtests.resolve
 
+import org.gradle.api.internal.artifacts.repositories.distribution.DefaultAvailableDistributionModules
+import org.gradle.api.internal.classpath.DefaultModuleRegistry
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.installation.GradleInstallation
 import org.gradle.util.internal.VersionNumber
 
 /**
@@ -24,7 +28,34 @@ import org.gradle.util.internal.VersionNumber
  */
 class GradleDistributionRepositoryResolveIntegrationTest extends AbstractIntegrationSpec {
 
-    def "can resolve dependency from the gradle distribution"() {
+    private static final GROOVY_VERSION = GroovySystem.version
+
+    /**
+     * Documents/controls the transitive classpath resolved for any given dependency
+     * when resolved alone in a dependency graph. This documents user-facing behavior.
+     * If entries are removed from this map, or if dependencies are added or removed from
+     * the classpath value for any given entry, user-facing behavior has changed.
+     */
+    private static final Map<String, List<? extends CharSequence>> EXPECTED_CLASSPATHS = [
+        ("org.apache.groovy:groovy-nio:${GROOVY_VERSION}".toString()) : ["groovy-nio-${GROOVY_VERSION}.jar", "groovy-${GROOVY_VERSION}.jar"],
+        ("org.apache.groovy:groovy-docgenerator:${GROOVY_VERSION}".toString()) : ["groovy-docgenerator-${GROOVY_VERSION}.jar", "groovy-templates-${GROOVY_VERSION}.jar", "groovy-xml-${GROOVY_VERSION}.jar", "groovy-${GROOVY_VERSION}.jar", "qdox-1.12.1.jar"],
+        ("org.apache.ant:ant-launcher:1.10.15") : ["ant-launcher-1.10.15.jar"],
+        ("org.apache.ant:ant:1.10.15") : ["ant-1.10.15.jar", "ant-launcher-1.10.15.jar"],
+        ("com.thoughtworks.qdox:qdox:1.12.1") : ["qdox-1.12.1.jar"],
+        ("com.github.javaparser:javaparser-core:3.27.1") : ["javaparser-core-3.27.1.jar"],
+        ("org.apache.groovy:groovy-json:${GROOVY_VERSION}".toString()) : ["groovy-json-${GROOVY_VERSION}.jar", "groovy-${GROOVY_VERSION}.jar"],
+        ("org.apache.groovy:groovy-groovydoc:${GROOVY_VERSION}".toString()) : ["groovy-groovydoc-${GROOVY_VERSION}.jar", "groovy-docgenerator-${GROOVY_VERSION}.jar", "groovy-templates-${GROOVY_VERSION}.jar", "groovy-xml-${GROOVY_VERSION}.jar", "groovy-${GROOVY_VERSION}.jar", "javaparser-core-3.27.1.jar", "qdox-1.12.1.jar"],
+        ("org.apache.groovy:groovy-datetime:${GROOVY_VERSION}".toString()) : ["groovy-datetime-${GROOVY_VERSION}.jar", "groovy-${GROOVY_VERSION}.jar"],
+        ("org.apache.groovy:groovy-xml:${GROOVY_VERSION}".toString()) : ["groovy-xml-${GROOVY_VERSION}.jar", "groovy-${GROOVY_VERSION}.jar"],
+        ("org.apache.groovy:groovy-astbuilder:${GROOVY_VERSION}".toString()) : ["groovy-astbuilder-${GROOVY_VERSION}.jar", "groovy-${GROOVY_VERSION}.jar"],
+        ("org.apache.ant:ant-antlr:1.10.15") : ["ant-antlr-1.10.15.jar"],
+        ("org.apache.groovy:groovy:${GROOVY_VERSION}".toString()) : ["groovy-${GROOVY_VERSION}.jar"],
+        ("org.apache.groovy:groovy-templates:${GROOVY_VERSION}".toString()) : ["groovy-templates-${GROOVY_VERSION}.jar", "groovy-xml-${GROOVY_VERSION}.jar", "groovy-${GROOVY_VERSION}.jar"],
+        ("org.apache.groovy:groovy-dateutil:${GROOVY_VERSION}".toString()) : ["groovy-dateutil-${GROOVY_VERSION}.jar", "groovy-${GROOVY_VERSION}.jar"],
+        ("org.apache.groovy:groovy-ant:${GROOVY_VERSION}".toString()) : ["groovy-ant-${GROOVY_VERSION}.jar", "ant-1.10.15.jar", "ant-antlr-1.10.15.jar", "ant-launcher-1.10.15.jar", "groovy-groovydoc-${GROOVY_VERSION}.jar", "groovy-docgenerator-${GROOVY_VERSION}.jar", "groovy-templates-${GROOVY_VERSION}.jar", "groovy-xml-${GROOVY_VERSION}.jar", "groovy-${GROOVY_VERSION}.jar", "javaparser-core-3.27.1.jar", "qdox-1.12.1.jar"],
+    ]
+
+    def "can resolve all exposed modules"() {
         buildFile << """
             ${gradleDistributionRepository()}
 
@@ -33,7 +64,7 @@ class GradleDistributionRepositoryResolveIntegrationTest extends AbstractIntegra
             }
 
             dependencies {
-                conf("org.apache.groovy:groovy:\${GroovySystem.version}")
+                conf("${dependencyNotation}")
             }
 
             ${resolveTask}
@@ -43,7 +74,10 @@ class GradleDistributionRepositoryResolveIntegrationTest extends AbstractIntegra
         succeeds("resolve")
 
         then:
-        outputContains("[groovy-${GroovySystem.version}.jar]")
+        outputContains(EXPECTED_CLASSPATHS[dependencyNotation].toString())
+
+        where:
+        dependencyNotation << getExposedModules()
     }
 
     def "attributes are attached to resolved variant"() {
@@ -55,7 +89,7 @@ class GradleDistributionRepositoryResolveIntegrationTest extends AbstractIntegra
             }
 
             dependencies {
-                conf("org.apache.groovy:groovy:\${GroovySystem.version}")
+                conf("org.apache.groovy:groovy:$GROOVY_VERSION")
             }
         """
 
@@ -63,7 +97,7 @@ class GradleDistributionRepositoryResolveIntegrationTest extends AbstractIntegra
         succeeds("dependencyInsight", "--configuration", "conf", "--dependency", "groovy")
 
         then:
-        outputContains("""org.apache.groovy:groovy:${GroovySystem.version}
+        outputContains("""org.apache.groovy:groovy:$GROOVY_VERSION
   Variant runtime:
     | Attribute Name             | Provided     | Requested |
     |----------------------------|--------------|-----------|
@@ -85,7 +119,7 @@ class GradleDistributionRepositoryResolveIntegrationTest extends AbstractIntegra
             }
 
             dependencies {
-                conf("org.apache.groovy:groovy:\${GroovySystem.version}")
+                conf("org.apache.groovy:groovy:$GROOVY_VERSION")
             }
 
             ${resolveTask}
@@ -95,13 +129,13 @@ class GradleDistributionRepositoryResolveIntegrationTest extends AbstractIntegra
         fails("resolve")
 
         then:
-        failure.assertHasCause("""No matching variant of org.apache.groovy:groovy:${GroovySystem.version} was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'java-api' but:
+        failure.assertHasCause("""No matching variant of org.apache.groovy:groovy:$GROOVY_VERSION was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'java-api' but:
   - Variant 'runtime':
       - Incompatible because this component declares attribute 'org.gradle.usage' with value 'java-runtime' and the consumer needed attribute 'org.gradle.usage' with value 'java-api'""")
     }
 
     def "fails to resolve dependency from gradle distribution using different version than is present"() {
-        int major = VersionNumber.parse(GroovySystem.version).major
+        int major = VersionNumber.parse(GROOVY_VERSION).major
         buildFile << """
             ${gradleDistributionRepository()}
 
@@ -124,7 +158,7 @@ class GradleDistributionRepositoryResolveIntegrationTest extends AbstractIntegra
     }
 
     def "can resolve dynamic versioned dependencies from the gradle distribution"() {
-        int major = VersionNumber.parse(GroovySystem.version).major
+        int major = VersionNumber.parse(GROOVY_VERSION).major
         buildFile << """
             ${gradleDistributionRepository()}
 
@@ -143,7 +177,7 @@ class GradleDistributionRepositoryResolveIntegrationTest extends AbstractIntegra
         succeeds("resolve")
 
         then:
-        outputContains("[groovy-${GroovySystem.version}.jar]")
+        outputContains("[groovy-${GROOVY_VERSION}.jar]")
     }
 
     def "fails to resolve dynamic version from distribution when requested version does not match version in distribution"() {
@@ -166,7 +200,7 @@ class GradleDistributionRepositoryResolveIntegrationTest extends AbstractIntegra
 
         then:
         failure.assertHasCause("""Could not find any version that matches org.apache.groovy:groovy:3+.
-Versions that do not match: ${GroovySystem.version}""")
+Versions that do not match: $GROOVY_VERSION""")
     }
 
     def "fails to resolve explicit artifacts from distribution repository"() {
@@ -178,7 +212,7 @@ Versions that do not match: ${GroovySystem.version}""")
             }
 
             dependencies {
-                conf("org.apache.groovy:groovy:\${GroovySystem.version}:cls")
+                conf("org.apache.groovy:groovy:$GROOVY_VERSION:cls")
             }
 
             ${resolveTask}
@@ -188,7 +222,7 @@ Versions that do not match: ${GroovySystem.version}""")
         fails("resolve")
 
         then:
-        failure.assertHasCause("Could not resolve org.apache.groovy:groovy:${GroovySystem.version}")
+        failure.assertHasCause("Could not resolve org.apache.groovy:groovy:$GROOVY_VERSION")
         failure.assertHasCause("Cannot request explicit artifact from distribution repository.")
     }
 
@@ -238,7 +272,7 @@ Versions that do not match: ${GroovySystem.version}""")
 
             dependencies {
                 conf("org:foo:1.0")
-                conf("org.apache.groovy:groovy:\${GroovySystem.version}")
+                conf("org.apache.groovy:groovy:$GROOVY_VERSION")
             }
 
             ${resolveTask}
@@ -249,9 +283,9 @@ Versions that do not match: ${GroovySystem.version}""")
 
         then:
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Cannot select module with conflict on capability 'org.apache.groovy:groovy:4.0.0' also provided by ['org.apache.groovy:groovy:${GroovySystem.version}' (runtime)]""")
+   Cannot select module with conflict on capability 'org.apache.groovy:groovy:4.0.0' also provided by ['org.apache.groovy:groovy:$GROOVY_VERSION' (runtime)]""")
         failure.assertHasCause("""Module 'org.apache.groovy:groovy' has been rejected:
-   Cannot select module with conflict on capability 'org.apache.groovy:groovy:${GroovySystem.version}' also provided by ['org:foo:1.0' (runtime)]""")
+   Cannot select module with conflict on capability 'org.apache.groovy:groovy:$GROOVY_VERSION' also provided by ['org:foo:1.0' (runtime)]""")
     }
 
     String gradleDistributionRepository() {
@@ -271,6 +305,13 @@ Versions that do not match: ${GroovySystem.version}""")
                 }
             }
         """
+    }
+
+    List<String> getExposedModules() {
+        GradleInstallation testInstallation = new GradleInstallation(buildContext.gradleHomeDir)
+        ModuleRegistry moduleRegistry = new DefaultModuleRegistry(testInstallation)
+        DefaultAvailableDistributionModules underTest = new DefaultAvailableDistributionModules(moduleRegistry)
+        return underTest.getAvailableModules().collect { it.getDisplayName() }
     }
 
 }

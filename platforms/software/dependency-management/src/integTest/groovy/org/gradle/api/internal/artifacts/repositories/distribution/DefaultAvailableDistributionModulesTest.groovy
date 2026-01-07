@@ -20,6 +20,7 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.installation.GradleInstallation
+import org.gradle.util.internal.VersionNumber
 import spock.lang.Specification
 
 /**
@@ -32,12 +33,32 @@ class DefaultAvailableDistributionModulesTest extends Specification {
 
     private final DefaultAvailableDistributionModules underTest = new DefaultAvailableDistributionModules(moduleRegistry)
 
+    def "exposes a known set of top-level modules"() {
+        expect:
+        // This test serves as a reminder to update the public documentation describing
+        // which modules we explicitly support as being available for resolution from
+        // the distribution repository. If this list changes, be sure to update the
+        // declaring_repositories_basics.adoc page.
+        underTest.getTopLevelModules().collect { it.getModuleIdentifier().toString() + ":" + VersionNumber.parse(it.version).major + "+" } as Set == ([
+            "org.apache.groovy:groovy:4+",
+            "org.apache.groovy:groovy-ant:4+",
+            "org.apache.groovy:groovy-astbuilder:4+",
+            "org.apache.groovy:groovy-datetime:4+",
+            "org.apache.groovy:groovy-dateutil:4+",
+            "org.apache.groovy:groovy-groovydoc:4+",
+            "org.apache.groovy:groovy-json:4+",
+            "org.apache.groovy:groovy-nio:4+",
+            "org.apache.groovy:groovy-templates:4+",
+            "org.apache.groovy:groovy-xml:4+"
+        ])
+    }
+
     def "exposes a known set of modules"() {
         given:
         def groovyVersion = GroovySystem.version
 
         expect:
-        // This list serves as documentation/control over which dependencies the
+        // This test serves as documentation/control over which dependencies the
         // `gradleDistribution()` repository allows users to resolve from the distribution.
         // If you PR changes this list, you've changed user-facing behavior.
         // * No dependency may be removed from this list without deprecation.
@@ -56,7 +77,6 @@ class DefaultAvailableDistributionModulesTest extends Specification {
             "org.apache.groovy:groovy-astbuilder:${groovyVersion}",
             "org.apache.ant:ant-antlr:1.10.15",
             "org.apache.groovy:groovy:${groovyVersion}",
-            "org.apache.groovy:groovy-bom:${groovyVersion}",
             "org.apache.groovy:groovy-templates:${groovyVersion}",
             "org.apache.groovy:groovy-dateutil:${groovyVersion}",
             "org.apache.groovy:groovy-ant:${groovyVersion}"

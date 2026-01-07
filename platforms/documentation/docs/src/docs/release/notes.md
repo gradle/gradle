@@ -42,6 +42,36 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
+### Gradle Distribution Repository
+
+This release introduces the `gradleDistribution()` repository, which allows select bundled dependencies to be resolved directly from the Gradle distribution without requiring network access.
+The `gradleDistribution()` repository can be used like any other repository:
+
+```kotlin
+plugins {
+    id("java-library")
+}
+
+repositories {
+    gradleDistribution()
+}
+
+dependencies {
+    implementation("org.apache.groovy:groovy:4+")
+}
+```
+
+By running `./gradlew dependencies --configuration runtimeClasspath`, we can see this resolves
+to the Groovy version bundled with Gradle:
+
+```
+runtimeClasspath - Runtime classpath of source set 'main'.
+\--- org.apache.groovy:groovy:4+ -> 4.0.29
+```
+
+The versions of dependencies bundled with Gradle may change between minor releases.
+For this reason, dynamic versions should always be used when resolving dependencies from the `gradleDistribution()` repository.
+
 ### Bearer Token Authentication for Wrapper Download
 
 When downloading Gradle distributions from an HTTPS backend (or even from an HTTP one, but the secure version is preferred), the Wrapper now also supports Bearer token authentication.

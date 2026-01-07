@@ -116,6 +116,47 @@ When such a repository is configured, Gradle completely bypasses its dependency 
 Additionally, using local Maven or Ivy repositories makes build reproducibility much harder to achieve.
 Therefore, their use should be restricted to prototyping rather than production builds.
 
+[[sec:declaring-distribution-repository]]
+== Declaring a Gradle distribution repository
+
+In some cases, it may be useful to resolve dependencies that are already bundled with Gradle.
+Gradle permits a select set of dependencies from its distribution to be resolved using the `gradleDistribution()` repository.
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-gradleDistributionRepository/kotlin",files="build.gradle.kts[tags=gradle-distribution-repository]"]
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-gradleDistributionRepository/groovy",files="build.gradle[tags=gradle-distribution-repository]"]
+====
+
+To resolve a dependency from the distribution, declare a module dependency like any other:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-gradleDistributionRepository/kotlin",files="build.gradle.kts[tags=declare-distribution-dependency]"]
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-gradleDistributionRepository/groovy",files="build.gradle[tags=declare-distribution-dependency]"]
+====
+
+By running `./gradlew dependencies --configuration runtimeClasspath`, we can see this resolves
+to the Groovy version bundled with Gradle:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-gradleDistributionRepository/tests",files="dependencies.out"]
+====
+
+NOTE: The versions of dependencies bundled in the Gradle distribution may change across minor versions.
+When resolving dependencies from the distribution repository, it is important to use dynamic versions to avoid resolution failures when upgrading Gradle versions.
+
+Currently, Gradle supports resolving the following dependencies from the distribution repository:
+
+* `org.apache.groovy:groovy:4+`
+* `org.apache.groovy:groovy-ant:4+`
+* `org.apache.groovy:groovy-astbuilder:4+`
+* `org.apache.groovy:groovy-datetime:4+`
+* `org.apache.groovy:groovy-dateutil:4+`
+* `org.apache.groovy:groovy-groovydoc:4+`
+* `org.apache.groovy:groovy-json:4+`
+* `org.apache.groovy:groovy-nio:4+`
+* `org.apache.groovy:groovy-templates:4+`
+* `org.apache.groovy:groovy-xml:4+`
+
 [[sec:declaring-multiple-repositories]]
 == Declaring multiple repositories
 

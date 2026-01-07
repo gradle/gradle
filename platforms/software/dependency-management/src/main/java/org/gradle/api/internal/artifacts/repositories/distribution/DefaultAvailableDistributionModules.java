@@ -47,7 +47,7 @@ public class DefaultAvailableDistributionModules implements AvailableDistributio
      * and all of their transitive dependencies, will be available to users via the Gradle
      * distribution repository.
      */
-    private static final List<String> EXPOSED_TOP_LEVEL_MODULES = ImmutableList.<String>builder()
+    private static final ImmutableList<String> EXPOSED_TOP_LEVEL_MODULES = ImmutableList.<String>builder()
         .addAll(DependencyClassPathProvider.GROOVY_MODULES)
         .build();
 
@@ -159,6 +159,15 @@ public class DefaultAvailableDistributionModules implements AvailableDistributio
         return availableModules.values().stream()
             .map(AvailableModule::getId)
             .collect(ImmutableList.toImmutableList());
+    }
+
+    @VisibleForTesting
+    public ImmutableCollection<ModuleComponentIdentifier> getTopLevelModules() {
+        return EXPOSED_TOP_LEVEL_MODULES.stream().map(x ->
+            availableModules.values().stream()
+                .filter(it -> it.getName().equals(x)).findFirst().get()
+                .getId()
+        ).collect(ImmutableList.toImmutableList());
     }
 
     private static class DefaultAvailableModule implements AvailableModule {
