@@ -83,7 +83,7 @@ import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallb
  */
 public class NativeServices implements ServiceRegistrationProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
-    private static NativeServices instance;
+    private static @Nullable NativeServices instance;
 
     // TODO All this should be static
     private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
@@ -94,7 +94,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     private final boolean useNativeIntegrations;
     private final File userHomeDir;
 
-    private final Native nativeIntegration;
+    private final @Nullable Native nativeIntegration;
     private final EnumSet<NativeFeatures> enabledFeatures = EnumSet.noneOf(NativeFeatures.class);
 
     private final ServiceRegistry services;
@@ -311,12 +311,7 @@ public class NativeServices implements ServiceRegistrationProvider {
                 LOGGER.debug("Native-platform is not available.", ex);
                 useNativeIntegrations = false;
             } catch (NativeException ex) {
-                if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase(Locale.ROOT).contains("already loaded in another classloader")) {
-                    LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
-                    useNativeIntegrations = false;
-                } else if (ex.getMessage().equals("Could not extract native JNI library.")
-                    && ex.getCause().getMessage().contains("native-platform.dll (The process cannot access the file because it is being used by another process)")) {
-                    //triggered through tooling API of Gradle <2.3 - native-platform.dll is shared by tooling client (<2.3) and daemon (current) and it is locked by the client (<2.3 issue)
+                if (shouldNotUseNativeIntegrations(ex)) {
                     LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
                     useNativeIntegrations = false;
                 } else {
@@ -350,6 +345,13 @@ public class NativeServices implements ServiceRegistrationProvider {
         this.services = builder.build();
     }
 
+    private static boolean shouldNotUseNativeIntegrations(NativeException ex) {
+        Throwable cause = ex.getCause();
+        return (cause instanceof UnsatisfiedLinkError && cause.getMessage() != null && cause.getMessage().toLowerCase(Locale.ROOT).contains("already loaded in another classloader"))
+            //triggered through tooling API of Gradle <2.3 - native-platform.dll is shared by tooling client (<2.3) and daemon (current) and it is locked by the client (<2.3 issue)
+            || (ex.getMessage() != null && ex.getMessage().equals("Could not extract native JNI library."));
+    }
+
     private boolean isFeatureEnabled(NativeFeatures feature) {
         return enabledFeatures.contains(feature);
     }
@@ -378,7 +380,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     }
 
     @VisibleForTesting
-    protected static synchronized Native getNative() {
+    protected static synchronized @Nullable Native getNative() {
         return checkNotNull(instance).nativeIntegration;
     }
 
@@ -406,7 +408,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected ProcessEnvironment createProcessEnvironment(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                net.rubygrapefruit.platform.Process process = nativeIntegration.get(Process.class);
+                net.rubygrapefruit.platform.Process process = getNativeIntegration().get(Process.class);
                 return new NativePlatformBackedProcessEnvironment(process);
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform process integration is not available. Continuing with fallback.");
@@ -414,6 +416,13 @@ public class NativeServices implements ServiceRegistrationProvider {
         }
 
         return new UnsupportedEnvironment();
+    }
+
+    private Native getNativeIntegration() {
+        if (nativeIntegration == null) {
+            throw new IllegalStateException("Native integration is not available.");
+        }
+        return nativeIntegration;
     }
 
     @Provides
@@ -424,7 +433,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     private ConsoleDetector backingConsoleDetector(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                Terminals terminals = nativeIntegration.get(Terminals.class);
+                Terminals terminals = getNativeIntegration().get(Terminals.class);
                 return new NativePlatformConsoleDetector(terminals);
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform terminal integration is not available. Continuing with fallback.");
@@ -448,7 +457,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     @Provides
     protected WindowsRegistry createWindowsRegistry(OperatingSystem operatingSystem) {
         if (useNativeIntegrations && operatingSystem.isWindows()) {
-            return nativeIntegration.get(WindowsRegistry.class);
+            return getNativeIntegration().get(WindowsRegistry.class);
         }
         return notAvailable(WindowsRegistry.class, operatingSystem);
     }
@@ -457,7 +466,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     public SystemInfo createSystemInfo(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                return nativeIntegration.get(SystemInfo.class);
+                return getNativeIntegration().get(SystemInfo.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform system info is not available. Continuing with fallback.");
             }
@@ -469,7 +478,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected Memory createMemory(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                return nativeIntegration.get(Memory.class);
+                return getNativeIntegration().get(Memory.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform memory integration is not available. Continuing with fallback.");
             }
@@ -481,7 +490,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected ProcessLauncher createProcessLauncher() {
         if (useNativeIntegrations) {
             try {
-                return nativeIntegration.get(ProcessLauncher.class);
+                return getNativeIntegration().get(ProcessLauncher.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform process launcher is not available. Continuing with fallback.");
             }
@@ -493,7 +502,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected PosixFiles createPosixFiles(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                return nativeIntegration.get(PosixFiles.class);
+                return getNativeIntegration().get(PosixFiles.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform posix files integration is not available. Continuing with fallback.");
             }
@@ -505,7 +514,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected HostnameLookup createHostnameLookup() {
         if (useNativeIntegrations) {
             try {
-                String hostname = nativeIntegration.get(SystemInfo.class).getHostname();
+                String hostname = getNativeIntegration().get(SystemInfo.class).getHostname();
                 return new FixedHostname(hostname);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform posix files integration is not available. Continuing with fallback.");
@@ -530,7 +539,7 @@ public class NativeServices implements ServiceRegistrationProvider {
 
         if (useNativeIntegrations) {
             try {
-                return new NativePlatformBackedFileMetadataAccessor(nativeIntegration.get(Files.class));
+                return new NativePlatformBackedFileMetadataAccessor(getNativeIntegration().get(Files.class));
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform files integration is not available. Continuing with fallback.");
             }
@@ -562,7 +571,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected FileSystems createFileSystems(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                return nativeIntegration.get(FileSystems.class);
+                return getNativeIntegration().get(FileSystems.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform file systems information is not available. Continuing with fallback.");
             }

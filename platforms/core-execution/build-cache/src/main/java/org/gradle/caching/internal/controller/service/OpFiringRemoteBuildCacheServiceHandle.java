@@ -30,6 +30,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -156,6 +157,7 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
             return this;
         }
 
+        @Nullable
         IOException getIOException() {
             return (IOException) getCause();
         }

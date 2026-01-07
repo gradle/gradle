@@ -103,9 +103,9 @@ public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourc
         Attributes mainAttributes = manifest.getMainAttributes();
         hashManifestAttributes(mainAttributes, "main", hasher);
         Map<String, Attributes> entries = manifest.getEntries();
-        Set<String> names = new TreeSet<>(manifest.getEntries().keySet());
-        for (String name : names) {
-            hashManifestAttributes(entries.get(name), name, hasher);
+        Set<Map.Entry<String, Attributes>> mapEntries = new TreeSet<>(entries.entrySet());
+        for (Map.Entry<String, Attributes> entry : mapEntries) {
+            hashManifestAttributes(entry.getValue(), entry.getKey(), hasher);
         }
         return hasher.hash();
     }

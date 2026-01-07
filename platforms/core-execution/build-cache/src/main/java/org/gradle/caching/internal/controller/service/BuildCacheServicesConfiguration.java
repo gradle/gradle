@@ -22,11 +22,11 @@ import org.jspecify.annotations.Nullable;
 
 public final class BuildCacheServicesConfiguration {
 
-    private final LocalBuildCacheService local;
+    private final @Nullable LocalBuildCacheService local;
     private final boolean localPush;
 
     private final String buildPath;
-    private final BuildCacheService remote;
+    private final @Nullable BuildCacheService remote;
     private final boolean remotePush;
 
     public BuildCacheServicesConfiguration(

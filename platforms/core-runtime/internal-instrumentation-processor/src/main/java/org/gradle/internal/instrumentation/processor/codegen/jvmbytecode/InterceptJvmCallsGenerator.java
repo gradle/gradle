@@ -86,7 +86,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     }
 
     @Override
-    protected String classNameForRequest(CallInterceptionRequest request) {
+    protected @Nullable String classNameForRequest(CallInterceptionRequest request) {
         return request.getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class)
             .map(RequestExtra.InterceptJvmCalls::getImplementationClassName)
             .orElse(null);

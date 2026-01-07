@@ -17,6 +17,7 @@
 package org.gradle.internal.nativeintegration.console;
 
 import org.fusesource.jansi.io.WindowsAnsiProcessor;
+import org.jspecify.annotations.Nullable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -24,7 +25,7 @@ import java.io.PrintStream;
 
 public class WindowsConsoleDetector implements ConsoleDetector {
     @Override
-    public ConsoleMetaData getConsole() {
+    public @Nullable ConsoleMetaData getConsole() {
         // Use Jansi's detection mechanism
         try {
             new WindowsAnsiProcessor(new PrintStream(new ByteArrayOutputStream()), true);

@@ -193,7 +193,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
                 case Directory:
                     // This will capture a filtered snapshot, and only store the captured snapshot in the VFS
                     // if the filter did not filter out anything.
-                    return Optional.of(directorySnapshotter.snapshot(
+                    return Optional.ofNullable(directorySnapshotter.snapshot(
                         location,
                         filter.isEmpty() ? null : filter.getAsDirectoryWalkerPredicate(),
                         previouslyKnownSnapshots,

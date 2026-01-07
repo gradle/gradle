@@ -18,6 +18,7 @@ package org.gradle.internal.instrumentation.processor.codegen;
 
 import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,7 +31,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public abstract class RequestGroupingInstrumentationClassSourceGenerator implements InstrumentationCodeGenerator {
-    protected abstract String classNameForRequest(CallInterceptionRequest request);
+    protected abstract @Nullable String classNameForRequest(CallInterceptionRequest request);
 
     protected abstract Consumer<TypeSpec.Builder> classContentForClass(
         String className,

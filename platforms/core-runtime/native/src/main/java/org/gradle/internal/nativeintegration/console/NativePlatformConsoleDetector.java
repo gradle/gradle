@@ -19,6 +19,7 @@ package org.gradle.internal.nativeintegration.console;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.terminal.Terminals;
 import org.gradle.internal.os.OperatingSystem;
+import org.jspecify.annotations.Nullable;
 
 import static net.rubygrapefruit.platform.terminal.Terminals.Output.Stderr;
 import static net.rubygrapefruit.platform.terminal.Terminals.Output.Stdout;
@@ -31,7 +32,7 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
     }
 
     @Override
-    public ConsoleMetaData getConsole() {
+    public @Nullable ConsoleMetaData getConsole() {
         // Dumb terminal doesn't support ANSI control codes.
         // TODO - remove this when we use Terminal rather than JAnsi to render to console
         String term = System.getenv("TERM");

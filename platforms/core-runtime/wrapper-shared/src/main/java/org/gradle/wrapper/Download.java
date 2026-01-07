@@ -16,6 +16,8 @@
 
 package org.gradle.wrapper;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -64,11 +66,11 @@ public class Download implements IDownload {
         return result;
     }
 
-    public Download(Logger logger, DownloadProgressListener progressListener, String appName, String appVersion, Map<String, String> systemProperties) {
+    public Download(Logger logger, @Nullable DownloadProgressListener progressListener, String appName, String appVersion, Map<String, String> systemProperties) {
         this(logger, progressListener, appName, appVersion, systemProperties, DEFAULT_NETWORK_TIMEOUT_MILLISECONDS);
     }
 
-    public Download(Logger logger, DownloadProgressListener progressListener, String appName, String appVersion, Map<String, String> systemProperties, int networkTimeout) {
+    public Download(Logger logger, @Nullable DownloadProgressListener progressListener, String appName, String appVersion, Map<String, String> systemProperties, int networkTimeout) {
         this.logger = logger;
         this.appName = appName;
         this.appVersion = appVersion;
@@ -127,7 +129,7 @@ public class Download implements IDownload {
             conn.setRequestProperty("User-Agent", userAgentValue);
             conn.setConnectTimeout(networkTimeout);
             conn.setReadTimeout(networkTimeout);
-            
+
             // Check HTTP response code before downloading
             if (conn instanceof HttpURLConnection) {
                 HttpURLConnection httpConn = (HttpURLConnection) conn;
@@ -136,7 +138,7 @@ public class Download implements IDownload {
                     throw new IOException("Server returned HTTP response code: " + responseCode + " for URL: " + safeUrl);
                 }
             }
-            
+
             in = conn.getInputStream();
             byte[] buffer = new byte[BUFFER_SIZE];
             int numRead;
@@ -241,7 +243,7 @@ public class Download implements IDownload {
         }
     }
 
-    private String getSystemProperty(String host, String key) {
+    private @Nullable String getSystemProperty(String host, String key) {
         if (host != null) {
             String hostEscaped = host.replace('.', '_');
             String hostProperty = systemProperties.get("gradle." + hostEscaped + '.' + key);
@@ -300,10 +302,10 @@ public class Download implements IDownload {
 
     private static class DefaultDownloadProgressListener implements DownloadProgressListener {
         private final Logger logger;
-        private final DownloadProgressListener delegate;
+        private final @Nullable DownloadProgressListener delegate;
         private int previousDownloadPercent;
 
-        public DefaultDownloadProgressListener(Logger logger, DownloadProgressListener delegate) {
+        public DefaultDownloadProgressListener(Logger logger, @Nullable DownloadProgressListener delegate) {
             this.logger = logger;
             this.delegate = delegate;
             this.previousDownloadPercent = 0;

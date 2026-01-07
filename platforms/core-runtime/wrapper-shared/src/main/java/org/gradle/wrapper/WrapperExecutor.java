@@ -16,12 +16,15 @@
 package org.gradle.wrapper;
 
 import org.gradle.util.internal.WrapperDistributionUrlConverter;
+import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Objects;
 import java.util.Properties;
 
 public class WrapperExecutor {
@@ -69,10 +72,11 @@ public class WrapperExecutor {
     }
 
     private String readDistroUrl() {
-        if (properties.getProperty(DISTRIBUTION_URL_PROPERTY) == null) {
-            reportMissingProperty(DISTRIBUTION_URL_PROPERTY);
+        String property = DISTRIBUTION_URL_PROPERTY;
+        if (properties.getProperty(property) == null) {
+            throw reportMissingProperty(property);
         }
-        return getProperty(DISTRIBUTION_URL_PROPERTY);
+        return Objects.requireNonNull(getProperty(property, null, true));
     }
 
     private static void loadProperties(File propertiesFile, Properties properties) throws IOException {
@@ -103,10 +107,7 @@ public class WrapperExecutor {
         bootstrapMainStarter.start(args, gradleHome);
     }
 
-    private String getProperty(String propertyName) {
-        return getProperty(propertyName, null, true);
-    }
-
+    @Contract(value = "_, !null -> !null", pure = true)
     private String getProperty(String propertyName, String defaultValue) {
         return getProperty(propertyName, defaultValue, true);
     }
@@ -119,7 +120,8 @@ public class WrapperExecutor {
         return Boolean.parseBoolean(getProperty(propertyName, String.valueOf(defaultValue)));
     }
 
-    private String getProperty(String propertyName, String defaultValue, boolean required) {
+    @Contract(value = "_, !null, _ -> !null; _, _, true -> !null", pure = true)
+    private @Nullable String getProperty(String propertyName, @Nullable String defaultValue, boolean required) {
         String value = properties.getProperty(propertyName);
         if (value != null) {
             return value;
@@ -128,13 +130,13 @@ public class WrapperExecutor {
             return defaultValue;
         }
         if (required) {
-            return reportMissingProperty(propertyName);
+            throw reportMissingProperty(propertyName);
         } else {
             return null;
         }
     }
 
-    private String reportMissingProperty(String propertyName) {
+    private RuntimeException reportMissingProperty(String propertyName) {
         throw new RuntimeException(String.format(
                 "No value with key '%s' specified in wrapper properties file '%s'.", propertyName, propertiesFile));
     }

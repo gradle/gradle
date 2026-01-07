@@ -24,8 +24,7 @@ import java.lang.reflect.Modifier;
 
 public class FieldMember extends TypedMember implements Comparable<FieldMember> {
 
-    @Nullable
-    private final Object value;
+    private final @Nullable Object value;
 
     public FieldMember(int access, String name, @Nullable String signature, String typeDesc, @Nullable Object value) {
         super(access, name, signature, typeDesc);
@@ -33,8 +32,9 @@ public class FieldMember extends TypedMember implements Comparable<FieldMember> 
     }
 
     @Override
+    @SuppressWarnings("NullAway")
     public int compareTo(FieldMember o) {
-        return super.compare(o).compare(value, o.value, Ordering.arbitrary()).result();
+        return super.compare(o).<@Nullable Object>compare(value, o.value, Ordering.arbitrary()).result();
     }
 
     @Override

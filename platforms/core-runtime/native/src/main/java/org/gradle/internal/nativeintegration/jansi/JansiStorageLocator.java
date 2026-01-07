@@ -16,6 +16,8 @@
 
 package org.gradle.internal.nativeintegration.jansi;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.File;
 
 public class JansiStorageLocator {
@@ -26,7 +28,7 @@ public class JansiStorageLocator {
         this.factory = factory;
     }
 
-    public JansiStorage locate(File storageDir) {
+    public @Nullable JansiStorage locate(File storageDir) {
         JansiLibrary jansiLibrary = factory.create();
 
         if (jansiLibrary != null) {

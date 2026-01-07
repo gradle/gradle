@@ -17,6 +17,7 @@
 package org.gradle.internal.snapshot;
 
 import org.gradle.internal.RelativePathSupplier;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -28,7 +29,7 @@ import java.util.Iterator;
  */
 public class RelativePathTracker implements RelativePathSupplier {
     private final Deque<String> segments = new ArrayDeque<>();
-    private String rootName;
+    private @Nullable String rootName;
 
     public void enter(FileSystemLocationSnapshot snapshot) {
         enter(snapshot.getName());
@@ -42,7 +43,7 @@ public class RelativePathTracker implements RelativePathSupplier {
         }
     }
 
-    public String leave() {
+    public @Nullable String leave() {
         String name = segments.pollLast();
         if (name == null) {
             name = rootName;

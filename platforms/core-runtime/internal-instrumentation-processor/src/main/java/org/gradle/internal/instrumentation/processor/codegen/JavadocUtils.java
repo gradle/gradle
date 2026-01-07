@@ -24,6 +24,7 @@ import org.gradle.internal.instrumentation.model.CallableKindInfo;
 import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.util.NameUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,7 +33,7 @@ import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.ty
 
 public class JavadocUtils {
 
-    public static String callableKindForJavadoc(CallInterceptionRequest request) {
+    public static @Nullable String callableKindForJavadoc(CallInterceptionRequest request) {
         CallableInfo interceptedCallable = request.getInterceptedCallable();
         CallableKindInfo kind = interceptedCallable.getKind();
         return kind == CallableKindInfo.STATIC_METHOD ? "static method" :

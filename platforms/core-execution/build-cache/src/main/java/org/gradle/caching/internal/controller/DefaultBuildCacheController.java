@@ -45,6 +45,7 @@ import org.gradle.caching.local.internal.BuildCacheTempFileStore;
 import org.gradle.caching.local.internal.DefaultBuildCacheTempFileStore;
 import org.gradle.caching.local.internal.LocalBuildCacheService;
 import org.gradle.caching.local.internal.TemporaryFileFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
@@ -133,18 +134,21 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
         AtomicReference<Optional<BuildCacheLoadResult>> result = new AtomicReference<>(Optional.empty());
         tmp.withTempFile(((BuildCacheKeyInternal) key).getHashCodeInternal(), file -> {
-            Optional<BuildCacheLoadResult> remoteResult;
-            try {
-                remoteResult = remote.maybeLoad(key, file, f -> packExecutor.unpack(key, entity, f));
-            } catch (Exception e) {
-                throw new BuildCacheOperationException("Could not load from remote cache: " + e.getMessage(), e);
-            }
+            Optional<BuildCacheLoadResult> remoteResult = loadFromRemote(key, entity, file);
             if (remoteResult.isPresent()) {
                 local.maybeStore(key, file);
                 result.set(remoteResult);
             }
         });
-        return result.get();
+        return Cast.unsafeStripNullable(result.get());
+    }
+
+    private Optional<BuildCacheLoadResult> loadFromRemote(BuildCacheKey key, CacheableEntity entity, File file) {
+        try {
+            return remote.maybeLoad(key, file, f -> packExecutor.unpack(key, entity, f));
+        } catch (Exception e) {
+            throw new BuildCacheOperationException("Could not load from remote cache: " + e.getMessage(), e);
+        }
     }
 
     @Override

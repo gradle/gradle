@@ -57,6 +57,14 @@ public class FileWatchingFilter implements FileSystemAccess.WriteListener {
         }
     }
 
+    /**
+     * Returns whether the given location should be watched for file system changes.
+     *
+     * <p>Invariant: locationsWrittenByCurrentBuild is never null - it's initialized with
+     * FileHierarchySet.empty() and always set to non-null values in locationsWritten()
+     * and resetLocationsWritten().</p>
+     */
+    @SuppressWarnings("NullAway")
     public boolean shouldWatchLocation(String location) {
         return !locationsWrittenByCurrentBuild.get().contains(location);
     }
