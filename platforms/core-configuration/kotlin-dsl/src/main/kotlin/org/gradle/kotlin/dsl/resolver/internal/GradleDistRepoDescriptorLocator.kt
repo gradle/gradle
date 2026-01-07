@@ -33,38 +33,31 @@ private val STANDARD_GRADLE_DIST_FILENAME_REGEX = Regex("gradle-[0-9]+(?:\\.[0-9
 class GradleDistRepoDescriptorLocator(
     private val project: Project,
     val gradleVersion: GradleDistVersion = GradleDistVersion(project.gradle.gradleVersion),
-    private val explicitRootProjectDir: File? = null
+    explicitRootProjectDir: File? = null
 ) {
     // `explicitRootProjectDir` is needed for testing only to be able to set some arbitrary non-working URL
     private
-    val rootProjectDir
-        get() = explicitRootProjectDir ?: project.layout.settingsDirectory.asFile
+    val rootProjectDir = explicitRootProjectDir ?: project.layout.settingsDirectory.asFile
 
     private
-    val repositoryName
-        get() = if (gradleVersion.isSnapshot) "distributions-snapshots" else "distributions"
+    val repositoryName = if (gradleVersion.isSnapshot) "distributions-snapshots" else "distributions"
 
-    val gradleDistRepository
-        get(): GradleDistRepoDescriptor {
-            try {
-                return findCustomGradleDistRepository() ?: defaultGradleDistRepository
-            } catch (ex: Exception) {
-                project.logger.warn("Unexpected exception while trying to find the URL for Gradle sources: ${ex.message}", ex)
-                return defaultGradleDistRepository
-            }
+    val gradleDistRepository: GradleDistRepoDescriptor
+        get() = try {
+            findCustomGradleDistRepository() ?: defaultGradleDistRepository
+        } catch (ex: Exception) {
+            project.logger.warn("Unexpected exception while trying to find the URL for Gradle sources: ${ex.message}", ex)
+            defaultGradleDistRepository
         }
 
     private
-    val defaultGradleDistRepository
-        get(): GradleDistRepoDescriptor {
-            val capturedRepositoryName = repositoryName
-            return gradleDistRepoDescriptor(
-                capturedRepositoryName,
-                URI.create("https://${DEFAULT_GRADLE_DIST_REPO_HOST_NAME}/$capturedRepositoryName"),
-                "[module]-[revision](-[classifier])(.[ext])",
-                null
-            )
-        }
+    val defaultGradleDistRepository: GradleDistRepoDescriptor
+        get() = gradleDistRepoDescriptor(
+            repositoryName,
+            URI.create("https://${DEFAULT_GRADLE_DIST_REPO_HOST_NAME}/$repositoryName"),
+            "[module]-[revision](-[classifier])(.[ext])",
+            null
+        )
 
     private
     fun wrapperCredentials(baseUrl: URI): WrapperCredentials? =
@@ -73,40 +66,35 @@ class GradleDistRepoDescriptorLocator(
     private
     fun findStandardWrapperUri(): URI? {
         val wrapperProperties = WrapperExecutor.wrapperPropertiesForProjectDirectory(rootProjectDir)
-        if (!wrapperProperties.exists()) {
-            return null
-        }
+        if (wrapperProperties.exists()) {
 
-        val currentWrapperUri = Properties()
-            .also { props ->
-                wrapperProperties.inputStream().use { props.load(it) }
+            val currentWrapperUri = Properties()
+                .apply { wrapperProperties.inputStream().use { load(it) } }
+                .getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY)
+                ?.let { WrapperDistributionUrlConverter.convertDistributionUrl(it, wrapperProperties.parentFile) }
+
+            if (currentWrapperUri != null &&
+                currentWrapperUri.host != DEFAULT_GRADLE_DIST_REPO_HOST_NAME &&
+                currentWrapperUri.rawFragment == null &&
+                currentWrapperUri.rawQuery == null
+            ) {
+                return currentWrapperUri
             }
-            .getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY)
-            ?.let { WrapperDistributionUrlConverter.convertDistributionUrl(it, wrapperProperties.parentFile) }
-            ?: return null
-
-        if (currentWrapperUri.host == DEFAULT_GRADLE_DIST_REPO_HOST_NAME ||
-            currentWrapperUri.rawFragment != null ||
-            currentWrapperUri.rawQuery != null
-        ) {
-            return null
         }
-        return currentWrapperUri
+        return null
     }
 
     private
     fun findStandardCustomBasePath(customUri: URI): String? {
         val uriPath = customUri.path ?: return null
         val fileNameSepIndex = uriPath.lastIndexOf('/')
-        if (fileNameSepIndex < 0) {
-            return null
+        if (fileNameSepIndex >= 0) {
+            val fileNamePath = uriPath.substring(fileNameSepIndex + 1)
+            if (fileNamePath.matches(STANDARD_GRADLE_DIST_FILENAME_REGEX)) {
+                return uriPath.take(fileNameSepIndex)
+            }
         }
-        val fileNamePath = uriPath.substring(fileNameSepIndex + 1)
-        if (!fileNamePath.matches(STANDARD_GRADLE_DIST_FILENAME_REGEX)) {
-            return null
-        }
-
-        return uriPath.take(fileNameSepIndex)
+        return null
     }
 
     private
@@ -139,31 +127,26 @@ class GradleDistRepoDescriptorLocator(
         artifactPattern: String,
         credentials: WrapperCredentials?
     ) = GradleDistRepoDescriptor(repoName, repoBaseUrl, artifactPattern) { repo ->
-        if (credentials == null) {
-            return@GradleDistRepoDescriptor
-        }
+        if (credentials != null) {
+            when (val usernameAndPassword = credentials.usernameAndPassword()) {
+                null -> repo.credentials(HttpHeaderCredentials::class.java) {
+                    val header = credentials.authorizationHeader()
+                    name = header.key
+                    value = header.value
+                }
 
-        val usernameAndPassword = credentials.usernameAndPassword()
-        if (usernameAndPassword != null) {
-            repo.credentials {
-                username = usernameAndPassword.key
-                password = usernameAndPassword.value
+                else -> repo.credentials {
+                    username = usernameAndPassword.key
+                    password = usernameAndPassword.value
+                }
             }
-            return@GradleDistRepoDescriptor
-        }
-
-        repo.credentials(HttpHeaderCredentials::class.java) {
-            val header = credentials.authorizationHeader()
-            name = header.key
-            value = header.value
         }
     }
 }
 
-data class GradleDistVersion(
-    val versionStr: String,
-    val isSnapshot: Boolean = versionStr.contains('+')
-)
+data class GradleDistVersion(val versionString: String) {
+    val isSnapshot: Boolean = versionString.contains('+')
+}
 
 data class GradleDistRepoDescriptor(
     val name: String,

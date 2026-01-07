@@ -106,7 +106,7 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
 
     private
     fun dependencyVersion(gradleVersion: GradleDistVersion) =
-        if (gradleVersion.isSnapshot) toVersionRange(gradleVersion.versionStr) else gradleVersion
+        if (gradleVersion.isSnapshot) toVersionRange(gradleVersion.versionString) else gradleVersion
 
     private
     fun toVersionRange(gradleVersion: String) =
@@ -122,7 +122,7 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
 
     private
     fun minimumGradleVersion(): String {
-        val baseVersionString = GradleVersion.version(repoLocator.gradleVersion.versionStr).baseVersion.version
+        val baseVersionString = GradleVersion.version(repoLocator.gradleVersion.versionString).baseVersion.version
         val (major, minor) = baseVersionString.split('.')
         return when (minor) {
             // TODO:kotlin-dsl consider commenting out this clause once the 1st 6.0 snapshot is out
