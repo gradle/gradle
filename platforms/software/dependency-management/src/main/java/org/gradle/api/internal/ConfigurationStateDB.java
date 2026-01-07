@@ -17,8 +17,11 @@
 package org.gradle.api.internal;
 
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.jspecify.annotations.Nullable;
 
@@ -44,6 +47,10 @@ public final class ConfigurationStateDB {
     private final Int2ObjectOpenHashMap<String> descriptions = new Int2ObjectOpenHashMap<>();
     private final Int2ObjectOpenHashMap<ConsistentResolution> consistentResolutions = new Int2ObjectOpenHashMap<>();
     private final Int2ObjectOpenHashMap<FileCollectionInternal> intrinsicFiles = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectOpenHashMap<ResolutionStrategyInternal> resolutionStrategies = new Int2ObjectOpenHashMap<>();
+    private final Int2IntOpenHashMap copyCounts = new Int2IntOpenHashMap();
+    private final IntOpenHashSet nonVisible = new IntOpenHashSet();
+    private final IntOpenHashSet nonTransitive = new IntOpenHashSet();
 
     public int register(String name) {
         int id = ids.size();
@@ -96,10 +103,16 @@ public final class ConfigurationStateDB {
         if (description != null) {
             descriptions.put(to, description);
         }
+        if (nonVisible.contains(from)) {
+            nonVisible.add(to);
+        }
+        if (nonTransitive.contains(from)) {
+            nonTransitive.add(to);
+        }
     }
 
     public FileCollectionInternal getIntrinsicFiles(int configuration, Supplier<FileCollectionInternal> supplier) {
-        return intrinsicFiles.computeIfAbsent(configuration, c -> supplier.get());
+        return intrinsicFiles.computeIfAbsent(configuration, k -> supplier.get());
     }
 
     public void enableConsistentResolution(int configuration, ConfigurationInternal versionsSource) {
@@ -117,6 +130,42 @@ public final class ConfigurationStateDB {
 
     public void disableConsistentResolution(int configuration) {
         consistentResolutions.remove(configuration);
+    }
+
+    public ResolutionStrategyInternal getResolutionStrategy(int id) {
+        return resolutionStrategies.get(id);
+    }
+
+    public ResolutionStrategyInternal produceResolutionStrategy(int id, Supplier<ResolutionStrategyInternal> supplier) {
+        return resolutionStrategies.computeIfAbsent(id, k -> supplier.get());
+    }
+
+    public int incrementAndGetCopyCount(int id) {
+        return copyCounts.compute(id, (k, v) -> (v != null ? v : 0) + 1);
+    }
+
+    public boolean getVisible(int id) {
+        return !nonVisible.contains(id);
+    }
+
+    public void setVisible(int id, boolean value) {
+        if (value) {
+            nonVisible.remove(id);
+        } else {
+            nonVisible.add(id);
+        }
+    }
+
+    public boolean getTransitive(int id) {
+        return !nonTransitive.contains(id);
+    }
+
+    public void setTransitive(int id, boolean value) {
+        if (value) {
+            nonTransitive.remove(id);
+        } else {
+            nonTransitive.add(id);
+        }
     }
 
     private static List<String> concat(@Nullable List<String> v, String[] alternativesForResolving) {

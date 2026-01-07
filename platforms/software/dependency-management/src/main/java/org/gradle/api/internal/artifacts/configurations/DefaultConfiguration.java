@@ -127,7 +127,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -167,8 +166,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final boolean isDetached;
     private final DefaultConfigurationPublications outgoing;
 
-    private boolean visible = true;
-    private boolean transitive = true;
     private Set<Configuration> extendsFrom = new LinkedHashSet<>();
     private final Set<Object> excludeRules = new LinkedHashSet<>();
     private @Nullable Set<ExcludeRule> parsedExcludeRules;
@@ -195,8 +192,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final DisplayName displayName;
     private final UserCodeApplicationContext userCodeApplicationContext;
 
-    private final AtomicInteger copyCount = new AtomicInteger();
-
     private final CalculatedModelValue<Optional<ResolverResults>> currentResolveState;
 
     /**
@@ -208,7 +203,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * This factory has some unique usages during copy, so it can't be extracted to the services bundle.
      */
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
-    private @Nullable ResolutionStrategyInternal resolutionStrategy;
 
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
@@ -306,7 +300,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             .willBeRemovedInGradle10()
             .withUpgradeGuideSection(9, "deprecate-visible-property")
             .nagUser();
-        return visible;
+        return db().getVisible(id);
     }
 
     @Override
@@ -314,7 +308,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     public Configuration setVisible(boolean visible) {
         validateMutation(MutationType.BASIC_STATE);
         // TODO: Create a deprecation warning once https://youtrack.jetbrains.com/issue/KT-78754 is resolved
-        this.visible = visible;
+        db().setVisible(id, visible);
         return this;
     }
 
@@ -382,13 +376,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public boolean isTransitive() {
-        return transitive;
+        return db().getTransitive(id);
     }
 
     @Override
     public Configuration setTransitive(boolean transitive) {
         validateMutation(MutationType.BASIC_STATE);
-        this.transitive = transitive;
+        db().setTransitive(id, transitive);
         return this;
     }
 
@@ -636,6 +630,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
                 // Discard State
                 dependencyResolutionListeners.removeAll();
+                ResolutionStrategyInternal resolutionStrategy = db().getResolutionStrategy(id);
                 if (resolutionStrategy != null) {
                     resolutionStrategy.maybeDiscardStateRequiredForGraphResolution();
                 }
@@ -675,7 +670,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                         getDescription(),
                         domainObjectContext.getBuildPath().asString(),
                         projectPathString,
-                        visible,
+                        db().getVisible(id),
                         isTransitive(),
                         resolver.getAllRepositories()
                     ));
@@ -691,7 +686,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * called on a configuration that does not permit this usage.
      */
     @Override
-    public ConfigurationInternal getConsistentResolutionSource() {
+    public @Nullable ConfigurationInternal getConsistentResolutionSource() {
         warnOrFailOnInvalidInternalAPIUsage("getConsistentResolutionSource()", ProperMethodUsage.RESOLVABLE);
         return db().getConsistentResolutionSource(id);
     }
@@ -1085,9 +1080,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints) {
         DefaultConfiguration copiedConfiguration = copyAsDetached();
 
-        copiedConfiguration.visible = visible;
-        copiedConfiguration.transitive = transitive;
-
         copiedConfiguration.defaultDependencyActions = defaultDependencyActions;
         copiedConfiguration.withDependencyActions = withDependencyActions;
         copiedConfiguration.dependencyResolutionListeners = dependencyResolutionListeners.copy();
@@ -1128,6 +1120,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private DefaultConfiguration copyAsDetached() {
         String newName = getNameWithCopySuffix();
+
+        ResolutionStrategyInternal resolutionStrategy = db().getResolutionStrategy(id);
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
 
         @SuppressWarnings("deprecation")
@@ -1142,7 +1136,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     private String getNameWithCopySuffix() {
-        int count = copyCount.incrementAndGet();
+        int count = db().incrementAndGetCopyCount(id);
         String copyName = getName() + "Copy";
         return count == 1
             ? copyName
@@ -1161,12 +1155,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public ResolutionStrategyInternal getResolutionStrategy() {
-        if (resolutionStrategy == null) {
-            resolutionStrategy = resolutionStrategyFactory.create();
+        return db().produceResolutionStrategy(id, () -> {
+            ResolutionStrategyInternal resolutionStrategy = resolutionStrategyFactory.create();
             resolutionStrategy.setMutationValidator(this);
             resolutionStrategyFactory = null;
-        }
-        return resolutionStrategy;
+            return resolutionStrategy;
+        });
     }
 
     @Override
