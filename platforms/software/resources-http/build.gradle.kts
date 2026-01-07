@@ -20,6 +20,10 @@ dependencies {
     implementation(projects.hashing)
     implementation(projects.loggingApi)
 
+    // Jackson for RFC9457 JSON parsing
+    implementation(libs.jacksonCore)
+    implementation(libs.jacksonDatabind)
+
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.guava)

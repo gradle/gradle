@@ -16,6 +16,9 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import org.apache.http.HttpHeaders;
@@ -33,6 +36,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +62,13 @@ import static org.apache.http.client.protocol.HttpClientContext.REDIRECT_LOCATIO
 public class HttpClientHelper implements Closeable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientHelper.class);
+
+    /**
+     * Shared ObjectMapper instance for parsing RFC9457 Problem Details responses.
+     * Thread-safe after configuration.
+     */
+    private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
+
     private CloseableHttpClient client;
     private final DocumentationRegistry documentationRegistry;
     private final HttpSettings settings;
@@ -87,8 +98,14 @@ public class HttpClientHelper implements Closeable {
         }
     }
 
+    private static ObjectMapper createObjectMapper() {
+        return new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
+    }
+
     private HttpClientResponse performRawHead(String source, boolean revalidate) {
-        return performRequest(new HttpHead(source), revalidate);
+        return performRequest(new HttpHead(source), revalidate, false);
     }
 
     public HttpClientResponse performHead(String source, boolean revalidate) {
@@ -96,7 +113,7 @@ public class HttpClientHelper implements Closeable {
     }
 
     HttpClientResponse performRawGet(String source, boolean revalidate) {
-        return performRequest(new HttpGet(source), revalidate);
+        return performRequest(new HttpGet(source), revalidate, false);
     }
 
     @NonNull
@@ -105,12 +122,16 @@ public class HttpClientHelper implements Closeable {
     }
 
     public HttpClientResponse performRequest(HttpRequestBase request, boolean revalidate) {
+        return performRequest(request, revalidate, true);
+    }
+
+    public HttpClientResponse performRequest(HttpRequestBase request, boolean revalidate, boolean closeOnError) {
         String method = request.getMethod();
         if (revalidate) {
             request.addHeader(HttpHeaders.CACHE_CONTROL, "max-age=0");
         }
         try {
-            return executeGetOrHead(request);
+            return executeGetOrHead(request, closeOnError);
         } catch (FailureFromRedirectLocation e) {
             throw createHttpRequestException(method, e.getCause(), e.getLastRedirectLocation());
         } catch (IOException e) {
@@ -162,9 +183,14 @@ public class HttpClientHelper implements Closeable {
     }
 
     protected HttpClientResponse executeGetOrHead(HttpRequestBase method) throws IOException {
+        return executeGetOrHead(method, true);
+    }
+
+    protected HttpClientResponse executeGetOrHead(HttpRequestBase method, boolean closeOnError) throws IOException {
         HttpClientResponse response = performHttpRequest(method);
-        // Consume content for non-successful, responses. This avoids the connection being left open.
-        if (!response.wasSuccessful()) {
+        // Consume content for non-successful responses to avoid leaving the connection open.
+        // However, if closeOnError is false, keep it open so we can read RFC9457 error details.
+        if (closeOnError && !response.wasSuccessful()) {
             response.close();
         }
         return response;
@@ -246,8 +272,92 @@ public class HttpClientHelper implements Closeable {
         }
 
         URI effectiveUri = stripUserCredentials(response.getEffectiveUri());
-        LOGGER.info("Failed to get resource: {}. [HTTP {}: {})]", response.getMethod(), response.getStatusLine(), effectiveUri);
-        throw new HttpErrorStatusCodeException(response.getMethod(), effectiveUri.toString(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
+
+        // Extract detailed error message (must be done before closing response)
+        String errorDetail = extractErrorDetail(response);
+
+        // Close the response to avoid leaving connections open
+        response.close();
+
+        throw new HttpErrorStatusCodeException(response.getMethod(), effectiveUri.toString(), response.getStatusLine().getStatusCode(), errorDetail);
+    }
+
+    /**
+     * Extracts error detail from the HTTP response.
+     * Supports RFC9457 (Problem Details for HTTP APIs) format.
+     * Falls back to reason phrase if RFC9457 is not available.
+     *
+     * @param response the HTTP response
+     * @return the error detail message
+     */
+    @VisibleForTesting
+    String extractErrorDetail(HttpClientResponse response) {
+        // Try RFC9457 first
+        String contentType = response.getHeader("Content-Type");
+        if (contentType != null && contentType.contains("application/problem+json")) {
+            LOGGER.debug("RFC9457 content type detected: {}", contentType);
+            String rfc9457Detail = parseRFC9457Response(response);
+            if (rfc9457Detail != null) {
+                LOGGER.debug("RFC9457 error detail extracted: {}", rfc9457Detail);
+                return rfc9457Detail;
+            }
+            LOGGER.debug("RFC9457 parsing failed or returned null, falling back to reason phrase");
+        }
+
+        // Fallback to reason phrase (empty in HTTP/2)
+        String reasonPhrase = response.getStatusLine().getReasonPhrase();
+        String result = reasonPhrase != null ? reasonPhrase : "";
+        LOGGER.debug("Using fallback error detail: '{}'", result);
+        return result;
+    }
+
+    /**
+     * Parses RFC9457 (Problem Details for HTTP APIs) response.
+     * RFC9457 defines a JSON format for error responses with fields like:
+     * - type: URI reference for the problem type
+     * - title: Short, human-readable summary
+     * - status: HTTP status code
+     * - detail: Human-readable explanation specific to this occurrence
+     * - instance: URI reference identifying the specific occurrence
+     *
+     * @param response the HTTP response
+     * @return the detail field from the RFC9457 response, or null if parsing fails
+     */
+    @VisibleForTesting
+    @Nullable
+    String parseRFC9457Response(HttpClientResponse response) {
+        try {
+            java.io.InputStream content = response.getContent();
+            if (content == null) {
+                LOGGER.debug("RFC9457 response has no content");
+                return null;
+            }
+
+            Rfc9457Problem problem = OBJECT_MAPPER.readValue(content, Rfc9457Problem.class);
+
+            LOGGER.trace("RFC9457 parsed successfully - type: {}, title: {}, status: {}, detail: {}, instance: {}",
+                problem.getType(), problem.getTitle(), problem.getStatus(), problem.getDetail(), problem.getInstance());
+
+            // Prefer "detail" field as it contains the specific explanation
+            String detail = problem.getDetail();
+            if (detail != null && !detail.isEmpty()) {
+                LOGGER.trace("Using RFC9457 'detail' field: {}", detail);
+                return detail;
+            }
+
+            // Fallback to "title" field if "detail" is not present
+            String title = problem.getTitle();
+            if (title != null && !title.isEmpty()) {
+                LOGGER.trace("RFC9457 'detail' field empty, using 'title' field: {}", title);
+                return title;
+            }
+
+            LOGGER.trace("RFC9457 response has neither 'detail' nor 'title' fields");
+            return null;
+        } catch (Exception e) {
+            LOGGER.warn("Failed to parse RFC9457 response", e);
+            return null;
+        }
     }
 
     private synchronized CloseableHttpClient getClient() {
@@ -298,6 +408,74 @@ public class HttpClientHelper implements Closeable {
 
         private URI getLastRedirectLocation() {
             return lastRedirectLocation;
+        }
+    }
+
+    /**
+     * POJO representing RFC9457 Problem Details for HTTP APIs.
+     * See: https://www.rfc-editor.org/rfc/rfc9457.html
+     */
+    @NullMarked
+    @VisibleForTesting
+    static class Rfc9457Problem {
+        @Nullable
+        private String type;
+        @Nullable
+        private String title;
+        @Nullable
+        private Integer status;
+        @Nullable
+        private String detail;
+        @Nullable
+        private String instance;
+
+        // Default constructor required by Jackson
+        public Rfc9457Problem() {
+        }
+
+        @Nullable
+        public String getType() {
+            return type;
+        }
+
+        public void setType(@Nullable String type) {
+            this.type = type;
+        }
+
+        @Nullable
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(@Nullable String title) {
+            this.title = title;
+        }
+
+        @Nullable
+        public Integer getStatus() {
+            return status;
+        }
+
+        public void setStatus(@Nullable Integer status) {
+            this.status = status;
+        }
+
+        @Nullable
+        public String getDetail() {
+            return detail;
+        }
+
+        public void setDetail(@Nullable String detail) {
+            this.detail = detail;
+        }
+
+        @Nullable
+        public String getInstance() {
+            return instance;
+        }
+
+        public void setInstance(@Nullable String instance) {
+            this.instance = instance;
         }
     }
 
