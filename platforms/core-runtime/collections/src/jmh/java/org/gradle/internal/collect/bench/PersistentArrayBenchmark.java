@@ -18,6 +18,7 @@ package org.gradle.internal.collect.bench;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.collect.PersistentArray;
+import org.gradle.internal.collect.PersistentList;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
@@ -45,10 +46,15 @@ public class PersistentArrayBenchmark {
         ArrayList(true, new ArrayListArrayProtocol()),
         CopyOnWriteArrayList(true, new CopyOnWriteArrayListArrayProtocol()),
         guava(false, new GuavaArrayProtocol()),
-        //        capsule(false, new CapsuleArrayProtocol()),
+        // To avoid imposing the required dependencies on every Gradle developer
+        // we keep these implementations commented out.
+        // Uncomment the dependencies on build.gradle.kts then
+        // uncomment the desired implementation(s) here and at the bottom of this file.
+//        capsule(false, new CapsuleArrayProtocol()),
 //        clojure(false, new ClojureArrayProtocol()),
 //        scala(false, new ScalaArrayProtocol()),
-        gradle(false, new GradleArrayProtocol());
+        gradle(false, new GradleArrayProtocol()),
+        cons(false, new ConsArrayProtocol());
 
         final boolean mutable;
         final ArrayProtocol protocol;
@@ -114,10 +120,15 @@ public class PersistentArrayBenchmark {
     }
 
     @Benchmark
-    public void iteration(Blackhole blackhole) {
+    public void iterator(Blackhole blackhole) {
         for (Object value : protocol.iterable(array)) {
             blackhole.consume(value);
         }
+    }
+
+    @Benchmark
+    public void forEach(Blackhole blackhole) {
+        protocol.iterable(array).forEach(blackhole::consume);
     }
 
     @Benchmark
@@ -157,6 +168,88 @@ public class PersistentArrayBenchmark {
         @Override
         public Object get(Object array, int index) {
             return ((PersistentArray<Object>) array).get(index);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    static class ConsArrayProtocol implements ArrayProtocol {
+
+        @Override
+        public Object newInstance() {
+            return PersistentList.of();
+        }
+
+        @Override
+        public Object append(Object array, Object key) {
+            return ((PersistentList<Object>) array).plus(key);
+        }
+
+        @Override
+        public Object get(Object array, int index) {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    static class GuavaArrayProtocol implements ArrayProtocol {
+
+        @Override
+        public Object newInstance() {
+            return ImmutableList.of();
+        }
+
+        @Override
+        public Object append(Object array, Object key) {
+            ImmutableList<Object> typed = (ImmutableList<Object>) array;
+            return ImmutableList.builderWithExpectedSize(typed.size() + 1)
+                .addAll(typed)
+                .add(key)
+                .build();
+        }
+
+        @Override
+        public Object get(Object array, int index) {
+            return ((ImmutableList<Object>) array).contains(index);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    static class ArrayListArrayProtocol implements ArrayProtocol {
+
+        @Override
+        public Object newInstance() {
+            return new ArrayList<Object>();
+        }
+
+        @Override
+        public Object append(Object array, Object key) {
+            ((ArrayList<Object>) array).add(key);
+            return array;
+        }
+
+        @Override
+        public Object get(Object array, int index) {
+            return ((ArrayList<Object>) array).get(index);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    static class CopyOnWriteArrayListArrayProtocol implements ArrayProtocol {
+
+        @Override
+        public Object newInstance() {
+            return new CopyOnWriteArrayList<>();
+        }
+
+        @Override
+        public Object append(Object array, Object key) {
+            ((CopyOnWriteArrayList<Object>) array).add(key);
+            return array;
+        }
+
+        @Override
+        public Object get(Object array, int index) {
+            return ((CopyOnWriteArrayList<Object>) array).get(index);
         }
     }
 
@@ -224,66 +317,4 @@ public class PersistentArrayBenchmark {
 //        }
 //    }
 
-    @SuppressWarnings("unchecked")
-    static class GuavaArrayProtocol implements ArrayProtocol {
-
-        @Override
-        public Object newInstance() {
-            return ImmutableList.of();
-        }
-
-        @Override
-        public Object append(Object array, Object key) {
-            ImmutableList<Object> typed = (ImmutableList<Object>) array;
-            return ImmutableList.builderWithExpectedSize(typed.size() + 1)
-                .addAll(typed)
-                .add(key)
-                .build();
-        }
-
-        @Override
-        public Object get(Object array, int index) {
-            return ((ImmutableList<Object>) array).contains(index);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    static class ArrayListArrayProtocol implements ArrayProtocol {
-
-        @Override
-        public Object newInstance() {
-            return new ArrayList<Object>();
-        }
-
-        @Override
-        public Object append(Object array, Object key) {
-            ((ArrayList<Object>) array).add(key);
-            return array;
-        }
-
-        @Override
-        public Object get(Object array, int index) {
-            return ((ArrayList<Object>) array).get(index);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    static class CopyOnWriteArrayListArrayProtocol implements ArrayProtocol {
-
-        @Override
-        public Object newInstance() {
-            return new CopyOnWriteArrayList<>();
-        }
-
-        @Override
-        public Object append(Object array, Object key) {
-            ((CopyOnWriteArrayList<Object>) array).add(key);
-            return array;
-        }
-
-        @Override
-        public Object get(Object array, int index) {
-            return ((CopyOnWriteArrayList<Object>) array).get(index);
-        }
-    }
 }

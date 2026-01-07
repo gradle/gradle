@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.problems
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Comparators
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
@@ -30,7 +31,8 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 
-private
+@VisibleForTesting
+internal
 const val MAX_CONSOLE_PROBLEMS = 15
 
 
@@ -38,11 +40,26 @@ private
 const val MAX_PROBLEM_EXCEPTIONS = 5
 
 /**
+ * Collects problems and produces a summary upon request.
+ *
+ * The primary use case for the summary is to collect information to be presented on the console.
+ *
+ * <h2>Problem uniqueness</h2>
+ *
+ * For the console, a problem is unique if there are no other problems with same message, top location frame and documentation link.
+ *
+ * However, for the report, problem uniqueness takes also takes the full location stack into account.
+ *
+ * <h2>Thread safety</h2>
+ *
  * This class is thread-safe.
  */
 internal
 class ConfigurationCacheProblemsSummary(
 
+    /**
+     * The maximum number of unique problems that should be collected.
+     */
     private
     val maxCollectedProblems: Int = 4096
 
@@ -72,7 +89,7 @@ class ConfigurationCacheProblemsSummary(
     var incompatibleFeatureCount: Int = 0
 
     /**
-     * Unique problem causes observed among all reported problems.
+     * Report-unique problem causes observed among all reported problems.
      *
      * We also track severity per cause to provide useful ordering of problems when reporting the summary.
      */
@@ -94,23 +111,40 @@ class ConfigurationCacheProblemsSummary(
 
     fun get(): Summary = lock.withLock {
         Summary(
-            totalProblemCount,
-            deferredProblemCount,
-            suppressedSilentlyProblemCount,
-            ImmutableMap.copyOf(problemCauses),
-            ImmutableList.copyOf(originalProblemExceptions),
-            overflowed,
-            maxCollectedProblems,
-            incompatibleTasksCount,
-            incompatibleFeatureCount
+            totalProblemCount = totalProblemCount,
+            reportUniqueProblemCount = problemCauses.size,
+            deferredProblemCount = deferredProblemCount,
+            consoleProblemCount = totalProblemCount - suppressedSilentlyProblemCount,
+            consoleProblemCauses = problemCausesForConsole(),
+            originalProblemExceptions = ImmutableList.copyOf(originalProblemExceptions),
+            overflowed = overflowed,
+            maxCollectedProblems = maxCollectedProblems,
+            incompatibleTasksCount = incompatibleTasksCount,
+            incompatibleFeatureCount = incompatibleFeatureCount
         )
     }
 
     /**
-     * Returns`true` if the problem was accepted, `false` if it was rejected because the maximum number of problems was reached.
+     * Returns a map with problem causes for the console.
+     *
+     * For the console, only the top level location matters,
+     * so multiple deep problem causes may map to a single shallow cause.
+     */
+    private
+    fun problemCausesForConsole(): ImmutableMap<ProblemCause, ProblemSeverity> =
+        ImmutableMap.copyOf(
+            // silently-suppressed problems (i.e. under graceful degradation) are not relevant to the console
+            problemCauses.filterValues { it != ProblemSeverity.SuppressedSilently }
+                .mapKeys { (k, _) -> k.asShallow() }
+        )
+
+    /**
+     * Returns`true` if the problem was accepted, `false` if it was rejected because the maximum number of unique problems was reached,
+     * or the problem was not report-unique.
      */
     fun onProblem(problem: PropertyProblem, severity: ProblemSeverity): Boolean {
         lock.withLock {
+            // count problems regardless of uniqueness / overflowing
             totalProblemCount += 1
             when (severity) {
                 ProblemSeverity.Deferred -> deferredProblemCount += 1
@@ -119,17 +153,21 @@ class ConfigurationCacheProblemsSummary(
                 ProblemSeverity.Interrupting -> {}
             }
             if (overflowed) {
+                // we already overflowed during a previous problem
                 return false
             }
-            if (totalProblemCount > maxCollectedProblems) {
+            if (problemCauses.size == maxCollectedProblems) {
+                // we are overflowing now
                 overflowed = true
                 return false
             }
-            if (severity != ProblemSeverity.SuppressedSilently) {
-                val isNewCause = recordProblemCause(problem, severity)
-                if (isNewCause && severity != ProblemSeverity.Interrupting) {
-                    collectOriginalException(problem)
-                }
+            val isNewCause = recordProblemCause(problem, severity)
+            if (!isNewCause) {
+                // reject non-unique problems
+                return false
+            }
+            if (severity != ProblemSeverity.Interrupting) {
+                collectOriginalException(problem)
             }
             return true
         }
@@ -141,8 +179,9 @@ class ConfigurationCacheProblemsSummary(
         }
     }
 
-    fun onIncompatibleFeature() {
+    fun onIncompatibleFeature(problem: PropertyProblem) {
         lock.withLock {
+            onProblem(problem, ProblemSeverity.SuppressedSilently)
             incompatibleFeatureCount += 1
         }
     }
@@ -157,16 +196,24 @@ class ConfigurationCacheProblemsSummary(
     }
 
     /**
-     * Returns true if problems with the same cause have not been seen before.
+     * Collects the cause for the problem, if not seen before.
+     *
+     * Returns whether problem was accepted.
      */
     private
     fun recordProblemCause(problem: PropertyProblem, severity: ProblemSeverity): Boolean {
-        val cause = ProblemCause.of(problem)
-        val isNew = !problemCauses.containsKey(cause)
-        problemCauses.merge(cause, severity) { old, new ->
-            if (severityComparator.compare(old, new) < 0) old else new
+        val newCause = ProblemCause.of(problem)
+        var problemAccepted = true
+        problemCauses.merge(newCause, severity) { existingSeverity, newSeverity ->
+            val newSeverityIsHigher = severityComparator.compare(existingSeverity, newSeverity) > 0
+            if (newSeverityIsHigher) {
+                newSeverity
+            } else {
+                problemAccepted = false
+                existingSeverity
+            }
         }
-        return isNew
+        return problemAccepted
     }
 }
 
@@ -178,23 +225,35 @@ class Summary(
      */
     val totalProblemCount: Int,
 
+    val consoleProblemCount: Int,
+
     /**
      * Number of [deferred][ProblemSeverity.Deferred] failures.
      */
     val deferredProblemCount: Int,
 
     /**
-     * Number of problems which shouldn't be reported in the console.
+     * Problems that should appear in the console summary.
+     *
+     * This should exclude problems with severity [ProblemSeverity.SuppressedSilently], which are still
+     * accounted for in [totalProblemCount] and shown in the HTML report, but intentionally omitted
+     * from the console to keep output noise low during graceful degradation.
+     *
+     * Also, these problems are console-unique (which is different from report-unique, which take the full property trace chain into account).
      */
     private
-    val suppressedSilentlyProblemCount: Int,
+    val consoleProblemCauses: Map<ProblemCause, ProblemSeverity>,
 
-    private
-    val reportableProblemCauses: Map<ProblemCause, ProblemSeverity>,
+    /**
+     * Count of problems that should appear in the HTML report.
+     */
+    @get:VisibleForTesting
+    internal
+    val reportUniqueProblemCount: Int,
 
     val originalProblemExceptions: List<Throwable>,
 
-    private
+    internal
     val overflowed: Boolean,
 
     private
@@ -211,22 +270,31 @@ class Summary(
     private
     val incompatibleFeatureCount: Int
 ) {
-    val reportableProblemCount: Int
-        get() = totalProblemCount - suppressedSilentlyProblemCount
 
-    val reportableProblemCauseCount: Int
-        get() = reportableProblemCauses.size
+    @VisibleForTesting
+    internal
+    val consoleUniqueProblemCount = consoleProblemCauses.size
 
+    /**
+     * Builds the console feedback string for configuration cache problems.
+     *
+     * Rules:
+     * - If there are console-reportable problems, print a summary header and a curated list of up to [MAX_CONSOLE_PROBLEMS].
+     * - If there are no console-reportable problems but there are incompatible tasks or features (graceful degradation),
+     *   do not list problems; emit a short notice and always print the report link.
+     * - In all cases where an HTML report exists, append a link to it.
+     */
     fun textForConsole(cacheActionText: String, htmlReportFile: File? = null): String {
         val documentationRegistry = DocumentationRegistry()
         return StringBuilder().apply {
             // When build degrades gracefully, we keep the console output minimal but still want to see the report link
-            val hasReportableProblems = reportableProblemCount > 0
-            if (hasReportableProblems) {
+            val topConsoleProblems = topProblemsForConsole().iterator()
+            val hasConsoleProblems = topConsoleProblems.hasNext()
+            if (hasConsoleProblems) {
                 appendLine()
-                appendSummaryHeader(cacheActionText, reportableProblemCount)
+                appendSummaryHeader(cacheActionText)
                 appendLine()
-                topProblemsForConsole().forEach { problem ->
+                topConsoleProblems.forEach { problem ->
                     append("- ")
                     append(problem.userCodeLocation.capitalized())
                     append(": ")
@@ -235,15 +303,17 @@ class Summary(
                         appendLine("  See ${documentationRegistry.getDocumentationFor(it.page, it.anchor)}")
                     }
                 }
-                if (reportableProblemCauseCount > MAX_CONSOLE_PROBLEMS) {
-                    appendLine("plus ${reportableProblemCauseCount - MAX_CONSOLE_PROBLEMS} more problems. Please see the report for details.")
+                val notShown = consoleUniqueProblemCount - MAX_CONSOLE_PROBLEMS
+                if (notShown > 0) {
+                    val problemStr = if (notShown > 1) "problems" else "problem"
+                    appendLine("plus $notShown more $problemStr. Please see the report for details.")
                 }
             }
             val hasIncompatibleTasks = incompatibleTasksCount > 0
             val hasIncompatibleFeatures = incompatibleFeatureCount > 0
             htmlReportFile?.let {
                 appendLine()
-                if ((hasIncompatibleTasks || hasIncompatibleFeatures) && !hasReportableProblems) {
+                if ((hasIncompatibleTasks || hasIncompatibleFeatures) && !hasConsoleProblems) {
                     // Some tests parse this line, you may need to change them if you change the message.
                     append("Some tasks or features in this build are not compatible with the configuration cache.")
                     appendLine()
@@ -255,19 +325,18 @@ class Summary(
 
     private
     fun topProblemsForConsole(): Sequence<ProblemCause> =
-        reportableProblemCauses.entries.stream()
+        consoleProblemCauses.entries.stream()
             .collect(Comparators.least(MAX_CONSOLE_PROBLEMS, consoleComparatorForProblemCauseWithSeverity()))
             .asSequence()
             .map { it.key }
 
     private
     fun StringBuilder.appendSummaryHeader(
-        cacheAction: String,
-        reportableProblemCount: Int
+        cacheAction: String
     ) {
         // Some tests parse this header.
-        append(reportableProblemCount)
-        append(if (reportableProblemCount == 1) " problem was found " else " problems were found ")
+        append(consoleProblemCount)
+        append(if (consoleProblemCount == 1) " problem was found " else " problems were found ")
         append(cacheAction)
         append(" the configuration cache")
         if (overflowed) {
@@ -275,11 +344,11 @@ class Summary(
             append(maxCollectedProblems)
             append(" were considered")
         }
-        if (reportableProblemCount != reportableProblemCauseCount) {
+        if (consoleUniqueProblemCount != consoleProblemCount) {
             append(", ")
-            append(reportableProblemCauseCount)
+            append(consoleUniqueProblemCount)
             append(" of which ")
-            append(if (reportableProblemCauseCount == 1) "seems unique" else "seem unique")
+            append(if (consoleUniqueProblemCount == 1) "seems unique" else "seem unique")
         }
         append(".")
     }
@@ -291,6 +360,11 @@ class Summary(
     private
     fun clickableUrlFor(file: File) =
         ConsoleRenderer().asClickableFileUrl(file)
+
+    @VisibleForTesting
+    internal
+    fun severityFor(of: ProblemCause): ProblemSeverity? =
+        this.consoleProblemCauses[of.asShallow()]
 }
 
 
@@ -335,14 +409,29 @@ internal
 data class ProblemCause(
     val userCodeLocation: String,
     val message: String,
-    val documentationSection: DocumentationSection?
+    val documentationSection: DocumentationSection?,
+    private val traceHash: Int?
 ) {
+    /**
+     * A problem cause may reflect the full [org.gradle.internal.configuration.problems.PropertyTrace] stack (as required by the CC report) or
+     * (if they are shallow) just the top location (as required by the console).
+     */
+    private
+    val isShallowTrace: Boolean get() = traceHash == null
+
+    fun asShallow(): ProblemCause =
+        if (isShallowTrace)
+            this
+        else
+            ProblemCause(userCodeLocation, message, documentationSection, null)
+
     companion object {
         fun of(problem: PropertyProblem) = problem.run {
             ProblemCause(
                 trace.containingUserCode,
                 message.render(),
-                documentationSection
+                documentationSection,
+                trace.fullHash
             )
         }
     }

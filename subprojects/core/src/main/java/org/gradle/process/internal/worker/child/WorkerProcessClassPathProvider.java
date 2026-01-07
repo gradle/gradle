@@ -110,7 +110,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         if (name.equals("DAEMON_SERVER_WORKER")) {
             synchronized (lock) {
                 if (daemonServerWorkerClasspath == null) {
-                    daemonServerWorkerClasspath = moduleRegistry.getModule("gradle-daemon-server-worker").getAllRequiredModulesClasspath();
+                    daemonServerWorkerClasspath = moduleRegistry.getRuntimeClasspath("gradle-daemon-server-worker");
                 }
             }
             return daemonServerWorkerClasspath;

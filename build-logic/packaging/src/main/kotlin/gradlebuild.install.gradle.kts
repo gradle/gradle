@@ -16,22 +16,20 @@
 
 import gradlebuild.basics.gradleInstallPath
 import gradlebuild.basics.repoRoot
-import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
-import gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 
 val installDirectory = repoRoot().dir(gradleInstallPath).map { validateInstallDir(it) }
 
 tasks.register<Sync>("install") {
     description = "Installs the minimal distribution"
     group = "build"
-    with(binDistributionSpec())
+    from(tasks.named("binInstallation", Sync::class.java).map { it.destinationDir })
     into(installDirectory)
 }
 
 tasks.register<Sync>("installAll") {
     description = "Installs the full distribution"
     group = "build"
-    with(allDistributionSpec())
+    from(tasks.named("allInstallation", Sync::class.java).map { it.destinationDir })
     into(installDirectory)
 }
 

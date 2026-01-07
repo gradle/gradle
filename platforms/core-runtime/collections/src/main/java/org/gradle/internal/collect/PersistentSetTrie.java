@@ -67,7 +67,7 @@ final class PersistentSetTrie<K> implements PersistentSet<K> {
         }
         int newSize = size - 1;
         if (newSize == 1) {
-            // ✅ Collapse to PersistentSet1. This maintains the invariant that
+            // Collapse to PersistentSet1. This maintains the invariant that
             // PersistentSetTrie always has size >= 2, which allows equals() to only
             // compare with other PersistentSetTrie instances.
             return new PersistentSet1<>(singleKeyOf(newRoot));
@@ -281,15 +281,15 @@ final class PersistentSetTrie<K> implements PersistentSet<K> {
         int dataMap = trie.dataMap;
         if ((dataMap & bit) == bit) {
             int index = index(dataMap, mask, bit);
-            Object data = trie.content[index];
-            if (data == key || data.equals(key)) {
+            Object curKey = trie.content[index];
+            if (curKey == key || curKey.equals(key)) {
                 // Key already exists
                 return trie;
             }
-            int dataHash = data.hashCode();
-            Object newNode = dataHash == hash
-                ? new HashCollisionNode(hash, new Object[]{data, key})
-                : branchOnKeys(key, hash, data, dataHash, shift + BITS);
+            int curKeyHash = curKey.hashCode();
+            Object newNode = curKeyHash == hash
+                ? new HashCollisionNode(hash, new Object[]{curKey, key})
+                : branchOnKeys(key, hash, curKey, curKeyHash, shift + BITS);
             return trie.replaceDataWithNode(index, mask, bit, newNode, 0);
         }
 

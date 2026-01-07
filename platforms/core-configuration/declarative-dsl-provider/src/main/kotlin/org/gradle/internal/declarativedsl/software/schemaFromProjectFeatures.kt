@@ -24,7 +24,6 @@ import org.gradle.api.internal.plugins.TargetTypeInformation.BuildModelTargetTyp
 import org.gradle.api.internal.plugins.TargetTypeInformation.DefinitionTargetTypeInformation
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
-import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
@@ -184,14 +183,16 @@ data class ProjectFeatureInfo<T : Definition<V>, V : BuildModel>(
 
     fun schemaFunction(host: SchemaBuildingHost, schemaTypeToExtend: KClass<*>) = host.withTag(softwareConfiguringFunctionTag(delegate.featureName)) {
         val receiverTypeRef = host.containerTypeRef(schemaTypeToExtend)
+        val definitionType = host.containerTypeRef(definitionPublicType.kotlin)
         DefaultDataMemberFunction(
             receiverTypeRef,
             delegate.featureName,
             emptyList(),
             isDirectAccessOnly = true,
             semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
-                accessor = ConfigureAccessorInternal.DefaultCustom(host.containerTypeRef(definitionPublicType.kotlin), customAccessorId),
+                accessor = ConfigureAccessorInternal.DefaultCustom(definitionType, customAccessorId),
                 FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
+                definitionType,
                 FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
             ),
             metadata = listOf(DefaultProjectFeatureOrigin(
@@ -228,8 +229,6 @@ fun projectFeatureConfiguringFunctions(projectFeatureImplementations: ProjectFea
 
         return featureImplementations.map { it.schemaFunction(host, kClass) }
     }
-
-    override fun constructors(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
 
     override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
 }

@@ -19,7 +19,6 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.Cast;
 import org.gradle.internal.buildprocess.BuildProcessState;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
@@ -119,7 +118,6 @@ public class DefaultConnection implements ConnectionVersion4,
         buildProcessState = new BuildProcessState(
             true,
             AgentStatus.disabled(),
-            ClassPath.EMPTY,
             CurrentGradleInstallation.locate(),
             loggingServices,
             NativeServices.getInstance()

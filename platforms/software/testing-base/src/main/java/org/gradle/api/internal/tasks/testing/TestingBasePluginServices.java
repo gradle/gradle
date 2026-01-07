@@ -41,21 +41,18 @@ public class TestingBasePluginServices extends AbstractGradleModuleServices {
         registration.addProvider(new TestingBuildScopeServices());
     }
 
-    @NullMarked
     public static class TestingBuildSessionScopeServices implements ServiceRegistrationProvider {
         void configure(ServiceRegistration serviceRegistration) {
             serviceRegistration.add(TestListenerBuildOperationAdapter.class);
         }
     }
 
-    @NullMarked
     public static class TestingBuildTreeScopeServices implements ServiceRegistrationProvider {
         void configure(ServiceRegistration serviceRegistration) {
             serviceRegistration.add(AggregateTestEventReporter.class);
         }
     }
 
-    @NullMarked
     public static class TestingBuildScopeServices implements ServiceRegistrationProvider {
         void configure(ServiceRegistration serviceRegistration) {
             serviceRegistration.add(TestEventReporterFactory.class, DefaultTestEventReporterFactory.class);

@@ -21,7 +21,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-// ✅ Iterates over CHAMP trie using an explicit stack (linked list of IteratorState).
+// Iterates over CHAMP trie using an explicit stack (linked list of IteratorState).
 // Iterates data elements within a node in reverse order (--nextKey), then descends into
 // sub-nodes also in reverse order (content[content.length - nextNode]).
 // This is correct for unordered collections (sets/maps) where iteration order doesn't matter,

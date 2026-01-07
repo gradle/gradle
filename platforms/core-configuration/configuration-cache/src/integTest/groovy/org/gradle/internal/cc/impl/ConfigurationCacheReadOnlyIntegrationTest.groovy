@@ -136,7 +136,7 @@ class ConfigurationCacheReadOnlyIntegrationTest extends AbstractConfigurationCac
         postBuildOutputContains(CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON)
 
         problems.assertResultConsoleSummaryHasNoProblems(result)
-        problems.htmlReport(result).assertContents {
+        problems.htmlReport(result.output).assertContents {
             totalProblemsCount = 1
             withProblem("invocation of 'Task.project' at execution time is unsupported")
         }

@@ -17,6 +17,8 @@ package org.gradle.internal.collect;
 
 import org.jspecify.annotations.Nullable;
 
+import javax.annotation.CheckReturnValue;
+
 /// A fully persistent array implemented as a _persistent bitmapped vector trie_, providing effective *O(1)* mutation and random access,
 /// and efficient iteration.
 ///
@@ -36,7 +38,7 @@ public interface PersistentArray<T> extends Iterable<T> {
     }
 
     /// Returns a new persistent array with the given values or the [empty array][#of] when the given array is empty.
-    @SuppressWarnings("unchecked")
+    @SafeVarargs
     static <T> PersistentArray<T> of(T... values) {
         PersistentArray<T> copy = of();
         for (T value : values) {
@@ -62,6 +64,7 @@ public interface PersistentArray<T> extends Iterable<T> {
     /// Returns a new array with the given value appended.
     ///
     /// *~O(1)*
+    @CheckReturnValue
     PersistentArray<T> plus(T value);
 
     /// Returns how many elements are present in the array.

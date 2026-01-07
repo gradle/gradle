@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
 import org.gradle.api.credentials.Credentials;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -35,6 +36,7 @@ public interface AuthenticationSupported {
      * @return the credentials
      * @throws IllegalStateException if the credential type was previously set with {@link #credentials(Class, Action)} where the type was not {@link PasswordCredentials}
      */
+    @HiddenInDefinition
     PasswordCredentials getCredentials();
 
     /**
@@ -46,6 +48,7 @@ public interface AuthenticationSupported {
      * @return The credentials
      * @throws IllegalArgumentException when the credentials assigned to this repository are not assignable to the specified type
      */
+    @HiddenInDefinition
     <T extends Credentials> T getCredentials(Class<T> credentialsType);
 
     /**
@@ -66,6 +69,7 @@ public interface AuthenticationSupported {
      *
      * @throws IllegalStateException when the credentials assigned to this repository are not of type {@link PasswordCredentials}
      */
+    @HiddenInDefinition
     void credentials(Action<? super PasswordCredentials> action);
 
     /**
@@ -94,6 +98,7 @@ public interface AuthenticationSupported {
      * @throws IllegalArgumentException if {@code credentialsType} is not of a supported type
      * @throws IllegalArgumentException if {@code credentialsType} is of a different type to the credentials previously specified for this repository
      */
+    @HiddenInDefinition
     <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action);
 
     /**
@@ -121,6 +126,7 @@ public interface AuthenticationSupported {
      *
      * @since 6.6
      */
+    @HiddenInDefinition
     void credentials(Class<? extends Credentials> credentialsType);
 
     /**
@@ -146,6 +152,7 @@ public interface AuthenticationSupported {
      *
      * @param action the action to use to configure the authentication schemes.
      */
+    @HiddenInDefinition
     void authentication(Action<? super AuthenticationContainer> action);
 
     /**
@@ -153,5 +160,6 @@ public interface AuthenticationSupported {
      *
      * @return the authentication schemes for this repository
      */
+    @HiddenInDefinition
     AuthenticationContainer getAuthentication();
 }

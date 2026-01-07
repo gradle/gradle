@@ -32,7 +32,10 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 
 @Fork(1)
 @Warmup(iterations = 3)
@@ -42,12 +45,18 @@ public class PersistentMapBenchmark {
 
     public enum MapType {
         HashMap(true, new HashMapMapProtocol()),
+        ConcurrentHashMap(true, new HashMapMapProtocol()),
         TreeMap(true, new TreeMapMapProtocol()),
         fastutil(true, new FastutilMapProtocol()),
         guava(false, new GuavaMapProtocol()),
-        //        capsule(false, new CapsuleMapProtocol()),
+        // To avoid imposing the required dependencies on every Gradle developer
+        // we keep these implementations commented out.
+        // Uncomment the dependencies on build.gradle.kts then
+        // uncomment the desired implementation(s) here and at the bottom of this file.
+//        capsule(false, new CapsuleMapProtocol()),
 //        clojure(false, new ClojureMapProtocol()),
 //        scala(false, new ScalaMapProtocol()),
+//        pcollections(false, new PCollectionsMapProtocol()),
         gradle(false, new GradleMapProtocol());
 
         final boolean mutable;
@@ -101,6 +110,34 @@ public class PersistentMapBenchmark {
     }
 
     @Benchmark
+    public void modifyAbsentCustom(Blackhole blackhole) {
+        Object key = fixture.randomAbsent();
+        blackhole.consume(customModify(key, (k, v) -> v + "*"));
+    }
+
+    @Benchmark
+    public void modifyPresentCustom(Blackhole blackhole) {
+        Object key = fixture.randomPresent();
+        blackhole.consume(customModify(key, (k, cur) -> cur + "*"));
+    }
+
+    private Object customModify(Object key, BiFunction<Object, @Nullable Object, ?> f) {
+        return protocol.put(map, key, f.apply(key, protocol.get(map, key)));
+    }
+
+    @Benchmark
+    public void modifyAbsent(Blackhole blackhole) {
+        Object key = fixture.randomAbsent();
+        blackhole.consume(protocol.modify(map, key, (k, cur) -> cur + "*"));
+    }
+
+    @Benchmark
+    public void modifyPresent(Blackhole blackhole) {
+        Object key = fixture.randomPresent();
+        blackhole.consume(protocol.modify(map, key, (k, cur) -> cur + "*"));
+    }
+
+    @Benchmark
     public void putNew(Blackhole blackhole) {
         if (type.mutable) {
             // non-applicable
@@ -149,8 +186,12 @@ public class PersistentMapBenchmark {
     }
 
     @Benchmark
-    public void randomLookup(Blackhole blackhole) {
+    public void getPresent(Blackhole blackhole) {
         blackhole.consume(protocol.get(map, fixture.randomPresent()));
+    }
+
+    @Benchmark
+    public void getAbsent(Blackhole blackhole) {
         blackhole.consume(protocol.get(map, fixture.randomAbsent()));
     }
 
@@ -180,6 +221,10 @@ public class PersistentMapBenchmark {
 
         @Nullable Object get(Object map, Object key);
 
+        default Object modify(Object map, Object key, BiFunction<? super Object, ? super @Nullable Object, ? extends @Nullable Object> function) {
+            throw new UnsupportedOperationException();
+        }
+
         boolean containsKey(Object map, Object key);
 
         @SuppressWarnings("unchecked")
@@ -202,6 +247,11 @@ public class PersistentMapBenchmark {
         }
 
         @Override
+        public Object modify(Object map, Object key, BiFunction<? super Object, ? super @Nullable Object, ?> function) {
+            return ((PersistentMap<Object, Object>) map).modify(key, function);
+        }
+
+        @Override
         public Object remove(Object map, Object key) {
             return ((PersistentMap<Object, Object>) map).dissoc(key);
         }
@@ -216,106 +266,6 @@ public class PersistentMapBenchmark {
             return ((PersistentMap<Object, Object>) map).get(key);
         }
     }
-
-//    @SuppressWarnings("unchecked")
-//    static class CapsuleMapProtocol implements MapProtocol {
-//
-//        @Override
-//        public Object newInstance() {
-//            return io.usethesource.capsule.Map.Immutable.of();
-//        }
-//
-//        @Override
-//        public Object put(Object map, Object key, Object val) {
-//            return ((io.usethesource.capsule.Map.Immutable<Object, Object>) map).__put(key, val);
-//        }
-//
-//        @Override
-//        public Object remove(Object map, Object key) {
-//            return ((io.usethesource.capsule.Map.Immutable<Object, Object>) map).__remove(key);
-//        }
-//
-//        @Override
-//        public boolean containsKey(Object map, Object key) {
-//            return ((io.usethesource.capsule.Map.Immutable<Object, Object>) map).containsKey(key);
-//        }
-//
-//        @Override
-//        public Object get(Object map, Object key) {
-//            return ((io.usethesource.capsule.Map.Immutable<Object, Object>) map).get(key);
-//        }
-//
-//        @Override
-//        public Iterable<Object> iterable(Object map) {
-//            return () -> {
-//                Iterator<?> entryIterator = ((io.usethesource.capsule.Map.Immutable<Object, Object>) map).entryIterator();
-//                return (Iterator<Object>) entryIterator;
-//            };
-//        }
-//    }
-
-//    @SuppressWarnings("unchecked")
-//    static class ClojureMapProtocol implements MapProtocol {
-//
-//        @Override
-//        public Object newInstance() {
-//            return com.github.krukow.clj_ds.Persistents.hashMap();
-//        }
-//
-//        @Override
-//        public Object put(Object map, Object key, Object val) {
-//            return ((com.github.krukow.clj_ds.PersistentMap<Object, Object>) map).plus(key, val);
-//        }
-//
-//        @Override
-//        public Object remove(Object map, Object key) {
-//            return ((com.github.krukow.clj_ds.PersistentMap<Object, Object>) map).minus(key);
-//        }
-//
-//        @Override
-//        public boolean containsKey(Object map, Object key) {
-//            return ((com.github.krukow.clj_ds.PersistentMap<Object, Object>) map).containsKey(key);
-//        }
-//
-//        @Override
-//        public Object get(Object map, Object key) {
-//            return ((com.github.krukow.clj_ds.PersistentMap<Object, Object>) map).get(key);
-//        }
-//    }
-
-//    @SuppressWarnings("unchecked")
-//    static class ScalaMapProtocol implements MapProtocol {
-//
-//        @Override
-//        public Object newInstance() {
-//            return scala.collection.immutable.HashMap$.MODULE$.empty();
-//        }
-//
-//        @Override
-//        public Iterable<Object> iterable(Object map) {
-//            return scala.jdk.CollectionConverters$.MODULE$.IterableHasAsJava((scala.collection.Iterable<Object>) map).asJava();
-//        }
-//
-//        @Override
-//        public Object put(Object map, Object key, Object val) {
-//            return ((scala.collection.immutable.HashMap<Object, Object>) map).updated(key, val);
-//        }
-//
-//        @Override
-//        public Object remove(Object map, Object key) {
-//            return ((scala.collection.immutable.HashMap<Object, Object>) map).removed(key);
-//        }
-//
-//        @Override
-//        public boolean containsKey(Object map, Object key) {
-//            return ((scala.collection.immutable.HashMap<Object, Object>) map).contains(key);
-//        }
-//
-//        @Override
-//        public Object get(Object map, Object key) {
-//            return ((scala.collection.immutable.HashMap<Object, Object>) map).get(key);
-//        }
-//    }
 
     @SuppressWarnings("unchecked")
     static class GuavaMapProtocol implements MapProtocol {
@@ -355,18 +305,26 @@ public class PersistentMapBenchmark {
 
         @Override
         public Object put(Object map, Object key, Object val) {
-            ((HashMap<Object, Object>) map).put(key, val);
+            ((Map<Object, Object>) map).put(key, val);
             return map;
         }
 
         @Override
         public boolean containsKey(Object map, Object key) {
-            return ((HashMap<Object, Object>) map).containsKey(key);
+            return ((Map<Object, Object>) map).containsKey(key);
         }
 
         @Override
         public Object get(Object map, Object key) {
-            return ((HashMap<Object, Object>) map).get(key);
+            return ((Map<Object, Object>) map).get(key);
+        }
+    }
+
+    static class ConcurrentHashMapMapProtocol extends HashMapMapProtocol {
+
+        @Override
+        public Object newInstance() {
+            return new ConcurrentHashMap<>();
         }
     }
 
@@ -419,4 +377,139 @@ public class PersistentMapBenchmark {
             return ((Object2ObjectOpenHashMap<Object, Object>) map).get(key);
         }
     }
+
+//    @SuppressWarnings("unchecked")
+//    static class CapsuleMapProtocol implements MapProtocol {
+//
+//        @Override
+//        public Object newInstance() {
+//            return io.usethesource.capsule.Map.Immutable.of();
+//        }
+//
+//        @Override
+//        public Object put(Object map, Object key, Object val) {
+//            return ((io.usethesource.capsule.Map.Immutable<Object, Object>) map).__put(key, val);
+//        }
+//
+//        @Override
+//        public Object remove(Object map, Object key) {
+//            return ((io.usethesource.capsule.Map.Immutable<Object, Object>) map).__remove(key);
+//        }
+//
+//        @Override
+//        public boolean containsKey(Object map, Object key) {
+//            return ((io.usethesource.capsule.Map.Immutable<Object, Object>) map).containsKey(key);
+//        }
+//
+//        @Override
+//        public Object get(Object map, Object key) {
+//            return ((io.usethesource.capsule.Map.Immutable<Object, Object>) map).get(key);
+//        }
+//
+//        @Override
+//        public Iterable<Object> iterable(Object map) {
+//            return () -> {
+//                java.util.Iterator<?> entryIterator = ((io.usethesource.capsule.Map.Immutable<Object, Object>) map).entryIterator();
+//                return (java.util.Iterator<Object>) entryIterator;
+//            };
+//        }
+//    }
+//
+//    @SuppressWarnings("unchecked")
+//    static class ClojureMapProtocol implements MapProtocol {
+//
+//        @Override
+//        public Object newInstance() {
+//            return com.github.krukow.clj_ds.Persistents.hashMap();
+//        }
+//
+//        @Override
+//        public Object put(Object map, Object key, Object val) {
+//            return ((com.github.krukow.clj_ds.PersistentMap<Object, Object>) map).plus(key, val);
+//        }
+//
+//        @Override
+//        public Object remove(Object map, Object key) {
+//            return ((com.github.krukow.clj_ds.PersistentMap<Object, Object>) map).minus(key);
+//        }
+//
+//        @Override
+//        public boolean containsKey(Object map, Object key) {
+//            return ((com.github.krukow.clj_ds.PersistentMap<Object, Object>) map).containsKey(key);
+//        }
+//
+//        @Override
+//        public Object get(Object map, Object key) {
+//            return ((com.github.krukow.clj_ds.PersistentMap<Object, Object>) map).get(key);
+//        }
+//    }
+//
+//    @SuppressWarnings("unchecked")
+//    static class ScalaMapProtocol implements MapProtocol {
+//
+//        @Override
+//        public Object newInstance() {
+//            return scala.collection.immutable.HashMap$.MODULE$.empty();
+//        }
+//
+//        @Override
+//        public Iterable<Object> iterable(Object map) {
+//            return scala.jdk.CollectionConverters$.MODULE$.IterableHasAsJava((scala.collection.Iterable<Object>) map).asJava();
+//        }
+//
+//        @Override
+//        public Object put(Object map, Object key, Object val) {
+//            return ((scala.collection.immutable.HashMap<Object, Object>) map).updated(key, val);
+//        }
+//
+//        @Override
+//        public Object remove(Object map, Object key) {
+//            return ((scala.collection.immutable.HashMap<Object, Object>) map).removed(key);
+//        }
+//
+//        @Override
+//        public boolean containsKey(Object map, Object key) {
+//            return ((scala.collection.immutable.HashMap<Object, Object>) map).contains(key);
+//        }
+//
+//        @Override
+//        public Object get(Object map, Object key) {
+//            return ((scala.collection.immutable.HashMap<Object, Object>) map).get(key);
+//        }
+//    }
+//
+//    @SuppressWarnings("unchecked")
+//    static class PCollectionsMapProtocol implements MapProtocol {
+//
+//        @Override
+//        public Object newInstance() {
+//            return org.pcollections.HashTreePMap.empty();
+//        }
+//
+//        @Override
+//        public Object put(Object map, Object key, Object val) {
+//            return ((org.pcollections.PMap<Object, Object>) map).plus(key, val);
+//        }
+//
+//        @Override
+//        public Object remove(Object map, Object key) {
+//            return ((org.pcollections.PMap<Object, Object>) map).minus(key);
+//        }
+//
+//        @Override
+//        public boolean containsKey(Object map, Object key) {
+//            return ((org.pcollections.PMap<Object, Object>) map).containsKey(key);
+//        }
+//
+//        @Override
+//        public Object get(Object map, Object key) {
+//            return ((org.pcollections.PMap<Object, Object>) map).get(key);
+//        }
+//
+//        @Override
+//        public Iterable<Object> iterable(Object map) {
+//            return (Iterable<Object>) (Object) ((org.pcollections.PMap<Object, Object>) map).entrySet();
+//        }
+//    }
+
 }

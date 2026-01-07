@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -106,7 +105,7 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
     @Override
     public void readComponentResult(Decoder decoder, ResolvedComponentVisitor visitor) throws Exception {
         long resultId = decoder.readSmallLong();
-        ComponentSelectionReason reason = reasonSerializer.read(decoder);
+        ComponentSelectionReasonInternal reason = reasonSerializer.read(decoder);
         String repo = decoder.readNullableString();
         ComponentIdentifier componentIdentifier = componentIdSerializer.read(decoder);
         ModuleVersionIdentifier moduleVersionIdentifier = moduleVersionIdSerializer.read(decoder);

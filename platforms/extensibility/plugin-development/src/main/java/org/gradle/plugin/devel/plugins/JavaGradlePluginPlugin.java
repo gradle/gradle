@@ -163,7 +163,10 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
         ProjectInternal projectInternal = (ProjectInternal) project;
         ProjectPublicationRegistry registry = projectInternal.getServices().get(ProjectPublicationRegistry.class);
         ProjectIdentity projectIdentity = projectInternal.getProjectIdentity();
-        extension.getPlugins().all(pluginDeclaration -> registry.registerPublication(projectIdentity, new LocalPluginPublication(pluginDeclaration)));
+        extension.getPlugins().all(pluginDeclaration -> {
+            pluginDeclaration.setId(pluginDeclaration.getName());
+            registry.registerPublication(projectIdentity, new LocalPluginPublication(pluginDeclaration));
+        });
     }
 
     private static void applyDependencies(Project project) {

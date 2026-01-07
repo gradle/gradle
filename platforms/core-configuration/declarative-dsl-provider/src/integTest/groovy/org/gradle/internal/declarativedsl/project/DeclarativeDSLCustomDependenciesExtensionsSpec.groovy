@@ -31,6 +31,8 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.jetbrains.kotlin.config.JvmTarget
 
 final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegrationSpec {
@@ -66,15 +68,13 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
             import org.gradle.api.artifacts.DependencyScopeConfiguration;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
             import ${Definition.class.name};
             import ${BuildModel.class.name};
 
             import javax.inject.Inject;
 
-            @Restricted
             public abstract class LibraryExtension implements ${Definition.class.simpleName}<LibraryExtension.Model> {
                 private final SubDependencies sub;
 
@@ -87,7 +87,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                     return sub;
                 }
 
-                @Configuring
+                @HiddenInDefinition
                 public void sub(Action<? super SubDependencies> configure) {
                     configure.execute(getSub());
                 }
@@ -99,11 +99,8 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             package com.example.restricted;
 
             import org.gradle.api.artifacts.dsl.Dependencies;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-            @Restricted
             public interface BaseDependencies extends Dependencies {
-                @Restricted
                 default String baseMethod(String arg) {
                     System.out.println(arg);
                     return arg;
@@ -113,12 +110,9 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         file("build-logic/src/main/java/com/example/restricted/SubDependencies.java") << """
             package com.example.restricted;
 
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
             import org.gradle.api.artifacts.dsl.DependencyCollector;
 
-            @Restricted
             public interface SubDependencies extends BaseDependencies {
-                @Restricted
                 default String subMethod(String arg) {
                     System.out.println(arg);
                     return arg;
@@ -188,9 +182,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
             import org.gradle.api.artifacts.dsl.DependencyCollector;
             import org.gradle.api.artifacts.dsl.Dependencies;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-            @Restricted
             public interface DependenciesExtension extends Dependencies {
                 DependencyCollector getSomething();
                 DependencyCollector getSomethingElse();
@@ -275,6 +267,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         failure.assertHasCause("Failed to interpret the declarative DSL file '${testDirectory.file("build.gradle.dcl").path}'")
     }
 
+    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
     def 'can configure an extension using DependencyCollector in declarative DSL that uses Kotlin properties for the getters'() {
         given: "a plugin that creates a custom extension using a DependencyCollector"
         file("build-logic/src/main/kotlin/com/example/restricted/DependenciesExtension.kt") << """
@@ -284,7 +277,6 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import org.gradle.api.artifacts.dsl.Dependencies
             import org.gradle.declarative.dsl.model.annotations.Restricted
 
-            @Restricted
             interface DependenciesExtension : Dependencies {
                 val api: DependencyCollector
                 val implementation: DependencyCollector
@@ -444,9 +436,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
             import org.gradle.api.artifacts.dsl.DependencyCollector;
             import org.gradle.api.artifacts.dsl.Dependencies;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-            @Restricted
             public interface DependenciesExtension ${(extendDependencies) ? "extends Dependencies" : "" } {
                 DependencyCollector getApi();
                 DependencyCollector getImplementation();
@@ -461,9 +451,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import org.gradle.api.artifacts.dsl.DependencyCollector;
             import org.gradle.api.artifacts.dsl.Dependencies;
             import org.gradle.api.plugins.jvm.PlatformDependencyModifiers;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-            @Restricted
             public interface DependenciesExtension extends Dependencies, PlatformDependencyModifiers {
                 DependencyCollector getApi();
                 DependencyCollector getImplementation();
@@ -477,15 +465,13 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
-            import org.gradle.declarative.dsl.model.annotations.Configuring;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
             import org.gradle.api.artifacts.DependencyScopeConfiguration;
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
             import ${Definition.class.name};
             import ${BuildModel.class.name};
 
             import javax.inject.Inject;
 
-            @Restricted
             public abstract class LibraryExtension implements ${Definition.class.simpleName}<LibraryExtension.Model> {
                 private final DependenciesExtension dependencies;
 
@@ -498,7 +484,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                     return dependencies;
                 }
 
-                @Configuring
+                @HiddenInDefinition
                 public void dependencies(Action<? super DependenciesExtension> configure) {
                     configure.execute(dependencies);
                 }
@@ -583,23 +569,23 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
             import org.gradle.api.Action
             import org.gradle.api.model.ObjectFactory
-            import org.gradle.declarative.dsl.model.annotations.Configuring
             import org.gradle.declarative.dsl.model.annotations.Restricted
+            import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
             import org.gradle.api.internal.plugins.Definition
             import org.gradle.api.internal.plugins.BuildModel
 
             import javax.inject.Inject
 
-            @Restricted
             abstract class LibraryExtension : Definition<LibraryExtension.Model> {
                 val dependencies: DependenciesExtension = objectFactory.newInstance(DependenciesExtension::class.java)
 
-                @Configuring
+                @HiddenInDefinition
                 fun dependencies(configure: Action<DependenciesExtension>) {
                     configure.execute(dependencies)
                 }
 
                 @get:Inject
+                @get:HiddenInDefinition
                 abstract val objectFactory: ObjectFactory
 
                 abstract class Model : BuildModel {

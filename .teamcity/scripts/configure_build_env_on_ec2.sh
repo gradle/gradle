@@ -34,6 +34,7 @@ AWS_REGION=$(curl -s "http://169.254.169.254/latest/meta-data/placement/region")
 if [[ "$AWS_REGION" == us-* ]]; then
   echo "For $AWS_REGION switching to user teamcityus access token"
   echo "##teamcity[setParameter name='env.DEVELOCITY_ACCESS_KEY' value='%ge.gradle.org.access.key.us%;%gbt-td.grdev.net.access.key%']"
+  export DEVELOCITY_ACCESS_KEY="${DEVELOCITY_ACCESS_KEY_US}"
 fi
 
 # Execute pre-build script based on BUILD_TYPE_ID

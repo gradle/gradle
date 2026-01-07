@@ -141,8 +141,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     private final GradleBuildEnvironment environment;
     private final AgentStatus agentStatus;
 
-    public GlobalScopeServices(final boolean longLiving, AgentStatus agentStatus, ClassPath additionalModuleClassPath, CurrentGradleInstallation currentGradleInstallation) {
-        super(additionalModuleClassPath, currentGradleInstallation);
+    public GlobalScopeServices(final boolean longLiving, AgentStatus agentStatus, CurrentGradleInstallation currentGradleInstallation) {
+        super(currentGradleInstallation);
         this.agentStatus = agentStatus;
         this.environment = () -> longLiving;
     }
