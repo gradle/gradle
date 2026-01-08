@@ -67,27 +67,43 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Consumer<? super PersistentCache> initializer, CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
         lock.lock();
         try {
-            return doOpen(cacheDir, displayName, properties, lockOptions, initializer, cacheCleanupStrategy);
+            DirCacheReference<PersistentCache> dirCacheReference = openDirCacheReference(
+                PersistentCache.class,
+                cacheDir,
+                properties,
+                lockOptions,
+                () -> openPersistentCache(cacheDir, displayName, properties, lockOptions, initializer, cacheCleanupStrategy)
+            );
+            return new ReferenceTrackingPersistentCache(dirCacheReference);
         } finally {
             lock.unlock();
         }
+    }
+
+    private PersistentCache openPersistentCache(File cacheDir, String displayName, Map<String, ?> properties, LockOptions lockOptions, @Nullable Consumer<? super PersistentCache> initializer, CacheCleanupStrategy cacheCleanupStrategy) {
+        ReferencablePersistentCache cache;
+        if (!properties.isEmpty() || initializer != null) {
+            Consumer<? super PersistentCache> initAction = initializer != null ? initializer : __ -> {};
+            cache = new DefaultPersistentDirectoryCache(cacheDir, displayName, properties, lockOptions, initAction, cacheCleanupStrategy, lockManager, executorFactory);
+        } else {
+            cache = new DefaultPersistentDirectoryStore(cacheDir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory);
+        }
+        cache.open();
+        return cache;
     }
 
     @Override
     public FineGrainedPersistentCache openFineGrained(File cacheDir, String displayName, FineGrainedCacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
         lock.lock();
         try {
-            LockOptions lockOptions = DefaultLockOptions.mode(FileLockManager.LockMode.Exclusive);
-            DirCacheReference<?> dirCacheReference = dirCaches.get(cacheDir);
-            if (dirCacheReference == null) {
-                FineGrainedPersistentCache cache = new DefaultFineGrainedPersistentCache(cacheDir, displayName, lockManager, cacheCleanupStrategy);
-                cache.open();
-                dirCacheReference = new DirCacheReference<>(cache, Collections.emptyMap(), lockOptions);
-                dirCaches.put(cacheDir, dirCacheReference);
-            } else {
-                dirCacheReference.validate(FineGrainedPersistentCache.class, cacheDir, Collections.emptyMap(), lockOptions);
-            }
-            return new ReferenceTrackingFineGrainedCache(Cast.uncheckedCast(dirCacheReference));
+            DirCacheReference<FineGrainedPersistentCache> dirCacheReference = openDirCacheReference(
+                FineGrainedPersistentCache.class,
+                cacheDir,
+                Collections.emptyMap(),
+                DefaultLockOptions.mode(FileLockManager.LockMode.Exclusive),
+                () -> new DefaultFineGrainedPersistentCache(cacheDir, displayName, lockManager, cacheCleanupStrategy)
+            );
+            return new ReferenceTrackingFineGrainedCache(dirCacheReference);
         } finally {
             lock.unlock();
         }
@@ -109,30 +125,22 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
     }
 
-    private PersistentCache doOpen(
+    private <T extends Closeable & CleanableStore & HasCleanupAction> DirCacheReference<T> openDirCacheReference(
+        Class<T> cacheType,
         File cacheDir,
-        String displayName,
         Map<String, ?> properties,
         LockOptions lockOptions,
-        @Nullable Consumer<? super PersistentCache> initializer,
-        CacheCleanupStrategy cacheCleanupStrategy
+        Supplier<T> cacheFactory
     ) {
         DirCacheReference<?> dirCacheReference = dirCaches.get(cacheDir);
         if (dirCacheReference == null) {
-            ReferencablePersistentCache cache;
-            if (!properties.isEmpty() || initializer != null) {
-                Consumer<? super PersistentCache> initAction = initializer != null ? initializer : __ -> {};
-                cache = new DefaultPersistentDirectoryCache(cacheDir, displayName, properties, lockOptions, initAction, cacheCleanupStrategy, lockManager, executorFactory);
-            } else {
-                cache = new DefaultPersistentDirectoryStore(cacheDir, displayName, lockOptions, cacheCleanupStrategy, lockManager, executorFactory);
-            }
-            cache.open();
+            T cache = cacheFactory.get();
             dirCacheReference = new DirCacheReference<>(cache, properties, lockOptions);
             dirCaches.put(cacheDir, dirCacheReference);
         } else {
-            dirCacheReference.validate(PersistentCache.class, cacheDir, properties, lockOptions);
+            dirCacheReference.validate(cacheType, cacheDir, properties, lockOptions);
         }
-        return new ReferenceTrackingPersistentCache(Cast.uncheckedCast(dirCacheReference));
+        return Cast.uncheckedCast(dirCacheReference);
     }
 
     private class DirCacheReference<T extends Closeable & CleanableStore & HasCleanupAction> implements Closeable {
