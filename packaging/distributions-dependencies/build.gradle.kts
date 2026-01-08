@@ -46,7 +46,7 @@ val sshdVersion = "2.15.0"
 val jGitVersion = "7.2.1.202505142326-r"
 
 // test only
-val archunitVersion = "1.2.0"
+val archunitVersion = "1.4.1"
 val bytebuddyVersion = "1.17.5"
 val jettyVersion = "9.4.36.v20210114"
 
