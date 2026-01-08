@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.provider.Property
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.language.cpp.CppPlatform
 import org.gradle.language.cpp.internal.DefaultCppApplication
 import org.gradle.language.cpp.internal.DefaultCppBinary
@@ -127,7 +128,7 @@ class CppBasePluginTest extends Specification {
         then:
         def link = project.tasks[taskName]
         link instanceof LinkSharedLibrary
-        link.linkedFile.get().asFile == projectDir.file("build/lib/${libDir}" + OperatingSystem.current().getSharedLibraryName("test_lib"))
+        link.linkedFile.get().asFile == projectDir.file("build/lib/${libDir}" + PlatformBinaryResolver.forCurrentOs().getSharedLibraryName("test_lib"))
 
         where:
         name        | taskName        | libDir

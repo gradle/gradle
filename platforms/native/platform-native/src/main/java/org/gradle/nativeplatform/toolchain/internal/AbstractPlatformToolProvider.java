@@ -65,12 +65,12 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
 
     @Override
     public String getExecutableName(String executablePath) {
-        return targetOperatingSystem.getInternalOs().getExecutableName(executablePath);
+        return targetOperatingSystem.getBinaryResolver().getExecutableName(executablePath);
     }
 
     @Override
     public String getSharedLibraryName(String libraryPath) {
-        return targetOperatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
+        return targetOperatingSystem.getBinaryResolver().getSharedLibraryName(libraryPath);
     }
 
     @Override
@@ -90,12 +90,12 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
 
     @Override
     public String getSharedLibraryLinkFileName(String libraryPath) {
-        return targetOperatingSystem.getInternalOs().getSharedLibraryName(libraryPath);
+        return targetOperatingSystem.getBinaryResolver().getSharedLibraryName(libraryPath);
     }
 
     @Override
     public String getStaticLibraryName(String libraryPath) {
-        return targetOperatingSystem.getInternalOs().getStaticLibraryName(libraryPath);
+        return targetOperatingSystem.getBinaryResolver().getStaticLibraryName(libraryPath);
     }
 
     @Override

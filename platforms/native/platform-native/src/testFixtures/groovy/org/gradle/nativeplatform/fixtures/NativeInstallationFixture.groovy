@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.fixtures
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.test.fixtures.file.ExecOutput
 import org.gradle.test.fixtures.file.TestFile
 
@@ -59,7 +60,7 @@ class NativeInstallationFixture {
     }
 
     NativeInstallationFixture assertIncludesLibraries(String... names) {
-        def expected = names.collect { os.getSharedLibraryName(it) } as Set
+        def expected = names.collect { PlatformBinaryResolver.forOs(os).getSharedLibraryName(it) } as Set
         assert libraryFiles.collect { it.name } as Set == expected as Set
         this
     }

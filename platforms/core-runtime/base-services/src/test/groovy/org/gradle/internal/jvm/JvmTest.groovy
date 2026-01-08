@@ -19,6 +19,7 @@ package org.gradle.internal.jvm
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.jvm.JavaVersionParser
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Matchers
@@ -31,12 +32,8 @@ class JvmTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule
     SetSystemProperties sysProp = new SetSystemProperties()
-    OperatingSystem os = Mock() {
-        getExecutableName(_) >> { String name ->
-            return "${name}.exe"
-        }
-    }
-    OperatingSystem theOs = OperatingSystem.current()
+    OperatingSystem os = Spy(OperatingSystem.WINDOWS)
+    PlatformBinaryResolver currentOsBinaryResolver = PlatformBinaryResolver.forCurrentOs()
 
     Jvm getJvm() {
         new Jvm(os)
@@ -362,14 +359,14 @@ class JvmTest extends Specification {
         home.create {
             jre {
                 bin {
-                    file theOs.getExecutableName('java')
-                    file theOs.getExecutableName('javadoc')
+                    file currentOsBinaryResolver.getExecutableName('java')
+                    file currentOsBinaryResolver.getExecutableName('javadoc')
                 }
             }
         }
 
         then:
-        home.file(theOs.getExecutableName("jre/bin/javadoc")).absolutePath ==
+        home.file(currentOsBinaryResolver.getExecutableName("jre/bin/javadoc")).absolutePath ==
             Jvm.forHome(home.file("jre")).getExecutable("javadoc").absolutePath
     }
 
@@ -380,7 +377,7 @@ class JvmTest extends Specification {
         def home = tmpDir.createDir("home")
         home.create {
             jdk {
-                bin { file theOs.getExecutableName('java') }
+                bin { file currentOsBinaryResolver.getExecutableName('java') }
                 lib { file 'tools.jar' }
             }
         }
@@ -394,7 +391,7 @@ class JvmTest extends Specification {
         given:
         def home = tmpDir.createDir("home")
         home.create {
-            bin { file theOs.getExecutableName('java') }
+            bin { file currentOsBinaryResolver.getExecutableName('java') }
         }
 
         when:

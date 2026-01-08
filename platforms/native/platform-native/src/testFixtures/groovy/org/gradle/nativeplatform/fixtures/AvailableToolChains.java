@@ -26,6 +26,7 @@ import org.gradle.integtests.fixtures.VersionedTool;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.platform.PlatformBinaryResolver;
 import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioLocatorTestFixture;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion;
@@ -394,15 +395,15 @@ public class AvailableToolChains {
         }
 
         public SharedLibraryFixture sharedLibrary(Object path) {
-            return new SharedLibraryFixture(new TestFile(OperatingSystem.current().getSharedLibraryName(path.toString())), this);
+            return new SharedLibraryFixture(new TestFile(PlatformBinaryResolver.forCurrentOs().getSharedLibraryName(path.toString())), this);
         }
 
         public StaticLibraryFixture staticLibrary(Object path) {
-            return new StaticLibraryFixture(new TestFile(OperatingSystem.current().getStaticLibraryName(path.toString())), this);
+            return new StaticLibraryFixture(new TestFile(PlatformBinaryResolver.forCurrentOs().getStaticLibraryName(path.toString())), this);
         }
 
         public NativeBinaryFixture resourceOnlyLibrary(Object path) {
-            return new NativeBinaryFixture(new TestFile(OperatingSystem.current().getSharedLibraryName(path.toString())), this);
+            return new NativeBinaryFixture(new TestFile(PlatformBinaryResolver.forCurrentOs().getSharedLibraryName(path.toString())), this);
         }
 
         /**

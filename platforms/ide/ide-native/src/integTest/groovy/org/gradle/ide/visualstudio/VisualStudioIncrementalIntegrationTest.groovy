@@ -228,7 +228,7 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         and:
         final projectFile = projectFile("app.vcxproj")
         projectFile.projectConfigurations.values().each {
-            assert it.outputFile == OperatingSystem.current().getExecutableName("build/foo/main${it.name.capitalize()}/lib/app")
+            assert it.outputFile == org.gradle.internal.platform.PlatformBinaryResolver.forCurrentOs().getExecutableName("build/foo/main${it.name.capitalize()}/lib/app")
         }
 
         when:
