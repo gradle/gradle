@@ -132,7 +132,7 @@ fun buildProjectFeatureInfo(
     projectFeatureDeclarations: ProjectFeatureDeclarations,
     mapPluginTypeToSchemaType: (KClass<*>) -> KClass<*>
 ): ProjectFeatureSchemaBindingIndex {
-    val featureImplementations = projectFeatureDeclarations.getProjectFeatureImplementations().values.groupBy { it.targetDefinitionType }
+    val featureImplementations = projectFeatureDeclarations.getProjectFeatureImplementations().values.flatten().groupBy { it.targetDefinitionType }
 
     val featuresBoundToDefinition = featureImplementations.entries.mapNotNull { (key, value) -> if (key is DefinitionTargetTypeInformation) key to value else null }.toMap()
     val featuresBoundToModel = featureImplementations.entries.mapNotNull { (key, value) -> if (key is BuildModelTargetTypeInformation<*>) key to value else null }.toMap()
@@ -151,7 +151,7 @@ fun buildProjectTypeInfo(
     projectFeatureDeclarations: ProjectFeatureDeclarations,
     pluginTypeToSchemaClassMapping: (KClass<*>) -> KClass<*>
 ): ProjectFeatureSchemaBindingIndex {
-    val projectTypeInfo = projectFeatureDeclarations.getProjectFeatureImplementations().values.mapNotNull {
+    val projectTypeInfo = projectFeatureDeclarations.getProjectFeatureImplementations().values.flatten().mapNotNull {
         it.targetDefinitionType.run {
             if (this is DefinitionTargetTypeInformation && definitionType == Project::class.java)
                 ProjectFeatureInfo(it, SOFTWARE_TYPE_ACCESSOR_PREFIX)
@@ -173,13 +173,22 @@ fun replaceProjectWithSchemaTopLevelType(bindingType: KClass<*>, rootSchemaType:
     }
 }
 
+private
+fun calculateTargetTypeIdentifier(targetTypeInformation: org.gradle.api.internal.plugins.TargetTypeInformation<*>): String {
+    return when (targetTypeInformation) {
+        is DefinitionTargetTypeInformation -> "${targetTypeInformation.definitionType.name}"
+        is BuildModelTargetTypeInformation<*> -> "${targetTypeInformation.buildModelType.name}"
+        else -> throw IllegalArgumentException("Unsupported target type ${targetTypeInformation.javaClass.name}")
+    }
+}
+
 
 private
 data class ProjectFeatureInfo<T : Definition<V>, V : BuildModel>(
     val delegate: ProjectFeatureImplementation<T, V>,
     val accessorIdPrefix: String
 ) : ProjectFeatureImplementation<T, V> by delegate {
-    val customAccessorId = "$accessorIdPrefix:${delegate.featureName}"
+    val customAccessorId = "$accessorIdPrefix:${delegate.featureName}.${calculateTargetTypeIdentifier(delegate.targetDefinitionType)}"
 
     fun schemaFunction(host: SchemaBuildingHost, schemaTypeToExtend: KClass<*>) = host.withTag(softwareConfiguringFunctionTag(delegate.featureName)) {
         val receiverTypeRef = host.containerTypeRef(schemaTypeToExtend)

@@ -142,15 +142,18 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
     }
 
     override fun collectProjectTypes(projectFeatureDeclarations: ProjectFeatureDeclarations): List<ProjectFeatureEntry<TypeOf<*>>> =
-        projectFeatureDeclarations.projectFeatureImplementations.entries.map { (name, implementation) ->
-            val targetType = when (val target = implementation.targetDefinitionType) {
-                is TargetTypeInformation.DefinitionTargetTypeInformation ->  TypeOf.typeOf(target.definitionType)
-                is TargetTypeInformation.BuildModelTargetTypeInformation<*> ->
-                    parameterizedTypeOfRawGenericClass(listOf(TypeProjection(target.buildModelType, TypeProjectionKind.OUT)), Definition::class.java)
-                else -> error("Unexpected target type $target")
+        projectFeatureDeclarations.projectFeatureImplementations.entries.map { (name, implementations) ->
+            implementations.map { implementation ->
+                val targetType = when (val target = implementation.targetDefinitionType) {
+                    is TargetTypeInformation.DefinitionTargetTypeInformation -> TypeOf.typeOf(target.definitionType)
+                    is TargetTypeInformation.BuildModelTargetTypeInformation<*> ->
+                        parameterizedTypeOfRawGenericClass(listOf(TypeProjection(target.buildModelType, TypeProjectionKind.OUT)), Definition::class.java)
+
+                    else -> error("Unexpected target type $target")
+                }
+                ProjectFeatureEntry(name, TypeOf.typeOf(implementation.definitionPublicType), targetType)
             }
-            ProjectFeatureEntry(name, TypeOf.typeOf(implementation.definitionPublicType), targetType)
-        }
+        }.flatten()
 
     /**
      * Workaround: The [TypeOf] infrastructure handles parameterized types specially.

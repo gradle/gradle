@@ -30,8 +30,9 @@ import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 internal
 fun projectFeatureRegistryBasedModelDefaultsRepository(projectFeatureDeclarations: ProjectFeatureDeclarations): ModelDefaultsRepository = object : ModelDefaultsRepository {
     override fun findDefaults(featureName: String): ModelDefaultsResolutionResults? =
-        projectFeatureDeclarations.projectFeatureImplementations[featureName]?.let { projectFeature ->
-            resolutionResultsFromDefaultsFor(featureName, projectFeature)
+        projectFeatureDeclarations.projectFeatureImplementations[featureName]?.let { projectFeatures ->
+            // TODO - handle multiple project features per name when we support that for model defaults
+            resolutionResultsFromDefaultsFor(featureName, projectFeatures.first())
         }
 }
 
@@ -60,7 +61,10 @@ fun resolutionResultsFromDefaultsFor(featureName: String, projectFeature: Projec
 internal
 fun projectFeatureRegistryBasedModelDefaultsRegistrar(projectFeatureDeclarations: ProjectFeatureDeclarations): ModelDefaultsDefinitionRegistrar = object : ModelDefaultsDefinitionRegistrar {
     override fun registerDefaults(modelDefaultsByProjectFeature: Map<String, ModelDefaultsResolutionResults>) {
-        projectFeatureDeclarations.projectFeatureImplementations.values.forEach { implementation ->
+        // TODO - this currently works because model defaults only work for project types which all have the same
+        // receiver, so we can't have collisions.  For software features, we'll need some way to disambiguate when
+        // there are multiple features with different receivers.
+        projectFeatureDeclarations.projectFeatureImplementations.values.flatten().forEach { implementation ->
             modelDefaultsByProjectFeature[implementation.featureName]?.let { modelDefaults ->
                 val recordsFromModelDefaults = modelDefaults.additions.map(::AdditionRecordDefault) +
                     modelDefaults.assignments.map(::AssignmentRecordDefault) +
