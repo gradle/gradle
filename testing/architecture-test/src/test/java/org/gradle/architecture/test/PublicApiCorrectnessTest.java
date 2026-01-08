@@ -27,6 +27,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import kotlin.Pair;
+import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import kotlin.reflect.KClass;
 import kotlin.reflect.KProperty;
@@ -87,7 +88,9 @@ public class PublicApiCorrectnessTest {
                 .or(type(KClass.class))
                 .or(type(KClass[].class))
                 .or(type(KProperty.class))
+                .or(type(Pair.class))
                 .or(type(Pair[].class))
+                .or(type(Unit.class))
                 .as("Kotlin classes")
             );
     private static final DescribedPredicate<JavaClass> public_api_tasks_or_plugins =
