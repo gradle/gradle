@@ -336,17 +336,17 @@ public class HttpClientHelper implements Closeable {
             Rfc9457Problem problem = OBJECT_MAPPER.readValue(content, Rfc9457Problem.class);
 
             LOGGER.trace("RFC9457 parsed successfully - type: {}, title: {}, status: {}, detail: {}, instance: {}",
-                problem.getType(), problem.getTitle(), problem.getStatus(), problem.getDetail(), problem.getInstance());
+                problem.type(), problem.title(), problem.status(), problem.detail(), problem.instance());
 
             // Prefer "detail" field as it contains the specific explanation
-            String detail = problem.getDetail();
+            String detail = problem.detail();
             if (detail != null && !detail.isEmpty()) {
                 LOGGER.trace("Using RFC9457 'detail' field: {}", detail);
                 return detail;
             }
 
             // Fallback to "title" field if "detail" is not present
-            String title = problem.getTitle();
+            String title = problem.title();
             if (title != null && !title.isEmpty()) {
                 LOGGER.trace("RFC9457 'detail' field empty, using 'title' field: {}", title);
                 return title;
@@ -412,71 +412,18 @@ public class HttpClientHelper implements Closeable {
     }
 
     /**
-     * POJO representing RFC9457 Problem Details for HTTP APIs.
+     * Record representing RFC9457 Problem Details for HTTP APIs.
      * See: https://www.rfc-editor.org/rfc/rfc9457.html
      */
     @NullMarked
     @VisibleForTesting
-    static class Rfc9457Problem {
-        @Nullable
-        private String type;
-        @Nullable
-        private String title;
-        @Nullable
-        private Integer status;
-        @Nullable
-        private String detail;
-        @Nullable
-        private String instance;
-
-        // Default constructor required by Jackson
-        public Rfc9457Problem() {
-        }
-
-        @Nullable
-        public String getType() {
-            return type;
-        }
-
-        public void setType(@Nullable String type) {
-            this.type = type;
-        }
-
-        @Nullable
-        public String getTitle() {
-            return title;
-        }
-
-        public void setTitle(@Nullable String title) {
-            this.title = title;
-        }
-
-        @Nullable
-        public Integer getStatus() {
-            return status;
-        }
-
-        public void setStatus(@Nullable Integer status) {
-            this.status = status;
-        }
-
-        @Nullable
-        public String getDetail() {
-            return detail;
-        }
-
-        public void setDetail(@Nullable String detail) {
-            this.detail = detail;
-        }
-
-        @Nullable
-        public String getInstance() {
-            return instance;
-        }
-
-        public void setInstance(@Nullable String instance) {
-            this.instance = instance;
-        }
+    record Rfc9457Problem(
+        @Nullable String type,
+        @Nullable String title,
+        @Nullable Integer status,
+        @Nullable String detail,
+        @Nullable String instance
+    ) {
     }
 
     /**
