@@ -176,6 +176,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
      */
     @Console
     @Option(option = "provenance", description = "Show task provenance information")
+    @Incubating
     public abstract Property<Boolean> getShowProvenance();
 
     @TaskAction
