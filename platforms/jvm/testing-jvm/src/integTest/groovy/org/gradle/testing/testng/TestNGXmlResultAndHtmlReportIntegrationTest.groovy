@@ -113,7 +113,7 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends AbstractIntegrationSpe
             }
             """
         //when
-        executer.withTasks('test').runWithFailure().assertTestsFailed("registered by plugin 'org.gradle.jvm-test-suite'")
+        executer.withTasks('test').runWithFailure().assertTestsFailed()
     }
 
     def verifyTestResultWith(TestExecutionResult executionResult, TestResultOutputAssociation outputAssociation) {

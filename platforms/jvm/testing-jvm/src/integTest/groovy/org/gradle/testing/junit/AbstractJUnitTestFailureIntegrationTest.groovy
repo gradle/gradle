@@ -257,7 +257,7 @@ abstract class AbstractJUnitTestFailureIntegrationTest extends AbstractTestingMu
 
         then:
         if (VersionNumber.parse(version) > VersionNumber.parse("4.4")) {
-            failure.assertTestsFailed("registered by plugin 'org.gradle.jvm-test-suite'")
+            failure.assertTestsFailed()
             def results = resultsFor(testDirectory)
             results.assertAtLeastTestPathsExecuted(
                 'org.gradle.ClassWithBrokenRunnerOrExtension',

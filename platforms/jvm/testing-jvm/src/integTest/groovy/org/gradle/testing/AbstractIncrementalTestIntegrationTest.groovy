@@ -57,7 +57,7 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         """.stripIndent()
 
         when:
-        fails('test').assertTestsFailed("registered by plugin 'org.gradle.jvm-test-suite'")
+        fails('test').assertTestsFailed()
 
         file('src/test/java/Broken.java').assertIsFile().delete()
 

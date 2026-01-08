@@ -31,8 +31,8 @@ import static org.gradle.util.Matchers.matchesRegexp
  */
 @SelfType(AbstractIntegrationSpec)
 trait TestFrameworkStartupTestFixture {
-    void assertTestWorkerFailedToStart(String taskName = ":test") {
-        failure.assertHasDescription("Execution failed for task '$taskName' .")
+    void assertTestWorkerFailedToStart(String taskName = ":test", String taskProvenance = "") {
+        failure.assertHasDescription("Execution failed for task '$taskName'$taskProvenance.")
 
         def taskOutput = result.groupedOutput.task(taskName).output
         assert !(taskOutput =~ /beforeSuite Gradle Test Executor \d+/)
