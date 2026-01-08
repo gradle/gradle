@@ -411,6 +411,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
             ProblemGroup group = problem.getDefinition().getId().getGroup();
             if (!GradleCoreProblemGroup.validation().type().equals(group) && !GradleCoreProblemGroup.validation().property().equals(group)) {
                 resolutions.addAll(problem.getSolutions());
+                if (problem.getDefinition().getDocumentationLink() != null) {
+                    resolutions.add("For more information, see " + problem.getDefinition().getDocumentationLink().getUrl());
+                }
             }
         }
 
