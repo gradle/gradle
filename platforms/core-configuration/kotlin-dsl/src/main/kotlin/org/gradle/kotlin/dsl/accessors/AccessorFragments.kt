@@ -79,7 +79,7 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
 }
 
 private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragments = accessor.run {
-    val className = "${accessor.spec.projectFeatureName.original.uppercaseFirstChar()}ContainerElementFactoriesKt"
+    val className = internalNameForAccessorClassOf(accessor.spec)
     val functionName = spec.projectFeatureName.original
     val (kotlinModelType, _) = accessibleTypesFor(accessor.spec.modelType)
     val (kotlinTargetType, jvmTargetType) = accessibleTypesFor(accessor.spec.targetType)
@@ -1118,7 +1118,7 @@ fun MethodVisitor.invokeRuntime(function: String, desc: String) {
 
 
 private
-fun hashOf(accessorSpec: TypedAccessorSpec) =
+fun hashOf(accessorSpec: Any) =
     hashString(accessorSpec.toString()).toCompactString()
 
 
@@ -1228,6 +1228,9 @@ private
 fun internalNameForAccessorClassOf(accessorSpec: TypedAccessorSpec): String =
     "Accessors${hashOf(accessorSpec)}Kt"
 
+private
+fun internalNameForAccessorClassOf(accessorSpec: TypedProjectFeatureEntry): String =
+    "Accessors${hashOf(accessorSpec)}Kt"
 
 internal
 fun accessorDescriptorFor(receiverType: InternalName, returnType: InternalName) =

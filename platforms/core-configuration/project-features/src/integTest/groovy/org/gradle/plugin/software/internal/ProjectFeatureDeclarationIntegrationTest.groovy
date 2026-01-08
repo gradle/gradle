@@ -263,7 +263,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         failure.assertHasCause("Type 'org.gradle.test.NotAProjectFeaturePlugin' is registered as a project feature plugin but does not expose a project feature.")
     }
 
-    def 'sensible error when two plugins register features with the same name'() {
+    def 'sensible error when two plugins register features with the same name and binding target'() {
         given:
         PluginBuilder pluginBuilder = withTwoProjectFeaturesThatHaveTheSameName()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
@@ -285,6 +285,24 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
             "    \n" +
             "    Possible solution: Remove one of the plugins from the build."
         )
+    }
+
+    def 'can have two plugins that register features with the same name but different bindings'() {
+        given:
+        PluginBuilder pluginBuilder = withTwoProjectFeaturesThatHaveTheSameNameButDifferentBindings()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        args("--stacktrace")
+        succeeds(":printProjectTypeDefinitionConfiguration", ":printFeatureDefinitionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
     }
 
     def 'can declare and configure a custom project feature that binds to a build model'() {
