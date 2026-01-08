@@ -243,7 +243,7 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         ParentBuildModel           | ParentBuildModel           | "build model is the same as registered build model"
         ParentBuildModel           | SubClassOfParentBuildModel | "build model is sub class of registered build model"
         SubClassOfParentBuildModel | ParentBuildModel           | "build model is super class of registered build model"
-        ParentDefinition           | ParentBuildModel           | "definition has build model that is the same as registered build model"
+        ParentDefinition           | ParentBuildModel           | "build model is the same as registered definition's build model"
         SubClassOfParentDefinition | ParentBuildModel           | "build model is same as registered definition's inherited build model"
         ParentDefinition           | SubClassOfParentBuildModel | "build model is sub class of registered definition's build model"
     }

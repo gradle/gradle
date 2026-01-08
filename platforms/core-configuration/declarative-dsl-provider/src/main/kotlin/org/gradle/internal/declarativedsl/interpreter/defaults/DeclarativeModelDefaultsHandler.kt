@@ -53,7 +53,7 @@ import javax.inject.Inject
  * A {@link ConventionHandler} for applying declarative conventions.
  */
 abstract class DeclarativeModelDefaultsHandler @Inject constructor(
-    projectFeatureDeclarations: ProjectFeatureDeclarations,
+    val projectFeatureDeclarations: ProjectFeatureDeclarations,
     interpretationSchemaBuilder: InterpretationSchemaBuilder
 ) : ModelDefaultsHandler {
     private
@@ -66,10 +66,14 @@ abstract class DeclarativeModelDefaultsHandler @Inject constructor(
     val modelDefaultsRepository = projectFeatureRegistryBasedModelDefaultsRepository(projectFeatureDeclarations)
 
     override fun apply(target: Any, definition: Any, classLoaderContext: ClassLoaderContext, projectFeatureName: String, plugin: Plugin<*>) {
+        // TODO - this works because there should only be one implementation for each project type.  We'll need to revisit this
+        // when we support defaults for project features which can have multiple implementations.
+        val projectFeature = projectFeatureDeclarations.projectFeatureImplementations[projectFeatureName]?.first()
+
         val analysisStepRunner = ApplyDefaultsOnlyAnalysisStepRunner()
         val analysisStepContext = AnalysisStepContext(
             emptySet(),
-            setOf(SingleProjectTypeApplyModelDefaultsHandler(modelDefaultsRepository, projectFeatureName))
+            setOf(SingleProjectTypeApplyModelDefaultsHandler(modelDefaultsRepository, projectFeature!!.uniqueId))
         )
 
         val result = AnalysisAndConversionStepRunner(analysisStepRunner)

@@ -148,8 +148,8 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
                 problems.add(
                     problemReporter.internalCreate(builder -> builder
                         .id("duplicate-project-feature-registration", "Duplicate project feature registration", GradleCoreProblemGroup.configurationUsage())
-                        .details("A project feature or type with a given name can only be registered by a single plugin.")
-                        .contextualLabel("Project feature '" + projectFeatureName + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "'")
+                        .details("A project feature or type with a given name must bind to a unique target type.")
+                        .contextualLabel("Project feature '" + projectFeatureName + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "' but their bindings have overlapping target types.")
                         .solution("Remove one of the plugins from the build.")
                         .severity(Severity.ERROR)
                     )

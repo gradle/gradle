@@ -71,13 +71,29 @@ interface ApplyModelDefaultsHandler : ResolutionResultHandler {
 }
 
 
+fun ConfigureAccessor.projectFeatureAccessorIdOrNull(): String? =
+    if (this is ConfigureAccessor.ProjectFeature)
+        customAccessorIdentifier.removePrefix("$SOFTWARE_TYPE_ACCESSOR_PREFIX:").takeIf { it != customAccessorIdentifier }
+    else null
+
+
+fun ConfigureAccessor.projectFeatureNameOrNull(): String? =
+    if (this is ConfigureAccessor.ProjectFeature)
+        featureName
+    else null
+
+
+internal
+fun findUsedProjectFeatureIds(resolutionResult: ResolutionResult): Set<String> {
+    return resolutionResult.nestedObjectAccess
+        .mapNotNullTo(mutableSetOf()) {
+            (it.dataObject as? ObjectOrigin.AccessAndConfigureReceiver)?.accessor?.projectFeatureAccessorIdOrNull()
+        }
+}
+
+
 internal
 fun findUsedProjectFeatureNames(resolutionResult: ResolutionResult): Set<String> {
-    fun ConfigureAccessor.projectFeatureNameOrNull(): String? =
-        if (this is ConfigureAccessor.Custom)
-            customAccessorIdentifier.removePrefix("$SOFTWARE_TYPE_ACCESSOR_PREFIX:").takeIf { it != customAccessorIdentifier }
-        else null
-
     return resolutionResult.nestedObjectAccess
         .mapNotNullTo(mutableSetOf()) {
             (it.dataObject as? ObjectOrigin.AccessAndConfigureReceiver)?.accessor?.projectFeatureNameOrNull()
@@ -86,11 +102,11 @@ fun findUsedProjectFeatureNames(resolutionResult: ResolutionResult): Set<String>
 
 
 interface ModelDefaultsRepository {
-    fun findDefaults(featureName: String): ModelDefaultsResolutionResults?
+    fun findDefaults(featureId: String): ModelDefaultsResolutionResults?
 }
 
 fun defaultsForAllUsedProjectFeatures(modelDefaultsRepository: ModelDefaultsRepository, resolutionResult: ResolutionResult) =
-    findUsedProjectFeatureNames(resolutionResult).mapNotNull(modelDefaultsRepository::findDefaults)
+    findUsedProjectFeatureIds(resolutionResult).mapNotNull(modelDefaultsRepository::findDefaults)
 
 
 

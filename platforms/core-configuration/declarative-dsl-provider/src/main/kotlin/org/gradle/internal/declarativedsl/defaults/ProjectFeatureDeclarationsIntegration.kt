@@ -29,16 +29,17 @@ import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 
 internal
 fun projectFeatureRegistryBasedModelDefaultsRepository(projectFeatureDeclarations: ProjectFeatureDeclarations): ModelDefaultsRepository = object : ModelDefaultsRepository {
-    override fun findDefaults(featureName: String): ModelDefaultsResolutionResults? =
-        projectFeatureDeclarations.projectFeatureImplementations[featureName]?.let { projectFeatures ->
-            // TODO - handle multiple project features per name when we support that for model defaults
-            resolutionResultsFromDefaultsFor(featureName, projectFeatures.first())
+    val projectFeatureImplementationsById = projectFeatureDeclarations.projectFeatureImplementations.values.flatten().associateBy { it.uniqueId }
+
+    override fun findDefaults(featureId: String): ModelDefaultsResolutionResults? =
+        projectFeatureImplementationsById[featureId]?.let { projectFeature ->
+            resolutionResultsFromDefaultsFor(projectFeature.uniqueId, projectFeature)
         }
 }
 
 
 private
-fun resolutionResultsFromDefaultsFor(featureName: String, projectFeature: ProjectFeatureImplementation<*, *>): ModelDefaultsResolutionResults {
+fun resolutionResultsFromDefaultsFor(featureId: String, projectFeature: ProjectFeatureImplementation<*, *>): ModelDefaultsResolutionResults {
     val assignments = buildList {
         projectFeature.visitModelDefaults(
             AssignmentRecordDefault::class.java,
@@ -54,18 +55,15 @@ fun resolutionResultsFromDefaultsFor(featureName: String, projectFeature: Projec
             NestedObjectAccessDefault::class.java,
             ModelDefault.Visitor<NestedObjectAccessRecord> { record -> add(record) })
     }
-    return ModelDefaultsResolutionResults(featureName, assignments, additions, nestedObjectAccess)
+    return ModelDefaultsResolutionResults(featureId, assignments, additions, nestedObjectAccess)
 }
 
 
 internal
 fun projectFeatureRegistryBasedModelDefaultsRegistrar(projectFeatureDeclarations: ProjectFeatureDeclarations): ModelDefaultsDefinitionRegistrar = object : ModelDefaultsDefinitionRegistrar {
-    override fun registerDefaults(modelDefaultsByProjectFeature: Map<String, ModelDefaultsResolutionResults>) {
-        // TODO - this currently works because model defaults only work for project types which all have the same
-        // receiver, so we can't have collisions.  For software features, we'll need some way to disambiguate when
-        // there are multiple features with different receivers.
+    override fun registerDefaults(modelDefaultsByProjectFeatureId: Map<String, ModelDefaultsResolutionResults>) {
         projectFeatureDeclarations.projectFeatureImplementations.values.flatten().forEach { implementation ->
-            modelDefaultsByProjectFeature[implementation.featureName]?.let { modelDefaults ->
+            modelDefaultsByProjectFeatureId[implementation.uniqueId]?.let { modelDefaults ->
                 val recordsFromModelDefaults = modelDefaults.additions.map(::AdditionRecordDefault) +
                     modelDefaults.assignments.map(::AssignmentRecordDefault) +
                     modelDefaults.nestedObjectAccess.map(::NestedObjectAccessDefault)

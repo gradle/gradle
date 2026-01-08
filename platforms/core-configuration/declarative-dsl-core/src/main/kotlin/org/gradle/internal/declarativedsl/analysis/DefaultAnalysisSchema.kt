@@ -308,6 +308,11 @@ object ConfigureAccessorInternal {
     data class DefaultCustom(override val objectType: DataTypeRef, override val customAccessorIdentifier: String) : ConfigureAccessor.Custom
 
     @Serializable
+    @SerialName("projectFeature")
+    data class DefaultProjectFeature(override val objectType: DataTypeRef, override val customAccessorIdentifier: String, override val featureName: String) : ConfigureAccessor.ProjectFeature
+
+
+    @Serializable
     @SerialName("configuringLambdaArgument")
     data class DefaultConfiguringLambdaArgument(override val objectType: DataTypeRef) : ConfigureAccessor.ConfiguringLambdaArgument
 
