@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdExclude
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdSetExclude
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude
-import org.gradle.internal.collect.PersistentSet
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.IvyArtifactName
 import spock.lang.Specification
@@ -118,23 +117,23 @@ class DefaultCompositeExcludeTest extends Specification {
     }
 
     ModuleSetExclude nextModuleSet() {
-        FACTORY.moduleSet(PersistentSet.copyOf((0..(1 + random.nextInt(5))).collect { randomModuleName() }))
+        FACTORY.moduleSet((0..(1 + random.nextInt(5))).collect { randomModuleName() } as Set<String>)
     }
 
     GroupSetExclude nextGroupSet() {
-        FACTORY.groupSet(PersistentSet.copyOf((0..(1 + random.nextInt(5))).collect { randomGroupName() }))
+        FACTORY.groupSet((0..(1 + random.nextInt(5))).collect { randomGroupName() } as Set<String>)
     }
 
     ModuleIdSetExclude nextModuleIdSet() {
-        FACTORY.moduleIdSet(PersistentSet.copyOf((0..(1 + random.nextInt(5))).collect { randomModuleId() }))
+        FACTORY.moduleIdSet((0..(1 + random.nextInt(5))).collect { randomModuleId() } as Set<ModuleIdentifier>)
     }
 
     ExcludeSpec nextAny() {
-        FACTORY.anyOf(PersistentSet.copyOf((0..(1 + random.nextInt(3))).collect { next() }))
+        FACTORY.anyOf((0..(1 + random.nextInt(3))).collect { next() } as Set<ExcludeSpec>)
     }
 
     ExcludeSpec nextAll() {
-        FACTORY.allOf(PersistentSet.copyOf((0..(1 + random.nextInt(3))).collect { next() }))
+        FACTORY.allOf((0..(1 + random.nextInt(3))).collect { next() } as Set<ExcludeSpec>)
     }
 
     ExcludeSpec nextArtifact() {

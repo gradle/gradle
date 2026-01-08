@@ -16,15 +16,21 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.CompositeExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.internal.collect.PersistentSet;
+
+import java.util.Set;
 
 abstract class DefaultCompositeExclude implements CompositeExclude {
-    private final PersistentSet<ExcludeSpec> components;
+    private final ImmutableSet<ExcludeSpec> components;
+    private final int hashCode;
+    private final int size;
 
-    DefaultCompositeExclude(PersistentSet<ExcludeSpec> components) {
+    DefaultCompositeExclude(ImmutableSet<ExcludeSpec> components) {
         this.components = components;
+        this.size = components.size();
+        this.hashCode = (31 * components.hashCode() + this.size) ^ mask();
     }
 
     abstract int mask();
@@ -38,22 +44,22 @@ abstract class DefaultCompositeExclude implements CompositeExclude {
             return false;
         }
         DefaultCompositeExclude that = (DefaultCompositeExclude) o;
-        return Objects.equal(components, that.components);
+        return hashCode == that.hashCode && Objects.equal(components, that.components);
     }
 
     @Override
     public int hashCode() {
-        return components.hashCode();
+        return hashCode;
     }
 
     @Override
-    public PersistentSet<ExcludeSpec> getComponents() {
+    public Set<ExcludeSpec> getComponents() {
         return components;
     }
 
     @Override
     public int size() {
-        return components.size();
+        return size;
     }
 
     @Override

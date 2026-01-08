@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.fact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeEverything;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeNothing;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.internal.collect.PersistentSet;
 
+import java.util.Collection;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -76,7 +76,7 @@ public abstract class Optimizations {
         return onMiss.apply(one, two);
     }
 
-    public static <T extends PersistentSet<ExcludeSpec>> ExcludeSpec optimizeCollection(ExcludeFactory factory, T specs, Function<T, ExcludeSpec> onMiss) {
+    public static <T extends Collection<ExcludeSpec>> ExcludeSpec optimizeCollection(ExcludeFactory factory, T specs, Function<T, ExcludeSpec> onMiss) {
         if (specs.isEmpty()) {
             return factory.nothing();
         }

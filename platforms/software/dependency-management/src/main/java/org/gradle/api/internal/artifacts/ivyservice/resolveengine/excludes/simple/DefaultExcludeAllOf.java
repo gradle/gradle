@@ -15,18 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeAllOf;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.internal.collect.PersistentSet;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 final class DefaultExcludeAllOf extends DefaultCompositeExclude implements ExcludeAllOf {
-    public static ExcludeAllOf of(PersistentSet<ExcludeSpec> components) {
+    public static ExcludeAllOf of(ImmutableSet<ExcludeSpec> components) {
         return new DefaultExcludeAllOf(components);
     }
 
-    private DefaultExcludeAllOf(PersistentSet<ExcludeSpec> components) {
+    private DefaultExcludeAllOf(ImmutableSet<ExcludeSpec> components) {
         super(components);
     }
 
@@ -69,10 +69,10 @@ final class DefaultExcludeAllOf extends DefaultCompositeExclude implements Exclu
         }
         mayExcludeArtifacts = true;
         for (ExcludeSpec component : getComponents()) {
-            if (!component.mayExcludeArtifacts()) {
-                mayExcludeArtifacts = false;
-                break;
-            }
+           if (!component.mayExcludeArtifacts()) {
+               mayExcludeArtifacts = false;
+               break;
+           }
         }
         return mayExcludeArtifacts;
     }

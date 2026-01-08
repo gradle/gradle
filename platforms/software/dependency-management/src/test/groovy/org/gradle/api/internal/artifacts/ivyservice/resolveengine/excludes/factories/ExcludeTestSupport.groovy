@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.fact
 
 import groovy.transform.CompileStatic
 import org.gradle.api.artifacts.ModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
-import org.gradle.internal.collect.PersistentSet
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.IvyArtifactName
 import spock.lang.Shared
@@ -42,11 +42,11 @@ trait ExcludeTestSupport {
     }
 
     ExcludeSpec moduleSet(String... names) {
-        factory.moduleSet(randomizedPersistentSetOf(names as Set<String>))
+        factory.moduleSet(RandomizedIteratorHashSet.of(names as Set<String>))
     }
 
     ExcludeSpec groupSet(String... groups) {
-        factory.groupSet(randomizedPersistentSetOf(groups as Set<String>))
+        factory.groupSet(RandomizedIteratorHashSet.of(groups as Set<String>))
     }
 
     ExcludeSpec moduleId(String group, String name) {
@@ -54,14 +54,14 @@ trait ExcludeTestSupport {
     }
 
     ExcludeSpec moduleIdSet(List<String>... ids) {
-        factory.moduleIdSet(randomizedPersistentSetOf(ids.collect { newId(it[0], it[1]) } as Set<ModuleIdentifier>))
+        factory.moduleIdSet(RandomizedIteratorHashSet.of(ids.collect { newId(it[0], it[1]) } as Set<ModuleIdentifier>))
     }
 
     ExcludeSpec moduleIdSet(String... ids) {
-        factory.moduleIdSet(randomizedPersistentSetOf(ids.collect {
+        factory.moduleIdSet(RandomizedIteratorHashSet.of(ids.collect {
             def split = it.split(':')
             newId(split[0], split[1])
-        } as Set<ModuleIdentifier>))
+        } as Set))
     }
 
     ExcludeSpec anyOf(ExcludeSpec... specs) {
@@ -73,7 +73,7 @@ trait ExcludeTestSupport {
             case 2:
                 return factory.anyOf(specs[0], specs[1])
             default:
-                return factory.anyOf(randomizedPersistentSetOf(specs as Set<ExcludeSpec>))
+                return factory.anyOf(RandomizedIteratorHashSet.of(specs as Set<ExcludeSpec>))
         }
     }
 
@@ -86,7 +86,7 @@ trait ExcludeTestSupport {
             case 2:
                 return factory.allOf(specs[0], specs[1])
             default:
-                return factory.allOf(randomizedPersistentSetOf(specs as Set<ExcludeSpec>))
+                return factory.allOf(RandomizedIteratorHashSet.of(specs as Set<ExcludeSpec>))
         }
     }
 
@@ -100,7 +100,7 @@ trait ExcludeTestSupport {
 
     ExcludeSpec ivy(String group, String module, IvyArtifactName artifact, String matcher) {
         factory.ivyPatternExclude(
-            newId(group, module),
+            DefaultModuleIdentifier.newId(group, module),
             artifact,
             matcher
         )
@@ -110,11 +110,25 @@ trait ExcludeTestSupport {
         new DefaultIvyArtifactName(name, "jar", "jar")
     }
 
-    <K> PersistentSet<K> psetOf(Iterable<K> ks) {
-        PersistentSet.copyOf(ks)
-    }
+    private static class RandomizedIteratorHashSet<T> extends HashSet<T> {
+        private final Random random = new Random()
 
-    private <K> PersistentSet<K> randomizedPersistentSetOf(Set<K> set) {
-        psetOf(set.toList().shuffled())
+        static <T> RandomizedIteratorHashSet<T> of(Set<T> other) {
+            return new RandomizedIteratorHashSet<T>(other)
+        }
+
+        RandomizedIteratorHashSet(Set<T> other) {
+            super(other)
+        }
+
+        Iterator<T> iterator() {
+            List<T> asList = new ArrayList<>(size())
+            Iterator<T> iterator = super.iterator()
+            while (iterator.hasNext()) {
+                asList.add(iterator.next())
+            }
+            Collections.shuffle(asList, random)
+            asList.iterator()
+        }
     }
 }

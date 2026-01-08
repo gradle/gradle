@@ -16,8 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.internal.collect.PersistentSet;
+
+import java.util.Set;
 
 public interface ModuleIdSetExclude extends ExcludeSpec {
-    PersistentSet<ModuleIdentifier> getModuleIds();
+    Set<ModuleIdentifier> getModuleIds();
 }
