@@ -94,7 +94,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
     protected TaskInternal createTask(final String name, ProjectInternal project = this.project, Class type = TaskInternal) {
         def path = project.identityPath.child(name)
         TaskInternal task = Mock(type, name: name) {
-            buildFailureMessage() >> "Execution failed for task '$path' (registered in mock)."
+            buildFailureMessage(_) >> "Execution failed for task '$path' (registered in mock)."
         }
         TaskStateInternal state = Mock()
         task.project >> project

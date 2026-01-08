@@ -506,7 +506,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         withInstallations(jdkMetadata).fails(task)
         def events = toolchainEvents(task)
         then:
-        failureDescriptionStartsWith("Execution failed for task '${task}' .")
+        failureDescriptionStartsWith("Execution failed for task '$task'.")
         failureHasCause("There were failing tests.")
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }

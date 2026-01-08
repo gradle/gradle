@@ -84,8 +84,8 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 class ExecuteActionsTaskExecuterTest extends Specification {
     def problems = TestUtil.problemsService()
     def task = Mock(TaskInternal) {
-        buildFailureMessage() >> {
-            "Execution failed for test task."
+        buildFailureMessage(_) >> {
+            "Execution failed for task."
         }
     }
     def taskOutputs = Mock(TaskOutputsEnterpriseInternal)
@@ -330,7 +330,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         TaskExecutionException wrappedFailure = (TaskExecutionException) state.failure
         wrappedFailure instanceof TaskExecutionException
         wrappedFailure.task == task
-        wrappedFailure.message.startsWith("Execution failed for ")
+        wrappedFailure.message == "Execution failed for task."
         wrappedFailure.cause.is(failure)
     }
 
