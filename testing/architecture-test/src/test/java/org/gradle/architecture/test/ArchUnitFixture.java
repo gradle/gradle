@@ -21,15 +21,10 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaGenericArrayType;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaParameter;
-import com.tngtech.archunit.core.domain.JavaParameterizedType;
-import com.tngtech.archunit.core.domain.JavaType;
-import com.tngtech.archunit.core.domain.JavaTypeVariable;
-import com.tngtech.archunit.core.domain.JavaWildcardType;
 import com.tngtech.archunit.core.domain.PackageMatchers;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasType;
@@ -67,8 +62,6 @@ import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -230,7 +223,7 @@ public interface ArchUnitFixture {
         return new HaveDirectSuperclassOrInterfaceThatAre(types);
     }
 
-    static ArchCondition<JavaMethod> haveOnlyArgumentsOrReturnTypesThatAre(DescribedPredicate<JavaClass> types) {
+    static ArchCondition<JavaMember> haveOnlyArgumentsOrReturnTypesThatAre(DescribedPredicate<JavaClass> types) {
         return new HaveOnlyArgumentsOrReturnTypesThatAre(types);
     }
 
@@ -424,7 +417,7 @@ public interface ArchUnitFixture {
         }
     }
 
-    class HaveOnlyArgumentsOrReturnTypesThatAre extends ArchCondition<JavaMethod> {
+    class HaveOnlyArgumentsOrReturnTypesThatAre extends ArchCondition<JavaMember> {
         private final DescribedPredicate<JavaClass> types;
 
         public HaveOnlyArgumentsOrReturnTypesThatAre(DescribedPredicate<JavaClass> types) {
@@ -433,11 +426,8 @@ public interface ArchUnitFixture {
         }
 
         @Override
-        public void check(JavaMethod method, ConditionEvents events) {
-            Set<JavaClass> referencedTypes = new LinkedHashSet<>();
-            unpackJavaType(method.getReturnType(), referencedTypes);
-            method.getTypeParameters().forEach(typeParameter -> unpackJavaType(typeParameter, referencedTypes));
-            referencedTypes.addAll(method.getRawParameterTypes());
+        public void check(JavaMember member, ConditionEvents events) {
+            Set<JavaClass> referencedTypes = member.getAllInvolvedRawTypes();
             ImmutableSet<String> matchedClasses = referencedTypes.stream()
                 .filter(it -> !types.test(it))
                 .map(JavaClass::getName)
@@ -445,44 +435,18 @@ public interface ArchUnitFixture {
             boolean fulfilled = matchedClasses.isEmpty();
             String message = fulfilled
                 ? String.format("%s has only arguments/return type that are %s in %s",
-                method.getDescription(),
+                member.getDescription(),
                 types.getDescription(),
-                method.getSourceCodeLocation())
+                member.getSourceCodeLocation())
 
                 : String.format("%s has arguments/return type %s that %s not %s in %s",
-                method.getDescription(),
+                member.getDescription(),
                 String.join(", ", matchedClasses),
                 matchedClasses.size() == 1 ? "is" : "are",
                 types.getDescription(),
-                method.getSourceCodeLocation()
+                member.getSourceCodeLocation()
             );
-            events.add(new SimpleConditionEvent(method, fulfilled, message));
-        }
-
-        private void unpackJavaType(JavaType type, Set<JavaClass> referencedTypes) {
-            unpackJavaType(type, referencedTypes, new HashSet<>());
-        }
-
-        private void unpackJavaType(JavaType type, Set<JavaClass> referencedTypes, Set<JavaType> visited) {
-            if (!visited.add(type)) {
-                return;
-            }
-            if (type.toErasure().isEquivalentTo(Object.class)) {
-                return;
-            }
-            referencedTypes.add(type.toErasure());
-            if (type instanceof JavaTypeVariable) {
-                List<JavaType> upperBounds = ((JavaTypeVariable<?>) type).getUpperBounds();
-                upperBounds.forEach(bound -> unpackJavaType(bound, referencedTypes, visited));
-            } else if (type instanceof JavaGenericArrayType) {
-                unpackJavaType(((JavaGenericArrayType) type).getComponentType(), referencedTypes, visited);
-            } else if (type instanceof JavaWildcardType) {
-                JavaWildcardType wildcardType = (JavaWildcardType) type;
-                wildcardType.getUpperBounds().forEach(bound -> unpackJavaType(bound, referencedTypes, visited));
-                wildcardType.getLowerBounds().forEach(bound -> unpackJavaType(bound, referencedTypes, visited));
-            } else if (type instanceof JavaParameterizedType) {
-                ((JavaParameterizedType) type).getActualTypeArguments().forEach(argument -> unpackJavaType(argument, referencedTypes, visited));
-            }
+            events.add(new SimpleConditionEvent(member, fulfilled, message));
         }
     }
 
