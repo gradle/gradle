@@ -133,8 +133,8 @@
     "crossVersionTests": false
   },
   {
-    "name": "build-discovery-problems",
-    "path": "platforms/core-runtime/build-discovery-problems",
+    "name": "build-discovery-reporting",
+    "path": "platforms/core-runtime/build-discovery-reporting",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

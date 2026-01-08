@@ -53,6 +53,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "build-configuration",
         "build-discovery",
         "build-discovery-impl",
+        "build-discovery-reporting",
         "build-events",
         "build-init-specs",
         "build-init-specs-api",

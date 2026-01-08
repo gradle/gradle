@@ -18,7 +18,7 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
-description = "Problem reporting components of the build discovery subsystem"
+description = "Issue reporting components of the build discovery subsystem"
 
 dependencies {
     api(projects.buildDiscovery)
