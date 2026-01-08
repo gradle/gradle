@@ -62,9 +62,11 @@ import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -427,7 +429,13 @@ public interface ArchUnitFixture {
 
         @Override
         public void check(JavaMember member, ConditionEvents events) {
-            Set<JavaClass> referencedTypes = member.getAllInvolvedRawTypes();
+            Set<JavaClass> referencedTypes = new TreeSet<>(new Comparator<JavaClass>() {
+                @Override
+                public int compare(JavaClass o1, JavaClass o2) {
+                    return o1.getFullName().compareTo(o2.getFullName());
+                }
+            });
+            referencedTypes.addAll(member.getAllInvolvedRawTypes());
             ImmutableSet<String> matchedClasses = referencedTypes.stream()
                 .filter(it -> !types.test(it))
                 .map(JavaClass::getName)

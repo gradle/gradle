@@ -20,6 +20,7 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaCodeUnit;
+import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -44,6 +45,7 @@ import java.net.URL;
 import java.time.Duration;
 import java.util.function.BiFunction;
 
+import static com.tngtech.archunit.base.DescribedPredicate.describe;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.assignableTo;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.implement;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
@@ -52,6 +54,7 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.codeUnits;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.members;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static org.gradle.architecture.test.ArchUnitFixture.beAbstractClass;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
@@ -97,8 +100,8 @@ public class PublicApiCorrectnessTest {
             gradlePublicApi().and(assignableTo(Task.class).or(assignableTo(Plugin.class)));
 
     @ArchTest
-    public static final ArchRule public_api_methods_do_not_reference_internal_types_as_parameters = freeze(methods()
-        .that(are(public_api_methods))
+    public static final ArchRule public_api_methods_do_not_reference_internal_types_as_parameters = freeze(members()
+        .that(are(public_api_methods).and(DescribedPredicate.not(describe("constructors", m -> m instanceof JavaConstructor))))
         .should(haveOnlyArgumentsOrReturnTypesThatAre(allowed_types_for_public_api))
     );
 
