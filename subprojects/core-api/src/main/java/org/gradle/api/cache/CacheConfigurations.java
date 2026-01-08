@@ -107,4 +107,19 @@ public interface CacheConfigurations {
      */
     Property<MarkingStrategy> getMarkingStrategy();
 
+    /**
+     * Configures retention time for daemon logs.
+     *
+     * @since 9.4.0
+     */
+    @Incubating
+    CacheResourceConfiguration getDaemonLogs();
+
+    /**
+     * Configures retention time for daemon logs.
+     *
+     * @since 9.4.0
+     */
+    @Incubating
+    void daemonLogs(Action<? super CacheResourceConfiguration> cacheConfiguration);
 }

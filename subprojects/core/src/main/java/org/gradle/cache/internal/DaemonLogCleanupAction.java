@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import static org.gradle.launcher.daemon.logging.DaemonLogConstants.DAEMON_LOG_PREFIX;
 import static org.gradle.launcher.daemon.logging.DaemonLogConstants.DAEMON_LOG_SUFFIX;
@@ -43,7 +43,7 @@ public class DaemonLogCleanupAction implements MonitoredCleanupAction {
 
     private final File daemonBaseDir;
     private final Deleter deleter;
-    private static final long RETENTION_MILLIS = TimeUnit.DAYS.toMillis(DEFAULT_RETENTION_DAYS);
+    private final Supplier<Long> timeInMillis;
 
     /**
      * Creates a new daemon log cleanup action.
@@ -51,9 +51,10 @@ public class DaemonLogCleanupAction implements MonitoredCleanupAction {
      * @param daemonBaseDir the daemon base directory containing versioned daemon log directories
      * @param deleter the deleter to use for removing files
      */
-    public DaemonLogCleanupAction(File daemonBaseDir, Deleter deleter) {
+    public DaemonLogCleanupAction(File daemonBaseDir, Deleter deleter, Supplier<Long> timeInMillis) {
         this.daemonBaseDir = daemonBaseDir;
         this.deleter = deleter;
+        this.timeInMillis = timeInMillis;
     }
 
     @Override
@@ -70,7 +71,7 @@ public class DaemonLogCleanupAction implements MonitoredCleanupAction {
     }
 
     private void performCleanup(CleanupProgressMonitor progressMonitor) {
-        long maxAge = System.currentTimeMillis() - RETENTION_MILLIS;
+        long maxAge = timeInMillis.get();
 
         File[] daemonLogDirectories = daemonBaseDir.listFiles(file ->
             file.isDirectory() && DefaultGradleVersion.VERSION_PATTERN.matcher(file.getName()).matches());

@@ -55,6 +55,22 @@ class DaemonLogCleanupActionIntegrationTest extends AbstractIntegrationSpec impl
         recentLog2.assertExists()
     }
 
+    def "doesn't clean up old daemon log files (15 days) when set to 16"() {
+        withDaemonLogRetentionInDays(16)
+
+        given:
+        def versionDir = createDaemonVersionDir("8.0")
+        def oldLog1 = createOldDaemonLog(versionDir, 1234)
+        def recentLog1 = createRecentDaemonLog(versionDir, 9999)
+
+        when:
+        succeeds("dummy")
+
+        then:
+        oldLog1.assertExists()
+        recentLog1.assertExists()
+    }
+
     def "cleans up daemon logs across multiple version directories"() {
         given:
         def version70Dir = createDaemonVersionDir("7.0")

@@ -73,8 +73,9 @@ public class GradleUserHomeCleanupService implements Stoppable {
         );
         // with this VersionSpecificCacheCleanupAction manages the cleanup frequency timing
         if (wasCleanedUp) {
-            execute(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions));
-            execute(new DaemonLogCleanupAction(new File(userHomeDirProvider.getGradleUserHomeDirectory(), DAEMON_LOG_DIR), deleter));
+            File gradleUserHomeDirectory = userHomeDirProvider.getGradleUserHomeDirectory();
+            execute(new WrapperDistributionCleanupAction(gradleUserHomeDirectory, usedGradleVersions));
+            execute(new DaemonLogCleanupAction(new File(gradleUserHomeDirectory, DAEMON_LOG_DIR), deleter, cacheConfigurations.getDaemonLogs().getEntryRetentionTimestampSupplier()));
         }
         alreadyCleaned = true;
     }
