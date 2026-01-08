@@ -228,7 +228,7 @@ class DaemonLogCleanupActionIntegrationTest extends AbstractIntegrationSpec impl
     }
 
     long justUnderFourteenDays() {
-        exactlyFourteenDaysAgo() + 1000 // 1 second newer
+        exactlyFourteenDaysAgo() + 10000 // 10 seconds newer
     }
 
     @Override

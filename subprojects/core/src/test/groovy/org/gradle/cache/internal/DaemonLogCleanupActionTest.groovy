@@ -39,7 +39,7 @@ class DaemonLogCleanupActionTest extends Specification {
     def deleter = TestFiles.deleter()
 
     @Subject
-    def cleanupAction = new DaemonLogCleanupAction(daemonBaseDir, deleter, TimeUnit.DAYS.toMillis(DEFAULT_RETENTION_DAYS))
+    def cleanupAction = new DaemonLogCleanupAction(daemonBaseDir, deleter, { -> System.currentTimeMillis() - TimeUnit.DAYS.toMillis(DEFAULT_RETENTION_DAYS)})
 
     def "cleans up old daemon log files"() {
         given:
@@ -154,7 +154,7 @@ class DaemonLogCleanupActionTest extends Specification {
     def "handles empty daemon base directory"() {
         given:
         def emptyDaemonDir = temporaryFolder.createDir("empty-daemon")
-        def emptyCleanupAction = new DaemonLogCleanupAction(emptyDaemonDir, deleter, TimeUnit.DAYS.toMillis(DEFAULT_RETENTION_DAYS))
+        def emptyCleanupAction = new DaemonLogCleanupAction(emptyDaemonDir, deleter, { -> System.currentTimeMillis() - TimeUnit.DAYS.toMillis(DEFAULT_RETENTION_DAYS)})
 
         when:
         def cleanedUp = emptyCleanupAction.execute(progressMonitor)
