@@ -1,25 +1,26 @@
 abstract class GreetingTask : DefaultTask() {
     @get:Input
     abstract val type: Property<String>
-    @get:OutputFile
-    abstract val outputFile: RegularFileProperty // <1>
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
 
     @TaskAction
     fun run() {
+        val outFileName = type.get() + ".txt"
         val message = "Hello " + type.get()
-        outputDirectory.file(outFileName).get().asFile.writeText(message) // <2>
+        outputDirectory.file(outFileName).get().asFile.writeText(message)
     }
 }
 
 abstract class ConsumerTask : DefaultTask() {
-    @get:InputFile
-    abstract val inputFile: RegularFileProperty
+    @get:InputDirectory
+    abstract val inputDirectory: DirectoryProperty
     @get:OutputFile
     abstract val outputFile: RegularFileProperty
 
     @TaskAction
     fun run() {
-        val message = inputFile.get().asFile.text
+        val message = inputDirectory.get().file("a.txt").asFile.readText()
         outputFile.get().asFile.writeText(message)
     }
 }
