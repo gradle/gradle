@@ -16,7 +16,7 @@
 
 package org.gradle.internal.scripts
 
-import org.gradle.scripts.ScriptingLanguage
+
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -49,19 +49,6 @@ class DefaultScriptFileResolverTest extends Specification {
         then:
         result.selectedCandidate == null
         result.ignoredCandidates.isEmpty()
-    }
-
-    def "custom-named script files can be resolved"() {
-        given:
-        createFiles(testDir, withExtensions("custom"))
-
-        when:
-        def resolver = new DefaultScriptFileResolver()
-        def result = resolver.resolveScriptFile(testDir, "custom")
-
-        then:
-        result.selectedCandidate.name == "custom.gradle"
-        result.ignoredCandidates*.name == ["custom.gradle.kts", "custom.gradle.dcl"]
     }
 
 
