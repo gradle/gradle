@@ -39,7 +39,7 @@ class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "shows help message when tasks #tasks run in a directory with no build definition present"() {
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
-        executer.requireOwnGradleUserHomeDir().withArgument("--no-problems-report")
+        executer.requireOwnGradleUserHomeDir("").withArgument("--no-problems-report")
 
         when:
         run(*tasks)
@@ -103,7 +103,7 @@ Directory '$sub' does not contain a Gradle build.
 
     def "shows help message when run in a buildSrc directory that does not contain build or settings script"() {
         given:
-        executer.requireOwnGradleUserHomeDir()
+        executer.requireOwnGradleUserHomeDir("")
         settingsFile.createFile()
         def sub = file("buildSrc").createDir()
         sub.file("src/main/java/Thing.java") << "class Thing { }"
@@ -230,7 +230,7 @@ BUILD SUCCESSFUL"""
         output.contains """Detailed task information for dependencies
 
 Path
-     :dependencies
+     :dependencies (registered by plugin 'org.gradle.software-reporting-tasks')
 
 Type
      DependencyReportTask (org.gradle.api.tasks.diagnostics.DependencyReportTask)
@@ -257,7 +257,7 @@ BUILD SUCCESSFUL"""
         output.contains """Detailed task information for help
 
 Path
-     :help
+     :help (registered by plugin 'org.gradle.help-tasks')
 
 Type
      Help (org.gradle.configuration.Help)
@@ -300,8 +300,8 @@ include ":someproj"
         output.contains """Detailed task information for hello
 
 Paths
-     :hello
-     :someproj:hello
+     :hello (registered in build file 'build.gradle')
+     :someproj:hello (registered in build file 'build.gradle')
 
 Type
      Task (org.gradle.api.Task)
@@ -349,9 +349,9 @@ include ":someproj2"
         output.contains """Detailed task information for hello
 
 Paths
-     :hello
-     :someproj1:hello
-     :someproj2:hello
+     :hello (registered in build file 'build.gradle')
+     :someproj1:hello (registered in build file 'build.gradle')
+     :someproj2:hello (registered in build file 'build.gradle')
 
 Type
      Task (org.gradle.api.Task)
@@ -383,7 +383,7 @@ BUILD SUCCESSFUL"""
         output.contains """Detailed task information for :jar
 
 Path
-     :jar
+     :jar (registered by plugin 'org.gradle.java')
 
 Type
      Jar (org.gradle.api.tasks.bundling.Jar)
@@ -406,8 +406,8 @@ BUILD SUCCESSFUL"""
         output.contains """Detailed task information for jar
 
 Paths
-     :jar
-     :subproj1:jar
+     :jar (registered by plugin 'org.gradle.java')
+     :subproj1:jar (registered by plugin 'org.gradle.java')
 
 Type
      Jar (org.gradle.api.tasks.bundling.Jar)
@@ -447,7 +447,7 @@ BUILD SUCCESSFUL"""
         output.contains """Detailed task information for someTask
 
 Path
-     :subproj1:someTask
+     :subproj1:someTask (registered in build file 'build.gradle')
 
 Type
      Copy (org.gradle.api.tasks.Copy)
@@ -464,7 +464,7 @@ Group
 ----------------------
 
 Path
-     :someTask
+     :someTask (registered in build file 'build.gradle')
 
 Type
      Jar (org.gradle.api.tasks.bundling.Jar)
@@ -523,7 +523,7 @@ BUILD SUCCESSFUL"""
         output.contains """Detailed task information for sCC
 
 Path
-     :someCamelCaseTask
+     :someCamelCaseTask (registered in build file 'build.gradle')
 
 Type
      Task (org.gradle.api.Task)
@@ -567,9 +567,9 @@ BUILD SUCCESSFUL"""
         output.contains """Detailed task information for hello
 
 Paths
-     :hello
-     :proj1:hello
-     :proj2:hello
+     :hello (registered in build file 'build.gradle')
+     :proj1:hello (registered in build file 'build.gradle')
+     :proj2:hello (registered in build file 'build.gradle')
 
 Type
      CustomTask (CustomTask)
@@ -606,8 +606,8 @@ BUILD SUCCESSFUL"""
         output.contains """Detailed task information for hello
 
 Paths
-     :sub1:hello
-     :sub2:hello
+     :sub1:hello (registered in build file 'build.gradle')
+     :sub2:hello (registered in build file 'build.gradle')
 
 Type
      CustomTask (CustomTask)

@@ -168,28 +168,26 @@ public interface TaskInternal extends Task, Configurable<Task> {
      */
     @Internal
     default String buildFailureMessage(Throwable cause) {
+        boolean isVerificationFailure = cause instanceof VerificationException;
+        String createdBy = isVerificationFailure ? "" : String.format(" (%s)", getProvenance().orElse(""));
+        return String.format("Execution failed for %s%s.", this, createdBy);
+    }
+
+    @Internal
+    default Optional<String> getProvenance() {
         UserCodeSource source = getTaskIdentity().getUserCodeSource();
         String sourceDesc = source.getDisplayName().getDisplayName();
 
-        boolean isVerificationFailure = cause instanceof VerificationException;
-
-        String createdBy;
-        if (isVerificationFailure) {
-            createdBy = "";
+        boolean isUnknownSource = source == UserCodeSource.UNKNOWN;
+        boolean isCreatedByRule = source == UserCodeSource.BY_RULE;
+        if (isUnknownSource) {
+            return Optional.empty();
+        } else if (isCreatedByRule) {
+            return Optional.of("registered by Rule");
         } else {
-            boolean isUnknownSource = source == UserCodeSource.UNKNOWN;
-            boolean isCreatedByRule = source == UserCodeSource.BY_RULE;
-            if (isUnknownSource) {
-                createdBy = "";
-            } else if (isCreatedByRule) {
-                createdBy = " (registered by Rule)";
-            } else {
-                boolean isPluginSource = sourceDesc.contains("plugin");
-                String preposition = isPluginSource ? "by" : "in";
-                createdBy = String.format(" (registered %s %s)", preposition, sourceDesc);
-            }
+            boolean isPluginSource = sourceDesc.contains("plugin");
+            String preposition = isPluginSource ? "by" : "in";
+            return Optional.of(String.format("registered %s %s", preposition, sourceDesc));
         }
-
-        return String.format("Execution failed for %s%s.", this, createdBy);
     }
 }
