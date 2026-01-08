@@ -282,6 +282,9 @@ The cleanup is triggered during builds:
 - In the background between builds when using the daemon (default behavior)
 - In the foreground after the build when using `--no-daemon`
 
+The 14-day retention period for daemon logs can be configured via an <<init_scripts.adoc#init_scripts,init script>>, just like other cache retention periods.
+See <<directory_layout.adoc#dir:gradle_user_home:configure_cache_cleanup,Configuring cleanup of caches and distributions>> for configuration examples.
+
 [[sec:configuring_daemon_jvm]]
 == Daemon JVM Toolchains
 

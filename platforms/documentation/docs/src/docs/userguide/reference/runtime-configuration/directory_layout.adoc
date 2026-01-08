@@ -100,7 +100,7 @@ Log files older than 14 days are automatically deleted to prevent the daemon dir
 
 The retention periods of the various caches can be configured.
 
-Caches are classified into five categories:
+Caches are classified into six categories:
 
 1. *Released wrapper distributions:* Distributions and related version-specific caches corresponding to released versions (e.g., `4.6.2` or `8.0`).
 +
@@ -117,11 +117,11 @@ Default retention for unused resources is 7 days.
 5. *Build cache:* The local build cache (e.g., build-cache-1).
 +
 Default retention for unused build cache entries is 7 days.
+6. *Daemon logs:* Log files from Gradle Daemon processes in `daemon/<GRADLE_VERSION>/` directories.
++
+Default retention for daemon logs is 14 days.
 
-NOTE: Daemon log files in `daemon/<GRADLE_VERSION>/` directories are also cleaned up automatically.
-By default, log files older than 14 days are deleted.
-
-The retention period for each of the five cache categories above can be configured independently via an <<init_scripts.adoc#init_scripts,init script>> in the Gradle User Home:
+The retention period for each category can be configured independently via an <<init_scripts.adoc#init_scripts,init script>> in the Gradle User Home:
 
 ====
 include::sample[dir="snippets/initScripts/cacheRetention/kotlin",files="gradleUserHome/init.d/cache-settings.init.gradle.kts"]

@@ -91,6 +91,8 @@ This addition enables support for additional JUnit Platform features, and allows
 
 Daemon logs older than 14 days are now automatically cleaned up when the daemon shuts down, eliminating the need for manual cleanup.
 
+See the [daemon documentation](userguide/gradle_daemon.html#sec:daemon_log_cleanup) for more details.
+
 ### POM exclusion importing
 
 When using the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion) to generate a Gradle build from an existing Maven project, Gradle now imports `<exclusion>` elements from the Maven POM and translates them into Gradle dependency exclusions.
