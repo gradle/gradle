@@ -108,7 +108,7 @@ public interface CacheConfigurations {
     Property<MarkingStrategy> getMarkingStrategy();
 
     /**
-     * Configures retention time for daemon logs.
+     * Returns the daemon log settings.
      *
      * @since 9.4.0
      */
@@ -117,6 +117,10 @@ public interface CacheConfigurations {
 
     /**
      * Configures retention time for daemon logs.
+     *
+     * <p>
+     * By default, daemon logs are removed after 14 days of not being used."
+     * </p>
      *
      * @since 9.4.0
      */

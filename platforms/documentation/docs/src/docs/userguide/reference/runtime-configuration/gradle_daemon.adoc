@@ -269,17 +269,17 @@ These logs are stored in the <<directory_layout.adoc#dir:gradle_user_home,Gradle
 
 Each daemon process creates its own log file named `daemon-<pid>.out.log`, where `<pid>` is the process ID of that daemon instance.
 
-[[sec:daemon_log_cleanup]
+[[sec:daemon_log_cleanup]]
 === Automatic Log Cleanup
 
 Gradle automatically cleans up old daemon logs to prevent the daemon directory from growing indefinitely.
 
-By default, daemon logs older than 14 days are deleted when the Gradle Daemon shuts down.
+By default, daemon logs older than 14 days are deleted during build execution as part of Gradle's periodic cache cleanup.
 This cleanup runs alongside other <<directory_layout.adoc#dir:gradle_user_home:cache_cleanup,cache cleanup operations>>.
 
-The cleanup occurs:
+The cleanup is triggered during builds:
 
-- In the background when the daemon stops or is idle (default behavior)
+- In the background between builds when using the daemon (default behavior)
 - In the foreground after the build when using `--no-daemon`
 
 [[sec:configuring_daemon_jvm]]
