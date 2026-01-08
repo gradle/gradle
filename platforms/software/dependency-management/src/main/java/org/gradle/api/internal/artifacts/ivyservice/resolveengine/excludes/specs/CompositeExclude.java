@@ -15,13 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs;
 
-import org.gradle.internal.collect.PersistentSet;
+import java.util.Set;
 
 public interface CompositeExclude extends ExcludeSpec {
     @Override
     boolean equals(Object o);
 
-    PersistentSet<ExcludeSpec> getComponents();
+    Set<ExcludeSpec> getComponents();
 
     default boolean contains(ExcludeSpec spec) {
         return getComponents().contains(spec);

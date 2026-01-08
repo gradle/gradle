@@ -15,26 +15,28 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdSetExclude;
-import org.gradle.internal.collect.PersistentSet;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import java.util.Set;
+
 final class DefaultModuleIdSetExclude implements ModuleIdSetExclude {
-    private final PersistentSet<ModuleIdentifier> moduleIds;
+    private final Set<ModuleIdentifier> moduleIds;
     private final int hashCode;
 
-    static ModuleIdSetExclude of(PersistentSet<ModuleIdentifier> ids) {
-        return new DefaultModuleIdSetExclude(ids);
+    static ModuleIdSetExclude of(Set<ModuleIdentifier> ids) {
+        return new DefaultModuleIdSetExclude(ImmutableSet.copyOf(ids));
     }
 
-    private DefaultModuleIdSetExclude(PersistentSet<ModuleIdentifier> moduleIds) {
+    private DefaultModuleIdSetExclude(ImmutableSet<ModuleIdentifier> moduleIds) {
         this.moduleIds = moduleIds;
         this.hashCode = moduleIds.hashCode();
     }
 
     @Override
-    public PersistentSet<ModuleIdentifier> getModuleIds() {
+    public Set<ModuleIdentifier> getModuleIds() {
         return moduleIds;
     }
 

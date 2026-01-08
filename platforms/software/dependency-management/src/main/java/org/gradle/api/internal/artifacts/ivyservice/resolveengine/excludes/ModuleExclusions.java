@@ -23,14 +23,15 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.facto
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.OptimizingExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.internal.collect.PersistentSet;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ServiceScope(Scope.Build.class)
@@ -57,14 +58,15 @@ public class ModuleExclusions {
 
     public ExcludeSpec excludeAny(Collection<? extends ExcludeMetadata> excludes) {
         if (excludes.isEmpty()) {
+            // avoids creation of empty hashset
             return nothing;
         }
         if (excludes.size() == 1) {
             return forExclude(excludes.iterator().next());
         }
-        PersistentSet<ExcludeSpec> result = PersistentSet.of();
+        Set<ExcludeSpec> result = new HashSet<>();
         for (ExcludeMetadata exclude : excludes) {
-            result = result.plus(forExclude(exclude));
+            result.add(forExclude(exclude));
         }
         return factory.anyOf(result);
     }
@@ -114,11 +116,11 @@ public class ModuleExclusions {
         return factory.allOf(one, two);
     }
 
-    public ExcludeSpec excludeAll(PersistentSet<ExcludeSpec> specs) {
+    public ExcludeSpec excludeAll(Set<ExcludeSpec> specs) {
         return factory.allOf(specs);
     }
 
-    public ExcludeSpec excludeAny(PersistentSet<ExcludeSpec> specs) {
+    public ExcludeSpec excludeAny(Set<ExcludeSpec> specs) {
         return factory.anyOf(specs);
     }
 }
