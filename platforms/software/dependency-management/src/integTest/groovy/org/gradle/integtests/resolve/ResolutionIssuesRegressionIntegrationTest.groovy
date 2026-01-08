@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.maven.MavenModule
 
 /**
  * Location for complex reproducers for resolution issues, which do not have a more specific
@@ -253,5 +254,92 @@ class ResolutionIssuesRegressionIntegrationTest extends AbstractIntegrationSpec 
 
         expect:
         succeeds(":base:dependencies", "--configuration", "compileClasspath")
+    }
+
+    // Commented deps below indicate that they are not needed to reproduce
+    // Scan reference for resolved graph: https://develocity.grdev.net/s/hg234xnw4d5gm/dependencies?toggled=W1swXSxbMCwwXSxbMCwwLFs4MF1dLFswLDAsWzc3XV0sWzAsMCxbODAsMzA4XV0sWzAsMCxbODAsMzA4LDI5NF1dLFswLDAsWzgwLDMwOCwyOTQsMjQ1XV1d
+    def 'graph causes unattached edge to be removed on node deselection'() {
+
+        // This replaces androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.1
+        // But it looks like we need the constraints as well
+        def lifecycleVS = mavenRepo.module('org.sample', 'lifecycle-vs', '2.6')
+            .dependsOn('androidx.annotation', 'annotation', '1.0.0')
+            .dependsOn('androidx.core', 'core-ktx', '1.2.0')
+            .dependsOn('androidx.lifecycle', 'lifecycle-livedata-core', '2.6.1')
+            .dependsOn('androidx.lifecycle', 'lifecycle-viewmodel', '2.6.1')
+            .dependsOn('androidx.savedstate', 'savedstate', '1.2.1')
+            .dependsOn('org.jetbrains.kotlin', 'kotlin-stdlib', '1.8.22')
+            .dependsOn('org.jetbrains.kotlinx', 'kotlinx-coroutines-android', '1.7.1')
+            .publish()
+
+        def fragment = mavenRepo.module('org.sample', 'fragment', '1.7')
+//            .dependsOn('androidx.activity', 'activity', '1.8.1')
+//            .dependsOn('androidx.annotation', 'annotation-experimental', '1.4.0')
+//            .dependsOn('androidx.annotation', 'annotation', '1.1.0')
+//            .dependsOn('androidx.collection', 'collection', '1.1.0')
+//            .dependsOn('androidx.core', 'core-ktx', '1.2.0')
+//            .dependsOn('androidx.lifecycle', 'lifecycle-livedata-core', '2.6.1')
+//            .dependsOn('androidx.lifecycle', 'lifecycle-runtime', '2.6.1')
+            .dependsOn(lifecycleVS)
+//            .dependsOn('androidx.lifecycle', 'lifecycle-viewmodel', '2.6.1')
+//            .dependsOn('androidx.loader', 'loader', '1.0.0')
+//            .dependsOn('androidx.savedstate', 'savedstate', '1.2.1')
+//            .dependsOn('androidx.viewpager', 'viewpager', '1.0.0')
+            .dependsOn('org.jetbrains.kotlin', 'kotlin-stdlib', '1.8.22')
+            .publish()
+
+        def flEmbed = mavenRepo.module('org.sample', 'fl_embed', '1.0')
+//            .dependsOn('androidx.annotation', 'annotation', '1.8.0')
+//            .dependsOn('androidx.core', 'core', '1.13.1')
+            .dependsOn(fragment)
+//            .dependsOn('androidx.lifecycle', 'lifecycle-common-java8', '2.7.0')
+            .dependsOn('androidx.lifecycle', 'lifecycle-common', '2.7.0')
+//            .dependsOn('androidx.lifecycle', 'lifecycle-process', '2.7.0')
+//            .dependsOn('androidx.lifecycle', 'lifecycle-runtime', '2.7.0')
+//            .dependsOn('androidx.tracing', 'tracing', '1.2.0')
+//            .dependsOn('androidx.window', 'window-java', '1.2.0')
+//            .dependsOn('com.getkeepsafe.relinker', 'relinker', '1.4.5')
+            .publish()
+
+        mavenRepo.module('org.sample', 'fb_core', '1.0')
+            .dependsOn(flEmbed)
+            .publish()
+
+        buildFile("""
+plugins {
+    id("java-library")
+}
+
+repositories {
+    maven {
+        url = "${mavenRepo.uri.toString()}"
+    }
+    google()
+    mavenCentral()
+}
+
+configurations {
+    androidCompileClasspath {
+        extendsFrom(implementation)
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+            attribute(TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE, objects.named(TargetJvmEnvironment, TargetJvmEnvironment.ANDROID))
+        }
+    }
+}
+
+dependencies {
+    implementation("org.sample:fb_core:1.0")
+    //implementation("androidx.annotation:annotation:1.7.0")
+    implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
+    implementation("com.google.firebase:firebase-config")
+    //implementation("org.sample:fl_embed:1.0")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.3.0")
+}
+""")
+
+        expect:
+        succeeds('dependencies', '--configuration', 'androidCompileClasspath')
     }
 }
