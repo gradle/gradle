@@ -24,4 +24,6 @@ dependencies {
     api(libs.inject)
     api(projects.coreApi)
     api(projects.stdlibJavaExtensions)
+
+    implementation(projects.hashing)
 }

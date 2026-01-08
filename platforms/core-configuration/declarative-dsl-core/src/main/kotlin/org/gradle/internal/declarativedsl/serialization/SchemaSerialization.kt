@@ -71,6 +71,7 @@ object SchemaSerialization {
             polymorphic(ConfigureAccessor::class) {
                 subclass(ConfigureAccessorInternal.DefaultConfiguringLambdaArgument::class)
                 subclass(ConfigureAccessorInternal.DefaultCustom::class)
+                subclass(ConfigureAccessorInternal.DefaultProjectFeature::class)
                 subclass(ConfigureAccessorInternal.DefaultProperty::class)
             }
 

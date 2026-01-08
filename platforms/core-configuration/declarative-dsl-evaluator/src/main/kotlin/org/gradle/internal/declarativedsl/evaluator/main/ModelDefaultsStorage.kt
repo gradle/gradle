@@ -24,13 +24,13 @@ import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsResolu
 internal
 class ModelDefaultsStorage : ModelDefaultsDefinitionRegistrar, ModelDefaultsRepository {
     private
-    val modelDefaultsMap = mutableMapOf<String, ModelDefaultsResolutionResults>()
+    val modelDefaultsById = mutableMapOf<String, ModelDefaultsResolutionResults>()
 
-    override fun registerDefaults(modelDefaultsByProjectFeature: Map<String, ModelDefaultsResolutionResults>) {
-        modelDefaultsMap.clear()
-        modelDefaultsMap.putAll(modelDefaultsByProjectFeature)
+    override fun registerDefaults(modelDefaultsByProjectFeatureId: Map<String, ModelDefaultsResolutionResults>) {
+        modelDefaultsById.clear()
+        modelDefaultsById.putAll(modelDefaultsByProjectFeatureId)
     }
 
-    override fun findDefaults(featureName: String): ModelDefaultsResolutionResults? =
-        modelDefaultsMap[featureName]
+    override fun findDefaults(featureId: String): ModelDefaultsResolutionResults? =
+        modelDefaultsById[featureId]
 }

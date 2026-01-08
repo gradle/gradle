@@ -36,6 +36,7 @@ import java.util.Objects;
  */
 public class DefaultProjectFeatureImplementation<T extends Definition<V>, V extends BuildModel> implements ProjectFeatureImplementation<T, V> {
     private final String featureName;
+    private final String uniqueId;
     private final Class<T> definitionPublicType;
     private final Class<? extends T> definitionImplementationType;
     private final ProjectFeatureBindingDeclaration.Safety definitionSafety;
@@ -63,6 +64,7 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
         ProjectFeatureApplyAction<T, V, ?> bindingTransform
     ) {
         this.featureName = featureName;
+        this.uniqueId = featureName + targetDefinitionType.getId();
         this.definitionPublicType = definitionPublicType;
         this.definitionImplementationType = definitionImplementationType;
         this.definitionSafety = definitionSafety;
@@ -78,6 +80,11 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
     @Override
     public String getFeatureName() {
         return featureName;
+    }
+
+    @Override
+    public String getUniqueId() {
+        return uniqueId;
     }
 
     @Override

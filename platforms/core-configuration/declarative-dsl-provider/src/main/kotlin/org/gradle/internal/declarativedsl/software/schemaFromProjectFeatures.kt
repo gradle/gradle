@@ -173,22 +173,13 @@ fun replaceProjectWithSchemaTopLevelType(bindingType: KClass<*>, rootSchemaType:
     }
 }
 
-private
-fun calculateTargetTypeIdentifier(targetTypeInformation: org.gradle.api.internal.plugins.TargetTypeInformation<*>): String {
-    return when (targetTypeInformation) {
-        is DefinitionTargetTypeInformation -> "${targetTypeInformation.definitionType.name}"
-        is BuildModelTargetTypeInformation<*> -> "${targetTypeInformation.buildModelType.name}"
-        else -> throw IllegalArgumentException("Unsupported target type ${targetTypeInformation.javaClass.name}")
-    }
-}
-
 
 private
 data class ProjectFeatureInfo<T : Definition<V>, V : BuildModel>(
     val delegate: ProjectFeatureImplementation<T, V>,
     val accessorIdPrefix: String
 ) : ProjectFeatureImplementation<T, V> by delegate {
-    val customAccessorId = "$accessorIdPrefix:${delegate.featureName}.${calculateTargetTypeIdentifier(delegate.targetDefinitionType)}"
+    val customAccessorId = "$accessorIdPrefix:${delegate.uniqueId}"
 
     fun schemaFunction(host: SchemaBuildingHost, schemaTypeToExtend: KClass<*>) = host.withTag(softwareConfiguringFunctionTag(delegate.featureName)) {
         val receiverTypeRef = host.containerTypeRef(schemaTypeToExtend)
@@ -199,7 +190,7 @@ data class ProjectFeatureInfo<T : Definition<V>, V : BuildModel>(
             emptyList(),
             isDirectAccessOnly = true,
             semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
-                accessor = ConfigureAccessorInternal.DefaultCustom(definitionType, customAccessorId),
+                accessor = ConfigureAccessorInternal.DefaultProjectFeature(definitionType, customAccessorId, delegate.featureName),
                 FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
                 definitionType,
                 FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired

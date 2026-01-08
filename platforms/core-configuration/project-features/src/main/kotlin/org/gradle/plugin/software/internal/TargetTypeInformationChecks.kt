@@ -52,23 +52,23 @@ object TargetTypeInformationChecks {
     @JvmStatic
     fun isOverlappingBindingType(targetType: TargetTypeInformation<*>, otherTargetType: TargetTypeInformation<*>): Boolean =
         when {
-            // Returns true if targetType: Definition == otherTargetType: Definition
+            // Returns true if (targetType: Definition) is the same or subtype of (otherTargetType: Definition) or vice versa
             targetType is DefinitionTargetTypeInformation<*> &&
                 otherTargetType is DefinitionTargetTypeInformation<*> ->
                 targetType.definitionType.isAssignableFrom(otherTargetType.definitionType) || otherTargetType.definitionType.isAssignableFrom(targetType.definitionType)
 
-            // Returns true if targetType: BuildModel == otherTargetType: BuildModel
+            // Returns true if (targetType: BuildModel) is the same or subtype of (otherTargetType: BuildModel) or vice versa
             targetType is BuildModelTargetTypeInformation<*> &&
                 otherTargetType is BuildModelTargetTypeInformation<*> ->
                 targetType.buildModelType.isAssignableFrom(otherTargetType.buildModelType) || otherTargetType.buildModelType.isAssignableFrom(targetType.buildModelType)
 
-            // Returns true if targetType: Definition<Foo> and otherTargetType: Foo extends BuildModel
+            // Returns true if (targetType: Definition<Foo>) and (otherTargetType: Foo) or is in the hierarchy of Foo
             targetType is DefinitionTargetTypeInformation<*> &&
                 otherTargetType is BuildModelTargetTypeInformation<*> ->
                     isValidBuildModelForDefinition(otherTargetType.buildModelType, targetType.definitionType)
                         || isValidDefinitionForBuildModel(targetType.definitionType, otherTargetType.buildModelType)
 
-            // Returns true if targetType: Foo extends BuildModel and otherTargetType: Definition<Foo>
+            // Returns true if (targetType: Foo) or is in the hierarchy of Foo and (otherTargetType: Definition<Foo>)
             targetType is BuildModelTargetTypeInformation<*> &&
                 otherTargetType is DefinitionTargetTypeInformation<*> ->
                     isValidBuildModelForDefinition(targetType.buildModelType, otherTargetType.definitionType) ||

@@ -32,6 +32,8 @@ import org.gradle.internal.declarativedsl.evaluator.runner.stepResultOrPartialRe
 
 object AnalysisDocumentUtils {
     fun documentWithModelDefaults(modelDefaultsSequenceResult: AnalysisSequenceResult, mainSequenceResult: AnalysisSequenceResult): DocumentOverlayResult? {
+        // TODO - This works because there can't be collisions on project types.  This will have to be more specific when we
+        // support model defaults for other feature types.
         val usedModelDefaults = mainSequenceResult.modelDefaultsConsumingStep()?.stepResultOrPartialResult?.usedProjectTypeNames()
             ?: return null
 
