@@ -17,7 +17,7 @@
 package org.gradle.cache.internal;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.FileUtils;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLock;
@@ -49,8 +49,8 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
     private static final LockOptions EXCLUSIVE_LOCKING_MODE = DefaultLockOptions.mode(Exclusive);
 
     private final ProducerGuard<String> guard;
-    private final File gcFile;
     private final File locksDir;
+    private final File internalDir;
     private final CacheCleanupExecutor cleanupExecutor;
     private final File baseDir;
     private final String displayName;
@@ -66,9 +66,10 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         this.baseDir = baseDir;
         this.displayName = displayName;
         this.fileLockManager = fileLockManager;
-        this.gcFile = new File(baseDir, "gc.properties");
-        this.locksDir = new File(baseDir, LOCKS_DIR_NAME);
         this.guard = ProducerGuard.adaptive();
+        this.internalDir = new File(baseDir, ".internal");
+        this.locksDir = new File(baseDir, LOCKS_DIR_RELATIVE_PATH);
+        File gcFile = new File(internalDir, "gc.properties");
         this.cleanupExecutor = new DefaultCacheCleanupExecutor(this, gcFile, cleanupStrategy.getCleanupStrategy());
     }
 
@@ -90,10 +91,7 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
 
     @Override
     public Collection<File> getReservedCacheFiles() {
-        return ImmutableSet.<File>builder()
-            .add(gcFile)
-            .add(locksDir)
-            .build();
+        return ImmutableList.of(internalDir);
     }
 
     @Override
@@ -124,9 +122,9 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         while (lock == null) {
             File lockFile = getLockFile(key);
             lock = fileLockManager.lock(lockFile, EXCLUSIVE_LOCKING_MODE, displayName, "");
-            // Validate the lock in case it was deleted by another process.
-            // We don't validate the lock if it was initialized by this process to optimized the first use case,
-            // since we assume that if we hold the lock, and we initialized the lock, no other process deleted it.
+            // Verify the lock file hasn't been recreated between opening file handle and acquiring the lock.
+            // Skip for new initializations to optimize the first use case. We assume that if we hold the lock,
+            // and we are the first to access it, then no other process was able to delete/recreate the lock file.
             if (!lock.isFirstLockAccess() && !lock.isValid()) {
                 lock.close();
                 lock = null;
@@ -158,6 +156,7 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
 
     private static void validateKey(String key) {
         Preconditions.checkArgument(!key.contains("/") && !key.contains("\\"), "Cache key path must not contain file separator: '%s'", key);
+        Preconditions.checkArgument(!key.startsWith("."), "Cache key must not start with '.' character: '%s'", key);
     }
 
     @Override

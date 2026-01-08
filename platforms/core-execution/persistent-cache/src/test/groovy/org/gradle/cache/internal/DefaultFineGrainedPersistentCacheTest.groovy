@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive
-import static org.gradle.cache.FineGrainedPersistentCache.LOCKS_DIR_NAME
+import static org.gradle.cache.FineGrainedPersistentCache.LOCKS_DIR_RELATIVE_PATH
 import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode
 
 class DefaultFineGrainedPersistentCacheTest extends Specification {
@@ -97,20 +97,21 @@ class DefaultFineGrainedPersistentCacheTest extends Specification {
         notThrown(RuntimeException)
     }
 
-    def "reserved files include gc.properties and locks dir"() {
+    def "reserved files include only .internal directory"() {
         when:
         cache.open()
 
         then:
         def reserved = cache.getReservedCacheFiles()
-        reserved.contains(cacheDir.file("gc.properties"))
-        reserved.contains(cacheDir.file(LOCKS_DIR_NAME))
+        reserved.contains(cacheDir.file(".internal"))
+        !reserved.contains(cacheDir.file(".internal/gc.properties"))
+        !reserved.contains(cacheDir.file(LOCKS_DIR_RELATIVE_PATH))
     }
 
     def "useCache acquires per-key exclusive lock and releases it"() {
         given:
         def key = "entryKey"
-        def expectedLockFile = cacheDir.file("${LOCKS_DIR_NAME}/${key}.lock")
+        def expectedLockFile = cacheDir.file("${LOCKS_DIR_RELATIVE_PATH}/${key}.lock")
 
         when:
         cache.open()
@@ -187,18 +188,15 @@ class DefaultFineGrainedPersistentCacheTest extends Specification {
         gcFile.assertDoesNotExist()
     }
 
-    def "rejects keys containing path separators"() {
+    def "rejects invalid keys"() {
         when:
-        cache.useCache("bad/key") { }
+        cache.useCache(key) { }
 
         then:
         thrown(IllegalArgumentException)
 
-        when:
-        cache.useCache("bad\\key") { }
-
-        then:
-        thrown(IllegalArgumentException)
+        where:
+        key << ["bad/key", "bad\\key", ".hidden"]
     }
 
     private static void markCacheForCleanup(TestFile gcFile) {
@@ -206,6 +204,6 @@ class DefaultFineGrainedPersistentCacheTest extends Specification {
     }
 
     private TestFile getGcFile() {
-        cacheDir.file("gc.properties")
+        cacheDir.file(".internal/gc.properties")
     }
 }

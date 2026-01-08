@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import org.apache.commons.io.FileUtils;
 import org.gradle.cache.CleanableStore;
 import org.gradle.cache.CleanupAction;
@@ -27,14 +27,22 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.Locale;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy.FineGrainedCacheEntrySoftDeleter;
 import static org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy.SOFT_DELETION_DURATION;
+import static org.gradle.cache.FineGrainedPersistentCache.LOCKS_DIR_RELATIVE_PATH;
 
 public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements CleanupAction {
 
@@ -53,26 +61,7 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
         FineGrainedPersistentCache cache = (FineGrainedPersistentCache) cleanableStore;
         MarkAndSweepCacheEntrySoftDeleter softDeleter = (MarkAndSweepCacheEntrySoftDeleter) getSoftDeleter(cache);
         CleanupAction cleanupAction = new MarkAndSweepCleanupAction(cache, journal, removeUnusedEntriesOlderThan, softDeleter);
-        CleanableStore decoratedCleanableStore = new CleanableStore() {
-            @Override
-            public File getBaseDir() {
-                return cleanableStore.getBaseDir();
-            }
-
-            @Override
-            public Collection<File> getReservedCacheFiles() {
-                return ImmutableList.<File>builder()
-                    .addAll(cleanableStore.getReservedCacheFiles())
-                    .add(softDeleter.getGcDir())
-                    .build();
-            }
-
-            @Override
-            public String getDisplayName() {
-                return cleanableStore.getDisplayName();
-            }
-        };
-        cleanupAction.clean(decoratedCleanableStore, progressMonitor);
+        cleanupAction.clean(cleanableStore, progressMonitor);
     }
 
     public FineGrainedCacheEntrySoftDeleter getSoftDeleter(FineGrainedPersistentCache cache) {
@@ -101,8 +90,8 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
         public void clean(CleanableStore cleanableStore, CleanupProgressMonitor progressMonitor) {
             // First perform regular mark-and-sweep cleanup for entries
             super.clean(cleanableStore, progressMonitor);
-            // Then clean up any orphaned lock files left behind
-            cleanupOrphanLocks();
+            // Then clean up any orphaned locks and GC dirs
+            cleanupOrphanGcDirsAndFileLocks();
         }
 
         @Override
@@ -122,53 +111,96 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
             });
         }
 
-        private boolean hardDelete(File path, String key) {
-            try {
-                // First delete content
-                if (path.isDirectory()) {
-                    FileUtils.cleanDirectory(path);
-                }
-            } catch (IOException e) {
+        private boolean shouldBeSoftDeleted(String key) {
+            if (softDeleter.isSoftDeleted(key)) {
                 return false;
             }
-            // Then delete soft deletion markers
-            softDeleter.removeSoftDeleteMarker(key);
-            softDeleter.removeSoftGcFile(key);
-            // And finally delete a folder
+            // Write job can unmark entry as soft deleted. To avoid potential "soft delete, soft undelete, soft delete, soft undelete" cycle,
+            // we have a gc file that has last soft deletion time we check here.
+            long lastSoftDeleteTime = softDeleter.getSoftGcFile(key).lastModified();
+            return lastSoftDeleteTime < removeUnusedEntriesOlderThan.get();
+        }
+
+        private boolean shouldBeHardDeleted(String key) {
+            return softDeleter.isSoftDeleted(key) && (Instant.now().toEpochMilli() - softDeleter.getSoftDeleteMarker(key).lastModified()) >= SOFT_DELETION_DURATION.toMillis();
+        }
+
+        private boolean hardDelete(File path, String key) {
+            // First delete cache entry
             FileUtils.deleteQuietly(path);
             if (!path.exists()) {
-                // And if folder is not present anymore, delete also a lock file
-                File locksDir = new File(cache.getBaseDir(), FineGrainedPersistentCache.LOCKS_DIR_NAME);
-                FileUtils.deleteQuietly(new File(locksDir, key + ".lock"));
+                // Then delete gc information
+                FileUtils.deleteQuietly(softDeleter.getKeyGcDir(key));
+                // And finally delete also a lock file
+                FileUtils.deleteQuietly(getLockFile(key));
                 return true;
             }
             return false;
         }
 
-        private void cleanupOrphanLocks() {
+        private void cleanupOrphanGcDirsAndFileLocks() {
+            Set<String> entryKeys = listEntryKeys(cache.getBaseDir(),
+                file -> !cache.getReservedCacheFiles().contains(file),
+                Function.identity()
+            );
+            Set<String> locksKeys = listEntryKeys(getLocksDir(),
+                file -> file.getName().endsWith(".lock"),
+                name -> name.substring(0, name.lastIndexOf(".lock"))
+            );
+            Set<String> gcDirsKeys = listEntryKeys(softDeleter.getGcDir(), File::isDirectory, Function.identity());
+
+            boolean isWindows = isWindows();
+            Set<String> orphanKeys = Sets.difference(Sets.union(locksKeys, gcDirsKeys), entryKeys);
+            orphanKeys.forEach(orphanKey -> deleteOrphanKey(orphanKey, isWindows));
+        }
+
+        private void deleteOrphanKey(String key, boolean isWindows) {
             File baseDir = cache.getBaseDir();
-            File locksDir = new File(baseDir, FineGrainedPersistentCache.LOCKS_DIR_NAME);
-            File[] lockFiles = locksDir.listFiles((dir, name) -> name.endsWith(".lock"));
-            if (lockFiles == null) {
-                return;
-            }
-            for (File lockFile : lockFiles) {
-                String key = lockFile.getName().replace(".lock", "");
-                File entryDir = new File(baseDir, key);
-                if (!entryDir.exists()) {
-                    deleteOrphanLock(lockFile, key);
+            File lockFile = getLockFile(key);
+            File gcDir = softDeleter.getKeyGcDir(key);
+            File cacheEntry = new File(baseDir, key);
+            if (isWindows) {
+                if (gcDir.exists()) {
+                    cache.useCache(key, () -> {
+                        if (!cacheEntry.exists()) {
+                            FileUtils.deleteQuietly(gcDir);
+                        }
+                    });
                 }
+                // On Windows we cannot delete an opened file,
+                // but that has also a nice consequence that we can just try to delete a lock file
+                FileUtils.deleteQuietly(lockFile);
+            } else {
+                cache.useCache(key, () -> {
+                    if (!cacheEntry.exists()) {
+                        FileUtils.deleteQuietly(gcDir);
+                        FileUtils.deleteQuietly(lockFile);
+                    }
+                });
             }
         }
 
-        private void deleteOrphanLock(File lockFile, String key) {
-            if (isWindows()) {
-                // On Windows, deleting an opened file by another process will fail anyway
-                FileUtils.deleteQuietly(lockFile);
-            } else {
-                // On Unix-like systems, acquire the lock via useCache() first to ensure no other process is using it
-                cache.useCache(key, () -> FileUtils.deleteQuietly(lockFile));
+        private static Set<String> listEntryKeys(File root, Predicate<File> filter, Function<String, String> mapper) {
+            if (!root.exists()) {
+                return Collections.emptySet();
             }
+            try (Stream<Path> stream = Files.list(root.toPath())) {
+                return stream
+                    .map(Path::toFile)
+                    .filter(filter)
+                    .map(path -> mapper.apply(path.getName()))
+                    .collect(Collectors.toSet());
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+
+        private File getLocksDir() {
+            return new File(cache.getBaseDir(), LOCKS_DIR_RELATIVE_PATH);
+        }
+
+        private File getLockFile(String key) {
+            return new File(cache.getBaseDir(), LOCKS_DIR_RELATIVE_PATH + "/" + key + ".lock");
         }
 
         /**
@@ -184,20 +216,6 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
                 "Expected a path '%s' to be a direct child of cache at '%s'.", path.getAbsolutePath(), cache.getBaseDir().getAbsolutePath());
             return path.getName();
         }
-
-        private boolean shouldBeSoftDeleted(String key) {
-            if (softDeleter.isSoftDeleted(key)) {
-                return false;
-            }
-            // Write job can unmark entry as soft deleted. To avoid potential "soft delete, soft undelete, soft delete, soft undelete cycle",
-            // we have a soft gc file that has last soft deletion time in case the entry was not hard deleted but just soft deleted and then soft undeleted via some write job.
-            long lastSoftDeleteTime = softDeleter.getSoftGcFile(key).lastModified();
-            return lastSoftDeleteTime < removeUnusedEntriesOlderThan.get();
-        }
-
-        private boolean shouldBeHardDeleted(String key) {
-            return softDeleter.isSoftDeleted(key) && (Instant.now().toEpochMilli() - softDeleter.getSoftDeleteFile(key).lastModified()) >= SOFT_DELETION_DURATION.toMillis();
-        }
     }
 
     private static class MarkAndSweepCacheEntrySoftDeleter implements FineGrainedCacheEntrySoftDeleter {
@@ -205,39 +223,38 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
         private final File gcDir;
 
         public MarkAndSweepCacheEntrySoftDeleter(FineGrainedPersistentCache cache) {
-            this.gcDir = new File(cache.getBaseDir(), "gc");
+            this.gcDir = new File(cache.getBaseDir(), ".internal/gc");
         }
 
         @Override
         public boolean isSoftDeleted(String key) {
-            return getSoftDeleteFile(key).exists();
+            return getSoftDeleteMarker(key).exists();
         }
 
         @Override
         public void removeSoftDeleteMarker(String key) {
-            getSoftDeleteFile(key).delete();
-        }
-
-        public void removeSoftGcFile(String key) {
-            getSoftGcFile(key).delete();
+            getSoftDeleteMarker(key).delete();
         }
 
         public void softDelete(String key) {
-            gcDir.mkdirs();
-            touch(getSoftDeleteFile(key));
+            touch(getSoftDeleteMarker(key));
             touch(getSoftGcFile(key));
+        }
+
+        public File getKeyGcDir(String key) {
+            return new File(gcDir, key);
         }
 
         public File getGcDir() {
             return gcDir;
         }
 
-        private File getSoftDeleteFile(String key) {
-            return new File(gcDir, key + ".soft.deleted");
+        private File getSoftDeleteMarker(String key) {
+            return new File(getKeyGcDir(key), "soft.deleted");
         }
 
         private File getSoftGcFile(String key) {
-            return new File(gcDir, key + ".soft.gc");
+            return new File(getKeyGcDir(key), "gc.properties");
         }
 
         @SuppressWarnings("MethodMayBeStatic")

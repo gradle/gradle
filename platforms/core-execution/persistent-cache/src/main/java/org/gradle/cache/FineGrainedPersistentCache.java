@@ -29,23 +29,25 @@ import java.util.function.Supplier;
  *
  * <p>
  * Key format: the cache key is a logical identifier, not a filesystem path. Keys must not contain
- * any path separators (e.g. '/' or '\\'). Implementations are expected to reject such keys.
+ * any path separators (e.g. '/' or '\\'), and must not start with a dot character ('.').
+ * Implementations are expected to reject such keys.
  * </p>
  *
  * <p>
  * IMPORTANT: If an implementation uses file locking then it must place ALL per-key lock files under a dedicated directory located at
- * {@code <base-dir>/locks} (see {@link #LOCKS_DIR_NAME}). Each lock file must be named using the cache key plus the
- * {@code ".lock"} suffix, i.e. {@code "<base-dir>/locks/<key>.lock"}. Cleanup strategies can then rely on this convention to locate and safely
+ * {@code <base-dir>/.internal/locks} (see {@link #LOCKS_DIR_RELATIVE_PATH}). Each lock file must be named using the cache key plus the
+ * {@code ".lock"} suffix, i.e. {@code "<base-dir>/.internal/locks/<key>.lock"}. Cleanup strategies can then rely on this convention to locate and safely
  * remove orphaned lock files without requiring additional API calls.
+ * Directory {@code ".internal"} can be used to store any internal metadata required by the cache implementation.
  * </p>
  */
 @NullMarked
 public interface FineGrainedPersistentCache extends Closeable, CleanableStore, HasCleanupAction {
 
     /**
-     * Name of the directory, relative to {@link #getBaseDir()}, where all key lock files must be stored.
+     * A path to locks directory, relative to {@link #getBaseDir()}, where all key lock files must be stored.
      */
-    String LOCKS_DIR_NAME = "locks";
+    String LOCKS_DIR_RELATIVE_PATH = ".internal/locks";
 
     /**
      * Opens this cache and returns self.
@@ -53,17 +55,17 @@ public interface FineGrainedPersistentCache extends Closeable, CleanableStore, H
     FineGrainedPersistentCache open();
 
     /**
-     * Performs some work against the cache.
+     * Performs some work against the cache for {@code <base-dir>/<key>} path.
      *
-     * Acquires exclusive locks on the appropriate resources, so that the given action is the only action to execute across all processes (including this one).
+     * Acquires exclusive locks on the {@code <base-dir>/<key>} path, so that the given action is the only action to execute across all processes (including this one).
      * Releases the locks and all resources at the end of the action.
      */
     <T> T useCache(String key, Supplier<? extends T> action);
 
     /**
-     * Performs some work against the cache key.
+     * Performs some work against the cache for {@code <base-dir>/<key>} path.
      *
-     * Acquires exclusive locks on the appropriate resources, so that the given action is the only action to execute across all processes (including this one).
+     * Acquires exclusive locks on the {@code <base-dir>/<key>} path, so that the given action is the only action to execute across all processes (including this one).
      * Releases the locks and all resources at the end of the action.
      */
     void useCache(String key, Runnable action);

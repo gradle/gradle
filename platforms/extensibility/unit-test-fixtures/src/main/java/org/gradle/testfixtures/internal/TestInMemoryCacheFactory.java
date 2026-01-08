@@ -259,6 +259,9 @@ public class TestInMemoryCacheFactory implements CacheFactory {
             if (key.contains("/") || key.contains("\\")) {
                 throw new IllegalArgumentException(String.format("Cache key path must not contain file separator: '%s'", key));
             }
+            if (key.startsWith(".")) {
+                throw new IllegalArgumentException(String.format("Cache key must not start with '.' character: '%s'", key));
+            }
         }
     }
 }

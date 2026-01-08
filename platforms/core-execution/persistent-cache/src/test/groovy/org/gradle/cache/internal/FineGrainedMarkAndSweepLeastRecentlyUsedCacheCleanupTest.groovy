@@ -28,6 +28,8 @@ import spock.lang.Subject
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 
+import static org.gradle.cache.FineGrainedPersistentCache.LOCKS_DIR_RELATIVE_PATH
+
 class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -65,9 +67,9 @@ class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specifica
 
         // Soft-delete markers created for the old entry
         def key = cacheEntries[3].name
-        def gcDir = new File(cacheDir, "gc")
-        new File(gcDir, key + ".soft.deleted").exists()
-        new File(gcDir, key + ".soft.gc").exists()
+        def gcDir = new File(cacheDir, ".internal/gc")
+        new File(gcDir, key + "/soft.deleted").exists()
+        new File(gcDir, key + "/gc.properties").exists()
 
         // No journal deletion when only soft-deleted
         0 * fileAccessTimeJournal.deleteLastAccessTime(_)
@@ -89,7 +91,7 @@ class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specifica
         cacheEntries[0].assertIsDir()
         cacheEntries[1].assertIsDir()
         cacheEntries[2].assertIsDir()
-        !new File(cacheDir, "gc").exists()
+        !new File(cacheDir, ".internal/gc").exists()
         0 * fileAccessTimeJournal.deleteLastAccessTime(_)
     }
 
@@ -105,11 +107,11 @@ class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specifica
         def key = toDelete.name
 
         // Simulate that entry was already soft-deleted more than 6 hours ago
-        def gcDir = new File(cacheDir, "gc")
-        def softDeleted = new File(gcDir, key + ".soft.deleted")
-        def softGc = new File(gcDir, key + ".soft.gc")
-        gcDir.mkdirs()
-        softDeleted.parentFile.mkdirs()
+        def gcDir = new File(cacheDir, ".internal/gc")
+        def keyGcDir = new File(gcDir, key)
+        def softDeleted = new File(keyGcDir, "soft.deleted")
+        def softGc = new File(keyGcDir, "gc.properties")
+        keyGcDir.mkdirs()
         softDeleted.text = ""
         softGc.text = ""
         long sevenHoursAgo = now - TimeUnit.HOURS.toMillis(7)
@@ -117,7 +119,7 @@ class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specifica
         softGc.lastModified = sevenHoursAgo
 
         // Create a lock file for the entry that should be removed on hard delete
-        def locksDir = new File(cacheDir, FineGrainedPersistentCache.LOCKS_DIR_NAME)
+        def locksDir = new File(cacheDir, LOCKS_DIR_RELATIVE_PATH)
         def lockFile = new File(locksDir, key + ".lock")
         lockFile.parentFile.mkdirs()
         lockFile.text = "locked"
@@ -141,11 +143,13 @@ class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specifica
         long now = System.currentTimeMillis()
 
         // Create reserved gc.properties and locks directory with a lock file
-        def gcProps = new File(cacheDir, "gc.properties")
+        def internalDir = new File(cacheDir, ".internal")
+        internalDir.mkdirs()
+        def gcProps = new File(internalDir, "gc.properties")
         gcProps.text = "keep"
-        def locksDir = new File(cacheDir, "locks")
+        def locksDir = new File(internalDir, "locks")
         locksDir.mkdirs()
-        def gcFolder = new File(cacheDir, "gc")
+        def gcFolder = new File(internalDir, "gc")
         gcFolder.mkdirs()
         // Create a cache entry
         def recent = createCacheEntryDir(now)
@@ -177,7 +181,7 @@ class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specifica
         long now = System.currentTimeMillis()
 
         // Create locks dir and an orphan lock file
-        def locksDir = new File(cacheDir, FineGrainedPersistentCache.LOCKS_DIR_NAME)
+        def locksDir = new File(cacheDir, LOCKS_DIR_RELATIVE_PATH)
         locksDir.mkdirs()
         def orphanLock = new File(locksDir, "orphan.lock")
         orphanLock.text = "locked"
@@ -196,6 +200,45 @@ class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specifica
         entry.exists()
 
         // No journal deletions due to lock-only changes
+        0 * fileAccessTimeJournal.deleteLastAccessTime(_)
+    }
+
+    def "deletes orphan soft-delete gc directories but keeps gc for existing entries"() {
+        given:
+        long now = System.currentTimeMillis()
+
+        // Create an entry that should be kept and its gc key dir with markers
+        def aliveEntry = createCacheEntryDir(now)
+        def aliveKey = aliveEntry.name
+        def gcRoot = new File(cacheDir, ".internal/gc")
+        def aliveGcDir = new File(gcRoot, aliveKey)
+        def aliveMarker = new File(aliveGcDir, "soft.deleted")
+        def aliveGcProps = new File(aliveGcDir, "gc.properties")
+        aliveMarker.parentFile.mkdirs()
+        aliveMarker.text = ""
+        aliveGcProps.text = ""
+
+        // Create an orphan gc key dir for a non-existing entry
+        def orphanKey = "orphan-key"
+        def orphanGcDir = new File(gcRoot, orphanKey)
+        def orphanMarker = new File(orphanGcDir, "soft.deleted")
+        def orphanGcProps = new File(orphanGcDir, "gc.properties")
+        orphanMarker.parentFile.mkdirs()
+        orphanMarker.text = ""
+        orphanGcProps.text = ""
+
+        when:
+        cleanupAction.clean(cache, progressMonitor)
+
+        then:
+        // Orphan gc dir is removed
+        !orphanGcDir.exists()
+        // GC for existing entry is kept intact
+        aliveEntry.exists()
+        aliveGcDir.exists()
+        aliveMarker.exists()
+        aliveGcProps.exists()
+        // No journal activity as only gc metadata changed
         0 * fileAccessTimeJournal.deleteLastAccessTime(_)
     }
 
@@ -227,7 +270,7 @@ class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specifica
 
         @Override
         Collection<File> getReservedCacheFiles() {
-            return [new File(baseDir, "gc.properties"), new File(baseDir, "locks")] as Collection<File>
+            return [new File(baseDir, ".internal")] as Collection<File>
         }
 
         @Override
