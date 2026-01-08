@@ -16,6 +16,7 @@
 
 package org.gradle.internal.scripts
 
+import org.gradle.scripts.ScriptingLanguage
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -27,35 +28,19 @@ class DefaultScriptFileResolverTest extends Specification {
     /**
      * If this test breaks, it means a new scripting language has been added.
      * It's important that this test covers all accepted extensions.
-     *
-     * Please update the tests in this file, and add the new extension to the list below.
+     * Please review the tests in this file, and add the new extension to the list below.
      */
     def "list of extensions are what we expect"() {
-        ScriptingLanguages.all().collect {it.extension} == [
+        ScriptingLanguages.all().collect { it.extension } == [
             ".gradle",
             ".gradle.kts",
             ".gradle.dcl"
         ]
     }
 
-    def "all known extensions should be recognized"() {
-        given:
-        def selected = createFiles(testDir, ["build.gradle"])[0]
-        def recognizedButIgnored = createFiles(testDir, ["build.gradle.kts", "build.gradle.dcl"])
-
-        when:
-        def resolver = new DefaultScriptFileResolver()
-        def result = resolver.resolveScriptFile(testDir, "build")
-
-        then:
-        result.selectedCandidate == selected
-        result.ignoredCandidates == recognizedButIgnored
-
-    }
-
     def "when no script file is found, resolution result should be empty"() {
         given:
-        createFiles(testDir, ["settings.gradle", "settings.gradle.kts"])
+        createFiles(testDir, ["a.gradle", "a.gradle.kts", "a.gradle.dcl"])
 
         when:
         def resolver = new DefaultScriptFileResolver()
@@ -66,63 +51,43 @@ class DefaultScriptFileResolverTest extends Specification {
         result.ignoredCandidates.isEmpty()
     }
 
-    def "listener should only be notified once, not for each extension checked"() {
-        given:
-        createFiles(testDir, ["build.gradle", "build.gradle.kts", "build.gradle.dcl"])
-        def listener = new CountingListener()
-
-        when:
-        def resolver = new DefaultScriptFileResolver(listener)
-        resolver.resolveScriptFile(testDir, "build")
-
-        then:
-        listener.count == 1
-    }
-
     def "custom-named script files can be resolved"() {
         given:
-        def selected = createFiles(testDir, ["custom.gradle"])[0]
-        def recognizedButIgnored = createFiles(testDir, ["custom.gradle.kts", "custom.gradle.dcl"])
+        createFiles(testDir, withExtensions("custom"))
 
         when:
         def resolver = new DefaultScriptFileResolver()
         def result = resolver.resolveScriptFile(testDir, "custom")
 
         then:
-        result.selectedCandidate == selected
-        result.ignoredCandidates == recognizedButIgnored
+        result.selectedCandidate.name == "custom.gradle"
+        result.ignoredCandidates*.name == ["custom.gradle.kts", "custom.gradle.dcl"]
     }
 
-    def "listener should only be notified once for custom-named build files"() {
+
+    def "resolution finds and notifies the correct script file"() {
         given:
-        createFiles(testDir, ["a.gradle", "a.gradle.kts", "a.gradle.dcl"])
-        def listener = new CountingListener()
-
-        when:
-        def resolver = new DefaultScriptFileResolver(listener)
-        resolver.resolveScriptFile(testDir, "a")
-
-        then:
-        listener.count == 1
-    }
-
-    def "listener will be notified with all the possible files before selected"() {
-        given:
-        createFiles(testDir, [selectedCandidate])
+        createFiles(testDir, createFiles)
         CountingListener listener = new CountingListener()
 
         when:
         def resolver = new DefaultScriptFileResolver(listener)
-        resolver.resolveScriptFile(testDir, "build")
+        def result = resolver.resolveScriptFile(testDir, "a")
 
         then:
+        result.selectedCandidate?.name == expectedSelectedCandidate
         listener.notifiedFiles == expectedNotifiedFiles
 
         where:
-        selectedCandidate        | expectedNotifiedFiles
-        "build.gradle"           | ["build.gradle"]
-        "build.gradle.kts"       | ["build.gradle", "build.gradle.kts"]
-        "build.gradle.dcl"       | ["build.gradle", "build.gradle.kts", "build.gradle.dcl"]
+        createFiles                                  | expectedSelectedCandidate | expectedNotifiedFiles
+        []                                           | null                      | ["a.gradle", "a.gradle.kts", "a.gradle.dcl"]
+        ["a.gradle"]                                 | "a.gradle"                | ["a.gradle"]
+        ["a.gradle.kts"]                             | "a.gradle.kts"            | ["a.gradle", "a.gradle.kts"]
+        ["a.gradle.dcl"]                             | "a.gradle.dcl"            | ["a.gradle", "a.gradle.kts", "a.gradle.dcl"]
+        ["a.gradle", "a.gradle.kts"]                 | "a.gradle"                | ["a.gradle"]
+        ["a.gradle", "a.gradle.dcl"]                 | "a.gradle"                | ["a.gradle"]
+        ["a.gradle.kts", "a.gradle.dcl"]             | "a.gradle.kts"            | ["a.gradle", "a.gradle.kts"]
+        ["a.gradle", "a.gradle.kts", "a.gradle.dcl"] | "a.gradle"                | ["a.gradle"]
     }
 
     static class CountingListener implements ScriptFileResolvedListener {
@@ -133,15 +98,29 @@ class DefaultScriptFileResolverTest extends Specification {
             notifiedFileNames.add(scriptFile.getName())
         }
 
-        int getCount() {
-            return notifiedFileNames.size()
-        }
-
         List<String> getNotifiedFiles() {
             return notifiedFileNames
         }
     }
 
+    /**
+     * Generate a list of filenames with all known scripting language extensions.
+     *
+     * @param basename the base name of the file, e.g `build`
+     * @return a list of filenames with all known extensions, e.g. `['build.gradle', 'build.gradle.kts', 'build.gradle.dcl']`
+     */
+    static List<String> withExtensions(String basename) {
+        return ScriptingLanguages.all().collect {
+            "${basename}${it.extension}".toString()
+        }
+    }
+
+    /**
+     * Create files with the given filenames in the given directory.
+     * @param dir the directory in which to create the files
+     * @param filenames the names of the files to create
+     * @return the list of created files
+     */
     static List<File> createFiles(File dir, List<String> filenames) {
         return filenames.collect {
             def f = new File(dir, it)
