@@ -20,6 +20,7 @@ import groovy.io.FileType
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testkit.runner.fixtures.NoDebug
+import org.gradle.test.fixtures.Flaky
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.gradle.util.internal.GFileUtils
 import org.intellij.lang.annotations.Language
@@ -54,6 +55,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
     }
 
     @NoDebug
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4995")
     def "fails appropriately if runner is loaded from a JAR that is not part of the distribution and no explicit version set"() {
         when:
         executer.withStackTraceChecksDisabled()
