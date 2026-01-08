@@ -21,7 +21,7 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 /**
- * A {@code TaskExecutionException} is thrown when a task fails to execute successfully.</p>
+ * A {@code TaskExecutionException} is thrown when a task fails to execute successfully.
  * <p>
  * If the cause of a failure is a {@link VerificationException}, we should <strong>not</strong>
  * display task provenance information on the console in the failure message.
