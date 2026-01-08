@@ -450,7 +450,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
             project.getTasks().withType(Test.class).configureEach(test -> {
                 test.getInputs()
-                    .files(pluginClasspathTask.get().getPluginClasspath())
+                    .files(pluginClasspathTask.map(PluginUnderTestMetadata::getPluginClasspath))
                     .withPropertyName("pluginClasspath")
                     .withNormalizer(ClasspathNormalizer.class);
 
@@ -481,7 +481,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
         @Override
         public Iterable<String> asArguments() {
             int majorVersion = Integer.parseInt(test.getJavaVersion().getMajorVersion());
-            return JpmsConfiguration.forTestWorkersInJavaGradlePlugin(majorVersion);
+            return JpmsConfiguration.forDaemonProcesses(majorVersion, true);
         }
     }
 
