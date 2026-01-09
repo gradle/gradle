@@ -184,6 +184,59 @@ $ ./gradlew --include-build ../my-utils run
 include::{samplesPath}/build-organization/composite-builds/basic/tests/basicCli.out[]
 ----
 
+[[referencing_included_build_projects]]
+== Referencing Projects in Composite Builds
+
+It is a common mistake to attempt to use `project()` notation to depend on a module that resides in an included build.
+
+IMPORTANT: Included builds are not subprojects.
+
+Each build in a composite remains a separate project hierarchy.
+You cannot use project paths (e.g., `project(":other-build:module")`) to reference a project across build boundaries.
+Doing so will result in an `UnknownProjectException`.
+
+To depend on a project from an included build, you must use its external coordinates (the same coordinates you would use if the library were published to Maven Central or Ivy).
+
+If an included build has a project with `group = "com.example.data"` and `rootProject.name = "core-schema"`, you reference it in your main build like an external dependency.
+For example, if your configuration looks as follows:
+
+[source,text]
+----
+.
+├── app (Main Build)
+│   ├── build.gradle.kts
+│   └── settings.gradle.kts  <-- includeBuild("../core-schema")
+└── core-schema (Included Build)
+    ├── build.gradle.kts
+    └── settings.gradle.kts  <-- rootProject.name = "core-schema"
+----
+
+The included build has the following information:
+
+[source,kotlin]
+.core-schema/build.gradle.kts
+----
+group = "com.example.data"
+version = "1.0.0"
+----
+
+So that the main build can reference it:
+
+[source,kotlin]
+.app/build.gradle.kts
+----
+dependencies {
+    // WRONG: This will fail because ":core-schema" is not in this build's hierarchy
+    implementation(project(":core-schema"))
+
+    // CORRECT: Gradle sees this GAV and finds the matching project in the included build
+    implementation("com.example.data:core-schema:1.0.0")
+}
+----
+
+Gradle uses the metadata from the included build to "discover" which coordinates it provides.
+As long as the coordinates match, Gradle replaces the external dependency with a project dependency at execution time.
+
 [[included_plugin_builds]]
 == Composite builds for dependencies versus Composite Builds for plugins
 
