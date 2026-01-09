@@ -29,6 +29,8 @@ import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
 import java.util.function.Consumer
@@ -147,6 +149,8 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         1 * whenContended.accept(_)
     }
 
+    // On Windows we can't delete a file that is open
+    @Requires(UnitTestPreconditions.NotWindows)
     def "can recognize that it's NOT first lock access even if lock file is deleted"() {
         given:
         def file = tmpDir.file("lock-file.bin")

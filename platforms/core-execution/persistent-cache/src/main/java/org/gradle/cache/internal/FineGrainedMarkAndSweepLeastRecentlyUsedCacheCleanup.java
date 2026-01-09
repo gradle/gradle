@@ -23,6 +23,7 @@ import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +32,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.Locale;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -149,17 +149,16 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
             );
             Set<String> gcDirsKeys = listEntryKeys(softDeleter.getGcDir(), File::isDirectory, Function.identity());
 
-            boolean isWindows = isWindows();
             Set<String> orphanKeys = Sets.difference(Sets.union(locksKeys, gcDirsKeys), entryKeys);
-            orphanKeys.forEach(orphanKey -> deleteOrphanKey(orphanKey, isWindows));
+            orphanKeys.forEach(this::deleteOrphanKey);
         }
 
-        private void deleteOrphanKey(String key, boolean isWindows) {
+        private void deleteOrphanKey(String key) {
             File baseDir = cache.getBaseDir();
             File lockFile = getLockFile(key);
             File gcDir = softDeleter.getKeyGcDir(key);
             File cacheEntry = new File(baseDir, key);
-            if (isWindows) {
+            if (OperatingSystem.current().isWindows()) {
                 if (gcDir.exists()) {
                     cache.useCache(key, () -> {
                         if (!cacheEntry.exists()) {
@@ -201,14 +200,6 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
 
         private File getLockFile(String key) {
             return new File(cache.getBaseDir(), LOCKS_DIR_RELATIVE_PATH + "/" + key + ".lock");
-        }
-
-        /**
-         * We don't have dependency to base-services to use OperatingSystem.current() here.
-         */
-        private static boolean isWindows() {
-            String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
-            return osName.contains("windows");
         }
 
         private String getPathAsCacheKey(File path) {

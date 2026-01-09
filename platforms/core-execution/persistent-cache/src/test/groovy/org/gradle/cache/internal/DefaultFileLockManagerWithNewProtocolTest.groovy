@@ -18,7 +18,10 @@ package org.gradle.cache.internal
 
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.internal.filelock.DefaultLockOptions
+import org.gradle.cache.internal.filelock.DefaultLockStateSerializer
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.FileLockManager.LockMode.Shared
@@ -32,29 +35,97 @@ class DefaultFileLockManagerWithNewProtocolTest extends AbstractFileLockManagerT
         return DefaultLockOptions.mode(FileLockManager.LockMode.OnDemand)
     }
 
+    def "returns file lock as valid if not broken or recreated"() {
+        given:
+        def lock = createLock(Exclusive)
+
+        expect:
+        lock.isValid()
+        lock.lockFile.exists()
+    }
+
+    // On Windows we can't delete a file that is open
+    @Requires(UnitTestPreconditions.NotWindows)
     def "detects if file lock was deleted"() {
         given:
         def lock = createLock(Exclusive)
 
         when:
-        testFileLock.delete()
+        boolean deleted = lock.lockFile.delete()
 
         then:
+        deleted
         !lock.isValid()
+        !lock.lockFile.exists()
     }
 
+    // On Windows we can't delete a file that is open
+    @Requires(UnitTestPreconditions.NotWindows)
     def "detects if file lock was recreated"() {
         given:
         def lock = createLock(Exclusive)
 
         when:
-        testFileLock.delete()
+        def deleted = lock.lockFile.delete()
         def reopenedLock = createLock(Exclusive, testFile, secondaryManager)
 
         then:
-        testFileLock.exists()
+        deleted
         !lock.isValid()
         reopenedLock.isValid()
+        lock.lockFile.exists()
+    }
+
+    // On Windows we cannot modify a state region that is locked
+    @Requires(UnitTestPreconditions.NotWindows)
+    def "detects if file lock is broken and reopening lock can recover from it"() {
+        given:
+        def lock
+        def protocolVersion = new DefaultLockStateSerializer().getVersion()
+
+        when:
+        lock = createLock(Exclusive)
+
+        then:
+        lock.isValid()
+        lock.lockFile.exists()
+
+        when:
+        lock.lockFile.bytes = [protocolVersion, 'x']
+
+        then:
+        !lock.isValid()
+        lock.lockFile.exists()
+
+        when:
+        lock.close()
+        lock = createLock(Exclusive)
+
+        then:
+        lock.isValid()
+        lock.lockFile.exists()
+    }
+
+    @Requires(UnitTestPreconditions.NotWindows)
+    def "file lock valid check throws exception if incompatible protocol version"() {
+        given:
+        def protocolVersion = new DefaultLockStateSerializer().getVersion()
+
+        when:
+        def lock = createLock(Exclusive)
+
+        then:
+        lock.isValid()
+        lock.lockFile.exists()
+
+        when:
+        lock.lockFile.bytes = [protocolVersion - 1]
+        lock.isValid()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Unexpected lock protocol found in lock file. Expected ${protocolVersion}, found ${protocolVersion - 1}."
+
     }
 
     def "a lock has been updated when never written to"() {

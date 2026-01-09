@@ -35,6 +35,7 @@ import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.ExponentialBackoff;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -55,6 +56,7 @@ import java.util.function.Consumer;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
@@ -317,6 +319,12 @@ public class DefaultFileLockManager implements FileLockManager {
                 throw new UnsupportedOperationException("FileLock.isValid() is not supported for cross-version FileLocks.");
             }
 
+            if (OperatingSystem.current().isWindows()) {
+                // On Windows if we hold the lock it means lock is valid,
+                // since OS won't allow to modify the state region or delete the file due to lock
+                return lock != null;
+            }
+
             if (lock == null || !lockFile.exists()) {
                 return false;
             }
@@ -337,18 +345,16 @@ public class DefaultFileLockManager implements FileLockManager {
             try {
                 return lockFileAccess.readLockId();
             } catch (IOException e) {
-                // We expect that already opened file descriptor should not be in a bad state,
-                // so when exception is thrown lock is not valid
                 return null;
             }
         }
 
         @Nullable
         private Long readLockIdFromLockFile() {
+            checkArgument(!OperatingSystem.current().isWindows(), "Can't re-read a lock id with a new file handle on Windows, while holding a lock on state region.");
             try (RandomAccessFile randomAccessFile = new RandomAccessFile(lockFile, "r")) {
                 return lockStateAccess.readLockId(randomAccessFile);
             } catch (IOException e) {
-                // File may not exist or may be corrupted.
                 return null;
             }
         }
