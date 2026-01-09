@@ -18,8 +18,6 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import groovy.lang.Closure;
-import org.gradle.api.Action;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 import org.gradle.api.plugins.internal.ant.AntWorkAction;
 import org.gradle.util.internal.VersionNumber;
@@ -38,57 +36,44 @@ public abstract class GroovydocAntAction extends AntWorkAction<GroovydocParamete
     }
 
     @Override
-    protected Action<AntBuilderDelegate> getAntAction() {
-        return new Action<AntBuilderDelegate>() {
-            @Override
-            public void execute(AntBuilderDelegate ant) {
-                GroovydocParameters parameters = getParameters();
+    public void execute(AntBuilderDelegate ant) {
+        GroovydocParameters parameters = getParameters();
 
-                final VersionNumber version = getGroovyVersion();
+        final VersionNumber version = getGroovyVersion();
 
-                final Map<String, Object> args = new LinkedHashMap<>();
-                args.put("sourcepath", parameters.getTmpDir().get().getAsFile());
-                args.put("destdir", parameters.getDestinationDirectory().get().getAsFile());
-                args.put("use", parameters.getUse().get());
-                if (isAtLeast(version, "2.4.6")) {
-                    args.put("noTimestamp", parameters.getNoTimestamp().get());
-                    args.put("noVersionStamp", parameters.getNoVersionStamp().get());
-                }
-                args.put(parameters.getAccess().get().name().toLowerCase(Locale.ROOT), true);
+        final Map<String, Object> args = new LinkedHashMap<>();
+        args.put("sourcepath", parameters.getTmpDir().get().getAsFile());
+        args.put("destdir", parameters.getDestinationDirectory().get().getAsFile());
+        args.put("use", parameters.getUse().get());
+        if (isAtLeast(version, "2.4.6")) {
+            args.put("noTimestamp", parameters.getNoTimestamp().get());
+            args.put("noVersionStamp", parameters.getNoVersionStamp().get());
+        }
+        args.put(parameters.getAccess().get().name().toLowerCase(Locale.ROOT), true);
 
-                args.put("author", parameters.getIncludeAuthor().get());
-                if (isAtLeast(version, "1.7.3")) {
-                    args.put("processScripts", parameters.getProcessScripts().get());
-                    args.put("includeMainForScripts", parameters.getIncludeMainForScripts().get());
-                }
-                putIfNotNull(args, "windowtitle", parameters.getWindowTitle().getOrNull());
-                putIfNotNull(args, "doctitle", parameters.getDocTitle().getOrNull());
-                putIfNotNull(args, "header", parameters.getHeader().getOrNull());
-                putIfNotNull(args, "footer", parameters.getFooter().getOrNull());
-                putIfNotNull(args, "overview", parameters.getOverview().getOrNull());
+        args.put("author", parameters.getIncludeAuthor().get());
+        if (isAtLeast(version, "1.7.3")) {
+            args.put("processScripts", parameters.getProcessScripts().get());
+            args.put("includeMainForScripts", parameters.getIncludeMainForScripts().get());
+        }
+        putIfNotNull(args, "windowtitle", parameters.getWindowTitle().getOrNull());
+        putIfNotNull(args, "doctitle", parameters.getDocTitle().getOrNull());
+        putIfNotNull(args, "header", parameters.getHeader().getOrNull());
+        putIfNotNull(args, "footer", parameters.getFooter().getOrNull());
+        putIfNotNull(args, "overview", parameters.getOverview().getOrNull());
 
-                ant.invokeMethod("taskdef", ImmutableMap.of(
-                    "name", "groovydoc",
-                    "classname", "org.codehaus.groovy.ant.Groovydoc"
-                ));
+        ant.taskdef("groovydoc", "org.codehaus.groovy.ant.Groovydoc");
 
-                ant.invokeMethod("groovydoc", new Object[]{args, new Closure<Object>(this, this) {
-                    @SuppressWarnings("unused") // Magic Groovy method
-                    public Object doCall(Object ignore) {
-                        for (GroovydocParameters.Link link : parameters.getLinks().get()) {
-                            ant.invokeMethod("link", new Object[]{
-                                ImmutableMap.of(
-                                    "packages", Joiner.on(",").join(link.getPackages()),
-                                    "href", link.getUrl()
-                                )
-                            });
-                        }
-
-                        return null;
-                    }
-                }});
+        ant.createNode("groovydoc", args, () -> {
+            for (GroovydocParameters.Link link : parameters.getLinks().get()) {
+                ant.createNode("link",
+                    ImmutableMap.of(
+                        "packages", Joiner.on(",").join(link.getPackages()),
+                        "href", link.getUrl()
+                    )
+                );
             }
-        };
+        });
     }
 
     private static VersionNumber getGroovyVersion() {

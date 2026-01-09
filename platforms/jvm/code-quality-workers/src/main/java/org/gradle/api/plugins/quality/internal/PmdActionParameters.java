@@ -23,7 +23,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 
 /**
- * Parameters used to configure a {@link PmdAction}.
+ * Parameters used to configure a {@link PmdInvoker}.
  */
 @SuppressWarnings("deprecation") // TargetJdk is deprecated; this internal type is removed alongside it.
 public interface PmdActionParameters extends AntWorkParameters {

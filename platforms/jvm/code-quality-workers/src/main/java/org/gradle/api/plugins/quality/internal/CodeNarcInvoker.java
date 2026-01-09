@@ -18,13 +18,14 @@
 package org.gradle.api.plugins.quality.internal;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.exceptions.MarkedVerificationException;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
+import org.gradle.api.plugins.internal.ant.AntWorkAction;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -34,18 +35,18 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class CodeNarcInvoker implements Action<AntBuilderDelegate> {
+public abstract class CodeNarcInvoker extends AntWorkAction<CodeNarcActionParameters> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CodeNarcInvoker.class);
 
-    private final CodeNarcActionParameters parameters;
-
-    CodeNarcInvoker(CodeNarcActionParameters parameters) {
-        this.parameters = parameters;
+    @Override
+    protected String getActionName() {
+        return "codenarc";
     }
 
     @Override
     public void execute(AntBuilderDelegate ant) {
+        CodeNarcActionParameters parameters = getParameters();
         FileCollection compilationClasspath = parameters.getCompilationClasspath();
         RegularFile configFile = parameters.getConfig().get();
         int maxPriority1Violations = parameters.getMaxPriority1Violations().get();
@@ -56,9 +57,9 @@ class CodeNarcInvoker implements Action<AntBuilderDelegate> {
         FileCollection source = parameters.getSource();
 
         setLifecycleLogLevel(ant, null);
-        ant.taskdef(ImmutableMap.of("name", "codenarc", "classname", "org.codenarc.ant.CodeNarcTask"));
+        ant.taskdef("codenarc", "org.codenarc.ant.CodeNarcTask");
         try {
-            ant.invokeMethod("codenarc",
+            ant.createNode("codenarc",
                 ImmutableMap.of(
                     "ruleSetFiles", "file:" + configFile,
                     "maxPriority1Violations", maxPriority1Violations,
@@ -72,24 +73,24 @@ class CodeNarcInvoker implements Action<AntBuilderDelegate> {
                             setLifecycleLogLevel(ant, "INFO");
 
                             // Prefer to use the IDE based formatter because this produces a useful/clickable link to the violation on the console
-                            ant.invokeMethod("report", ImmutableMap.of("type", "ide"), () ->
-                                ant.invokeMethod("option", ImmutableMap.of("name", "writeToStandardOut", "value", true))
+                            ant.createNode("report", ImmutableMap.of("type", "ide"), () ->
+                                ant.createNode("option", ImmutableMap.of("name", "writeToStandardOut", "value", true))
                             );
                         } else if (r.getName().get().equals("html")) {
-                            ant.invokeMethod("report", ImmutableMap.of("type", "sortable"), () ->
-                                ant.invokeMethod("option", ImmutableMap.of("name", "outputFile", "value", r.getOutputLocation().getAsFile().get()))
+                            ant.createNode("report", ImmutableMap.of("type", "sortable"), () ->
+                                ant.createNode("option", ImmutableMap.of("name", "outputFile", "value", r.getOutputLocation().getAsFile().get()))
                             );
                         } else {
-                            ant.invokeMethod("report", ImmutableMap.of("type", r.getName().get()), () ->
-                                ant.invokeMethod("option", ImmutableMap.of("name", "outputFile", "value", r.getOutputLocation().getAsFile().get()))
+                            ant.createNode("report", ImmutableMap.of("type", r.getName().get()), () ->
+                                ant.createNode("option", ImmutableMap.of("name", "outputFile", "value", r.getOutputLocation().getAsFile().get()))
                             );
                         }
                     });
 
-                    source.addToAntBuilder(ant, "fileset", FileCollection.AntType.FileSet);
+                    ant.addDirectoryTrees("fileset", ((FileCollectionInternal) source).getAsDirectoryTrees());
 
                     if (!compilationClasspath.isEmpty()) {
-                        compilationClasspath.addToAntBuilder(ant, "classpath");
+                        ant.addFiles("classpath", compilationClasspath);
                     }
                 });
         } catch (Exception e) {
@@ -139,8 +140,7 @@ class CodeNarcInvoker implements Action<AntBuilderDelegate> {
     @SuppressWarnings("unchecked")
     static void setLifecycleLogLevel(AntBuilderDelegate ant, @Nullable String lifecycleLogLevel) {
         try {
-            Object project = ant.getBuilder().getClass().getMethod("getProject").invoke(ant.getBuilder());
-            List<Object> buildListeners = (List<Object>) project.getClass().getMethod("getBuildListeners").invoke(project);
+            List<Object> buildListeners = (List<Object>) ant.getProject().invokeMethod("getBuildListeners");
             for (Object it : buildListeners) {
                 // We cannot use instanceof or getClass().equals(AntLoggingAdapter.class) since they're in different class loaders
                 if (it.getClass().getName().equals(AntLoggingAdapter.class.getName())) {
@@ -151,4 +151,5 @@ class CodeNarcInvoker implements Action<AntBuilderDelegate> {
             throw new RuntimeException(e);
         }
     }
+
 }

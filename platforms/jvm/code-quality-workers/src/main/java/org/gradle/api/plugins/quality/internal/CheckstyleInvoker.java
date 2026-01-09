@@ -22,15 +22,15 @@ import groovy.util.Node;
 import groovy.util.NodeList;
 import groovy.xml.XmlParser;
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.exceptions.MarkedVerificationException;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
+import org.gradle.api.plugins.internal.ant.AntWorkAction;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -48,6 +48,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -56,21 +57,21 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class CheckstyleInvoker implements Action<AntBuilderDelegate> {
+public abstract class CheckstyleInvoker extends AntWorkAction<CheckstyleActionParameters> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CheckstyleInvoker.class);
 
     private static final String FAILURE_PROPERTY_NAME = "org.gradle.checkstyle.violations";
     private static final String CONFIG_LOC_PROPERTY = "config_loc";
 
-    private final CheckstyleActionParameters parameters;
-
-    CheckstyleInvoker(CheckstyleActionParameters parameters) {
-        this.parameters = parameters;
+    @Override
+    protected String getActionName() {
+        return "checkstyle";
     }
 
     @Override
     public void execute(AntBuilderDelegate ant) {
+        CheckstyleActionParameters parameters = getParameters();
         FileTree source = parameters.getSource().getAsFileTree();
         boolean showViolations = parameters.getShowViolations().get();
         int maxErrors = parameters.getMaxErrors().get();
@@ -82,7 +83,7 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
         boolean isXmlRequired = parameters.getIsXmlRequired().get();
         boolean isHtmlRequired = parameters.getIsHtmlRequired().get();
         boolean isSarifRequired = parameters.getIsSarifRequired().get();
-        File xmlOutputLocation = getXmlOutputLocation(isXmlRequired, isHtmlRequired);
+        File xmlOutputLocation = getXmlOutputLocation(parameters, isXmlRequired, isHtmlRequired);
         Property<String> stylesheetString = parameters.getStylesheetString();
         File htmlOutputLocation = parameters.getHtmlOutputLocation().getAsFile().getOrNull();
         File sarifOutputLocation = parameters.getSarifOutputLocation().getAsFile().getOrNull();
@@ -108,19 +109,13 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
         }
 
         try {
-            ant.taskdef(ImmutableMap.of(
-                "name", "checkstyle",
-                "classname", "com.puppycrawl.tools.checkstyle.CheckStyleTask"
-            ));
+            ant.taskdef("checkstyle", "com.puppycrawl.tools.checkstyle.CheckStyleTask");
         } catch (RuntimeException ignore) {
-            ant.taskdef(ImmutableMap.of(
-                "name", "checkstyle",
-                "classname", "com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask"
-            ));
+            ant.taskdef("checkstyle", "com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask");
         }
 
         try {
-            ant.invokeMethod("checkstyle",
+            ant.createNode("checkstyle",
                 ImmutableMap.of(
                     "config", config.getAsFile(),
                     "failOnViolation", false,
@@ -128,31 +123,31 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
                     "maxWarnings", maxWarnings,
                     "failureProperty", FAILURE_PROPERTY_NAME
                 ), () -> {
-                    source.addToAntBuilder(ant, "fileset", FileCollection.AntType.FileSet);
+                    ant.addDirectoryTrees("fileset", ((FileCollectionInternal) source).getAsDirectoryTrees());
 
                     if (showViolations) {
-                        ant.invokeMethod("formatter", ImmutableMap.of("type", "plain", "useFile", false));
+                        ant.createNode("formatter", ImmutableMap.of("type", "plain", "useFile", false));
                     }
 
                     if (isXmlRequired || isHtmlRequired) {
-                        ant.invokeMethod("formatter", ImmutableMap.of(
+                        ant.createNode("formatter", ImmutableMap.of(
                             "type", "xml",
                             "toFile", checkNotNull(xmlOutputLocation, "Xml report output location is required when xml or html report is requested."))
                         );
                     }
 
                     if (isSarifRequired) {
-                        ant.invokeMethod("formatter", ImmutableMap.of(
+                        ant.createNode("formatter", ImmutableMap.of(
                             "type", "sarif",
                             "toFile", checkNotNull(sarifOutputLocation, "SARIF report output location is required when SARIF report is requested."))
                         );
                     }
 
                     configProperties.forEach((key, value) ->
-                        ant.invokeMethod("property", ImmutableMap.of("key", key, "value", value.toString()))
+                        ant.createNode("property", ImmutableMap.of("key", key, "value", value.toString()))
                     );
 
-                    ant.invokeMethod("property", ImmutableMap.of("key", CONFIG_LOC_PROPERTY, "value", configDir.toString()));
+                    ant.createNode("property", ImmutableMap.of("key", CONFIG_LOC_PROPERTY, "value", configDir.toString()));
                 });
         } catch (Exception e) {
             throw new CheckstyleInvocationException("An unexpected error occurred configuring and executing Checkstyle.", e);
@@ -162,10 +157,10 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
             String stylesheet = stylesheetString.isPresent()
                 ? stylesheetString.get()
                 : readText(CheckstyleInvoker.class.getClassLoader().getResourceAsStream("checkstyle-noframes-sorted.xsl"));
-            ant.invokeMethod("xslt", ImmutableMap.of("in", checkNotNull(xmlOutputLocation), "out", checkNotNull(htmlOutputLocation)), () -> {
-                ant.invokeMethod("param", ImmutableMap.of("name", "gradleVersion", "expression", GradleVersion.current().toString()));
-                ant.invokeMethod("style", () ->
-                    ant.invokeMethod("string", ImmutableMap.of("value", stylesheet))
+            ant.createNode("xslt", ImmutableMap.of("in", checkNotNull(xmlOutputLocation), "out", checkNotNull(htmlOutputLocation)), () -> {
+                ant.createNode("param", ImmutableMap.of("name", "gradleVersion", "expression", GradleVersion.current().toString()));
+                ant.createNode("style", Collections.emptyMap(), () ->
+                    ant.createNode("string", ImmutableMap.of("value", stylesheet))
                 );
             });
         }
@@ -187,7 +182,7 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
     }
 
     @Nullable
-    private File getXmlOutputLocation(boolean isXmlRequired, boolean isHtmlRequired) {
+    private static File getXmlOutputLocation(CheckstyleActionParameters parameters, boolean isXmlRequired, boolean isHtmlRequired) {
         File xmlOutputLocation = parameters.getXmlOutputLocation().getAsFile().getOrNull();
         if (isHtmlReportEnabledOnly(isXmlRequired, isHtmlRequired)) {
             checkNotNull(xmlOutputLocation, "Xml report output location is required when html report is requested.");

@@ -21,7 +21,7 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.jacoco.JacocoCoverageAction;
+import org.gradle.internal.jacoco.AntJacocoCheck;
 import org.gradle.internal.jacoco.rules.JacocoViolationRulesContainerImpl;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
@@ -84,7 +84,7 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
     @TaskAction
     public void check() throws IOException {
         WorkQueue queue = getWorkerExecutor().classLoaderIsolation();
-        queue.submit(JacocoCoverageAction.class, parameters -> {
+        queue.submit(AntJacocoCheck.class, parameters -> {
             parameters.getAntLibraryClasspath().convention(getJacocoClasspath());
             parameters.getProjectName().convention(projectName);
             parameters.getEncoding().convention(getSourceEncoding());
