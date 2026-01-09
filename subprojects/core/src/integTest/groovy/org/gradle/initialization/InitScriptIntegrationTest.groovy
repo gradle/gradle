@@ -180,28 +180,6 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/29678")
-    def "can use gradle.providers.exec in init script"() {
-        given:
-        file("message.txt") << "hello from init script"
-
-        file("init.gradle") << """
-            def message = gradle.providers.exec {
-                commandLine ${org.gradle.internal.os.OperatingSystem.current().windows ? '"cmd.exe", "/d", "/c", "type"' : '"cat"'}, "message.txt"
-            }.standardOutput.asText.get().trim()
-            println "Message: " + message
-        """
-
-        executer.usingInitScript(file('init.gradle'))
-        buildFile << "task hello"
-
-        when:
-        succeeds 'hello'
-
-        then:
-        outputContains("Message: hello from init script")
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/29678")
     def "can use lazy gradle.providers.exec in init script"() {
         given:
         file("version.txt") << "1.2.3"
@@ -253,37 +231,17 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/29678")
-    def "can use providers in initscript block"() {
+    def "can use gradle.providers from initscript block"() {
         given:
-        file("init.gradle") << """
-            initscript {
-                def version = providers.systemProperty("plugin.version")
-                    .getOrElse("1.0")
-                println "Using plugin version: \${version}"
-            }
-        """
-
-        executer.usingInitScript(file('init.gradle'))
-        buildFile << "task hello"
-
-        when:
-        succeeds 'hello'
-
-        then:
-        outputContains("Using plugin version: 1.0")
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/29678")
-    def "can use providers.exec in initscript block"() {
-        given:
-        file("config.txt") << "config-value"
+        file("config.txt") << "gradle-providers-test"
 
         file("init.gradle") << """
             initscript {
-                def configValue = providers.exec {
+                // Test that gradle.providers is accessible from within initscript block
+                def configValue = gradle.providers.exec {
                     commandLine ${org.gradle.internal.os.OperatingSystem.current().windows ? '"cmd.exe", "/d", "/c", "type"' : '"cat"'}, "config.txt"
                 }.standardOutput.asText.get().trim()
-                println "Config from initscript block: \${configValue}"
+                println "Config using gradle.providers from initscript block: \${configValue}"
             }
         """
 
@@ -294,6 +252,6 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'hello'
 
         then:
-        outputContains("Config from initscript block: config-value")
+        outputContains("Config using gradle.providers from initscript block: gradle-providers-test")
     }
 }

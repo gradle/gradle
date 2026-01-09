@@ -18,12 +18,10 @@ package org.gradle.api.initialization.dsl;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.provider.ProviderFactory;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -160,13 +158,4 @@ public interface ScriptHandler {
      * @return The ClassLoader. Never returns null.
      */
     ClassLoader getClassLoader();
-
-    /**
-     * Provides access to methods to create various kinds of {@link org.gradle.api.provider.Provider} instances.
-     *
-     * @return the provider factory. Never returns null.
-     * @since 9.5.0
-     */
-    @Incubating
-    ProviderFactory getProviders();
 }

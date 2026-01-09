@@ -406,7 +406,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * Provides access to methods to create various kinds of {@link org.gradle.api.provider.Provider} instances.
      *
      * @return the provider factory. Never returns null.
-     * @since 9.5.0
+     * @since 9.4.0
      */
     @Incubating
     ProviderFactory getProviders();

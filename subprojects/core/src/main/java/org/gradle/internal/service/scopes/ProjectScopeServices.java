@@ -48,7 +48,6 @@ import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
 import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
 import org.gradle.api.internal.project.AntBuilderFactory;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.internal.project.BuildScopedTaskResolver;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectModelAccess;
@@ -324,13 +323,11 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         DependencyManagementServices dependencyManagementServices,
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
-        BuildLogicBuilder buildLogicBuilder,
-        ProviderFactory providerFactory
+        BuildLogicBuilder buildLogicBuilder
     ) {
         ScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
             dependencyManagementServices,
-            buildLogicBuilder,
-            providerFactory
+            buildLogicBuilder
         );
 
         return factory.create(

@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.attributes.AttributeDescriberRegistry
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.provider.Providers
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
@@ -54,8 +53,7 @@ class DefaultScriptHandlerTest extends Specification {
         getLocalClassLoader() >> baseClassLoader
     }
     def buildLogicBuilder = Mock(BuildLogicBuilder)
-    def providerFactory = Mock(ProviderFactory)
-    ScriptHandler handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope, buildLogicBuilder, providerFactory)
+    ScriptHandler handler = new DefaultScriptHandler(scriptSource, depMgmtServices, classLoaderScope, buildLogicBuilder)
 
     def "adds classpath configuration when configuration container is queried"() {
         when:

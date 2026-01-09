@@ -10,24 +10,8 @@
         },
         {
             "type": "org.gradle.api.initialization.dsl.ScriptHandler",
-            "member": "Method org.gradle.api.initialization.dsl.ScriptHandler.getProviders()",
-            "acceptation": "Allow ProviderFactory usage in init scripts",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.initialization.dsl.ScriptHandler",
             "member": "Method org.gradle.api.initialization.dsl.ScriptHandler.repositories(org.gradle.api.Action)",
             "acceptation": "de-incubating API",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.invocation.Gradle",
-            "member": "Method org.gradle.api.invocation.Gradle.getProviders()",
-            "acceptation": "Allow ProviderFactory usage in init scripts",
             "changes": [
                 "Method added to interface"
             ]
@@ -44,14 +28,6 @@
             "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
             "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.dependencyLocking(org.gradle.api.Action)",
             "acceptation": "faulty since detection",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.getProviders()",
-            "acceptation": "Allow ProviderFactory usage in init scripts",
             "changes": [
                 "Method added to public class"
             ]
