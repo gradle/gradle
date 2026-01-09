@@ -522,7 +522,7 @@ class EdgeState implements DependencyGraphEdge {
         this.unattached = true;
     }
 
-    public void markAttached() {
+    public void markNotUnattached() {
         this.unattached = false;
     }
 
