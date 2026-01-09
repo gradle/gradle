@@ -16,8 +16,12 @@
 
 package org.gradle.internal.resource.transport.http
 
+import org.apache.commons.io.IOUtils
+import org.apache.commons.lang.math.RandomUtils
 import org.apache.http.StatusLine
 import org.apache.http.client.methods.CloseableHttpResponse
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceName
 import spock.lang.Specification
 
@@ -38,11 +42,69 @@ class HttpResourceAccessorTest extends Specification {
         1 * response.close()
     }
 
+    def "when cache position is valid, then perform range request"() {
+        SslContextFactory sslContextFactory = new DefaultSslContextFactory()
+        HttpSettings settings = DefaultHttpSettings.builder()
+            .withAuthenticationSettings([])
+            .withSslContextFactory(sslContextFactory)
+            .withRedirectVerifier({})
+            .build()
+        HttpClientHelper client = new HttpClientHelper(new DocumentationRegistry(), settings)
+        def tempFile = File.createTempFile("spring-core", ".pom", File.createTempDir("http-resource-accessor"))
+        def url = "https://repo1.maven.org/maven2/org/springframework/spring-core/6.1.12/spring-core-6.1.12.pom" // 2026 bytes
+        def resource = new ExternalResourceName(url.toURI())
+        def accessor = new HttpResourceAccessor(client)
+        accessor.setChunkSize(100) // 100 bytes
+
+        when:
+        accessor.<Void> withContent(resource, true, tempFile, (ExternalResource.ContentAction) (content) -> {
+            println "cache saved into " + tempFile.getAbsolutePath()
+            return null;
+        })
+
+        then:
+        assert client.performGet(url, true).content.bytes.length == tempFile.bytes.length
+    }
+
     private CloseableHttpResponse mockHttpResponse() {
         def response = Mock(CloseableHttpResponse)
         def statusLine = Mock(StatusLine)
         statusLine.getStatusCode() >> 200
         response.getStatusLine() >> statusLine
         response
+    }
+
+    def "when copy from unstable input stream then partial content is saved"() {
+        given:
+        def tempFile = File.createTempFile("unstable-input-stream", ".bin", File.createTempDir("http-resource-accessor"))
+        def expectedRound = 2
+        def chunkSize = 100
+
+        def unstableInputStream = new InputStream() {
+            private int round = 0
+
+            @Override
+            int read() throws IOException {
+                return RandomUtils.nextInt(256)
+            }
+
+            @Override
+            int read(byte[] b) throws IOException {
+                if (round >= expectedRound) {
+                    throw new IOException("Oops")
+                }
+                round++
+                return super.read(b)
+            }
+        }
+
+        when:
+        try {
+            IOUtils.copy(unstableInputStream, new FileOutputStream(tempFile), chunkSize)
+        } catch (IOException ignore) {
+        }
+
+        then:
+        assert tempFile.length() == expectedRound * chunkSize
     }
 }

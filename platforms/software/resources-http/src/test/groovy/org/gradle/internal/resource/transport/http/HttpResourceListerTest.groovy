@@ -41,7 +41,7 @@ class HttpResourceListerTest extends Specification {
 
     def "list returns null if HttpAccessor returns null"(){
         setup:
-        accessorMock.openResource(new ExternalResourceName("http://testrepo/"), true)  >> null
+        accessorMock.openResource(new ExternalResourceName("http://testrepo/"), true, null) >> null
         expect:
         null == lister.list(new ExternalResourceName("http://testrepo"))
     }

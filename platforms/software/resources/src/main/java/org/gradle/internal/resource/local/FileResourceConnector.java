@@ -17,11 +17,13 @@ package org.gradle.internal.resource.local;
 
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.LocalBinaryResource;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 
@@ -37,6 +39,11 @@ public class FileResourceConnector implements FileResourceRepository {
     @Override
     public ExternalResourceRepository withProgressLogging() {
         return this;
+    }
+
+    @Override
+    public ExternalResource resource(ExternalResourceName resource, boolean revalidate, @Nullable File partPosition) {
+        return resource(resource);
     }
 
     @Override
