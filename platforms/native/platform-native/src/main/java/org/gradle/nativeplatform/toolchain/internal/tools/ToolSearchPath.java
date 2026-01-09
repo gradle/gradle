@@ -21,6 +21,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.platform.PlatformBinaryResolver;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 
 import java.io.BufferedInputStream;
@@ -72,7 +73,7 @@ public class ToolSearchPath {
 
     private File findExecutable(OperatingSystem operatingSystem, String name) {
         List<File> path = pathEntries.isEmpty() ? operatingSystem.getPath() : pathEntries;
-        String exeName = operatingSystem.getExecutableName(name);
+        String exeName = PlatformBinaryResolver.forOs(operatingSystem).getExecutableName(name);
         try {
             if (name.contains(File.separator)) {
                 return maybeResolveFile(operatingSystem, new File(name), new File(exeName));

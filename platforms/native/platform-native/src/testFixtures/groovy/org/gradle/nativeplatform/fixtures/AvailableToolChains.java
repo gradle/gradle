@@ -383,7 +383,7 @@ public class AvailableToolChains {
         public abstract String getInstanceDisplayName();
 
         public ExecutableFixture executable(Object path) {
-            return new ExecutableFixture(new TestFile(OperatingSystem.current().getExecutableName(path.toString())), this);
+            return new ExecutableFixture(new TestFile(PlatformBinaryResolver.forCurrentOs().getExecutableName(path.toString())), this);
         }
 
         public LinkerOptionsFixture linkerOptionsFor(Object path) {

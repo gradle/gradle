@@ -64,7 +64,7 @@ rootProject.name = "${rootProjectName}"
     }
 
     protected TestFile exe(String str) {
-        file(OperatingSystem.current().getExecutableName(str))
+        file(PlatformBinaryResolver.forCurrentOs().getExecutableName(str))
     }
 
     protected TestFile sharedLib(String str) {

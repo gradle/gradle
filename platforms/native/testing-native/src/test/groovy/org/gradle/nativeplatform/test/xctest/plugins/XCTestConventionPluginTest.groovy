@@ -147,7 +147,7 @@ class XCTestConventionPluginTest extends Specification {
 
         def link = project.tasks.linkTest
         link instanceof LinkMachOBundle
-        link.linkedFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
+        link.linkedFile.get().asFile == projectDir.file("build/exe/test/" + PlatformBinaryResolver.forCurrentOs().getExecutableName("TestAppTest"))
         link.debuggable
 
         def install = project.tasks.installTest
@@ -179,7 +179,7 @@ class XCTestConventionPluginTest extends Specification {
 
         def link = project.tasks.linkTest
         link instanceof LinkExecutable
-        link.linkedFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystem.current().getExecutableName("TestAppTest"))
+        link.linkedFile.get().asFile == projectDir.file("build/exe/test/" + PlatformBinaryResolver.forCurrentOs().getExecutableName("TestAppTest"))
         link.debuggable
 
         def install = project.tasks.installTest

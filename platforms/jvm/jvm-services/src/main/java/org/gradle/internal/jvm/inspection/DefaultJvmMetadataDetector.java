@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.platform.PlatformBinaryResolver;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ProcessExecutionException;
@@ -128,7 +129,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
 
 
     private static File javaExecutable(File jdkPath) {
-        return new File(new File(jdkPath, "bin"), OperatingSystem.current().getExecutableName("java"));
+        return new File(new File(jdkPath, "bin"), PlatformBinaryResolver.forCurrentOs().getExecutableName("java"));
     }
 
     private JvmInstallationMetadata parseExecOutput(File jdkPath, String probeResult) {

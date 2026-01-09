@@ -94,7 +94,7 @@ class CppBasePluginTest extends Specification {
         then:
         def link = project.tasks[linkTask]
         link instanceof LinkExecutable
-        link.linkedFile.get().asFile == projectDir.file("build/exe/$exeDir" + OperatingSystem.current().getExecutableName("test_app"))
+        link.linkedFile.get().asFile == projectDir.file("build/exe/$exeDir" + PlatformBinaryResolver.forCurrentOs().getExecutableName("test_app"))
 
         def install = project.tasks[installTask]
         install instanceof InstallExecutable
