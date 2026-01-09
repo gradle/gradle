@@ -17,12 +17,10 @@
 package org.gradle.kotlin.dsl.cache
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
-import org.gradle.cache.CacheCleanupStrategyFactory
-import org.gradle.cache.UnscopedCacheBuilderFactory
+import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
+import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
-import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.AtomicMoveImmutableWorkspace
-import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.LockingImmutableWorkspace
 import org.gradle.internal.execution.workspace.impl.CacheBasedImmutableWorkspaceProvider
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.service.scopes.Scope
@@ -33,39 +31,27 @@ import java.io.Closeable
 @ServiceScope(Scope.UserHome::class)
 internal
 class KotlinDslWorkspaceProvider(
-    cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
-    fileAccessTimeJournal: FileAccessTimeJournal,
-    cacheConfigurations: CacheConfigurationsInternal,
-    cacheCleanupStrategyFactory: CacheCleanupStrategyFactory,
-    unscopedCacheBuilderFactory: UnscopedCacheBuilderFactory
+    private val cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
+    private val fileAccessTimeJournal: FileAccessTimeJournal,
+    private val cacheConfigurations: CacheConfigurationsInternal,
+    private val cacheCleanupStrategyFactory: FineGrainedCacheCleanupStrategyFactory
 ) : Closeable {
 
-    private
-    val kotlinDslWorkspace = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(
-        cacheBuilderFactory
-            .createCacheBuilder("kotlin-dsl")
-            .withDisplayName("kotlin-dsl"),
-        fileAccessTimeJournal,
-        2, // scripts and accessors caches sit below the root directory
-        cacheConfigurations,
-        cacheCleanupStrategyFactory,
-        unscopedCacheBuilderFactory
-    )
+    val accessors = newWorkspace("accessors")
 
-    val accessors = subWorkspace("accessors")
-
-    val scripts = subWorkspace("scripts")
+    val scripts = newWorkspace("scripts")
 
     override fun close() =
-        kotlinDslWorkspace.close()
+        CompositeStoppable.stoppable(accessors, scripts).stop()
 
     private
-    fun subWorkspace(prefix: String): ImmutableWorkspaceProvider =
-        object : ImmutableWorkspaceProvider {
-            override fun getAtomicMoveWorkspace(path: String): AtomicMoveImmutableWorkspace =
-                kotlinDslWorkspace.getAtomicMoveWorkspace("$prefix/$path")
-
-            override fun getLockingWorkspace(path: String): LockingImmutableWorkspace =
-                kotlinDslWorkspace.getLockingWorkspace("$prefix/$path")
-        }
+    fun newWorkspace(suffix: String): ImmutableWorkspaceProvider =
+        CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(
+            cacheBuilderFactory
+                .createFineGrainedCacheBuilder("kotlin-dsl/$suffix")
+                .withDisplayName("kotlin-dsl/$suffix"),
+            fileAccessTimeJournal,
+            cacheConfigurations,
+            cacheCleanupStrategyFactory
+        )
 }
