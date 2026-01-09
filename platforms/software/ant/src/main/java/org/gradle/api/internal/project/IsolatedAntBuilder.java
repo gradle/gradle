@@ -38,7 +38,7 @@ public interface IsolatedAntBuilder {
     IsolatedAntBuilder withClasspath(Iterable<File> classpath);
 
     /**
-     * Executes the given closure against an isolated {@link org.gradle.api.AntBuilder} instance. The builder will
+     * Executes the given closure against an isolated ANT builder instance. The builder will
      * have visible to it an isolated version of Ant, Groovy and the specified libraries (if any). Each call to this
      * method is given a separate Ant project.
      */

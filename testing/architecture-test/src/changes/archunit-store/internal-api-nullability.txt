@@ -3866,7 +3866,6 @@ Class <org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup$Regi
 Class <org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ToolingModelBuilderLookup.java:0)
 Class <org.gradle.tooling.provider.model.internal.ToolingModelScope> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ToolingModelScope.java:0)
 Class <org.gradle.util.internal.AlwaysTrue> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (AlwaysTrue.java:0)
-Class <org.gradle.util.internal.AntUtil> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (AntUtil.java:0)
 Class <org.gradle.util.internal.BuildCommencedTimeProvider> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (BuildCommencedTimeProvider.java:0)
 Class <org.gradle.util.internal.BulkReadInputStream> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (BulkReadInputStream.java:0)
 Class <org.gradle.util.internal.ClosureBackedAction> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ClosureBackedAction.java:0)
