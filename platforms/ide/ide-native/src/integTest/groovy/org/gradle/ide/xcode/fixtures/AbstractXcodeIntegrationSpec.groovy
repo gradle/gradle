@@ -20,7 +20,6 @@ import com.google.common.base.Splitter
 import org.gradle.ide.fixtures.IdeCommandLineUtil
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.MachineArchitecture

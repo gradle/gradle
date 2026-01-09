@@ -32,11 +32,16 @@ class JvmTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule
     SetSystemProperties sysProp = new SetSystemProperties()
-    OperatingSystem os = Spy(OperatingSystem.WINDOWS)
+    OperatingSystem os = Mock()
+    PlatformBinaryResolver binaryResolver = Mock() {
+        getExecutableName(_) >> { String name ->
+            return "${name}.exe"
+        }
+    }
     PlatformBinaryResolver currentOsBinaryResolver = PlatformBinaryResolver.forCurrentOs()
 
     Jvm getJvm() {
-        new Jvm(os)
+        new Jvm(os, binaryResolver)
     }
 
     def setup() {
@@ -104,7 +109,7 @@ class JvmTest extends Specification {
         }
 
         when:
-        def jvm = new Jvm(os, software.file('jdk/jre'), "1.8.0.221", 8)
+        def jvm = new Jvm(os, binaryResolver, software.file('jdk/jre'), "1.8.0.221", 8)
 
         then:
         jvm.javaHome == software.file('jdk')
@@ -140,7 +145,7 @@ class JvmTest extends Specification {
         }
 
         when:
-        def jvm = new Jvm(os, software.file('jdk'), java8ImplementationVersion, 8)
+        def jvm = new Jvm(os, binaryResolver, software.file('jdk'), java8ImplementationVersion, 8)
 
         then:
         jvm.javaHome == software.file('jdk')
@@ -173,7 +178,7 @@ class JvmTest extends Specification {
         }
 
         when:
-        def jvm = new Jvm(os, software.file('jdk'), java9ImplementationVersion, 9)
+        def jvm = new Jvm(os, binaryResolver, software.file('jdk'), java9ImplementationVersion, 9)
 
         then:
         jvm.javaHome == software.file('jdk')
@@ -198,7 +203,7 @@ class JvmTest extends Specification {
         }
 
         when:
-        def jvm = new Jvm(os, software.file('jre'), "1.8.0.221", 8)
+        def jvm = new Jvm(os, binaryResolver, software.file('jre'), "1.8.0.221", 8)
 
         then:
         jvm.javaHome == software.file('jre')
@@ -234,7 +239,7 @@ class JvmTest extends Specification {
         _ * os.windows >> true
 
         when:
-        def jvm = new Jvm(os, jreDir, version, JavaVersionParser.parseMajorVersion(version))
+        def jvm = new Jvm(os, binaryResolver, jreDir, version, JavaVersionParser.parseMajorVersion(version))
 
         then:
         jvm.javaHome == jdkDir
@@ -286,7 +291,7 @@ class JvmTest extends Specification {
         _ * os.windows >> true
 
         when:
-        def jvm = new Jvm(os, jdkDir, version, JavaVersionParser.parseMajorVersion(version))
+        def jvm = new Jvm(os, binaryResolver, jdkDir, version, JavaVersionParser.parseMajorVersion(version))
 
         then:
         jvm.javaHome == jdkDir
@@ -318,8 +323,8 @@ class JvmTest extends Specification {
         }
 
         expect:
-        def jvm = new Jvm(os, installDir, "1.8.0", 8)
-        def jvm2 = new Jvm(os, installDir, "1.8.0", 8)
+        def jvm = new Jvm(os, binaryResolver, installDir, "1.8.0", 8)
+        def jvm2 = new Jvm(os, binaryResolver, installDir, "1.8.0", 8)
         Matchers.strictlyEquals(jvm, jvm2)
     }
 
@@ -406,7 +411,7 @@ class JvmTest extends Specification {
         given:
         def home = tmpDir.createDir("home")
         System.properties['java.home'] = home.absolutePath
-        _ * os.findInPath("foobar") >> new File('/path/foobar.exe')
+        _ * binaryResolver.findExecutableInPath("foobar") >> new File('/path/foobar.exe')
 
         when:
         def exec = jvm.getExecutable("foobar")
@@ -420,8 +425,8 @@ class JvmTest extends Specification {
         def home = tmpDir.createDir("home")
         System.properties['java.home'] = home.absolutePath
 
-        os.getExecutableName(_ as String) >> "foobar.exe"
-        1 * os.findInPath("foobar") >> null
+        binaryResolver.getExecutableName(_ as String) >> "foobar.exe"
+        1 * binaryResolver.findExecutableInPath("foobar") >> null
 
         when:
         def exec = jvm.getExecutable("foobar")
@@ -459,7 +464,7 @@ class JvmTest extends Specification {
         }
 
         when:
-        def jvm = new Jvm(os, jdkDir, "1.8.0", 8)
+        def jvm = new Jvm(os, binaryResolver, jdkDir, "1.8.0", 8)
 
         then:
         jvm.toString().contains('dummyFolder')
@@ -491,7 +496,7 @@ class JvmTest extends Specification {
         when:
         System.properties['java.home'] = software.file('Contents/Home').absolutePath
         System.properties['java.version'] = '1.9'
-        Jvm java9Vm = new Jvm(macOs)
+        Jvm java9Vm = new Jvm(macOs, PlatformBinaryResolver.forOs(macOs))
 
         then:
         java9Vm.javaHome == software.file('Contents/Home')

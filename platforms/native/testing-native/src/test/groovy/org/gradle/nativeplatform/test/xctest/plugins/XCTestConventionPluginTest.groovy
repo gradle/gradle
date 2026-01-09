@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest.plugins
 
-import org.gradle.internal.os.OperatingSystem
+
 import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.language.swift.plugins.SwiftApplicationPlugin
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin

@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling.r14
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
@@ -35,7 +35,7 @@ class ToolingApiInitScriptCrossVersionIntegrationTest extends ToolingApiSpecific
         distro.deleteDir()
 
         distro.copyFrom(getTargetDist().getGradleHomeDir())
-        distro.file("bin", PlatformBinaryResolver.forCurrentOs().getScriptName("gradle")).permissions = 'rwx------'
+        distro.file("bin", OperatingSystem.current().isWindows() ? "gradle.bat" : "gradle").permissions = 'rwx------'
         distro.file("init.d/init.gradle") << """
             gradle.allprojects {
                 task echo { doLast { println "from distro $i" } }

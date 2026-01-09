@@ -21,7 +21,6 @@ import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.platform.PlatformBinaryResolver
-import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.language.cpp.CppLibrary
 import org.gradle.language.cpp.CppSharedLibrary
 import org.gradle.language.cpp.CppStaticLibrary

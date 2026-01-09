@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.toolchain
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.platform.PlatformBinaryResolver
-import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp

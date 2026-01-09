@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
@@ -38,6 +39,7 @@ class VisualCppPlatformToolProviderTest extends Specification {
     def "windows shared link file names end with lib"() {
         given:
         operatingSystem.internalOs >> OperatingSystem.WINDOWS
+        operatingSystem.binaryResolver >> PlatformBinaryResolver.forOs(OperatingSystem.WINDOWS)
 
         expect:
         def actual = toolProvider.getSharedLibraryLinkFileName("sharedLibrary")

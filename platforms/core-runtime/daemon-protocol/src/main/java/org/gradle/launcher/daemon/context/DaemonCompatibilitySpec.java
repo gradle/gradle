@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.context;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.platform.PlatformBinaryResolver;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 

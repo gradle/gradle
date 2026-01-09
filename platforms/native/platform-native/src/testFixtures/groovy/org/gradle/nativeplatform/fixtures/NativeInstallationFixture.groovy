@@ -24,10 +24,12 @@ import org.gradle.test.fixtures.file.TestFile
 class NativeInstallationFixture {
     private final TestFile installDir
     private final OperatingSystem os
+    private final PlatformBinaryResolver binaryResolver
 
     NativeInstallationFixture(TestFile installDir, OperatingSystem os) {
         this.installDir = installDir
         this.os = os
+        this.binaryResolver = PlatformBinaryResolver.forOs(os);
     }
 
     ExecOutput exec(Object... args) {
@@ -50,7 +52,7 @@ class NativeInstallationFixture {
 
         def libDir = installDir.file("lib")
         libDir.assertIsDir()
-        libDir.file(os.getExecutableName(script.name)).assertIsFile()
+        libDir.file(binaryResolver.getExecutableName(script.name)).assertIsFile()
         this
     }
 

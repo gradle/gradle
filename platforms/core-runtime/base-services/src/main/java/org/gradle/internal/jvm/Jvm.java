@@ -16,12 +16,14 @@
 
 package org.gradle.internal.jvm;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.platform.PlatformBinaryResolver;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +47,7 @@ public class Jvm implements JavaInfo {
     private static final Pattern JAVA_MAIN_CLASS_REGEX = Pattern.compile("JAVA_MAIN_CLASS_\\d+");
 
     private final OperatingSystem os;
+    private final PlatformBinaryResolver binaryResolver;
     //supplied java location
     private final File javaBase;
     //discovered java location
@@ -82,18 +85,29 @@ public class Jvm implements JavaInfo {
      * Constructs JVM details by inspecting the current JVM.
      */
     Jvm(OperatingSystem os) {
-        this(os, FileUtils.canonicalize(new File(System.getProperty("java.home"))), System.getProperty("java.version"), JavaVersionParser.parseMajorVersion(System.getProperty("java.version")), false);
+        this(os, PlatformBinaryResolver.forOs(os));
+    }
+
+    @VisibleForTesting
+    Jvm(OperatingSystem os, PlatformBinaryResolver binaryResolver) {
+        this(os, binaryResolver, FileUtils.canonicalize(new File(System.getProperty("java.home"))), System.getProperty("java.version"), JavaVersionParser.parseMajorVersion(System.getProperty("java.version")), false);
     }
 
     /**
      * Constructs JVM details from the given values
      */
     Jvm(OperatingSystem os, File suppliedJavaBase, @Nullable String implementationJavaVersion, @Nullable Integer javaVersionMajor) {
-        this(os, suppliedJavaBase, implementationJavaVersion, javaVersionMajor, true);
+        this(os, PlatformBinaryResolver.forOs(os), suppliedJavaBase, implementationJavaVersion, javaVersionMajor);
     }
 
-    private Jvm(OperatingSystem os, File suppliedJavaBase, @Nullable String implementationJavaVersion, @Nullable Integer javaVersionMajor, boolean userSupplied) {
+    @VisibleForTesting
+    Jvm(OperatingSystem os, PlatformBinaryResolver binaryResolver, File suppliedJavaBase, @Nullable String implementationJavaVersion, @Nullable Integer javaVersionMajor) {
+        this(os, binaryResolver, suppliedJavaBase, implementationJavaVersion, javaVersionMajor, true);
+    }
+
+    private Jvm(OperatingSystem os, PlatformBinaryResolver binaryResolver, File suppliedJavaBase, @Nullable String implementationJavaVersion, @Nullable Integer javaVersionMajor, boolean userSupplied) {
         this.os = os;
+        this.binaryResolver = binaryResolver;
         this.javaBase = suppliedJavaBase;
         this.implementationJavaVersion = implementationJavaVersion;
         this.javaVersionMajor = javaVersionMajor;
@@ -178,7 +192,7 @@ public class Jvm implements JavaInfo {
 
     private File commandLocation(String command) {
         File exec = new File(getJavaHome(), "bin/" + command);
-        return new File(os.getExecutableName(exec.getAbsolutePath()));
+        return new File(binaryResolver.getExecutableName(exec.getAbsolutePath()));
     }
 
     private File findExecutable(String command) {
@@ -192,7 +206,7 @@ public class Jvm implements JavaInfo {
                 + " I cannot find the %s executable. Tried location: %s", command, executable.getAbsolutePath()));
         }
 
-        File pathExecutable = os.findInPath(command);
+        File pathExecutable = binaryResolver.findExecutableInPath(command);
         if (pathExecutable != null) {
             LOGGER.info(String.format("Unable to find the '%s' executable using home: %s. We found it on the PATH: %s.",
                 command, getJavaHome(), pathExecutable));
@@ -202,7 +216,7 @@ public class Jvm implements JavaInfo {
         LOGGER.warn("Unable to find the '{}' executable. Tried the java home: {} and the PATH."
                 + " We will assume the executable can be run in the current working folder.",
             command, getJavaHome());
-        return new File(os.getExecutableName(command));
+        return new File(binaryResolver.getExecutableName(command));
     }
 
     /**

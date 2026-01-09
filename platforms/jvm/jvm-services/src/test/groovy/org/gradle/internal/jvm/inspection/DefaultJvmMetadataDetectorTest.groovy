@@ -18,7 +18,6 @@ package org.gradle.internal.jvm.inspection
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.process.ExecResult

@@ -17,8 +17,6 @@
 package org.gradle.language.swift.plugins
 
 import org.gradle.api.ProjectConfigurationException
-import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.language.swift.SwiftLibrary
 import org.gradle.language.swift.SwiftSharedLibrary

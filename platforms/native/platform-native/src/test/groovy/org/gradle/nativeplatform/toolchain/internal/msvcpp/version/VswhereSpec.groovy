@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp.version
 
 import net.rubygrapefruit.platform.MissingRegistryEntryException
 import net.rubygrapefruit.platform.WindowsRegistry
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -29,7 +29,7 @@ class VswhereSpec extends Specification {
     def localRoot = tmpDir.createDir("root")
     def programFiles = localRoot.createDir("Program Files")
     def programFilesX86 = localRoot.createDir("Program Files (X86)")
-    def os = Mock(OperatingSystem)
+    def binaryResolver = Mock(PlatformBinaryResolver)
     def windowsRegistry = Mock(WindowsRegistry)
 
     void vswhereInPath() {
