@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[composite_builds]]
-= Composite Builds
+= Composite Builds (Included Builds)
 :keywords: composite build, included build
 
 A composite build is a build that includes other builds.
@@ -50,7 +50,7 @@ A build that is included in a composite build is referred to as an *included bui
 image::structuring-builds-4.png[]
 
 Included builds do not share any configuration with other included builds.
-Each included build is configured and executed in *isolation*.
+*Each included build is configured and executed in isolation*.
 
 The following example demonstrates how two Gradle builds, normally developed separately, can be combined into a composite build:
 
@@ -117,6 +117,21 @@ Instead, it declares binary dependencies on the libraries produced by `my-utils`
 include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="my-app/app/build.gradle.kts[tags=app_dependencies]"]
 include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="my-app/app/build.gradle[tags=app_dependencies]"]
 ====
+
+[[composite_build_isolation]]
+=== Isolation and Configuration Inheritance
+
+A critical aspect of included builds is that they are executed in isolation.
+
+This has specific implications for how configuration is (or is not) shared:
+
+- *Gradle Properties*: `gradle.properties` files defined in the root build are not visible to included builds. Each included build must define its own properties.
+- *Project Properties*: Gradle project properties passed via the CLI (e.g., `-PmyProperty=value`) are only applied to the root build and are not passed to included builds.
+- *Shared Configuration*: Included builds do not share any configuration with the root build or other included builds. This includes repositories, plugin management, or dependency versions defined in `buildSrc` or version catalogs.
+
+If you need to share credentials (like repository tokens) or common configuration across a composite build tree, consider using system environment variables or extracting the logic into a shared convention plugin included via `pluginManagement`.
+
+While included builds are isolated and cannot declare direct project dependencies, a composite build can <<#included_build_task_dependencies,declare task dependencies>> on its included builds.
 
 [[settings_defined_composite]]
 == Defining a Composite Build via the Settings file
@@ -288,7 +303,7 @@ For every included build, each subproject is included as an IntelliJ IDEA Module
 Source dependencies are configured, providing cross-build navigation and refactoring.
 
 [[included_build_declaring_substitutions]]
-== Declaring dependencies substituted by an Included Build
+== Declaring dependencies substituted by a Composite Build
 
 By default, Gradle will configure each included build to determine the dependencies it can provide.
 The algorithm for doing this is simple.
