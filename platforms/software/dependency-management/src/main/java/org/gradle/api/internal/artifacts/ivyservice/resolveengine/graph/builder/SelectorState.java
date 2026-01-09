@@ -21,14 +21,12 @@ import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -51,6 +49,8 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 
 import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
@@ -63,19 +63,19 @@ import static org.gradle.util.internal.TextUtil.getPluralEnding;
  * 3. The selector was part of resolution to a particular module version.
  * In this case {@link #resolved} will be `true` and {@link ModuleResolveState#getSelected()} will point to the selected component.
  */
-public class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
+class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
 
     private final DependencyState dependencyState;
     private final DependencyToComponentIdResolver resolver;
     private final ResolveState resolveState;
     private final ResolvedVersionConstraint versionConstraint;
-    private final List<ComponentSelectionDescriptorInternal> dependencyReasons = new ArrayList<>(4);
+    private final boolean versionByAncestor;
     private final boolean isProjectSelector;
     private final AttributeDesugaring attributeDesugaring;
 
-    private ComponentIdResolveResult preferResult;
-    private ComponentIdResolveResult requireResult;
-    private ModuleVersionResolveException failure;
+    private @Nullable ComponentIdResolveResult preferResult;
+    private @Nullable ComponentIdResolveResult requireResult;
+    private @Nullable ModuleVersionResolveException failure;
     private ModuleResolveState targetModule;
     private boolean resolved;
     private boolean forced;
@@ -97,9 +97,7 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
         this.resolver = resolver;
         this.resolveState = resolveState;
         this.targetModule = resolveState.getModule(targetModuleId);
-        if (versionByAncestor) {
-            dependencyReasons.add(ComponentSelectionReasons.BY_ANCESTOR);
-        }
+        this.versionByAncestor = versionByAncestor;
         update(dependencyState);
         this.dependencyState = dependencyState;
         this.versionConstraint = versionByAncestor ?
@@ -279,46 +277,63 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
         this.targetModule = selected.getModule();
     }
 
-    /**
-     * Create a component selection reason specific to this selector.
-     * The reason produced here is not enhanced with 'unmatched' and 'rejected' descriptions.
-     */
-    public ComponentSelectionReasonInternal getSelectionReason() {
-        return ComponentSelectionReasons.of(dependencyReasons);
+    public boolean isVersionProvidedByAncestor() {
+        return versionByAncestor;
     }
 
-    /**
-     * Append selection descriptors to the supplied "reason", enhancing with any 'unmatched' or 'rejected' reasons.
-     */
-    public void addReasonsForSelector(ComponentSelectionReasonInternal selectionReason) {
-        ComponentIdResolveResult result = preferResult == null ? requireResult : preferResult;
-        Collection<String> rejectedBySelector = null;
+    public void visitSelectionReasons(Consumer<ComponentSelectionDescriptorInternal> visitor) {
+        ComponentIdResolveResult result = getResult();
         if (result != null) {
             for (RejectedVersion rejectedVersion : result.getRejectedVersions()) {
                 String version = rejectedVersion.getId().getVersion();
-                if (rejectedVersion instanceof RejectedBySelectorVersion) {
-                    if (rejectedBySelector == null) {
-                        rejectedBySelector = new ArrayList<>();
-                    }
-                    rejectedBySelector.add(version);
-                } else if (rejectedVersion instanceof RejectedByRuleVersion) {
+                if (rejectedVersion instanceof RejectedByRuleVersion) {
                     String reason = ((RejectedByRuleVersion) rejectedVersion).getReason();
-                    selectionReason.addCause(ComponentSelectionReasons.REJECTION.withDescription(new RejectedByRuleReason(version, reason)));
+                    visitor.accept(ComponentSelectionReasons.REJECTION.withDescription(new RejectedByRuleReason(version, reason)));
                 } else if (rejectedVersion instanceof RejectedByAttributesVersion) {
-                    selectionReason.addCause(ComponentSelectionReasons.REJECTION.withDescription(new RejectedByAttributesReason((RejectedByAttributesVersion) rejectedVersion)));
+                    visitor.accept(ComponentSelectionReasons.REJECTION.withDescription(new RejectedByAttributesReason((RejectedByAttributesVersion) rejectedVersion)));
                 }
             }
         }
+    }
 
-        for (ComponentSelectionDescriptorInternal descriptor : dependencyReasons) {
-            if (descriptor.getCause() == ComponentSelectionCause.REQUESTED || descriptor.getCause() == ComponentSelectionCause.CONSTRAINT) {
-                if (rejectedBySelector != null) {
-                    descriptor = descriptor.withDescription(new RejectedBySelectorReason(rejectedBySelector, descriptor));
-                } else if (result != null && !result.getUnmatchedVersions().isEmpty()) {
-                    descriptor = descriptor.withDescription(new UnmatchedVersionsReason(result.getUnmatchedVersions(), descriptor));
+    /**
+     * Add additional details to the given reason descriptor, including any 'unmatched' or 'rejected' reasons.
+     */
+    public ComponentSelectionDescriptorInternal maybeEnhanceReason(ComponentSelectionDescriptorInternal descriptor) {
+        ComponentIdResolveResult result = getResult();
+        if (result == null) {
+            return descriptor;
+        }
+
+        Collection<RejectedVersion> rejectedVersions = result.getRejectedVersions();
+        if (!rejectedVersions.isEmpty()) {
+            List<String> rejectedBySelector = null;
+            for (RejectedVersion rejectedVersion : rejectedVersions) {
+                if (rejectedVersion instanceof RejectedBySelectorVersion) {
+                    if (rejectedBySelector == null) {
+                        rejectedBySelector = new ArrayList<>(rejectedVersions.size());
+                    }
+                    rejectedBySelector.add(rejectedVersion.getId().getVersion());
                 }
             }
-            selectionReason.addCause(descriptor);
+            if (rejectedBySelector != null) {
+                return descriptor.withDescription(new RejectedBySelectorReason(rejectedBySelector, descriptor));
+            }
+        }
+
+        Set<String> unmatchedVersions = result.getUnmatchedVersions();
+        if (!unmatchedVersions.isEmpty()) {
+            return descriptor.withDescription(new UnmatchedVersionsReason(unmatchedVersions, descriptor));
+        }
+
+        return descriptor;
+    }
+
+    private @Nullable ComponentIdResolveResult getResult() {
+        if (preferResult == null) {
+            return requireResult;
+        } else {
+            return preferResult;
         }
     }
 
@@ -382,19 +397,23 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
                 fromLock = true;
                 resolved = false; // when a selector changes from non lock to lock, we must reselect
             }
-            dependencyState.addSelectionReasons(dependencyReasons);
 
             changing = changing || dependencyState.getDependency().isChanging();
         }
     }
 
     private static class UnmatchedVersionsReason implements Describable {
-        private final Collection<String> rejectedVersions;
+
+        private final Set<String> rejectedVersions;
         private final ComponentSelectionDescriptorInternal descriptor;
 
-        private UnmatchedVersionsReason(Collection<String> rejectedVersions, ComponentSelectionDescriptorInternal descriptor) {
+        private final int hashCode;
+
+        public UnmatchedVersionsReason(Set<String> rejectedVersions, ComponentSelectionDescriptorInternal descriptor) {
             this.rejectedVersions = rejectedVersions;
             this.descriptor = descriptor;
+
+            this.hashCode = computeHashCode(descriptor, rejectedVersions);
         }
 
         @Override
@@ -412,6 +431,29 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
         private int estimateSize(boolean hasCustomDescription) {
             return 24 + rejectedVersions.size() * 8 + (hasCustomDescription ? 24 : 0);
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            UnmatchedVersionsReason that = (UnmatchedVersionsReason) o;
+            return rejectedVersions.equals(that.rejectedVersions) &&
+                descriptor.equals(that.descriptor);
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
+        }
+
+        private static int computeHashCode(ComponentSelectionDescriptorInternal descriptor, Set<String> rejectedVersions) {
+            int result = rejectedVersions.hashCode();
+            result = 31 * result + descriptor.hashCode();
+            return result;
+        }
+
     }
 
     private static class RejectedByRuleReason implements Describable {
@@ -436,7 +478,6 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
             this.version = version;
         }
 
-
         @Override
         public String getDisplayName() {
             TreeFormatter formatter = new TreeFormatter();
@@ -447,12 +488,16 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
 
     private static class RejectedBySelectorReason implements Describable {
 
-        private final Collection<String> rejectedVersions;
+        private final List<String> rejectedVersions;
         private final ComponentSelectionDescriptorInternal descriptor;
 
-        private RejectedBySelectorReason(Collection<String> rejectedVersions, ComponentSelectionDescriptorInternal descriptor) {
+        private final int hashCode;
+
+        public RejectedBySelectorReason(List<String> rejectedVersions, ComponentSelectionDescriptorInternal descriptor) {
             this.rejectedVersions = rejectedVersions;
             this.descriptor = descriptor;
+
+            this.hashCode = computeHashCode(descriptor, rejectedVersions);
         }
 
         @Override
@@ -470,6 +515,29 @@ public class SelectorState implements DependencyGraphSelector, ResolvableSelecto
         private int estimateSize(boolean hasCustomDescription) {
             return 20 + rejectedVersions.size() * 8 + (hasCustomDescription ? 24 : 0);
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            RejectedBySelectorReason that = (RejectedBySelectorReason) o;
+            return rejectedVersions.equals(that.rejectedVersions) &&
+                descriptor.equals(that.descriptor);
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
+        }
+
+        private static int computeHashCode(ComponentSelectionDescriptorInternal descriptor, List<String> rejectedVersions) {
+            int result = rejectedVersions.hashCode();
+            result = 31 * result + descriptor.hashCode();
+            return result;
+        }
+
     }
 
 }

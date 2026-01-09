@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.tooling.builders
 
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.internal.build.BuildState
-import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel
@@ -34,20 +33,15 @@ internal
 object KotlinBuildScriptTemplateModelBuilder : BuildScopeModelBuilder {
 
     private
-    val gradleModules = listOf("gradle-core", "gradle-tooling-api")
+    val gradleModuleNames = listOf("gradle-core", "gradle-tooling-api")
 
     override fun canBuild(modelName: String): Boolean =
         modelName == "org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptTemplateModel"
 
     override fun create(target: BuildState): KotlinBuildScriptTemplateModel =
         target.mutableModel.serviceOf<ModuleRegistry>().run {
-            StandardKotlinBuildScriptTemplateModel(
-                gradleModules
-                    .map { getModule(it) }
-                    .flatMap { it.allRequiredModules }
-                    .fold(ClassPath.EMPTY) { classPath, module -> classPath + module.classpath }
-                    .asFiles
-            )
+            val classpath = getRuntimeClasspath(gradleModuleNames.map { getModule(it) })
+            StandardKotlinBuildScriptTemplateModel(classpath.asFiles)
         }.also {
             DeprecationLogger.deprecateType(KotlinBuildScriptTemplateModel::class.java)
                 .replaceWith(GradleDslBaseScriptModel::class.java.name)

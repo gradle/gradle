@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess
 import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal
 import org.gradle.api.internal.attributes.AttributeDesugaring
@@ -165,7 +166,7 @@ class DefaultResolutionResultTest extends Specification {
             Stub(ComponentSelector),
             false,
             Stub(ComponentSelectionReason),
-            new DefaultResolvedComponentResult(mid, Stub(ComponentSelectionReason), projectId, ImmutableMap.of(1L, Stub(ResolvedVariantResult)), ImmutableList.of(Stub(ResolvedVariantResult)), null),
+            new DefaultResolvedComponentResult(mid, Stub(ComponentSelectionReasonInternal), projectId, ImmutableMap.of(1L, Stub(ResolvedVariantResult)), ImmutableList.of(Stub(ResolvedVariantResult)), null),
             new ModuleVersionNotFoundException(Stub(ModuleComponentSelector), broken, [])
         )
         def edge = new UnresolvedDependencyEdge(dep)
