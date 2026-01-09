@@ -263,10 +263,14 @@ class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specifica
         }
 
         @Override
-        FineGrainedPersistentCache open() { return this }
+        FineGrainedPersistentCache open() {
+            return this
+        }
 
         @Override
-        File getBaseDir() { return baseDir }
+        File getBaseDir() {
+            return baseDir
+        }
 
         @Override
         Collection<File> getReservedCacheFiles() {
@@ -274,13 +278,29 @@ class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanupTest extends Specifica
         }
 
         @Override
-        String getDisplayName() { return displayName }
+        String getDisplayName() {
+            return displayName
+        }
 
         @Override
-        <T> T useCache(String key, Supplier<? extends T> action) { return action.get() }
+        <T> T useCache(String key, Supplier<? extends T> action) {
+            return action.get()
+        }
 
         @Override
-        void useCache(String key, Runnable action) { action.run() }
+        void useCache(String key, Runnable action) {
+            action.run()
+        }
+
+        @Override
+        <T> T withFileLock(String key, Supplier<? extends T> action) {
+            return action.get()
+        }
+
+        @Override
+        void withFileLock(String key, Runnable action) {
+            action.run()
+        }
 
         @Override
         void close() {}

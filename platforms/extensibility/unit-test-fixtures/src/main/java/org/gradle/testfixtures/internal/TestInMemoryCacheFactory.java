@@ -216,6 +216,21 @@ public class TestInMemoryCacheFactory implements CacheFactory {
             });
         }
 
+        @Override
+        public <T> T withFileLock(String key, Supplier<? extends T> action) {
+            assertNotClosed();
+            validateKey(key);
+            return action.get();
+        }
+
+        @Override
+        public void withFileLock(String key, Runnable action) {
+            withFileLock(key, () -> {
+                action.run();
+                return null;
+            });
+        }
+
         private void assertNotClosed() {
             if (closed) {
                 throw new IllegalStateException("cache is closed");

@@ -117,6 +117,22 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         });
     }
 
+    @Override
+    public <T> T withFileLock(String key, Supplier<? extends T> action) {
+        validateKey(key);
+        try (@SuppressWarnings("unused") FileLock lock = acquireLock(key)) {
+            return action.get();
+        }
+    }
+
+    @Override
+    public void withFileLock(String key, Runnable action) {
+        withFileLock(key, () -> {
+            action.run();
+            return null;
+        });
+    }
+
     private FileLock acquireLock(String key) {
         FileLock lock = null;
         while (lock == null) {

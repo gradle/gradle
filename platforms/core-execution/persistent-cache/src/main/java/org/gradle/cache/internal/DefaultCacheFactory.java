@@ -290,6 +290,16 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
 
         @Override
+        public <T> T withFileLock(String key, Supplier<? extends T> action) {
+            return reference.cache.withFileLock(key, action);
+        }
+
+        @Override
+        public void withFileLock(String key, Runnable action) {
+            reference.cache.withFileLock(key, action);
+        }
+
+        @Override
         public File getBaseDir() {
             return reference.cache.getBaseDir();
         }
