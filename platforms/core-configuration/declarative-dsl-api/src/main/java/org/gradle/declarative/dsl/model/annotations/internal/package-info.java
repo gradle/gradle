@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+@NullMarked
+package org.gradle.declarative.dsl.model.annotations.internal;
 
-import groovy.lang.Closure;
-import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
-
-/**
- * An object that can be configured with a Groovy closure.
- *
- * @param <T> the closure return type.
- */
-@HiddenInDefinition
-public interface Configurable<T> {
-    T configure(Closure cl);
-}
+import org.jspecify.annotations.NullMarked;

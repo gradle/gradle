@@ -19,7 +19,14 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationException
 
 class DeclarativeDslSchemaBuildingException(message: String, context: List<SchemaBuildingContextElement>) :
-    DeclarativeDslInterpretationException(message + context.asReversed().joinToString("\n", "\n") { "  in ${it.userRepresentation}" })
+    DeclarativeDslInterpretationException(
+        message + (
+            context.takeIf { it.isNotEmpty() }
+                ?.asReversed()
+                ?.joinToString("\n", "\n") { "  in ${it.userRepresentation}" }
+                ?: ""
+            )
+    )
 
 fun SchemaBuildingHost.schemaBuildingFailure(message: String): Nothing = throw DeclarativeDslSchemaBuildingException(message, context)
 

@@ -36,7 +36,7 @@ class FunctionExtractorTest {
     @Test
     fun `adding function may have a configuring lambda if it returns the added value`() {
         val schema = schemaFromTypes(ReceiverOne::class, listOf(ReceiverOne::class))
-        val dataClass = schema.dataClassTypesByFqName.values.single() as DataClass
+        val dataClass = schema.typeFor<ReceiverOne>()
         val function = dataClass.memberFunctions.single()
         assertIs<FunctionSemantics.AddAndConfigure>(function.semantics)
     }
@@ -52,7 +52,7 @@ class FunctionExtractorTest {
     @Test
     fun `adding function with no lambda is accepted if it returns Unit`() {
         val schema = schemaFromTypes(ReceiverThree::class, listOf(ReceiverThree::class))
-        val dataClass = schema.dataClassTypesByFqName.values.single() as DataClass
+        val dataClass = schema.typeFor<ReceiverThree>() as DataClass
         val function = dataClass.memberFunctions.single()
         assertIs<FunctionSemantics.AddAndConfigure>(function.semantics)
     }

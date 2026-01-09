@@ -18,6 +18,7 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import org.gradle.api.model.ManagedType;
 import org.gradle.api.specs.Spec;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 
 import java.util.Set;
 
@@ -34,6 +35,7 @@ import java.util.Set;
  * @see org.gradle.api.model.ObjectFactory#namedDomainObjectSet(Class) Create an instance of this manually.
  */
 @ManagedType
+@HiddenInDefinition
 public interface NamedDomainObjectSet<T> extends NamedDomainObjectCollection<T>, DomainObjectSet<T> {
 
     /**

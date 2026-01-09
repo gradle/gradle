@@ -25,12 +25,11 @@ import kotlin.reflect.KClass
  * If [keyClass] is null, discovers [discoverClasses] when the schema's top-level receiver type is inspected.
  */
 internal
-class FixedTypeDiscovery(private val keyClass: KClass<*>?, private val discoverClasses: List<KClass<*>>) : TypeDiscovery {
-    private val result by lazy { discoverClasses.distinct().map { TypeDiscovery.DiscoveredClass(it, isHidden = false) } }
+class FixedTypeDiscovery(private val keyClass: KClass<*>?, private val discoverClasses: List<TypeDiscovery.DiscoveredClass>) : TypeDiscovery {
     override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
         when (kClass) {
-            keyClass -> result
-            typeDiscoveryServices.host.topLevelReceiverClass -> if (keyClass == null) result else emptyList()
+            keyClass -> discoverClasses
+            typeDiscoveryServices.host.topLevelReceiverClass -> if (keyClass == null) discoverClasses else emptyList()
             else -> emptyList()
         }
 }

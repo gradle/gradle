@@ -29,18 +29,17 @@ import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInforma
 import org.gradle.internal.declarativedsl.schemaBuilder.MemberKind
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
+import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.PropertyType
 import org.gradle.internal.declarativedsl.schemaBuilder.annotationsWithGetters
 import org.gradle.internal.declarativedsl.schemaBuilder.asSupported
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelMember
 import org.gradle.internal.declarativedsl.schemaBuilder.returnTypeToRefOrError
-import org.gradle.internal.declarativedsl.schemaBuilder.schemaBuildingFailure
-import org.gradle.internal.declarativedsl.schemaBuilder.toKType
 import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
-import kotlin.reflect.KType
-import kotlin.reflect.full.createType
+import kotlin.reflect.full.allSupertypes
 
 
 /**
@@ -69,11 +68,8 @@ class GradlePropertyApiPropertyExtractor : PropertyExtractor {
                     val isDirectAccessOnly = property.kCallable.annotationsWithGetters.any { it is AccessFromCurrentReceiverOnly }
                     CollectedPropertyInformation(
                         property.name,
-                        property.returnType.toKType(),
-                        property.returnTypeToRefOrError(host) {
-                            propertyValueType(property.returnType.toKType()).asSupported()
-                                ?: host.schemaBuildingFailure("Unsupported property type: ${property.returnType.toKType()}")
-                        },
+                        property.returnType,
+                        property.returnTypeToRefOrError(host) { propertyValueType(property.returnType) },
                         DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
                         hasDefaultValue = true,
                         isHiddenInDefinition = false,
@@ -99,15 +95,12 @@ class GradlePropertyApiPropertyExtractor : PropertyExtractor {
             host.inContextOfModelMember(getter.kCallable) {
                 val nameAfterGet = name.substringAfter("get")
                 val propertyName = nameAfterGet.replaceFirstChar { it.lowercase(Locale.getDefault()) }
-                val type = getter.returnTypeToRefOrError(host) {
-                    propertyValueType(getter.returnType.toKType()).asSupported()
-                        ?: host.schemaBuildingFailure("Unsupported property type: ${getter.returnType.toKType()}")
-                }
+                val type = getter.returnTypeToRefOrError(host) { propertyValueType(getter.returnType) }
                 val isHidden = getter.kCallable.annotations.any { it is HiddenInDefinition }
                 val isDirectAccessOnly = getter.kCallable.annotations.any { it is AccessFromCurrentReceiverOnly }
                 CollectedPropertyInformation(
                     propertyName,
-                    getter.returnType.toKType(),
+                    getter.returnType,
                     type,
                     DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
                     hasDefaultValue = true,
@@ -124,9 +117,9 @@ class GradlePropertyApiPropertyExtractor : PropertyExtractor {
 private
 class PropertyReturnTypeDiscovery : TypeDiscovery {
     override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
-        typeDiscoveryServices.propertyExtractor.extractProperties(typeDiscoveryServices.host, kClass).mapNotNullTo(mutableSetOf()) {
-            (propertyValueType(it.originalReturnType).classifier as? KClass<*>)
-                ?.let { kClass -> TypeDiscovery.DiscoveredClass(kClass, false) }
+        typeDiscoveryServices.propertyExtractor.extractProperties(typeDiscoveryServices.host, kClass).flatMap {
+            propertyValueType(it.originalReturnType)
+                .let { propertyValueType -> TypeDiscovery.DiscoveredClass.classesOf(propertyValueType, PropertyType(kClass, it.name)) }
         }
 }
 
@@ -140,23 +133,28 @@ fun isGradlePropertyType(type: KClassifier): Boolean = type in handledPropertyTy
 
 
 private
-fun propertyValueType(type: KType): KType {
+fun propertyValueType(type: SupportedTypeProjection.SupportedType): SupportedTypeProjection.SupportedType {
     if (type.classifier == ListProperty::class) {
-        return List::class.createType(type.arguments)
+        return SupportedTypeProjection.SupportedType(List::class, type.arguments)
     }
 
     if (type.classifier == MapProperty::class) {
-        return Map::class.createType(type.arguments)
+        return SupportedTypeProjection.SupportedType(Map::class, type.arguments)
     }
 
-    fun searchClassHierarchyForPropertyType(type: KType): KType? {
+    fun searchClassHierarchyForPropertyType(type: SupportedTypeProjection.SupportedType): SupportedTypeProjection.SupportedType? {
         return when (val classifier = type.classifier) {
             Property::class -> type
-            is KClass<*> -> classifier.supertypes.firstOrNull { superType -> searchClassHierarchyForPropertyType(superType) != null }
+            is KClass<*> -> classifier.allSupertypes.find { it.classifier == Property::class }?.asSupported()
             else -> null
         }
     }
 
     val propertyType = searchClassHierarchyForPropertyType(type)
-    return propertyType?.arguments?.get(0)?.type ?: type
+
+    return when (propertyType) {
+        is SupportedTypeProjection.SupportedType ->
+            propertyType.arguments.getOrNull(0) as? SupportedTypeProjection.SupportedType ?: type
+        else -> type
+    }
 }

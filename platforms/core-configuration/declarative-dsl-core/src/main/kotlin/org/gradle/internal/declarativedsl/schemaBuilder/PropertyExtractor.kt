@@ -25,7 +25,6 @@ import java.util.Locale
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
-import kotlin.reflect.KType
 import kotlin.reflect.full.allSuperclasses
 
 
@@ -64,7 +63,7 @@ operator fun PropertyExtractor.plus(other: PropertyExtractor): CompositeProperty
 
 data class CollectedPropertyInformation(
     val name: String,
-    val originalReturnType: KType,
+    val originalReturnType: SupportedTypeProjection.SupportedType,
     val returnType: DataTypeRef,
     val propertyMode: PropertyMode,
     val hasDefaultValue: Boolean,
@@ -100,7 +99,7 @@ class DefaultPropertyExtractor : PropertyExtractor {
                 val isDirectAccessOnly = getter.kCallable.annotations.any { it is AccessFromCurrentReceiverOnly }
                 CollectedPropertyInformation(
                     propertyName,
-                    getter.returnType.toKType(),
+                    getter.returnType,
                     type,
                     if (setter != null) DefaultPropertyMode.DefaultReadWrite else DefaultPropertyMode.DefaultReadOnly,
                     hasDefaultValue = true,
@@ -129,7 +128,7 @@ class DefaultPropertyExtractor : PropertyExtractor {
         val isDirectAccessOnly = annotationsWithGetters.any { it is AccessFromCurrentReceiverOnly }
         return CollectedPropertyInformation(
             property.name,
-            property.returnType.toKType(),
+            property.returnType,
             property.returnTypeToRefOrError(host),
             if (isReadOnly) DefaultPropertyMode.DefaultReadOnly else DefaultPropertyMode.DefaultReadWrite,
             hasDefaultValue = run {
