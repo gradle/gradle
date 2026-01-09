@@ -330,8 +330,8 @@ For example, a single-project build called `anonymous-library`, produces a Java 
 ++++
 
 ====
-include::sample[dir="samples/build-organization/composite-builds/declared-substitution/kotlin/anonymous-library",files="build.gradle.kts[]"]
-include::sample[dir="samples/build-organization/composite-builds/declared-substitution/groovy/anonymous-library",files="build.gradle[]"]
+include::sample[dir="samples/build-organization/composite-builds/declared-substitution/kotlin",files="anonymous-library/build.gradle.kts[]"]
+include::sample[dir="samples/build-organization/composite-builds/declared-substitution/groovy",files="anonymous-library/build.gradle[]"]
 ====
 
 When this build is included in a composite, it will attempt to substitute for the dependency module `undefined:anonymous-library` (`undefined` being the default value for `project.group`, and `anonymous-library` being the root project name).
@@ -345,6 +345,16 @@ include::sample[dir="samples/build-organization/composite-builds/declared-substi
 ====
 
 With this configuration, the `my-app` composite build will substitute any dependency on `org.sample:number-utils` with a dependency on the root project of `anonymous-library`.
+
+IMPORTANT: Substitutions are not transitive across builds.
+
+Explicitly declared substitutions are only active for the build that defines them.
+In the example above, while `my-app` knows to substitute `org.sample:number-utils` with the local `anonymous-library`, the `anonymous-library` build itself remains unaware of this rule.
+
+If you run a task directly from within the `anonymous-library` directory that requires `org.sample:number-utils` (for example, in its own test suite), the resolution will fail unless:
+
+1. The substitution is also declared in the `settings.gradle(.kts)` of `anonymous-library`.
+2. (Recommended) You align the group and `rootProject.name` of `anonymous-library` to match the expected coordinates, allowing Gradle's default auto-substitution to work in both directions.
 
 [[deactivate_included_build_substitutions]]
 === Deactivate included build substitutions for a configuration
