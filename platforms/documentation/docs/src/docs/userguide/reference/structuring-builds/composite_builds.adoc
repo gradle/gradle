@@ -355,6 +355,29 @@ Importing a composite build permits sources from separate Gradle builds to be ea
 For every included build, each subproject is included as an IntelliJ IDEA Module or Eclipse Project.
 Source dependencies are configured, providing cross-build navigation and refactoring.
 
+[[composite_build_configuration_on_demand]]
+=== Configuration-on-Demand
+
+Using Configuration-on-Demand with composite builds can significantly impact performance.
+The behavior changes depending on whether you rely on default substitutions or explicitly declared substitutions.
+
+1. The "All-or-Nothing" Rule for Substitutions When you explicitly declare a substitution rule for an included build, Gradle disables its automatic discovery logic for that specific build.
+** The Result: You must manually declare all substitutions for every project within that included build that you wish to use. Any project not explicitly mapped will be treated as an external dependency.
+2. Performance Implications with Configuration-on-Demand The way Gradle discovers what an included build "provides" dictates how much of that build must be configured at startup:
++
+[cols="1,2,2", options="header"]
+|===
+| Scenario | Behavior | Performance Impact
+
+| **Default Rules** (No explicit substitutions)
+| Gradle must inspect every project in the included build to find matching `group` and `name`.
+| *High:* The included build is **always fully configured**, even if its projects aren't needed for the current task.
+
+| **Explicit Rules** (Using `substitute...using`)
+| Gradle uses your explicit rules as the source of truth.
+| *Optimized:* The included build is **not configured** unless a task requires one of the substituted projects.
+|===
+
 [[included_build_declaring_substitutions]]
 == Declaring dependencies substituted by a Composite Build
 
