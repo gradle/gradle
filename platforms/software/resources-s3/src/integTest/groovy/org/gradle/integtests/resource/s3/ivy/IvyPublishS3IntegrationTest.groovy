@@ -74,6 +74,7 @@ publishing {
         module.moduleMetadata.sha256.expectUpload()
         module.moduleMetadata.sha512.expectUpload()
 
+        System.setProperty("aws.java.v1.disableDeprecationAnnouncement", "true") // AWS SDK for Java 1.x has reached end of support on December 31, 2025; by default it prints a deprecation message
         succeeds 'publish'
 
         then:
