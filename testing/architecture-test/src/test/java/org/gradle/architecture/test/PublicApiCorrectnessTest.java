@@ -36,6 +36,7 @@ import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
+import org.slf4j.Marker;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -60,6 +61,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.beAbstractClass;
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.gradleInternalApi;
 import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
+import static org.gradle.architecture.test.ArchUnitFixture.groovyApi;
 import static org.gradle.architecture.test.ArchUnitFixture.haveDirectSuperclassOrInterfaceThatAre;
 import static org.gradle.architecture.test.ArchUnitFixture.haveOnlyArgumentsOrReturnTypesThatAre;
 import static org.gradle.architecture.test.ArchUnitFixture.not_from_fileevents;
@@ -94,8 +96,9 @@ public class PublicApiCorrectnessTest {
                 .or(type(Pair.class))
                 .or(type(Pair[].class))
                 .or(type(Unit.class))
-                .as("Kotlin classes")
-            );
+                .as("Kotlin classes"))
+            .or(type(Marker.class).as("slf4j classes"));
+
     private static final DescribedPredicate<JavaClass> public_api_tasks_or_plugins =
             gradlePublicApi().and(assignableTo(Task.class).or(assignableTo(Plugin.class)));
 
@@ -116,11 +119,12 @@ public class PublicApiCorrectnessTest {
             .that(are(public_api_tasks_or_plugins))
             .should(beAbstractClass());
 
-
     @ArchTest
     public static final ArchRule public_api_classes_do_not_extend_internal_types = freeze(classes()
         .that(are(gradlePublicApi()))
-        .should(not(haveDirectSuperclassOrInterfaceThatAre(gradleInternalApi())))
+        .should(not(
+            haveDirectSuperclassOrInterfaceThatAre(gradleInternalApi()).or(haveDirectSuperclassOrInterfaceThatAre(groovyApi()))
+        ))
     );
 
     /**

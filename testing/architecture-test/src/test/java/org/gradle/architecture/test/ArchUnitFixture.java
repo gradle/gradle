@@ -61,7 +61,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -162,6 +161,11 @@ public interface ArchUnitFixture {
             .as("Gradle Internal API");
     }
 
+    static DescribedPredicate<JavaClass> groovyApi() {
+        return resideInAnyPackage("org.apache.groovy..", "groovy..", "org.codehaus.groovy..")
+            .as("Groovy API");
+    }
+
     static DescribedPredicate<JavaClass> inGradlePublicApiPackages() {
         return new InGradlePublicApiPackages();
     }
@@ -185,15 +189,6 @@ public interface ArchUnitFixture {
             return input.isPrimitive();
         }
     };
-
-    static <T> DescribedPredicate<Collection<T>> thatAll(DescribedPredicate<T> predicate) {
-        return new DescribedPredicate<Collection<T>>("that all %s", predicate.getDescription()) {
-            @Override
-            public boolean test(Collection<T> input) {
-                return input.stream().allMatch(predicate);
-            }
-        };
-    }
 
     static ArchCondition<JavaClass> beAbstractClass() {
         return new ArchCondition<JavaClass>("be abstract") {
