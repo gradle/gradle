@@ -84,7 +84,17 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
         Property<String> stylesheetString = parameters.getStylesheetString();
         File htmlOutputLocation = parameters.getHtmlOutputLocation().getAsFile().getOrNull();
         File sarifOutputLocation = parameters.getSarifOutputLocation().getAsFile().getOrNull();
-        VersionNumber currentToolVersion = determineCheckstyleVersion(Thread.currentThread().getContextClassLoader());
+
+        VersionNumber currentToolVersion;
+        try {
+            currentToolVersion = determineCheckstyleVersion(Thread.currentThread().getContextClassLoader());
+        } catch (Throwable e) {
+            if (isClassVersionError(e)) {
+                String version = detectCheckstyleVersionFromClasspath();
+                throw new GradleException(buildClassVersionErrorMessage(version), e);
+            }
+            throw e;
+        }
 
         // User provided their own config_loc
         Object userProvidedConfigLoc = configProperties.get(CONFIG_LOC_PROPERTY);
@@ -287,5 +297,56 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
 
     private static boolean isHtmlReportEnabledOnly(boolean isXmlRequired, boolean isHtmlRequired) {
         return !isXmlRequired && isHtmlRequired;
+    }
+
+    private String detectCheckstyleVersionFromClasspath() {
+        return parameters.getAntLibraryClasspath().getFiles().stream()
+            .map(File::getName)
+            .filter(name -> name.startsWith("checkstyle-") && name.endsWith(".jar"))
+            .map(name -> name.substring("checkstyle-".length(), name.length() - ".jar".length()))
+            .findFirst()
+            .orElse("unknown");
+    }
+
+    private static boolean isClassVersionError(Throwable throwable) {
+        while (throwable != null) {
+            if (throwable instanceof UnsupportedClassVersionError) {
+                return true;
+            }
+            if (throwable instanceof NoClassDefFoundError && throwable.getCause() instanceof UnsupportedClassVersionError) {
+                return true;
+            }
+            String message = throwable.getMessage();
+            if (message != null && (message.contains("has been compiled by a more recent version of the Java Runtime")
+                                    || message.contains("class file version"))) {
+                return true;
+            }
+            throwable = throwable.getCause();
+        }
+        return false;
+    }
+
+    private static String buildClassVersionErrorMessage(String checkstyleVersion) {
+        Integer javaVersionMajor = org.gradle.internal.jvm.Jvm.current().getJavaVersionMajor();
+        String javaVersionString = javaVersionMajor != null ? String.valueOf(javaVersionMajor) : "unknown";
+
+        return String.format(
+            "Checkstyle %s is not compatible with the configured Java version (Java %s).\n\n" +
+            "Possible solutions:\n" +
+            "  1. Use a newer Java toolchain for Checkstyle:\n" +
+            "     tasks.withType(Checkstyle).configureEach {\n" +
+            "         javaLauncher = javaToolchains.launcherFor {\n" +
+            "             languageVersion = JavaLanguageVersion.of(<appropriate-version>)\n" +
+            "         }\n" +
+            "     }\n\n" +
+            "  2. Use a Checkstyle version compatible with Java %s:\n" +
+            "     checkstyle.toolVersion = '<compatible-version>'\n\n" +
+            "Check the Checkstyle release notes to find a compatible version:\n" +
+            "https://checkstyle.org/releasenotes.html\n\n" +
+            "Learn more about toolchains: https://docs.gradle.org/current/userguide/checkstyle_plugin.html#sec:checkstyle_configuration",
+            checkstyleVersion,
+            javaVersionString,
+            javaVersionString
+        );
     }
 }
