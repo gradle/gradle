@@ -30,6 +30,7 @@ import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Special
 import kotlin.reflect.typeOf
 
 
@@ -67,6 +68,13 @@ class DependencyCollectorsComponent : AnalysisSchemaComponent, ObjectConversionC
 
     override fun typeDiscovery(): List<TypeDiscovery> {
         // External Dependency is used by the runtime PlatformDependencyModifiers function resolver, and isn't added otherwise
-        return listOf(FixedTypeDiscovery(PlatformDependencyModifiers::class, listOf(ExternalDependency::class)))
+        return listOf(
+            FixedTypeDiscovery(
+                PlatformDependencyModifiers::class,
+                listOf(
+                    TypeDiscovery.DiscoveredClass(ExternalDependency::class, listOf(Special("needed for dependencies DSL")))
+                )
+            )
+        )
     }
 }
