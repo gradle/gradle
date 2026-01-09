@@ -164,7 +164,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
     }
 
-    def "'#method' method returns the same failed result successful result as other fetch methods with project build script failure"() {
+    def "'#method' returns the same result as other fetch methods in the presence of project build script failures"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         setupInitScriptWithCustomModelBuilder()
