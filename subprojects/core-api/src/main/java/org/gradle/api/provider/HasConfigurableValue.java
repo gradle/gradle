@@ -16,6 +16,8 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+
 /**
  * Represents an object that holds a value that is configurable, meaning that the value or some source for the value, such as a {@link Provider},
  * can be specified directly on the object.
@@ -30,6 +32,7 @@ package org.gradle.api.provider;
  *
  * @since 5.6
  */
+@HiddenInDefinition
 public interface HasConfigurableValue {
     /**
      * Calculates the final value of this object and disallows further changes to this object.

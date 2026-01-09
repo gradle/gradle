@@ -45,6 +45,12 @@ import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingContextElement.TagContextElement
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingTags.varargType
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.ContainerElement
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.PropertyType
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Special
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Supertype
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.UsedInMember
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -438,7 +444,7 @@ class DataSchemaBuilder(
         val properties = mutableMapOf<KClass<*>, MutableMap<String, DataProperty>>()
 
         private
-        val propertyOriginalTypes = mutableMapOf<KClass<*>, MutableMap<String, KType>>()
+        val propertyOriginalTypes = mutableMapOf<KClass<*>, MutableMap<String, SupportedTypeProjection.SupportedType>>()
 
         private
         val claimedFunctions = mutableMapOf<KClass<*>, MutableSet<KCallable<*>>>()
@@ -453,7 +459,7 @@ class DataSchemaBuilder(
             propertyOriginalTypes.getOrPut(kClass) { mutableMapOf() }
         }
 
-        fun addProperty(kClass: KClass<*>, property: DataProperty, originalType: KType) {
+        fun addProperty(kClass: KClass<*>, property: DataProperty, originalType: SupportedTypeProjection.SupportedType) {
             properties.getOrPut(kClass) { mutableMapOf() }[property.name] = property
             propertyOriginalTypes.getOrPut(kClass) { mutableMapOf() }[property.name] = originalType
         }
@@ -476,7 +482,6 @@ class DataSchemaBuilder(
         fun getClaimedFunctions(kClass: KClass<*>): Set<KCallable<*>> = claimedFunctions[kClass].orEmpty()
 
         fun getProperty(kClass: KClass<*>, name: String) = properties[kClass]?.get(name)
-        fun getPropertyType(kClass: KClass<*>, name: String) = propertyOriginalTypes[kClass]?.get(name)
     }
 
     @Suppress("NestedBlockDepth")
@@ -489,19 +494,25 @@ class DataSchemaBuilder(
                 get() = host
         }
 
+        val allTypeDiscoveries: MutableSet<TypeDiscovery.DiscoveredClass> = mutableSetOf()
+
         val allTypesToVisit = buildSet {
             fun visit(type: KClass<*>) {
                 if (add(type)) {
-                    typeDiscovery.getClassesToVisitFrom(typeDiscoveryServices, type)
-                        .forEach {
-                            if (!it.isHidden) {
-                                visit(it.kClass)
-                            }
+                    val discoveriesToVisitNext = typeDiscovery.getClassesToVisitFrom(typeDiscoveryServices, type)
+                    allTypeDiscoveries.addAll(discoveriesToVisitNext)
+
+                    discoveriesToVisitNext.forEach {
+                        if (!it.isHidden) {
+                            visit(it.kClass)
                         }
+                    }
                 }
             }
             types.forEach(::visit)
         }
+
+        checkDiscoveredTypeForIllegalHiddenTypeUsages(host, allTypeDiscoveries)
 
         return PreIndex().apply {
             allTypesToVisit.forEach { type ->
@@ -519,6 +530,48 @@ class DataSchemaBuilder(
                 }
             }
         }
+    }
+
+    private fun checkDiscoveredTypeForIllegalHiddenTypeUsages(
+        host: SchemaBuildingHost,
+        allDiscoveries: MutableSet<TypeDiscovery.DiscoveredClass>
+    ) {
+        allDiscoveries.groupBy { it.kClass }.forEach { (kClass, discoveries) ->
+            if (!isIgnoredInVisibilityChecks(kClass) && discoveries.any { it.isHidden } && discoveries.any { !it.isHidden }) {
+                host.schemaBuildingFailure(
+                    "Type '${kClass.qualifiedName}' is a hidden type and cannot be directly used." +
+                            "\n  Appears as hidden:\n" +
+                            discoveries.filter { it.isHidden }
+                                .flatMap { it.discoveryTags }
+                                .joinToString("\n") { "    - ${discoveryTagDescription(it, kClass)}" } +
+                            "\n  Illegal usages:\n" +
+                            discoveries.filterNot { it.isHidden }
+                                .flatMap { it.discoveryTags }
+                                .filter { it !is Supertype || it.ofType != kClass } // Filter out the self appearance in the type hierarchy
+                                .joinToString("\n") { "    - ${discoveryTagDescription(it, kClass)}" }
+                )
+            }
+        }
+    }
+
+    /**
+     * Some types are widely used and do not make sense to hide; however, a model might accidentally hide them in a type hierarchy.
+     * Avoid reporting their usages in other types as errors.
+     */
+    private fun isIgnoredInVisibilityChecks(kClass: KClass<*>) = when (kClass) {
+        Iterable::class, Collection::class, List::class, Map::class, Set::class,
+        Any::class, Unit::class,
+        String::class, Int::class, Boolean::class, Long::class, Double::class -> true
+        else -> false
+    }
+
+    private fun discoveryTagDescription(tag: DiscoveryTag, inTypeHierarchyOf: KClass<*>): String = when (tag) {
+        is ContainerElement -> "as the element of a container '${tag.containerMember}'"
+        is PropertyType -> "as the property type of '${tag.kClass.qualifiedName}.${tag.propertyName}'"
+        is Supertype -> if (tag.ofType == inTypeHierarchyOf && tag.isHidden) "type '${inTypeHierarchyOf.qualifiedName}' is annotated as hidden" else
+            "in the supertypes of '${tag.ofType.qualifiedName}'"
+        is UsedInMember -> "referenced from member '${tag.member}'"
+        is Special -> tag.description
     }
 
     @Suppress("UNCHECKED_CAST")
