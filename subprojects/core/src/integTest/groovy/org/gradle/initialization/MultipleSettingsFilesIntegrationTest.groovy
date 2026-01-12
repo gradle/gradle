@@ -128,8 +128,9 @@ class MultipleSettingsFilesIntegrationTest extends AbstractIntegrationSpec {
         """
         buildFile << """
             task checkName {
+                def projectName = rootProject.name
                 doLast {
-                    println "Root project name: \${rootProject.name}"
+                    println "Root project name: \${projectName}"
                 }
             }
         """
