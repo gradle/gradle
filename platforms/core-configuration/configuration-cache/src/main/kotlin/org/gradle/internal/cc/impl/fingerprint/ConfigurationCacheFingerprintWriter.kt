@@ -104,8 +104,8 @@ class ConfigurationCacheFingerprintEventHandler(
     private val workInputListeners: WorkInputListeners,
     private val scriptFileResolverListeners: ScriptFileResolverListeners
 ) :
-    ValueSourceProviderFactory.ValueListener, // single impl (Build)
-    ValueSourceProviderFactory.ComputationListener, // single impl (Build)
+    ValueSourceProviderFactory.ValueListener,
+    ValueSourceProviderFactory.ComputationListener,
     WorkInputListener, // 2 impl, separate registration (Global); sent in Build scope, consumed in BuildSession and BuildTree. Why the separate registrar?
     ScriptExecutionListener, // single impl (Build)
     UndeclaredBuildInputListener,

@@ -456,16 +456,18 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected ValueSourceProviderFactory createValueSourceProviderFactory(
+        ValueSourceProviderFactory.ValueListener valueListener,
+        ValueSourceProviderFactory.ComputationListener computationListener,
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
         ServiceRegistry services,
         GradleProperties gradleProperties,
         ExecFactory execFactory,
-        ListenerManager listenerManager,
         CalculatedValueFactory calculatedValueFactory
     ) {
         return new DefaultValueSourceProviderFactory(
-            listenerManager,
+            valueListener,
+            computationListener,
             instantiatorFactory,
             isolatableFactory,
             gradleProperties,
