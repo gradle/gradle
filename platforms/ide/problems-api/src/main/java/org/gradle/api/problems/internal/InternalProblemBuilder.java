@@ -23,6 +23,7 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.StyledText;
 
 public interface InternalProblemBuilder extends InternalProblemSpec {
 
@@ -68,6 +69,9 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
 
     @Override
     InternalProblemBuilder details(String details);
+
+    @Override
+    InternalProblemBuilder details(StyledText details);
 
     @Override
     InternalProblemBuilder solution(String solution);

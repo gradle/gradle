@@ -30,6 +30,7 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.StyledText;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 
@@ -195,7 +196,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     }
 
     private static void addDetails(String formattedMessage, ProblemSpec spec) {
-        spec.details(formattedMessage);
+        spec.details(StyledText.code(formattedMessage));
     }
 
     private static void addSeverity(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {

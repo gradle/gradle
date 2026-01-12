@@ -20,6 +20,7 @@ import com.google.common.base.Objects;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemLocation;
+import org.gradle.api.problems.StyledText;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -35,7 +36,7 @@ public class DefaultProblem implements Serializable, InternalProblem {
     private final List<String> solutions;
     private final List<ProblemLocation> originLocations;
     private final List<ProblemLocation> contextualLocations;
-    private final String details;
+    private final StyledText details;
     private final Throwable exception;
     private final AdditionalData additionalData;
 
@@ -45,7 +46,7 @@ public class DefaultProblem implements Serializable, InternalProblem {
         List<String> solutions,
         List<ProblemLocation> originLocations,
         List<ProblemLocation> contextualLocations,
-        @Nullable String details,
+        @Nullable StyledText details,
         @Nullable Throwable exception,
         @Nullable AdditionalData additionalData
     ) {
@@ -78,6 +79,14 @@ public class DefaultProblem implements Serializable, InternalProblem {
     @Nullable
     @Override
     public String getDetails() {
+        if (details == null) {
+            return null;
+        }
+        return details.toPlainString();
+    }
+
+    @Override
+    public StyledText getStyledDetails() {
         return details;
     }
 

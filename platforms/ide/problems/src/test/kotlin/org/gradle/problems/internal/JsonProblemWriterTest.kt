@@ -3,6 +3,7 @@ import org.gradle.api.problems.FileLocation
 import org.gradle.api.problems.LineInFileLocation
 import org.gradle.api.problems.ProblemDefinition
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.StyledText
 import org.gradle.api.problems.internal.DefaultProblem
 import org.gradle.api.problems.internal.DefaultProblemGroup
 import org.gradle.api.problems.internal.DefaultProblemId
@@ -51,7 +52,7 @@ class JsonProblemWriterTest {
             listOf(),
             listOf(originLocation, stackTraceLocation),
             listOf(contextualLocation),
-            "details",
+            StyledText.text("details"),
             null,
             null
         )

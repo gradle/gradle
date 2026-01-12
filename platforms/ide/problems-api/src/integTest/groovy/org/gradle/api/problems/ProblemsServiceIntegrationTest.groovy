@@ -523,6 +523,30 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
         errorOutput.count(solution) == 1
     }
 
+    def "can use styled text to describe problem details"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.details(
+                    StyledText.text("The problem is in this class:\\n")
+                        .appendCode("class HelloWorld {}\\n")
+                        .appendText("I hope it gave enough insight.")
+                )
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        verifyAll(receivedProblem) {
+            styledDetails.toPlainString() == '''The problem is in this class:
+class HelloWorld {}
+I hope it gave enough insight.'''
+        }
+    }
+
     static String problemIdScript() {
         """${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("generic", "group label");
            ${ProblemId.name} problemId = ${ProblemId.name}.create("type", "label", problemGroup)"""
