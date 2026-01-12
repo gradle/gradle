@@ -117,7 +117,7 @@ class ConfigurationCacheFingerprintEventHandler(
     FeatureFlagListener,
     FileCollectionObservationListener, // single impl (BuildTree)
     ScriptSourceListener,
-    GradlePropertiesListener, // single impl (BuildTree)
+    GradlePropertiesListener,
     ConfigurationCacheEnvironment.Listener, // single impl (BuildTree)
     Closeable
 {

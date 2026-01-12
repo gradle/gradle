@@ -240,12 +240,12 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         StartParameterInternal startParameter,
         Environment environment,
         SystemPropertiesInstaller systemPropertiesInstaller,
-        ListenerManager listenerManager
+        GradlePropertiesListener listener
     ) {
         return new DefaultGradlePropertiesController(
             new DefaultGradlePropertiesLoader(startParameter, environment),
             systemPropertiesInstaller,
-            listenerManager.getBroadcaster(GradlePropertiesListener.class)
+            listener
         );
     }
 }
