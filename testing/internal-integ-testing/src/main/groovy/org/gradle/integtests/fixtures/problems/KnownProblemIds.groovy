@@ -51,16 +51,21 @@ class KnownProblemIds {
     }
 
     private static final Map<String, String> KNOWN_GROUPS = [
+        // Top level
         'problems-api': 'Problems API',
         'validation': 'Validation',
         'configuration-usage': 'Configuration usage',
         'compilation': 'Compilation',
+        'daemon-toolchain' : 'Daemon toolchain',
+        'dependency-version-catalog': 'Version catalog',
         'deprecation': 'Deprecation',
-        'compilation:java': 'Java compilation',
         'plugin-application': 'Plugin application',
         'task-selection': 'Task selection',
-        'dependency-version-catalog': 'Version catalog',
+
+        // Sub-groups
         'compilation:groovy-dsl': 'Groovy DSL script compilation',
+        'compilation:java': 'Java compilation',
+        'daemon-toolchain:configuration-generation' : 'Gradle configuration generation',
         'validation:property-validation': 'Property validation problems',
         'validation:type-validation': 'Gradle type validation',
         'validation:configuration-cache': 'Configuration cache',
@@ -88,6 +93,7 @@ class KnownProblemIds {
         // See compiler.java for the full list of diagnostic codes we use as categories (we replace the dots with dashes)
         'compilation:java:compiler.*' : ['.*'],
         'compilation:java:initialization-failed': ['Java compilation initialization error'],
+        'daemon-toolchain:configuration-generation:task-configuration' : ['Invalid task configuration'],
         'dependency-version-catalog:alias-not-finished': [VersionCatalogProblemId.ALIAS_NOT_FINISHED.displayName],
         'dependency-version-catalog:invalid-dependency-notation': [VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION.displayName],
         'dependency-version-catalog:reserved-alias-name': [VersionCatalogProblemId.RESERVED_ALIAS_NAME.displayName],
