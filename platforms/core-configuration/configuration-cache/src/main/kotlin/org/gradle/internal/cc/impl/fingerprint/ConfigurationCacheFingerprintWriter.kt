@@ -107,7 +107,7 @@ class ConfigurationCacheFingerprintEventHandler(
     ValueSourceProviderFactory.ValueListener,
     ValueSourceProviderFactory.ComputationListener,
     WorkInputListener, // 2 impl, separate registration (Global); sent in Build scope, consumed in BuildSession and BuildTree. Why the separate registrar?
-    ScriptExecutionListener, // single impl (Build)
+    ScriptExecutionListener,
     UndeclaredBuildInputListener,
     ChangingValueDependencyResolutionListener, // 2 impl, one is no-op used instead of a broadcaster (Build)
     CoupledProjectsListener, // single impl (Build)

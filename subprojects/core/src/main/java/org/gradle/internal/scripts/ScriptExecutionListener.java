@@ -16,10 +16,10 @@
 package org.gradle.internal.scripts;
 
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-@EventScope(Scope.Build.class)
+@ServiceScope(Scope.Build.class)
 public interface ScriptExecutionListener {
     void onScriptClassLoaded(ScriptSource source, Class<?> scriptClass);
 }

@@ -825,8 +825,10 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected ScriptRunnerFactory createScriptRunnerFactory(ListenerManager listenerManager, InstantiatorFactory instantiatorFactory) {
-        ScriptExecutionListener scriptExecutionListener = listenerManager.getBroadcaster(ScriptExecutionListener.class);
+    protected ScriptRunnerFactory createScriptRunnerFactory(
+        ScriptExecutionListener scriptExecutionListener,
+        InstantiatorFactory instantiatorFactory
+    ) {
         return new DefaultScriptRunnerFactory(
             scriptExecutionListener,
             instantiatorFactory.inject()
