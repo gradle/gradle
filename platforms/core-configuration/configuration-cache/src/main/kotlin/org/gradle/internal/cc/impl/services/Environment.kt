@@ -32,6 +32,7 @@ import java.io.File
  * Augments the [DefaultEnvironment] to track access to properties files, environment variables and system properties.
  **/
 class ConfigurationCacheEnvironment(
+    private val fileResourceListener: FileResourceListener,
     private val listenerManager: ListenerManager
 ) : DefaultEnvironment() {
 
@@ -42,9 +43,6 @@ class ConfigurationCacheEnvironment(
         fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>)
         fun envVariable(name: String, value: String?)
     }
-
-    private
-    val fileResourceListener: FileResourceListener by lazy(listenerManager::getBroadcaster)
 
     private
     val listener: Listener by lazy(listenerManager::getBroadcaster)

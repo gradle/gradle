@@ -16,13 +16,24 @@
 
 package org.gradle.internal.resource.local;
 
-import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
-@EventScope({Scope.BuildTree.class, Scope.Build.class})
+@ServiceScope(Scope.BuildTree.class)
 public interface FileResourceListener {
+    /**
+     * An empty implementation that does nothing
+     */
+    FileResourceListener NO_OP = new FileResourceListener() {
+        @Override
+        public void fileObserved(File file) {}
+
+        @Override
+        public void directoryChildrenObserved(File file) {}
+    };
+
     /**
      * Called when a file system resource is accessed as a regular file.
      */

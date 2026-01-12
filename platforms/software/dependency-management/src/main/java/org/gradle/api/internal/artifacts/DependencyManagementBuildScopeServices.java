@@ -293,9 +293,18 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         DocumentationRegistry documentationRegistry,
         ListenerManager listenerManager,
         BuildCommencedTimeProvider timeProvider,
-        ServiceRegistry serviceRegistry
+        ServiceRegistry serviceRegistry,
+        FileResourceListener fileResourceListener
     ) {
-        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry, timeProvider, () -> serviceRegistry.get(GradleProperties.class), listenerManager.getBroadcaster(FileResourceListener.class));
+        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(
+            buildOperationExecutor,
+            checksumService,
+            signatureVerificationServiceFactory,
+            documentationRegistry,
+            timeProvider,
+            () -> serviceRegistry.get(GradleProperties.class),
+            fileResourceListener
+        );
         registerBuildFinishedHooks(listenerManager, override);
         return override;
     }
@@ -360,9 +369,19 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         BuildScopedCacheBuilderFactory buildScopedCacheBuilderFactory,
         FileHasher fileHasher,
         StartParameter startParameter,
-        ListenerManager listenerManager
+        FileResourceListener fileResourceListener
     ) {
-        return new DefaultSignatureVerificationServiceFactory(transportFactory, cacheBuilderFactory, decoratorFactory, buildOperationRunner, fileHasher, buildScopedCacheBuilderFactory, timeProvider, startParameter.isRefreshKeys(), listenerManager.getBroadcaster(FileResourceListener.class));
+        return new DefaultSignatureVerificationServiceFactory(
+            transportFactory,
+            cacheBuilderFactory,
+            decoratorFactory,
+            buildOperationRunner,
+            fileHasher,
+            buildScopedCacheBuilderFactory,
+            timeProvider,
+            startParameter.isRefreshKeys(),
+            fileResourceListener
+        );
     }
 
     private static void registerBuildFinishedHooks(ListenerManager listenerManager, DependencyVerificationOverride dependencyVerificationOverride) {
