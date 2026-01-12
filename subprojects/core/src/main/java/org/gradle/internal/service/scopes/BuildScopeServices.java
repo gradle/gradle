@@ -802,9 +802,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         BuildOperationExecutor buildOperationExecutor,
         BuildModelParameters buildModelParameters,
         ToolingModelParameterCarrier.Factory parameterCarrierFactory,
-        ListenerManager listenerManager
+        ToolingModelProjectDependencyListener projectDependencyListener
     ) {
-        ToolingModelProjectDependencyListener projectDependencyListener = listenerManager.getBroadcaster(ToolingModelProjectDependencyListener.class);
         IntermediateBuildActionRunner runner = new IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model");
         return new DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory, projectDependencyListener);
     }
