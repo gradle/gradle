@@ -341,7 +341,7 @@ public class NodeState implements DependencyGraphNode {
                         module.getPendingDependencies().registerConstraintProvider(this);
                     } else {
                         for (EdgeState edge : edges) {
-                            doLinkOutgoingEdge(edge, discoveredEdges, resolutionFilter, ancestorsStrictVersions, module, false);
+                            doLinkOutgoingEdge(edge, discoveredEdges, resolutionFilter, ancestorsStrictVersions, module);
                         }
                     }
                 }
@@ -444,11 +444,10 @@ public class NodeState implements DependencyGraphNode {
         ModuleIdentifier moduleId = dependencyEdge.getDependencyState().getModuleIdentifier(resolveState.getComponentSelectorConverter());
         ModuleResolveState module = resolveState.getModule(moduleId);
 
-        boolean deferSelection = false;
         if (constraint) {
             registerActivatingConstraint(dependencyEdge, moduleId);
         } else {
-            deferSelection = module.getPendingDependencies().addIncomingHardEdge();
+            module.getPendingDependencies().addIncomingHardEdge();
         }
 
         if (constraint && module.isPending()) {
@@ -456,7 +455,7 @@ public class NodeState implements DependencyGraphNode {
             module.registerConstraintProvider(this);
         } else {
             // We are a hard edge, or we are a constraint but there is already another hard edge targeting the same module.
-            doLinkOutgoingEdge(dependencyEdge, discoveredEdges, resolutionFilter, ancestorsStrictVersions, module, deferSelection);
+            doLinkOutgoingEdge(dependencyEdge, discoveredEdges, resolutionFilter, ancestorsStrictVersions, module);
         }
     }
 
@@ -565,11 +564,10 @@ public class NodeState implements DependencyGraphNode {
         Collection<EdgeState> discoveredEdges,
         ExcludeSpec resolutionFilter,
         StrictVersionConstraints ancestorsStrictVersions,
-        ModuleResolveState module,
-        boolean deferSelection
+        ModuleResolveState module
     ) {
         dependencyEdge.updateTransitiveExcludes(resolutionFilter);
-        dependencyEdge.computeSelector(ancestorsStrictVersions, deferSelection);
+        dependencyEdge.computeSelector(ancestorsStrictVersions);
         module.addUnattachedEdge(dependencyEdge);
         discoveredEdges.add(dependencyEdge);
         outgoingEdges.add(dependencyEdge);

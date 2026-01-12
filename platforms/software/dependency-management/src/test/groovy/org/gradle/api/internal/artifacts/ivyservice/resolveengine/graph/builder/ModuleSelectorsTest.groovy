@@ -38,24 +38,23 @@ class ModuleSelectorsTest extends Specification {
         verifyEmpty(selectors)
     }
 
-    def 'can add a selector not marked as deferring'() {
+    def 'can add a selector'() {
         given:
         def selector = Mock(ResolvableSelectorState)
 
         when:
-        selectors.add(selector, false)
+        selectors.add(selector)
 
         then:
         selectors.size() == 1
         selectors.first() == selector
         selectors.iterator().next() == selector
-        !selectors.checkDeferSelection()
     }
 
     def 'can remove a selector'() {
         given:
         def selector = Mock(ResolvableSelectorState)
-        selectors.add(selector, false)
+        selectors.add(selector)
 
         when:
         def result = selectors.remove(selector)
@@ -65,37 +64,14 @@ class ModuleSelectorsTest extends Specification {
         verifyEmpty(selectors)
     }
 
-    def 'can ad a selector marked as deferring'() {
-        given:
-        def selector = Mock(ResolvableSelectorState)
-
-        when:
-        selectors.add(selector, true)
-
-        then:
-        selectors.checkDeferSelection()
-    }
-
-    def 'clears deferring state on first access'() {
-        given:
-        def selector = Mock(ResolvableSelectorState)
-        selectors.add(selector, true)
-
-        when:
-        selectors.checkDeferSelection()
-
-        then:
-        !selectors.checkDeferSelection()
-    }
-
     def 'can add 2 selectors'() {
         given:
         def selector1 = Mock(ResolvableSelectorState)
-        selectors.add(selector1, false)
+        selectors.add(selector1)
         def selector2 = Mock(ResolvableSelectorState)
 
         when:
-        selectors.add(selector2, false)
+        selectors.add(selector2)
 
         then:
         selectors.size() == 2
@@ -116,8 +92,8 @@ class ModuleSelectorsTest extends Specification {
         def selector2 = Mock(ResolvableSelectorState)
 
         when:
-        selectors.add(selector1, false)
-        selectors.add(selector2, false)
+        selectors.add(selector1)
+        selectors.add(selector2)
 
         then:
         selectors.size() == 2
@@ -143,7 +119,7 @@ class ModuleSelectorsTest extends Specification {
 
         when:
         indexes.each {
-            selectors.add(candidateSelectors[it], false)
+            selectors.add(candidateSelectors[it])
         }
         indexes.each {
             selectors.remove(candidateSelectors[it])
@@ -198,7 +174,6 @@ class ModuleSelectorsTest extends Specification {
         assert selectors.size() == 0
         assert selectors.first() == null
         assert !selectors.iterator().hasNext()
-        assert !selectors.checkDeferSelection()
     }
 
     ResolvableSelectorState dynamicSelector() {

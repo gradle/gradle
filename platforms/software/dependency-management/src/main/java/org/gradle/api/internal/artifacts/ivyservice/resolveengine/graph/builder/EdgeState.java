@@ -100,12 +100,12 @@ class EdgeState implements DependencyGraphEdge {
         this.dependencyState = new DependencyState(metadata, requested, ruleDescriptors, resolveFailure);
     }
 
-    boolean computeSelector(StrictVersionConstraints ancestorsStrictVersions, boolean deferSelection) {
+    boolean computeSelector(StrictVersionConstraints ancestorsStrictVersions) {
         boolean ignoreVersion = !dependencyState.isForced() && ancestorsStrictVersions.contains(dependencyState.getModuleIdentifier(resolveState.getComponentSelectorConverter()));
         SelectorState newSelector = resolveState.computeSelectorFor(dependencyState, ignoreVersion);
         if (this.selector != newSelector) {
             clearSelector();
-            newSelector.use(deferSelection);
+            newSelector.use();
             this.selector = newSelector;
             return true;
         }
@@ -538,7 +538,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     void recomputeSelectorAndRequeueTargetNodes(StrictVersionConstraints ancestorsStrictVersions, Collection<EdgeState> discoveredEdges) {
-        if (computeSelector(ancestorsStrictVersions, false)) {
+        if (computeSelector(ancestorsStrictVersions)) {
             discoveredEdges.add(this);
         }
         // TODO: If we compute the selector for this edge and it changes, we shouldn't add the (potentially) invalid target nodes to the queue.

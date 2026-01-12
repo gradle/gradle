@@ -270,7 +270,7 @@ class SelectorStateResolverTest extends Specification {
 
     ModuleSelectors moduleSelectors(List<? extends ResolvableSelectorState> selectors) {
         def moduleSelectors = new ModuleSelectors<ResolvableSelectorState>(versionComparator.asVersionComparator(), versionParser)
-        selectors.forEach { moduleSelectors.add(it, false) }
+        selectors.forEach { moduleSelectors.add(it) }
         return moduleSelectors
     }
 

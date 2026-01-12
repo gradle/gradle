@@ -157,7 +157,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         this.queue = new ArrayDeque<>(graphSize);
 
         // Create root component and module
-        ModuleResolveState rootModule = getModule(rootModuleVersionId.getModule(), true);
+        ModuleResolveState rootModule = getModule(rootModuleVersionId.getModule());
         ComponentState rootComponent = rootModule.getVersion(rootModuleVersionId, rootComponentId);
         rootComponent.setRoot();
         rootComponent.setState(rootComponentState, ComponentGraphSpecificResolveState.EMPTY_STATE);
@@ -200,16 +200,12 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         return root;
     }
 
-    public ModuleResolveState getModule(ModuleIdentifier id) {
-        return getModule(id, false);
-    }
-
     public ComponentMetaDataResolver getComponentMetadataResolver() {
         return metaDataResolver;
     }
 
-    private ModuleResolveState getModule(ModuleIdentifier id, boolean rootModule) {
-        return modules.computeIfAbsent(id, mid -> new ModuleResolveState(idGenerator, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations, rootModule, conflictResolution));
+    public ModuleResolveState getModule(ModuleIdentifier id) {
+        return modules.computeIfAbsent(id, mid -> new ModuleResolveState(idGenerator, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations, conflictResolution));
     }
 
     @Override
