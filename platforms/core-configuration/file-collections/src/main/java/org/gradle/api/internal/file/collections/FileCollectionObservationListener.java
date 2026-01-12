@@ -17,10 +17,10 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-@EventScope(Scope.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface FileCollectionObservationListener {
     /**
      * Called when the contents of the given file collection have been observed.

@@ -70,7 +70,6 @@ import org.gradle.internal.buildoption.FeatureFlagListener;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
@@ -210,8 +209,8 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, ListenerManager listenerManager) {
-        return parent.forChildScope(listenerManager.getBroadcaster(FileCollectionObservationListener.class));
+    protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, FileCollectionObservationListener listener) {
+        return parent.forChildScope(listener);
     }
 
     @Provides

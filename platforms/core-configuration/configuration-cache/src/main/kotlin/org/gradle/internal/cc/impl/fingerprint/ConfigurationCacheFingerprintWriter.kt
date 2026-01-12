@@ -115,7 +115,7 @@ class ConfigurationCacheFingerprintEventHandler(
     FileResourceListener, // 2 impl, one is no-op used instead of a broadcaster (BuildTree, Build)
     ScriptFileResolvedListener, // 2 impl, another is some kind of broadcaster wrapper (Global) Events sent in global, but consumed here, thus the wrapper
     FeatureFlagListener,
-    FileCollectionObservationListener, // single impl (BuildTree)
+    FileCollectionObservationListener,
     ScriptSourceListener,
     GradlePropertiesListener,
     ConfigurationCacheEnvironment.Listener, // single impl (BuildTree)
