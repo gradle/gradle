@@ -110,7 +110,7 @@ class ConfigurationCacheFingerprintEventHandler(
     ScriptExecutionListener,
     UndeclaredBuildInputListener,
     ChangingValueDependencyResolutionListener, // 2 impl, one is no-op used instead of a broadcaster (Build)
-    CoupledProjectsListener, // single impl (Build)
+    CoupledProjectsListener,
     ToolingModelProjectDependencyListener,
     FileResourceListener,
     ScriptFileResolvedListener, // 2 impl, another is some kind of broadcaster wrapper (Global) Events sent in global, but consumed here, thus the wrapper
