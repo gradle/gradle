@@ -309,30 +309,30 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         MutableBoolean wasCreated = new MutableBoolean(false);
         descriptorsByUniqueId.computeIfAbsent(node.getUniqueId(), uniqueId -> {
             wasCreated.set(true);
-            boolean isTestClassId = isTestClassIdentifier(node);
-            if (isTestClassId) {
-                return createTestContainerDescriptor(node);
-            }
 
-            if (node.getType().isContainer()) {
-                String displayName = node.getDisplayName();
-                Optional<TestDescriptorInternal> parentId = node.getParentId().map(descriptorsByUniqueId::get);
-                if (parentId.isPresent()) {
-                    Object candidateId = parentId.get().getId();
-                    if (candidateId instanceof CompositeIdGenerator.CompositeId) {
-                        return createNestedTestSuite(node, displayName, (CompositeIdGenerator.CompositeId) candidateId);
-                    }
-                }
-            }
             // Check for isContainer first
             // Some nodes may be CONTAINER_AND_TEST, and we need to treat them as containers
             if (node.getType().isContainer()) {
+                boolean isTestClassId = isTestClassIdentifier(node);
+                if (!isTestClassId) {
+                    // If this isn't obviously a test class, try to create a nested test suite node.
+                    String displayName = node.getDisplayName();
+                    Optional<TestDescriptorInternal> parentId = node.getParentId().map(descriptorsByUniqueId::get);
+                    if (parentId.isPresent()) {
+                        Object candidateId = parentId.get().getId();
+                        if (candidateId instanceof CompositeIdGenerator.CompositeId) {
+                            return createNestedTestSuite(node, displayName, (CompositeIdGenerator.CompositeId) candidateId);
+                        }
+                    }
+                }
                 return createTestContainerDescriptor(node);
-            } else if (node.getType().isTest()) {
-                return createTestDescriptor(node, node.getLegacyReportingName(), node.getDisplayName());
-            } else {
-                throw new IllegalStateException("Unknown TestIdentifier type: " + node.getType());
             }
+
+            if (node.getType().isTest()) {
+                return createTestDescriptor(node, node.getLegacyReportingName(), node.getDisplayName());
+            }
+
+            throw new IllegalStateException("Unknown TestIdentifier type: " + node.getType());
         });
         return wasCreated.get();
     }
