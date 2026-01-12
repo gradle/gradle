@@ -66,7 +66,6 @@ import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
-import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.InputVisitor
 import org.gradle.internal.execution.InputVisitor.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork
@@ -96,36 +95,53 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
 
+/**
+ * A dispatcher for various fingerprint-related events.
+ * It forwards the events into the [ConfigurationCacheFingerprintWriter] if the latter is active (== registered itself within this class).
+ *
+ * **DO NOT USE LISTENERMANAGER TO SEND EVENTS TO THIS CLASS!**.
+ * See the implementation comments for the justification.
+ */
 @ServiceScope(Scope.BuildTree::class)
-@ParallelListener
 internal
 class ConfigurationCacheFingerprintEventHandler(
-    listenerManager: ListenerManager,
     private val workInputListeners: WorkInputListeners,
     private val scriptFileResolverListeners: ScriptFileResolverListeners
 ) :
-    ValueSourceProviderFactory.ValueListener,
-    ValueSourceProviderFactory.ComputationListener,
-    WorkInputListener, // 2 impl, separate registration (Global); sent in Build scope, consumed in BuildSession and BuildTree. Why the separate registrar?
-    ScriptExecutionListener,
-    UndeclaredBuildInputListener,
+// For these listeners this class is the only "real" implementation.
+// Event sources get our instance through ServiceRegistry.
     ChangingValueDependencyResolutionListener,
+    ConfigurationCacheEnvironment.Listener,
     CoupledProjectsListener,
-    ToolingModelProjectDependencyListener,
-    FileResourceListener,
-    ScriptFileResolvedListener, // 2 impl, another is some kind of broadcaster wrapper (Global) Events sent in global, but consumed here, thus the wrapper
     FeatureFlagListener,
     FileCollectionObservationListener,
-    ScriptSourceListener,
+    FileResourceListener,
     GradlePropertiesListener,
-    ConfigurationCacheEnvironment.Listener,
-    Closeable
-{
+    ScriptExecutionListener,
+    ScriptSourceListener,
+    ToolingModelProjectDependencyListener,
+    UndeclaredBuildInputListener,
+    ValueSourceProviderFactory.ComputationListener,
+    ValueSourceProviderFactory.ValueListener,
+
+    // These listeners have to be registered separately:
+    ScriptFileResolvedListener, // 2 impl, another is some kind of broadcaster wrapper (Global) Events sent in global, but consumed here, thus the wrapper
+    WorkInputListener, // 2 impl, separate registration (Global); sent in Build scope, consumed in BuildSession and BuildTree. Why the separate registrar?
+
+    // Interfaces not involved with event dispatch.
+    Closeable {
+
+    // IMPORTANT: Why isn't this class use ListenerManager as the transport?
+    // Broadcasting an event (calling a method on a listener) through LM involves holding a lock.
+    // Not taking contention into account, that lock may cause deadlocks with other locks involved in processing events.
+    // ListenerManager also forbids reentrancy (emitting an event while processing an event of the same type).
+    // Some CC fingerprinting events are inherently reentrant, e.g. handling ValueSource.obtain() call may trigger another ValueSource to be obtained.
+    // And last but not least, the versatility of the ListenerManager has a cost of 8-10 times more expensive broadcast compared to direct method call.
+    // As for most of the events this is the only implementation, the price of the versatility isn't justified.
     @Volatile
-    var delegate : ConfigurationCacheFingerprintWriter? = null
+    var delegate: ConfigurationCacheFingerprintWriter? = null
 
     init {
-        listenerManager.addListener(this) // We don't unregister because we go down with the scope.
         workInputListeners.addListener(this)
         scriptFileResolverListeners.addListener(this)
     }
@@ -138,7 +154,7 @@ class ConfigurationCacheFingerprintEventHandler(
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
         obtainedValue: ValueSourceProviderFactory.ValueListener.ObtainedValue<T, P>,
         source: org.gradle.api.provider.ValueSource<T, P>
-    )  {
+    ) {
         delegate?.valueObtained(obtainedValue, source)
     }
 
