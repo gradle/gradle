@@ -81,6 +81,8 @@ import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.scripts.ScriptFileResolvedListener
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.service.scopes.ParallelListener
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyListener
 import org.gradle.util.Path
 import java.io.File
@@ -89,6 +91,168 @@ import java.util.EnumSet
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
+
+@ServiceScope(Scope.BuildTree::class)
+@ParallelListener
+internal
+class ConfigurationCacheFingerprintEventHandler : ValueSourceProviderFactory.ValueListener, // single impl (Build)
+    ValueSourceProviderFactory.ComputationListener, // single impl (Build)
+    WorkInputListener, // 2 impl, separate registration (Global); sent in Build scope, consumed in BuildSession and BuildTree. Why the separate registrar?
+    ScriptExecutionListener, // single impl (Build)
+    UndeclaredBuildInputListener, // single impl (BuildTree)
+    ChangingValueDependencyResolutionListener, // 2 impl, one is no-op used instead of a broadcaster (Build)
+    CoupledProjectsListener, // single impl (Build)
+    ToolingModelProjectDependencyListener, // single impl (Build)
+    FileResourceListener, // 2 impl, one is no-op used instead of a broadcaster (BuildTree, Build)
+    ScriptFileResolvedListener, // 2 impl, another is some kind of broadcaster wrapper (Global) Events sent in global, but consumed here, thus the wrapper
+    FeatureFlagListener, // single impl (BuildTree)
+    FileCollectionObservationListener, // single impl (BuildTree)
+    ScriptSourceListener, // single impl (Build)
+    GradlePropertiesListener, // single impl (BuildTree)
+    ConfigurationCacheEnvironment.Listener // single impl (BuildTree)
+{
+    @Volatile
+    var delegate : ConfigurationCacheFingerprintWriter? = null
+
+    override fun <T : Any, P : ValueSourceParameters> valueObtained(
+        obtainedValue: ValueSourceProviderFactory.ValueListener.ObtainedValue<T, P>,
+        source: org.gradle.api.provider.ValueSource<T, P>
+    )  {
+        delegate?.valueObtained(obtainedValue, source)
+    }
+
+    override fun beforeValueObtained() {
+        delegate?.beforeValueObtained()
+    }
+
+    override fun afterValueObtained() {
+        delegate?.afterValueObtained()
+    }
+
+    override fun onExecute(work: UnitOfWork, relevantBehaviors: EnumSet<InputBehavior>) {
+        delegate?.onExecute(work, relevantBehaviors)
+    }
+
+    override fun onScriptClassLoaded(source: ScriptSource, scriptClass: Class<*>) {
+        delegate?.onScriptClassLoaded(source)
+    }
+
+    override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
+        delegate?.systemPropertyRead(key, value, consumer)
+    }
+
+    override fun systemPropertyChanged(key: Any, value: Any?, consumer: String?) {
+        delegate?.systemPropertyChanged(key, value, consumer)
+    }
+
+    override fun systemPropertyRemoved(key: Any, consumer: String?) {
+        delegate?.systemPropertyRemoved(key)
+    }
+
+    override fun systemPropertiesCleared(consumer: String?) {
+        delegate?.systemPropertiesCleared()
+    }
+
+    override fun envVariableRead(key: String, value: String?, consumer: String?) {
+        delegate?.envVariableRead(key, value, consumer)
+    }
+
+    override fun fileOpened(file: File, consumer: String?) {
+        delegate?.fileOpened(file, consumer)
+    }
+
+    override fun fileObserved(file: File, consumer: String?) {
+        delegate?.fileObserved(file)
+    }
+
+    override fun fileObserved(file: File) {
+        delegate?.fileObserved(file)
+    }
+
+    override fun fileSystemEntryObserved(file: File, consumer: String?) {
+        delegate?.fileSystemEntryObserved(file, consumer)
+    }
+
+    override fun directoryChildrenObserved(directory: File, consumer: String?) {
+        delegate?.directoryChildrenObserved(directory, consumer)
+    }
+
+    override fun directoryChildrenObserved(file: File) {
+        delegate?.directoryChildrenObserved(file)
+    }
+
+    override fun startParameterProjectPropertiesObserved() {
+        delegate?.startParameterProjectPropertiesObserved()
+    }
+
+    override fun onDynamicVersionSelection(
+        requested: ModuleComponentSelector,
+        expiry: Expiry,
+        versions: Set<ModuleVersionIdentifier>
+    ) {
+        delegate?.onDynamicVersionSelection(requested, expiry, versions)
+    }
+
+    override fun onChangingModuleResolve(moduleId: ModuleComponentIdentifier, expiry: Expiry) {
+        delegate?.onChangingModuleResolve(moduleId, expiry)
+    }
+
+    override fun onProjectReference(referrer: ProjectState, target: ProjectState) {
+        delegate?.onProjectReference(referrer, target)
+    }
+
+    override fun onToolingModelDependency(consumer: ProjectState, target: ProjectState) {
+        delegate?.onToolingModelDependency(consumer, target)
+    }
+
+    override fun onScriptFileResolved(scriptFile: File) {
+        delegate?.onScriptFileResolved(scriptFile)
+    }
+
+    override fun flagRead(flag: FeatureFlag) {
+        delegate?.flagRead(flag)
+    }
+
+    override fun fileCollectionObserved(fileCollection: FileCollectionInternal) {
+        delegate?.fileCollectionObserved(fileCollection)
+    }
+
+    override fun scriptSourceObserved(scriptSource: ScriptSource) {
+        delegate?.scriptSourceObserved(scriptSource)
+    }
+
+    override fun onGradlePropertiesLoaded(propertyScope: GradlePropertyScope, propertiesDir: File) {
+        delegate?.onGradlePropertiesLoaded(propertyScope, propertiesDir)
+    }
+
+    override fun onGradlePropertyAccess(propertyScope: GradlePropertyScope, propertyName: String, propertyValue: Any?) {
+        delegate?.onGradlePropertyAccess(propertyScope, propertyName, propertyValue)
+    }
+
+    override fun onGradlePropertiesByPrefix(
+        propertyScope: GradlePropertyScope,
+        prefix: String,
+        snapshot: Map<String, String>
+    ) {
+        delegate?.onGradlePropertiesByPrefix(propertyScope, prefix, snapshot)
+    }
+
+    override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
+        delegate?.systemPropertiesPrefixedBy(prefix, snapshot)
+    }
+
+    override fun systemProperty(name: String, value: String?) {
+        delegate?.systemProperty(name, value)
+    }
+
+    override fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
+        delegate?.envVariablesPrefixedBy(prefix, snapshot)
+    }
+
+    override fun envVariable(name: String, value: String?) {
+        delegate?.envVariable(name, value)
+    }
+}
 
 @Suppress("LargeClass")
 @ParallelListener
@@ -102,21 +266,7 @@ class ConfigurationCacheFingerprintWriter(
     private val workExecutionTracker: WorkExecutionTracker,
     private val inputTrackingState: InputTrackingState,
     private val buildStateRegistry: BuildStateRegistry,
-) : ValueSourceProviderFactory.ValueListener,
-    ValueSourceProviderFactory.ComputationListener,
-    WorkInputListener,
-    ScriptExecutionListener,
-    UndeclaredBuildInputListener,
-    ChangingValueDependencyResolutionListener,
-    CoupledProjectsListener,
-    ToolingModelProjectDependencyListener,
-    FileResourceListener,
-    ScriptFileResolvedListener,
-    FeatureFlagListener,
-    FileCollectionObservationListener,
-    ScriptSourceListener,
-    GradlePropertiesListener,
-    ConfigurationCacheEnvironment.Listener {
+) {
 
     interface Host {
         val isEncrypted: Boolean
@@ -296,7 +446,7 @@ class ConfigurationCacheFingerprintWriter(
         buildScopedSink.write(ConfigurationCacheFingerprint.StartParameterProjectProperties(startParameterPropertiesSnapshot))
     }
 
-    override fun scriptSourceObserved(scriptSource: ScriptSource) {
+    fun scriptSourceObserved(scriptSource: ScriptSource) {
         if (isInputTrackingDisabled()) {
             return
         }
@@ -313,7 +463,7 @@ class ConfigurationCacheFingerprintWriter(
     val URI.isHttp: Boolean
         get() = scheme.startsWith("http")
 
-    override fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry, versions: Set<ModuleVersionIdentifier>) {
+    fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry, versions: Set<ModuleVersionIdentifier>) {
         // Only consider repositories serving at least one version of the requested module.
         // This is meant to avoid repetitively expiring cache entries due to a 404 response for the requested module metadata
         // from one of the configured repositories.
@@ -322,7 +472,7 @@ class ConfigurationCacheFingerprintWriter(
         onChangingValue(ConfigurationCacheFingerprint.DynamicDependencyVersion(requested.displayName, expireAt))
     }
 
-    override fun onChangingModuleResolve(moduleId: ModuleComponentIdentifier, expiry: Expiry) {
+    fun onChangingModuleResolve(moduleId: ModuleComponentIdentifier, expiry: Expiry) {
         val expireAt = host.buildStartTime + expiry.keepFor.toMillis()
         onChangingValue(ConfigurationCacheFingerprint.ChangingModule(moduleId.displayName, expireAt))
     }
@@ -342,11 +492,7 @@ class ConfigurationCacheFingerprintWriter(
     private
     fun isExecutingWork() = workExecutionTracker.isExecutingTaskOrTransformAction
 
-    override fun fileObserved(file: File) {
-        fileObserved(file, null)
-    }
-
-    override fun fileObserved(file: File, consumer: String?) {
+    fun fileObserved(file: File) {
         if (isInputTrackingDisabled()) {
             return
         }
@@ -354,14 +500,14 @@ class ConfigurationCacheFingerprintWriter(
         captureFile(file)
     }
 
-    override fun directoryChildrenObserved(file: File) {
+    fun directoryChildrenObserved(file: File) {
         if (isInputTrackingDisabled()) {
             return
         }
         sink().captureDirectoryChildren(file)
     }
 
-    override fun directoryChildrenObserved(directory: File, consumer: String?) {
+    fun directoryChildrenObserved(directory: File, consumer: String?) {
         if (isInputTrackingDisabled() || isExecutingWork()) {
             return
         }
@@ -369,7 +515,7 @@ class ConfigurationCacheFingerprintWriter(
         reportUniqueDirectoryChildrenInput(directory, consumer)
     }
 
-    override fun fileSystemEntryObserved(file: File, consumer: String?) {
+    fun fileSystemEntryObserved(file: File, consumer: String?) {
         if (isInputTrackingDisabled() || isExecutingWork()) {
             return
         }
@@ -377,26 +523,26 @@ class ConfigurationCacheFingerprintWriter(
         reportUniqueFileSystemEntryInput(file, consumer)
     }
 
-    override fun systemPropertyChanged(key: Any, value: Any?, consumer: String?) {
+    fun systemPropertyChanged(key: Any, value: Any?, consumer: String?) {
         sink().systemPropertyChanged(key, value, locationFor(consumer))
     }
 
-    override fun systemPropertyRemoved(key: Any, consumer: String?) {
+    fun systemPropertyRemoved(key: Any) {
         sink().systemPropertyRemoved(key)
     }
 
-    override fun systemPropertiesCleared(consumer: String?) {
+    fun systemPropertiesCleared() {
         sink().systemPropertiesCleared()
     }
 
-    override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
+    fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
         if (isInputTrackingDisabled()) {
             return
         }
         addSystemPropertyToFingerprint(key, value, consumer)
     }
 
-    override fun startParameterProjectPropertiesObserved() {
+    fun startParameterProjectPropertiesObserved() {
         startParameterProjectProperties.getAndSet(null)?.let {
             addStartParameterProjectPropertiesToFingerprint(it)
         }
@@ -408,7 +554,7 @@ class ConfigurationCacheFingerprintWriter(
         reportUniqueSystemPropertyInput(key, consumer)
     }
 
-    override fun envVariableRead(key: String, value: String?, consumer: String?) {
+    fun envVariableRead(key: String, value: String?, consumer: String?) {
         if (isInputTrackingDisabled()) {
             return
         }
@@ -421,7 +567,7 @@ class ConfigurationCacheFingerprintWriter(
         reportUniqueEnvironmentVariableInput(key, consumer)
     }
 
-    override fun fileOpened(file: File, consumer: String?) {
+    fun fileOpened(file: File, consumer: String?) {
         if (isInputTrackingDisabled() || isExecutingWork()) {
             // Ignore files that are read as part of the task actions. These should really be task
             // inputs. Otherwise, we risk fingerprinting files such as
@@ -433,7 +579,7 @@ class ConfigurationCacheFingerprintWriter(
         reportUniqueFileInput(file, consumer)
     }
 
-    override fun fileCollectionObserved(fileCollection: FileCollectionInternal) {
+    fun fileCollectionObserved(fileCollection: FileCollectionInternal) {
         if (isInputTrackingDisabled() || isExecutingWork()) {
             // See #fileOpened() above
             return
@@ -441,14 +587,14 @@ class ConfigurationCacheFingerprintWriter(
         captureWorkInputs(host.location(null).toString()) { it(fileCollection) }
     }
 
-    override fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
+    fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
         if (isInputTrackingDisabled()) {
             return
         }
         addSystemPropertiesPrefixedByToFingerprint(prefix, snapshot)
     }
 
-    override fun systemProperty(name: String, value: String?) {
+    fun systemProperty(name: String, value: String?) {
         systemPropertyRead(name, value, null)
     }
 
@@ -457,14 +603,14 @@ class ConfigurationCacheFingerprintWriter(
         buildScopedSink.write(ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy(prefix, snapshot))
     }
 
-    override fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
+    fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>) {
         if (isInputTrackingDisabled()) {
             return
         }
         addEnvVariablesPrefixedByToFingerprint(prefix, snapshot)
     }
 
-    override fun envVariable(name: String, value: String?) {
+    fun envVariable(name: String, value: String?) {
         envVariableRead(name, value, null)
     }
 
@@ -473,16 +619,16 @@ class ConfigurationCacheFingerprintWriter(
         buildScopedSink.write(ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy(prefix, snapshot))
     }
 
-    override fun beforeValueObtained() {
+    fun beforeValueObtained() {
         // Do not track additional inputs while computing a value of the value source.
         inputTrackingState.disableForCurrentThread()
     }
 
-    override fun afterValueObtained() {
+    fun afterValueObtained() {
         inputTrackingState.restoreForCurrentThread()
     }
 
-    override fun <T : Any, P : ValueSourceParameters> valueObtained(
+    fun <T : Any, P : ValueSourceParameters> valueObtained(
         obtainedValue: ValueSourceProviderFactory.ValueListener.ObtainedValue<T, P>,
         source: org.gradle.api.provider.ValueSource<T, P>
     ) {
@@ -567,13 +713,13 @@ class ConfigurationCacheFingerprintWriter(
             else -> null
         }
 
-    override fun onScriptClassLoaded(source: ScriptSource, scriptClass: Class<*>) {
+    fun onScriptClassLoaded(source: ScriptSource) {
         source.resource.file?.let {
             captureFile(it)
         }
     }
 
-    override fun onExecute(work: UnitOfWork, relevantBehaviors: EnumSet<InputBehavior>) {
+    fun onExecute(work: UnitOfWork, relevantBehaviors: EnumSet<InputBehavior>) {
         captureWorkInputs(work, relevantBehaviors)
     }
 
@@ -638,7 +784,7 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    override fun onProjectReference(referrer: ProjectState, target: ProjectState) {
+    fun onProjectReference(referrer: ProjectState, target: ProjectState) {
         if (referrer.identityPath == target.identityPath)
             return
 
@@ -650,7 +796,7 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    override fun onToolingModelDependency(consumer: ProjectState, target: ProjectState) {
+    fun onToolingModelDependency(consumer: ProjectState, target: ProjectState) {
         if (host.modelAsProjectDependency) {
             onProjectDependency(consumer.identityPath, target.identityPath)
         }
@@ -666,7 +812,7 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    override fun flagRead(flag: FeatureFlag) {
+    fun flagRead(flag: FeatureFlag) {
         flag.systemPropertyName?.let { propertyName ->
             sink().systemPropertyRead(propertyName, System.getProperty(propertyName))
         }
@@ -1003,11 +1149,11 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    override fun onScriptFileResolved(scriptFile: File) {
+    fun onScriptFileResolved(scriptFile: File) {
         fileObserved(scriptFile)
     }
 
-    override fun onGradlePropertiesLoaded(
+    fun onGradlePropertiesLoaded(
         propertyScope: GradlePropertyScope,
         propertiesDir: File
     ) {
@@ -1019,7 +1165,7 @@ class ConfigurationCacheFingerprintWriter(
         )
     }
 
-    override fun onGradlePropertiesByPrefix(
+    fun onGradlePropertiesByPrefix(
         propertyScope: GradlePropertyScope,
         prefix: String,
         snapshot: Map<String, String>
@@ -1037,7 +1183,7 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    override fun onGradlePropertyAccess(
+    fun onGradlePropertyAccess(
         propertyScope: GradlePropertyScope,
         propertyName: String,
         propertyValue: Any?

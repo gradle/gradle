@@ -98,6 +98,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val buildStateRegistry: BuildStateRegistry,
     private val propertiesController: GradlePropertiesController,
+    private val fingerprintEventHandler: ConfigurationCacheFingerprintEventHandler,
 ) : Stoppable, ProjectScopedScriptResolution {
 
     interface Host {
@@ -358,20 +359,21 @@ class ConfigurationCacheFingerprintController internal constructor(
         ConfigurationCacheFingerprintChecker(CacheFingerprintCheckerHost(host))
 
     private
-    fun addListener(listener: ConfigurationCacheFingerprintWriter) {
+    fun addListener(fingerprintWriter: ConfigurationCacheFingerprintWriter) {
         // Never removed, as stateful listeners cannot be removed after events have been emitted
         listenerManager.addListener(projectComponentObservationListener)
+        // TODO(mlopatkin): it should register itself early
+        listenerManager.addListener(fingerprintEventHandler)
+        workInputListeners.addListener(fingerprintEventHandler)
+        scriptFileResolverListeners.addListener(fingerprintEventHandler)
 
-        listenerManager.addListener(listener)
-        workInputListeners.addListener(listener)
-        scriptFileResolverListeners.addListener(listener)
+        fingerprintEventHandler.delegate = fingerprintWriter
     }
 
     private
-    fun removeListener(listener: ConfigurationCacheFingerprintWriter) {
-        scriptFileResolverListeners.removeListener(listener)
-        workInputListeners.removeListener(listener)
-        listenerManager.removeListener(listener)
+    fun removeListener(fingerprintWriter: ConfigurationCacheFingerprintWriter) {
+        require(fingerprintEventHandler.delegate === fingerprintWriter)
+        fingerprintEventHandler.delegate = null
     }
 
     private
