@@ -81,7 +81,7 @@ internal class ConfigurationCacheFingerprintEventHandler(
 
     // These listeners have to be registered separately:
     ScriptFileResolvedListener, // 2 impl, another is some kind of broadcaster wrapper (Global) Events sent in global, but consumed here, thus the wrapper
-    WorkInputListener, // 2 impl, separate registration (Global); sent in Build scope, consumed in BuildSession and BuildTree. Why the separate registrar?
+    WorkInputListener,
 
     // Interfaces not involved with event dispatch.
     Closeable {
