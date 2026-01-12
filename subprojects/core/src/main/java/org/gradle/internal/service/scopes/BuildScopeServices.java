@@ -590,7 +590,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         CompileOperationFactory compileOperationFactory,
         BuildOperationRunner buildOperationRunner,
         UserCodeApplicationContext userCodeApplicationContext,
-        ListenerManager listenerManager
+        ScriptSourceListener scriptSourceListener
     ) {
         ScriptPluginFactorySelector.ProviderInstantiator instantiator = ScriptPluginFactorySelector.defaultProviderInstantiatorFor(instantiatorFactory.inject(buildScopedServices));
         DefaultScriptPluginFactory defaultScriptPluginFactory = new DefaultScriptPluginFactory(
@@ -601,7 +601,13 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             pluginRequestApplicator,
             compileOperationFactory
         );
-        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, instantiator, buildOperationRunner, userCodeApplicationContext, listenerManager.getBroadcaster(ScriptSourceListener.class));
+        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(
+            defaultScriptPluginFactory,
+            instantiator,
+            buildOperationRunner,
+            userCodeApplicationContext,
+            scriptSourceListener
+        );
         defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
         return scriptPluginFactorySelector;
     }

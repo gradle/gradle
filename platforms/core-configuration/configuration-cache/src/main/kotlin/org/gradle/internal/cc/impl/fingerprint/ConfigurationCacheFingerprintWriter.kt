@@ -116,7 +116,7 @@ class ConfigurationCacheFingerprintEventHandler(
     ScriptFileResolvedListener, // 2 impl, another is some kind of broadcaster wrapper (Global) Events sent in global, but consumed here, thus the wrapper
     FeatureFlagListener,
     FileCollectionObservationListener, // single impl (BuildTree)
-    ScriptSourceListener, // single impl (Build)
+    ScriptSourceListener,
     GradlePropertiesListener, // single impl (BuildTree)
     ConfigurationCacheEnvironment.Listener, // single impl (BuildTree)
     Closeable
