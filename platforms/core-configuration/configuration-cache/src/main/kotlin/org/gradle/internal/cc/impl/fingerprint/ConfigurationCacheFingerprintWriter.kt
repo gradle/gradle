@@ -68,7 +68,6 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.serialize.graph.CloseableWriteContext
-import org.gradle.internal.service.scopes.ParallelListener
 import org.gradle.util.Path
 import java.io.File
 import java.net.URI
@@ -76,9 +75,13 @@ import java.util.EnumSet
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
-
+/**
+ * This class handles various events during the build and records build configuration inputs accordingly.
+ *
+ * It doesn't listen to events directly, instead it delegates to [ConfigurationCacheFingerprintEventHandler].
+ * If you want to add another event, add it to that class.
+ */
 @Suppress("LargeClass")
-@ParallelListener
 internal
 class ConfigurationCacheFingerprintWriter(
     private val host: Host,
