@@ -80,7 +80,7 @@ internal class ConfigurationCacheFingerprintEventHandler(
     ValueSourceProviderFactory.ValueListener,
 
     // These listeners have to be registered separately:
-    ScriptFileResolvedListener, // 2 impl, another is some kind of broadcaster wrapper (Global) Events sent in global, but consumed here, thus the wrapper
+    ScriptFileResolvedListener, // This class is the single listener, but lives in a shorter scope, so cannot be injected there.
     WorkInputListener,
 
     // Interfaces not involved with event dispatch.

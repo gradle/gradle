@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,14 @@ package org.gradle.internal.scripts;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.io.File;
+
 @ServiceScope(Scope.Global.class)
 public interface ScriptFileResolverListeners {
 
     void addListener(ScriptFileResolvedListener scriptFileResolvedListener);
 
     void removeListener(ScriptFileResolvedListener scriptFileResolvedListener);
+
+    void onScriptFileResolved(File scriptFile);
 }
