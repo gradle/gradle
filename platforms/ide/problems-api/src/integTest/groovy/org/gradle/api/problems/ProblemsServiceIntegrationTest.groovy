@@ -484,6 +484,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 spec.severity(Severity.WARNING)
                 spec.details("Complex build logic like the Problems API usage should be integrated into plugins")
                 spec.solution("Look up the samples index for real-life examples")
+                spec.documentedAt("https://example.com/some-problem")
                 spec.lineInFileLocation("/path/to/script", 20)
             }
         """
@@ -497,6 +498,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API usage should be integrated into plugins
     Solution: Look up the samples index for real-life examples
+    Documentation: https://example.com/some-problem
     Location: /path/to/script
         """
         verifyAll(receivedProblem) {
@@ -509,10 +511,12 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
         given:
         disableProblemsApiCheck()
         def solution = 'Look up the samples index for real-life examples'
+        def docLink = 'https://example.com/some-problem'
         withReportProblemTask """
             ${problemIdScript()}
             problems.getReporter().throwing(new RuntimeException(), problemId) { spec ->
                 spec.solution("$solution")
+                spec.documentedAt("$docLink")
             }
         """
 
@@ -521,6 +525,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 
         then:
         errorOutput.count(solution) == 1
+        errorOutput.count(docLink) == 1
     }
 
     static String problemIdScript() {

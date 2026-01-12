@@ -543,7 +543,7 @@ enum class TestType(
     ALL_VERSIONS_INTEG_MULTI_VERSION(false, true, false),
     PARALLEL(false, true, false),
 
-    NO_DAEMON(false, true, false, 360),
+    NO_DAEMON(false, true, false, 470),
     CONFIG_CACHE(false, true, false),
     ISOLATED_PROJECTS(false, true, false),
     SOAK(false, false, false),
