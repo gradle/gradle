@@ -31,11 +31,13 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.task.TaskFailureResult
 import org.gradle.tooling.events.task.TaskFinishEvent
+import org.gradle.util.GradleVersion
 
 import java.util.function.Supplier
 
 import static org.gradle.integtests.tooling.r940.PhasedBuildActionCrossVersionSpec.CustomBuildFinishedAction.CallType
 import static org.gradle.integtests.tooling.r940.PhasedBuildActionCrossVersionSpec.CustomBuildFinishedAction.FAILURE_RESULT
+import static org.junit.Assume.assumeTrue
 
 @TargetGradleVersion(">=9.4.0")
 @RelatedToolingAPITests(
@@ -117,6 +119,9 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "build finished action is run even if build fails with #method"() {
+        // Fetch API is only supported on TAPI >= 9.3.0
+        assumeTrue(callType != CallType.FETCH || toolingApi.toolingApiVersion >= GradleVersion.version("9.3.0"))
+
         buildFile << """
             task broken {
                 doLast { throw new RuntimeException("broken") }
@@ -148,7 +153,10 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "BuildController.fetch()"     | CallType.FETCH
     }
 
-    def "build finished intermediate result handler is run even if build fails with #method"() {
+    def "build finished intermediate result handler is run even if task fails with #method"() {
+        // Fetch API is only supported on TAPI >= 9.3.0
+        assumeTrue(callType != CallType.FETCH || toolingApi.toolingApiVersion >= GradleVersion.version("9.3.0"))
+
         buildFile << """
             task broken {
                 doLast { throw new RuntimeException("broken") }
@@ -184,6 +192,9 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "method #description query model if a task fails"() {
+        // Fetch API is only supported on TAPI >= 9.3.0
+        assumeTrue(callType != CallType.FETCH || toolingApi.toolingApiVersion >= GradleVersion.version("9.3.0"))
+
         buildFile << """
             task broken {
                 doLast { throw new RuntimeException("broken") }
@@ -245,7 +256,10 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         !buildFinishedHandler.wasOnCompleteCalled
     }
 
-    def "can listen to task failures with a phased build"() {
+    def "can listen to task failures with a phased build with #method"() {
+        // Fetch API is only supported on TAPI >= 9.3.0
+        assumeTrue(callType != CallType.FETCH || toolingApi.toolingApiVersion >= GradleVersion.version("9.3.0"))
+
         buildFile << """
             task broken {
                 doLast { throw new RuntimeException("broken") }
@@ -257,7 +271,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         fails { connection ->
             connection.action()
                 .projectsLoaded(new CustomProjectsLoadedAction(), projectsLoadedHandler)
-                .buildFinished(new CustomBuildFinishedAction(CallType.FETCH), buildFinishedHandler)
+                .buildFinished(new CustomBuildFinishedAction(callType), buildFinishedHandler)
                 .build()
                 .addProgressListener(new ProgressListener() {
                     @Override
@@ -280,6 +294,12 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         and:
         failure.assertHasDescription("Execution failed for task ':broken'.")
+
+        where:
+        method                        | callType
+        "BuildController.getModel()"  | CallType.GET_MODEL
+        "BuildController.findModel()" | CallType.FIND_MODEL
+        "BuildController.fetch()"     | CallType.FETCH
     }
 
     static class IntermediateResultHandlerCollector implements IntermediateResultHandler<String> {
@@ -298,9 +318,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         @Override
         String execute(BuildController controller) {
             println("Running CustomProjectsLoadedAction")
-            def result = controller.fetch(CustomProjectsLoadedModel.class)
-            assert result.failures.isEmpty()
-            return result.model.value
+            return controller.getModel(CustomProjectsLoadedModel.class).getValue()
         }
     }
 
