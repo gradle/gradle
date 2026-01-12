@@ -65,6 +65,9 @@ Problem details are displayed with a monospaced font to preserve the alignment o
 Duplicate information is reduced across the board for a better readability.
 The size of the report file is reduced.
 
+Printing a link to the report at the end of the build can now be influenced via the `org.gradle.warning.mode` Gradle property.
+If the mode is set to `none`, the report is still generated but a link is omitted from the build output.
+
 ### Test Metadata Logging
 
 Gradle now allows listening for test metadata events during test execution.
