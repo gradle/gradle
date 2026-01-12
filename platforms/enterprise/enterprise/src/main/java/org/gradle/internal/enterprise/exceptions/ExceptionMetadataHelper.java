@@ -42,26 +42,26 @@ public final class ExceptionMetadataHelper {
     public static Map<String, String> getMetadata(Throwable t) {
         Map<String, String> metadata = new LinkedHashMap<>();
 
-        if (t instanceof TaskExecutionException taskExecutionException) {
-            String taskPath = ((TaskInternal) taskExecutionException.getTask()).getIdentityPath().asString();
+        if (t instanceof TaskExecutionException) {
+            String taskPath = ((TaskInternal) ((TaskExecutionException)t).getTask()).getIdentityPath().asString();
             metadata.put(METADATA_KEY_TASK_PATH, taskPath);
         }
 
-        if (t instanceof ScriptCompilationException sce) {
-            metadata.put(METADATA_KEY_SCRIPT_FILE, sce.getScriptSource().getFileName());
-            Integer sceLineNumber = sce.getLineNumber();
+        if (t instanceof ScriptCompilationException) {
+            metadata.put(METADATA_KEY_SCRIPT_FILE, ((ScriptCompilationException)t).getScriptSource().getFileName());
+            Integer sceLineNumber = ((ScriptCompilationException)t).getLineNumber();
             if (sceLineNumber != null) {
                 metadata.put(METADATA_KEY_SCRIPT_LINE_NUMBER, sceLineNumber.toString());
             }
         }
 
-        if (t instanceof LocationAwareException lae) {
-            metadata.put(METADATA_KEY_SOURCE_DISPLAY_NAME, lae.getSourceDisplayName());
-            Integer laeLineNumber = lae.getLineNumber();
+        if (t instanceof LocationAwareException) {
+            metadata.put(METADATA_KEY_SOURCE_DISPLAY_NAME, ((LocationAwareException)t).getSourceDisplayName());
+            Integer laeLineNumber = ((LocationAwareException)t).getLineNumber();
             if (laeLineNumber != null) {
                 metadata.put(METADATA_KEY_LINE_NUMBER, laeLineNumber.toString());
             }
-            metadata.put(METADATA_KEY_LOCATION, lae.getLocation());
+            metadata.put(METADATA_KEY_LOCATION, ((LocationAwareException)t).getLocation());
         }
 
         if (t instanceof MultiCauseException) {
@@ -76,8 +76,8 @@ public final class ExceptionMetadataHelper {
     }
 
     public static List<? extends Throwable> extractCauses(Throwable t) {
-        if (t instanceof MultiCauseException mce) {
-            List<? extends Throwable> mceCauses = mce.getCauses();
+        if (t instanceof MultiCauseException) {
+            List<? extends Throwable> mceCauses = ((MultiCauseException)t).getCauses();
             if (mceCauses != null && !mceCauses.isEmpty()) {
                 return mceCauses;
             } else {
