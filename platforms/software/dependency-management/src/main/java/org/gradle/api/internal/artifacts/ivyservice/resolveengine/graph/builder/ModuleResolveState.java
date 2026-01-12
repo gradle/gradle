@@ -390,7 +390,7 @@ public class ModuleResolveState implements CandidateModule {
     private void clearIncomingUnattachedConstraints(NodeState removalSource) {
         for (EdgeState unattachedEdge : unattachedEdges) {
             disconnectIncomingConstraint(removalSource, unattachedEdge);
-            unattachedEdge.markAttached();
+            unattachedEdge.markNotUnattached();
         }
         unattachedEdges.clear();
     }
