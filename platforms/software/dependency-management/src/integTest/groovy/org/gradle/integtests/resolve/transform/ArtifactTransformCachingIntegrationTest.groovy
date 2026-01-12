@@ -944,7 +944,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     @Requires(UnitTestPreconditions.Windows)
-    def "workspace-locking transform is run again and deletes stale files after it failed in previous build"() {
+    def "non-incremental transform is run again and deletes stale files after it failed in previous build"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks() << withFileLibDependency("lib3.jar") << withExternalLibDependency("lib4")
 
@@ -1360,6 +1360,43 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         expect:
         succeeds ":util:resolve"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28974")
+    def "non-incremental transform can recover if metadata is #description"() {
+        given:
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks() << withFileLibDependency("lib3.jar") << withExternalLibDependency("lib4")
+
+        when:
+        succeeds ":app:resolve"
+
+        then:
+        output.count("Transformed") == 4
+        output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt, lib4-1.0.jar.txt]") == 1
+        def outputDir1 = gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt")
+        def output1Metadata = new File(outputDir1.listFiles { dir, name -> name == "lib1.jar.txt" }[0].parentFile.parentFile, "metadata.bin")
+        output1Metadata.exists()
+
+        when:
+        breakMetadataAction(output1Metadata)
+        succeeds ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt, lib4-1.0.jar.txt]") == 1
+        output.count("Transformed") == 1
+        output.contains("Transformed lib1.jar to lib1.jar.txt")
+        isTransformed("lib1.jar", "lib1.jar.txt")
+
+        when:
+        succeeds ":app:resolve"
+
+        then:
+        output.count("Transformed") == 0
+
+        where:
+        description | breakMetadataAction
+        "broken"    | { File metadataFile -> metadataFile.text = "broken" }
+        "deleted"   | { File metadataFile -> assert metadataFile.delete() }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/28475")
