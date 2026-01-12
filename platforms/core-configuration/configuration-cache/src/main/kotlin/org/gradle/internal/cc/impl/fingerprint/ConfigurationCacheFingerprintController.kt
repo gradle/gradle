@@ -47,7 +47,6 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.WorkExecutionTracker
-import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.impl.DefaultFileNormalizationSpec
 import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.extensions.core.directoryChildrenNamesHash
@@ -56,7 +55,6 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instrumentation.agent.AgentStatus
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
-import org.gradle.internal.scripts.ScriptFileResolverListeners
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.service.scopes.ParallelListener
 import org.gradle.internal.service.scopes.Scope
@@ -78,7 +76,6 @@ internal
 class ConfigurationCacheFingerprintController internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val modelParameters: BuildModelParameters,
-    private val workInputListeners: WorkInputListeners,
     private val inputFileCheckerHost: ConfigurationCacheInputFileChecker.Host,
     private val fileCollectionSnapshotter: FileCollectionSnapshotter,
     fingerprinterRegistry: FileCollectionFingerprinterRegistry,
@@ -90,7 +87,6 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val problemFactory: ProblemFactory,
     private val workExecutionTracker: WorkExecutionTracker,
     private val inputTrackingState: InputTrackingState,
-    private val scriptFileResolverListeners: ScriptFileResolverListeners,
     private val remoteScriptUpToDateChecker: RemoteScriptUpToDateChecker,
     private val agentStatus: AgentStatus,
     private val problems: ConfigurationCacheProblems,
@@ -361,11 +357,8 @@ class ConfigurationCacheFingerprintController internal constructor(
     private
     fun addListener(fingerprintWriter: ConfigurationCacheFingerprintWriter) {
         // Never removed, as stateful listeners cannot be removed after events have been emitted
+        // TODO(mlopatkin): move it into fingerprintEventHandler
         listenerManager.addListener(projectComponentObservationListener)
-        // TODO(mlopatkin): it should register itself early
-        listenerManager.addListener(fingerprintEventHandler)
-        workInputListeners.addListener(fingerprintEventHandler)
-        scriptFileResolverListeners.addListener(fingerprintEventHandler)
 
         fingerprintEventHandler.delegate = fingerprintWriter
     }

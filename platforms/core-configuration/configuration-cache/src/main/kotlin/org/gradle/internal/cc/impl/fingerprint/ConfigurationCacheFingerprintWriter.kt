@@ -66,11 +66,13 @@ import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.InputVisitor
 import org.gradle.internal.execution.InputVisitor.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.execution.WorkInputListener
+import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.extensions.core.fileSystemEntryType
 import org.gradle.internal.extensions.core.uri
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -79,12 +81,14 @@ import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.scripts.ScriptFileResolvedListener
+import org.gradle.internal.scripts.ScriptFileResolverListeners
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.service.scopes.ParallelListener
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyListener
 import org.gradle.util.Path
+import java.io.Closeable
 import java.io.File
 import java.net.URI
 import java.util.EnumSet
@@ -95,7 +99,12 @@ import java.util.concurrent.atomic.AtomicReference
 @ServiceScope(Scope.BuildTree::class)
 @ParallelListener
 internal
-class ConfigurationCacheFingerprintEventHandler : ValueSourceProviderFactory.ValueListener, // single impl (Build)
+class ConfigurationCacheFingerprintEventHandler(
+    listenerManager: ListenerManager,
+    private val workInputListeners: WorkInputListeners,
+    private val scriptFileResolverListeners: ScriptFileResolverListeners
+) :
+    ValueSourceProviderFactory.ValueListener, // single impl (Build)
     ValueSourceProviderFactory.ComputationListener, // single impl (Build)
     WorkInputListener, // 2 impl, separate registration (Global); sent in Build scope, consumed in BuildSession and BuildTree. Why the separate registrar?
     ScriptExecutionListener, // single impl (Build)
@@ -105,14 +114,26 @@ class ConfigurationCacheFingerprintEventHandler : ValueSourceProviderFactory.Val
     ToolingModelProjectDependencyListener, // single impl (Build)
     FileResourceListener, // 2 impl, one is no-op used instead of a broadcaster (BuildTree, Build)
     ScriptFileResolvedListener, // 2 impl, another is some kind of broadcaster wrapper (Global) Events sent in global, but consumed here, thus the wrapper
-    FeatureFlagListener, // single impl (BuildTree)
+    FeatureFlagListener,
     FileCollectionObservationListener, // single impl (BuildTree)
     ScriptSourceListener, // single impl (Build)
     GradlePropertiesListener, // single impl (BuildTree)
-    ConfigurationCacheEnvironment.Listener // single impl (BuildTree)
+    ConfigurationCacheEnvironment.Listener, // single impl (BuildTree)
+    Closeable
 {
     @Volatile
     var delegate : ConfigurationCacheFingerprintWriter? = null
+
+    init {
+        listenerManager.addListener(this) // We don't unregister because we go down with the scope.
+        workInputListeners.addListener(this)
+        scriptFileResolverListeners.addListener(this)
+    }
+
+    override fun close() {
+        workInputListeners.removeListener(this)
+        scriptFileResolverListeners.removeListener(this)
+    }
 
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
         obtainedValue: ValueSourceProviderFactory.ValueListener.ObtainedValue<T, P>,

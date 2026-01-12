@@ -66,6 +66,7 @@ import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
 import org.gradle.internal.buildoption.DefaultFeatureFlags;
+import org.gradle.internal.buildoption.FeatureFlagListener;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -180,8 +181,8 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    FeatureFlags createFeatureFlags(ListenerManager listenerManager, StartParameterInternal startParameter) {
-        return new DefaultFeatureFlags(listenerManager, startParameter.getSystemPropertiesArgs());
+    FeatureFlags createFeatureFlags(FeatureFlagListener listener, StartParameterInternal startParameter) {
+        return new DefaultFeatureFlags(listener, startParameter.getSystemPropertiesArgs());
     }
 
     @Provides
