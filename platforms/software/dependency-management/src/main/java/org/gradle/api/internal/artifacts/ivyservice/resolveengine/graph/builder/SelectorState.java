@@ -113,10 +113,10 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         return isProjectSelector;
     }
 
-    public void use(boolean deferSelection) {
+    public void use() {
         outgoingEdgeCount++;
         if (outgoingEdgeCount == 1) {
-            targetModule.addSelector(this, deferSelection);
+            targetModule.addSelector(this);
         }
     }
 

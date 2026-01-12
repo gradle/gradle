@@ -69,7 +69,6 @@ public class ModuleResolveState implements CandidateModule {
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
     final ResolveOptimizations resolveOptimizations;
-    private final boolean rootModule;
     private SelectorStateResolver<ComponentState> selectorStateResolver;
     private final PendingDependencies pendingDependencies;
     private @Nullable ComponentState selected;
@@ -91,7 +90,6 @@ public class ModuleResolveState implements CandidateModule {
         VersionParser versionParser,
         SelectorStateResolver<ComponentState> selectorStateResolver,
         ResolveOptimizations resolveOptimizations,
-        boolean rootModule,
         ConflictResolution conflictResolution
     ) {
         this.resolveState = resolveState;
@@ -101,7 +99,6 @@ public class ModuleResolveState implements CandidateModule {
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
         this.resolveOptimizations = resolveOptimizations;
-        this.rootModule = rootModule;
         this.pendingDependencies = new PendingDependencies(id);
         this.selectorStateResolver = selectorStateResolver;
         this.selectors = new ModuleSelectors<>(versionComparator, versionParser);
@@ -314,8 +311,8 @@ public class ModuleResolveState implements CandidateModule {
         return componentState;
     }
 
-    void addSelector(SelectorState selector, boolean deferSelection) {
-        selectors.add(selector, deferSelection);
+    void addSelector(SelectorState selector) {
+        selectors.add(selector);
         mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selector);
         if (overriddenSelection) {
             assert selected != null : "An overridden module cannot have selected == null";
@@ -456,10 +453,6 @@ public class ModuleResolveState implements CandidateModule {
     public void maybeUpdateSelection() {
         if (replaced) {
             // Never update selection for a replaced module
-            return;
-        }
-        if (!rootModule && selectors.checkDeferSelection()) {
-            // Selection deferred as we know another selector will be added soon
             return;
         }
         ComponentState newSelected = selectorStateResolver.selectBest(getId(), selectors);
