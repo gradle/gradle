@@ -49,7 +49,7 @@ class ScriptResolutionResultReporterTest extends Specification {
             assert problemId.name == "multiple-scripts"
             assert problemId.displayName == "Multiple scripts"
             assert spec.contextualLabel == "Multiple script script files were found in directory '/some/dir'"
-            assert spec.details == "Multiple script script files were found in directory '/some/dir'. Selected 'alice', and ignoring 'bob'. Deleting the selected script will automatically select another script."
+            assert spec.details == "Multiple script script files were found in directory '/some/dir'. Selected 'alice', and ignoring 'bob'."
             assert spec.solution == "Delete the files 'bob' in directory '/some/dir'"
         }
     }
@@ -83,7 +83,7 @@ class ScriptResolutionResultReporterTest extends Specification {
             assert problemId.name == "multiple-scripts"
             assert problemId.displayName == "Multiple scripts"
             assert spec.contextualLabel == "Multiple script script files were found in directory '/some/dir'"
-            assert spec.details == "Multiple script script files were found in directory '/some/dir'. Selected 'alice', and ignoring 'bob', 'charlie'. Deleting the selected script will automatically select another script."
+            assert spec.details == "Multiple script script files were found in directory '/some/dir'. Selected 'alice', and ignoring 'bob', 'charlie'."
             assert spec.solution == "Delete the files 'bob', 'charlie' in directory '/some/dir'"
         }
     }

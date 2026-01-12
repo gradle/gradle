@@ -55,8 +55,7 @@ public class ScriptResolutionResultReporter {
                 String.format("Multiple %s script files were found in directory '%s'", result.getBasename(), result.getDirectory())
             ).details(
                 String.format(
-                    "Multiple %s script files were found in directory '%s'. Selected '%s', and ignoring %s." +
-                        " Deleting the selected script will automatically select another script.",
+                    "Multiple %s script files were found in directory '%s'. Selected '%s', and ignoring %s.",
                     result.getBasename(),
                     result.getDirectory(),
                     result.getSelectedCandidate().getName(),
