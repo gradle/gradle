@@ -169,7 +169,13 @@ public interface TaskInternal extends Task, Configurable<Task> {
     @Internal
     default String buildFailureMessage(Throwable cause) {
         boolean isVerificationFailure = cause instanceof VerificationException;
-        String createdBy = isVerificationFailure ? "" : String.format(" (%s)", getProvenance().orElse(""));
+        String createdBy = "";
+        if (isVerificationFailure) {
+            String provenance = getProvenance().orElse(null);
+            if (provenance != null) {
+                createdBy = String.format(" (%s)", provenance);
+            }
+        }
         return String.format("Execution failed for %s%s.", this, createdBy);
     }
 
