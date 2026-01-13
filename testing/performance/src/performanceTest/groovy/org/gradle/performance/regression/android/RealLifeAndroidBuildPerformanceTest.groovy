@@ -161,6 +161,10 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
             // NowInAndroid supports Kotlin 2.1.20 max
             kgpVersion = "2.1.20"
         }
+        if (VersionNumber.parse(agpVersion).baseVersion > VersionNumber.parse("9.0.0")) {
+            // NowInAndroid supports AGP 8.x max
+            agpVersion = AndroidGradlePluginVersions.latests.reversed().find { VersionNumber.parse(it).major < 9 }
+        }
         runner.addBuildMutator { is -> new SupplementaryRepositoriesMutator(is) }
         runner.addBuildMutator { is -> new AgpAndKgpVersionMutator(is, agpVersion, kgpVersion) }
     }
