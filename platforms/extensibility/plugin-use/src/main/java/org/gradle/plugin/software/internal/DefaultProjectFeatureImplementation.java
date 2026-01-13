@@ -64,7 +64,7 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
         ProjectFeatureApplyAction<T, V, ?> bindingTransform
     ) {
         this.featureName = featureName;
-        this.uniqueId = featureName + targetDefinitionType.getId();
+        this.uniqueId = featureName + "_" +targetDefinitionType.getId();
         this.definitionPublicType = definitionPublicType;
         this.definitionImplementationType = definitionImplementationType;
         this.definitionSafety = definitionSafety;
