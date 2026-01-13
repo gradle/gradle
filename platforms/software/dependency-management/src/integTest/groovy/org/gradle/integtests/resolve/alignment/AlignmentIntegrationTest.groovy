@@ -42,7 +42,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
         when:
         expectAlignment {
-            module('core') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+            module('core') alignsTo('1.1') byVirtualPlatform()
             module('xml') tries('1.0') alignsTo('1.1') byVirtualPlatform()
             module('json') alignsTo('1.1') byVirtualPlatform()
         }
@@ -90,7 +90,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
         when:
         expectAlignment {
-            module('core') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+            module('core') alignsTo('1.1') byVirtualPlatform()
             module('xml') tries('1.0') alignsTo('1.1') byVirtualPlatform()
             module('json') alignsTo('1.1') byVirtualPlatform()
 
@@ -192,7 +192,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         when:
         expectAlignment {
             module('xml') misses('1.1') alignsTo('1.0') byVirtualPlatform()
-            module('core') tries('1.0') alignsTo('1.1')
+            module('core') alignsTo('1.1')
             module('json') alignsTo('1.1') byVirtualPlatform()
         }
         run ':checkDeps'
@@ -451,11 +451,12 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         expectAlignment {
             module('core') alignsTo('2.9.4') byPublishedPlatform()
             module('databind') tries('2.7.9') alignsTo('2.9.4') byPublishedPlatform()
-            module('annotations') tries('2.7.9') tries('2.9.0') alignsTo('2.9.4') byPublishedPlatform()
+            module('annotations') tries('2.7.9') alignsTo('2.9.4') byPublishedPlatform()
             module('kt') alignsTo('2.9.4.1') byPublishedPlatform()
 
             doesNotGetPlatform("org", "platform", "2.7.9") // because of conflict resolution
             doesNotGetPlatform("org", "platform", "2.9.0") // because of conflict resolution
+            doesNotGetPlatform("org", "platform", "2.9.4") // because of conflict resolution
         }
         run ':checkDeps'
 
@@ -525,7 +526,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         when:
         expectAlignment {
             ['org', 'org2'].each { group ->
-                module('core') group(group) tries('1.0') alignsTo('1.1') byVirtualPlatform(group)
+                module('core') group(group) alignsTo('1.1') byVirtualPlatform(group)
                 module('xml') group(group) tries('1.0') alignsTo('1.1') byVirtualPlatform(group)
                 module('json') group(group) alignsTo('1.1') byVirtualPlatform(group)
             }
@@ -652,9 +653,6 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
         when:
         repositoryInteractions {
-            'org:core:1.0' {
-                expectGetMetadata()
-            }
             'org:xml:1.0' {
                 expectResolve()
             }
@@ -710,7 +708,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
         when:
         expectAlignment {
-            module('core') tries('1.0') alignsTo('1.1') byVirtualPlatform('org', 'platform') byVirtualPlatform('org', 'platform2')
+            module('core') alignsTo('1.1') byVirtualPlatform('org', 'platform') byVirtualPlatform('org', 'platform2')
             module('xml') tries('1.0') alignsTo('1.1') byVirtualPlatform('org', 'platform') byVirtualPlatform('org', 'platform2')
             module('json') alignsTo('1.1') byVirtualPlatform('org', 'platform') byVirtualPlatform('org', 'platform2')
         }
@@ -789,7 +787,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         when:
         expectAlignment {
             module('core') {
-                group('org.apache.groovy') tries('2.4') alignsTo('2.5')
+                group('org.apache.groovy') alignsTo('2.5')
                 byPublishedPlatform('org.apache.groovy', 'platform')
                 byPublishedPlatform('org.springframework', 'spring-platform', '1.0')
             }
@@ -806,6 +804,8 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
             // Spring core intentionally doesn't belong to the Spring platform.
             module('core') group('org.springframework') tries('1.0') alignsTo('1.1')
+
+            doesNotGetPlatform("org.apache.groovy", "platform", "2.4") // because of conflict resolution
         }
         run ':checkDeps'
 
@@ -893,7 +893,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         when:
         expectAlignment {
             module('core') {
-                group('org.apache.groovy') tries('2.4') alignsTo('2.5')
+                group('org.apache.groovy') alignsTo('2.5')
                 byVirtualPlatform('org.apache.groovy', 'platform')
                 byPublishedPlatform('org.springframework', 'spring-platform', '1.0')
             }
@@ -971,7 +971,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
         when:
         expectAlignment {
-            module('core') tries('1.0') alignsTo('1.1') byVirtualPlatform()
+            module('core') alignsTo('1.1') byVirtualPlatform()
             module('xml') tries('1.0') alignsTo('1.1') byVirtualPlatform()
             module('json') alignsTo('1.1') byVirtualPlatform()
         }
@@ -1103,11 +1103,12 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         expectAlignment {
             module('core') alignsTo('2.9.4') byPublishedPlatform()
             module('databind') tries('2.7.9') alignsTo('2.9.4') byPublishedPlatform()
-            module('annotations') tries('2.7.9') tries('2.9.0') alignsTo('2.9.4') byPublishedPlatform()
+            module('annotations') tries('2.7.9') alignsTo('2.9.4') byPublishedPlatform()
             module('kt') alignsTo('2.9.4.1') byPublishedPlatform()
 
             doesNotGetPlatform("org", "platform", "2.7.9") // because of conflict resolution
             doesNotGetPlatform("org", "platform", "2.9.0") // because of conflict resolution
+            doesNotGetPlatform("org", "platform", "2.9.4") // because of conflict resolution
         }
         run ':checkDeps'
 

@@ -169,33 +169,27 @@ public class DependencyGraphBuilder {
      */
     private void traverseGraph(final ResolveState resolveState) {
         resolveState.onMoreSelected(resolveState.getRoot());
-        final List<EdgeState> edges = new ArrayList<>();
+
+        List<EdgeState> edges = new ArrayList<>();
+        List<ComponentState> componentsToDownload = new ArrayList<>();
 
         ModuleConflictHandler moduleConflictHandler = resolveState.getModuleConflictHandler();
         CapabilitiesConflictHandler capabilitiesConflictHandler = resolveState.getCapabilitiesConflictHandler();
 
-        while (resolveState.peek() != null || moduleConflictHandler.hasConflicts() || capabilitiesConflictHandler.hasConflicts()) {
-            if (resolveState.peek() != null) {
-                final NodeState node = resolveState.pop();
+        while (
+            resolveState.hasNextNode() ||
+            resolveState.hasNextModule() ||
+            moduleConflictHandler.hasConflicts() ||
+            capabilitiesConflictHandler.hasConflicts()
+        ) {
+            if (resolveState.hasNextNode()) {
+                NodeState node = resolveState.nextNode();
 
-                if (!node.isSelected()) {
+                if (!node.isSelected() || node.isInCapabilityConflict()) {
                     // This node has no incoming edges.
                     // Remove any outgoing edges from this node, if any, so it no longer contributes to the graph.
                     node.removeOutgoingEdges();
                     continue;
-                }
-
-                if (!node.getComponent().isSelected()) {
-                    if (moduleConflictHandler.hasConflictFor(node.getComponent().getModule()) || capabilitiesConflictHandler.hasConflictFor(node)) {
-                        // The node is in conflict. Delay processing its outgoing edges for now.
-                        // If this node wins the conflict, it will be added to the queue again later.
-                        assert node.isDisconnected();
-                        continue;
-                    } else {
-                        assert node.getComponent().getNodes().stream().anyMatch(capabilitiesConflictHandler::hasConflictFor);
-                        // TODO: Some other node in this node's component is in conflict, but this node is not in conflict.
-                        // It is strange that we de-select the entire component in this case. We should probably not do this.
-                    }
                 }
 
                 // This node is part of the graph. Check if it conflicts with any other node in the graph.
@@ -208,7 +202,16 @@ public class DependencyGraphBuilder {
                 // This node is part of the graph and is not in conflict. Process its outgoing dependencies.
                 edges.clear();
                 node.visitOutgoingDependenciesAndCollectEdges(edges);
-                resolveEdges(node, edges, resolveState);
+                for (EdgeState edge : edges) {
+                    SelectorState selector = edge.getSelector();
+                    ModuleResolveState targetModule = selector.getTargetModule();
+                    resolveState.onIncomingModuleEdge(targetModule);
+                    if (selector.canAffectSelection()) {
+                        targetModule.markStale();
+                    }
+                }
+            } else if (resolveState.hasNextModule()) {
+                resolveModules(resolveState, componentsToDownload);
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
                 if (moduleConflictHandler.hasConflicts()) {
@@ -220,36 +223,35 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private void resolveEdges(
-        final NodeState node,
-        final List<EdgeState> dependencies,
-        final ResolveState resolveState
-    ) {
-        if (dependencies.isEmpty()) {
-            return;
-        }
-
-        performSelectionSerially(dependencies, resolveState);
-        maybeDownloadMetadataInParallel(node, dependencies, buildOperationExecutor, resolveState.getComponentMetadataResolver());
-        attachToTargetRevisionsSerially(dependencies);
-    }
-
-    private static void performSelectionSerially(List<EdgeState> edges, ResolveState resolveState) {
-        for (EdgeState edge : edges) {
-            // Selection of prior edges can cause the source node to enter a module conflict, thus
-            // causing further edges to be released.
-            if (edge.isUsed()) {
-                SelectorState selector = edge.getSelector();
-                ModuleResolveState module = selector.getTargetModule();
-
+    private void resolveModules(ResolveState resolveState, List<ComponentState> componentsToDownload) {
+        componentsToDownload.clear();
+        ComponentMetaDataResolver componentMetadataResolver = resolveState.getComponentMetadataResolver();
+        resolveState.consumeModuleQueue(modules -> {
+            for (ModuleResolveState module : modules) {
+                module.dequeue();
                 // TODO: It is odd that we have to check module.getSelectors().size() here.
                 //       We already have a selector, its module should know about it.
-                if (selector.canAffectSelection() && module.getSelectors().size() > 0) {
+                if (module.consumeStale() && module.getSelectors().size() > 0) {
                     // Have an unprocessed/new selector for this module. Need to re-select the target version (if there are any selectors that can be used).
                     performSelection(resolveState, module);
                 }
             }
-        }
+
+            for (ModuleResolveState module : modules) {
+                ComponentState targetComponent = module.getSelected();
+                if (targetComponent != null && !targetComponent.alreadyResolved()) {
+                    if (componentMetadataResolver.isFetchingMetadataCheap(targetComponent.getComponentId())) {
+                        // Fetching metadata does not require IO. Fetch metadata synchronously.
+                        targetComponent.getMetadataOrNull();
+                    } else {
+                        // Fetching metadata requires IO. Queue up to download in parallel.
+                        componentsToDownload.add(targetComponent);
+                    }
+                }
+            }
+            downloadAllComponents(componentsToDownload, buildOperationExecutor);
+            attachToTargetRevisionsSerially(modules);
+        });
     }
 
     /**
@@ -275,42 +277,27 @@ public class DependencyGraphBuilder {
         }
     }
 
-    /**
-     * Prepares the resolution of edges, either serially or concurrently.
-     * It uses a simple heuristic to determine if we should perform concurrent resolution, based on the number of edges, and whether they have unresolved metadata.
-     */
-    private static void maybeDownloadMetadataInParallel(NodeState node, List<EdgeState> edges, BuildOperationExecutor buildOperationExecutor, ComponentMetaDataResolver componentMetaDataResolver) {
-        List<ComponentState> requiringDownload = null;
-        for (EdgeState edge : edges) {
-            ComponentState targetComponent = edge.getTargetComponent();
-            if (targetComponent != null && targetComponent.isSelected() && !targetComponent.alreadyResolved()) {
-                if (!componentMetaDataResolver.isFetchingMetadataCheap(targetComponent.getComponentId())) {
-                    // Avoid initializing the list if there are no components requiring download (a common case)
-                    if (requiringDownload == null) {
-                        requiringDownload = new ArrayList<>();
-                    }
-                    requiringDownload.add(targetComponent);
-                }
-            }
-        }
-        // Only download in parallel if there is more than 1 component to download
-        if (requiringDownload != null && requiringDownload.size() > 1) {
-            final ImmutableList<ComponentState> toDownloadInParallel = ImmutableList.copyOf(requiringDownload);
-            LOGGER.debug("Submitting {} metadata files to resolve in parallel for {}", toDownloadInParallel.size(), node);
+    private static void downloadAllComponents(List<ComponentState> requiringDownload, BuildOperationExecutor buildOperationExecutor) {
+        if (requiringDownload.size() == 1) {
+            // Only one thing to download. No need to start any threads. Download synchronously.
+            ComponentState component = requiringDownload.get(0);
+            component.getMetadataOrNull();
+        } else if (requiringDownload.size() > 1) {
+            LOGGER.debug("Submitting {} metadata files to resolve in parallel", requiringDownload.size());
             buildOperationExecutor.runAll(buildOperationQueue -> {
-                for (final ComponentState componentState : toDownloadInParallel) {
+                for (final ComponentState componentState : requiringDownload) {
                     buildOperationQueue.add(new DownloadMetadataOperation(componentState));
                 }
             }, BuildOperationConstraint.UNCONSTRAINED);
         }
     }
 
-    private static void attachToTargetRevisionsSerially(List<EdgeState> edges) {
+    private static void attachToTargetRevisionsSerially(Iterable<ModuleResolveState> modules) {
         // the following only needs to be done serially to preserve ordering of dependencies in the graph: we have visited the edges
         // but we still didn't add the result to the queue. Doing it from resolve threads would result in non-reproducible graphs, where
         // edges could be added in different order. To avoid this, the addition of new edges is done serially.
-        for (EdgeState edge : edges) {
-            edge.attachToTargetNodes();
+        for (ModuleResolveState module : modules) {
+            module.attachUnattachedEdges();
         }
     }
 
@@ -324,16 +311,22 @@ public class DependencyGraphBuilder {
         ImmutableAttributesSchema consumerSchema = resolveState.getConsumerSchema();
         for (ModuleResolveState module : resolveState.getModules()) {
             ComponentState selected = module.getSelected();
-            if (selected != null) {
+            if (selected != null && selected.getNodes().stream().anyMatch(n -> n.getReplacement() == null)) {
                 ResolutionFailureHandler resolutionFailureHandler = resolveState.getVariantSelector().getFailureHandler();
                 if (selected.isRejected()) {
                     List<String> conflictResolutions = buildConflictResolutions(selected, failureResolutions).getRight();
-                    GradleException error = resolutionFailureHandler.moduleRejected(module, conflictResolutions);
+                    GradleException error = resolutionFailureHandler.componentRejected(selected, conflictResolutions);
                     attachFailureToEdges(error, module.getIncomingEdges());
                     // We need to attach failures on unattached dependencies too, in case a node wasn't selected
                     // at all, but we still want to see an error message for it.
                     attachFailureToEdges(error, module.getUnattachedEdges());
                 } else {
+                    for (NodeState node : selected.getNodes()) {
+                        if (node.isRejectedForCapabilityConflict()) {
+                            GradleException error = resolutionFailureHandler.nodeRejected(node);
+                            attachFailureToEdges(error, node.getIncomingEdges());
+                        }
+                    }
                     if (module.isVirtualPlatform()) {
                         attachMultipleForceOnPlatformFailureToEdges(module);
                     } else if (selected.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
@@ -535,7 +528,7 @@ public class DependencyGraphBuilder {
         AttributeSchemaServices attributeSchemaServices
     ) {
         Set<NodeState> selectedNodes = selected.getNodes().stream()
-            .filter(n -> n.isSelected() && !n.isAttachedToVirtualPlatform() && !n.hasShadowedCapability())
+            .filter(n -> n.isSelected() && !n.isAttachedToVirtualPlatform() && !n.hasShadowedCapability() && !n.isRejectedForCapabilityConflict())
             .collect(Collectors.toSet());
 
         if (selectedNodes.size() < 2) {

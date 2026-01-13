@@ -845,8 +845,8 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
         then:
         def selected = GradleMetadataResolveRunner.gradleMetadataPublished || GradleMetadataResolveRunner.useMaven() ? 'runtime' : 'default'
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project :' (conf) --> 'org:foo:{require 1.0; reject 1.1}'
-   Dependency path: 'root project :' (conf) --> 'org:bar:1.0' ($selected) --> 'org:foo:1.1'""")
+   Dependency path: 'root project :' (conf) --> 'org:bar:1.0' ($selected) --> 'org:foo:1.1'
+   Dependency path: 'root project :' (conf) --> 'org:foo:{require 1.0; reject 1.1}'""")
     }
 
     def "can reject a version range"() {

@@ -144,7 +144,7 @@ class EdgeState implements DependencyGraphEdge {
         if (selector == null || !selector.isResolved() || selector.getFailure() != null) {
             return null;
         }
-        return getSelectedComponent();
+        return selector.getTargetModule().getSelected();
     }
 
     SelectorState getSelector() {
@@ -201,16 +201,12 @@ class EdgeState implements DependencyGraphEdge {
         targetNodeSelectionFailure = new ModuleVersionResolveException(selector.getSelector(), err);
     }
 
-    /**
-     * Ensure this edge it up-to-date and attached to the proper nodes, effectively
-     * retargeting this edge from its previous potentially incorrect target, to
-     * the new correct target.
-     * <p>
-     * Useful for when the state of the destination has changed, for example
-     * when the selected component of the target module has changed.
-     */
-    public void retarget() {
+    public void unattach() {
         detachFromTargetNodes();
+        selector.getTargetModule().addUnattachedEdge(this);
+    }
+
+    public void tryAttach() {
         if (isUsed()) {
             attachToTargetNodes();
             if (targetNodes.isEmpty()) {
@@ -411,8 +407,8 @@ class EdgeState implements DependencyGraphEdge {
         if (selectorFailure != null) {
             return selectorFailure;
         }
-        ComponentState selectedComponent = getSelectedComponent();
-        if (selectedComponent == null) {
+        ComponentState targetComponent = selector.getTargetModule().getSelected();
+        if (targetComponent == null) {
             ModuleSelectors<SelectorState> selectors = selector.getTargetModule().getSelectors();
             for (SelectorState state : selectors) {
                 selectorFailure = state.getFailure();
@@ -422,7 +418,7 @@ class EdgeState implements DependencyGraphEdge {
             }
             throw new IllegalStateException("Expected to find a selector with a failure but none was found");
         }
-        return selectedComponent.getMetadataResolveFailure();
+        return targetComponent.getMetadataResolveFailure();
     }
 
     @Override
@@ -510,11 +506,6 @@ class EdgeState implements DependencyGraphEdge {
     @Override
     public boolean isConstraint() {
         return isConstraint;
-    }
-
-    @Nullable
-    private ComponentState getSelectedComponent() {
-        return selector.getTargetModule().getSelected();
     }
 
     DependencyState getDependencyState() {

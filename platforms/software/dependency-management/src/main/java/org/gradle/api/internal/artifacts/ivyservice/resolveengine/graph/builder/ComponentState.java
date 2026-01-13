@@ -63,7 +63,12 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private volatile ComponentGraphResolveState resolveState;
     private volatile ComponentGraphSpecificResolveState graphResolveState;
 
+    /**
+     * An evicted component has been evicted and will never, ever be chosen starting from the moment it is evicted.
+     * Either because it has been excluded, or because conflict resolution selected a different version.
+     */
     private boolean evicted = false;
+
     private ModuleVersionResolveException metadataResolveFailure;
     private ModuleSelectors<SelectorState> selectors;
     private DependencyGraphBuilder.VisitState visitState = DependencyGraphBuilder.VisitState.NotSeen;
@@ -323,8 +328,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         this.evicted = true;
     }
 
-    void makeSelectable() {
-        state = ComponentSelectionState.Selectable;
+    void unEvict() {
+        this.evicted = false;
     }
 
     @Override

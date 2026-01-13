@@ -292,9 +292,9 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                     expectGetArtifact()
                 }
             }
-            'org:foo:3.1.1' {
-                expectGetMetadata()
-                if (platformType == ENFORCED_PLATFORM) {
+            if (platformType == ENFORCED_PLATFORM) {
+                'org:foo:3.1.1' {
+                    expectGetMetadata()
                     expectGetArtifact()
                 }
             }
@@ -457,11 +457,12 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
             'org:bar:2.0' {
                 expectGetMetadata()
             }
-            'org:foo:3.1.1' {
-                expectGetMetadata()
-            }
-            'org:foo:3.2' {
-                if (platformType != ENFORCED_PLATFORM) {
+            if (platformType == ENFORCED_PLATFORM) {
+                'org:foo:3.1.1' {
+                    expectGetMetadata()
+                }
+            } else {
+                'org:foo:3.2' {
                     expectGetMetadata()
                 }
             }

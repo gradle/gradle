@@ -62,6 +62,7 @@ import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Deque;
@@ -69,6 +70,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Global resolution state.
@@ -83,6 +85,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     private final DependencyToComponentIdResolver idResolver;
     private final ComponentMetaDataResolver metaDataResolver;
     private final Deque<NodeState> queue;
+    private List<ModuleResolveState> moduleQueue;
     private final ConflictResolution conflictResolution;
     private final ImmutableAttributes consumerAttributes;
     private final ImmutableAttributesSchema consumerSchema;
@@ -155,6 +158,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         this.nodes = new LinkedHashMap<>(3 * graphSize / 2);
         this.selectors = new LinkedHashMap<>(5 * graphSize / 2);
         this.queue = new ArrayDeque<>(graphSize);
+        this.moduleQueue = new ArrayList<>(graphSize);
 
         // Create root component and module
         ModuleResolveState rootModule = getModule(rootModuleVersionId.getModule());
@@ -205,7 +209,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     }
 
     public ModuleResolveState getModule(ModuleIdentifier id) {
-        return modules.computeIfAbsent(id, mid -> new ModuleResolveState(idGenerator, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations, conflictResolution));
+        return modules.computeIfAbsent(id, mid -> new ModuleResolveState(this, idGenerator, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations, conflictResolution));
     }
 
     @Override
@@ -243,14 +247,14 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         return selectorState;
     }
 
-    @Nullable
-    public NodeState peek() {
-        return queue.isEmpty() ? null : queue.getFirst();
+    public boolean hasNextNode() {
+        return !queue.isEmpty();
     }
 
-    public NodeState pop() {
+    public NodeState nextNode() {
         NodeState next = queue.removeFirst();
-        return next.dequeue();
+        next.dequeue();
+        return next;
     }
 
     /**
@@ -271,6 +275,26 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         // Add to the front of the queue, to flush out configurations that are no longer required.
         if (node.enqueue()) {
             queue.addFirst(node);
+        }
+    }
+
+    public boolean hasNextModule() {
+        return !moduleQueue.isEmpty();
+    }
+
+    public void consumeModuleQueue(Consumer<Iterable<ModuleResolveState>> consumer) {
+        List<ModuleResolveState> current = moduleQueue;
+
+        this.moduleQueue = null; // Set to null temporarily so reentrant behavior will cause NPEs
+        consumer.accept(current);
+        this.moduleQueue = current;
+
+        moduleQueue.clear();
+    }
+
+    public void onIncomingModuleEdge(ModuleResolveState module) { // TODO: Rename
+        if (module.enqueue()) {
+            moduleQueue.add(module);
         }
     }
 

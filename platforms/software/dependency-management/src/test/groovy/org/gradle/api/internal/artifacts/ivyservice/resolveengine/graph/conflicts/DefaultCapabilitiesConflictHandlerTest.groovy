@@ -95,9 +95,8 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
         Mock(ComponentState) {
             getId() >> mvi
             getComponentId() >> DefaultModuleComponentIdentifier.newId(mvi)
-            isCandidateForConflictResolution() >> true
+            isNotEvicted() >> true
             getModule() >> module
-            isSelected() >> true
             getImplicitCapability() >> capability(group, name)
         }
     }
