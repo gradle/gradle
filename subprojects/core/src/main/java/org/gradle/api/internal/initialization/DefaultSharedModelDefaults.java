@@ -72,6 +72,9 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
             }
             // TODO - this works for now because we only have one implementation per project type, but we need to revisit this when we support defaults
             // for features where we could have multiple implementations binding to different target types
+            if (implementations.size() > 1) {
+                throw new IllegalArgumentException(String.format("Cannot add default for project feature '%s' because it has multiple registered implementations.", name));
+            }
             ProjectFeatureImplementation<?, ?> projectFeature = implementations.iterator().next();
             if (projectFeature.getDefinitionPublicType().isAssignableFrom(publicType)) {
                 projectFeature.addModelDefault(new ActionBasedDefault<>(configureAction));
@@ -104,6 +107,9 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
                     throw new IllegalArgumentException(String.format("Cannot resolve default for project type '%s' because it has no implementations.", name));
                 }
 
+                if (implementations.size() > 1) {
+                    throw new IllegalArgumentException(String.format("Cannot resolve default for project feature '%s' because it has multiple registered implementations.", name));
+                }
                 ProjectFeatureImplementation<?, ?> implementation = implementations.iterator().next();
                 add(name, implementation.getDefinitionPublicType(), Cast.uncheckedNonnullCast(toAction(arguments[0])));
                 return DynamicInvokeResult.found();
