@@ -16,7 +16,6 @@
 
 package org.gradle.testing.junit.platform
 
-
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
@@ -24,6 +23,7 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 import spock.lang.Timeout
 
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT5_VERSION
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_PLATFORM
@@ -345,7 +345,7 @@ public class StaticInnerTest {
         }
 
         where:
-        version << [LATEST_JUPITER_VERSION, LATEST_JUNIT5_VERSION, "5.9.2", "5.6.3"]
+        version << JUNIT_JUPITER
     }
 
     @Issue("https://github.com/junit-team/junit5/issues/2028 and https://github.com/gradle/gradle/issues/12073")
