@@ -27,8 +27,6 @@ import gradlebuild.basics.kotlindsl.execAndGetStdoutIgnoringError
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.testDistributionEnabled
-import org.gradle.api.internal.BuildType
-import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.BuildOperationListenerManager
@@ -78,10 +76,6 @@ buildScan {
             tag("PRE_TESTED_COMMIT")
         }
     }
-}
-
-if ((project.gradle as GradleInternal).services.get(BuildType::class.java) != BuildType.TASKS) {
-    buildScan?.tag("SYNC")
 }
 
 fun DevelocityConfiguration.extractCiData() {
