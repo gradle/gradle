@@ -1,0 +1,12 @@
+plugins {
+    id "org.example.myplugin"
+}
+
+extensions.getByType(org.example.MyExtension).with {
+    firstName = "John"
+    lastName = "Smith"
+}
+
+tasks.named("task2", org.example.MyTask).configure {
+    greeting = "Bonjour" // <4>
+}
