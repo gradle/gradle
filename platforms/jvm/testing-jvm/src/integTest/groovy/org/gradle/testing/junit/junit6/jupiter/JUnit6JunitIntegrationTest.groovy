@@ -16,7 +16,6 @@
 
 package org.gradle.testing.junit.junit6.jupiter
 
-import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec;
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.junit.AbstractJUnitIntegrationTest
@@ -24,7 +23,6 @@ import org.gradle.testing.junit.jupiter.JUnitJupiterMultiVersionTest
 
 @TargetCoverage({ JUnitCoverage.JUNIT_6 })
 class JUnit6JunitIntegrationTest extends AbstractJUnitIntegrationTest implements JUnitJupiterMultiVersionTest {
-
     def "works with JUnit 6 features (MethodOrderer.Default and ClassOrderer.Default)"() {
         given:
         buildFile("""
@@ -35,15 +33,19 @@ class JUnit6JunitIntegrationTest extends AbstractJUnitIntegrationTest implements
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:${MultiVersionIntegrationSpec.version}'
+                testImplementation 'org.junit.jupiter:junit-jupiter:${version}'
                 testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             }
 
-            test {
-                useJUnitPlatform()
+            testing.suites.test {
+                useJUnitJupiter()
 
-                testLogging {
-                    showStandardStreams = true
+                targets.all {
+                    testTask.configure {
+                        testLogging {
+                            showStandardStreams = true
+                        }
+                    }
                 }
             }
         """)
