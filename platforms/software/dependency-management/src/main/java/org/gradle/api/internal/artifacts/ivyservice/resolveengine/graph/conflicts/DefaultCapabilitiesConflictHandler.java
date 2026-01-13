@@ -138,13 +138,13 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
             // For a conflict we want at least 2 nodes, and at least one of them should not be rejected
             // TODO: Seems odd to filter for rejected nodes here
-            if (candidatesForConflict.size() > 1 && !candidatesForConflict.stream().allMatch(n -> n.getComponent().isRejected())) {
+            if (candidatesForConflict.size() > 1 && !candidatesForConflict.stream().allMatch(NodeState::isRejectedForCapabilityConflict)) {
                 if (tracker.createOrUpdateConflict(candidatesForConflict)) {
                     conflicts.add(tracker.capabilityId);
                 }
 
                 for (NodeState candidateNode : candidatesForConflict) {
-                    candidateNode.getComponent().getModule().clearSelection();
+                    candidateNode.markInCapabilityConflict();
                 }
                 return true;
             }
@@ -223,7 +223,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
          * @return {@code true} if the conflict is valid
          */
         private boolean isValidConflict() {
-            return !nodes.isEmpty() && nodes.stream().anyMatch(node -> !node.getComponent().isRejected());
+            return !nodes.isEmpty() && nodes.stream().anyMatch(node -> !node.isRejectedForCapabilityConflict());
         }
 
         private static Map<NodeState, Set<NodeState>> buildDependentRelationships(Set<NodeState> nodes) {
