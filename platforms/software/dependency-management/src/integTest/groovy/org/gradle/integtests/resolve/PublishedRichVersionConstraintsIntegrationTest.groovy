@@ -388,8 +388,8 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:b' that satisfies the version constraints:
-   Dependency path: 'root project :' (conf) --> 'org:c:1.0' (runtime) --> 'org:b:1.1'
-   Dependency path: 'root project :' (conf) --> 'org:a:1.0' (runtime) --> 'org:b:{strictly 1.0}' because of the following reason: Not following semantic versioning""")
+   Dependency path: 'root project :' (conf) --> 'org:a:1.0' (runtime) --> 'org:b:{strictly 1.0}' because of the following reason: Not following semantic versioning
+   Dependency path: 'root project :' (conf) --> 'org:c:1.0' (runtime) --> 'org:b:1.1'""")
 
         and:
         failure.assertHasNoCause("Dependency path: 'root project :' (conf) --> 'org:d:1.0' --> 'org:c:1.0' --> 'org:b:1.1'")
@@ -447,8 +447,8 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:b' that satisfies the version constraints:
-   Dependency path: 'root project :' (conf) --> 'org:c:1.0' (runtime) --> 'org:b:1.1'
-   Dependency path: 'root project :' (conf) --> 'org:a:1.0' (runtime) --> 'org:b:{strictly 1.0}' because of the following reason: Not following semantic versioning""")
+   Dependency path: 'root project :' (conf) --> 'org:a:1.0' (runtime) --> 'org:b:{strictly 1.0}' because of the following reason: Not following semantic versioning
+   Dependency path: 'root project :' (conf) --> 'org:c:1.0' (runtime) --> 'org:b:1.1'""")
 
         and:
         failure.assertHasNoCause("Dependency path: 'root project :' (conf) --> 'org:d:1.0' --> 'org:c:1.0' --> 'org:b:1.1'")

@@ -311,7 +311,7 @@ public class DependencyGraphBuilder {
         ImmutableAttributesSchema consumerSchema = resolveState.getConsumerSchema();
         for (ModuleResolveState module : resolveState.getModules()) {
             ComponentState selected = module.getSelected();
-            if (selected != null && selected.getNodes().stream().anyMatch(n -> n.getReplacement() == null)) {
+            if (selected != null && (selected.isRejected() || selected.getNodes().stream().anyMatch(n -> n.getReplacement() == null))) {
                 ResolutionFailureHandler resolutionFailureHandler = resolveState.getVariantSelector().getFailureHandler();
                 if (selected.isRejected()) {
                     List<String> conflictResolutions = buildConflictResolutions(selected, failureResolutions).getRight();
