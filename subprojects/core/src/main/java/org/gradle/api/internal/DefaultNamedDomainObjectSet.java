@@ -27,9 +27,6 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectCollection<T> implements NamedDomainObjectSet<T> {
     private final MutationGuard parentMutationGuard;
 
@@ -95,12 +92,6 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
     @Override
     public NamedDomainObjectSet<T> matching(Closure spec) {
         return matching(Specs.<T>convertClosureToSpec(spec));
-    }
-
-    @Override
-    @Deprecated
-    public Set<T> findAll(Closure cl) {
-        return findAll(cl, new LinkedHashSet<T>());
     }
 
     @Override

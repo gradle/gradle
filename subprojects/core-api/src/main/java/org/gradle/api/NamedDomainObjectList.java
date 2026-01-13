@@ -61,11 +61,4 @@ public interface NamedDomainObjectList<T> extends NamedDomainObjectCollection<T>
     @Override
     @HiddenInDefinition
     NamedDomainObjectList<T> matching(Closure spec);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Deprecated
-    List<T> findAll(Closure spec);
 }

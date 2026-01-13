@@ -35,7 +35,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.AbstractCollection;
@@ -427,27 +426,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public int estimatedSize() {
         return store.estimatedSize();
-    }
-
-    @Override
-    @Deprecated
-    public Collection<T> findAll(Closure cl) {
-        return findAll(cl, new ArrayList<T>());
-    }
-
-    @Deprecated
-    protected <S extends Collection<? super T>> S findAll(Closure cl, S matches) {
-        DeprecationLogger.deprecateMethod(DomainObjectCollection.class, "findAll(Closure)")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "findAll_removal")
-            .nagUser();
-        if (store.constantTimeIsEmpty()) {
-            return matches;
-        }
-        for (T t : filteredStore(createFilter(Specs.<Object>convertClosureToSpec(cl)))) {
-            matches.add(t);
-        }
-        return matches;
     }
 
     /**
