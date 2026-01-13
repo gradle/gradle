@@ -596,7 +596,7 @@ public class NodeState implements DependencyGraphNode {
 
                     boolean forced = hasStrongOpinion();
                     final ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(platformId.getModuleIdentifier(), platformId.getVersion());
-                    DependencyMetadata dependencyMetadata = new LenientPlatformDependencyMetadata(resolveState, this, selector, platformId, platformId, forced, true, false);
+                    DependencyMetadata dependencyMetadata = new LenientPlatformDependencyMetadata(selector, platformId, forced, true, false);
                     EdgeState virtualPlatformEdge = createEdge(dependencyMetadata);
 
                     registerOutgoingEdge(

@@ -18,47 +18,32 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
-import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.VariantGraphResolveState;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
 
 class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, ForcingDependencyMetadata {
-    private final ResolveState resolveState;
-    private final NodeState from;
-    private final ModuleComponentSelector cs;
-    private final ModuleComponentIdentifier componentId;
+
+    private final ModuleComponentSelector selector;
     private final ComponentIdentifier platformId; // just for reporting
     private final boolean force;
     private final boolean transitive;
     private final boolean constraint;
 
     LenientPlatformDependencyMetadata(
-        ResolveState resolveState,
-        NodeState from,
-        ModuleComponentSelector cs,
-        ModuleComponentIdentifier componentId,
-        @Nullable ComponentIdentifier platformId,
+        ModuleComponentSelector selector,
+        ComponentIdentifier platformId,
         boolean force,
         boolean transitive,
         boolean constraint
     ) {
-        this.resolveState = resolveState;
-        this.from = from;
-        this.cs = cs;
-        this.componentId = componentId;
+        this.selector = selector;
         this.platformId = platformId;
         this.force = force;
         this.transitive = transitive;
@@ -67,7 +52,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public ModuleComponentSelector getSelector() {
-        return cs;
+        return selector;
     }
 
     @Override
@@ -83,22 +68,6 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     @Override
     public ModuleDependencyMetadata withEndorseStrictVersions(boolean endorse) {
         throw new UnsupportedOperationException("Applying component metadata rules to lenient platform dependencies is not supported.");
-    }
-
-    @Override
-    public @Nullable List<? extends VariantGraphResolveState> overrideVariantSelection(
-        GraphVariantSelector variantSelector,
-        ImmutableAttributes consumerAttributes,
-        ComponentGraphResolveState targetComponentState,
-        ImmutableAttributesSchema consumerSchema
-    ) {
-        if (targetComponentState instanceof LenientPlatformGraphResolveState) {
-            LenientPlatformGraphResolveState lenientPlatform = (LenientPlatformGraphResolveState) targetComponentState;
-            VariantGraphResolveState variant = lenientPlatform.getCandidatesForGraphVariantSelection().getVariantForSourceNode(from, platformId);
-            return Collections.singletonList(variant);
-        }
-
-        return null;
     }
 
     @Override
@@ -152,7 +121,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public String toString() {
-        return componentId.getDisplayName();
+        return selector.getDisplayName();
     }
 
     @Override
@@ -162,6 +131,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public ForcingDependencyMetadata forced() {
-        return new LenientPlatformDependencyMetadata(resolveState, from, cs, componentId, platformId, true, transitive, constraint);
+        return new LenientPlatformDependencyMetadata(selector, platformId, true, transitive, constraint);
     }
+
 }
