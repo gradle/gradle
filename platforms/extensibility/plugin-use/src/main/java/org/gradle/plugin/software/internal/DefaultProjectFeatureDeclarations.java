@@ -50,7 +50,6 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -92,7 +91,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
     }
 
     private Map<String, Set<ProjectFeatureImplementation<?, ?>>> discoverProjectFeatureImplementations() {
-        Map<String, Set<ProjectFeatureImplementation<?, ?>>> projectFeatureDeclarations = new HashMap<>();
+        Map<String, Set<ProjectFeatureImplementation<?, ?>>> projectFeatureDeclarations = new LinkedHashMap<>();
         pluginClasses.forEach((registeringPluginClass, registeredPluginClasses) ->
             registeredPluginClasses.forEach(pluginClass -> {
                 TypeMetadata pluginClassTypeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(pluginClass);
