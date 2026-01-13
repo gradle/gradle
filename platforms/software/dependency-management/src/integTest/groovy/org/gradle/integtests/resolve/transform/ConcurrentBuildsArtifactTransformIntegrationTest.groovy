@@ -18,8 +18,6 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
 class ConcurrentBuildsArtifactTransformIntegrationTest extends AbstractDependencyResolutionTest {
@@ -155,71 +153,6 @@ tasks.block2.mustRunAfter tasks.blueThings
         result2.output.count("Transforming thing.jar to Blue") == 1
     }
 
-    /**
-     * With current cache implementation we don't use locking for cache entries (Gradle 8.6+)
-     * we run transform in temporary directory and we then use atomic move to move it to the final location.
-     * Due to that we can have multiple builds running the same transform at the same time, but we will always have just one result in the final cache location.
-     *
-     * Additional note: Windows and Unix have different locking logic from 9.1.0.
-     */
-    @Requires(UnitTestPreconditions.Unix)
-    def "concurrent builds can transform the same file at the same time"() {
-        given:
-        setupTransform("${server.callFromBuildUsingExpression("parameters.color.get()")}")
-        buildFile << """
-task block1 {
-    doLast {
-        ${server.callFromBuild("block1")}
-    }
-}
-
-task block2 {
-    doLast {
-        ${server.callFromBuild("block2")}
-    }
-}
-
-tasks.redThings.mustRunAfter tasks.block1
-tasks.redThings.mustRunAfter tasks.block2
-tasks.blueThings.mustRunAfter tasks.redThings
-"""
-        // Ensure build scripts compiled
-        run("help")
-
-        def block = server.expectConcurrentAndBlock("block1", "block2")
-        def redBlock = server.expectConcurrentAndBlock("Red", "Red")
-        def blueBlock = server.expectConcurrentAndBlock("Blue", "Blue")
-
-        when:
-        // Run two builds concurrently
-        def build1 = executer.withTasks("block1", "redThings", "blueThings").start()
-        def build2 = executer.withTasks("block2", "redThings", "blueThings").start()
-
-        // Block until both builds are ready to start resolving
-        block.waitForAllPendingCalls()
-        block.releaseAll()
-        // Resolve concurrently
-        redBlock.waitForAllPendingCalls()
-        redBlock.releaseAll()
-        blueBlock.waitForAllPendingCalls()
-        blueBlock.releaseAll()
-
-        def result1 = build1.waitForFinish()
-        def result2 = build2.waitForFinish()
-
-        then:
-        result1.output.count("Transforming") == 2
-        result2.output.count("Transforming") == 2
-        result1.output.count("Transforming thing.jar to Red") == 1
-        result2.output.count("Transforming thing.jar to Red") == 1
-        result1.output.count("Transforming thing.jar to Blue") == 1
-        result2.output.count("Transforming thing.jar to Blue") == 1
-    }
-
-    /**
-     * Windows and Unix have different locking logic from 9.1.0.
-     */
-    @Requires(UnitTestPreconditions.Windows)
     def "file is transformed once only by concurrent builds"() {
         given:
         setupTransform()
