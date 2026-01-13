@@ -199,10 +199,10 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         1 * instantiator.newInstance(Binding) >> featureBinding
         1 * featureBinding.bind(_) >> { args ->
             def builder = args[0] as ProjectFeatureBindingBuilderInternal
-            if (Definition.isAssignableFrom(targetType)) {
-                builder.bindProjectFeatureToDefinition("test", TestDefinition, targetType, Mock(ProjectFeatureApplyAction))
+            if (Definition.isAssignableFrom(alreadyRegisteredTargetType)) {
+                builder.bindProjectFeatureToDefinition("test", TestDefinition, alreadyRegisteredTargetType, Mock(ProjectFeatureApplyAction))
             } else {
-                builder.bindProjectFeatureToBuildModel("test", TestDefinition, targetType, Mock(ProjectFeatureApplyAction))
+                builder.bindProjectFeatureToBuildModel("test", TestDefinition, alreadyRegisteredTargetType, Mock(ProjectFeatureApplyAction))
             }
         }
         1 * metadataStore.getTypeMetadata(TestDefinition) >> definitionTypeMetadata
@@ -215,10 +215,10 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         1 * instantiator.newInstance(Binding) >> featureBinding
         1 * featureBinding.bind(_) >> { args ->
             def builder = args[0] as ProjectFeatureBindingBuilderInternal
-            if (Definition.isAssignableFrom(anotherTargetType)) {
-                builder.bindProjectFeatureToDefinition("test", TestDefinition, anotherTargetType, Mock(ProjectFeatureApplyAction))
+            if (Definition.isAssignableFrom(toBeRegisteredTargetType)) {
+                builder.bindProjectFeatureToDefinition("test", TestDefinition, toBeRegisteredTargetType, Mock(ProjectFeatureApplyAction))
             } else {
-                builder.bindProjectFeatureToBuildModel("test", TestDefinition, anotherTargetType, Mock(ProjectFeatureApplyAction))
+                builder.bindProjectFeatureToBuildModel("test", TestDefinition, toBeRegisteredTargetType, Mock(ProjectFeatureApplyAction))
             }
         }
         1 * metadataStore.getTypeMetadata(TestDefinition) >> definitionTypeMetadata
@@ -236,16 +236,17 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         e.message.startsWith("Project feature 'test' is registered by multiple plugins")
 
         where:
-        targetType                 | anotherTargetType          | description
-        ParentDefinition           | ParentDefinition           | "definition is the same as registered definition"
-        ParentDefinition           | SubClassOfParentDefinition | "definition is sub class of registered definition"
-        SubClassOfParentDefinition | ParentDefinition           | "definition is super class of registered definition"
-        ParentBuildModel           | ParentBuildModel           | "build model is the same as registered build model"
-        ParentBuildModel           | SubClassOfParentBuildModel | "build model is sub class of registered build model"
-        SubClassOfParentBuildModel | ParentBuildModel           | "build model is super class of registered build model"
-        ParentDefinition           | ParentBuildModel           | "build model is the same as registered definition's build model"
-        SubClassOfParentDefinition | ParentBuildModel           | "build model is same as registered definition's inherited build model"
-        ParentDefinition           | SubClassOfParentBuildModel | "build model is sub class of registered definition's build model"
+        alreadyRegisteredTargetType          | toBeRegisteredTargetType   | description
+        ParentDefinition                     | ParentDefinition           | "definition is the same as registered definition"
+        ParentDefinition                     | SubClassOfParentDefinition | "definition is sub class of registered definition"
+        SubClassOfParentDefinition           | ParentDefinition           | "definition is super class of registered definition"
+        ParentBuildModel                     | ParentBuildModel           | "build model is the same as registered build model"
+        ParentBuildModel                     | SubClassOfParentBuildModel | "build model is sub class of registered build model"
+        SubClassOfParentBuildModel           | ParentBuildModel           | "build model is super class of registered build model"
+        ParentDefinition                     | ParentBuildModel           | "build model is the same as registered definition's build model"
+        SubClassOfParentDefinition           | ParentBuildModel           | "build model is same as registered definition's inherited build model"
+        ParentDefinition                     | SubClassOfParentBuildModel | "build model is sub class of registered definition's build model"
+        SubClassOfParentBuildModelDefinition | ParentBuildModel           | "build model is super class of registered definition's build model"
     }
 
     def "can declare two plugins with the same feature name if they bind to different targets (#description)"() {
@@ -314,6 +315,8 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
     private interface ParentDefinition extends Definition<ParentBuildModel> { }
 
     private interface SubClassOfParentDefinition extends ParentDefinition { }
+
+    private interface SubClassOfParentBuildModelDefinition extends Definition<SubClassOfParentBuildModel> {}
 
     private interface ParentBuildModel extends BuildModel { }
 
