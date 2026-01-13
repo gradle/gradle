@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec;
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.junit.AbstractJUnitIntegrationTest
-import org.gradle.testing.junit.junit5.jupiter.JUnitJupiterMultiVersionTest
+import org.gradle.testing.junit.jupiter.JUnitJupiterMultiVersionTest
 
 @TargetCoverage({ JUnitCoverage.JUNIT_6 })
 class JUnit6JunitIntegrationTest extends AbstractJUnitIntegrationTest implements JUnitJupiterMultiVersionTest {
