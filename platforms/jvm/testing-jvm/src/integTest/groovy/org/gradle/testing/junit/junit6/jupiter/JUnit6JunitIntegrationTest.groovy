@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit.junit6;
+package org.gradle.testing.junit.junit6.jupiter
 
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec;
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.junit.AbstractJUnitIntegrationTest
 import org.gradle.testing.junit.junit5.jupiter.JUnitJupiterMultiVersionTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_6
-
-@TargetCoverage({ JUNIT_6 })
+@TargetCoverage({ JUnitCoverage.JUNIT_6 })
 class JUnit6JunitIntegrationTest extends AbstractJUnitIntegrationTest implements JUnitJupiterMultiVersionTest {
 
     def "works with JUnit 6 features (MethodOrderer.Default and ClassOrderer.Default)"() {
@@ -35,7 +35,7 @@ class JUnit6JunitIntegrationTest extends AbstractJUnitIntegrationTest implements
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:${version}'
+                testImplementation 'org.junit.jupiter:junit-jupiter:${MultiVersionIntegrationSpec.version}'
                 testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
             }
 
