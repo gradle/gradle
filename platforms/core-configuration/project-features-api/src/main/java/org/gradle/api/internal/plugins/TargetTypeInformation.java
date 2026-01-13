@@ -24,14 +24,16 @@ public interface TargetTypeInformation<T> {
 
     class DefinitionTargetTypeInformation<T> implements TargetTypeInformation<T> {
         public final Class<T> definitionType;
+        private final String id;
 
         public DefinitionTargetTypeInformation(Class<T> definitionType) {
             this.definitionType = definitionType;
+            this.id = Hashing.hashString(definitionType.getName()).toCompactString();
         }
 
         @Override
         public String getId() {
-            return Hashing.hashString(definitionType.getName()).toCompactString();
+            return id;
         }
 
         @Override
@@ -59,14 +61,16 @@ public interface TargetTypeInformation<T> {
 
     class BuildModelTargetTypeInformation<T extends BuildModel> implements TargetTypeInformation<Definition<T>> {
         public final Class<T> buildModelType;
+        private final String id;
 
         public BuildModelTargetTypeInformation(Class<T> buildModelType) {
             this.buildModelType = buildModelType;
+            this.id = Hashing.hashString(buildModelType.getName()).toCompactString();
         }
 
         @Override
         public String getId() {
-            return Hashing.hashString(buildModelType.getName()).toCompactString();
+            return id;
         }
 
         @Override
