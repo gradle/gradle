@@ -279,38 +279,37 @@ If you run a command like:
 
 [source,bash]
 ----
-$ ./gradlew build --include-build my-conventions-plugin
+$ ./gradlew build --include-build my-plugin
 ----
 
 You will receive an error similar to:
 
 [source,bash]
 ----
-What went wrong: Plugin [id: 'my.custom.convention.plugin'] was not found in any of the following sources...
+What went wrong: Plugin [id: 'my-plugin'] was not found in any of the following sources...
 ----
 
-To successfully include a build that provides plugins, you must declare it explicitly in your `settings.gradle(.kts)` file inside the `pluginManagement {}` block. *Command-line flags cannot currently satisfy plugin requirements.*
-
-[source,kotlin]
-----
-pluginManagement {
-    includeBuild("my-conventions-plugin") // This makes plugins available to the build
-}
-----
-
-Using this mechanism, the included build may also contribute a settings plugin that can be applied in the settings file itself:
+To successfully include a build that provides plugins, you must declare it explicitly in your `settings.gradle(.kts)` file inside the `pluginManagement {}` block.
+*Command-line flags cannot currently satisfy plugin requirements:*:
 
 ++++
 <div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/testingPlugins">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/samples/build-organization/composite-builds/basic">
     <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
   </a>
 </div>
 ++++
 
 ====
-include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/include-plugin-build",files="settings.gradle.kts[tags=include-build]"]
-include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-plugin-build",files="settings.gradle[tags=include-build]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/kotlin/my-app",files="settings.gradle.kts[tags=mag]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/groovy/my-app",files="settings.gradle[tags=mag]"]
+====
+
+Then the plugin is used as follows:
+
+====
+include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="my-app/app/build.gradle.kts[tags=plugin_dependencies]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="my-app/app/build.gradle[tags=plugin_dependencies]"]
 ====
 
 [[included_builds]]
