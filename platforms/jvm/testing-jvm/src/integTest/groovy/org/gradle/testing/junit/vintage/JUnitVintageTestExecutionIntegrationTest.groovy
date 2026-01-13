@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit.junit5.vintage
+package org.gradle.testing.junit.vintage
 
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.junit.AbstractJUnitTestExecutionIntegrationTest
-import org.gradle.testing.junit.vintage.JUnitVintageMultiVersionTest
 
-@TargetCoverage({ JUnitCoverage.JUNIT_5_VINTAGE })
-class JUnit5VintageTestExecutionIntegrationTest extends AbstractJUnitTestExecutionIntegrationTest implements JUnitVintageMultiVersionTest {
+@TargetCoverage({ JUnitCoverage.JUNIT_VINTAGE })
+class JUnitVintageTestExecutionIntegrationTest extends AbstractJUnitTestExecutionIntegrationTest implements JUnitVintageMultiVersionTest {
     @Override
     String getJUnitVersionAssertion() {
         return "assertEquals(\"${JUnitCoverage.LATEST_JUNIT4_VERSION}\", new org.junit.runner.JUnitCore().getVersion());"
