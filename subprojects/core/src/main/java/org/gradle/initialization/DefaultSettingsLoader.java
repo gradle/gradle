@@ -194,7 +194,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
                     projectDir
                 )
             ),
-            ProblemId.create("confituring-project-with-invalid-directory", "Configuring project with invalid directory", GradleCoreProblemGroup.configurationUsage()),
+            ProblemId.create("configuring-project-with-invalid-directory", "Configuring project with invalid directory", GradleCoreProblemGroup.configurationUsage()),
             spec ->
                 spec.solution("Make sure the project directory exists and is writable.")
                     .documentedAt(Documentation.userManual("multi_project_builds", "include_existing_projects_only").getUrl())
