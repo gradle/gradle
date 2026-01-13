@@ -25,6 +25,7 @@ import com.tngtech.archunit.core.domain.JavaGenericArrayType;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.domain.JavaParameter;
 import com.tngtech.archunit.core.domain.JavaParameterizedType;
 import com.tngtech.archunit.core.domain.JavaType;
@@ -348,6 +349,27 @@ public interface ArchUnitFixture {
 
     static ArchCondition<JavaMethod> beNullUnmarkedMethod() {
         return beAnnotatedWith(NullUnmarked.class);
+    }
+
+    /**
+     * Verifies that the class is in a package with {@code @NullMarked} annotation. This condition emits violations once per package.
+     *
+     * @return the class condition
+     */
+    static ArchCondition<JavaClass> beInANullMarkedPackage() {
+        return new ArchCondition<>("be in a @NullMarked package") {
+            private final Set<String> checkedPackages = new HashSet<>();
+
+            @Override
+            public void check(JavaClass item, ConditionEvents events) {
+                JavaPackage pkg = item.getPackage();
+                if (checkedPackages.add(pkg.getName())) {
+                    if (!pkg.isAnnotatedWith(NullMarked.class)) {
+                        events.add(new SimpleConditionEvent(pkg, false, "Package " + pkg.getName() + " is not annotated with @NullMarked"));
+                    }
+                }
+            }
+        };
     }
 
     /**

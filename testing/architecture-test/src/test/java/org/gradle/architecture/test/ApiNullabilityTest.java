@@ -15,7 +15,6 @@
  */
 
 package org.gradle.architecture.test;
-
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
@@ -26,6 +25,7 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.not;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
+import static org.gradle.architecture.test.ArchUnitFixture.beInANullMarkedPackage;
 import static org.gradle.architecture.test.ArchUnitFixture.beNullMarkedClass;
 import static org.gradle.architecture.test.ArchUnitFixture.beNullUnmarkedMethod;
 import static org.gradle.architecture.test.ArchUnitFixture.classes_not_written_in_kotlin;
@@ -79,4 +79,12 @@ public class ApiNullabilityTest {
         .and(not_synthetic_classes)
         .and(not_anonymous_classes)
         .should(notBeUnnecessarilyAnnotatedWithNullMarked()));
+
+    /**
+     * Verifies that all packages in Gradle are annotated with {@code @NullMarked} annotation.
+     */
+    @ArchTest
+    public static final ArchRule all_packages_are_null_marked = freeze(classes()
+        .that(are(classes_not_written_in_kotlin))
+        .should(beInANullMarkedPackage()));
 }
