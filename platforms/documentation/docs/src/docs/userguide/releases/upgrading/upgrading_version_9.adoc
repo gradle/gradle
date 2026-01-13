@@ -98,6 +98,14 @@ Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.12.0[1.12.0
 
 === Deprecations
 
+[[findAll_removal]]
+==== Deprecation of `DomainObjectCollection.findAll(Closure)`
+
+`DomainObjectCollection.findAll(Closure)` has been deprecated. This API relies on a Groovy type and eagerly evaluates the contents of the container.
+
+This API will be removed in Gradle 10 with no direct replacement.
+`DomainObjectCollection.matching(Spec)` is a similar API for selecting elements without evaluating the contents of the container immediately.
+
 [[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier
 

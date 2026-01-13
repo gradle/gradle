@@ -191,7 +191,6 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      */
     void configureEach(Action<? super T> action);
 
-    // note: this is here to override the default Groovy Collection.findAll { } method.
     /**
      * Returns a collection which contains the objects in this collection which meet the given closure specification.
      * <p>
@@ -200,6 +199,8 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param spec The specification to use. The closure gets a collection element as an argument.
      * @return The collection of matching objects. Returns an empty collection if there are no such objects in this
      *         collection.
+     * @deprecated Use {@link #matching(Spec)} or Collection APIs from the JDK.
      */
+    @Deprecated
     Collection<T> findAll(Closure spec);
 }

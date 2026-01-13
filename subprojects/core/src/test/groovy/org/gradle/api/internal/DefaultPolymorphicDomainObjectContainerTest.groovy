@@ -276,14 +276,6 @@ class DefaultPolymorphicDomainObjectContainerTest extends AbstractPolymorphicDom
         0 * action._
     }
 
-    def "can find all elements that match closure"() {
-        given:
-        container.addAll([fred, barney])
-
-        expect:
-        container.findAll { it != fred } == [barney] as Set
-    }
-
     def "cannot register factory for already registered type"() {
         given:
         container.registerFactory(Person, { new DefaultPerson(name: it) })

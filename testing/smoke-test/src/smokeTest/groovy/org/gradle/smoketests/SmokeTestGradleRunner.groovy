@@ -33,6 +33,7 @@ import org.gradle.testkit.runner.InvalidPluginMetadataException
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
+import org.gradle.util.GradleVersion
 import org.slf4j.LoggerFactory
 
 import javax.annotation.Nullable
@@ -115,7 +116,7 @@ class SmokeTestGradleRunner extends GradleRunner {
         if (followup == null || followup.isBlank()) {
             throw new IllegalArgumentException("Follow up is required! Did you mean to expect a legacy deprecation warning instead?")
         }
-        expectedDeprecationWarnings.add(warning)
+        expectedDeprecationWarnings.add(warning.replace("/current/", "/" + GradleVersion.current().version + "/"))
         return this
     }
 
