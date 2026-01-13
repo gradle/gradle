@@ -120,7 +120,6 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
         result.assertTaskSkipped(":test")
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "compiles and executes a Java 9 test suite"() {
         // JUnit 6 requires Java 17
         Assumptions.assumeTrue(VersionNumber.parse(version) < VersionNumber.parse("6.0.0"))
@@ -141,7 +140,6 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
 
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "compiles and executes a Java 9 test suite even if a module descriptor is on classpath"() {
         // JUnit 6 requires Java 17
         Assumptions.assumeTrue(VersionNumber.parse(version) < VersionNumber.parse("6.0.0"))
