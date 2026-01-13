@@ -242,6 +242,7 @@ private class RuntimeModelTypeAccessors(
     val modelTypeById = info.associate { it.customAccessorId to it.delegate }
 
     override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType {
+        require(accessor is ConfigureAccessor.ProjectFeature) { "unexpected accessor, expected a ProjectFeature accessor, got ${accessor::class.simpleName}" }
         val projectFeature = modelTypeById[accessor.customAccessorIdentifier]
             ?: return InstanceAndPublicType.NULL
         return InstanceAndPublicType.of(applyProjectFeaturePlugin(receiverObject, projectFeature, projectFeatureApplicator), projectFeature.definitionPublicType.kotlin)
