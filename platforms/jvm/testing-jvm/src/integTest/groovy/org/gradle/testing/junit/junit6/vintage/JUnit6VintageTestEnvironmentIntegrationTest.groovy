@@ -17,8 +17,6 @@
 package org.gradle.testing.junit.junit6.vintage
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.junit.junit4.AbstractJUnit4TestEnvironmentIntegrationTest
 import org.gradle.testing.junit.vintage.JUnitVintageMultiVersionTest
 
