@@ -24,7 +24,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
 // https://github.com/junit-team/junit5/issues/1285
 @TargetCoverage({ JUNIT_VINTAGE })
-class JUnitVintageLoggingOutputCaptureIntegrationTest extends AbstractJUnit4LoggingOutputCaptureIntegrationTest implements JUnitVintageMultiVersionTest {
+class JUnitVintageLoggingOutputCaptureIntegrationTest extends AbstractJUnit4LoggingOutputCaptureIntegrationTest implements JUnitVintageMultiVersionTest, IgnoresJUnit6VintageDeprecationWarning {
     def "can configure logging output inclusion in xml reports"() {
         given:
         buildFile.text = buildFile.text.replace("reports.junitXml.outputPerTestCase = true", """reports.junitXml {

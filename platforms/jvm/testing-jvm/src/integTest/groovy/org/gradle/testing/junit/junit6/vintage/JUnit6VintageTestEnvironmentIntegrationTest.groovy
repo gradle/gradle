@@ -18,12 +18,13 @@ package org.gradle.testing.junit.junit6.vintage
 
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.junit.junit4.AbstractJUnit4TestEnvironmentIntegrationTest
+import org.gradle.testing.junit.vintage.IgnoresJUnit6VintageDeprecationWarning
 import org.gradle.testing.junit.vintage.JUnitVintageMultiVersionTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_6_VINTAGE
 
 @TargetCoverage({ JUNIT_6_VINTAGE })
-class JUnit6VintageTestEnvironmentIntegrationTest extends AbstractJUnit4TestEnvironmentIntegrationTest implements JUnitVintageMultiVersionTest {
+class JUnit6VintageTestEnvironmentIntegrationTest extends AbstractJUnit4TestEnvironmentIntegrationTest implements JUnitVintageMultiVersionTest, IgnoresJUnit6VintageDeprecationWarning {
     @Override
     boolean isFrameworkSupportsModularJava() {
         return true

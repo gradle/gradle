@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.junit.AbstractJUnitTestExecutionIntegrationTest
+import org.gradle.testing.junit.vintage.IgnoresJUnit6VintageDeprecationWarning
 import org.gradle.testing.junit.vintage.JUnitVintageMultiVersionTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_6_VINTAGE
@@ -27,7 +28,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT4_VERSION
 
 @TargetCoverage({ JUNIT_6_VINTAGE })
 @Requires(UnitTestPreconditions.Jdk17OrLater)
-class JUnit6VintageTestExecutionIntegrationTest extends AbstractJUnitTestExecutionIntegrationTest implements JUnitVintageMultiVersionTest {
+class JUnit6VintageTestExecutionIntegrationTest extends AbstractJUnitTestExecutionIntegrationTest implements JUnitVintageMultiVersionTest, IgnoresJUnit6VintageDeprecationWarning {
     @Override
     String getJUnitVersionAssertion() {
         return "assertEquals(\"${LATEST_JUNIT4_VERSION}\", new org.junit.runner.JUnitCore().getVersion());"
