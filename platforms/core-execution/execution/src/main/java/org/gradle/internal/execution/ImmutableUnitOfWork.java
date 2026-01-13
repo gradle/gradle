@@ -16,7 +16,12 @@
 
 package org.gradle.internal.execution;
 
+import org.gradle.internal.execution.caching.CachingDisabledReason;
+import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
+import org.jspecify.annotations.Nullable;
+
+import java.util.Optional;
 
 /**
  * A unit of work that will only be executed atomically and its outputs be reused indefinitely from an immutable workspace.
@@ -35,4 +40,15 @@ public interface ImmutableUnitOfWork extends UnitOfWork {
     @Override
     @Deprecated
     default void visitMutableInputs(InputVisitor visitor) {}
+
+    /**
+     * Most immutable units of work implemented in Gradle are not worth caching
+     * <p>
+     * subclasses can decide to re-enable caching
+     */
+    @Override
+    default Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
+        // Disabled since enabling it introduced negative savings
+        return Optional.of(NOT_WORTH_CACHING);
+    }
 }

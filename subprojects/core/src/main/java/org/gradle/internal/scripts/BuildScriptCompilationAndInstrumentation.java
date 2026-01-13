@@ -30,9 +30,6 @@ import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.InputVisitor;
 import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.WorkOutput;
-import org.gradle.internal.execution.caching.CachingDisabledReason;
-import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
-import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -41,12 +38,10 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.instrumentation.reporting.listener.BytecodeUpgradeReportMethodInterceptionListener;
 import org.gradle.internal.snapshot.ValueSnapshot;
-import org.jspecify.annotations.Nullable;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.File;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_REPORT;
@@ -58,8 +53,6 @@ import static org.gradle.internal.instrumentation.reporting.MethodInterceptionRe
  * This work unit first compiles the build script to a directory, and then instruments the directory for configuration cache and returns instrumented output.
  */
 public abstract class BuildScriptCompilationAndInstrumentation implements ImmutableUnitOfWork {
-
-    private static final CachingDisabledReason CACHING_DISABLED_FOR_PROPERTY_REPORT = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching of buildscript compilation disabled due for property upgrade report");
 
     private final ScriptSource source;
     private final ImmutableWorkspaceProvider workspaceProvider;
@@ -85,13 +78,6 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
         this.transformFactory = transformFactory;
         this.gradleCoreTypeRegistry = gradleCoreTypeRegistry;
         this.propertyUpgradeReportConfig = propertyUpgradeReportConfig;
-    }
-
-    @Override
-    public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
-        // Disable caching always for property upgrade report,
-        // since there is not much use to cache report remotely, also report can contain absolute paths
-        return propertyUpgradeReportConfig.isEnabled() ? Optional.of(CACHING_DISABLED_FOR_PROPERTY_REPORT) : Optional.empty();
     }
 
     @Override
