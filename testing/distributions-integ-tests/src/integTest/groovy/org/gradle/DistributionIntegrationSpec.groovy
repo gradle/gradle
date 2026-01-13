@@ -71,6 +71,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "core-api",
         "core-flow-services-api",
         "core-kotlin-extensions",
+        "daemon-logging",
         "daemon-main",
         "daemon-protocol",
         "daemon-server",

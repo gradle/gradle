@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,7 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
 
     private final FileCollectionFactory fileCollectionFactory;
     private final Set<FileCollection> outputs = new HashSet<>();
-    private Set<String> resolvedPaths;
+    private @Nullable Set<String> resolvedPaths;
 
     public DefaultBuildOutputCleanupRegistry(FileCollectionFactory fileCollectionFactory) {
         this.fileCollectionFactory = fileCollectionFactory;

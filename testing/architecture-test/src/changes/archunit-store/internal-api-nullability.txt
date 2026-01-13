@@ -2358,7 +2358,6 @@ Class <org.gradle.launcher.daemon.context.DaemonContext> is not annotated (direc
 Class <org.gradle.launcher.daemon.context.DaemonRequestContext> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DaemonRequestContext.java:0)
 Class <org.gradle.launcher.daemon.context.DefaultDaemonContext$Serializer> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DefaultDaemonContext.java:0)
 Class <org.gradle.launcher.daemon.context.DefaultDaemonContext> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DefaultDaemonContext.java:0)
-Class <org.gradle.launcher.daemon.logging.DaemonMessages> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DaemonMessages.java:0)
 Class <org.gradle.launcher.daemon.protocol.Build> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (Build.java:0)
 Class <org.gradle.launcher.daemon.protocol.BuildEvent> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (BuildEvent.java:0)
 Class <org.gradle.launcher.daemon.protocol.BuildStarted> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (BuildStarted.java:0)
