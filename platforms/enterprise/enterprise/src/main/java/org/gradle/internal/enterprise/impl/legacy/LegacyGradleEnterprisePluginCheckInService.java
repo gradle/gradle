@@ -163,8 +163,7 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
 
         @Override
         public boolean isTaskExecutingBuild() {
-            boolean forceTaskExecutingBuild = System.getProperty("org.gradle.internal.ide.scan") != null;
-            return forceTaskExecutingBuild || taskExecutingBuild;
+            return taskExecutingBuild;
         }
     }
 
