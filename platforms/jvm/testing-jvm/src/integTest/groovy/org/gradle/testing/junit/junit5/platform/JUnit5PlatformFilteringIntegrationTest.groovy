@@ -21,8 +21,14 @@ import org.gradle.testing.junit.platform.JUnitPlatformIntegrationSpec
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_ARCHUNIT_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.getLATEST_JUNIT5_VERSION
 
 class JUnit5PlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec {
+    @Override
+    String getJupiterVersion() {
+        return LATEST_JUNIT5_VERSION
+    }
+
     /**
      * This test documents the status quo behavior of the test runner, where tests based on fields
      * are not filtered by exclude patterns.  It might be desirable to change this behavior in the

@@ -25,6 +25,10 @@ import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
  * Tests JUnitPlatform integrations with {@code LauncherSessionListener}.
  */
 class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformIntegrationSpec {
+    @Override
+    String getJupiterVersion() {
+        return LATEST_JUPITER_VERSION
+    }
 
     /**
      * @see <a href=https://github.com/JetBrains/intellij-community/commit/d41841670c8a98c0464ef25ef490c79b5bafe8a9">The IntelliJ commit</a>
