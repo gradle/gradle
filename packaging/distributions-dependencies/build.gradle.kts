@@ -186,7 +186,7 @@ dependencies {
         // compile only
         api(libs.maven3Compat)          { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
         api(libs.maven3PluginApi)       { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
-        api(libs.zinc)                  { version { strictly("1.10.4") } }
+        api(libs.zinc)                  { version { strictly("1.12.0") } }
 
         // test only
         api(libs.aircompressor)         { version { strictly("0.27") }}

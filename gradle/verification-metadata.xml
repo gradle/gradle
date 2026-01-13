@@ -386,6 +386,7 @@
          <trusted-key id="FF986D345395D4AD1DC48137BB6FD5AD91D01857" group="org.seleniumhq.selenium"/>
          <trusted-key id="FFFD810FFFDE203D5FA27263BEABCFBEE059E4E5" group="com.github.siom79.japicmp"/>
          <trusted-key id="331224E1D7BE883D16E8A685825C06C827AF6B66" group="me.champeau.gradle"/>
+         <trusted-key id="D477D51812E692011DB11E66A6EA2E2BF22E0543" group="io.github.java-diff-utils"/>
       </trusted-keys>
    </configuration>
    <components>
@@ -829,11 +830,6 @@
       <component group="io.github.gradle" name="develocity-conventions-plugin" version="0.12.1">
          <artifact name="develocity-conventions-plugin-0.12.1.jar">
             <sha256 value="f9c53f4dad78c9041b36324402260a8f13264140f96c02ffbb4bafc4157be95f" origin="Verified" reason="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="io.github.java-diff-utils" name="java-diff-utils" version="4.12">
-         <artifact name="java-diff-utils-4.12.jar">
-            <pgp value="D477D51812E692011DB11E66A6EA2E2BF22E0543"/>
          </artifact>
       </component>
       <component group="io.github.microutils" name="kotlin-logging-jvm" version="2.1.23">
