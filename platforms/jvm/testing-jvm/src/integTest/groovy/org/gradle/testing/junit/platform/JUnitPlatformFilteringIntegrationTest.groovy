@@ -16,7 +16,13 @@
 
 package org.gradle.testing.junit.platform
 
+import static org.gradle.testing.fixture.JUnitCoverage.getLATEST_JUPITER_VERSION
+
 class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec {
+    @Override
+    String getJupiterVersion() {
+        return LATEST_JUPITER_VERSION
+    }
 
     def 'can filter nested tests'() {
         given:

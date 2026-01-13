@@ -30,6 +30,10 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_PLATFORM
 import static org.hamcrest.CoreMatchers.containsString
 
 class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
+    @Override
+    String getJupiterVersion() {
+        return LATEST_JUPITER_VERSION
+    }
 
     def 'can work with junit-platform-runner'() {
         given:

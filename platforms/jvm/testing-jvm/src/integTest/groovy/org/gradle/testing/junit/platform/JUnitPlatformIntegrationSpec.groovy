@@ -22,22 +22,24 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 
-class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
+abstract class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     def setup() {
         executer.noExtraLogging()
         buildScriptWithJupiterDependencies("""
             test {
                 useJUnitPlatform()
             }
-        """)
+        """, getJupiterVersion())
     }
+
+    abstract String getJupiterVersion()
 
     @Override
     TestFramework getTestFramework() {
         return TestFramework.JUNIT_JUPITER
     }
 
-    def buildScriptWithJupiterDependencies(script, String version = LATEST_JUPITER_VERSION) {
+    def buildScriptWithJupiterDependencies(script, String version) {
         buildFile.clear()
         buildFile("""
             apply plugin: 'java'
