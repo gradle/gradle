@@ -73,7 +73,7 @@ abstract class DeclarativeModelDefaultsHandler @Inject constructor(
         val analysisStepRunner = ApplyDefaultsOnlyAnalysisStepRunner()
         val analysisStepContext = AnalysisStepContext(
             emptySet(),
-            setOf(SingleProjectTypeApplyModelDefaultsHandler(modelDefaultsRepository, projectFeature!!.uniqueId))
+            setOf(SingleProjectTypeApplyModelDefaultsHandler(modelDefaultsRepository, projectFeature.uniqueId))
         )
 
         val result = AnalysisAndConversionStepRunner(analysisStepRunner)
