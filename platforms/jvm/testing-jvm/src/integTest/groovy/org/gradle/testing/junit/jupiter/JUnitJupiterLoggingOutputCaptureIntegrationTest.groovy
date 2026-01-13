@@ -16,10 +16,8 @@
 
 package org.gradle.testing.junit.jupiter
 
-
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.junit.AbstractJUnitLoggingOutputCaptureIntegrationTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
@@ -27,7 +25,7 @@ import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.is
 
 // https://github.com/junit-team/junit5/issues/1285
-@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
+@TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterLoggingOutputCaptureIntegrationTest extends AbstractJUnitLoggingOutputCaptureIntegrationTest implements JUnitJupiterMultiVersionTest {
     def "captures logging output events"() {
         file("src/test/java/OkTest.java") << """
@@ -206,15 +204,15 @@ class JUnitJupiterLoggingOutputCaptureIntegrationTest extends AbstractJUnitLoggi
             assert junitResult.getSuiteStandardOutput("OkTest").isPresent()
             assert junitResult.getTestCaseStandardOutput("OkTest", "isOk()").isPresent()
         } else {
-            assert !junitResult.getSuiteStandardOutput("OkTest").isPresent() // isEmpty not available in Java 8
-            assert !junitResult.getTestCaseStandardOutput("OkTest", "isOk()").isPresent()
+            assert junitResult.getSuiteStandardOutput("OkTest").isEmpty()
+            assert junitResult.getTestCaseStandardOutput("OkTest", "isOk()").isEmpty()
         }
         if (standardErrIncluded) {
             assert junitResult.getSuiteStandardError("OkTest").isPresent()
             assert junitResult.getTestCaseStandardError("OkTest", "isOk()").isPresent()
         } else {
-            assert !junitResult.getSuiteStandardError("OkTest").isPresent()
-            assert !junitResult.getTestCaseStandardError("OkTest", "isOk()").isPresent()
+            assert junitResult.getSuiteStandardError("OkTest").isEmpty()
+            assert junitResult.getTestCaseStandardError("OkTest", "isOk()").isEmpty()
         }
 
         and: "all output appeared in the console when running tests"
