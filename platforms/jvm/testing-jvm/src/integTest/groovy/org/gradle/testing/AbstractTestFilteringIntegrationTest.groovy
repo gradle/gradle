@@ -405,7 +405,6 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         "pass and *ar"   | ["test", "--tests", "*.pass1", "--tests", "*arTest"]     | ["BarTest", "Foo1Test"]                          | ["pass1"]         | []                | ["bar"]          | []
     }
 
-    @Requires(UnitTestPreconditions.Jdk11OrLater)
     @Issue("https://github.com/gradle/gradle/issues/1571")
     def "option --tests filter in combined with #includeType"() {
         given:
@@ -432,7 +431,6 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         "filter.includePatterns"      | "filter { includePatterns = ['*ATest*', '*CTest*'] }"
     }
 
-    @Requires(UnitTestPreconditions.Jdk17OrLater)
     def "invoking testNameIncludePatterns does not influence include/exclude filter"() {
         given:
         buildFile << """
@@ -453,7 +451,6 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         testResult.assertTestPathsExecuted(":BTest:test")
     }
 
-    @Requires(UnitTestPreconditions.Jdk17OrLater)
     def "invoking filter.includePatterns not disable include/exclude filter"() {
         given:
         buildFile << """
