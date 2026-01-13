@@ -46,11 +46,10 @@ public class ResultAssertion implements Action<ExecutionResult> {
      * are not easily admitted into the normal expected deprecation warnings mechanism.  They come
      * from frameworks like JUnit and there's nothing Gradle can do about them.  So we'll
      * just always ignore them.
+     *
+     * For example: (1) [INFO] The JUnit Vintage engine is deprecated and should only be used temporarily while migrating tests to JUnit Jupiter or another testing framework with native JUnit Platform support.
      */
-    private final List<String> ignoredLines = new ArrayList<>();
-    {
-        ignoredLines.add("(1) [INFO] The JUnit Vintage engine is deprecated and should only be used temporarily while migrating tests to JUnit Jupiter or another testing framework with native JUnit Platform support.");
-    }
+    private final List<String> ignoredLines;
 
     private final boolean expectStackTraces;
     private final boolean checkDeprecations;
@@ -67,6 +66,7 @@ public class ResultAssertion implements Action<ExecutionResult> {
     public ResultAssertion(
         List<ExpectedDeprecationWarning> expectedDeprecationWarnings,
         List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings,
+        List<String> ignoredLines,
         boolean expectStackTraces,
         boolean checkDeprecations,
         boolean checkJdkWarnings
@@ -75,6 +75,7 @@ public class ResultAssertion implements Action<ExecutionResult> {
 
         this.expectedDeprecationWarnings = new ArrayList<>(expectedDeprecationWarnings);
         this.maybeExpectedDeprecationWarnings = new ArrayList<>(maybeExpectedDeprecationWarnings);
+        this.ignoredLines = new ArrayList<>(ignoredLines);
         this.expectStackTraces = expectStackTraces;
         this.checkDeprecations = checkDeprecations;
         this.checkJdkWarnings = checkJdkWarnings;

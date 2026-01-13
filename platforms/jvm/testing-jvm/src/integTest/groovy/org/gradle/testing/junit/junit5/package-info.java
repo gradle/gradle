@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit.vintage
-
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.DryRunFilteringTest
-import org.gradle.testing.junit.junit4.AbstractJUnit4FilteringIntegrationTest
-
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
-
-@TargetCoverage({ JUNIT_VINTAGE })
-class JUnitVintageDryRunFilteringIntegrationTest extends AbstractJUnit4FilteringIntegrationTest implements JUnitVintageMultiVersionTest, DryRunFilteringTest, IgnoresJUnit6VintageDeprecationWarning {
-}
+/**
+ * This package and its subpackages contain tests that are specific to JUnit 5.
+ */
+package org.gradle.testing.junit.junit5;

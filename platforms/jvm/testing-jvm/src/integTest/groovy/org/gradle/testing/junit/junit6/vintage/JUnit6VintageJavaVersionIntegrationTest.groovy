@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.AbstractTestJavaVersionIntegrationTest
+import org.gradle.testing.junit.vintage.IgnoresJUnit6VintageDeprecationWarning
 import org.gradle.testing.junit.vintage.JUnitVintageMultiVersionTest
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_6_VINTAGE
@@ -28,7 +29,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_6_VINTAGE
  * Tests support for different JUnit Vintage versions across different Java versions.
  */
 @TargetCoverage({ JUNIT_6_VINTAGE })
-class JUnit6VintageJavaVersionIntegrationTest extends AbstractTestJavaVersionIntegrationTest implements JUnitVintageMultiVersionTest {
+class JUnit6VintageJavaVersionIntegrationTest extends AbstractTestJavaVersionIntegrationTest implements JUnitVintageMultiVersionTest, IgnoresJUnit6VintageDeprecationWarning {
     @Override
     List<Jvm> getSupportedJvms() {
         // JUnit Vintage 6+ requires Java 17 or higher
