@@ -342,7 +342,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Issue("https://github.com/gradle/gradle/issues/22428")
     @Test
-    fun `can apply plugin in precompiled script plugin aplied in another precompiled script plugin`() {
+    fun `can apply kotlin-dsl plugin in precompiled script plugin applied in another precompiled script plugin`() {
         withBuildScript(
             """
                 plugins {
