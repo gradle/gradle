@@ -53,11 +53,11 @@ abstract class MyPlugin: Plugin<Project> {
 
 apply<MyPlugin>()
 
-extensions.getByType(MyExtension::class.java).apply {
+extensions.configure(MyExtension::class.java) {
     firstName = "John"
     lastName = "Smith"
 }
 
-tasks.named("task2", MyTask::class.java).configure {
+tasks.named("task2", MyTask::class.java) {
     greeter = "Bonjour" // <4>
 }

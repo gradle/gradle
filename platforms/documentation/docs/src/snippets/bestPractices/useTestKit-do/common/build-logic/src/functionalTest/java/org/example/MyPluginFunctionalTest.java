@@ -71,7 +71,7 @@ public class MyPluginFunctionalTest {
                 lastName = "Smith"
             }
 
-            tasks.getByName("task1") {
+            tasks.task1 {
                 outputFile = project.layout.buildDirectory.file("output.txt")
             }
         """;
@@ -101,7 +101,7 @@ public class MyPluginFunctionalTest {
                 lastName = "Smith"
             }
 
-            tasks.getByName("task1") {
+            tasks.task1 {
                 outputFile = project.layout.buildDirectory.file("output.txt")
                 today = ZonedDateTime.parse("2026-01-12T16:00:00-05:00").toInstant()
             }
@@ -133,7 +133,7 @@ public class MyPluginFunctionalTest {
                 lastName = "Smith"
             }
 
-            tasks.getByName("task1") {
+            tasks.task1 {
                 outputFile = project.layout.buildDirectory.file("output.txt")
                 today = ZonedDateTime.parse("2026-01-12T16:00:00-05:00").toInstant()
             }

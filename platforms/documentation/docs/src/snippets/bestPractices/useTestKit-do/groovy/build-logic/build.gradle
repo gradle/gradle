@@ -23,7 +23,7 @@ def functionalTest = testing.suites.register("functionalTest", JvmTestSuite) { /
     }
 }
 
-tasks.named("check").configure {
+tasks.check {
     dependsOn(functionalTest)
 }
 

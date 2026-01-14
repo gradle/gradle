@@ -2,11 +2,11 @@ plugins {
     id("org.example.myplugin")
 }
 
-extensions.getByType<org.example.MyExtension>().apply {
+myExtension {
     firstName = "John"
     lastName = "Smith"
 }
 
-tasks.named("task2", org.example.MyTask::class.java).configure {
+tasks.task2 {
     greeting = "Bonjour" // <4>
 }

@@ -59,6 +59,6 @@ myExtension {
     lastName = "Smith"
 }
 
-tasks.named("task2", MyTask).configure {
+tasks.named("task2", MyTask) {
     greeter = "Bonjour" // <4>
 }

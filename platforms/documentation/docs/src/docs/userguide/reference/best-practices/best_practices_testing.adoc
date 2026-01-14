@@ -24,7 +24,7 @@ You should test any custom tasks or plugins you create using <<test_kit.adoc#tes
 
 Gradle's flexibility provides a typical evolution of custom types as they mature.
 
-Creating new task and plugins directly in a `build.gradle(.kts)` file is a great way to prototype new functionality.
+Creating new tasks and plugins directly in a `build.gradle(.kts)` file is a great way to prototype new functionality.
 As that functionality stabilizes, it makes sense to extract these types' definitions to `buildSrc` or to a standalone plugin project for better reuse and maintainability.
 Once types exist outside of a single build file, you can easily write functional tests for them using TestKit.
 
@@ -35,7 +35,7 @@ A mature build should provide functional tests for its custom types to ensure th
 ==== Don't Do This
 
 Here is a build that defines a custom task and a custom plugin that applies it withing the `build.gradle(.kts)` file.
-The plugin add a couple of custom tasks that print a greeting using properties defined in a custom extension.
+The plugin adds a couple of custom tasks that print a greeting using properties defined in a custom extension.
 
 This is a common pattern for prototyping new functionality, but it lacks any tests to verify the behavior of the custom types.
 The only way to tell if the custom task and plugin work as intended is to run the actual build and inspect the results.

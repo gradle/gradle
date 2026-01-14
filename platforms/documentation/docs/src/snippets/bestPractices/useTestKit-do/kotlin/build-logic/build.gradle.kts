@@ -21,7 +21,7 @@ val functionalTest = testing.suites.register("functionalTest", JvmTestSuite::cla
     }
 }
 
-tasks.named("check").configure {
+tasks.check {
     dependsOn(functionalTest)
 }
 
