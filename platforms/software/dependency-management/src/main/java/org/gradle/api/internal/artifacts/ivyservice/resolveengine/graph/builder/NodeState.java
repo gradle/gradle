@@ -380,6 +380,7 @@ public class NodeState implements DependencyGraphNode {
      */
     private void cleanupConstraints() {
         // This part covers constraint that were taken into account between a selection being deferred and this node being scheduled for traversal
+        // TODO: Is this relevant anymore?
         if (upcomingNoLongerPendingConstraints != null) {
             for (ModuleIdentifier identifier : upcomingNoLongerPendingConstraints) {
                 ModuleResolveState module = resolveState.getModule(identifier);
@@ -776,8 +777,10 @@ public class NodeState implements DependencyGraphNode {
         if (winner == this) {
             resolveState.onMoreSelected(this);
         } else {
+            for (EdgeState edge : incomingEdges) {
+                resolveState.onIncomingModuleEdge(edge.getSelector().getTargetModule());
+            }
             detachIncomingEdges();
-            resolveState.onIncomingModuleEdge(getComponent().getModule());
             this.replacement = winner;
         }
     }

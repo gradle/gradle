@@ -48,16 +48,20 @@ public class VirtualPlatformState {
         state.registerPlatformOwner(this);
         if (participatingModules.add(state)) {
             resolveOptimizations.declareVirtualPlatformInUse();
-            ComponentState selected = platformModule.getSelected();
-            if (selected != null) {
-                // There is a possibility that a platform version was selected before a new member
-                // of the platform was discovered. In this case, we need to restart the selection,
-                // or some members will not be upgraded
-                for (NodeState nodeState : selected.getNodes()) {
-                    nodeState.markForVirtualPlatformRefresh();
-                }
-            }
+            invalidateVirtualPlatformConstraints();
             hasForcedParticipatingModule |= isParticipatingModuleForced(state);
+        }
+    }
+
+    void invalidateVirtualPlatformConstraints() {
+        ComponentState selected = platformModule.getSelected();
+        if (selected != null) {
+            // There is a possibility that a platform version was selected before a new member
+            // of the platform was discovered. In this case, we need to restart the selection,
+            // or some members will not be upgraded
+            for (NodeState nodeState : selected.getNodes()) {
+                nodeState.markForVirtualPlatformRefresh();
+            }
         }
     }
 
