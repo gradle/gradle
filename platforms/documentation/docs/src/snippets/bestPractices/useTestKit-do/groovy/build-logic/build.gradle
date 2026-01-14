@@ -29,8 +29,7 @@ tasks.named("check").configure {
 
 gradlePlugin {
     plugins {
-        create("myPlugin") {
-            id = "org.example.myplugin"
+        create("org.example.myplugin") {
             implementationClass = "org.example.MyPlugin"
         }
     }
