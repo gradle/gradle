@@ -120,7 +120,6 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
         delegateCalls.get() == 1
         thread1Result.get().execution.get().outcome == Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
         thread2Result.get().execution.get().outcome == Execution.ExecutionOutcome.UP_TO_DATE
-
     }
 
     // We need custom mock classes because Spock does not support multi-threaded mocks
