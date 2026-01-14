@@ -94,7 +94,19 @@ internal class ConfigurationCacheFingerprintEventHandler(
     // And last but not least, the versatility of the ListenerManager has a cost of 8-10 times more expensive broadcast compared to direct method call.
     // As for most of the events this is the only implementation, the price of the versatility isn't justified.
     @Volatile
-    var delegate: ConfigurationCacheFingerprintWriter? = null
+    private var delegate: ConfigurationCacheFingerprintWriter? = null
+
+    fun clearDelegate(delegateToClear: ConfigurationCacheFingerprintWriter) {
+        // Clearing the delegate before setting it indicates some violation of the usage pattern, even if it is benign.
+        check(delegate == delegateToClear) { "Unexpected delegate $delegate when trying to clear $delegateToClear" }
+        delegate = null
+    }
+
+    fun setDelegate(delegate: ConfigurationCacheFingerprintWriter) {
+        // This check should fire even if we're overriding the delegate with itself.
+        check(this.delegate == null) { "Cannot overwrite existing delegate, should be cleared first" }
+        this.delegate = delegate
+    }
 
     init {
         workInputListeners.addListener(this)

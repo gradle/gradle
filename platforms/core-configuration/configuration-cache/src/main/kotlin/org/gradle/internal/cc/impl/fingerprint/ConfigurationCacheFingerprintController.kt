@@ -360,13 +360,12 @@ class ConfigurationCacheFingerprintController internal constructor(
         // TODO(mlopatkin): move it into fingerprintEventHandler
         listenerManager.addListener(projectComponentObservationListener)
 
-        fingerprintEventHandler.delegate = fingerprintWriter
+        fingerprintEventHandler.setDelegate(fingerprintWriter)
     }
 
     private
     fun removeListener(fingerprintWriter: ConfigurationCacheFingerprintWriter) {
-        require(fingerprintEventHandler.delegate === fingerprintWriter)
-        fingerprintEventHandler.delegate = null
+        fingerprintEventHandler.clearDelegate(fingerprintWriter)
     }
 
     private
