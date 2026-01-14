@@ -413,17 +413,27 @@ class HasConfigurationCacheProblemsSpec {
 
     /**
      * An expectation for the total number of reported problems (including non-unique instances).
-     * {@code null} means that no expectation is defined.
+     * {@code null} means it should match the number of unique problems expected
      */
     @Nullable
     Integer totalProblemsCount
 
     /**
      * An expectation for unique problems with stack traces.
-     * {@code null} means that no expectation is defined.
+     * {@code null} means it should match the number of unique problems expected
      */
     @Nullable
     Integer problemsWithStackTraceCount
+
+    /**
+     * Whether total problem count should not be strictly verified, only a number greater or equal to
+     * the number of unique problems should be expected
+     * (useful when there are a large, frequently changing number of duplicates - such as in smoke/Gradleception tests
+     * - but only unique problems actually matter).
+     *
+     * When `true`, `totalProblemsCount` should not be specified.
+     */
+    boolean ignoreDuplicateProblemCount = false
 
     /**
      * Whether to check for problem messages in the report.
@@ -447,6 +457,11 @@ class HasConfigurationCacheProblemsSpec {
             if (this.problemsWithStackTraceCount > totalCount) {
                 throw new IllegalArgumentException("Count of problems with stacktrace can't be greater that count of total problems.")
             }
+        }
+        if (ignoreDuplicateProblemCount && totalProblemsCount != null) {
+            throw new IllegalArgumentException(
+                "Must not expect a specific `totalProblemsCount` if duplicate problem count should be ignored"
+            )
         }
     }
 
