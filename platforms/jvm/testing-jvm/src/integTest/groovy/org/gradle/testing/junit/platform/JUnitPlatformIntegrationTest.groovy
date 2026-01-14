@@ -270,7 +270,7 @@ public class StaticInnerTest {
                     ${key} ${value}
                 }
             }
-        """)
+        """, jupiterVersion)
         createSimpleJupiterTests()
 
         when:
@@ -284,7 +284,7 @@ public class StaticInnerTest {
             test {
                 useJUnitPlatform()
             }
-        """)
+        """, jupiterVersion)
 
         and:
         succeeds ':test'

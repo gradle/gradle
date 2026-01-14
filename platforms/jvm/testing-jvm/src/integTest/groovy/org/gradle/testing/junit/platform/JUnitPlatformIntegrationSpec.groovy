@@ -20,8 +20,6 @@ import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportRes
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
-
 abstract class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     def setup() {
         executer.noExtraLogging()
