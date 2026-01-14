@@ -65,6 +65,9 @@ Problem details are displayed with a monospaced font to preserve the alignment o
 Duplicate information is reduced across the board for a better readability.
 The size of the report file is reduced.
 
+Printing a link to the report at the end of the build can now be influenced via the `org.gradle.warning.mode` Gradle property.
+If the mode is set to `none`, the report is still generated but a link is omitted from the build output.
+
 ### Test Metadata Logging
 
 Gradle now allows listening for test metadata events during test execution.
@@ -87,6 +90,8 @@ This addition enables support for additional JUnit Platform features, and allows
 ### Daemon logging improvements
 
 Daemon logs older than 14 days are now automatically cleaned up when the daemon shuts down, eliminating the need for manual cleanup.
+
+See the [daemon documentation](userguide/gradle_daemon.html#sec:daemon_log_cleanup) for more details.
 
 ### POM exclusion importing
 
@@ -135,6 +140,23 @@ tasks.validatePlugins {
     enableStricterValidation = true
 }
 ```
+
+### Simpler plugin registration
+
+Plugin builds that use the `java-gradle-plugin` can now register each plugin with less ceremony.
+The plugin ID is now set to the registration's name by default:
+
+```kotlin
+gradlePlugin {
+    plugins {
+        register("my.plugin-id") {
+            implementationClass = "my.PluginClass"
+        }
+    }
+}
+```
+
+See the [Java Gradle Plugin](userguide/java_gradle_plugin.html#sec:gradle_plugin_dev_usage) plugin documentation for more information.
 
 ## Tooling integration improvements
 

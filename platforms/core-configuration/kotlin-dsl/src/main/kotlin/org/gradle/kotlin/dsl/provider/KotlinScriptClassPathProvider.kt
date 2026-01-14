@@ -100,7 +100,7 @@ class KotlinScriptClassPathProvider(
      */
     private
     val gradleApiExtensions: ClassPath by lazy {
-        moduleRegistry.getModule("gradle-kotlin-dsl-extensions").classpath
+        moduleRegistry.getRuntimeClasspath("gradle-kotlin-dsl-extensions")
     }
 
     /**

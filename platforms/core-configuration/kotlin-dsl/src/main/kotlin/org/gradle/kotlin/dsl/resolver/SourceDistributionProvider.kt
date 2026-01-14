@@ -26,9 +26,10 @@ import org.gradle.api.artifacts.transform.TransformSpec
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.resolver.internal.GradleDistRepoDescriptorLocator
+import org.gradle.kotlin.dsl.resolver.internal.GradleDistVersion
 import org.gradle.util.GradleVersion
 import java.io.File
-
 
 interface SourceDistributionProvider {
     fun sourceDirs(): Collection<File>
@@ -42,6 +43,8 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
         const val ZIP_TYPE = "zip"
         const val SOURCE_DIRECTORY = "src-directory"
     }
+
+    private val repoLocator = GradleDistRepoDescriptorLocator(project)
 
     override fun sourceDirs(): Collection<File> =
         try {
@@ -77,7 +80,7 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
         configurations.detachedConfiguration(dependency)
 
     private
-    fun gradleSourceDependency() = dependencies.create("gradle:gradle:${dependencyVersion(gradleVersion)}") {
+    fun gradleSourceDependency() = dependencies.create("gradle:gradle:${dependencyVersion(repoLocator.gradleVersion)}") {
         artifact {
             classifier = "src"
             type = "zip"
@@ -86,30 +89,24 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
 
     private
     fun createSourceRepository() = ivy {
-        val repoName = repositoryNameFor(gradleVersion)
-        name = "Gradle $repoName"
-        setUrl("https://services.gradle.org/$repoName")
+        val gradleDistRepository = repoLocator.gradleDistRepository
+        name = "Gradle ${gradleDistRepository.name}"
+        url = gradleDistRepository.repoBaseUrl
         metadataSources {
             artifact()
         }
         patternLayout {
-            if (isSnapshot(gradleVersion)) {
+            if (repoLocator.gradleVersion.isSnapshot) {
                 ivy("/dummy") // avoids a lookup that interferes with version listing
             }
-            artifact("[module]-[revision](-[classifier])(.[ext])")
+            artifact(gradleDistRepository.artifactPattern)
         }
+        gradleDistRepository.credentialsApplier(this)
     }
 
     private
-    fun repositoryNameFor(gradleVersion: String) =
-        if (isSnapshot(gradleVersion)) "distributions-snapshots" else "distributions"
-
-    private
-    fun dependencyVersion(gradleVersion: String) =
-        if (isSnapshot(gradleVersion)) toVersionRange(gradleVersion) else gradleVersion
-
-    private
-    fun isSnapshot(gradleVersion: String) = gradleVersion.contains('+')
+    fun dependencyVersion(gradleVersion: GradleDistVersion) =
+        if (gradleVersion.isSnapshot) toVersionRange(gradleVersion.versionString) else gradleVersion
 
     private
     fun toVersionRange(gradleVersion: String) =
@@ -125,7 +122,7 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
 
     private
     fun minimumGradleVersion(): String {
-        val baseVersionString = GradleVersion.version(gradleVersion).baseVersion.version
+        val baseVersionString = GradleVersion.version(repoLocator.gradleVersion.versionString).baseVersion.version
         val (major, minor) = baseVersionString.split('.')
         return when (minor) {
             // TODO:kotlin-dsl consider commenting out this clause once the 1st 6.0 snapshot is out
@@ -166,8 +163,4 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
     private
     val dependencies
         get() = resolver.dependencies
-
-    private
-    val gradleVersion
-        get() = project.gradle.gradleVersion
 }

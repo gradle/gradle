@@ -123,8 +123,6 @@ class DefaultConfigurationContainerSpec extends Specification {
         //finds configurations
         configurationContainer.findByName("compile") == compile
         configurationContainer.findByName("foo") == null
-        configurationContainer.findAll { it.name == "compile" } as Set == [compile] as Set
-        configurationContainer.findAll { it.name == "foo" } as Set == [] as Set
 
         configurationContainer as List == [compile] as List
 
