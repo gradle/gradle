@@ -32,8 +32,6 @@ import org.gradle.internal.versionedcache.VersionSpecificCacheDirectory;
 import org.gradle.internal.versionedcache.VersionSpecificCacheDirectoryScanner;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GFileUtils;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,13 +68,12 @@ public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction
     }
 
     @Override
-    @NullMarked
     public String getDisplayName() {
         return "Deleting unused version-specific caches in " + versionSpecificCacheDirectoryScanner.getBaseDir();
     }
 
     @Override
-    public boolean execute(@NonNull CleanupProgressMonitor progressMonitor) {
+    public boolean execute(CleanupProgressMonitor progressMonitor) {
         if (requiresCleanup()) {
             Timer timer = Time.startTimer();
             performCleanup(progressMonitor);

@@ -92,12 +92,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
                 "Project ':' cannot access 'Project.extensions' functionality on subprojects via 'allprojects'",
             )
             // TODO-RC if this ends up making this test too brittle, we should use a looser/range-based expectation
-            // This number contains how many IP violations are detected when all tasks are realized in gradle/gradle
-            // Anything that adds tasks will likely increase this number. Examples:
-            //  - New subprojects
-            //  - Changes in convention plugins that add tasks
-            //  - Just adding new tasks
-            // If new problems are added, please update this number accordingly.
+            // This value needs to be increased whenever a new project is added to gradle/gradle
             totalProblemsCount = 88192
         }
         result.assertNoConfigurationCache()

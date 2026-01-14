@@ -74,6 +74,7 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         badGrammar()
 
         expect:
+        executer.withStackTraceChecksDisabled() // the ANTLR errors come with a stack trace
         fails("generateGrammarSource")
         failure.assertHasCause("There were 9 errors during grammar generation")
         assertAntlrVersion(3)
