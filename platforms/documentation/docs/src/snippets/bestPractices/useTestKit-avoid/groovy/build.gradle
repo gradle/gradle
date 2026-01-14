@@ -33,7 +33,7 @@ abstract class MyTask extends DefaultTask {
 abstract class MyPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
-        def extension = project.getExtensions().create("myExtension", MyExtension)
+        def extension = project.extensions.create("myExtension", MyExtension)
 
         project.tasks.register("task1", MyTask) { task ->
             task.outputFile.convention(project.layout.buildDirectory.file("output1.txt"))
