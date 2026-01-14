@@ -16,10 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
+import org.gradle.internal.collect.PersistentSet;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -50,13 +50,13 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
     }
 
     @Override
-    public ExcludeSpec anyOf(Set<ExcludeSpec> specs) {
-        return caches.getAnyOf(new ExcludesKey(specs), key -> delegate.anyOf(key.specs));
+    public ExcludeSpec anyOf(PersistentSet<ExcludeSpec> specs) {
+        return caches.getAnyOf(specs, delegate::anyOf);
     }
 
     @Override
-    public ExcludeSpec allOf(Set<ExcludeSpec> specs) {
-        return caches.getAllOf(new ExcludesKey(specs), key -> delegate.allOf(key.specs));
+    public ExcludeSpec allOf(PersistentSet<ExcludeSpec> specs) {
+        return caches.getAllOf(specs, delegate::allOf);
     }
 
     /**
@@ -104,43 +104,6 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
     }
 
     /**
-     * A special exclude spec list key which recognizes
-     * that union and intersection are commutative.
-     */
-    private static class ExcludesKey {
-        private final Set<ExcludeSpec> specs;
-        private final int size;
-        private final int hashCode;
-
-        private ExcludesKey(Set<ExcludeSpec> specs) {
-            this.specs = specs;
-            this.size = specs.size();
-            this.hashCode = specs.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            ExcludesKey that = (ExcludesKey) o;
-            if (size != that.size) {
-                return false;
-            }
-            return specs.equals(that.specs);
-        }
-
-        @Override
-        public int hashCode() {
-            return hashCode;
-        }
-    }
-
-    /**
      * A shareable backing cache for different caching exclude factories.
      * Synchronization is ad-hoc, since `computeIfAbsent` on a concurrent hash map
      * will not allow for recursion, which is the case for us whenever a cache is
@@ -149,8 +112,8 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
     public static class MergeCaches {
         private final ConcurrentCache<ExcludePair, ExcludeSpec> allOfPairCache = ConcurrentCache.of();
         private final ConcurrentCache<ExcludePair, ExcludeSpec> anyOfPairCache = ConcurrentCache.of();
-        private final ConcurrentCache<ExcludesKey, ExcludeSpec> allOfListCache = ConcurrentCache.of();
-        private final ConcurrentCache<ExcludesKey, ExcludeSpec> anyOfListCache = ConcurrentCache.of();
+        private final ConcurrentCache<PersistentSet<ExcludeSpec>, ExcludeSpec> allOfListCache = ConcurrentCache.of();
+        private final ConcurrentCache<PersistentSet<ExcludeSpec>, ExcludeSpec> anyOfListCache = ConcurrentCache.of();
 
         ExcludeSpec getAnyPair(ExcludePair pair, Function<ExcludePair, ExcludeSpec> onMiss) {
             return anyOfPairCache.computeIfAbsent(pair, onMiss);
@@ -160,11 +123,11 @@ public class CachingExcludeFactory extends DelegatingExcludeFactory {
             return allOfPairCache.computeIfAbsent(pair, onMiss);
         }
 
-        ExcludeSpec getAnyOf(ExcludesKey list, Function<ExcludesKey, ExcludeSpec> onMiss) {
+        ExcludeSpec getAnyOf(PersistentSet<ExcludeSpec> list, Function<PersistentSet<ExcludeSpec>, ExcludeSpec> onMiss) {
             return anyOfListCache.computeIfAbsent(list, onMiss);
         }
 
-        ExcludeSpec getAllOf(ExcludesKey list, Function<ExcludesKey, ExcludeSpec> onMiss) {
+        ExcludeSpec getAllOf(PersistentSet<ExcludeSpec> list, Function<PersistentSet<ExcludeSpec>, ExcludeSpec> onMiss) {
             return allOfListCache.computeIfAbsent(list, onMiss);
         }
     }

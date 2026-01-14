@@ -92,7 +92,8 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
                 "Project ':' cannot access 'Project.extensions' functionality on subprojects via 'allprojects'",
             )
             // TODO-RC if this ends up making this test too brittle, we should use a looser/range-based expectation
-            totalProblemsCount = 87354
+            // This value needs to be increased whenever a new project is added to gradle/gradle
+            totalProblemsCount = 88192
         }
         result.assertNoConfigurationCache()
     }

@@ -393,7 +393,15 @@ class ConfigurationCacheProblems(
     fun detailsFor(summary: Summary): ProblemReportDetails {
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
-        return ProblemReportDetails(buildNameProvider.buildName(), cacheActionText, cacheActionDescription, requestedTasks, summary.totalProblemCount)
+        return ProblemReportDetails(
+            buildDisplayName = buildNameProvider.buildName(),
+            cacheAction = cacheActionText,
+            cacheActionDescription = cacheActionDescription,
+            requestedTasks = requestedTasks,
+            totalProblemCount = summary.totalProblemCount,
+            uniqueProblemCount = summary.reportUniqueProblemCount,
+            overflownProblemCount = summary.overflownProblemCount
+        )
     }
 
     private

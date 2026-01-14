@@ -16,15 +16,16 @@
 
 package org.gradle.api.internal.runtimeshaded;
 
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.util.Trie;
 import org.gradle.model.internal.asm.AsmConstants;
 import org.objectweb.asm.commons.Remapper;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
@@ -36,27 +37,26 @@ class ImplementationDependencyRelocator extends Remapper {
     private final Pattern classPattern = Pattern.compile("(\\[*)?L(.+)");
     private final Trie prefixes;
 
-    private static Trie readPrefixes(RuntimeShadedJarType type) {
+    private static Trie readPrefixes(URL resource) {
         final Trie.Builder builder = new Trie.Builder();
-        IoActions.withResource(ImplementationDependencyRelocator.class.getResourceAsStream(type.getIdentifier() + "-relocated.txt"), new ErroringAction<InputStream>() {
-            @Override
-            protected void doExecute(InputStream thing) throws Exception {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(thing, Charset.forName("UTF-8")));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    line = line.trim();
-                    if (line.length() > 0) {
-                        builder.addWord(line);
-                    }
+        try (InputStream is = resource.openStream()) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.length() > 0) {
+                    builder.addWord(line);
                 }
             }
-        });
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         return builder.build();
     }
 
-    public ImplementationDependencyRelocator(RuntimeShadedJarType type) {
+    public ImplementationDependencyRelocator(URL resource) {
         super(AsmConstants.ASM_LEVEL);
-        prefixes = readPrefixes(type);
+        prefixes = readPrefixes(resource);
     }
 
     @Override

@@ -18,7 +18,6 @@ import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.buildVersionQualifier
 import gradlebuild.basics.kotlindsl.configureKotlinCompilerForGradleBuild
-import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.tasks.PackageListGenerator
 import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeElements
@@ -35,6 +34,8 @@ import gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.srcDistributionSpec
+import gradlebuild.packaging.tasks.GenerateClasspathModuleProperties
+import gradlebuild.packaging.tasks.GenerateEmptyModuleProperties
 import gradlebuild.packaging.tasks.PluginsManifest
 import org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -141,11 +142,6 @@ val apiMapping by tasks.registering(GenerateApiMapping::class) {
 val pluginsManifest by pluginsManifestTask(runtimeClasspath, coreRuntimeClasspath, GradleModuleApiAttribute.API)
 val implementationPluginsManifest by pluginsManifestTask(runtimeClasspath, coreRuntimeClasspath, GradleModuleApiAttribute.IMPLEMENTATION)
 
-// At runtime, Gradle expects each Gradle jar to have a classpath manifest
-val emptyClasspathManifest by tasks.registering(ClasspathManifest::class) {
-    this.manifestFile = generatedPropertiesFileFor("$runtimeApiJarName-classpath")
-}
-
 // At runtime, Gradle expects to have instrumentation metadata
 val instrumentedSuperTypesMergeTask = tasks.named(INSTRUMENTED_SUPER_TYPES_MERGE_TASK)
 val upgradedPropertiesMergeTask = tasks.named(UPGRADED_PROPERTIES_MERGE_TASK)
@@ -172,7 +168,6 @@ val runtimeApiInfoJar by tasks.registering(Jar::class) {
     from(defaultImports)
     from(pluginsManifest)
     from(implementationPluginsManifest)
-    from(emptyClasspathManifest)
     from(instrumentedSuperTypesMergeTask)
     from(upgradedPropertiesMergeTask)
 }
@@ -206,6 +201,21 @@ plugins.withType(KotlinBaseApiPlugin::class) {
     )
 }
 
+tasks.register<GenerateClasspathModuleProperties>("generateCoreRuntimeModuleProperties") {
+    configureFrom(coreRuntimeClasspath)
+    outputDir = layout.buildDirectory.dir("classpathProperties/$name")
+}
+
+tasks.register<GenerateClasspathModuleProperties>("generateRuntimeModuleProperties") {
+    configureFrom(runtimeClasspath)
+    outputDir = layout.buildDirectory.dir("classpathProperties/$name")
+}
+
+tasks.register<GenerateClasspathModuleProperties>("generateAgentsRuntimeModuleProperties") {
+    configureFrom(agentsRuntimeClasspath)
+    outputDir = layout.buildDirectory.dir("classpathProperties/$name")
+}
+
 val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtensions", KotlinCompile::class) {
     configureKotlinCompilerForGradleBuild()
     multiPlatformEnabled = false
@@ -213,10 +223,6 @@ val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtens
     source(gradleApiKotlinExtensions)
     libraries.from(runtimeClasspath)
     destinationDirectory = layout.buildDirectory.dir("classes/kotlin-dsl-extensions")
-}
-
-val gradleApiKotlinExtensionsClasspathManifest by tasks.registering(ClasspathManifest::class) {
-    manifestFile = generatedPropertiesFileFor("gradle-kotlin-dsl-extensions-classpath")
 }
 
 val gradleApiKotlinExtensionsJar by tasks.registering(Jar::class) {
@@ -230,8 +236,19 @@ val gradleApiKotlinExtensionsJar by tasks.registering(Jar::class) {
     archiveBaseName = "gradle-kotlin-dsl-extensions"
     from(gradleApiKotlinExtensions)
     from(compileGradleApiKotlinExtensions.flatMap { it.destinationDirectory })
-    from(gradleApiKotlinExtensionsClasspathManifest)
 }
+
+fun generateModulePropertiesFor(moduleJar: TaskProvider<Jar>, moduleName: String): TaskProvider<GenerateEmptyModuleProperties> {
+    return tasks.register<GenerateEmptyModuleProperties>(moduleJar.name + "ModuleProperties") {
+        artifactFileName = moduleJar.flatMap { it.archiveFileName }
+        outputFile = moduleJar.flatMap { it.archiveBaseName }.flatMap { generatedPropertiesFileFor(moduleName) }
+    }
+}
+
+// At runtime, the module registry expects each module jar to have corresponding module properties file next to it.
+// We generate synthetic properties files with no dependencies to allow these jars to be loaded from the distribution
+generateModulePropertiesFor(runtimeApiInfoJar, runtimeApiJarName)
+generateModulePropertiesFor(gradleApiKotlinExtensionsJar, "gradle-kotlin-dsl-extensions")
 
 // A standard Java runtime variant for embedded integration testing
 consumableVariant("runtime", listOf(coreRuntimeOnly, pluginsRuntimeOnly), listOf(runtimeApiInfoJar, gradleApiKotlinExtensionsJar)) {

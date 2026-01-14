@@ -51,6 +51,9 @@ task retrieve(type: Sync) {
     into 'libs'
 }
 """
+        executer.beforeExecute {
+            executer.withArgument("-Daws.java.v1.disableDeprecationAnnouncement=true")
+        }
     }
 
     @ToBeFixedForConfigurationCache

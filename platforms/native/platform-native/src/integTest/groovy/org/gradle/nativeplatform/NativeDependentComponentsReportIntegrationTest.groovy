@@ -228,6 +228,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     String removeIrrelevantOutput(String output) {
         return output.readLines().findAll {
              !(it ==~ /^Problem found.*$/) && !(it ==~ /.*caused invocation of 'Task.project' in other task at execution.*$/)
+            && !(it ==~ /.*Documentation: https:\/\/docs.gradle.org\/.*$/)
         }.join('\n')
     }
 
