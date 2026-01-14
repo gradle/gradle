@@ -17,10 +17,7 @@ package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
-import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matchers
 import spock.lang.Issue
 
@@ -482,10 +479,7 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         createTestABC()
 
         when:
-        if (VersionNumber.parse(version) > VersionNumber.parse("6.0.0") && getTestFramework() == GenericTestExecutionResult.TestFramework.JUNIT_JUPITER ) {
-            executer.expectExternalDeprecatedMessage("    (1) [INFO] The JUnit Vintage engine is deprecated and should only be used temporarily while migrating tests to JUnit Jupiter or another testing framework with native JUnit Platform support.")
-        }
-        succeedsWithTestTaskArguments('test', '--info')
+        succeedsWithTestTaskArguments('test')
 
         then:
         executedAndNotSkipped(":test")

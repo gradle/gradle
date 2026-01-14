@@ -20,12 +20,11 @@ import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
-import org.gradle.testing.fixture.JUnitCoverage
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 
-@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
+@TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements JUnitJupiterMultiVersionTest {
     @Override
     GenericTestExecutionResult.TestFramework getTestFramework() {
