@@ -16,11 +16,16 @@
 
 package org.gradle.internal.resource.local;
 
+import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
+/**
+ * Receives events about accessing file resources through {@link ExternalResource}.
+ * These events are not sent through {@code ListenerManager}.
+ */
 @ServiceScope(Scope.BuildTree.class)
 public interface FileResourceListener {
     /**

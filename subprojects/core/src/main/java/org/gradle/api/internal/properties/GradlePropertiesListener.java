@@ -25,6 +25,7 @@ import java.util.Map;
 
 /**
  * Allows registering Gradle property access as build configuration inputs.
+ * These events are not sent through {@code ListenerManager}.
  *
  * @see org.gradle.api.internal.properties.GradleProperties
  */

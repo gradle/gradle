@@ -34,6 +34,10 @@ class ConfigurationCacheEnvironment(
     private val listener: Listener
 ) : DefaultEnvironment() {
 
+    /**
+     * Receives events about reading environmental variables by Gradle runtime.
+     * These events are not sent through {@code ListenerManager}.
+     */
     @ServiceScope(Scope.BuildTree::class)
     interface Listener {
         fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>)

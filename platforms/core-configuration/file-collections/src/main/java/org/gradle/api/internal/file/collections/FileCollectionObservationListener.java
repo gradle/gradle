@@ -20,6 +20,10 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+/**
+ * Receives events of file collections being observed.
+ * These events are not sent through {@code ListenerManager}.
+ */
 @ServiceScope(Scope.BuildTree.class)
 public interface FileCollectionObservationListener {
     /**

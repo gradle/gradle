@@ -21,6 +21,10 @@ import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
 
 
+/**
+ * Receives events of various "environmental things" being accessed by the build logic, like reading files or environment variables.
+ * These events are not sent through {@code ListenerManager}.
+ */
 @ServiceScope(Scope.BuildTree::class)
 interface UndeclaredBuildInputListener {
     /**

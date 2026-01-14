@@ -26,7 +26,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import java.util.Set;
 
 /**
- * Notified of the use of changing values during dependency resolution, so this can be noted in the configuration cache inputs
+ * Notified of the use of changing values during dependency resolution, so this can be noted in the configuration cache inputs.
+ * These events are not sent through {@code ListenerManager}.
  */
 @ServiceScope(Scope.Build.class)
 public interface ChangingValueDependencyResolutionListener {

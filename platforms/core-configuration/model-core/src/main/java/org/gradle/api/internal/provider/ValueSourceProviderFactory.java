@@ -50,6 +50,7 @@ public interface ValueSourceProviderFactory {
     /**
      * The listener that is notified when the value of the {@code ValueSource} is computed. There is no ordering guarantees with the
      * {@link ValueListener#valueObtained(ValueListener.ObtainedValue, ValueSource)}.
+     * These events are not sent through {@code ListenerManager}.
      */
     @ServiceScope(Scope.Build.class)
     interface ComputationListener {
@@ -58,6 +59,10 @@ public interface ValueSourceProviderFactory {
         void afterValueObtained();
     }
 
+    /**
+     * Receives events after a {@link ValueSource}'s value has been obtained.
+     * These events are not sent through {@code ListenerManager}.
+     */
     @ServiceScope(Scope.Build.class)
     interface ValueListener {
         <T, P extends ValueSourceParameters> void valueObtained(
