@@ -51,6 +51,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean configurationCacheIntegrityCheckEnabled;
     private @Nullable String configurationCacheHeapDumpDir;
     private boolean configurationCacheFineGrainedPropertyTracking = true;
+    private boolean isolatedProjectsDiagnostics = false;
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
@@ -96,6 +97,7 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheIntegrityCheckEnabled = configurationCacheIntegrityCheckEnabled;
         p.configurationCacheHeapDumpDir = configurationCacheHeapDumpDir;
         p.configurationCacheFineGrainedPropertyTracking = configurationCacheFineGrainedPropertyTracking;
+        p.isolatedProjectsDiagnostics = isolatedProjectsDiagnostics;
         p.searchUpwards = searchUpwards;
         p.useEmptySettings = useEmptySettings;
         p.enableProblemReportGeneration = enableProblemReportGeneration;
@@ -300,6 +302,14 @@ public class StartParameterInternal extends StartParameter {
 
     public boolean isConfigurationCacheFineGrainedPropertyTracking() {
         return configurationCacheFineGrainedPropertyTracking;
+    }
+
+    public boolean isIsolatedProjectsDiagnostics() {
+        return isolatedProjectsDiagnostics;
+    }
+
+    public void setIsolatedProjectsDiagnostics(boolean isolatedProjectsDiagnostics) {
+        this.isolatedProjectsDiagnostics = isolatedProjectsDiagnostics;
     }
 
     public void setContinuousBuildQuietPeriod(Duration continuousBuildQuietPeriod) {
