@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps;
 
-import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.serialize.HierarchicalNameSerializer;
+import org.gradle.internal.collect.PersistentSet;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.HierarchicalNameSerializer;
+import org.jspecify.annotations.NonNull;
 
 import java.util.function.Supplier;
 
@@ -39,26 +40,26 @@ public class DependentSetSerializer extends AbstractSerializer<DependentsSet> {
             return DependentsSet.dependencyToAll(decoder.readString());
         }
 
-        ImmutableSet.Builder<String> privateBuilder = ImmutableSet.builder();
+        PersistentSet<@NonNull String> privateDependents = PersistentSet.of();
         int count = decoder.readSmallInt();
         for (int i = 0; i < count; i++) {
-            privateBuilder.add(nameSerializer.read(decoder));
+            privateDependents = privateDependents.plus(nameSerializer.read(decoder));
         }
 
-        ImmutableSet.Builder<String> accessibleBuilder = ImmutableSet.builder();
+        PersistentSet<@NonNull String> accessibleDependents = PersistentSet.of();
         count = decoder.readSmallInt();
         for (int i = 0; i < count; i++) {
-            accessibleBuilder.add(nameSerializer.read(decoder));
+            accessibleDependents = accessibleDependents.plus(nameSerializer.read(decoder));
         }
 
-        ImmutableSet.Builder<GeneratedResource> resourceBuilder = ImmutableSet.builder();
+        PersistentSet<@NonNull GeneratedResource> resources = PersistentSet.of();
         count = decoder.readSmallInt();
         for (int i = 0; i < count; i++) {
             GeneratedResource.Location location = GeneratedResource.Location.values()[decoder.readSmallInt()];
             String path = nameSerializer.read(decoder);
-            resourceBuilder.add(new GeneratedResource(location, path));
+            resources = resources.plus(new GeneratedResource(location, path));
         }
-        return DependentsSet.dependents(privateBuilder.build(), accessibleBuilder.build(), resourceBuilder.build());
+        return DependentsSet.dependents(privateDependents, accessibleDependents, resources);
     }
 
     @Override

@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
+import org.gradle.internal.collect.PersistentSet;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Collections;
@@ -89,12 +90,20 @@ public class ClassDependentsAccumulator {
         Set<String> collected = new HashSet<>();
         for (Map.Entry<String, Set<String>> entry : accessibleDependents.entrySet()) {
             if (collected.add(entry.getKey())) {
-                builder.put(entry.getKey(), DependentsSet.dependentClasses(privateDependents.getOrDefault(entry.getKey(), Collections.emptySet()), entry.getValue()));
+                DependentsSet dependentsSet = DependentsSet.dependentClasses(
+                    PersistentSet.copyOf(privateDependents.getOrDefault(entry.getKey(), Collections.emptySet())),
+                    PersistentSet.copyOf(entry.getValue())
+                );
+                builder.put(entry.getKey(), dependentsSet);
             }
         }
         for (Map.Entry<String, Set<String>> entry : privateDependents.entrySet()) {
             if (collected.add(entry.getKey())) {
-                builder.put(entry.getKey(), DependentsSet.dependentClasses(entry.getValue(), accessibleDependents.getOrDefault(entry.getKey(), Collections.emptySet())));
+                DependentsSet dependentsSet = DependentsSet.dependentClasses(
+                    PersistentSet.copyOf(entry.getValue()),
+                    PersistentSet.copyOf(accessibleDependents.getOrDefault(entry.getKey(), Collections.emptySet()))
+                );
+                builder.put(entry.getKey(), dependentsSet);
             }
         }
         return builder.build();
