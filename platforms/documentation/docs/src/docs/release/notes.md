@@ -138,6 +138,20 @@ dependencies {
 }
 ```
 
+### Extending from provided configurations
+
+Previously, calling `extendsFrom()` on a `Configuration` required the specified parent configuration to be a realized `Configuration` object.  
+It is now possible to specify a `Provider<Configuration>` instead, which does not require that a registered configuration be realized before specifying it as a parent configuration.
+
+```kotlin
+configurations {
+    val parent = dependencyScope("parent")
+    val child = resolvable("child") {
+        extendsFrom(parent) // previously required 'parent.get()'
+    }
+}
+```
+
 ## Plugin development
 
 ### Stricter validation for published plugins
