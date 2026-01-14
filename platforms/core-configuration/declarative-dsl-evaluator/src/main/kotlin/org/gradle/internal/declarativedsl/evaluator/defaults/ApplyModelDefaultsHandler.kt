@@ -77,26 +77,11 @@ fun ConfigureAccessor.projectFeatureAccessorIdOrNull(): String? =
     else null
 
 
-fun ConfigureAccessor.projectFeatureNameOrNull(): String? =
-    if (this is ConfigureAccessor.ProjectFeature)
-        featureName
-    else null
-
-
 internal
 fun findUsedProjectFeatureIds(resolutionResult: ResolutionResult): Set<String> {
     return resolutionResult.nestedObjectAccess
         .mapNotNullTo(mutableSetOf()) {
             (it.dataObject as? ObjectOrigin.AccessAndConfigureReceiver)?.accessor?.projectFeatureAccessorIdOrNull()
-        }
-}
-
-
-internal
-fun findUsedProjectFeatureNames(resolutionResult: ResolutionResult): Set<String> {
-    return resolutionResult.nestedObjectAccess
-        .mapNotNullTo(mutableSetOf()) {
-            (it.dataObject as? ObjectOrigin.AccessAndConfigureReceiver)?.accessor?.projectFeatureNameOrNull()
         }
 }
 
