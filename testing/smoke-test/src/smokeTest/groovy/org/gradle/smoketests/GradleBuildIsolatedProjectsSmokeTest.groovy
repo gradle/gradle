@@ -93,7 +93,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
             )
             // TODO-RC if this ends up making this test too brittle, we should use a looser/range-based expectation
             // This value needs to be increased whenever a new project is added to gradle/gradle
-            totalProblemsCount = 88192
+            totalProblemsCount = 89034
         }
         result.assertNoConfigurationCache()
     }
