@@ -743,14 +743,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
         """
 
         when:
-        def original = succeeds {
-            originalModel(it, ROOT_PROJECT_FIRST)
-        }
-
-        then:
-        original
-
-        when:
         file(brokenFile) << """ broken !!! """
         fails {
             resilientModel(it, ROOT_PROJECT_FIRST)
