@@ -93,8 +93,8 @@ class SmokeTestGradleRunner extends GradleRunner {
 
     private void doEnableBuildOperationTracing(String buildOperationTracePath) {
         String buildOperationFilter = [
-            "org.gradle.configurationcache.WorkGraphStoreDetails",
-            "org.gradle.configurationcache.WorkGraphLoadDetails",
+            "org.gradle.internal.cc.operations.WorkGraphStoreDetails",
+            "org.gradle.internal.cc.operations.WorkGraphLoadDetails",
         ].join(BuildOperationTrace.FILTER_SEPARATOR)
 
         delegate.withArguments(delegate.getArguments() + [
