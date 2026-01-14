@@ -429,7 +429,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
                 containsString(
                     "Invalid plugin request [id: 'org.gradle.kotlin.kotlin-dsl', version: '${expectedKotlinDslPluginsVersion}']. " +
                             "Plugin requests from precompiled scripts must not include a version number. " +
-                            "If you have been using the `kotlin-dsl` helper function, then simply replace it by 'id(\"org.gradle.kotlin.kotlin-dsl\")'."
+                            "If you have been using the `kotlin-dsl` helper function, then simply replace it by 'id(\"org.gradle.kotlin.kotlin-dsl\")'. " +
+                            "Make sure the module containing the requested plugin 'org.gradle.kotlin.kotlin-dsl' is an implementation dependency of project ':build-logic:meta'."
                 )
             )
         }

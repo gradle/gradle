@@ -267,13 +267,15 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun validationErrorFor(pluginRequest: PluginRequestInternal): String? {
         if (pluginRequest.version != null) {
-            val advice =
+            return buildString {
+                append("Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. ")
                 if (pluginRequest.id.id == "org.gradle.kotlin.kotlin-dsl") {
-                    "If you have been using the `kotlin-dsl` helper function, then simply replace it by 'id(\"org.gradle.kotlin.kotlin-dsl\")'."
+                    append("If you have been using the `kotlin-dsl` helper function, then simply replace it by 'id(\"org.gradle.kotlin.kotlin-dsl\")'. ")
                 } else {
-                    "Please remove the version from the offending request and make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $projectDesc."
+                    append("Please remove the version from the offending request. ")
                 }
-            return "Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. $advice"
+                append("Make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $projectDesc.")
+            }
         }
         // TODO:kotlin-dsl validate apply false
         return null
