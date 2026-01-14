@@ -287,7 +287,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         if (targetVersion >= GradleVersion.version("9.4.0")) {
             failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
         } else {
-            failure.assertHasDescription("Execution failed for task ':broken'.")
+            failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
         }
     }
 
@@ -515,6 +515,6 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         failedTasks == [":broken"]
 
         and:
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
     }
 }
