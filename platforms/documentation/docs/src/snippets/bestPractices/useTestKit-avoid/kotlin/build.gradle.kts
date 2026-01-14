@@ -34,11 +34,11 @@ abstract class MyPlugin: Plugin<Project> {
     override fun apply(project: Project) {
         val extension = project.extensions.create("myExtension", MyExtension::class.java)
 
-        project.tasks.register("task1", MyTask::class.java) {
+        project.tasks.register<MyTask>("task1") {
             outputFile.convention(project.layout.buildDirectory.file("output1.txt"))
         }
 
-        project.tasks.register("task2", MyTask::class.java) {
+        project.tasks.register<MyTask>("task2") {
             outputFile.convention(project.layout.buildDirectory.file("output2.txt"))
         }
 
@@ -53,11 +53,11 @@ abstract class MyPlugin: Plugin<Project> {
 
 apply<MyPlugin>()
 
-extensions.configure(MyExtension::class.java) {
+configure<MyExtension> {
     firstName = "John"
     lastName = "Smith"
 }
 
-tasks.named("task2", MyTask::class.java) {
+tasks.named<MyTask>("task2") {
     greeter = "Bonjour" // <4>
 }
