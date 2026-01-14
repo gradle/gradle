@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -85,7 +86,7 @@ public class VariantArtifactSetCache {
             component,
             variant,
             ImmutableAttributes.EMPTY,
-            Collections.emptyList(),
+            ImmutableList.of(),
             EXCLUDE_NOTHING,
             Collections.emptySet()
         );

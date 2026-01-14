@@ -19,29 +19,27 @@ package org.gradle.internal.component.resolution.failure;
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactTransformsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousArtifactsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.AmbiguousVariantsFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.ConfigurationDoesNotExistFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.ConfigurationNotCompatibleFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.IncompatibleMultipleNodesValidationFailureDescriber;
+import org.gradle.internal.component.resolution.failure.describer.MissingAttributeAmbiguousVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ModuleRejectedFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ModuleRejectedIncompatibleConstraintsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.NoCompatibleArtifactFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.NoCompatibleVariantsFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.ConfigurationNotCompatibleFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.IncompatibleMultipleNodesValidationFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.MissingAttributeAmbiguousVariantsFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.NoVariantsWithMatchingCapabilitiesFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.ConfigurationDoesNotExistFailureDescriber;
 import org.gradle.internal.component.resolution.failure.describer.ResolutionFailureDescriber;
-import org.gradle.internal.component.resolution.failure.describer.UnknownArtifactSelectionFailureDescriber;
+import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactTransformsFailure;
 import org.gradle.internal.component.resolution.failure.type.AmbiguousArtifactsFailure;
+import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure;
+import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure;
+import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCompatibleFailure;
+import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure;
 import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
-import org.gradle.internal.component.resolution.failure.type.IncompatibleMultipleNodesValidationFailure;
-import org.gradle.internal.component.resolution.failure.type.ConfigurationNotCompatibleFailure;
 import org.gradle.internal.component.resolution.failure.type.NoVariantsWithMatchingCapabilitiesFailure;
-import org.gradle.internal.component.resolution.failure.type.ConfigurationDoesNotExistFailure;
-import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFailure;
-import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
-import org.gradle.internal.component.resolution.failure.type.AmbiguousVariantsFailure;
 import org.gradle.internal.instantiation.InstanceGenerator;
 
 import java.util.ArrayList;
@@ -103,7 +101,6 @@ public final class ResolutionFailureDescriberRegistry {
         registry.registerDescriber(NoCompatibleArtifactFailure.class, NoCompatibleArtifactFailureDescriber.class);
         registry.registerDescriber(IncompatibleMultipleNodesValidationFailure.class, IncompatibleMultipleNodesValidationFailureDescriber.class);
         registry.registerDescriber(AmbiguousArtifactTransformsFailure.class, AmbiguousArtifactTransformsFailureDescriber.class);
-        registry.registerDescriber(UnknownArtifactSelectionFailure.class, UnknownArtifactSelectionFailureDescriber.class);
 
         return registry;
     }

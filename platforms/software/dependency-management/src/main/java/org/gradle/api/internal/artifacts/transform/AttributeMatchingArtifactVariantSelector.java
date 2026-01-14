@@ -40,6 +40,7 @@ import java.util.Optional;
  * to allow the caller to handle failures in a consistent manner as during graph variant selection.
  */
 public class AttributeMatchingArtifactVariantSelector implements ArtifactVariantSelector {
+
     private final ImmutableAttributesSchema consumerSchema;
     private final AttributesFactory attributesFactory;
     private final AttributeSchemaServices attributeSchemaServices;
@@ -66,18 +67,6 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         ImmutableAttributes requestAttributes,
         boolean allowNoMatchingVariants
     ) {
-        try {
-            return doSelect(producer, requestAttributes, allowNoMatchingVariants);
-        } catch (Exception t) {
-            return new BrokenResolvedArtifactSet(failureHandler.unknownArtifactVariantSelectionFailure(producer, requestAttributes, t));
-        }
-    }
-
-    private ResolvedArtifactSet doSelect(
-        ResolvedVariantSet producer,
-        ImmutableAttributes requestAttributes,
-        boolean allowNoMatchingVariants
-    ) {
         AttributeMatcher matcher = attributeSchemaServices.getMatcher(consumerSchema, producer.getProducerSchema());
         ImmutableAttributes targetAttributes = attributesFactory.concat(requestAttributes, producer.getOverriddenAttributes());
 
@@ -87,11 +76,17 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         if (matchingVariants.size() == 1) {
             return matchingVariants.get(0).getArtifacts();
         } else if (matchingVariants.size() > 1) {
-            throw failureHandler.ambiguousArtifactsFailure(matcher, producer, targetAttributes, matchingVariants);
+            return new BrokenResolvedArtifactSet(failureHandler.ambiguousArtifactsFailure(matcher, producer, targetAttributes, matchingVariants));
         }
 
         // We found no matching variant.  Attempt to select a chain of transformations that produces a suitable virtual variant.
-        Optional<TransformedVariant> selectedTransformationChain = transformationChainSelector.selectTransformationChain(producer, targetAttributes, matcher);
+        Optional<TransformedVariant> selectedTransformationChain;
+        try {
+            selectedTransformationChain = transformationChainSelector.selectTransformationChain(producer, targetAttributes, matcher);
+        } catch (Exception e) {
+            // Disambiguation can fail when there are ambiguous transform chains
+            return new BrokenResolvedArtifactSet(e);
+        }
         if (selectedTransformationChain.isPresent()) {
             return producer.transformCandidate(selectedTransformationChain.get().getRoot(), selectedTransformationChain.get().getTransformedVariantDefinition());
         }
@@ -100,7 +95,8 @@ public class AttributeMatchingArtifactVariantSelector implements ArtifactVariant
         if (allowNoMatchingVariants) {
             return ResolvedArtifactSet.EMPTY;
         } else {
-            throw failureHandler.noCompatibleArtifactFailure(matcher, producer, targetAttributes);
+            return new BrokenResolvedArtifactSet(failureHandler.noCompatibleArtifactFailure(matcher, producer, targetAttributes));
         }
     }
+
 }
