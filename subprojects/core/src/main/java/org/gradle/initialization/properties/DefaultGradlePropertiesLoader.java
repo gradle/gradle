@@ -54,7 +54,6 @@ public class DefaultGradlePropertiesLoader implements GradlePropertiesLoader {
 
     @Override
     public Map<String, String> loadFrom(File dir) {
-        // Intentionally bypass `Environment` since `DefaultGradlePropertiesController` already tracks property file loads
         File propertyFile = new File(dir, GRADLE_PROPERTIES);
         return propertyFile.isFile()
             ? uncheckedCast(GUtil.loadProperties(propertyFile))
