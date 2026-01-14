@@ -31,9 +31,11 @@ import java.util.stream.Collectors;
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
 
     /**
-     * The multiplier to apply to the max worker count to determine the size of the unconstrained executor.
+     * The minimum number of parallel operations permitted on the unconstrained executor.
      */
-    public static final int UNCONSTRAINED_EXECUTOR_MULTIPLIER = 10;
+    // Chosen since this value is used by kotlinx coroutines for their own IO scheduler:
+    // https://github.com/Kotlin/kotlinx.coroutines/blob/1f521941faad4d2ee9c8236a7d5fa2c62eaa6b7d/kotlinx-coroutines-core/jvm/src/scheduling/Dispatcher.kt#L67
+    public static final int MIN_UNCONSTRAINED_EXECUTOR_PARALLELISM = 64;
 
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
@@ -60,9 +62,11 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             workerLimits.getMaxWorkerCount(),
             true
         );
+
+        int unconstrainedExecutorParallelism = Math.max(MIN_UNCONSTRAINED_EXECUTOR_PARALLELISM, workerLimits.getMaxWorkerCount());
         this.unconstrainedExecutionContext = new BuildOperationExecutionContext(
-            executorFactory.create("Unconstrained build operations", workerLimits.getMaxWorkerCount() * UNCONSTRAINED_EXECUTOR_MULTIPLIER),
-            workerLimits.getMaxWorkerCount() * UNCONSTRAINED_EXECUTOR_MULTIPLIER,
+            executorFactory.create("Unconstrained build operations", unconstrainedExecutorParallelism),
+            unconstrainedExecutorParallelism,
             false // Unconstrained operations do not require a worker lease since they are not intended for CPU intensive work
         );
     }

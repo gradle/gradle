@@ -128,13 +128,16 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
 
     def "can concurrently execute more unconstrained operations than there are worker leases"() {
         int maxWorkers = 4 // Some arbitrary number
+        int numUnconstrainedOperations = DefaultBuildOperationExecutor.MIN_UNCONSTRAINED_EXECUTOR_PARALLELISM
+        assert numUnconstrainedOperations > maxWorkers
+
         setupBuildOperationExecutor(maxWorkers)
-        CountDownLatch started = new CountDownLatch(maxWorkers * 2)
+        CountDownLatch started = new CountDownLatch(numUnconstrainedOperations)
 
         workerRegistry.runAsWorkerThread {
             buildOperationExecutor.runAll(queue -> {
                 // Add more operations than there are worker leases
-                (maxWorkers * 2).times {
+                numUnconstrainedOperations.times {
                     queue.add(new RunnableBuildOperation() {
                         @Override
                         void run(BuildOperationContext context) throws Exception {
