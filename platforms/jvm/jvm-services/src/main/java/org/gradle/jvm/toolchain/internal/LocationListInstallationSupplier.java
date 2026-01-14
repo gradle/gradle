@@ -46,7 +46,8 @@ public class LocationListInstallationSupplier implements InstallationSupplier {
         final Collection<String> property = buildOptions.getInstallationsFromPaths();
         return property.stream()
             .filter(path -> !path.trim().isEmpty())
-            .map(this::asInstallations).collect(Collectors.toSet());
+            .map(this::asInstallations)
+            .collect(Collectors.toSet());
     }
 
     private InstallationLocation asInstallations(String candidate) {

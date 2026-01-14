@@ -27,6 +27,9 @@ import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 
+import java.util.Map;
+import java.util.Properties;
+
 public class DefaultJvmToolchainsConfigurationValidator implements JvmToolchainsConfigurationValidator {
     private final StartParameterInternal startParameter;
 
@@ -47,17 +50,21 @@ public class DefaultJvmToolchainsConfigurationValidator implements JvmToolchains
      */
     @Override
     public void validatePropertyConfiguration(String propertyName) {
-        if (startParameter.getProjectProperties().containsKey(propertyName)) {
-            if (System.getProperties().containsKey(propertyName)) {
-                if (!startParameter.getProjectProperties().get(propertyName).equals(System.getProperties().get(propertyName))) {
+        Map<String, String> projectProperties = startParameter.getProjectProperties();
+        if (projectProperties.containsKey(propertyName)) {
+            String projectProperty = projectProperties.get(propertyName);
+            Properties systemProperties = System.getProperties();
+            if (systemProperties.containsKey(propertyName)) {
+                Object systemProperty = systemProperties.get(propertyName);
+                if (!projectProperty.equals(systemProperty)) {
                     throw new InvalidUserDataException(
-                        "The Gradle property '" + propertyName + "' (set to '" + System.getProperties().get(propertyName) + "') " +
-                            "has a different value than the project property '" + propertyName + "' (set to '" + startParameter.getProjectProperties().get(propertyName) + "')." +
+                        "The Gradle property '" + propertyName + "' (set to '" + systemProperty + "') " +
+                            "has a different value than the project property '" + propertyName + "' (set to '" + projectProperty + "')." +
                             " Please set them to the same value or only set the Gradle property."
                     );
                 }
             } else {
-                emitDeprecatedWarning(propertyName, startParameter.getProjectProperties().get(propertyName));
+                emitDeprecatedWarning(propertyName, projectProperty);
             }
         }
     }
