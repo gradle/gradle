@@ -27,7 +27,7 @@ tasks.named("check").configure {
 
 gradlePlugin {
     plugins {
-        register("myPlugin") {
+        register("org.example.myplugin") {
             implementationClass = "org.example.MyPlugin"
         }
     }
