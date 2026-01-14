@@ -16,19 +16,21 @@
 
 package org.gradle.internal.execution.steps
 
-
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
 import org.gradle.internal.execution.Execution
 import org.gradle.internal.execution.ImmutableUnitOfWork
+import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState
-import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
 import org.gradle.internal.execution.workspace.impl.CacheBasedImmutableWorkspaceProvider
+import org.gradle.internal.file.Deleter
+import org.gradle.internal.file.FileType
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
 
 import java.time.Duration
@@ -42,15 +44,19 @@ import java.util.function.BiFunction
 import static org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy.FineGrainedCacheEntrySoftDeleter
 
 class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityContext> {
-    def workspacesRoot = temporaryFolder.file("workspaces").createDir()
-    def delegate = new MockStep()
 
-    def deleter = TestFiles.deleter()
-    def fileSystemAccess = TestFiles.fileSystemAccess()
+    def workspacesRoot = temporaryFolder.file("workspaces").createDir()
+    def deleter = Stub(Deleter)
+    def filesystemLocation = Stub(FileSystemLocationSnapshot) {
+        getType() >> FileType.Missing
+    }
+    def fileSystemAccess = Stub(FileSystemAccess) {
+        read(_ as String) >> filesystemLocation
+    }
     def immutableWorkspaceMetadataStore = Stub(ImmutableWorkspaceMetadataStore) {
         loadWorkspaceMetadata(_ as File) >> Optional.empty()
     }
-    def outputSnapshotter = new DefaultOutputSnapshotter(TestFiles.fileCollectionSnapshotter())
+    def outputSnapshotter = Stub(OutputSnapshotter)
     def softDeleter = Stub(FineGrainedCacheEntrySoftDeleter)
     // Don't mock cache since any await() call in withFile {} blocks other mocks
     def cache = new TestInMemoryCacheFactory().openFineGrained(workspacesRoot, "", null)
@@ -68,48 +74,50 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
         getAfterExecutionOutputState() >> Optional.of(new DefaultExecutionOutputState(true, ImmutableSortedMap.of(), originMetadata, false))
     }
 
+    Map<Thread, Throwable> exceptions = [:]
+    Thread.UncaughtExceptionHandler exceptionHandler = { thread, exception ->
+        exceptions.put(thread, exception)
+        exception.printStackTrace()
+    } as Thread.UncaughtExceptionHandler
+
     def work1Started = new CountDownLatch(1)
     def work2Started = new CountDownLatch(1)
 
     def "only one thread executes work concurrently"() {
         def delegateCalls = new AtomicInteger()
         def thread1Result = new AtomicReference<WorkspaceResult>()
-        def thread2Result = new AtomicReference<WorkspaceResult>()
-        def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate)
-        Map<Thread, Throwable> exceptions = [:]
-        def exceptionHandler = { thread, exception ->
-            exceptions.put(thread, exception)
-            exception.printStackTrace()
-        } as Thread.UncaughtExceptionHandler
+        def delegate1 = new MockStep({ UnitOfWork work, WorkspaceContext context ->
 
-        when:
-        def thread1 = new Thread({
-            thread1Result.set(step.execute(work, context))
-        }, "test-thread-1")
-        thread1.uncaughtExceptionHandler = exceptionHandler
-        delegate.expectCall = { UnitOfWork work, WorkspaceContext context ->
             delegateCalls.incrementAndGet()
             work1Started.countDown()
             work2Started.await()
-            Thread.sleep(500)
+            Thread.sleep(1500)
             return delegateResult
-        }
-        thread1.start()
-        work1Started.await()
+        })
+        def step1 = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate1)
+        def thread1 = new Thread({
+            thread1Result.set(step1.execute(work, context))
+        }, "test-thread-1")
+        thread1.uncaughtExceptionHandler = exceptionHandler
 
+        def thread2Result = new AtomicReference<WorkspaceResult>()
+        def delegate2 = new MockStep( { UnitOfWork work, WorkspaceContext context ->
+            delegateCalls.incrementAndGet()
+            return delegateResult
+        })
+        def step2 = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate2)
         def thread2 = new Thread({
             work1Started.await()
             work2Started.countDown()
-            thread2Result.set(step.execute(work, context))
+            thread2Result.set(step2.execute(work, context))
         }, "test-thread-2")
         thread2.uncaughtExceptionHandler = exceptionHandler
-        delegate.expectCall = { UnitOfWork work, WorkspaceContext context ->
-            delegateCalls.incrementAndGet()
-            return delegateResult
-        }
+
+        when:
+        thread1.start()
         thread2.start()
-        thread1.join()
-        thread2.join()
+        thread1.join(20000)
+        thread2.join(20000)
 
         then:
         !thread1.isAlive()
@@ -124,13 +132,15 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
 
     // We need custom mock classes because Spock does not support multi-threaded mocks
     private static class MockStep implements Step<WorkspaceContext, CachingResult> {
-        BiFunction<UnitOfWork, WorkspaceContext, CachingResult> expectCall
+        final BiFunction<UnitOfWork, WorkspaceContext, CachingResult> expectCall
+
+        MockStep(BiFunction<UnitOfWork, WorkspaceContext, CachingResult> expectCall) {
+            this.expectCall = expectCall
+        }
 
         @Override
         CachingResult execute(UnitOfWork work, WorkspaceContext context) {
-            def call = expectCall
-            expectCall = null
-            return call.apply(work, context)
+            return expectCall.apply(work, context)
         }
     }
 
