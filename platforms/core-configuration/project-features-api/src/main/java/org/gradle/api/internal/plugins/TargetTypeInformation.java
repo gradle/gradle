@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.internal.hash.Hashing;
-
 public interface TargetTypeInformation<T> {
 
     String getId();
@@ -28,7 +26,7 @@ public interface TargetTypeInformation<T> {
 
         public DefinitionTargetTypeInformation(Class<T> definitionType) {
             this.definitionType = definitionType;
-            this.id = Hashing.hashString(definitionType.getName()).toCompactString();
+            this.id = definitionType.getName();
         }
 
         @Override
@@ -65,7 +63,7 @@ public interface TargetTypeInformation<T> {
 
         public BuildModelTargetTypeInformation(Class<T> buildModelType) {
             this.buildModelType = buildModelType;
-            this.id = Hashing.hashString(buildModelType.getName()).toCompactString();
+            this.id = buildModelType.getName();
         }
 
         @Override
