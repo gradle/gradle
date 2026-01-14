@@ -69,6 +69,9 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import javax.lang.model.SourceVersion;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -117,12 +120,12 @@ public abstract class InitBuild extends DefaultTask {
     public abstract Property<Boolean> getUseDefaults();
 
     /**
-    * Should we allow existing files in the build directory to be overwritten?
-    *
-    * This property can be set via command-line option '--overwrite'. Defaults to false.
-    *
-    * @since 8.9
-    */
+     * Should we allow existing files in the build directory to be overwritten?
+     *
+     * This property can be set via command-line option '--overwrite'. Defaults to false.
+     *
+     * @since 8.9
+     */
     @Incubating
     @Input
     @Optional
@@ -331,7 +334,7 @@ public abstract class InitBuild extends DefaultTask {
             spec = userQuestions.choice("Select project type", registry.getAllSpecs())
                 .renderUsing(BuildInitSpec::getDisplayName)
                 .ask();
-        }  else {
+        } else {
             spec = registry.getSpecByType(type);
         }
 
@@ -447,16 +450,32 @@ public abstract class InitBuild extends DefaultTask {
      * If not converting an existing Maven build, then validate the build directory is either
      * empty, or overwritable before generating the project.
      *
+     * A directory considered empty if it contains no files apart the {@code .gradle} directory.
+     *
      * @param userQuestions the user questions to ask if {@link #getAllowFileOverwrite()} is not set and the directory is non-empty
      * @throws BuildInitException if the build directory is non-empty, this isn't a POM conversion and the user does not allow overwriting
      */
+    // Suppressed in order to make more readable filtering statements
+    @SuppressWarnings({"RedundantControlFlow", "UnnecessaryContinue"})
     private void validateBuildDirectory(UserQuestions userQuestions) {
         if (!isPomConversion()) {
             File projectDirFile = getProjectDirectory().get().getAsFile();
-            File[] existingProjectFiles = projectDirFile.listFiles();
+            boolean isEmptyDirectory = true;
 
-            boolean isNotEmptyDirectory = existingProjectFiles != null && existingProjectFiles.length != 0;
-            if (isNotEmptyDirectory) {
+            File[] projectDirFiles = projectDirFile.listFiles();
+            if (projectDirFiles != null) {
+                for (File file : projectDirFiles) {
+                    if (file.isDirectory() && file.getName().equals(".gradle")) {
+                        // We expect this file to be present even if the directory was empty when Gradle was invoked
+                        continue;
+                    } else {
+                        isEmptyDirectory = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!isEmptyDirectory) {
                 boolean fileOverwriteAllowed = getAllowFileOverwrite().get();
                 if (!fileOverwriteAllowed) {
                     fileOverwriteAllowed = userQuestions.askBooleanQuestion("Found existing files in the project directory: '" + projectDirFile +
