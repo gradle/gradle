@@ -31,4 +31,7 @@ dependencies {
     runtime(projects.declarativeDslProvider) {
         because("Adds support for interpreting files with the declarative DSL")
     }
+//    runtime(projects.isolatedProjectsImpl) {
+//        because("Adds support for running in isolated Projects mode.")
+//    }
 }
