@@ -409,7 +409,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
-    public Configuration extendsFrom(Provider<Configuration> superConfig) {
+    public Configuration extendsFrom(Provider<? extends Configuration> superConfig) {
         validateMutation(MutationType.HIERARCHY);
         assertNotDetachedExtensionDoingExtending(superConfig);
         this.extendsFrom.add(superConfig);
@@ -1638,7 +1638,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    private void assertNotDetachedExtensionDoingExtending(Provider<Configuration> extendsFrom) {
+    private void assertNotDetachedExtensionDoingExtending(Provider<? extends Configuration> extendsFrom) {
         if (isDetachedConfiguration()) {
             throwDetachedConfigurationWithExtendsFromError(Collections.singletonList(extendsFrom.get()));
         }

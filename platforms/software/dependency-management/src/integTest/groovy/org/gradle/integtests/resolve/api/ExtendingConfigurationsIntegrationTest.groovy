@@ -386,6 +386,7 @@ Extended Configurations
         mavenRepo.module("org", "bar").publish()
         mavenRepo.module("org", "baz").publish()
 
+        buildKotlinFile()
         buildFile << """
             repositories {
                 maven { url = "${mavenRepo.uri}" }

@@ -54,7 +54,7 @@ class ExtendedConfigurations {
     /**
      * Adds a provided configuration.  The validation action associated with this object will be called when the configuration is realized.
      */
-    public void add(Provider<Configuration> configurationProvider) {
+    public void add(Provider<? extends Configuration> configurationProvider) {
         configurations.add(new ProvidedExtendedConfiguration(configurationProvider, validationAction, providerFactory));
     }
 
@@ -73,11 +73,11 @@ class ExtendedConfigurations {
     }
 
     private static class ProvidedExtendedConfiguration implements ExtendedConfiguration {
-        private final Provider<Configuration> provider;
+        private final Provider<? extends Configuration> provider;
         private final Consumer<Configuration> validationAction;
         private final ProviderFactory providerFactory;
 
-        ProvidedExtendedConfiguration(Provider<Configuration> provider, Consumer<Configuration> validationAction, ProviderFactory providerFactory) {
+        ProvidedExtendedConfiguration(Provider<? extends Configuration> provider, Consumer<Configuration> validationAction, ProviderFactory providerFactory) {
             this.provider = provider;
             this.validationAction = validationAction;
             this.providerFactory = providerFactory;
