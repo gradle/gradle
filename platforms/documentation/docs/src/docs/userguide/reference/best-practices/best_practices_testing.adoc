@@ -135,8 +135,9 @@ include::sample[dir="snippets/bestPractices/useTestKit-do/common/build-logic/src
 <1> *Corrected typo in assignment*: Last name convention set to value of last name from extension.
 <2> *Today set to same value on all tasks*: Only calling `Instant.now()` once, rather than every time a task is created.
 
+Writing and running the tests as described below helped identify these bugs in the plugin implementation.
 
-In the `build-logic` project's build, we define a functional test suite.
+In the `build-logic` project's build, we defined a functional test suite.
 Tests using TestKit typically are kept separate from unit tests, as they tend to be slower and more complex.
 Locating these tests in a dedicated `functionalTest` suite also informs developers as to their purpose.
 
@@ -149,12 +150,12 @@ include::sample[dir="snippets/bestPractices/useTestKit-do/groovy/build-logic",fi
 <2> *Add TestKit dependency*: This contains the `GradleRunner` class we'll use to write tests.
 <3> *Make the  `java-gradle-plugin` aware of the new test suite*: Now the usable plugin source from the project's main production code will be available to these tests.
 
-After this setup, we can write functional tests for our plugin in the `build-logic/src/functionalTest/java` directory.
-You can run `./gradlew functionalTest` or `./gradlew check` from the root project to execute the functional tests.
+After this setup, we could wrote functional tests for our plugin in the `build-logic/src/functionalTest/java` directory.
+You can run `./gradlew :build-logic:functionalTest` or `./gradlew :build-logic:check` from the root project directory to execute the functional tests.
 
 NOTE: By default, tests in the `build-logic` included build will *not* be run when tests in the root project are run.
 Gradle will only *build* the `build-logic`, *not test it*, as that is all the root project requires.
-You must explicitly run tasks in the `build-logic` project, or add task dependencies in the root project to have them run automatically.
+You must explicitly run tasks in the `build-logic` project using by invoking them like: `gradlew :build-logic:check`.
 
 In the functional test class, we use TestKit to create a temporary Gradle project, apply our plugin, and verify its behavior.
 
@@ -170,6 +171,8 @@ Looking at the example tests here, you can see various techniques used to verify
 <4> *testTaskCacheability*: This test checks that when the task is run twice in a row, the second run is loaded from cache.
 
 This just scratches the surface of what you can do with TestKit.
+For example, a more complete test for cacheability would also verify that changes to inputs cause the cache to be invalidated, and test for <<build_cache_debugging.adoc#caching_relocation_test,relocatability>>.
+
 You can find more information in the <<test_kit.adoc#test_kit,Gradle TestKit documentation>> .
 
 === References
