@@ -108,20 +108,14 @@ public class MyPluginFunctionalTest {
         """;
         Files.writeString(buildFile.toPath(), buildFileContent);
 
-        GradleRunner.create()
+        GradleRunner runner = GradleRunner.create()
             .withProjectDir(testProjectDir)
-            .withPluginClasspath()
-            .withArguments("task1")
-            .build();
+            .withPluginClasspath();
 
+        runner.withArguments("task1").build();
         String output1 = Files.readString(outputFile.toPath());
 
-        GradleRunner.create()
-            .withProjectDir(testProjectDir)
-            .withPluginClasspath()
-            .withArguments("task1", "--rerun-tasks")
-            .build();
-
+        runner.withArguments("task1", "--rerun-tasks").build();
         String output2 = Files.readString(outputFile.toPath());
 
         assertEquals(output1, output2);
