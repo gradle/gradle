@@ -20,14 +20,14 @@ class ConfigurationCacheGradlePropertiesFileIntegrationTest extends AbstractConf
 
     def configurationCache = newConfigurationCacheFixture()
 
-    def "reuses cache when unused project property changes on disk"() {
+    def "reuses cache when unused #kind property changes on disk"() {
         given:
         buildFile """
             tasks.register("some")
         """
 
         when:
-        propertiesFile.writeProperties(foo: 'one')
+        propertiesFile.writeProperties((property): 'one')
 
         and:
         configurationCacheRun "some"
@@ -36,13 +36,18 @@ class ConfigurationCacheGradlePropertiesFileIntegrationTest extends AbstractConf
         configurationCache.assertStateStored()
 
         when:
-        propertiesFile.writeProperties(foo: 'two')
+        propertiesFile.writeProperties((property): 'two')
 
         and:
         configurationCacheRun "some"
 
         then:
         configurationCache.assertStateLoaded()
+
+        where:
+        kind      | property
+        'project' | 'foo'
+        'system'  | 'systemProp.foo'
     }
 
     def "reuses cache when project property changes on disk if used only at execution time via extra container"() {
@@ -137,6 +142,39 @@ class ConfigurationCacheGradlePropertiesFileIntegrationTest extends AbstractConf
         outputContains "configuration cache cannot be reused because Gradle property 'foo' has changed."
     }
 
+    def "reuses cache when system property used at execution time changes on disk"() {
+        given:
+        buildFile """
+            tasks.register("some") {
+                doLast {
+                    def access = System.getProperty('foo')
+                    println("Access: '\${access}'")
+                }
+            }
+        """
+
+        when:
+        propertiesFile.writeProperties('systemProp.foo': 'one')
+
+        and:
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        propertiesFile.writeProperties('systemProp.foo': 'two')
+
+        and:
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        and:
+        outputContains "Access: 'two'"
+    }
+
     def "invalidates cache when system property used at configuration time changes on disk"() {
         given:
         buildFile """
@@ -167,4 +205,3 @@ class ConfigurationCacheGradlePropertiesFileIntegrationTest extends AbstractConf
         outputContains "configuration cache cannot be reused because system property 'foo' has changed."
     }
 }
-
