@@ -70,7 +70,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.DefaultWorkExecutionTracker;
 import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.execution.WorkInputListeners;
@@ -370,8 +369,8 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    WorkInputListeners createWorkInputListeners(ListenerManager listenerManager) {
-        return new DefaultWorkInputListeners(listenerManager);
+    WorkInputListeners createWorkInputListeners() {
+        return new DefaultWorkInputListeners();
     }
 
     public interface AnnotationHandlerRegistration {

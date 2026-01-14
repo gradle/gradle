@@ -29,14 +29,14 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
     private static final String[] EXTENSIONS = ScriptFileUtil.getValidExtensions();
 
     @Nullable
-    private final ScriptFileResolvedListener scriptFileResolvedListener;
+    private final ScriptFileResolverListeners listeners;
 
-    public DefaultScriptFileResolver(@Nullable ScriptFileResolvedListener scriptFileResolvedListener) {
-        this.scriptFileResolvedListener = scriptFileResolvedListener;
+    public DefaultScriptFileResolver(@Nullable ScriptFileResolverListeners listeners) {
+        this.listeners = listeners;
     }
 
     public DefaultScriptFileResolver() {
-        this.scriptFileResolvedListener = null;
+        this(null);
     }
 
     @Override
@@ -73,8 +73,8 @@ public class DefaultScriptFileResolver implements ScriptFileResolver {
 
 
     private void notifyListener(File scriptFile) {
-        if (scriptFileResolvedListener != null) {
-            scriptFileResolvedListener.onScriptFileResolved(scriptFile);
+        if (listeners != null) {
+            listeners.onScriptFileResolved(scriptFile);
         }
     }
 

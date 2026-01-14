@@ -239,6 +239,7 @@ Class 'org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria$LauncherJvm' from 
 Class 'org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria$Spec' from platform 'core' imports class 'org.gradle.jvm.toolchain.JavaLanguageVersion' from a forbidden platform 'jvm'
 Class 'org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria$Spec' from platform 'core' imports class 'org.gradle.jvm.toolchain.JvmVendorSpec' from a forbidden platform 'jvm'
 Class 'org.gradle.launcher.daemon.toolchain.DaemonToolchainExternalResourceFactory' from platform 'core' imports class 'org.gradle.internal.resource.local.FileResourceConnector' from a forbidden platform 'software'
+Class 'org.gradle.launcher.daemon.toolchain.DaemonToolchainExternalResourceFactory' from platform 'core' imports class 'org.gradle.internal.resource.local.FileResourceListener' from a forbidden platform 'software'
 Class 'org.gradle.launcher.daemon.toolchain.DaemonToolchainExternalResourceFactory' from platform 'core' imports class 'org.gradle.internal.resource.transfer.DefaultExternalResourceRepository' from a forbidden platform 'software'
 Class 'org.gradle.launcher.daemon.toolchain.DaemonToolchainExternalResourceFactory' from platform 'core' imports class 'org.gradle.internal.resource.transport.http.DefaultHttpSettings$Builder' from a forbidden platform 'software'
 Class 'org.gradle.launcher.daemon.toolchain.DaemonToolchainExternalResourceFactory' from platform 'core' imports class 'org.gradle.internal.resource.transport.http.DefaultHttpSettings' from a forbidden platform 'software'

@@ -65,10 +65,10 @@ import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
 import org.gradle.internal.buildoption.DefaultFeatureFlags;
+import org.gradle.internal.buildoption.FeatureFlagListener;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
@@ -174,8 +174,8 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    FeatureFlags createFeatureFlags(ListenerManager listenerManager, StartParameterInternal startParameter) {
-        return new DefaultFeatureFlags(listenerManager, startParameter.getSystemPropertiesArgs());
+    FeatureFlags createFeatureFlags(FeatureFlagListener listener, StartParameterInternal startParameter) {
+        return new DefaultFeatureFlags(listener, startParameter.getSystemPropertiesArgs());
     }
 
     @Provides
@@ -203,8 +203,8 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, ListenerManager listenerManager) {
-        return parent.forChildScope(listenerManager.getBroadcaster(FileCollectionObservationListener.class));
+    protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, FileCollectionObservationListener listener) {
+        return parent.forChildScope(listener);
     }
 
     @Provides
@@ -233,12 +233,12 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         StartParameterInternal startParameter,
         Environment environment,
         SystemPropertiesInstaller systemPropertiesInstaller,
-        ListenerManager listenerManager
+        GradlePropertiesListener listener
     ) {
         return new DefaultGradlePropertiesController(
             new DefaultGradlePropertiesLoader(startParameter, environment),
             systemPropertiesInstaller,
-            listenerManager.getBroadcaster(GradlePropertiesListener.class)
+            listener
         );
     }
 }
