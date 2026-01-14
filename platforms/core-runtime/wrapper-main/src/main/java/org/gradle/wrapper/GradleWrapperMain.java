@@ -46,11 +46,13 @@ public class GradleWrapperMain {
         parser.option(GRADLE_USER_HOME_OPTION, GRADLE_USER_HOME_DETAILED_OPTION).hasArgument();
         parser.option(GRADLE_QUIET_OPTION, GRADLE_QUIET_DETAILED_OPTION);
 
+        SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
+        converter.configure(parser);
         ParsedCommandLine options = parser.parse(args);
 
         File gradleUserHome = gradleUserHome(options);
 
-        Map<String, String> commandLineSystemProperties = getCommandLineSystemProperties(parser, options);
+        Map<String, String> commandLineSystemProperties = converter.convert(options, new HashMap<String, String>());
 
         addSystemProperties(commandLineSystemProperties, gradleUserHome, rootDir);
 
@@ -64,12 +66,6 @@ public class GradleWrapperMain {
                 args,
                 new Install(logger, download, new PathAssembler(gradleUserHome, rootDir)),
                 new BootstrapMainStarter());
-    }
-
-    private static Map<String, String> getCommandLineSystemProperties(CommandLineParser parser, ParsedCommandLine options) {
-        SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
-        converter.configure(parser);
-        return converter.convert(options, new HashMap<String, String>());
     }
 
     private static void addSystemProperties(Map<String, String> commandLineSystemProperties, File gradleUserHome, File rootDir) {
