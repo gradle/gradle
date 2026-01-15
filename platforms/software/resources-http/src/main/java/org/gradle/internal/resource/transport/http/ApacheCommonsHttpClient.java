@@ -17,52 +17,60 @@
 package org.gradle.internal.resource.transport.http;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-import org.jspecify.annotations.NonNull;
+import org.gradle.internal.resource.ReadableContent;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
-import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Supplier;
 
 import static java.lang.String.join;
 import static org.apache.http.client.protocol.HttpClientContext.REDIRECT_LOCATIONS;
 
 /**
- * Provides some convenience and unified logging.
+ * Implementation of {@link HttpClient} backed by Apache Commons HttpClient.
  */
-public class HttpClientHelper implements Closeable {
+@NullMarked
+public class ApacheCommonsHttpClient implements HttpClient {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientHelper.class);
-    private CloseableHttpClient client;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApacheCommonsHttpClient.class);
+
     private final DocumentationRegistry documentationRegistry;
     private final HttpSettings settings;
+    private final Supplier<HttpClientBuilder> clientBuilderFactory;
 
     private Collection<String> supportedTlsVersions;
+    private @Nullable CloseableHttpClient client;
 
     /**
      * Maintains a queue of contexts which are shared between threads when authentication
@@ -71,15 +79,27 @@ public class HttpClientHelper implements Closeable {
      * or that other requests are being performed concurrently). The queue will grow as big as
      * the max number of concurrent requests executed.
      */
-    private final ConcurrentLinkedQueue<HttpContext> sharedContext;
+    private final @Nullable ConcurrentLinkedQueue<HttpContext> sharedContext;
 
     /**
-     * Use {@link HttpClientHelper.Factory#create(HttpSettings)} to instantiate instances.
+     * Use {@link ApacheCommonsHttpClientFactory} to instantiate instances.
+     */
+    ApacheCommonsHttpClient(DocumentationRegistry documentationRegistry, HttpSettings settings) {
+        this(documentationRegistry, settings, HttpClientBuilder::create);
+    }
+
+    /**
+     * Overload intended specifically for unit testing, allowing injection of mocked HttpClientBuilder.
      */
     @VisibleForTesting
-    HttpClientHelper(DocumentationRegistry documentationRegistry, HttpSettings settings) {
+    ApacheCommonsHttpClient(
+        DocumentationRegistry documentationRegistry,
+        HttpSettings settings,
+        Supplier<HttpClientBuilder> clientBuilderFactory
+    ) {
         this.documentationRegistry = documentationRegistry;
         this.settings = settings;
+        this.clientBuilderFactory = clientBuilderFactory;
         if (!settings.getAuthenticationSettings().isEmpty()) {
             sharedContext = new ConcurrentLinkedQueue<>();
         } else {
@@ -87,38 +107,85 @@ public class HttpClientHelper implements Closeable {
         }
     }
 
-    private HttpClientResponse performRawHead(String source, boolean revalidate) {
-        return performRequest(new HttpHead(source), revalidate);
+    @Override
+    public HttpClient.Response performHead(URI uri, ImmutableMap<String, String> headers) {
+        HttpRequestBase request = new HttpHead(uri);
+        addHeaders(request, headers);
+        return processResponse(performRequest(request));
     }
 
-    public HttpClientResponse performHead(String source, boolean revalidate) {
-        return processResponse(performRawHead(source, revalidate));
+    @Override
+    public HttpClient.Response performGet(URI uri, ImmutableMap<String, String> headers) {
+        HttpRequestBase request = new HttpGet(uri);
+        addHeaders(request, headers);
+        return processResponse(performRequest(request));
     }
 
-    HttpClientResponse performRawGet(String source, boolean revalidate) {
-        return performRequest(new HttpGet(source), revalidate);
+    @Override
+    public Response performRawGet(URI uri, ImmutableMap<String, String> headers) throws IOException {
+        HttpGet httpGet = new HttpGet(uri);
+        addHeaders(httpGet, headers);
+        return performRawRequest(httpGet);
     }
 
-    @NonNull
-    public HttpClientResponse performGet(String source, boolean revalidate) {
-        return processResponse(performRawGet(source, revalidate));
+    @Override
+    public Response performRawPut(URI uri, ReadableContent resource) throws IOException {
+        HttpPut method = new HttpPut(uri);
+        final RepeatableInputStreamEntity entity = new RepeatableInputStreamEntity(resource, ContentType.APPLICATION_OCTET_STREAM);
+        method.setEntity(entity);
+        return performRawRequest(method);
     }
 
-    public HttpClientResponse performRequest(HttpRequestBase request, boolean revalidate) {
-        String method = request.getMethod();
-        if (revalidate) {
-            request.addHeader(HttpHeaders.CACHE_CONTROL, "max-age=0");
-        }
+    @Override
+    public Response performRawPut(URI uri, ImmutableMap<String, String> headers, WritableContent resource) throws IOException {
+        HttpPut httpPut = new HttpPut(uri);
+        addHeaders(httpPut, headers);
+        httpPut.setEntity(new AbstractHttpEntity() {
+            @Override
+            public boolean isRepeatable() {
+                return true;
+            }
+
+            @Override
+            public long getContentLength() {
+                return resource.getSize();
+            }
+
+            @Override
+            public InputStream getContent() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void writeTo(OutputStream outstream) throws IOException {
+                resource.writeTo(outstream);
+            }
+
+            @Override
+            public boolean isStreaming() {
+                return false;
+            }
+        });
+
+        return performRawRequest(httpPut);
+    }
+
+    private Response performRequest(HttpRequestBase request) {
         try {
-            return executeGetOrHead(request);
+            return performRawRequest(request);
         } catch (FailureFromRedirectLocation e) {
-            throw createHttpRequestException(method, e.getCause(), e.getLastRedirectLocation());
+            throw createHttpRequestException(request.getMethod(), e.getCause(), e.getLastRedirectLocation());
         } catch (IOException e) {
-            throw createHttpRequestException(method, wrapWithExplanation(e), request.getURI());
+            throw createHttpRequestException(request.getMethod(), wrapWithExplanation(e), request.getURI());
         }
     }
 
-    @NonNull
+    private static void addHeaders(HttpRequestBase request, ImmutableMap<String, String> headers) {
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            request.addHeader(entry.getKey(), entry.getValue());
+        }
+    }
+
     private static HttpRequestException createHttpRequestException(String method, Throwable cause, URI uri) {
         return new HttpRequestException(String.format("Could not %s '%s'.", method, stripUserCredentials(uri)), cause);
     }
@@ -150,7 +217,6 @@ public class HttpClientHelper implements Closeable {
         return new HttpRequestException(message, e);
     }
 
-    @NonNull
     private static String getConfidenceNote(SSLHandshakeException sslException) {
         if (sslException.getMessage() != null && sslException.getMessage().contains("protocol_version")) {
             // If we're handling an SSLHandshakeException with the error of 'protocol_version' we know that the server doesn't support this protocol.
@@ -161,16 +227,7 @@ public class HttpClientHelper implements Closeable {
         return "may";
     }
 
-    protected HttpClientResponse executeGetOrHead(HttpRequestBase method) throws IOException {
-        HttpClientResponse response = performHttpRequest(method);
-        // Consume content for non-successful, responses. This avoids the connection being left open.
-        if (!response.wasSuccessful()) {
-            response.close();
-        }
-        return response;
-    }
-
-    public HttpClientResponse performHttpRequest(HttpRequestBase request) throws IOException {
+    private HttpClient.Response performRawRequest(HttpRequestBase request) throws IOException {
         if (sharedContext == null) {
             // There's no authentication involved, requests can be done concurrently
             return performHttpRequest(request, new BasicHttpContext());
@@ -191,7 +248,7 @@ public class HttpClientHelper implements Closeable {
         return context;
     }
 
-    private HttpClientResponse performHttpRequest(HttpRequestBase request, HttpContext httpContext) throws IOException {
+    private HttpClient.Response performHttpRequest(HttpRequestBase request, HttpContext httpContext) throws IOException {
         // Without this, HTTP Client prohibits multiple redirects to the same location within the same context
         httpContext.removeAttribute(REDIRECT_LOCATIONS);
         LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), stripUserCredentials(request.getURI()));
@@ -202,15 +259,18 @@ public class HttpClientHelper implements Closeable {
         } catch (IOException e) {
             validateRedirectChain(httpContext);
             URI lastRedirectLocation = stripUserCredentials(getLastRedirectLocation(httpContext));
-            throw (lastRedirectLocation == null) ? e : new FailureFromRedirectLocation(lastRedirectLocation, e);
+            if (lastRedirectLocation == null) {
+                throw e;
+            }
+            throw new FailureFromRedirectLocation(lastRedirectLocation, e);
         }
     }
 
-    private HttpClientResponse toHttpClientResponse(HttpRequestBase request, HttpContext httpContext, CloseableHttpResponse response) {
+    private HttpClient.Response toHttpClientResponse(HttpRequestBase request, HttpContext httpContext, CloseableHttpResponse response) {
         validateRedirectChain(httpContext);
         URI lastRedirectLocation = getLastRedirectLocation(httpContext);
         URI effectiveUri = lastRedirectLocation == null ? request.getURI() : lastRedirectLocation;
-        return new HttpClientResponse(request.getMethod(), effectiveUri, response);
+        return new ApacheHttpResponse(request.getMethod(), effectiveUri, response);
     }
 
     /**
@@ -221,38 +281,38 @@ public class HttpClientHelper implements Closeable {
         settings.getRedirectVerifier().validateRedirects(getRedirectLocations(httpContext));
     }
 
-    @NonNull
     private static List<URI> getRedirectLocations(HttpContext httpContext) {
         @SuppressWarnings("unchecked")
         List<URI> redirects = (List<URI>) httpContext.getAttribute(REDIRECT_LOCATIONS);
         return redirects == null ? Collections.emptyList() : redirects;
     }
 
-
-    private static URI getLastRedirectLocation(HttpContext httpContext) {
+    private static @Nullable URI getLastRedirectLocation(HttpContext httpContext) {
         List<URI> redirectLocations = getRedirectLocations(httpContext);
         return redirectLocations.isEmpty() ? null : Iterables.getLast(redirectLocations);
     }
 
-    @NonNull
-    private HttpClientResponse processResponse(HttpClientResponse response) {
-        if (response.wasMissing()) {
+    private static Response processResponse(Response response) {
+        if (response.isSuccessful()) {
+            return response;
+        }
+
+        // Consume content for non-successful responses. This avoids the connection being left open.
+        response.close();
+
+        if (response.isMissing()) {
             LOGGER.info("Resource missing. [HTTP {}: {}]", response.getMethod(), stripUserCredentials(response.getEffectiveUri()));
             return response;
         }
 
-        if (response.wasSuccessful()) {
-            return response;
-        }
-
         URI effectiveUri = stripUserCredentials(response.getEffectiveUri());
-        LOGGER.info("Failed to get resource: {}. [HTTP {}: {})]", response.getMethod(), response.getStatusLine(), effectiveUri);
-        throw new HttpErrorStatusCodeException(response.getMethod(), effectiveUri.toString(), response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
+        LOGGER.info("Failed to get resource: {}. [HTTP {}: {})]", response.getMethod(), response.getStatusCode(), effectiveUri);
+        throw new HttpErrorStatusCodeException(response.getMethod(), effectiveUri.toString(), response.getStatusCode(), response.getStatusReason());
     }
 
     private synchronized CloseableHttpClient getClient() {
         if (client == null) {
-            HttpClientBuilder builder = HttpClientBuilder.create();
+            HttpClientBuilder builder = clientBuilderFactory.get();
             HttpClientConfigurer configurer = new HttpClientConfigurer(settings);
             configurer.configure(builder);
             this.supportedTlsVersions = configurer.supportedTlsVersions();
@@ -275,9 +335,8 @@ public class HttpClientHelper implements Closeable {
      * Strips the {@link URI#getUserInfo() user info} from the {@link URI} making it
      * safe to appear in log messages.
      */
-    @Nullable
     @VisibleForTesting
-    static URI stripUserCredentials(URI uri) {
+    static @Nullable URI stripUserCredentials(@Nullable URI uri) {
         if (uri == null) {
             return null;
         }
@@ -298,23 +357,6 @@ public class HttpClientHelper implements Closeable {
 
         private URI getLastRedirectLocation() {
             return lastRedirectLocation;
-        }
-    }
-
-    /**
-     * Factory for creating the {@link HttpClientHelper}
-     */
-    @FunctionalInterface
-    @ServiceScope(Scope.Global.class)
-    public interface Factory {
-        HttpClientHelper create(HttpSettings settings);
-
-        /**
-         * Method should only be used for DI registry and testing.
-         * For other uses of {@link HttpClientHelper}, inject an instance of {@link Factory} to create one.
-         */
-        static Factory createFactory(DocumentationRegistry documentationRegistry) {
-            return settings -> new HttpClientHelper(documentationRegistry, settings);
         }
     }
 

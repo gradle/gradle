@@ -39,11 +39,11 @@ public class HttpConnectorFactory implements ResourceConnectorFactory {
     );
 
     private final SslContextFactory sslContextFactory;
-    private final HttpClientHelper.Factory httpClientHelperFactory;
+    private final HttpClientFactory httpClientFactory;
 
-    public HttpConnectorFactory(SslContextFactory sslContextFactory, HttpClientHelper.Factory httpClientHelperFactory) {
+    public HttpConnectorFactory(SslContextFactory sslContextFactory, HttpClientFactory httpClientFactory) {
         this.sslContextFactory = sslContextFactory;
-        this.httpClientHelperFactory = httpClientHelperFactory;
+        this.httpClientFactory = httpClientFactory;
     }
 
     @Override
@@ -58,15 +58,15 @@ public class HttpConnectorFactory implements ResourceConnectorFactory {
 
     @Override
     public ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails) {
-        HttpClientHelper http = httpClientHelperFactory.create(DefaultHttpSettings.builder()
+        HttpClient client = httpClientFactory.createClient(DefaultHttpSettings.builder()
             .withAuthenticationSettings(connectionDetails.getAuthentications())
             .withSslContextFactory(sslContextFactory)
             .withRedirectVerifier(connectionDetails.getRedirectVerifier())
             .build()
         );
-        HttpResourceAccessor accessor = new HttpResourceAccessor(http);
+        HttpResourceAccessor accessor = new HttpResourceAccessor(client);
         HttpResourceLister lister = new HttpResourceLister(accessor);
-        HttpResourceUploader uploader = new HttpResourceUploader(http);
+        HttpResourceUploader uploader = new HttpResourceUploader(client);
         return new DefaultExternalResourceConnector(accessor, lister, uploader);
     }
 }

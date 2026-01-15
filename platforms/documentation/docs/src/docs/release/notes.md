@@ -227,6 +227,14 @@ For Wistia, contact Gradle's Video Team.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+### Support for Java 26
+
+With this release, Gradle supports [Java 26](https://openjdk.org/projects/jdk/26/).
+This means you can now use Java 26 for the [daemon](userguide/gradle_daemon.html) in addition to [toolchains](userguide/toolchains.html).
+Third-party tool compatibility with Java 26 may still be limited.
+
+See [the compatibility documentation](userguide/compatibility.html#java_runtime) for more details.
+
 
 ### Non-Class Based Testing
 
