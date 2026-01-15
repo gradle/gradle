@@ -109,6 +109,11 @@ class TestTest extends AbstractConventionTaskTest {
         !test.expectedTestCount.isPresent()
     }
 
+    def "failOnUnexpectedTestCount property defaults to false"() {
+        expect:
+        test.failOnUnexpectedTestCount.getOrElse(false) == false
+    }
+
     def "can set and get expectedTestCount"() {
         when:
         test.expectedTestCount.set(5L)
@@ -116,6 +121,14 @@ class TestTest extends AbstractConventionTaskTest {
         then:
         test.expectedTestCount.isPresent()
         test.expectedTestCount.get() == 5L
+    }
+
+    def "can set and get failOnUnexpectedTestCount"() {
+        when:
+        test.failOnUnexpectedTestCount.set(true)
+
+        then:
+        test.failOnUnexpectedTestCount.get() == true
     }
 
     def "test executes successfully when expectedTestCount matches actual count"() {
@@ -132,10 +145,11 @@ class TestTest extends AbstractConventionTaskTest {
         }
     }
 
-    def "test emits warning when expectedTestCount does not match actual count"() {
+    def "test emits warning when expectedTestCount does not match actual count and failOnUnexpectedTestCount is false"() {
         given:
         configureTask()
         test.expectedTestCount.set(5L)
+        test.failOnUnexpectedTestCount.set(false)
 
         when:
         test.executeTests()
@@ -146,6 +160,23 @@ class TestTest extends AbstractConventionTaskTest {
         }
         def output = outputEventListener.toString()
         output.contains("Expected 5 test(s) but executed 1 test(s)")
+    }
+
+    def "test throws exception when expectedTestCount does not match actual count and failOnUnexpectedTestCount is true"() {
+        given:
+        configureTask()
+        test.expectedTestCount.set(5L)
+        test.failOnUnexpectedTestCount.set(true)
+
+        when:
+        test.executeTests()
+
+        then:
+        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor) >> { TestExecutionSpec testExecutionSpec, TestResultProcessor processor ->
+            oneSuccessfulTest(processor)
+        }
+        def e = thrown(GradleException)
+        e.message == "Expected 5 test(s) but executed 1 test(s)."
     }
 
     def "test execute()"() {

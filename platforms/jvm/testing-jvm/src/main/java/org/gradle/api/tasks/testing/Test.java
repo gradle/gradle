@@ -208,6 +208,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         javaLauncher = objectFactory.property(JavaLauncher.class).convention(createJavaLauncherConvention());
         javaLauncher.finalizeValueOnRead();
         getDryRun().convention(false);
+        getFailOnUnexpectedTestCount().convention(false);
         testFramework = objectFactory.property(TestFramework.class).convention(objectFactory.newInstance(JUnitTestFramework.class, this.getFilter(), this.getTemporaryDirFactory(), this.getDryRun()));
     }
 
@@ -774,7 +775,12 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
                 long actualCount = testCountTracker.getTotalTests();
                 long expectedCount = getExpectedTestCount().get();
                 if (actualCount != expectedCount) {
-                    getLogger().warn("Expected {} test(s) but executed {} test(s).", expectedCount, actualCount);
+                    String message = String.format("Expected %d test(s) but executed %d test(s).", expectedCount, actualCount);
+                    if (getFailOnUnexpectedTestCount().getOrElse(false)) {
+                        throw new GradleException(message);
+                    } else {
+                        getLogger().warn(message);
+                    }
                 }
             }
         }
@@ -1417,7 +1423,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * The expected number of tests to be executed.
      * <p>
      * If set, the task will emit a warning after test execution if the actual number of executed tests
-     * does not match the expected count.
+     * does not match the expected count. If {@link #getFailOnUnexpectedTestCount()} is set to true,
+     * an exception will be thrown instead of emitting a warning.
      * </p>
      * <p>
      * This is an optional property. If not set, no test count validation is performed.
@@ -1431,6 +1438,25 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @org.gradle.api.tasks.Optional
     @Option(option = "expected-test-count", description = "Expected number of tests to be executed.")
     public abstract Property<Long> getExpectedTestCount();
+
+    /**
+     * Whether to fail the build when the expected test count does not match the actual count.
+     * <p>
+     * When set to true, a {@link GradleException} will be thrown if the expected test count
+     * does not match the actual count. When false (the default), only a warning is emitted.
+     * </p>
+     * <p>
+     * This property has no effect if {@link #getExpectedTestCount()} is not set.
+     * </p>
+     *
+     * @return the fail on unexpected test count property
+     * @since 9.4.0
+     */
+    @Incubating
+    @Input
+    @org.gradle.api.tasks.Optional
+    @Option(option = "fail-on-unexpected-test-count", description = "Fail the build when the expected test count does not match.")
+    public abstract Property<Boolean> getFailOnUnexpectedTestCount();
 
     @Override
     boolean testsAreNotFiltered() {
