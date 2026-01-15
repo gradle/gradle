@@ -67,6 +67,34 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
     }
 
     @Test
+    fun `can extract plugins block from settings script with only plugins`() {
+
+        extractPluginsFrom(
+            scriptPlugin(
+                "plugins-only.settings.gradle.kts",
+                """
+                // this comment will be removed
+                plugins {
+                    java
+                }
+                // and so will the rest of the script
+                """
+            )
+        )
+
+        assertThat(
+            outputFile("plugins-only.settings.gradle.kts").readText(),
+            equalTo(
+                """
+                ${"// this comment will be removed".replacedBySpaces()}
+                plugins {
+                    java
+                }"""
+            )
+        )
+    }
+
+    @Test
     fun `can extract plugins block from script with a buildscript block`() {
 
         extractPluginsFrom(

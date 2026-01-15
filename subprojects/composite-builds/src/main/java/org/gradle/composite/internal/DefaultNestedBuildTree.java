@@ -50,6 +50,7 @@ public class DefaultNestedBuildTree implements NestedBuildTree {
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
     private final CrossBuildSessionState crossBuildSessionState;
     private final BuildCancellationToken buildCancellationToken;
+    private final ClassPath injectedPluginClassPath;
 
     public DefaultNestedBuildTree(
         BuildInvocationScopeId buildInvocationScopeId,
@@ -58,7 +59,8 @@ public class DefaultNestedBuildTree implements NestedBuildTree {
         BuildState owner,
         GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
         CrossBuildSessionState crossBuildSessionState,
-        BuildCancellationToken buildCancellationToken
+        BuildCancellationToken buildCancellationToken,
+        ClassPath injectedPluginClassPath
     ) {
         this.buildInvocationScopeId = buildInvocationScopeId;
         this.buildDefinition = buildDefinition;
@@ -67,13 +69,14 @@ public class DefaultNestedBuildTree implements NestedBuildTree {
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
         this.crossBuildSessionState = crossBuildSessionState;
         this.buildCancellationToken = buildCancellationToken;
+        this.injectedPluginClassPath = injectedPluginClassPath;
     }
 
     @Override
     public <T> T run(Function<? super BuildTreeLifecycleController, T> buildAction) {
         StartParameterInternal startParameter = buildDefinition.getStartParameter();
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
-        BuildSessionState session = new BuildSessionState(userHomeDirServiceRegistry, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, buildCancellationToken, buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
+        BuildSessionState session = new BuildSessionState(userHomeDirServiceRegistry, crossBuildSessionState, startParameter, buildRequestMetaData, injectedPluginClassPath, buildCancellationToken, buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
         try {
             ServiceRegistry buildSessionServices = session.getServices();
             buildSessionServices.get(BuildLayoutValidator.class).validate(startParameter);

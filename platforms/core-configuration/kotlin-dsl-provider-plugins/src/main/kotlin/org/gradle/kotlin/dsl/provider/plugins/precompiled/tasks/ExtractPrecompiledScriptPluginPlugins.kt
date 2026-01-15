@@ -41,7 +41,7 @@ import java.io.File
 
 
 /**
- * Extracts the `plugins` block of each precompiled [Project] script plugin
+ * Extracts the `plugins` block of each precompiled [Project] or [Settings] script plugin
  * and writes it to a file with the same name under [outputDir].
  */
 @CacheableTask
@@ -84,7 +84,8 @@ fun extractPrecompiledScriptPluginPluginsTo(outputDir: File, scriptPlugins: List
 private
 fun pluginsBlockOf(scriptPlugin: PrecompiledScriptPlugin): Program.Plugins? =
     when (scriptPlugin.scriptType) {
-        KotlinScriptType.PROJECT -> pluginsBlockOf(parse(scriptPlugin))
+        KotlinScriptType.PROJECT -> pluginsBlockOf(parse(scriptPlugin, target = ProgramTarget.Project))
+        KotlinScriptType.SETTINGS -> pluginsBlockOf(parse(scriptPlugin, target = ProgramTarget.Settings))
         else -> null
     }
 
@@ -100,10 +101,10 @@ fun pluginsBlockOf(program: Program): Program.Plugins? =
 
 
 private
-fun parse(scriptPlugin: PrecompiledScriptPlugin): Program = ProgramParser.parse(
+fun parse(scriptPlugin: PrecompiledScriptPlugin, target: ProgramTarget): Program = ProgramParser.parse(
     ProgramSource(scriptPlugin.scriptFileName, scriptPlugin.scriptText),
     ProgramKind.TopLevel,
-    ProgramTarget.Project
+    target,
 ).document
 
 
