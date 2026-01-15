@@ -121,7 +121,7 @@
   {
     "name": "build-discovery",
     "path": "platforms/core-runtime/build-discovery",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -129,6 +129,13 @@
     "name": "build-discovery-impl",
     "path": "platforms/core-runtime/build-discovery-impl",
     "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "build-discovery-reporting",
+    "path": "platforms/core-runtime/build-discovery-reporting",
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

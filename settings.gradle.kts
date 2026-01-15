@@ -63,6 +63,7 @@ val core = platform("core") {
         subproject("build-configuration")
         subproject("build-discovery")
         subproject("build-discovery-impl")
+        subproject("build-discovery-reporting")
         subproject("build-operations")
         subproject("build-operations-trace")
         subproject("build-option")

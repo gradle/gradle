@@ -156,6 +156,7 @@
             <option value="$PROJECT_DIR$/platforms/core-runtime/build-configuration" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/build-discovery" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/build-discovery-impl" />
+            <option value="$PROJECT_DIR$/platforms/core-runtime/build-discovery-reporting" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/build-operations" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/build-operations-trace" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/build-option" />

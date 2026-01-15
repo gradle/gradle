@@ -103,6 +103,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.nativePlatform)
 
+    implementation(projects.buildDiscoveryReporting)
     implementation(projects.buildOperationsTrace)
     implementation(projects.daemonLogging)
     implementation(projects.groovyLoader)
