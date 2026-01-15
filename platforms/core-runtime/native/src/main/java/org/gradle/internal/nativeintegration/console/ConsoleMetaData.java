@@ -127,16 +127,6 @@ public interface ConsoleMetaData {
 
         // Ghostty supports OSC 9;4 sequences
         String term = System.getenv("TERM");
-        if (term != null && term.toLowerCase(Locale.ROOT).contains("ghostty")) {
-            return true;
-        }
-
-        // Windows Terminal might support this in the future
-        // Currently commented out until verified
-        // if (System.getenv("WT_SESSION") != null) {
-        //     return true;
-        // }
-
-        return false;
+        return term != null && term.toLowerCase(Locale.ROOT).contains("ghostty");
     }
 }
