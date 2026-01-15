@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestFailureSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.internal.consumer.DefaultTestFrameworkFailure
+import org.gradle.util.GradleVersion
 
 @TargetGradleVersion(">=9.0.0")
 class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification {
@@ -82,6 +83,18 @@ class TestFailureProgressEventCrossVersionTest extends TestFailureSpecification 
         collector.failures.size() == 1
         collector.failures[0] instanceof DefaultTestFrameworkFailure
         collector.failures[0].className == "org.gradle.api.internal.tasks.testing.TestSuiteExecutionException"
-        collector.failures[0].message =~ /Could not start Gradle Test Executor \d+: Failed to load JUnit 4.*/
+        if (targetVersion < GradleVersion.version("9.4.0")) {
+            collector.failures[0].message =~ /Could not start Gradle Test Executor \d+: Failed to load JUnit 4.*/
+        } else {
+            collector.failures[0].message =~ /Could not start Gradle Test Executor \d+\./
+
+            collector.failures[0].causes.size() == 1
+            def cause = collector.failures[0].causes[0]
+            !(cause instanceof DefaultTestFrameworkFailure)
+            def message = "Failed to load JUnit 4.  Please ensure that the JUnit 4 library is available on the test's runtime classpath."
+            cause.message == message
+            cause.description.startsWith('org.gradle.api.internal.tasks.testing.RequiresTestFrameworkTestDefinitionProcessor$TestFrameworkNotAvailableException: ' + message)
+        }
+
     }
 }
