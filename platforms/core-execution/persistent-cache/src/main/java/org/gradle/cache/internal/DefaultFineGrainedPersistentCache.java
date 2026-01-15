@@ -46,7 +46,7 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFineGrainedPersistentCache.class);
 
-    private static final LockOptions EXCLUSIVE_LOCKING_MODE = DefaultLockOptions.mode(Exclusive);
+    private static final LockOptions EXCLUSIVE_LOCKING_WITH_LOCK_FILE_SYSTEM_CHECK = DefaultLockOptions.mode(Exclusive).ensureAcquiredLockRepresentsStateOnFileSystem();
 
     private final ProducerGuard<String> guard;
     private final File locksDir;
@@ -118,19 +118,8 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
     }
 
     private FileLock acquireLock(String key) {
-        FileLock lock = null;
-        while (lock == null) {
-            File lockFile = getLockFile(key);
-            lock = fileLockManager.lock(lockFile, EXCLUSIVE_LOCKING_MODE, displayName, "");
-            // Verify the lock file hasn't been recreated between opening file handle and acquiring the lock.
-            // Skip for new initializations to optimize the first use case. We assume that if we hold the lock,
-            // and we are the first to access it, then no other process was able to delete/recreate the lock file.
-            if (!lock.isFirstLockAccess() && !lock.isValid()) {
-                lock.close();
-                lock = null;
-            }
-        }
-        return lock;
+        File lockFile = getLockFile(key);
+        return fileLockManager.lock(lockFile, EXCLUSIVE_LOCKING_WITH_LOCK_FILE_SYSTEM_CHECK, displayName, "");
     }
 
     private File getLockFile(String key) {

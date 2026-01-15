@@ -49,22 +49,6 @@ public interface FileLock extends Closeable, FileAccess {
     FileLockManager.LockMode getMode();
 
     /**
-     * Returns true if the lock is still valid and it was not recreated by another process since the lock was acquired.
-     * Should not be called after the lock is closed.
-     *
-     * NOTE: This method is not supported for cross-version locks.
-     */
-    boolean isValid();
-
-    /**
-     * Tries to determine if this is the first file lock access.
-     * Return true if file lock state was initialized while opening this file lock, otherwise it returns false.
-     *
-     * NOTE: For shared locks this method will always return false unless lock is opened in exclusive mode.
-     */
-    boolean isFirstLockAccess();
-
-    /**
      * An immutable snapshot of the state of a lock.
      */
     interface State {

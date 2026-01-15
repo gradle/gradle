@@ -487,26 +487,6 @@ abstract class AbstractFileLockManagerTest extends Specification {
         lock?.close()
     }
 
-    def "#lockMode #canOrCannot recognize lock's first access"() {
-        when:
-        def lock = createLock(lockMode)
-
-        then:
-        lock.isFirstLockAccess() == expectedFirstAccess
-
-        when:
-        lock.close()
-        lock = createLock(lockMode)
-
-        then:
-        !lock.isFirstLockAccess()
-
-        where:
-        canOrCannot | lockMode  | expectedFirstAccess
-        "CAN"       | Exclusive | true
-        "CANNOT"    | Shared    | false
-    }
-
     void isEmptyLockFile(TestFile lockFile) {
         assert lockFile.isFile()
         assert lockFile.length() == 0

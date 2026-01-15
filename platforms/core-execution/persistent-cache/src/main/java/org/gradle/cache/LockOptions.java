@@ -22,6 +22,27 @@ public interface LockOptions {
     boolean isUseCrossVersionImplementation();
 
     /**
+     * Ensures that the acquired lock represents a file state on the file system.
+     *
+     * This safeguard is necessary when a Gradle process is allowed to delete a
+     * lock file while holding it.
+     *
+     * <p>
+     * Example Scenario:
+     * <ol>
+     * <li>Process 1 acquires the lock. Process 2 attempts to acquire it and waits.</li>
+     * <li>Process 1 deletes the lock file from the disk, then releases the lock.</li>
+     * <li>Process 2 serves the wait and successfully acquires the lock.</li>
+     * </ol>
+     *
+     * At this point, Process 2 holds a lock on a file that no longer exists on the disk.
+     * This option prevents this invalid lock state.
+     *
+     * <p>This option is not supported for shared or cross-version locks.</p>
+     */
+    boolean isEnsureAcquiredLockRepresentsStateOnFileSystem();
+
+    /**
      * Creates a copy of this options instance using the given mode.
      *
      * @param mode the mode to overwrite the current mode with

@@ -17,7 +17,6 @@ package org.gradle.cache.internal.filelock;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -80,7 +79,10 @@ public class LockStateAccess {
             ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer, 0, readPos);
             DataInputStream dataInput = new DataInputStream(inputStream);
 
-            readAndValidateProtocolVersion(dataInput);
+            byte protocolVersion = dataInput.readByte();
+            if (protocolVersion != protocol.getVersion()) {
+                throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file. Expected %s, found %s.", protocol.getVersion(), protocolVersion));
+            }
             return protocol.read(dataInput);
         } catch (EOFException e) {
             return protocol.createInitialState();
@@ -97,19 +99,6 @@ public class LockStateAccess {
             }
         } catch (OverlappingFileLockException e) {
             return FileLockOutcome.LOCKED_BY_THIS_PROCESS;
-        }
-    }
-
-    public long readLockId(RandomAccessFile lockFileAccess) throws IOException {
-        lockFileAccess.seek(REGION_START);
-        readAndValidateProtocolVersion(lockFileAccess);
-        return protocol.readLockId(lockFileAccess);
-    }
-
-    private void readAndValidateProtocolVersion(DataInput lockFileAccess) throws IOException {
-        byte protocolVersion = lockFileAccess.readByte();
-        if (protocolVersion != protocol.getVersion()) {
-            throw new IllegalStateException(String.format("Unexpected lock protocol found in lock file. Expected %s, found %s.", protocol.getVersion(), protocolVersion));
         }
     }
 
