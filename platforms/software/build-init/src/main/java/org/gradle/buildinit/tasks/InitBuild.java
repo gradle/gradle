@@ -452,8 +452,6 @@ public abstract class InitBuild extends DefaultTask {
      * @param userQuestions the user questions to ask if {@link #getAllowFileOverwrite()} is not set and the directory is non-empty
      * @throws BuildInitException if the build directory is non-empty, this isn't a POM conversion and the user does not allow overwriting
      */
-    // Suppressed in order to make more readable filtering statements
-    @SuppressWarnings({"RedundantControlFlow", "UnnecessaryContinue"})
     private void validateBuildDirectory(UserQuestions userQuestions) {
         if (!isPomConversion()) {
             File projectDirFile = getProjectDirectory().get().getAsFile();
