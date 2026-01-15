@@ -19,15 +19,6 @@ When creating a plugin in Gradle, you will most likely offer tasks users can run
 
 Let's create a binary plugin that offers both.
 
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/qnezUMmOh7M?si=fFOzk_xD3Fno8KKb&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
-
 When you write a plugin in Gradle, if you want to share it between multiple projects then the best option is to create the plugin in a separate repository.
 This way, you can publish it to a private or public Maven repository, and then apply it in whatever project you need.
 
@@ -195,15 +186,6 @@ This enables the following usage in a `build.gradle(.kts)` file:
 include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="build.gradle.kts"]
 include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="build.gradle"]
 ====
-
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/FKe1lXWtHos?si=Jtaoqqf3XxqJfoLG&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
 
 [.text-right]
 **Next Step:** <<testing_binary_plugin_advanced.adoc#test_binary_plugins_advanced,Learn how to test Binary Plugins>> >>
