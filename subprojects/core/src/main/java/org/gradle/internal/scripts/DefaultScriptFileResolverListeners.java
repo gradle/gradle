@@ -16,18 +16,12 @@
 
 package org.gradle.internal.scripts;
 
-import org.gradle.internal.event.AnonymousListenerBroadcast;
-import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.event.ListenerBroadcast;
 
 import java.io.File;
 
-public class DefaultScriptFileResolverListeners implements ScriptFileResolvedListener, ScriptFileResolverListeners {
-
-    private final AnonymousListenerBroadcast<ScriptFileResolvedListener> broadcast;
-
-    public DefaultScriptFileResolverListeners(ListenerManager listenerManager) {
-        this.broadcast = listenerManager.createAnonymousBroadcaster(ScriptFileResolvedListener.class);
-    }
+public class DefaultScriptFileResolverListeners implements ScriptFileResolverListeners {
+    private final ListenerBroadcast<ScriptFileResolvedListener> broadcast = new ListenerBroadcast<>(ScriptFileResolvedListener.class);
 
     @Override
     public void addListener(ScriptFileResolvedListener scriptFileResolvedListener) {

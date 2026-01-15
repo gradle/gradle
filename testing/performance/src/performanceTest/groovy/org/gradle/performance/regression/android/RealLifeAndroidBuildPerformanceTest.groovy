@@ -161,6 +161,11 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
             // NowInAndroid supports Kotlin 2.1.20 max
             kgpVersion = "2.1.20"
         }
+        if (VersionNumber.parse(agpVersion).major >= 9) {
+            // NowInAndroid supports AGP 8.x max
+            agpVersion = new AndroidGradlePluginVersions().latestsStableOrRC.reverse().find { VersionNumber.parse(it).major == 8 }
+            assert agpVersion != null
+        }
         runner.addBuildMutator { is -> new SupplementaryRepositoriesMutator(is) }
         runner.addBuildMutator { is -> new AgpAndKgpVersionMutator(is, agpVersion, kgpVersion) }
     }
@@ -191,8 +196,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
     private static class AgpAndKgpVersionMutator extends AbstractFileChangeMutator {
 
-        private final def agpVersion
-        private final def kgpVersion
+        private final String agpVersion
+        private final String kgpVersion
 
         protected AgpAndKgpVersionMutator(InvocationSettings invocationSettings, String agpVersion, String kgpVersion) {
             super(new File(new File(invocationSettings.projectDir, "gradle"), "libs.versions.toml"))
@@ -202,8 +207,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
         @Override
         protected void applyChangeTo(BuildContext context, StringBuilder text) {
-            replaceVersion(text, "androidGradlePlugin", "$agpVersion")
-            replaceVersion(text, "kotlin", "$kgpVersion")
+            replaceVersion(text, "androidGradlePlugin", agpVersion)
+            replaceVersion(text, "kotlin", kgpVersion)
 
             // See https://developer.android.com/jetpack/androidx/releases/compose-kotlin#pre-release_kotlin_compatibility
             replaceVersion(text, "androidxComposeCompiler", "1.5.8", false)

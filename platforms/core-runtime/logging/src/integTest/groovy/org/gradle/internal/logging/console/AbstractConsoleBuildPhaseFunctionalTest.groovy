@@ -490,7 +490,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     String regexFor(String message) {
-        /<.*> $message \[[\dms ]+]/
+        /$ProgressBar.UNICODE_PROGRESS_BAR_PREFIX.*$ProgressBar.UNICODE_PROGRESS_BAR_SUFFIX $message \[[\dms ]+]/
     }
 
     void waitForFinish() {

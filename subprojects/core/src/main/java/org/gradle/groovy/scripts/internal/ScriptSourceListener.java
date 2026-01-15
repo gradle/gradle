@@ -17,10 +17,14 @@
 package org.gradle.groovy.scripts.internal;
 
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-@EventScope(Scope.Build.class)
+/**
+ * Receives events of build script sources loading.
+ * These events are not sent through {@code ListenerManager}.
+ */
+@ServiceScope(Scope.Build.class)
 public interface ScriptSourceListener {
 
     /**

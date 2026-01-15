@@ -23,7 +23,7 @@ import org.gradle.internal.service.scopes.Scope.Global;
 import java.util.EnumSet;
 
 /**
- * Registered via {@link WorkInputListeners}.
+ * Registered via {@link WorkInputListeners}. These events are not sent through {@code ListenerManager}.
  */
 @EventScope(Global.class)
 public interface WorkInputListener {

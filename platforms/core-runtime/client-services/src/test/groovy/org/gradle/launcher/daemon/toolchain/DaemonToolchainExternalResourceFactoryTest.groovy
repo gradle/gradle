@@ -17,14 +17,12 @@
 package org.gradle.launcher.daemon.toolchain
 
 import org.gradle.authentication.Authentication
-import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory
 import org.gradle.internal.resource.ExternalResourceFactory
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileResourceConnector
-import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.resource.transfer.DefaultExternalResourceRepository
 import org.gradle.internal.resource.transport.http.HttpClientHelper
 import org.gradle.internal.time.Clock
@@ -36,8 +34,6 @@ class DaemonToolchainExternalResourceFactoryTest extends Specification {
 
     ExternalResourceFactory repositoryTransportFactory
     def fileSystem = Mock(FileSystem)
-    def fileListener = Mock(FileResourceListener)
-    def listenerManager = Mock(ListenerManager)
     def verifierFactory = Mock(JavaToolchainHttpRedirectVerifierFactory)
     def httpClientFactory = Mock(HttpClientHelper.Factory)
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
@@ -46,8 +42,15 @@ class DaemonToolchainExternalResourceFactoryTest extends Specification {
 
     def setup() {
         verifierFactory.createVerifier(_ as URI) >> Mock(HttpRedirectVerifier)
-        listenerManager.getBroadcaster(_ as Class<FileResourceListener>) >> fileListener
-        repositoryTransportFactory = new DaemonToolchainExternalResourceFactory(fileSystem, listenerManager, verifierFactory, httpClientFactory, progressLoggerFactory, clock, operationIdFactory, Optional.empty())
+        repositoryTransportFactory = new DaemonToolchainExternalResourceFactory(
+            fileSystem,
+            verifierFactory,
+            httpClientFactory,
+            progressLoggerFactory,
+            clock,
+            operationIdFactory,
+            Optional.empty()
+        )
     }
 
     def "create external resource from https uri"() {
@@ -66,7 +69,6 @@ class DaemonToolchainExternalResourceFactoryTest extends Specification {
         then:
         externalResource.class == FileResourceConnector
         externalResource.@fileSystem == fileSystem
-        externalResource.@listener == fileListener
     }
 
     private ExternalResourceRepository createExternalResource(URI source, Collection<Authentication> authentications) {

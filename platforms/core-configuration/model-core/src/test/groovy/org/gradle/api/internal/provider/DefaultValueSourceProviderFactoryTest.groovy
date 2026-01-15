@@ -55,17 +55,15 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         def provider = createProviderOf(EchoValueSource) {
             it.parameters.value.set('42')
         }
-        def obtainedValueCount = 0
-        valueSourceProviderFactory.addValueListener { value, source ->
-            assert source instanceof EchoValueSource
-            obtainedValueCount += 1
-        }
 
-        expect:
+        when:
+        provider.get()
+        provider.get()
+        provider.get()
+
+        then:
+        1 * valueListener.valueObtained(_, _)
         provider.get() == '42'
-        provider.get() == '42'
-        provider.get() == '42'
-        obtainedValueCount == 1
 
         where:
         time            | atConfigurationTime
@@ -79,13 +77,6 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         def provider = createProviderOf(EchoValueSource) {
             it.parameters.value.set("42")
         }
-        ValueSourceProviderFactory.ComputationListener computationListener = Mock()
-        valueSourceProviderFactory.addComputationListener(computationListener)
-        List<ObtainedValue<?, ValueSourceParameters>> obtainedValues = []
-        valueSourceProviderFactory.addValueListener { value, source ->
-            assert source instanceof EchoValueSource
-            obtainedValues.add(value)
-        }
 
         when: "value is obtained for the 1st time"
         provider.get()
@@ -97,18 +88,19 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         1 * computationListener.afterValueObtained()
 
         then: "valueObtained is notified"
-        obtainedValues.size() == 1
-        obtainedValues[0].valueSourceType == EchoValueSource
-        obtainedValues[0].valueSourceParametersType == EchoValueSource.Parameters
-        obtainedValues[0].valueSourceParameters.value.get() == "42"
-        obtainedValues[0].value.get() == "42"
+        1 * valueListener.valueObtained({ ObtainedValue it ->
+            it.valueSourceType == EchoValueSource &&
+                it.valueSourceParametersType == EchoValueSource.Parameters &&
+                it.valueSourceParameters.value.get() == "42" &&
+                it.value.get() == "42"
+        }, { it instanceof EchoValueSource })
 
         when: "value is accessed a 2nd time"
         provider.get()
 
         then: "no notification is sent"
         0 * computationListener._
-        obtainedValues.size() == 1
+        0 * valueListener._
     }
 
     def "provider maps null returned from obtain to not present"() {
@@ -168,31 +160,25 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
     }
 
     def "listener calls wrap obtain invocation"() {
-        when:
-        valueSourceProviderFactory.addComputationListener(new ValueSourceProviderFactory.ComputationListener() {
-            @Override
-            void beforeValueObtained() {
-                StatusTrackingValueSource.INSIDE_COMPUTATION.set(true)
-            }
-
-            @Override
-            void afterValueObtained() {
-                StatusTrackingValueSource.INSIDE_COMPUTATION.set(false)
-            }
-        })
+        given:
         def provider = createProviderOf(StatusTrackingValueSource) {}
 
+        when:
         def result = provider.get()
 
         then:
+        1 * computationListener.beforeValueObtained() >> {
+            StatusTrackingValueSource.INSIDE_COMPUTATION.set(true)
+        }
+        1 * computationListener.afterValueObtained() >> {
+            StatusTrackingValueSource.INSIDE_COMPUTATION.set(false)
+        }
         result
         !StatusTrackingValueSource.INSIDE_COMPUTATION.get()
     }
 
     def "failed value source notifies before-after listeners"() {
         given:
-        ValueSourceProviderFactory.ComputationListener listener = Mock()
-        valueSourceProviderFactory.addComputationListener(listener)
         def provider = createProviderOf(vsClass) {}
 
         when:
@@ -200,10 +186,10 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
 
         then:
         thrown(exceptionClass)
-        1 * listener.beforeValueObtained()
+        1 * computationListener.beforeValueObtained()
 
         then:
-        1 * listener.afterValueObtained()
+        1 * computationListener.afterValueObtained()
 
         where:
         vsClass                        | exceptionClass
@@ -213,8 +199,6 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
 
     def "failure to obtain value source notifies value listener"() {
         given:
-        ValueSourceProviderFactory.ValueListener listener = Mock()
-        valueSourceProviderFactory.addValueListener(listener)
         def provider = createProviderOf(ThrowingValueSource) {}
 
         when:
@@ -225,13 +209,11 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         }
 
         then:
-        1 * listener.valueObtained({ ObtainedValue it -> it.value.failure.isPresent() }, _)
+        1 * valueListener.valueObtained({ ObtainedValue it -> it.value.failure.isPresent() }, _)
     }
 
     def "failure to create value source does not notify value listener"() {
         given:
-        ValueSourceProviderFactory.ValueListener listener = Mock()
-        valueSourceProviderFactory.addValueListener(listener)
         def provider = createProviderOf(ConstructorThrowingValueSource) {}
 
         when:
@@ -242,7 +224,7 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         }
 
         then:
-        0 * listener.valueObtained(_, _)
+        0 * valueListener.valueObtained(_, _)
     }
 
     def "describable value source provides source information of missing value"() {

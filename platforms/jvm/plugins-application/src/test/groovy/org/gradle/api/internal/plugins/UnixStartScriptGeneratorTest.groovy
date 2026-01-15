@@ -164,13 +164,42 @@ class UnixStartScriptGeneratorTest extends Specification {
         ['path\\to\\Jar.jar'] | 'CLASSPATH='             | true
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/30101")
+    def "uses github permalinks in embedded documentation when gitRef specified"() {
+        given:
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(
+            null, 'bin', new MainClass(""), ['path\\to\\Jar.jar'], "6c9eca778c871a6310d2c3f2c3d3f8e67a915538")
+        Writer destination = new StringWriter()
+
+        when:
+        generator.generateScript(details, destination)
+
+        then:
+        !destination.toString().contains("https://github.com/gradle/gradle/blob/HEAD/")
+        destination.toString().contains("https://github.com/gradle/gradle/blob/6c9eca778c871a6310d2c3f2c3d3f8e67a915538/")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30101")
+    def "uses HEAD in github links embedded documentation when gitRef not specified"() {
+        given:
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(null, 'bin')
+        Writer destination = new StringWriter()
+
+        when:
+        generator.generateScript(details, destination)
+
+        then:
+        destination.toString().contains("https://github.com/gradle/gradle/blob/HEAD/")
+    }
+
     private JavaAppStartScriptGenerationDetails createScriptGenerationDetails(
         List<String> defaultJvmOpts,
         String scriptRelPath,
         AppEntryPoint appEntryPoint = new MainClass(""),
-        List<String> classpath = ['path\\to\\Jar.jar']
+        List<String> classpath = ['path\\to\\Jar.jar'],
+        String gitRef = null
     ) {
         final String applicationName = 'TestApp'
-        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, null, null, appEntryPoint, defaultJvmOpts, classpath, [], scriptRelPath, null)
+        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, gitRef, null, null, appEntryPoint, defaultJvmOpts, classpath, [], scriptRelPath, null)
     }
 }
