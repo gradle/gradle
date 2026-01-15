@@ -37,8 +37,6 @@ import org.jspecify.annotations.Nullable;
 public interface ProjectFeatureImplementation<T extends Definition<V>, V extends BuildModel> {
     String getFeatureName();
 
-    String getUniqueId();
-
     Class<T> getDefinitionPublicType();
 
     Class<? extends T> getDefinitionImplementationType();

@@ -298,7 +298,6 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
-        args("--stacktrace")
         succeeds(":printProjectTypeDefinitionConfiguration", ":printFeatureDefinitionConfiguration")
 
         then:

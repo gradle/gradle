@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.evaluator.defaults
 
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ProjectFeatureIdentifier
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
 import org.gradle.internal.declarativedsl.analysis.NestedObjectAccessRecord
@@ -28,7 +29,7 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
  */
 internal
 object ModelDefaultsResolutionProcessor {
-    fun process(resolutionResult: ResolutionResult): Map<String, ModelDefaultsResolutionResults> {
+    fun process(resolutionResult: ResolutionResult): Map<ProjectFeatureIdentifier, ModelDefaultsResolutionResults> {
         val assignments = resolutionResult.assignments.groupBy { assignment ->
             getProjectFeature(assignment.lhs.receiverObject).accessor.projectFeatureAccessorIdOrNull()
         }
@@ -52,7 +53,7 @@ object ModelDefaultsResolutionProcessor {
  * The operations for model defaults extracted from a resolution result.
  */
 data class ModelDefaultsResolutionResults(
-    val projectFeatureId: String,
+    val projectFeatureId: ProjectFeatureIdentifier,
     val assignments: List<AssignmentRecord>,
     val additions: List<DataAdditionRecord>,
     val nestedObjectAccess: List<NestedObjectAccessRecord>
