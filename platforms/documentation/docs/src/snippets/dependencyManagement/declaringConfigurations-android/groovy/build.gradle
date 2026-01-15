@@ -1,8 +1,7 @@
 // tag::configurations[]
 plugins {
-    id("com.android.application") version '8.13.0'
-    id("org.jetbrains.kotlin.android") version '2.1.20'
-    id("org.jetbrains.kotlin.kapt") version "2.1.20"
+    id("com.android.application") version '9.0.0'
+    id("org.jetbrains.kotlin.kapt") version "2.3.0"
 }
 
 // end::configurations[]
