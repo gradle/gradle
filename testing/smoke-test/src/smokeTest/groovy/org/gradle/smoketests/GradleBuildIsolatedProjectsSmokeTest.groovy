@@ -91,7 +91,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
                 "Project ':' cannot access 'Project.extensions' functionality on subprojects via 'allprojects'",
             )
             // checking total problem count is too brittle, as that number changes whenever projects are added or removed
-            ignoreDuplicateProblemCount = true
+            enforceTotalProblemCount = false
         }
         result.assertNoConfigurationCache()
     }

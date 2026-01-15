@@ -426,14 +426,14 @@ class HasConfigurationCacheProblemsSpec {
     Integer problemsWithStackTraceCount
 
     /**
-     * Whether total problem count should not be strictly verified, only a number greater or equal to
+     * Whether total problem count should be strictly verified, otherwise only a number greater or equal to
      * the number of unique problems should be expected
-     * (useful when there are a large, frequently changing number of duplicates - such as in smoke/Gradleception tests
+     * (disabling this is useful when there is a large, frequently changing number of duplicates - such as in smoke/Gradleception tests
      * - but only unique problems actually matter).
      *
-     * When `true`, `totalProblemsCount` should not be specified.
+     * When `false`, `totalProblemsCount` should not be specified.
      */
-    boolean ignoreDuplicateProblemCount = false
+    boolean enforceTotalProblemCount = true
 
     /**
      * Whether to check for problem messages in the report.
@@ -458,9 +458,9 @@ class HasConfigurationCacheProblemsSpec {
                 throw new IllegalArgumentException("Count of problems with stacktrace can't be greater that count of total problems.")
             }
         }
-        if (ignoreDuplicateProblemCount && totalProblemsCount != null) {
+        if (!enforceTotalProblemCount && totalProblemsCount != null) {
             throw new IllegalArgumentException(
-                "Must not expect a specific `totalProblemsCount` if duplicate problem count should be ignored"
+                "Must not expect a specific `totalProblemsCount` if `enforceTotalProblemCount` is false"
             )
         }
     }

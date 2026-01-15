@@ -221,17 +221,17 @@ abstract class ConfigurationCacheReportFixture {
                 spec.inputs instanceof ItemSpec.ExpectingSome):
                 "The spec suggests the report shouldn't be generated but it was"
 
-            if (spec.ignoreDuplicateProblemCount) {
-                assertThat(
-                    "HTML report JS model does not have the minimum number of total problem(s)",
-                    jsModel.totalProblemCount,
-                    greaterThanOrEqualTo(uniqueProblemCount)
-                )
-            } else {
+            if (spec.enforceTotalProblemCount) {
                 assertThat(
                     "HTML report JS model has wrong number of total problem(s)",
                     jsModel.totalProblemCount,
                     equalTo(totalProblemCount)
+                )
+            } else {
+                assertThat(
+                    "HTML report JS model does not have the minimum number of total problem(s)",
+                    jsModel.totalProblemCount,
+                    greaterThanOrEqualTo(uniqueProblemCount)
                 )
             }
             assertThat(

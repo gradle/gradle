@@ -301,7 +301,7 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
                 "Some problem 1",
                 "Some problem 2"
             )
-            ignoreDuplicateProblemCount = true
+            enforceTotalProblemCount = false
             problemsWithStackTraceCount = 0
         }
 
