@@ -16,24 +16,35 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
-import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.capability.DefaultSpecificCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
 import org.gradle.api.internal.artifacts.component.ComponentSelectorInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 
-import java.util.Collections;
 import java.util.List;
 
 class UnversionedModuleComponentSelector implements ComponentSelectorInternal {
 
     private final ModuleIdentifier moduleIdentifier;
+    private final ImmutableAttributes attributes;
+    private final ImmutableSet<CapabilitySelector> capabilitySelectors;
 
-    UnversionedModuleComponentSelector(ModuleIdentifier id) {
+    UnversionedModuleComponentSelector(
+        ModuleIdentifier id,
+        ImmutableAttributes attributes,
+        ImmutableSet<CapabilitySelector> capabilitySelectors
+    ) {
         this.moduleIdentifier = id;
+        this.attributes = attributes;
+        this.capabilitySelectors = capabilitySelectors;
     }
 
     public ModuleIdentifier getModuleIdentifier() {
@@ -42,7 +53,7 @@ class UnversionedModuleComponentSelector implements ComponentSelectorInternal {
 
     @Override
     public String getDisplayName() {
-        return moduleIdentifier.toString() + ":*";
+        return moduleIdentifier + ":*";
     }
 
     @Override
@@ -52,17 +63,48 @@ class UnversionedModuleComponentSelector implements ComponentSelectorInternal {
 
     @Override
     public ImmutableAttributes getAttributes() {
-        return ImmutableAttributes.EMPTY;
+        return attributes;
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public List<Capability> getRequestedCapabilities() {
-        return Collections.emptyList();
+        return capabilitySelectors.stream()
+            .map(c -> {
+                if (c instanceof SpecificCapabilitySelector) {
+                    return ((DefaultSpecificCapabilitySelector) c).getBackingCapability();
+                } else if (c instanceof FeatureCapabilitySelector) {
+                    return new DefaultImmutableCapability(
+                        getModuleIdentifier().getGroup(),
+                        getModuleIdentifier().getName() + "-" + ((FeatureCapabilitySelector) c).getFeatureName(),
+                        null
+                    );
+                } else {
+                    throw new UnsupportedOperationException("Unsupported capability selector type: " + c.getClass().getName());
+                }
+            })
+            .collect(ImmutableList.toImmutableList());
     }
 
     @Override
     public ImmutableSet<CapabilitySelector> getCapabilitySelectors() {
-        return ImmutableSet.of();
+        return capabilitySelectors;
+    }
+
+    public UnversionedModuleComponentSelector withAttributes(ImmutableAttributes newAttributes) {
+        return new UnversionedModuleComponentSelector(
+            moduleIdentifier,
+            newAttributes,
+            capabilitySelectors
+        );
+    }
+
+    public UnversionedModuleComponentSelector withCapabilities(ImmutableSet<CapabilitySelector> newCapabilitySelectors) {
+        return new UnversionedModuleComponentSelector(
+            moduleIdentifier,
+            attributes,
+            newCapabilitySelectors
+        );
     }
 
     @Override
@@ -73,13 +115,19 @@ class UnversionedModuleComponentSelector implements ComponentSelectorInternal {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         UnversionedModuleComponentSelector that = (UnversionedModuleComponentSelector) o;
-        return Objects.equal(moduleIdentifier, that.moduleIdentifier);
+        return moduleIdentifier.equals(that.moduleIdentifier) &&
+            attributes.equals(that.attributes) &&
+            capabilitySelectors.equals(that.capabilitySelectors);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(moduleIdentifier);
+        int result = moduleIdentifier.hashCode();
+        result = 31 * result + attributes.hashCode();
+        result = 31 * result + capabilitySelectors.hashCode();
+        return result;
     }
 
 }
