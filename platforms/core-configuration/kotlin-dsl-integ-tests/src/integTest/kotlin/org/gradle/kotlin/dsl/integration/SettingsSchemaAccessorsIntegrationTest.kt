@@ -27,7 +27,7 @@ class SettingsSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Before
     fun withSettingsPluginFromIncludedBuild() {
-        // given: a Settings plugin from an included build including another included build with a base settings plugin
+        // given: a Settings plugin from an included build depending on base settings plugin
         withBasePluginSourceFile(
             "my/MySettingsExtension.kt",
             """
@@ -79,6 +79,7 @@ class SettingsSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 }
                 gradle.rootProject {
                     tasks.register("ok") {
+                        // mySettingsExtension is a generated accessor
                         val myProperty = mySettingsExtension.myProperty
                         doLast { println("It's ${'$'}{myProperty.get()}!") }
                     }
