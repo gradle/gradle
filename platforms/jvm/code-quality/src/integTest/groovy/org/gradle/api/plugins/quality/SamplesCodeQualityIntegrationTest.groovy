@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.samples
+package org.gradle.api.plugins.quality
+
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.internal.jvm.Jvm
+import org.gradle.quality.integtest.fixtures.PmdCoverage
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
+
+import static org.junit.Assume.assumeTrue
 
 class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -31,6 +37,8 @@ class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
     @UsesSample('codeQuality/codeQuality')
     @Requires([UnitTestPreconditions.StableGroovy, UnitTestPreconditions.Jdk11OrLater])
     def "can generate reports with #dsl dsl"() {
+        assumeTrue(PmdCoverage.supportsJdkVersion(VersionNumber.parse(PmdPlugin.DEFAULT_PMD_VERSION), Jvm.current().javaVersionMajor))
+
         TestFile projectDir = sample.dir.file(dsl)
         TestFile buildDir = projectDir.file('build')
 

@@ -79,7 +79,7 @@ abstract class AbstractSmokeTest extends Specification {
         static springDependencyManagement = SMOKE_TESTED_PLUGINS.get("io.spring.dependency-management")
         static springBoot = SMOKE_TESTED_PLUGINS.get("org.springframework.boot")
         static gretty = [
-            [version: SMOKE_TESTED_PLUGINS.get("org.gretty"), servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
+            [version: SMOKE_TESTED_PLUGINS.get("org.gretty"), servletContainer: "jetty12", javaMinVersion: JavaVersion.VERSION_17]
         ]
         static gradleVersions = SMOKE_TESTED_PLUGINS.get("com.github.ben-manes.versions")
         static playframework = SMOKE_TESTED_PLUGINS.get("org.gradle.playframework")

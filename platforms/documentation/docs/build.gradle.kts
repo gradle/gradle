@@ -730,6 +730,8 @@ tasks.named<Test>("docsTest") {
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_26)) {
             // PMD doesn't support Java 26
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-code-quality-code-quality*")
+            // There is a bug in either AGP or the JDK which causes JdkImageTransform to fail with Java 26
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-dependency-management-declaring-configurations-kmp*")
         }
 
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {
