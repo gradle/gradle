@@ -47,23 +47,23 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
     Map<String, Versions> getPluginsToValidate() {
         [
             // https://mvnrepository.com/artifact/com.google.gms/google-services?repo=google
-            (GOOGLE_SERVICES_PLUGIN_ID): Versions.of('4.3.15'),
+            (GOOGLE_SERVICES_PLUGIN_ID): Versions.of('4.4.4'),
             // https://mvnrepository.com/artifact/com.google.firebase.crashlytics/com.google.firebase.crashlytics.gradle.plugin
-            (CRASHLYTICS_PLUGIN_ID): Versions.of('2.9.7'),
+            (CRASHLYTICS_PLUGIN_ID): Versions.of('3.0.6'),
             // https://mvnrepository.com/artifact/com.google.firebase/perf-plugin
-            (FIREBASE_PERF_PLUGIN_ID): Versions.of('1.4.2'),
+            (FIREBASE_PERF_PLUGIN_ID): Versions.of('2.0.2'),
             // https://plugins.gradle.org/plugin/com.bugsnag.android.gradle
-            (BUGSNAG_PLUGIN_ID): Versions.of('8.0.1'),
+            (BUGSNAG_PLUGIN_ID): Versions.of('8.2.0'),
             // https://plugins.gradle.org/plugin/com.osacky.fladle
-            (FLADLE_PLUGIN_ID): Versions.of('0.17.4'),
+            (FLADLE_PLUGIN_ID): Versions.of('0.19.0'),
             // https://plugins.gradle.org/plugin/com.github.triplet.play
-            (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.9.0'),
+            (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.13.0'),
             // https://mvnrepository.com/artifact/androidx.navigation.safeargs/androidx.navigation.safeargs.gradle.plugin
-            (SAFEARGS_PLUGIN_ID): Versions.of('2.6.0'),
+            (SAFEARGS_PLUGIN_ID): Versions.of('2.9.6'),
             // https://mvnrepository.com/artifact/com.google.dagger/hilt-android-gradle-plugin
-            (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.47'),
+            (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.57.2'),
             // https://mvnrepository.com/artifact/io.sentry.android.gradle/io.sentry.android.gradle.gradle.plugin
-            (SENTRY_PLUGIN_ID): Versions.of('3.11.1'),
+            (SENTRY_PLUGIN_ID): Versions.of('5.12.2'),
         ]
     }
 
@@ -117,7 +117,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
         buildFile << """
                 android {
                     namespace = "org.gradle.smoke.test"
-                    compileSdk = 24
+                    compileSdk = 36
                     buildToolsVersion = '${AGP_VERSIONS.getBuildToolsVersionFor(ANDROID_PLUGIN_VERSION_FOR_TESTS)}'
                     defaultConfig {
                         versionCode = 1
@@ -126,7 +126,6 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
         """
         file("gradle.properties") << """
             android.useAndroidX=true
-            android.enableJetifier=true
         """.stripIndent()
         file("src/main/AndroidManifest.xml") << """<?xml version="1.0" encoding="utf-8"?>
             <manifest xmlns:android="http://schemas.android.com/apk/res/android"
@@ -150,6 +149,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
 
         switch (testedPluginId) {
             case DAGGER_HILT_ANDROID_PLUGIN_ID:
+                disableAgp9NewDsl()
                 buildFile << """
                     dependencies {
                         implementation "com.google.dagger:hilt-android:$version"
@@ -157,7 +157,11 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
                     }
                 """
                 break
+            case FLADLE_PLUGIN_ID:
+                disableAgp9NewDsl()
+                break
             case TRIPLET_PLAY_PLUGIN_ID:
+                disableAgp9NewDsl()
                 buildFile << """
                     play {
                         serviceAccountCredentials = file("your-key.json")
@@ -165,17 +169,18 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
                     }
                 """
                 break
+            case SENTRY_PLUGIN_ID:
+                disableAgp9NewDsl()
+                break
         }
+    }
+
+    private void disableAgp9NewDsl() {
+        file("gradle.properties") << "\nandroid.newDsl=false\n"
     }
 
     @Override
     Map<String, String> getExtraPluginsRequiredForValidation(String testedPluginId, String version) {
-        if (testedPluginId == DAGGER_HILT_ANDROID_PLUGIN_ID) {
-            return [
-                'com.android.application': ANDROID_PLUGIN_VERSION_FOR_TESTS,
-                'org.jetbrains.kotlin.android': KOTLIN_VERSIONS.latestStable
-            ]
-        }
         return ['com.android.application': ANDROID_PLUGIN_VERSION_FOR_TESTS]
     }
 }

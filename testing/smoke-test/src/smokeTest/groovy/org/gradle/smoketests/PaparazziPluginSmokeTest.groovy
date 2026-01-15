@@ -51,13 +51,14 @@ class PaparazziPluginSmokeTest extends AbstractSmokeTest implements RunnerFactor
             ${googleRepository()}
 
             android {
-                compileSdk = 30
+                compileSdk = 36
                 namespace = "org.gradle.android.example.app"
             }
         """
 
         file("gradle.properties") << """
             android.useAndroidX = true
+            android.newDsl = false
         """
 
         file("src/main/AndroidManifest.xml") << """<?xml version="1.0" encoding="utf-8"?>
@@ -65,7 +66,12 @@ class PaparazziPluginSmokeTest extends AbstractSmokeTest implements RunnerFactor
             </manifest>""".stripIndent()
 
         expect:
-        agpRunner(agpVersion, 'testDebug').build()
+        agpRunner(agpVersion, 'testDebug')
+            .expectDeprecationWarning(
+                "WARNING: The option setting 'android.newDsl=false' is deprecated.",
+                "https://github.com/cashapp/paparazzi/issues/2095"
+            )
+            .build()
     }
 
 }
