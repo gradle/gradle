@@ -26,7 +26,6 @@ import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 import static org.gradle.wrapper.Download.UNKNOWN_VERSION;
 
@@ -51,15 +50,22 @@ public class GradleWrapperMain {
         ParsedCommandLine options = parser.parse(args);
 
         Map<String, String> commandLineSystemProperties = converter.convert(options, new HashMap<String, String>());
-        // Set system properties from command-line, as we can define gradle user home through -Dgradle.user.home
-        System.getProperties().putAll(commandLineSystemProperties);
-
+        Map<String, String> projectSystemProperties = PropertiesFileHandler.getSystemProperties(new File(rootDir, "gradle.properties"));
+        /// If the Gradle system properties may define a custom Gradle home, which needs to be set before loading user gradle.properties
+        maybeAddGradleUserHomeSystemProperty(projectSystemProperties, commandLineSystemProperties);
         File gradleUserHome = gradleUserHome(options);
-
-        // Re-add command-line system properties to make sure they take priority again
-        addSystemProperties(commandLineSystemProperties, gradleUserHome, rootDir);
+        File userGradleProperties = new File(gradleUserHome, "gradle.properties");
+        Map<String, String> userSystemProperties = new HashMap<>(PropertiesFileHandler.getSystemProperties(userGradleProperties));
+        // Inception: Gradle user home cannot be changed with configuration from the Gradle user home
+        boolean invalidGradleUserHome = userSystemProperties.remove(GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY) != null;
+        // Set all system properties from all Gradle sources with correct precedence: project (lowest) < user < cli (highest)
+        addSystemProperties(projectSystemProperties, userSystemProperties, commandLineSystemProperties);
 
         Logger logger = logger(options);
+
+        if (invalidGradleUserHome) {
+            logger.log("WARNING Ignored custom Gradle user home location configured in Gradle user home: " + userGradleProperties.getAbsolutePath());
+        }
 
         WrapperExecutor wrapperExecutor = WrapperExecutor.forWrapperPropertiesFile(propertiesFile);
         WrapperConfiguration configuration = wrapperExecutor.getConfiguration();
@@ -71,15 +77,32 @@ public class GradleWrapperMain {
                 new BootstrapMainStarter());
     }
 
-    private static void addSystemProperties(Map<String, String> commandLineSystemProperties, File gradleUserHome, File rootDir) {
-        Properties systemProperties = System.getProperties();
-        // The location with highest priority needs to come last here, as it overwrites any previous entries.
-        // 3. project level properties
-        systemProperties.putAll(PropertiesFileHandler.getSystemProperties(new File(rootDir, "gradle.properties")));
-        // 2. User level properties
-        systemProperties.putAll(PropertiesFileHandler.getSystemProperties(new File(gradleUserHome, "gradle.properties")));
-        // 1. command-line properties
-        systemProperties.putAll(commandLineSystemProperties);
+    private static void addSystemProperties(Map<String, String> projectSystemProperties, Map<String, String> userSystemProperties, Map<String, String> commandLineSystemProperties) {
+        Map<String, String> gradleSystemProperties = combine(projectSystemProperties, userSystemProperties, commandLineSystemProperties);
+        System.getProperties().putAll(gradleSystemProperties);
+    }
+
+    private static void maybeAddGradleUserHomeSystemProperty(Map<String, String> projectSystemProperties, Map<String, String> commandLineSystemProperties) {
+        Map<String, String> gradleSystemProperties = combine(projectSystemProperties, commandLineSystemProperties);
+        String property = gradleSystemProperties.get(GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY);
+        if (property != null) {
+            System.setProperty(GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY, property);
+        }
+    }
+
+    private static Map<String, String> combine(Map<String, String> p1, Map<String, String> p2) {
+        // If there are duplicate keys, the values from p2 take precedence.
+        Map<String, String> result = new HashMap<>(p1);
+        result.putAll(p2);
+        return result;
+    }
+
+    private static Map<String, String> combine(Map<String, String> p1, Map<String, String> p2, Map<String, String> p3) {
+        // If there are duplicate keys, the values from p3 take precedence over p2, which take precedence over p1.
+        Map<String, String> result = new HashMap<>(p1);
+        result.putAll(p2);
+        result.putAll(p3);
+        return result;
     }
 
     private static File rootDir(File wrapperJar) {

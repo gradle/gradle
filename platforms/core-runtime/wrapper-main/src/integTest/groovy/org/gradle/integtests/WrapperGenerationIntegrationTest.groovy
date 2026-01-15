@@ -35,7 +35,7 @@ import java.util.jar.Manifest
 import static org.hamcrest.CoreMatchers.containsString
 
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
-    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("06587f27ce8a44f64a7a9670784d6ba1ce9dfdde7720ac2b4d574fbc995f51b6")
+    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("9ea3aa44b232bb132fb940420253268126341aae8bd5fe8a72293990ea2e8bf1")
 
     def "generated wrapper scripts use correct line separators"() {
         buildFile << """
@@ -65,7 +65,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // wrapper needs to be small. Let's check it's smaller than some arbitrary 'small' limit
-        file("gradle/wrapper/gradle-wrapper.jar").length() < 47 * 1024
+        file("gradle/wrapper/gradle-wrapper.jar").length() < 48 * 1024
     }
 
     def "wrapper jar has LICENSE file"() {
