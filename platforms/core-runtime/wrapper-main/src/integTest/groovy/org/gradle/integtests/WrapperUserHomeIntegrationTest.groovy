@@ -63,7 +63,7 @@ class WrapperUserHomeIntegrationTest extends AbstractWrapperIntegrationSpec {
         }
 
         when:
-        wrapperExecuter.withGradleUserHomeDir(null).withArguments('-g', gradleUserHome.absolutePath).run()
+        wrapperExecuter.withGradleUserHomeDir(null).run()
 
         then:
         installationIn gradleUserHome
