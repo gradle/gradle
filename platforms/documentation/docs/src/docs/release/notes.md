@@ -53,6 +53,18 @@ Both Basic authentication and Bearer token authentication can now be configured 
 
 See the [Wrapper documentation](userguide/gradle_wrapper.html#sec:authenticated_download) for further details.  
 
+### Enhanced terminal progress bars
+
+Gradle's progress bars are now more compatible with modern terminal environments:
+Unicode characters are now used to render the progress bar where supported.
+* Ligature-Safe Rendering: Progress bars no longer interfere with ligature fonts, ensuring a clean visual experience.
+* Unicode Support: High-resolution Unicode characters are now used for rendering whenever the terminal supports them.
+* Native Terminal Integration: Added support for OSC 9;4 escape sequences. This allows native progress bar display in terminals like [Ghostty](https://ghostty.org/) and [iTerm2 >3.6.6](https://iterm2.com/).
+OSC 9;4 progress bar codes are now supported.
+This allows the progress bars to be displayed correctly on terminals that support them.
+
+![gradle-progress-bar-new.gif](release-notes-assets/gradle-progress-bar-new.gif)
+
 ### Problems HTML report refinements
 
 The incubating Problems HTML report has been refined to provide a more useful user experience.
