@@ -435,8 +435,8 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     }
 
     /**
-     * Computes the [project schema][TypedProjectSchema] implied by the given plugins by applying
-     * them to a synthetic root project in the context of a nested build.
+     * Computes the [settings schema][TypedProjectSchema] implied by the given settings plugins by applying
+     * them to a synthetic project in the context of a nested build with the injected plugin classpath.
      */
     private
     fun settingsSchemaFor(plugins: PluginRequests): Try<TypedProjectSchema> {
@@ -446,14 +446,12 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         val injectedPluginClasspath = DefaultClassPath.of(accessorsGenerationClassPathFiles)
 
         return createNestedBuildTree("$path:${projectDir.name}", startParameter, services, injectedPluginClasspath).run { controller ->
-
             controller.withEmptyBuild { settings ->
                 Try.ofFailable {
-                    val s = settings.run {
+                    settings.run {
                         applyPlugins(plugins)
                         serviceOf<ProjectSchemaProvider>().schemaFor(this, classLoaderScope)!!
                     }
-                    s
                 }
             }
         }

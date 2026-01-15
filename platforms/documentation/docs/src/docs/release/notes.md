@@ -126,6 +126,11 @@ dependencies {
 }
 ```
 
+### Precompiled Kotlin Accessors for Convention Settings Plugins
+
+Gradle now generates precompiled accessors for [convention Settings plugins](userguide/pre_compiled_script_plugin_advanced.html) (`*.settings.gradle.kts`).
+Like precompiled Kotlin accessors for convention Project plugins, you need to apply the `kotlin-dsl` plugin.
+
 ## Plugin development
 
 ### Stricter validation for published plugins
