@@ -65,11 +65,7 @@ class PaparazziPluginSmokeTest extends AbstractSmokeTest implements RunnerFactor
             </manifest>""".stripIndent()
 
         expect:
-        agpRunner(agpVersion, 'testDebug')
-            .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecation(agpVersion)
-            }
-            .build()
+        agpRunner(agpVersion, 'testDebug').build()
     }
 
 }

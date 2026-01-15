@@ -92,11 +92,7 @@ class AndroidProjectCachingSmokeTest extends AbstractAndroidProjectSmokeTest {
         List<String> ossLicensesTasksExcludes = ["prodRelease", "prodDebug", "prodNonMinifiedRelease", "demoNonMinifiedRelease", "demoRelease", "demoDebug", "prodBenchmarkRelease", "demoBenchmarkRelease"].collectMany {
             ["-x", ":app:${it}OssLicensesCleanUp"]
         }
-        runnerForLocation(relocatedDir, agpVersion, "clean", *ossLicensesTasksExcludes, *excludingCCIncompatibleTasks())
-            .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecation(agpVersion)
-            }
-            .build()
+        runnerForLocation(relocatedDir, agpVersion, "clean", *ossLicensesTasksExcludes, *excludingCCIncompatibleTasks()).build()
         result = buildCachedLocation(relocatedDir, agpVersion)
 
         then:
