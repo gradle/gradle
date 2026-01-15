@@ -26,6 +26,7 @@ import spock.lang.Specification
 class StartScriptGeneratorTest extends Specification {
 
     private static final String APP_NAME = 'Gradle'
+    private static final String GIT_REF = '6c9eca778c871a6310d2c3f2c3d3f8e67a915538'
     private static final String OPTS_ENV_VAR = 'GRADLE_OPTS'
     private static final String EXIT_ENV_VAR = 'GRADLE_EXIT_CONSOLE'
     private static final String MAIN_CLASSNAME = 'org.gradle.launcher.GradleMain'
@@ -73,6 +74,7 @@ class StartScriptGeneratorTest extends Specification {
 
     private void populateStartScriptGenerator() {
         startScriptGenerator.applicationName = APP_NAME
+        startScriptGenerator.gitRef = GIT_REF
         startScriptGenerator.optsEnvironmentVar = OPTS_ENV_VAR
         startScriptGenerator.exitEnvironmentVar = EXIT_ENV_VAR
         startScriptGenerator.mainClassName = MAIN_CLASSNAME
@@ -84,6 +86,6 @@ class StartScriptGeneratorTest extends Specification {
     }
 
     private JavaAppStartScriptGenerationDetails createJavaAppStartScriptGenerationDetails() {
-        return new DefaultJavaAppStartScriptGenerationDetails(APP_NAME, OPTS_ENV_VAR, EXIT_ENV_VAR, new MainClass(MAIN_CLASSNAME), DEFAULT_JVM_OPTS, CLASSPATH, MODULE_PATH, SCRIPT_REL_PATH, APP_NAME_SYS_PROP)
+        return new DefaultJavaAppStartScriptGenerationDetails(APP_NAME, GIT_REF, OPTS_ENV_VAR, EXIT_ENV_VAR, new MainClass(MAIN_CLASSNAME), DEFAULT_JVM_OPTS, CLASSPATH, MODULE_PATH, SCRIPT_REL_PATH, APP_NAME_SYS_PROP)
     }
 }
