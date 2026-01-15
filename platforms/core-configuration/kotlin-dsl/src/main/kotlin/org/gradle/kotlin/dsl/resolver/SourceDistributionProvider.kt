@@ -105,8 +105,8 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
     }
 
     private
-    fun dependencyVersion(gradleVersion: GradleDistVersion) =
-        if (gradleVersion.isSnapshot) toVersionRange(gradleVersion.versionString) else gradleVersion
+    fun dependencyVersion(gradleVersion: GradleDistVersion): String =
+        if (gradleVersion.isSnapshot) toVersionRange(gradleVersion.versionString) else gradleVersion.versionString
 
     private
     fun toVersionRange(gradleVersion: String) =
