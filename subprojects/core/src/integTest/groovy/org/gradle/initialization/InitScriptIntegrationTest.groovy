@@ -178,4 +178,80 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
             }
         """
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/29678")
+    def "can use lazy gradle.providers.exec in init script"() {
+        given:
+        file("version.txt") << "1.2.3"
+
+        file("init.gradle") << """
+            def versionProvider = gradle.providers.exec {
+                commandLine ${org.gradle.internal.os.OperatingSystem.current().windows ? '"cmd.exe", "/d", "/c", "type"' : '"cat"'}, "version.txt"
+            }.standardOutput.asText
+
+            gradle.settingsEvaluated {
+                println "Version from lazy provider: " + versionProvider.get().trim()
+            }
+        """
+
+        executer.usingInitScript(file('init.gradle'))
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << "task hello"
+
+        when:
+        succeeds 'hello'
+
+        then:
+        outputContains("Version from lazy provider: 1.2.3")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29678")
+    def "can use gradle.providers for other provider factory methods"() {
+        given:
+        file("init.gradle") << """
+            def envVar = gradle.providers.environmentVariable("PATH")
+            def sysProp = gradle.providers.systemProperty("java.version")
+            def custom = gradle.providers.provider { "custom value" }
+
+            println "Has PATH: " + envVar.present
+            println "Has Java version: " + sysProp.present
+            println "Custom: " + custom.get()
+        """
+
+        executer.usingInitScript(file('init.gradle'))
+        buildFile << "task hello"
+
+        when:
+        succeeds 'hello'
+
+        then:
+        outputContains("Has PATH: true")
+        outputContains("Has Java version: true")
+        outputContains("Custom: custom value")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29678")
+    def "can use gradle.providers from initscript block"() {
+        given:
+        file("config.txt") << "gradle-providers-test"
+
+        file("init.gradle") << """
+            initscript {
+                // Test that gradle.providers is accessible from within initscript block
+                def configValue = gradle.providers.exec {
+                    commandLine ${org.gradle.internal.os.OperatingSystem.current().windows ? '"cmd.exe", "/d", "/c", "type"' : '"cat"'}, "config.txt"
+                }.standardOutput.asText.get().trim()
+                println "Config using gradle.providers from initscript block: \${configValue}"
+            }
+        """
+
+        executer.usingInitScript(file('init.gradle'))
+        buildFile << "task hello"
+
+        when:
+        succeeds 'hello'
+
+        then:
+        outputContains("Config using gradle.providers from initscript block: gradle-providers-test")
+    }
 }
