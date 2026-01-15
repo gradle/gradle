@@ -50,10 +50,13 @@ public class GradleWrapperMain {
         converter.configure(parser);
         ParsedCommandLine options = parser.parse(args);
 
+        Map<String, String> commandLineSystemProperties = converter.convert(options, new HashMap<String, String>());
+        // Set system properties from command-line, as we can define gradle user home through -Dgradle.user.home
+        System.getProperties().putAll(commandLineSystemProperties);
+
         File gradleUserHome = gradleUserHome(options);
 
-        Map<String, String> commandLineSystemProperties = converter.convert(options, new HashMap<String, String>());
-
+        // Re-add command-line system properties to make sure they take priority again
         addSystemProperties(commandLineSystemProperties, gradleUserHome, rootDir);
 
         Logger logger = logger(options);
