@@ -157,13 +157,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
             "--add-opens",
             "java.base/java.net=ALL-UNNAMED"
         ]) // needed when tests are being run with CC on, see https://github.com/gradle/gradle/issues/22765
-        if (VersionNumber.parse(kgpVersion) > VersionNumber.parse("2.1.20")) {
-            // NowInAndroid supports Kotlin 2.1.20 max
-            kgpVersion = "2.1.20"
-        }
-        if (VersionNumber.parse(agpVersion).major >= 9) {
-            // NowInAndroid supports AGP 8.x max
-            agpVersion = new AndroidGradlePluginVersions().latestsStableOrRC.reverse().find { VersionNumber.parse(it).major == 8 }
+        if (VersionNumber.parse(agpVersion).major != 9) {
+            // NowInAndroid supports AGP 9.x only
+            agpVersion = new AndroidGradlePluginVersions().latestsStableOrRC.reverse().find { VersionNumber.parse(it).major == 9 }
             assert agpVersion != null
         }
         runner.addBuildMutator { is -> new SupplementaryRepositoriesMutator(is) }
@@ -209,15 +205,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         protected void applyChangeTo(BuildContext context, StringBuilder text) {
             replaceVersion(text, "androidGradlePlugin", agpVersion)
             replaceVersion(text, "kotlin", kgpVersion)
-
-            // See https://developer.android.com/jetpack/androidx/releases/compose-kotlin#pre-release_kotlin_compatibility
-            replaceVersion(text, "androidxComposeCompiler", "1.5.8", false)
-
-            // See https://github.com/google/ksp/tags
-            replaceVersion(text, "ksp", "2.1.20-1.0.32")
         }
 
-        private static void replaceVersion(StringBuilder text, String target, String version, Boolean mandatory = false) {
+        private static void replaceVersion(StringBuilder text, String target, String version, Boolean mandatory = true) {
             Matcher matcher = text =~ /(${target}.*)\n/
             if (matcher.find()) {
                 def result = matcher.toMatchResult()
