@@ -462,10 +462,8 @@ public abstract class InitBuild extends DefaultTask {
             File[] projectDirFiles = projectDirFile.listFiles();
             if (projectDirFiles != null) {
                 for (File file : projectDirFiles) {
-                    if (file.isDirectory() && file.getName().equals(".gradle")) {
-                        // We expect this file to be present even if the directory was empty when Gradle was invoked
-                        continue;
-                    } else {
+                    // We expect .gradle/ to be present even if the directory was empty when Gradle was invoked
+                    if (!file.isDirectory() || !file.getName().equals(".gradle")) {
                         isEmptyDirectory = false;
                         break;
                     }
