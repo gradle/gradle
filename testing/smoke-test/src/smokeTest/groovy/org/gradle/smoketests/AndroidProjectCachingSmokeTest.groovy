@@ -105,7 +105,7 @@ class AndroidProjectCachingSmokeTest extends AbstractAndroidProjectSmokeTest {
         }
 
         where:
-        agpVersion << TestedVersions.androidGradle9AndAbove.versions
+        agpVersion << TestedVersions.androidGradle.versions
     }
 }
 

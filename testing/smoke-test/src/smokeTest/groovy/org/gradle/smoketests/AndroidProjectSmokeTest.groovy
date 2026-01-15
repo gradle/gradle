@@ -42,7 +42,7 @@ class AndroidProjectDeprecationSmokeTest extends AndroidProjectSmokeTest {
         }
 
         where:
-        agpVersion << TestedVersions.androidGradle9AndAbove.versions
+        agpVersion << TestedVersions.androidGradle.versions
     }
 }
 
@@ -79,7 +79,7 @@ class AndroidProjectIncrementalCompilationSmokeTest extends AndroidProjectSmokeT
         }
 
         where:
-        agpVersion << TestedVersions.androidGradle9AndAbove.versions
+        agpVersion << TestedVersions.androidGradle.versions
     }
 }
 
@@ -125,6 +125,6 @@ class AndroidProjectLintSmokeTest extends AndroidProjectSmokeTest {
         result.output.contains("Lint found errors in the project; aborting build.")
 
         where:
-        agpVersion << TestedVersions.androidGradle9AndAbove.versions
+        agpVersion << TestedVersions.androidGradle.versions
     }
 }

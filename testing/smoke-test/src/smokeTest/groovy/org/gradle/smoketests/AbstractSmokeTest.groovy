@@ -53,9 +53,6 @@ abstract class AbstractSmokeTest extends Specification {
         // https://developer.android.com/studio/releases/gradle-plugin
         // Update by running `./gradlew updateAgpVersions`
         static androidGradle = Versions.of(*AGP_VERSIONS.latestsPlusNightly)
-        static androidGradle9AndAbove = Versions.of(*AGP_VERSIONS.latests.findAll { v ->
-            VersionNumber.parse(v).major >= 9
-        })
         static androidGradleBefore9 = Versions.of(*AGP_VERSIONS.latests.findAll { v ->
             VersionNumber.parse(v).baseVersion < AndroidGradlePluginVersions.AGP_9_0
         }.tap { versions ->
@@ -266,7 +263,6 @@ abstract class AbstractSmokeTest extends Specification {
 class SmokeTestedVersionsSanityCheck extends Specification {
     def specialPlugins = [
         AbstractSmokeTest.TestedVersions.androidGradle,
-        AbstractSmokeTest.TestedVersions.androidGradle9AndAbove,
         AbstractSmokeTest.TestedVersions.androidGradleBefore9,
         AbstractSmokeTest.TestedVersions.kotlin,
     ].size()
