@@ -23,9 +23,11 @@ import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory;
 import org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy;
 import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.internal.file.FileAccessTimeJournal;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.function.Supplier;
 
+@NullMarked
 public class DefaultFineGrainedCacheCleanupStrategyFactory implements FineGrainedCacheCleanupStrategyFactory {
 
     private final FileAccessTimeJournal fileAccessTimeJournal;

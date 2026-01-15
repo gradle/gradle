@@ -35,8 +35,7 @@ class DefaultCacheFactoryTest extends Specification {
     final Consumer<?> opened = Mock()
     final Consumer<?> closed = Mock()
     final ProcessMetaDataProvider metaDataProvider = Mock()
-    final File coarseGrainedCacheDir = tmpDir.testDirectory.createDir("coarse")
-    final File fineGrainedCacheDir = tmpDir.testDirectory.createDir("fine")
+    final File cacheDir = tmpDir.testDirectory.createDir("cache")
 
     private final DefaultCacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler()), Mock(ExecutorFactory)) {
         @Override
@@ -55,152 +54,136 @@ class DefaultCacheFactoryTest extends Specification {
         _ * metaDataProvider.processDisplayName >> 'process'
     }
 
-    void "creates directory backed cache instance"() {
+    void "creates directory backed #kind cache instance"() {
         when:
-        def coarseGrainedCache = factory.open(coarseGrainedCacheDir, "<coarse>", [prop: 'value'], mode(Shared), null, null)
-        def fineGrainedCache = factory.openFineGrained(fineGrainedCacheDir, "<fine>", {  })
+        def cache = open(kind)
 
         then:
-        coarseGrainedCache.reference.cache instanceof DefaultPersistentDirectoryCache
-        coarseGrainedCache.baseDir == coarseGrainedCacheDir
-        coarseGrainedCache.toString().startsWith "<coarse>"
-
-        and:
-        fineGrainedCache.reference.cache instanceof DefaultFineGrainedPersistentCache
-        fineGrainedCache.baseDir == fineGrainedCacheDir
-        fineGrainedCache.toString().startsWith "<fine>"
+        expectedImpl.isAssignableFrom(cache.reference.cache.class)
+        cache.baseDir == cacheDir
+        cache.toString().startsWith(expectedDisplayName)
 
         cleanup:
         factory.close()
+
+        where:
+        kind     | expectedImpl                      | expectedDisplayName
+        'coarse' | DefaultPersistentDirectoryCache   | "<coarse>"
+        'fine'   | DefaultFineGrainedPersistentCache | "<fine>"
     }
 
-    void "reuses directory backed cache instances"() {
+    void "reuses directory backed #kind cache instances"() {
         when:
-        def coarseRef1 = factory.open(coarseGrainedCacheDir, null, [prop: 'value'], mode(Exclusive), null, null)
-        def coarseRef2 = factory.open(coarseGrainedCacheDir, null, [prop: 'value'], mode(Exclusive), null, null)
-
-        def fineRef1 = factory.openFineGrained(fineGrainedCacheDir, null, {  })
-        def fineRef2 = factory.openFineGrained(fineGrainedCacheDir, null, { })
+        def ref1 = open(kind)
+        def ref2 = open(kind)
 
         then:
-        coarseRef1.reference.cache.is(coarseRef2.reference.cache)
-        fineRef1.reference.cache.is(fineRef2.reference.cache)
+        ref1.reference.cache.is(ref2.reference.cache)
 
         and:
-        1 * opened.accept(_) >> { Closeable s -> assert s instanceof DefaultPersistentDirectoryStore }
-        1 * opened.accept(_) >> { Closeable s -> assert s instanceof DefaultFineGrainedPersistentCache }
+        1 * opened.accept(_) >> { Closeable s -> assert expectedOpenedClass.isAssignableFrom(s.getClass()) }
         0 * opened._
 
         cleanup:
         factory.close()
+
+        where:
+        kind     | expectedOpenedClass
+        'coarse' | DefaultPersistentDirectoryStore
+        'fine'   | DefaultFineGrainedPersistentCache
     }
 
-    void "closes cache instance when factory is closed"() {
-        def coarseCacheImplementation
-        def fineCacheImplementation
+    void "closes #kind cache instance when factory is closed"() {
+        def implementation
 
         when:
-        factory.open(coarseGrainedCacheDir, null, [prop: 'value'], mode(Exclusive), null, null)
-        factory.openFineGrained(fineGrainedCacheDir, null, {})
+        open(kind)
 
         then:
-        1 * opened.accept(_) >> { DefaultPersistentDirectoryStore s -> coarseCacheImplementation = s }
-        1 * opened.accept(_) >> { DefaultFineGrainedPersistentCache s -> fineCacheImplementation = s }
+        1 * opened.accept(_) >> { Closeable s -> implementation = s }
         0 * opened._
 
         when:
         factory.close()
 
         then:
-        1 * closed.accept(coarseCacheImplementation)
-        1 * closed.accept(fineCacheImplementation)
+        1 * closed.accept(implementation)
         0 * _
+
+        where:
+        kind << ['coarse', 'fine']
     }
 
-    void "closes cache instance when reference is closed"() {
-        def coarseCacheImplementation
-        def fineCacheImplementation
+    void "closes #kind cache instance when reference is closed"() {
+        def implementation
 
         when:
-        def coarseCache1 = factory.open(coarseGrainedCacheDir, null, [prop: 'value'], mode(Exclusive), null, null)
-        def coarseCache2 = factory.open(coarseGrainedCacheDir, null, [prop: 'value'], mode(Exclusive), null, null)
-        def fineCache1 = factory.openFineGrained(fineGrainedCacheDir, null, {  })
-        def fineCache2 = factory.openFineGrained(fineGrainedCacheDir, null, {  })
+        def cache1 = open(kind)
+        def cache2 = open(kind)
 
         then:
-        1 * opened.accept(_) >> { DefaultPersistentDirectoryStore s -> coarseCacheImplementation = s }
-        1 * opened.accept(_) >> { DefaultFineGrainedPersistentCache s -> fineCacheImplementation = s }
+        1 * opened.accept(_) >> { Closeable s -> implementation = s }
         0 * opened._
 
         when:
-        coarseCache1.close()
-        fineCache1.close()
+        cache1.close()
 
         then:
         0 * _
 
         when:
-        coarseCache2.close()
-        fineCache2.close()
+        cache2.close()
 
         then:
-        1 * closed.accept(coarseCacheImplementation)
-        1 * closed.accept(fineCacheImplementation)
+        1 * closed.accept(implementation)
         0 * _
+
+        where:
+        kind << ['coarse', 'fine']
     }
 
-    void "can close cache multiple times"() {
-        def coarseImplementation
-        def fineImplementation
+    void "can close #kind cache multiple times"() {
+        def implementation
 
         when:
-        def coarseCache = factory.open(coarseGrainedCacheDir, null, [prop: 'value'], mode(Exclusive), null, null)
-        def fineCache = factory.openFineGrained(fineGrainedCacheDir, null, {  })
+        def cache = open(kind)
 
         then:
-        1 * opened.accept(_) >> { DefaultPersistentDirectoryStore s -> coarseImplementation = s }
-        1 * opened.accept(_) >> { DefaultFineGrainedPersistentCache s -> fineImplementation = s }
+        1 * opened.accept(_) >> { Closeable s -> implementation = s }
         0 * opened._
 
         when:
-        coarseCache.close()
-        coarseCache.close()
+        cache.close()
+        cache.close()
 
         then:
-        1 * closed.accept(coarseImplementation)
+        1 * closed.accept(implementation)
         0 * _
 
-        when:
-        fineCache.close()
-        fineCache.close()
-
-        then:
-        1 * closed.accept(fineImplementation)
-        0 * _
+        where:
+        kind << ['coarse', 'fine']
     }
 
-    void "can close factory after closing cache"() {
-        def coarseImplementation
-        def fineImplementation
+    void "can close factory after closing #kind cache"() {
+        def implementation
 
         when:
-        def coarseCache = factory.open(coarseGrainedCacheDir, null, [prop: 'value'], mode(Exclusive), null, null)
-        def fineCache = factory.openFineGrained(fineGrainedCacheDir, null, {  })
+        def cache = open(kind)
 
         then:
-        1 * opened.accept(_) >> { DefaultPersistentDirectoryStore s -> coarseImplementation = s }
-        1 * opened.accept(_) >> { DefaultFineGrainedPersistentCache s -> fineImplementation = s }
+        1 * opened.accept(_) >> { Closeable s -> implementation = s }
         0 * opened._
 
         when:
-        coarseCache.close()
-        fineCache.close()
+        cache.close()
         factory.close()
 
         then:
-        1 * closed.accept(coarseImplementation)
-        1 * closed.accept(fineImplementation)
+        1 * closed.accept(implementation)
         0 * _
+
+        where:
+        kind << ['coarse', 'fine']
     }
 
     void "fails when directory cache is already open with different properties"() {
@@ -307,5 +290,16 @@ class DefaultCacheFactoryTest extends Specification {
 
         cleanup:
         factory.close()
+    }
+
+    private def open(String kind) {
+        switch (kind) {
+            case 'coarse':
+                return factory.open(cacheDir, '<coarse>', [prop: 'value'], mode(Exclusive), null, null)
+            case 'fine':
+                return factory.openFineGrained(cacheDir, '<fine>', { })
+            default:
+                throw new IllegalArgumentException("Unknown kind: $kind")
+        }
     }
 }

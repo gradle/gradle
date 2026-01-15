@@ -24,6 +24,7 @@ import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.os.OperatingSystem;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,8 +43,10 @@ import java.util.stream.Stream;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy.FineGrainedCacheEntrySoftDeleter;
 import static org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy.SOFT_DELETION_DURATION;
+import static org.gradle.cache.FineGrainedPersistentCache.INTERNAL_DIR_PATH;
 import static org.gradle.cache.FineGrainedPersistentCache.LOCKS_DIR_RELATIVE_PATH;
 
+@NullMarked
 public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements CleanupAction {
 
     private final FileAccessTimeJournal journal;
@@ -214,7 +217,7 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
         private final File gcDir;
 
         public MarkAndSweepCacheEntrySoftDeleter(FineGrainedPersistentCache cache) {
-            this.gcDir = new File(cache.getBaseDir(), ".internal/gc");
+            this.gcDir = new File(cache.getBaseDir(), INTERNAL_DIR_PATH + "/gc");
         }
 
         @Override

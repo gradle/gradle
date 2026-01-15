@@ -26,6 +26,7 @@ import org.gradle.cache.FineGrainedCacheCleanupStrategy;
 import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.internal.filelock.DefaultLockOptions;
+import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,11 +38,12 @@ import java.util.function.Supplier;
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 
 /**
- * An implementation of {@link FineGrainedPersistentCache}.
+ * <p>An implementation of {@link FineGrainedPersistentCache}.</p>
  *
  * It uses exclusive locks for cache entries that are immediately released when action finished.
  * This implementation is suitable for work that writes cache entry only once and reads frequently.
  */
+@NullMarked
 public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentCache {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFineGrainedPersistentCache.class);
@@ -67,7 +69,7 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         this.displayName = displayName;
         this.fileLockManager = fileLockManager;
         this.guard = ProducerGuard.adaptive();
-        this.internalDir = new File(baseDir, ".internal");
+        this.internalDir = new File(baseDir, INTERNAL_DIR_PATH);
         this.locksDir = new File(baseDir, LOCKS_DIR_RELATIVE_PATH);
         File gcFile = new File(internalDir, "gc.properties");
         this.cleanupExecutor = new DefaultCacheCleanupExecutor(this, gcFile, cleanupStrategy.getCleanupStrategy());
@@ -119,7 +121,7 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
 
     private FileLock acquireLock(String key) {
         File lockFile = getLockFile(key);
-        return fileLockManager.lock(lockFile, EXCLUSIVE_LOCKING_WITH_LOCK_FILE_SYSTEM_CHECK, displayName, "");
+        return fileLockManager.lock(lockFile, EXCLUSIVE_LOCKING_WITH_LOCK_FILE_SYSTEM_CHECK, displayName, "acquireLock");
     }
 
     private File getLockFile(String key) {
