@@ -38,7 +38,7 @@ object PublishBranchSnapshotFromQuickFeedback : PublishGradleDistributionFullBui
                 "branch.qualifier",
                 "%dep.${RelativeId("Check_Stage_${triggerName}_Trigger")}.teamcity.build.branch%",
                 label = "Branch qualifier for the published distribution version",
-                description = "The published distribution version looks like '8.13-branch-%branch.qualifier%-20241217145847+0000'.",
+                description = "The published distribution version looks like '8.14-branch-%branch.qualifier%-20241217145847+0000'.",
                 display = ParameterDisplay.PROMPT,
                 allowEmpty = false,
             )

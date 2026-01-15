@@ -35,6 +35,19 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.15]]
+== Upgrading from 8.14 and earlier
+
+=== Potential breaking changes
+
+==== Upgrade to Groovy 3.0.25
+
+Groovy has been updated from 3.0.24 to https://groovy-lang.org/changelogs/changelog-3.0.25.html[Groovy 3.0.25].
+
+==== Upgrade to ASM 9.8
+
+ASM was upgraded from 9.7.1 to https://asm.ow2.io/versions.html[9.8] to ensure compatibility with Java 25.
+
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
 
