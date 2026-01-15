@@ -91,13 +91,15 @@ class ExpectedTestCountIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        def result = failOnMismatch ? fails("test") : succeeds("test")
+        failOnMismatch ? fails("test") : succeeds("test")
 
         then:
         executedAndNotSkipped(":test")
-        outputContains("Expected 5 test(s) but executed 2 test(s).")
         if (failOnMismatch) {
-            result.assertHasErrorOutput("Expected 5 test(s) but executed 2 test(s).")
+            failure.assertHasDescription("Execution failed for task ':test'.")
+            failure.assertHasCause("Task :test expected 5 test(s) but executed 2 test(s).")
+        } else {
+            outputContains("Task :test expected 5 test(s) but executed 2 test(s).")
         }
 
         where:
@@ -149,13 +151,15 @@ class ExpectedTestCountIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        def result = failOnMismatch ? fails("test") : succeeds("test")
+        failOnMismatch ? fails("test") : succeeds("test")
 
         then:
         executedAndNotSkipped(":test")
-        outputContains("Expected 0 test(s) but executed 1 test(s).")
         if (failOnMismatch) {
-            result.assertHasErrorOutput("Expected 0 test(s) but executed 1 test(s).")
+            failure.assertHasDescription("Execution failed for task ':test'.")
+            failure.assertHasCause("Task :test expected 0 test(s) but executed 1 test(s).")
+        } else {
+            outputContains("Task :test expected 0 test(s) but executed 1 test(s).")
         }
 
         where:

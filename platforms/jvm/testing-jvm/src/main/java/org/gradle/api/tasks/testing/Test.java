@@ -769,18 +769,18 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             super.executeTests();
         } finally {
             CompositeStoppable.stoppable(getTestFramework()).stop();
+        }
 
-            // Validate expected test count after execution
-            if (testCountTracker != null) {
-                long actualCount = testCountTracker.getTotalTests();
-                long expectedCount = getExpectedTestCount().get();
-                if (actualCount != expectedCount) {
-                    String message = String.format("Expected %d test(s) but executed %d test(s).", expectedCount, actualCount);
-                    if (getFailOnUnexpectedTestCount().getOrElse(false)) {
-                        throw new GradleException(message);
-                    } else {
-                        getLogger().warn(message);
-                    }
+        // Validate expected test count after execution
+        if (testCountTracker != null) {
+            long actualCount = testCountTracker.getTotalTests();
+            long expectedCount = getExpectedTestCount().get();
+            if (actualCount != expectedCount) {
+                String message = String.format("Task :%s expected %d test(s) but executed %d test(s).", this.getName(), expectedCount, actualCount);
+                if (getFailOnUnexpectedTestCount().getOrElse(false)) {
+                    throw new GradleException(message);
+                } else {
+                    getLogger().warn(message);
                 }
             }
         }
