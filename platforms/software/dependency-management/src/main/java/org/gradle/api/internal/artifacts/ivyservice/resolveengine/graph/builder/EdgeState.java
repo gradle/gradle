@@ -41,6 +41,7 @@ import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -236,32 +237,25 @@ class EdgeState implements DependencyGraphEdge {
             return;
         }
         if (isConstraint) {
-            List<NodeState> nodes = targetComponent.getNodes();
-            for (NodeState node : nodes) {
-                if (node.isSelected() && !node.isRoot()) {
-                    targetNodes.add(node);
-                }
-            }
-            if (targetNodes.isEmpty()) {
-                // There is a chance we could not attach target configurations previously
-                List<EdgeState> unattachedEdges = targetComponent.getModule().getUnattachedEdges();
-                if (!unattachedEdges.isEmpty()) {
-                    for (EdgeState otherEdge : unattachedEdges) {
-                        if (!otherEdge.isConstraint()) {
-                            otherEdge.attachToTargetNodes();
-                            if (otherEdge.targetNodeSelectionFailure != null) {
-                                // Copy selection failure
-                                this.targetNodeSelectionFailure = otherEdge.targetNodeSelectionFailure;
-                                return;
-                            }
-                            break;
+            // We are a constraint and therefore may have deferred selection and attachment
+            // of some other module/edge. Make sure to attach that deferred edge now that we have
+            // performed selection.
+            List<EdgeState> unattachedEdges = targetComponent.getModule().getUnattachedEdges();
+            if (!unattachedEdges.isEmpty()) {
+                for (EdgeState otherEdge : new ArrayList<>(unattachedEdges)) {
+                    if (!otherEdge.isConstraint()) {
+                        otherEdge.attachToTargetNodes();
+                        if (otherEdge.targetNodeSelectionFailure != null) {
+                            // Copy selection failure
+                            this.targetNodeSelectionFailure = otherEdge.targetNodeSelectionFailure;
+                            return;
                         }
                     }
                 }
-                for (NodeState node : nodes) {
-                    if (node.isSelected() && !node.isRoot()) {
-                        targetNodes.add(node);
-                    }
+            }
+            for (NodeState node : targetComponent.getNodes()) {
+                if (node.isSelected() && !node.isRoot()) {
+                    targetNodes.add(node);
                 }
             }
             return;
