@@ -67,7 +67,7 @@ class ExpectedTestCountIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":test")
     }
 
-    def "test task emits warning when expected test count does not match actual count"() {
+    def "test task emits warning or throws exception when expected test count does not match actual count with #scenario"() {
         given:
         file("src/test/java/SimpleTest.java") << """
             import org.junit.Test;
@@ -86,15 +86,24 @@ class ExpectedTestCountIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
                 expectedTestCount = 5
+                failOnUnexpectedTestCount = $failOnMismatch
             }
         """
 
         when:
-        succeeds("test")
+        def result = failOnMismatch ? fails("test") : succeeds("test")
 
         then:
         executedAndNotSkipped(":test")
         outputContains("Expected 5 test(s) but executed 2 test(s).")
+        if (failOnMismatch) {
+            result.assertHasErrorOutput("Expected 5 test(s) but executed 2 test(s).")
+        }
+
+        where:
+        scenario           | failOnMismatch
+        "warning only"     | false
+        "exception thrown" | true
     }
 
     def "test task succeeds when expected test count is not set"() {
@@ -120,7 +129,7 @@ class ExpectedTestCountIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":test")
     }
 
-    def "test task emits warning when expected test count is zero but tests exist"() {
+    def "test task emits warning or throws exception when expected test count is zero but tests exist with #scenario"() {
         given:
         file("src/test/java/SimpleTest.java") << """
             import org.junit.Test;
@@ -135,15 +144,24 @@ class ExpectedTestCountIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
                 expectedTestCount = 0
+                failOnUnexpectedTestCount = $failOnMismatch
             }
         """
 
         when:
-        succeeds("test")
+        def result = failOnMismatch ? fails("test") : succeeds("test")
 
         then:
         executedAndNotSkipped(":test")
         outputContains("Expected 0 test(s) but executed 1 test(s).")
+        if (failOnMismatch) {
+            result.assertHasErrorOutput("Expected 0 test(s) but executed 1 test(s).")
+        }
+
+        where:
+        scenario           | failOnMismatch
+        "warning only"     | false
+        "exception thrown" | true
     }
 
     def "test task succeeds with multiple test classes when expected count matches"() {
@@ -175,6 +193,185 @@ class ExpectedTestCountIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             test {
                 expectedTestCount = 3
+            }
+        """
+
+        when:
+        succeeds("test")
+
+        then:
+        executedAndNotSkipped(":test")
+    }
+
+    def "test task works with test suite"() {
+        given:
+        file("src/test/java/Test1.java") << """
+            import org.junit.Test;
+
+            public class Test1 {
+                @Test
+                public void test1() {
+                }
+            }
+        """
+
+        file("src/test/java/Test2.java") << """
+            import org.junit.Test;
+
+            public class Test2 {
+                @Test
+                public void test2() {
+                }
+            }
+        """
+
+        file("src/test/java/AllTests.java") << """
+            import org.junit.runner.RunWith;
+            import org.junit.runners.Suite;
+
+            @RunWith(Suite.class)
+            @Suite.SuiteClasses({Test1.class, Test2.class})
+            public class AllTests {
+            }
+        """
+
+        buildFile << """
+            test {
+                filter {
+                    includeTestsMatching "AllTests"
+                }
+                expectedTestCount = 2
+            }
+        """
+
+        when:
+        succeeds("test")
+
+        then:
+        executedAndNotSkipped(":test")
+    }
+
+    def "test task works with parameterized test"() {
+        given:
+        buildFile.text = """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                testImplementation 'junit:junit:4.13.2'
+            }
+
+            test {
+                expectedTestCount = 3
+            }
+        """
+
+        file("src/test/java/ParameterizedTest.java") << """
+            import org.junit.Test;
+            import org.junit.runner.RunWith;
+            import org.junit.runners.Parameterized;
+            import org.junit.runners.Parameterized.Parameters;
+            import java.util.Arrays;
+            import java.util.Collection;
+
+            @RunWith(Parameterized.class)
+            public class ParameterizedTest {
+                private int value;
+
+                public ParameterizedTest(int value) {
+                    this.value = value;
+                }
+
+                @Parameters
+                public static Collection<Object[]> data() {
+                    return Arrays.asList(new Object[][] { {1}, {2}, {3} });
+                }
+
+                @Test
+                public void testValue() {
+                    // Test passes
+                }
+            }
+        """
+
+        when:
+        succeeds("test")
+
+        then:
+        executedAndNotSkipped(":test")
+    }
+
+    def "test task works with test filtering by pattern"() {
+        given:
+        file("src/test/java/IncludedTest.java") << """
+            import org.junit.Test;
+
+            public class IncludedTest {
+                @Test
+                public void test1() {
+                }
+
+                @Test
+                public void test2() {
+                }
+            }
+        """
+
+        file("src/test/java/ExcludedTest.java") << """
+            import org.junit.Test;
+
+            public class ExcludedTest {
+                @Test
+                public void test3() {
+                }
+            }
+        """
+
+        buildFile << """
+            test {
+                filter {
+                    includeTestsMatching "IncludedTest"
+                }
+                expectedTestCount = 2
+            }
+        """
+
+        when:
+        succeeds("test")
+
+        then:
+        executedAndNotSkipped(":test")
+    }
+
+    def "test task works with test filtering by method name"() {
+        given:
+        file("src/test/java/FilteredTest.java") << """
+            import org.junit.Test;
+
+            public class FilteredTest {
+                @Test
+                public void includedTest() {
+                }
+
+                @Test
+                public void anotherIncludedTest() {
+                }
+
+                @Test
+                public void excludedTest() {
+                }
+            }
+        """
+
+        buildFile << """
+            test {
+                filter {
+                    includeTestsMatching "FilteredTest.included*"
+                }
+                expectedTestCount = 2
             }
         """
 
