@@ -1,5 +1,3 @@
-import gradlebuild.basics.bundleGroovyMajor
-
 /**
  * This project provides the "platform" for the Gradle distribution.
  * We want the versions that are packaged in the distribution to be used everywhere (e.g. in all test scenarios)
@@ -201,7 +199,6 @@ dependencies {
         api(libs.sshdSftp)
         api(libs.testcontainers)
         api(libs.testcontainersSpock)
-        api(libs.typesafeConfig)
         api(libs.xerces)
         api(libs.xmlunit)
     }

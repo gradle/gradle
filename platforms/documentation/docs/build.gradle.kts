@@ -1,3 +1,4 @@
+import com.gradle.scan.agent.serialization.scan.serializer.kryo.it
 import gradlebuild.basics.configurationCacheEnabledForDocsTests
 import gradlebuild.basics.googleApisJs
 import gradlebuild.basics.repoRoot
@@ -138,7 +139,7 @@ gradleDocumentation {
         javaApi = jvmVersion.map { v -> uri("https://docs.oracle.com/en/java/javase/$v/docs/api/") }
         javaPackageListLoc = jvmVersion.map { v -> project.layout.projectDirectory.dir("src/docs/javaPackageList/$v/") }
         groovyApi = libs.versions.groovy.map { project.uri("https://docs.groovy-lang.org/docs/groovy-${it}/html/gapi") }
-        groovyPackageListSrc = "org.apache.groovy:groovy-all:${libs.groovyVersion}:groovydoc"
+        groovyPackageListSrc = libs.versions.groovy.map { "org.apache.groovy:groovy-all:${it}:groovydoc" }
     }
 }
 

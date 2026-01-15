@@ -18,21 +18,32 @@ import com.google.gson.Gson
 import com.google.gson.Strictness
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
-import gradlebuild.basics.bundleGroovyMajor
 import gradlebuild.basics.repoRoot
-import gradlebuild.modules.extension.ExternalModulesExtension
-
-val oldLibs = extensions.create<ExternalModulesExtension>("oldLibs", bundleGroovyMajor)
 
 applyAutomaticUpgradeOfCapabilities()
 dependencies {
     components {
+        val awsS3Core = "com.amazonaws:aws-java-sdk-core"
+        val bsh = "org.apache-extras.beanshell:bsh"
+        val gcs = "com.google.apis:google-api-services-storage"
+        val googleHttpClient = "com.google.http-client:google-http-client"
+        val gradleProfiler = "org.gradle.profiler:gradle-profiler"
+        val groovyAnt = "org.apache.groovy:groovy-ant"
+        val jclToSlf4j = "org.slf4j:jcl-over-slf4j"
+        val jgit = "org.eclipse.jgit:org.eclipse.jgit"
+        val testng = "org.testng:testng"
+        // Test classpath only libraries
+        val samplesCheck = "org.gradle.exemplar:samples-check"
+        val sshdCore = "org.apache.sshd:sshd-core"
+        val sshdScp = "org.apache.sshd:sshd-scp"
+        val sshdSftp = "org.apache.sshd:sshd-sftp"
+
         // Gradle distribution - minify: remove unused transitive dependencies
-        applyRule<DependencyRemovalByNameRule>(oldLibs.awsS3Core, setOf("jackson-dataformat-cbor"))
-        applyRule<DependencyRemovalByGroupRule>(oldLibs.jgit, setOf("com.googlecode.javaewah"))
+        applyRule<DependencyRemovalByNameRule>(awsS3Core, setOf("jackson-dataformat-cbor"))
+        applyRule<DependencyRemovalByGroupRule>(jgit, setOf("com.googlecode.javaewah"))
 
         // We don't need the extra annotations provided by j2objc
-        applyRule<DependencyRemovalByNameRule>(oldLibs.googleHttpClient, setOf("j2objc-annotations"))
+        applyRule<DependencyRemovalByNameRule>(googleHttpClient, setOf("j2objc-annotations"))
 
         // Read capabilities declared in capabilities.json
         readCapabilitiesFromJson()
@@ -45,18 +56,18 @@ dependencies {
         applyRule<DependencyRemovalByNameRule>("cglib:cglib", setOf("ant"))
 
         // We do not support running junit from Ant. Don't bundle ant-junit.
-        applyRule<DependencyRemovalByNameRule>(oldLibs.groovyAnt, setOf("ant-junit"))
+        applyRule<DependencyRemovalByNameRule>(groovyAnt, setOf("ant-junit"))
 
         // SLF4J Simple is an implementation of the SLF4J API, which is not needed in Gradle
-        applyRule<DependencyRemovalByNameRule>(oldLibs.sshdCore, setOf("slf4j-simple"))
-        applyRule<DependencyRemovalByNameRule>(oldLibs.sshdScp, setOf("slf4j-simple"))
-        applyRule<DependencyRemovalByNameRule>(oldLibs.sshdSftp, setOf("slf4j-simple"))
-        applyRule<DependencyRemovalByNameRule>(oldLibs.gradleProfiler, setOf("slf4j-simple"))
-        applyRule<DependencyRemovalByNameRule>(oldLibs.samplesCheck, setOf("slf4j-simple"))
+        applyRule<DependencyRemovalByNameRule>(sshdCore, setOf("slf4j-simple"))
+        applyRule<DependencyRemovalByNameRule>(sshdScp, setOf("slf4j-simple"))
+        applyRule<DependencyRemovalByNameRule>(sshdSftp, setOf("slf4j-simple"))
+        applyRule<DependencyRemovalByNameRule>(gradleProfiler, setOf("slf4j-simple"))
+        applyRule<DependencyRemovalByNameRule>(samplesCheck, setOf("slf4j-simple"))
 
         // GCS transitively depends on commons-logging.
         // Ensure jcl-over-slf4j is pulled in when we use GCS so it can conflict.
-        applyRule<DependencyAdditionRule>(oldLibs.gcs, oldLibs.jclToSlf4j)
+        applyRule<DependencyAdditionRule>(gcs, jclToSlf4j)
 
         // asciidoctorj depends on a lot of stuff, which causes `Can't create process, argument list too long` on Windows
         applyRule<DependencyRemovalByNameRule>("org.gradle:sample-discovery", setOf("asciidoctorj", "asciidoctorj-api"))
@@ -73,8 +84,8 @@ dependencies {
         applyRule<DependencyRemovalByNameRule>("jcifs:jcifs", setOf("servlet-api"))
 
         // Bsh moved coordinates. Depend on the new coordinates.
-        applyRule<DependencyRemovalByGroupRule>(oldLibs.testng, setOf("org.beanshell"))
-        applyRule<DependencyAdditionRule>(oldLibs.testng, oldLibs.bsh)
+        applyRule<DependencyRemovalByGroupRule>(testng, setOf("org.beanshell"))
+        applyRule<DependencyAdditionRule>(testng, bsh)
 
         // Test dependencies - minify: remove unused transitive dependencies
         applyRule<DependencyRemovalByNameRule>(
