@@ -23,11 +23,21 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.util.GradleVersion;
 
+import java.util.function.BiConsumer;
+
 public class HttpBuildCacheServiceServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(BuildCacheServiceRegistration.class, new DefaultBuildCacheServiceRegistration(HttpBuildCache.class, DefaultHttpBuildCacheServiceFactory.class));
-        registration.add(HttpBuildCacheRequestCustomizer.class, request -> request.addHeader("X-Gradle-Version", GradleVersion.current().getVersion()));
+        registration.add(HttpBuildCacheRequestCustomizer.class, new GradleVersionProvidingRequestCustomizer());
     }
+
+    private static class GradleVersionProvidingRequestCustomizer implements HttpBuildCacheRequestCustomizer {
+        @Override
+        public void visitHeaders(BiConsumer<String, String> headerConsumer) {
+            headerConsumer.accept("X-Gradle-Version", GradleVersion.current().getVersion());
+        }
+    }
+
 }

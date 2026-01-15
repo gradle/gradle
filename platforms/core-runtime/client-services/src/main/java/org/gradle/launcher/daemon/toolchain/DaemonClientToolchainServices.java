@@ -53,7 +53,8 @@ import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.resource.ExternalResourceFactory;
-import org.gradle.internal.resource.transport.http.HttpClientHelper;
+import org.gradle.internal.resource.transport.http.ApacheCommonsHttpClientFactory;
+import org.gradle.internal.resource.transport.http.HttpClientFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.time.Clock;
@@ -138,11 +139,11 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
         JdkCacheDirectory jdkCacheDirectory = new DefaultJdkCacheDirectory(gradleUserHomeDirProvider, fileOperations, fileLockManager, new DefaultJvmMetadataDetector(execHandleFactory, gradleUserHomeTemporaryFileProvider), gradleUserHomeTemporaryFileProvider);
         JavaInstallationRegistry javaInstallationRegistry = new DefaultJavaInstallationRegistry(toolchainConfiguration, installationSuppliers, jvmMetadataDetector, null, OperatingSystem.current(), progressLoggerFactory, fileResolver, jdkCacheDirectory, new JvmInstallationProblemReporter());
         JavaToolchainHttpRedirectVerifierFactory redirectVerifierFactory = new JavaToolchainHttpRedirectVerifierFactory();
-        HttpClientHelper.Factory httpClientHelperFactory = HttpClientHelper.Factory.createFactory(new DocumentationRegistry());
+        HttpClientFactory httpClientFactory = new ApacheCommonsHttpClientFactory(new DocumentationRegistry());
         ExternalResourceFactory externalResourceFactory = new DaemonToolchainExternalResourceFactory(
             fileSystem,
             redirectVerifierFactory,
-            httpClientHelperFactory,
+            httpClientFactory,
             progressLoggerFactory,
             clock,
             operationIdFactory,

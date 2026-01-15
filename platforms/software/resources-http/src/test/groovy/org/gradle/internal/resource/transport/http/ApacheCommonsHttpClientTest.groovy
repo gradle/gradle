@@ -16,27 +16,37 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.client.methods.HttpRequestBase
+import com.google.common.collect.ImmutableMap
+import org.apache.http.HttpEntity
+import org.apache.http.StatusLine
+import org.apache.http.client.methods.CloseableHttpResponse
+import org.apache.http.client.methods.HttpUriRequest
 import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClientBuilder
+import org.apache.http.protocol.HttpContext
 import org.apache.http.ssl.SSLContexts
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Specification
 
-class HttpClientHelperTest extends AbstractHttpClientTest {
+class ApacheCommonsHttpClientTest extends Specification {
+
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
 
     def "throws HttpRequestException if an IO error occurs during a request"() {
-        def client = new HttpClientHelper(new DocumentationRegistry(), httpSettings) {
-            @Override
-            protected HttpClientResponse executeGetOrHead(HttpRequestBase method) {
-                throw new IOException("ouch")
+        def client = new ApacheCommonsHttpClient(new DocumentationRegistry(), httpSettings, () -> {
+            Stub(HttpClientBuilder) {
+                build() >> Mock(CloseableHttpClient) {
+                    execute(_ as HttpUriRequest, _ as HttpContext) >> {
+                        throw new IOException("ouch")
+                    }
+                }
             }
-        }
+        })
 
         when:
-        client.performRequest(new HttpGet("http://gradle.org"), false)
+        client.performGet(URI.create("http://gradle.org"), ImmutableMap.of())
 
         then:
         HttpRequestException e = thrown()
@@ -44,35 +54,33 @@ class HttpClientHelperTest extends AbstractHttpClientTest {
     }
 
     def "response is closed if an error occurs during a request"() {
-        def client = new HttpClientHelper(new DocumentationRegistry(), httpSettings)
-        CloseableHttpClient httpClient = Mock()
-        client.client = httpClient
-        MockedHttpResponse mockedHttpResponse = mockedHttpResponse()
-
-        when:
-        client.performRequest(new HttpGet("http://gradle.org"), false)
-
-        then:
-        interaction {
-            1 * httpClient.execute(_, _) >> mockedHttpResponse.response
-            assertIsClosedCorrectly(mockedHttpResponse)
-        }
-    }
-
-    def "request with revalidate adds Cache-Control header"() {
-        def client = new HttpClientHelper(new DocumentationRegistry(), httpSettings) {
-            @Override
-            protected HttpClientResponse executeGetOrHead(HttpRequestBase method) {
-                return null
+        def response = Mock(CloseableHttpResponse) {
+            getStatusLine() >> Mock(StatusLine) {
+                getStatusCode() >> 500
+            }
+            getEntity() >> Mock(HttpEntity) {
+                isStreaming() >> true
+                getContent() >> Mock(InputStream)
             }
         }
 
+        def client = new ApacheCommonsHttpClient(new DocumentationRegistry(), httpSettings, () -> {
+            Stub(HttpClientBuilder) {
+                build() >> Mock(CloseableHttpClient) {
+                    execute(_ as HttpUriRequest, _ as HttpContext) >> {
+                        return response
+                    }
+                }
+            }
+        })
+
         when:
-        def request = new HttpGet("http://gradle.org")
-        client.performRequest(request, true)
+        client.performGet(URI.create("http://gradle.org"), ImmutableMap.of())
 
         then:
-        request.getHeaders("Cache-Control")[0].value == "max-age=0"
+        thrown(HttpErrorStatusCodeException)
+        1 * response.close()
+        1 * response.entity.content.close()
     }
 
     def "stripping user credentials removes username and password"() {
@@ -80,7 +88,7 @@ class HttpClientHelperTest extends AbstractHttpClientTest {
         def uri = new URI("https", "admin:password", "foo.example", 80, null, null, null)
 
         when:
-        def strippedUri = HttpClientHelper.stripUserCredentials(uri)
+        def strippedUri = ApacheCommonsHttpClient.stripUserCredentials(uri)
 
         then:
         strippedUri.userInfo == null
@@ -97,4 +105,5 @@ class HttpClientHelperTest extends AbstractHttpClientTest {
             }
         }
     }
+
 }

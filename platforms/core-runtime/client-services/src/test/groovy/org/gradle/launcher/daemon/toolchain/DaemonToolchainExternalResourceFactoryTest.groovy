@@ -24,7 +24,7 @@ import org.gradle.internal.resource.ExternalResourceFactory
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileResourceConnector
 import org.gradle.internal.resource.transfer.DefaultExternalResourceRepository
-import org.gradle.internal.resource.transport.http.HttpClientHelper
+import org.gradle.internal.resource.transport.http.HttpClientFactory
 import org.gradle.internal.time.Clock
 import org.gradle.internal.verifier.HttpRedirectVerifier
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainHttpRedirectVerifierFactory
@@ -35,7 +35,7 @@ class DaemonToolchainExternalResourceFactoryTest extends Specification {
     ExternalResourceFactory repositoryTransportFactory
     def fileSystem = Mock(FileSystem)
     def verifierFactory = Mock(JavaToolchainHttpRedirectVerifierFactory)
-    def httpClientFactory = Mock(HttpClientHelper.Factory)
+    def httpClientFactory = Mock(HttpClientFactory)
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
     def clock = Mock(Clock)
     def operationIdFactory = new DefaultBuildOperationIdFactory()
