@@ -27,8 +27,6 @@ import org.gradle.internal.serialize.Serializer;
 import java.util.Map;
 
 public class DependencyResultSerializer {
-    private final static byte SUCCESSFUL = 0;
-    private final static byte FAILED = 2;
 
     private final ComponentSelectionReasonSerializer componentSelectionReasonSerializer;
     private final Serializer<ComponentSelector> componentSelectorSerializer;
@@ -44,17 +42,15 @@ public class DependencyResultSerializer {
     public ResolvedGraphDependency read(Decoder decoder, Map<ComponentSelector, ModuleVersionResolveException> failures) throws Exception {
         ComponentSelector requested = componentSelectorSerializer.read(decoder);
         boolean constraint = decoder.readBoolean();
-        byte resultByte = decoder.readByte();
-        if (resultByte == SUCCESSFUL) {
+        boolean successful = decoder.readBoolean();
+        if (successful) {
             long selectedId = decoder.readSmallLong();
             long selectedVariantId = decoder.readSmallLong();
-            return new DetachedResolvedGraphDependency(requested, selectedId, null, null, constraint, selectedVariantId);
-        } else if (resultByte == FAILED) {
+            return new DetachedSuccessfulResolvedGraphDependency(constraint, requested, selectedId, selectedVariantId);
+        } else {
             ComponentSelectionReasonInternal reason = componentSelectionReasonSerializer.read(decoder);
             ModuleVersionResolveException failure = failures.get(requested);
-            return new DetachedResolvedGraphDependency(requested, null, reason, failure, constraint, null);
-        } else {
-            throw new IllegalArgumentException("Unknown result type: " + resultByte);
+            return new DetachedFailedResolvedGraphDependency(constraint, requested, failure, reason);
         }
     }
 
@@ -65,15 +61,16 @@ public class DependencyResultSerializer {
             Long targetVariantId = value.getTargetVariantId();
             Long targetComponentId = value.getTargetComponentId();
             if (targetComponentId != null && targetVariantId != null) {
-                encoder.writeByte(SUCCESSFUL);
+                encoder.writeBoolean(true);
                 encoder.writeSmallLong(targetComponentId);
                 encoder.writeSmallLong(targetVariantId);
             } else {
                 throw new IllegalStateException("Expected target component and variant for edge " + value);
             }
         } else {
-            encoder.writeByte(FAILED);
+            encoder.writeBoolean(false);
             componentSelectionReasonSerializer.write(encoder, value.getReason());
         }
     }
+
 }
