@@ -47,7 +47,6 @@ class ProjectTypesTest {
                 setOf(
                         setOf(object : ProjectFeatureImplementation<Subtype, ModelType> {
                             override fun getFeatureName(): String = "subtype"
-                            override fun getUniqueId(): String = "${featureName}_${targetDefinitionType.id}"
                             override fun getDefinitionPublicType(): Class<Subtype> = Subtype::class.java
                             override fun getDefinitionImplementationType(): Class<out Subtype> = definitionPublicType
                             override fun getTargetDefinitionType(): TargetTypeInformation<*> = TargetTypeInformation.DefinitionTargetTypeInformation(Project::class.java)

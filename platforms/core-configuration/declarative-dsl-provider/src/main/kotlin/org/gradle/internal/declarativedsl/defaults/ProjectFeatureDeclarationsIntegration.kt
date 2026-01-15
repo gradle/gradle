@@ -16,8 +16,10 @@
 
 package org.gradle.internal.declarativedsl.defaults
 
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ProjectFeatureIdentifier
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
+import org.gradle.internal.declarativedsl.analysis.DefaultProjectFeatureAccessorIdentifier
 import org.gradle.internal.declarativedsl.analysis.NestedObjectAccessRecord
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsDefinitionRegistrar
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsRepository
@@ -29,17 +31,22 @@ import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 
 internal
 fun projectFeatureRegistryBasedModelDefaultsRepository(projectFeatureDeclarations: ProjectFeatureDeclarations): ModelDefaultsRepository = object : ModelDefaultsRepository {
-    val projectFeatureImplementationsById = projectFeatureDeclarations.projectFeatureImplementations.values.flatten().associateBy { it.uniqueId }
+    val projectFeatureImplementationsById = projectFeatureDeclarations.projectFeatureImplementations.values.flatten().associateBy {
+        DefaultProjectFeatureAccessorIdentifier(
+            it.featureName,
+            it.targetDefinitionType.targetClassName
+        )
+    }
 
-    override fun findDefaults(featureId: String): ModelDefaultsResolutionResults? =
+    override fun findDefaults(featureId: ProjectFeatureIdentifier): ModelDefaultsResolutionResults? =
         projectFeatureImplementationsById[featureId]?.let { projectFeature ->
-            resolutionResultsFromDefaultsFor(projectFeature.uniqueId, projectFeature)
+            resolutionResultsFromDefaultsFor(featureId, projectFeature)
         }
 }
 
 
 private
-fun resolutionResultsFromDefaultsFor(featureId: String, projectFeature: ProjectFeatureImplementation<*, *>): ModelDefaultsResolutionResults {
+fun resolutionResultsFromDefaultsFor(featureId: ProjectFeatureIdentifier, projectFeature: ProjectFeatureImplementation<*, *>): ModelDefaultsResolutionResults {
     val assignments = buildList {
         projectFeature.visitModelDefaults(
             AssignmentRecordDefault::class.java,
@@ -61,9 +68,9 @@ fun resolutionResultsFromDefaultsFor(featureId: String, projectFeature: ProjectF
 
 internal
 fun projectFeatureRegistryBasedModelDefaultsRegistrar(projectFeatureDeclarations: ProjectFeatureDeclarations): ModelDefaultsDefinitionRegistrar = object : ModelDefaultsDefinitionRegistrar {
-    override fun registerDefaults(modelDefaultsByProjectFeatureId: Map<String, ModelDefaultsResolutionResults>) {
+    override fun registerDefaults(modelDefaultsByProjectFeatureId: Map<ProjectFeatureIdentifier, ModelDefaultsResolutionResults>) {
         projectFeatureDeclarations.projectFeatureImplementations.values.flatten().forEach { implementation ->
-            modelDefaultsByProjectFeatureId[implementation.uniqueId]?.let { modelDefaults ->
+            modelDefaultsByProjectFeatureId[DefaultProjectFeatureAccessorIdentifier(implementation.featureName, implementation.targetDefinitionType.targetClassName)]?.let { modelDefaults ->
                 val recordsFromModelDefaults = modelDefaults.additions.map(::AdditionRecordDefault) +
                     modelDefaults.assignments.map(::AssignmentRecordDefault) +
                     modelDefaults.nestedObjectAccess.map(::NestedObjectAccessDefault)

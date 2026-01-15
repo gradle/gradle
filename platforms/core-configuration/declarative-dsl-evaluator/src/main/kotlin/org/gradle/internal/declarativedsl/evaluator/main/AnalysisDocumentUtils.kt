@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.evaluator.main
 
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature.ResolutionResultPostprocessing.ApplyModelDefaults
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature.ResolutionResultPostprocessing.DefineModelDefaults
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ProjectFeatureIdentifier
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
@@ -81,10 +82,13 @@ object AnalysisDocumentUtils {
         stepResults.entries.singleOrNull { (step, _) -> step.features.any { it is ApplyModelDefaults } }?.value
 
     fun ConfigureAccessor.projectFeatureNameOrNull(): String? =
-        if (this is ConfigureAccessor.ProjectFeature)
-            featureName
+        if (this is ConfigureAccessor.Custom && this.accessorIdentifier is ProjectFeatureIdentifier)
+            accessorIdentifier.name
         else null
 
+    /**
+     * Checks that the receiver is the top-level receiver, indicating that this is the correct receiver for a project type.
+     */
     fun ObjectOrigin.AccessAndConfigureReceiver.isProjectTypeReceiver(): Boolean {
         when (receiver) {
             is ObjectOrigin.ImplicitThisReceiver -> return (receiver as ObjectOrigin.ImplicitThisReceiver).resolvedTo is ObjectOrigin.TopLevelReceiver
