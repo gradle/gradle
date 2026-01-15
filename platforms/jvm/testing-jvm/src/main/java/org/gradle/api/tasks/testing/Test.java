@@ -777,7 +777,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             long expectedCount = getExpectedTestCount().get();
             if (actualCount != expectedCount) {
                 String message = String.format("Task :%s expected %d test(s) but executed %d test(s).", this.getName(), expectedCount, actualCount);
-                if (getFailOnUnexpectedTestCount().getOrElse(false)) {
+                if (getFailOnUnexpectedTestCount().get()) {
                     throw new GradleException(message);
                 } else {
                     getLogger().warn(message);
