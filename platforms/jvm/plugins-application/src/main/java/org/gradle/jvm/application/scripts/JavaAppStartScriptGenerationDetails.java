@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.application.scripts;
 
+import org.gradle.api.Incubating;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -29,6 +30,14 @@ public interface JavaAppStartScriptGenerationDetails {
      * The display name of the application
      */
     String getApplicationName();
+
+    /**
+     * The Git revision or tag
+     *
+     * @since 9.4.0
+     */
+    @Incubating
+    String getGitRef();
 
     /**
      * The environment variable to use to provide additional options to the JVM

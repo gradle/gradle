@@ -60,7 +60,8 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
         def jarsDir = file('jars').createDir()
 
         new File(distribution.gradleHomeDir, 'lib').eachFileRecurse(FileType.FILES) { f ->
-            if (f.name.contains("gradle-test-kit")
+            if (f.name.endsWith(".jar") && (
+                f.name.contains("gradle-test-kit")
                 || f.name.contains("commons-io")
                 || f.name.contains("guava")
                 || f.name.contains("gradle-base-services")
@@ -70,7 +71,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
                 || f.name.contains("gradle-tooling-api")
                 || f.name.contains("gradle-core")
                 || f.name.contains("gradle-build-process-services")
-            ) {
+            )) {
                 GFileUtils.copyFile(f, new File(jarsDir, f.name))
             }
         }

@@ -11,6 +11,8 @@ gradleModule {
 }
 
 dependencies {
+    compileOnly(libs.jspecify)
+
     implementation(projects.files) {
         because("We need org.gradle.internal.file.PathTraversalChecker")
     }

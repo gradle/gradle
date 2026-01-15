@@ -388,14 +388,6 @@ class DefaultNamedDomainObjectListTest extends AbstractNamedDomainObjectCollecti
         thrown(UnsupportedOperationException)
     }
 
-    def "can find all elements that match closure"() {
-        given:
-        list.addAll(["a", "b", "c"])
-
-        expect:
-        list.findAll { it != "b" } == ["a", "c"]
-    }
-
     def "name based filtering does not realize pending"() {
         given:
         list.add("realized1")

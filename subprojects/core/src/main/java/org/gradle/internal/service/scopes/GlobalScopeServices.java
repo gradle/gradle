@@ -96,7 +96,6 @@ import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.DefaultScriptFileResolverListeners;
-import org.gradle.internal.scripts.ScriptFileResolvedListener;
 import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolverListeners;
 import org.gradle.internal.service.CachingServiceLocator;
@@ -150,13 +149,13 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     @Override
     void configure(ServiceRegistration registration) {
         super.configure(registration);
-        registration.add(ScriptFileResolvedListener.class, ScriptFileResolverListeners.class, DefaultScriptFileResolverListeners.class);
+        registration.add(ScriptFileResolverListeners.class, DefaultScriptFileResolverListeners.class);
         registration.add(BuildLayoutFactory.class);
         registration.add(ValidateStep.ValidationWarningRecorder.class, WorkValidationWarningReporter.class, DefaultWorkValidationWarningRecorder.class);
     }
 
     @Provides
-    ScriptFileResolver createScriptFileResolver(ScriptFileResolvedListener listener) {
+    ScriptFileResolver createScriptFileResolver(ScriptFileResolverListeners listener) {
         return new DefaultScriptFileResolver(listener);
     }
 
