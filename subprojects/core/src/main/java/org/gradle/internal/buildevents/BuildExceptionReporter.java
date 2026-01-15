@@ -43,7 +43,6 @@ import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.problems.internal.rendering.ProblemWriter;
 import org.gradle.util.internal.GUtil;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -131,12 +130,12 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     @Override
-    public void execute(@NonNull Throwable throwable) {
+    public void execute(Throwable throwable) {
         Failure failure = failureFactory.create(throwable);
         renderFailure(failure);
     }
 
-    private void renderFailure(@NonNull Failure failure) {
+    private void renderFailure(Failure failure) {
         List<Failure> causes = failure.getCauses();
         if (causes.size() > 1) {
             renderMultipleBuildExceptions(failure);
