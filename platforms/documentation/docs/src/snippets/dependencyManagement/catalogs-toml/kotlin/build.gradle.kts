@@ -16,9 +16,9 @@
 
 plugins {
     `java-library`
-    alias(projectlibs.plugins.versions)
+    alias(projectLibs.plugins.versions)
 }
 
 dependencies {
-    api(projectlibs.bundles.groovy)
+    api(projectLibs.bundles.groovy)
 }

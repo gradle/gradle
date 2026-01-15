@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-import gradlebuild.modules.extension.ExternalModulesExtension
-
 plugins {
     id("java-library")
     id("gradlebuild.strict-compile")
 }
 
-val oldLibs = project.the<ExternalModulesExtension>()
+val libs = project.versionCatalogs.named("libs")
 
 dependencies {
     // The generated classes use these dependencies.
@@ -29,9 +27,9 @@ dependencies {
     compileOnly(project(":base-asm"))
     compileOnly(project(":internal-instrumentation-api"))
     compileOnly(project(":stdlib-java-extensions"))
-    compileOnly(oldLibs.asm)
-    compileOnly(oldLibs.asmUtil)
-    compileOnly(oldLibs.asmTree)
+    compileOnly(libs.findLibrary("asm").get())
+    compileOnly(libs.findLibrary("asmUtil").get())
+    compileOnly(libs.findLibrary("asmTree").get())
     annotationProcessor(project(":internal-instrumentation-processor"))
     annotationProcessor(platform(project(":distributions-dependencies")))
 }
