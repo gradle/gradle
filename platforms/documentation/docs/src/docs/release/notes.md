@@ -12,7 +12,7 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release brings a set of [testing improvements](#test-reporting-improvements), including a more detailed HTML test report for nested, parameterized, and suite-based tests, better aggregate reporting, and a new streaming API in TestKit for efficiently reading build output.
+This release brings [test reporting improvements](#test-reporting-improvements), including a more detailed HTML test report for nested, parameterized, and suite-based tests, better aggregate reporting, and a new streaming API in TestKit for efficiently reading build output.
 
 It also [enhances build authoring](#build-authoring-improvements) with a new `AttributeContainer.named()` convenience method for more concise attribute configuration.
 
