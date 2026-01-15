@@ -32,7 +32,7 @@ import static org.gradle.util.Matchers.matchesRegexp
 @SelfType(AbstractIntegrationSpec)
 trait TestFrameworkStartupTestFixture {
     void assertTestWorkerFailedToStart(String taskName = ":test", String taskProvenance = "") {
-        failure.assertHasDescription("Execution failed for task '$taskName'$taskProvenance.")
+        failure.assertHasDescription("Execution failed for task '$taskName'$taskProvenance (registered by plugin 'org.gradle.jvm-test-suite').")
 
         def taskOutput = result.groupedOutput.task(taskName).output
         assert !(taskOutput =~ /beforeSuite Gradle Test Executor \d+/)
@@ -40,7 +40,7 @@ trait TestFrameworkStartupTestFixture {
     }
 
     void assertTestWorkerStartedAndTestFrameworkFailedToStart(String rootCause, String taskName = ":test", int expectedWorkerFailures = 1) {
-        failure.assertHasFailure("Execution failed for task '$taskName'.") {
+        failure.assertHasFailure("Execution failed for task '$taskName' (registered by plugin 'org.gradle.jvm-test-suite').") {
             // One for "Test process encountered an unexpected problem."
             // One per worker for "Could not start Gradle Test Executor \d+."
             // One per worker for the root cause of the failure
