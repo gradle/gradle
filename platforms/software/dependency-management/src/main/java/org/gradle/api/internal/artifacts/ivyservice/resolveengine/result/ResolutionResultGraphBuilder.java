@@ -138,22 +138,33 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
         }
         for (ResolvedGraphDependency d : dependencies) {
             DependencyResult dependencyResult;
-            if (d.getFailure() != null) {
-                dependencyResult = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), fromComponent, d.isConstraint(), d.getReason(), d.getFailure());
+
+            ModuleVersionResolveException failure = d.getFailure();
+            if (failure != null) {
+                ComponentSelectionReasonInternal reason = d.getReason();
+                if (reason == null) {
+                    throw new IllegalStateException("Corrupt serialized resolution result. Cannot find reason for " + fromVariant + " -> " + d.getRequested().getDisplayName());
+                }
+                dependencyResult = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), fromComponent, d.isConstraint(), reason, failure);
             } else {
-                DefaultResolvedComponentResult selectedComponent = components.get(d.getSelected().longValue());
+                Long targetComponentId = d.getTargetComponentId();
+                if (targetComponentId == null) {
+                    throw new IllegalStateException("Corrupt serialized resolution result. No target component for " + fromVariant + " -> " + d.getRequested().getDisplayName());
+                }
+                DefaultResolvedComponentResult selectedComponent = components.get(targetComponentId.longValue());
                 if (selectedComponent == null) {
-                    throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected component (" + d.getSelected() + ") for " + (d.isConstraint() ? "constraint " : "") + fromVariant + " -> " + d.getRequested().getDisplayName());
+                    throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected component (" + targetComponentId + ") for " + fromVariant + " -> " + d.getRequested().getDisplayName());
                 }
-                ResolvedVariantResult selectedVariant;
-                if (d.getSelectedVariant() != null) {
-                    selectedVariant = selectedComponent.getVariant(d.getSelectedVariant());
-                    if (selectedVariant == null) {
-                        throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected variant (" + d.getSelectedVariant() + ") for " + (d.isConstraint() ? "constraint " : "") + fromVariant + " -> " + d.getRequested().getDisplayName());
-                    }
-                } else {
-                    selectedVariant = null;
+
+                Long targetVariantId = d.getTargetVariantId();
+                if (targetVariantId == null) {
+                    throw new IllegalStateException("Corrupt serialized resolution result. No target variant for " + fromVariant + " -> " + d.getRequested().getDisplayName());
                 }
+                ResolvedVariantResult selectedVariant = selectedComponent.getVariant(targetVariantId);
+                if (selectedVariant == null) {
+                    throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected variant (" + targetVariantId + ") for " + fromVariant + " -> " + d.getRequested().getDisplayName());
+                }
+
                 dependencyResult = dependencyResultFactory.createResolvedDependency(d.getRequested(), fromComponent, selectedComponent, selectedVariant, d.isConstraint());
                 selectedComponent.addDependent((ResolvedDependencyResult) dependencyResult);
             }

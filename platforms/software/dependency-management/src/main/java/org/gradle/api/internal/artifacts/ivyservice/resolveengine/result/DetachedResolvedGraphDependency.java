@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The deserialized representation of an edge in the resolution result.
@@ -27,25 +28,25 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 public class DetachedResolvedGraphDependency implements ResolvedGraphDependency {
 
     private final ComponentSelector requested;
-    private final Long selected;
-    private final ComponentSelectionReasonInternal reason;
-    private final ModuleVersionResolveException failure;
+    private final @Nullable Long targetComponent;
+    private final @Nullable ComponentSelectionReasonInternal reason;
+    private final @Nullable ModuleVersionResolveException failure;
     private final boolean constraint;
-    private final Long targetVariant;
+    private final @Nullable Long targetVariant;
 
-    public DetachedResolvedGraphDependency(ComponentSelector requested,
-                                           Long selected,
-                                           ComponentSelectionReasonInternal reason,
-                                           ModuleVersionResolveException failure,
-                                           boolean constraint,
-                                           Long targetVariant
+    public DetachedResolvedGraphDependency(
+        ComponentSelector requested,
+        @Nullable Long targetComponent,
+        @Nullable ComponentSelectionReasonInternal reason,
+        @Nullable ModuleVersionResolveException failure,
+        boolean constraint,
+        @Nullable Long targetVariant
     ) {
-        assert requested != null;
-        assert failure != null || selected != null;
+        assert (failure != null && reason != null) || (targetComponent != null && targetVariant != null);
 
         this.requested = requested;
         this.reason = reason;
-        this.selected = selected;
+        this.targetComponent = targetComponent;
         this.failure = failure;
         this.constraint = constraint;
         this.targetVariant = targetVariant;
@@ -57,17 +58,17 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
     }
 
     @Override
-    public Long getSelected() {
-        return selected;
+    public @Nullable Long getTargetComponentId() {
+        return targetComponent;
     }
 
     @Override
-    public ComponentSelectionReasonInternal getReason() {
+    public @Nullable ComponentSelectionReasonInternal getReason() {
         return reason;
     }
 
     @Override
-    public ModuleVersionResolveException getFailure() {
+    public @Nullable ModuleVersionResolveException getFailure() {
         return failure;
     }
 
@@ -77,7 +78,8 @@ public class DetachedResolvedGraphDependency implements ResolvedGraphDependency 
     }
 
     @Override
-    public Long getSelectedVariant() {
+    public @Nullable Long getTargetVariantId() {
         return targetVariant;
     }
+
 }

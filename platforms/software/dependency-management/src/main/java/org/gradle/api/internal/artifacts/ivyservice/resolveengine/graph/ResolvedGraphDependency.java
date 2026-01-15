@@ -37,9 +37,10 @@ public interface ResolvedGraphDependency {
 
     /**
      * Returns the simple id of the selected component, as per {@link ResolvedGraphComponent#getResultId()}.
+     *
+     * @return Non-null if {@link #getFailure()} is null.
      */
-    @Nullable
-    Long getSelected();
+    @Nullable Long getTargetComponentId();
 
     /**
      * Not null only when failure is not null.
@@ -51,10 +52,9 @@ public interface ResolvedGraphDependency {
 
     /**
      * Returns the simple id of the selected variant, as per {@link ResolvedGraphVariant#getNodeId()}.
-     * <p>
-     * If at the end of graph traversal this method returns null, <strong>the graph is broken and a bug
-     * in the dependency resolution has been encountered.</strong>
+     *
+     * @return Non-null if {@link #getFailure()} is null.
      */
-    @Nullable
-    Long getSelectedVariant();
+    @Nullable Long getTargetVariantId();
+
 }

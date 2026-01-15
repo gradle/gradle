@@ -80,7 +80,6 @@ class EdgeState implements DependencyGraphEdge {
     private ExcludeSpec cachedEdgeExclusions;
     private ExcludeSpec cachedExclusions;
 
-    private @Nullable NodeState resolvedVariant;
     private boolean unattached;
 
     public EdgeState(
@@ -427,62 +426,42 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public Long getSelected() {
-        return getSelectedComponent().getResultId();
+    public @Nullable Long getTargetComponentId() {
+        NodeState targetNode = getFirstTargetNode();
+        if (targetNode != null) {
+            return targetNode.getComponent().getResultId();
+        }
+        return null;
     }
 
     @Override
     public boolean isTargetVirtualPlatform() {
-        ComponentState selectedComponent = getSelectedComponent();
-        return selectedComponent != null && selectedComponent.getModule().isVirtualPlatform();
+        NodeState targetNode = getFirstTargetNode();
+        if (targetNode != null) {
+            return targetNode.getComponent().getModule().isVirtualPlatform();
+        }
+        return false;
     }
 
-    @Nullable
     @Override
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public Long getSelectedVariant() {
-        NodeState node = getSelectedNode();
-        if (node == null) {
-            return null;
-        } else {
-            assert node.getComponent() == getSelectedComponent();
-            return node.getNodeId();
+    public @Nullable Long getTargetVariantId() {
+        NodeState targetNode = getFirstTargetNode();
+        if (targetNode != null) {
+            return targetNode.getNodeId();
         }
+        return null;
     }
 
     public Collection<NodeState> getTargetNodes() {
         return targetNodes;
     }
 
-    @Nullable
-    public NodeState getSelectedNode() {
-        if (resolvedVariant != null) {
-            return resolvedVariant;
-        }
-
-        List<NodeState> targetNodes = this.targetNodes;
+    public @Nullable NodeState getFirstTargetNode() {
         if (targetNodes.isEmpty()) {
-            // TODO: This code is not correct. At the end of graph traversal,
-            // all edges that are part of the graph should have target nodes.
-            // Going to the target component and grabbing all of its nodes
-            // is certainly not the right thing to do here.
-            ComponentState targetComponent = getTargetComponent();
-            if (targetComponent != null) {
-                targetNodes = targetComponent.getNodes();
-            }
+            return null;
         }
 
-        assert !targetNodes.isEmpty();
-
-        for (NodeState targetNode : targetNodes) {
-            // TODO: The target node should _always_ be selected. By definition, since we are an edge
-            // and the node is our target, the node is selected.
-            if (targetNode.isSelected()) {
-                resolvedVariant = targetNode;
-                return resolvedVariant;
-            }
-        }
-        return null;
+        return targetNodes.get(0);
     }
 
     @Override
