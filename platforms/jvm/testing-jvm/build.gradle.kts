@@ -55,6 +55,7 @@ dependencies {
     }
 
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.modelReflect))
     testImplementation(testFixtures(projects.time))
 

@@ -757,10 +757,62 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             getLogger().info("Running tests for remote debugging.");
         }
 
+        // Track test counts if expectedTestCount is set
+        TestCountTracker testCountTracker = null;
+        if (getExpectedTestCount().isPresent()) {
+            testCountTracker = new TestCountTracker();
+            addTestListener(testCountTracker);
+        }
+
         try {
             super.executeTests();
         } finally {
             CompositeStoppable.stoppable(getTestFramework()).stop();
+
+            // Validate expected test count after execution
+            if (testCountTracker != null) {
+                long actualCount = testCountTracker.getTotalTests();
+                long expectedCount = getExpectedTestCount().get();
+                if (actualCount != expectedCount) {
+                    getLogger().warn("Expected {} test(s) but executed {} test(s).", expectedCount, actualCount);
+                }
+            }
+        }
+    }
+
+    /**
+     * Helper class to track the total number of tests executed.
+     * Uses the same counting approach as TestCountLogger in the platform.
+     */
+    private static class TestCountTracker implements TestListener {
+        private long totalTests = 0;
+
+        @Override
+        public void beforeSuite(TestDescriptor suite) {
+            // No action needed - test counting is done per test, not per suite
+        }
+
+        @Override
+        public void afterSuite(TestDescriptor suite, TestResult result) {
+            // No action needed - test counting is done per test, not per suite
+            // Suite results contain aggregate counts that would double-count tests
+        }
+
+        @Override
+        public void beforeTest(TestDescriptor testDescriptor) {
+            // No action needed
+        }
+
+        @Override
+        public void afterTest(TestDescriptor testDescriptor, TestResult result) {
+            // Count the number of atomic tests executed for this test
+            // For normal test methods, this returns 1
+            // For parameterized or composite tests, this returns the actual number of atomic tests
+            totalTests += result.getTestCount();
+        }
+
+        public long getTotalTests() {
+            return totalTests;
         }
     }
 
@@ -1360,6 +1412,25 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }
+
+    /**
+     * The expected number of tests to be executed.
+     * <p>
+     * If set, the task will emit a warning after test execution if the actual number of executed tests
+     * does not match the expected count.
+     * </p>
+     * <p>
+     * This is an optional property. If not set, no test count validation is performed.
+     * </p>
+     *
+     * @return the expected test count property
+     * @since 9.4.0
+     */
+    @Incubating
+    @Input
+    @org.gradle.api.tasks.Optional
+    @Option(option = "expected-test-count", description = "Expected number of tests to be executed.")
+    public abstract Property<Long> getExpectedTestCount();
 
     @Override
     boolean testsAreNotFiltered() {
