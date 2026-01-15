@@ -21,7 +21,6 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.model.eclipse.EclipseProject
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
@@ -69,14 +68,4 @@ class JavaIDETaskExecutionPerformanceTest extends AbstractCrossVersionPerformanc
     private determineIterations() {
         return runner.testProject == LARGE_MONOLITHIC_JAVA_PROJECT.projectName ? 200 : 40
     }
-
-    private static void forEachEclipseProject(def elm, @DelegatesTo(value = EclipseProject) Closure<?> action) {
-        action.delegate = elm
-        action.call()
-        elm.children?.each {
-            forEachEclipseProject(it, action)
-        }
-    }
-
-
 }
