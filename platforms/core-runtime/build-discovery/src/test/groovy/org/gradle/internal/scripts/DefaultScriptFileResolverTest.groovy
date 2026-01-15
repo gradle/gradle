@@ -55,7 +55,7 @@ class DefaultScriptFileResolverTest extends Specification {
     def "resolution finds and notifies the correct script file"() {
         given:
         createFiles(testDir, createFiles)
-        CountingListener listener = new CountingListener()
+        def listener = new ScriptFileResolutionRecorder()
 
         when:
         def resolver = new DefaultScriptFileResolver(listener)
@@ -77,8 +77,21 @@ class DefaultScriptFileResolverTest extends Specification {
         ["a.gradle", "a.gradle.kts", "a.gradle.dcl"] | "a.gradle"                | ["a.gradle"]
     }
 
-    static class CountingListener implements ScriptFileResolvedListener {
+    /**
+     * A simple listener implementation that counts the number of times it was notified of a resolved script file.
+     */
+    static class ScriptFileResolutionRecorder implements ScriptFileResolverListeners {
         private List<String> notifiedFileNames = []
+
+        @Override
+        void addListener(ScriptFileResolvedListener scriptFileResolvedListener) {
+            // No-op
+        }
+
+        @Override
+        void removeListener(ScriptFileResolvedListener scriptFileResolvedListener) {
+            // No-op
+        }
 
         @Override
         void onScriptFileResolved(File scriptFile) {
