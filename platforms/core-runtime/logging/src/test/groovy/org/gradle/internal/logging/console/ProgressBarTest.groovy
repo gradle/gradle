@@ -178,9 +178,7 @@ class ProgressBarTest extends Specification {
         then:
         // Should show a partial block character instead of empty
         def result = fineGrainedProgressBar.formatProgress(false, 0).collect { it.text }.join("")
-        result.contains('\u2588') || result.contains('\u2589') || result.contains('\u258A') ||
-            result.contains('\u258B') || result.contains('\u258C') || result.contains('\u258D') ||
-            result.contains('\u258E') || result.contains('\u258F')
+        result == "|▏         | 1% EXECUTING"
     }
 
     def "unicode progress formats successful progress green"() {
