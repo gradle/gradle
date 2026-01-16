@@ -59,6 +59,7 @@ import org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle;
 import org.gradle.nativeplatform.test.xctest.tasks.XCTest;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry;
+import org.gradle.nativeplatform.toolchain.internal.NativeLanguage;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
@@ -187,7 +188,7 @@ public abstract class XCTestConventionPlugin implements Plugin<Project> {
             // TODO - make this lazy
             final DefaultNativePlatform currentPlatform = new DefaultNativePlatform("current");
             NativeToolChainRegistryInternal toolChainRegistry = Cast.uncheckedCast(project.getExtensions().getByType(NativeToolChainRegistry.class));
-            final NativeToolChain toolChain = toolChainRegistry.getForPlatform(currentPlatform);
+            final NativeToolChain toolChain = toolChainRegistry.getForPlatform(NativeLanguage.SWIFT, currentPlatform);
 
             // Platform specific arguments
             // TODO: Need to lazily configure compile task
