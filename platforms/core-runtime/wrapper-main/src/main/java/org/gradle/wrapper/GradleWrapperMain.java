@@ -19,6 +19,7 @@ package org.gradle.wrapper;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.net.URI;
@@ -85,30 +86,22 @@ public class GradleWrapperMain {
     }
 
     private static void addSystemProperties(Map<String, String> projectSystemProperties, Map<String, String> userSystemProperties, Map<String, String> commandLineSystemProperties) {
-        Map<String, String> gradleSystemProperties = combine(projectSystemProperties, userSystemProperties, commandLineSystemProperties);
+        Map<String, String> gradleSystemProperties = merge(merge(projectSystemProperties, userSystemProperties), commandLineSystemProperties);
         System.getProperties().putAll(gradleSystemProperties);
     }
 
     private static void maybeAddGradleUserHomeSystemProperty(Map<String, String> projectSystemProperties, Map<String, String> commandLineSystemProperties) {
-        Map<String, String> gradleSystemProperties = combine(projectSystemProperties, commandLineSystemProperties);
+        Map<String, String> gradleSystemProperties = merge(projectSystemProperties, commandLineSystemProperties);
         String property = gradleSystemProperties.get(GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY);
         if (property != null) {
             System.setProperty(GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY, property);
         }
     }
 
-    private static Map<String, String> combine(Map<String, String> p1, Map<String, String> p2) {
+    private static Map<String, String> merge(Map<String, String> p1, Map<String, String> p2) {
         // If there are duplicate keys, the values from p2 take precedence.
         Map<String, String> result = new HashMap<>(p1);
         result.putAll(p2);
-        return result;
-    }
-
-    private static Map<String, String> combine(Map<String, String> p1, Map<String, String> p2, Map<String, String> p3) {
-        // If there are duplicate keys, the values from p3 take precedence over p2, which take precedence over p1.
-        Map<String, String> result = new HashMap<>(p1);
-        result.putAll(p2);
-        result.putAll(p3);
         return result;
     }
 
@@ -148,6 +141,7 @@ public class GradleWrapperMain {
         return new Logger(options.hasOption(GRADLE_QUIET_OPTION));
     }
 
+    @NullMarked
     @FunctionalInterface
     private interface Action {
         void execute() throws Exception;

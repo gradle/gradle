@@ -1507,7 +1507,7 @@
   {
     "name": "wrapper-main",
     "path": "platforms/core-runtime/wrapper-main",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },

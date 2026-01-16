@@ -30,7 +30,7 @@ class WrapperSystemPropertyPrecedenceTest extends Specification {
         def originalSystemProps = new Properties()
         originalSystemProps.putAll(System.getProperties())
 
-        def wrapperDir = new File(tempDir, 'gradle/wrapper')
+        def wrapperDir = new File(tempDir, "gradle${File.separatorChar}wrapper")
         wrapperDir.mkdirs()
         def userHomeDir = new File(tempDir, 'gradle-user-home')
         userHomeDir.mkdirs()
@@ -39,7 +39,7 @@ class WrapperSystemPropertyPrecedenceTest extends Specification {
         def wrapperProperties = new File(wrapperDir, 'gradle-wrapper.properties')
         wrapperProperties.text = mockWapperProperties()
         def gradleProperties =  new File(tempDir, 'gradle.properties')
-        gradleProperties.text = "systemProp.gradle.user.home=${userHomeDir.absolutePath}\n" +  (project ? "systemProp.foo=$project" : '')
+        gradleProperties.text = "systemProp.gradle.user.home=${userHomeDir.absolutePath.replace(":", "\\:").replace("\\", "\\\\")}\n" +  (project ? "systemProp.foo=$project" : '')
         def gradleUserProperties = new File(userHomeDir, 'gradle.properties')
         gradleUserProperties.text = (user ? "systemProp.foo=$user" : '')
 
@@ -55,11 +55,11 @@ class WrapperSystemPropertyPrecedenceTest extends Specification {
         where:
         project   | user   | cli   | expectedValue
         'project' | 'user' | 'cli' | 'cli'
-        'project' | 'user' | null  | 'user'
+        'project' | 'user' | null  | 'user' //
         'project' | null   | 'cli' | 'cli'
         null      | 'user' | 'cli' | 'cli'
         'project' | null   | null  | 'project'
-        null      | 'user' | null  | 'user'
+        null      | 'user' | null  | 'user' //
         null      | null   | 'cli' | 'cli'
     }
 
