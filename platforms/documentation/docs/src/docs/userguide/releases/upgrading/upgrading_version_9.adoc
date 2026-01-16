@@ -106,6 +106,18 @@ Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.12.0[1.12.0
 This API will be removed in Gradle 10 with no direct replacement.
 `DomainObjectCollection.matching(Spec)` is a similar API for selecting elements without evaluating the contents of the container immediately.
 
+[[deprecated_test_methods]]
+==== Deprecation of methods taking `Closure` on `Test` tasks
+
+The following APIs have been deprecated and will be removed in Gradle 10.0.0:
+
+- `AbstractTestTask.onOutput(Closure)` can be replaced with `AbstractTestTask.addTestOutputListener(TestOutputListener)`
+- `AbstractTestTask.beforeTest(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
+- `AbstractTestTask.afterTest(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
+- `AbstractTestTask.beforeSuite(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
+- `AbstractTestTask.beforeSuite(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
+- `Test.testFramework(Closure)` can be replaced with `Test.options(Action)`
+
 [[deprecate_apply_false_in_precompiled_script_plugins]]
 ==== Deprecation of `apply false` in precompiled script plugins
 The use of `apply false` in <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins, precompiled script plugins>> has been deprecated and will become an error in Gradle 10.0.0.
