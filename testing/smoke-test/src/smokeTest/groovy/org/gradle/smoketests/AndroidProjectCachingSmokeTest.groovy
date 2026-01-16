@@ -637,7 +637,7 @@ class AndroidPluginExpectations90 {
         ':core:datastore-proto:protobufDummy': UP_TO_DATE,
         ':core:datastore-proto:stripDemoDebugDebugSymbols': NO_SOURCE,
         ':core:datastore-proto:stripProdDebugDebugSymbols': NO_SOURCE,
-        ':core:datastore-proto:syncDemoDebugLibJars': SUCCESS,
+        ':core:datastore-proto:syncDemoDebugLibJars': FROM_CACHE,
         ':core:datastore-proto:syncProdDebugLibJars': FROM_CACHE,
         ':core:datastore-proto:writeDemoDebugAarMetadata': SUCCESS,
         ':core:datastore-proto:writeProdDebugAarMetadata': SUCCESS,
