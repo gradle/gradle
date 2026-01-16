@@ -29,6 +29,9 @@
             <tr>
                 <td>allowInsecureProtocol</td>
             </tr>
+            <tr>
+                <td>allowInsecureContinueWhenDisabled</td>
+            </tr>
         </table>
     </section>
     <section>

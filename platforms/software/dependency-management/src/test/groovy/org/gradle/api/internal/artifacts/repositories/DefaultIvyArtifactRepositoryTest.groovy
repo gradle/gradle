@@ -49,7 +49,7 @@ import spock.lang.Specification
 import javax.inject.Inject
 
 class DefaultIvyArtifactRepositoryTest extends Specification {
-    final instantiator = TestUtil.instantiatorFactory().decorateLenient()
+    final instantiator = TestUtil.objectFactory()
     final FileResolver fileResolver = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
@@ -605,6 +605,7 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
             TestUtil.checksumService, providerFactory, new VersionParser()
         )
         repo.name = 'repo'
+        repo.allowInsecureContinueWhenDisabled.convention(false)
         return repo
     }
 

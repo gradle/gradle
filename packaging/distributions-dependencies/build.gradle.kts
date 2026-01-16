@@ -46,7 +46,7 @@ val sshdVersion = "2.15.0"
 val jGitVersion = "7.2.1.202505142326-r"
 
 // test only
-val archunitVersion = "1.2.0"
+val archunitVersion = "1.4.1"
 val bytebuddyVersion = "1.17.5"
 val jettyVersion = "9.4.36.v20210114"
 
@@ -79,7 +79,7 @@ dependencies {
         api(libs.commonsCompress)       { version { strictly("1.26.1") } }
         api(libs.commonsHttpclient)     { version { strictly("4.5.14") } }
         api(libs.commonsIo)             { version { strictly("2.15.1") }}
-        api(libs.commonsLang)           { version { strictly("3.17.0") }}
+        api(libs.commonsLang)           { version { strictly("3.20.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.errorProneAnnotations) { version { strictly("2.42.0") } } // don't forget to upgrade errorprone in gradlebuild.code-quality.gradle.kts
@@ -123,6 +123,7 @@ dependencies {
         api(libs.jacksonKotlin)         { version { strictly(jacksonVersion) }}
         api(libs.jakartaActivation)     { version { strictly("2.0.1") }}
         api(libs.jakartaXmlBind)        { version { strictly("3.0.0") }}
+        //If JANSI is updated run on a windows terminal CMD.EXE to make sure the ansi control characters are not messing up the output
         api(libs.jansi)                 { version { strictly("2.4.2") }}
         api(libs.jatl)                  { version { strictly("0.2.3") }}
         api(libs.javaPoet)              { version { strictly("1.13.0") } }
@@ -185,7 +186,7 @@ dependencies {
         // compile only
         api(libs.maven3Compat)          { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
         api(libs.maven3PluginApi)       { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
-        api(libs.zinc)                  { version { strictly("1.10.4") } }
+        api(libs.zinc)                  { version { strictly("1.12.0") } }
 
         // test only
         api(libs.aircompressor)         { version { strictly("0.27") }}

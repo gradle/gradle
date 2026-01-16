@@ -26,7 +26,6 @@ import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
-import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
@@ -38,7 +37,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.properties.annotations.MissingPropertyAnnotationHandler;
-import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
@@ -60,7 +58,6 @@ import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
 import org.gradle.plugin.software.internal.ProjectFeatureApplicator;
 import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
-import org.gradle.plugin.software.internal.ProjectTypeAnnotationHandler;
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
@@ -80,11 +77,6 @@ import java.util.List;
 public class PluginUseServices extends AbstractGradleModuleServices {
 
     @Override
-    public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new GlobalScopeServices());
-    }
-
-    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new BuildScopeServices());
     }
@@ -97,14 +89,6 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectScopeServices());
-    }
-
-    @NullMarked
-    private static class GlobalScopeServices implements ServiceRegistrationProvider {
-        @Provides
-        PropertyAnnotationHandler createProjectTypeAnnotationHandler() {
-            return new ProjectTypeAnnotationHandler();
-        }
     }
 
     private static class SettingsScopeServices implements ServiceRegistrationProvider {
@@ -129,10 +113,8 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        @SuppressWarnings("deprecation")
-        void configure(ServiceRegistration registration, PluginScheme pluginScheme, InstantiatorFactory instantiatorFactory) {
-            DefaultProjectFeatureDeclarations projectFeatureRegistry = new DefaultProjectFeatureDeclarations(pluginScheme.getInspectionScheme(), instantiatorFactory.injectScheme().instantiator());
-            registration.add(org.gradle.plugin.software.internal.SoftwareTypeRegistry.class, projectFeatureRegistry);
+        void configure(ServiceRegistration registration, PluginScheme pluginScheme, InstantiatorFactory instantiatorFactory, InternalProblems problemsService) {
+            DefaultProjectFeatureDeclarations projectFeatureRegistry = new DefaultProjectFeatureDeclarations(pluginScheme.getInspectionScheme(), instantiatorFactory.injectScheme().instantiator(), problemsService.getInternalReporter());
             registration.add(ProjectFeatureDeclarations.class, projectFeatureRegistry);
         }
 
@@ -150,9 +132,6 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         PluginScheme createPluginScheme(InstantiatorFactory instantiatorFactory, InspectionSchemeFactory inspectionSchemeFactory) {
             InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
             ImmutableSet.Builder<Class<? extends Annotation>> allPropertyTypes = ImmutableSet.builder();
-            allPropertyTypes.addAll(ImmutableSet.of(
-                SoftwareType.class
-            ));
             InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
                 allPropertyTypes.build(),
                 Collections.emptySet(),
@@ -213,16 +192,12 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         ProjectFeatureApplicator createProjectFeatureApplicator(
             ProjectFeatureDeclarations projectFeatureDeclarations,
             ModelDefaultsApplicator modelDefaultsApplicator,
-            PluginScheme pluginScheme,
-            InternalProblems problems,
             PluginManagerInternal pluginManager,
             ProjectInternal project
         ) {
             return new DefaultProjectFeatureApplicator(
                 projectFeatureDeclarations,
                 modelDefaultsApplicator,
-                pluginScheme.getInspectionScheme(),
-                problems,
                 pluginManager,
                 project.getClassLoaderScope(),
                 project.getObjects()

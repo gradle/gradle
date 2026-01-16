@@ -25,8 +25,7 @@ import java.util.Map;
 public class AllResultsStore implements ResultsStore, Closeable {
     private final CrossVersionResultsStore crossVersion = new CrossVersionResultsStore();
     private final CrossBuildResultsStore crossBuild = new CrossBuildResultsStore();
-    private final GradleVsMavenBuildResultsStore gradleVsMaven = new GradleVsMavenBuildResultsStore();
-    private final CompositeResultsStore store = new CompositeResultsStore(crossVersion, crossBuild, gradleVsMaven);
+    private final CompositeResultsStore store = new CompositeResultsStore(crossVersion, crossBuild);
 
     @Override
     public List<PerformanceExperiment> getPerformanceExperiments() {
@@ -45,6 +44,6 @@ public class AllResultsStore implements ResultsStore, Closeable {
 
     @Override
     public void close() {
-        CompositeStoppable.stoppable(crossVersion, crossBuild, gradleVsMaven).stop();
+        CompositeStoppable.stoppable(crossVersion, crossBuild).stop();
     }
 }

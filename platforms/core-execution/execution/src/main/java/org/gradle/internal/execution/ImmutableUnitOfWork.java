@@ -26,4 +26,13 @@ public interface ImmutableUnitOfWork extends UnitOfWork {
      * Returns the {@link ImmutableWorkspaceProvider} to allocate a workspace to execution this work in.
      */
     ImmutableWorkspaceProvider getWorkspaceProvider();
+
+    /**
+     * @deprecated Immutable work should only have immutable inputs.
+     *
+     * TODO Move this method to {@link MutableUnitOfWork}
+     */
+    @Override
+    @Deprecated
+    default void visitMutableInputs(InputVisitor visitor) {}
 }

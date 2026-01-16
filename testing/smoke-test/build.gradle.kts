@@ -5,9 +5,11 @@ import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
+import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
 
 plugins {
     id("gradlebuild.internal.java")
+    id("gradlebuild.android-home-warmup")
 }
 
 val smokeTestSourceSet = sourceSets.create("smokeTest") {
@@ -59,21 +61,30 @@ dependencies {
     smokeTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 
+androidHomeWarmup {
+    rootProjectDir = project.layout.projectDirectory.dir("../..")
+    sdkVersions.set(
+        listOf(
+            // Build-tools 35.0.0 (used by AGP < 9.0)
+            SdkVersion(compileSdk = 36, buildTools = "35.0.0", agpVersion = "8.13.1"),
+
+            // Build-tools 36.0.0 (used by AGP >= 9.0)
+            SdkVersion(compileSdk = 36, buildTools = "36.0.0", agpVersion = "9.0.0-beta02"),
+        ),
+    )
+}
+
 tasks {
 
     /**
-     * Anroid project git URI.
-     * Currently points to a clone of Now in Android.
+     * Android project git URI and commit.
+     * Configured via gradle property: androidSmokeTestProjectRef=https://github.com/gradle/nowinandroid.git#<commitId>
      *
-     * Note that you can change it to `file:///path/to/your/nowinandroid-clone/.git`
+     * Note that you can change it to `file:///path/to/your/nowinandroid-clone/.git#<commitId>`
      * if you need to iterate quickly on changes to it.
      */
-    val androidProjectGitUri = "https://github.com/gradle/nowinandroid.git"
-
     val androidProject by registering(RemoteProject::class) {
-        remoteUri = androidProjectGitUri
-        // latest https://github.com/gradle/nowinandroid/tree/smoke-tests-main as of 2025-11-05
-        ref = "da342a6162b300e7d2cb15887d9cec3bb927c83e"
+        setRemoteUriAndRefFromGradleProperty("androidSmokeTestProjectRef")
     }
 
     val gradleBuildCurrent by registering(RemoteProject::class) {
@@ -155,6 +166,8 @@ tasks {
         description = "Runs Android project Smoke tests"
         configureForSmokeTest(androidProject, includes = listOf(androidProjectTestPattern))
         maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
+
+        dependsOn("androidHomeWarmup")
     }
 
     register<SmokeTest>("configCacheAndroidProjectSmokeTest") {
@@ -163,6 +176,8 @@ tasks {
         maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
         jvmArgs("-Xmx700m")
         systemProperty("org.gradle.integtest.executer", "configCache")
+
+        dependsOn("androidHomeWarmup")
     }
 }
 

@@ -20,6 +20,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.AntBuilderAware;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
@@ -38,6 +39,7 @@ import java.util.Set;
  * <p>You can obtain a {@code FileCollection} instance using {@link org.gradle.api.Project#files}.</p>
  */
 @HasInternalProtocol
+@HiddenInDefinition
 public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildable {
     /**
      * Returns the content of this collection, asserting it contains exactly one file.

@@ -1,0 +1,10 @@
+beforeSettings {
+    caches {
+        releasedWrappers.setRemoveUnusedEntriesAfterDays(45)
+        snapshotWrappers.setRemoveUnusedEntriesAfterDays(10)
+        downloadedResources.setRemoveUnusedEntriesAfterDays(45)
+        createdResources.setRemoveUnusedEntriesAfterDays(10)
+        buildCache.setRemoveUnusedEntriesAfterDays(5)
+        daemonLogs.setRemoveUnusedEntriesAfterDays(14)
+    }
+}

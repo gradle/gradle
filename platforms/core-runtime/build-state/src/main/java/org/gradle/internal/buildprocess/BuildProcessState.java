@@ -16,7 +16,6 @@
 
 package org.gradle.internal.buildprocess;
 
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
@@ -37,14 +36,13 @@ public class BuildProcessState implements Closeable {
     public BuildProcessState(
         final boolean longLiving,
         AgentStatus agentStatus,
-        ClassPath additionalModuleClassPath,
         CurrentGradleInstallation currentGradleInstallation,
         ServiceRegistry... parents
     ) {
         ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.Global.class)
             .displayName("Global services")
-            .provider(new GlobalScopeServices(longLiving, agentStatus, additionalModuleClassPath, currentGradleInstallation))
+            .provider(new GlobalScopeServices(longLiving, agentStatus, currentGradleInstallation))
             .provider(new BuildProcessScopeServices());
         for (ServiceRegistry parent : parents) {
             builder.parent(parent);

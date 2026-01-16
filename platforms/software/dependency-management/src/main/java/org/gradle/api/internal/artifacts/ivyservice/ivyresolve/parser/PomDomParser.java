@@ -20,9 +20,16 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
 import java.util.LinkedList;
 import java.util.List;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 public final class PomDomParser {
     private PomDomParser() {}
@@ -89,7 +96,7 @@ public final class PomDomParser {
         private static final String DOCTYPE = "<!DOCTYPE project SYSTEM \"m2-entities.ent\">\n";
 
         private int count;
-        private byte[] prefix = DOCTYPE.getBytes();
+        private byte[] prefix = DOCTYPE.getBytes(UTF_8);
 
         public AddDTDFilterInputStream(InputStream in) throws IOException {
             super(new BufferedInputStream(in));
@@ -110,15 +117,15 @@ public final class PomDomParser {
             }
 
             int bytesToSkip = 0;
-            LineNumberReader reader = new LineNumberReader(new InputStreamReader(this.in, "UTF-8"), 100);
+            LineNumberReader reader = new LineNumberReader(new InputStreamReader(this.in, UTF_8), 100);
             String firstLine = reader.readLine();
             if (firstLine != null) {
                 String trimmed = firstLine.trim();
                 if (trimmed.startsWith("<?xml ")) {
                     int endIndex = trimmed.indexOf("?>");
                     String xmlDecl = trimmed.substring(0, endIndex + 2);
-                    prefix = (xmlDecl + "\n" + DOCTYPE).getBytes();
-                    bytesToSkip = xmlDecl.getBytes().length;
+                    prefix = (xmlDecl + "\n" + DOCTYPE).getBytes(UTF_8);
+                    bytesToSkip = xmlDecl.getBytes(UTF_8).length;
                 }
             }
 

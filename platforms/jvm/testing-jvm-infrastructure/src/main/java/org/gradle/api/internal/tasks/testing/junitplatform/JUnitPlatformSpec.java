@@ -30,7 +30,7 @@ public class JUnitPlatformSpec implements Serializable {
     private final Set<String> includeTags;
     private final Set<String> excludeTags;
     private final boolean isDryRun;
-    private final File workingDir;
+    private final File baseDefinitionsDir;
 
     public JUnitPlatformSpec(
         TestFilterSpec filter,
@@ -39,7 +39,7 @@ public class JUnitPlatformSpec implements Serializable {
         Set<String> includeTags,
         Set<String> excludeTags,
         boolean isDryRun,
-        File workingDir
+        File baseDefinitionsDir
     ) {
         this.filter = filter;
         this.includeEngines = includeEngines;
@@ -47,7 +47,7 @@ public class JUnitPlatformSpec implements Serializable {
         this.includeTags = includeTags;
         this.excludeTags = excludeTags;
         this.isDryRun = isDryRun;
-        this.workingDir = workingDir;
+        this.baseDefinitionsDir = baseDefinitionsDir;
     }
 
     public TestFilterSpec getFilter() {
@@ -74,7 +74,16 @@ public class JUnitPlatformSpec implements Serializable {
         return isDryRun;
     }
 
-    public File getWorkingDir() {
-        return workingDir;
+    /**
+     * Returns the base directory containing all the resource-based test definitions being
+     * run with this spec (the project directory).
+     * <p>
+     * Paths will be relativized against this directory.  Any parent directories outside of this directory
+     * will not be used in any filtering operations.
+     *
+     * @return The base directory
+     */
+    public File getBaseDefinitionsDir() {
+        return baseDefinitionsDir;
     }
 }

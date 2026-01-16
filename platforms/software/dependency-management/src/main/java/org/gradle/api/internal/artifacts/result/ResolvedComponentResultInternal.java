@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.result;
 
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -57,4 +58,7 @@ public interface ResolvedComponentResultInternal extends ResolvedComponentResult
      */
     @Nullable
     ResolvedVariantResult getVariant(long id);
+
+    @Override
+    ComponentSelectionReasonInternal getSelectionReason();
 }

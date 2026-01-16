@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
+import com.google.common.collect.ImmutableMap
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -50,14 +51,14 @@ class DeprecatedTLSVersionTest extends Specification {
 
     def "server that only supports deprecated TLS versions"() {
         given:
-        HttpClientHelper client = new HttpClientHelper(new DocumentationRegistry(), settings)
+        HttpClient client = new ApacheCommonsHttpClientFactory(new DocumentationRegistry()).createClient(settings)
         // Only support older TLS versions
         server.configure(keyStore, false) { it -> DEPRECATED_TLS_VERSIONS.contains(it) }
         server.start()
         // The server '/test' endpoint will never get called because the SSL exception will trip first.
         // Thus, we don't need to add the `expect('/test')` to the server for this test to work correctly.
         when:
-        client.performGet("${server.getUri()}/test", false)
+        client.performGet(URI.create("${server.getUri()}/test"), ImmutableMap.of())
         then:
         HttpRequestException exception = thrown()
         exception.message.startsWith("Could not GET '")
@@ -74,13 +75,13 @@ class DeprecatedTLSVersionTest extends Specification {
 
     def "server that only supports current TLS versions"() {
         given:
-        HttpClientHelper client = new HttpClientHelper(new DocumentationRegistry(), settings)
+        HttpClient client = new ApacheCommonsHttpClientFactory(new DocumentationRegistry()).createClient(settings)
         // Only support modern TLS versions
         server.configure(keyStore, false) { it -> MODERN_TLS_VERSIONS.contains(it) }
         server.start()
         server.expect('/test')
         when:
-        client.performGet("${server.getUri()}/test", false)
+        client.performGet(URI.create("${server.getUri()}/test"), ImmutableMap.of())
         then:
         noExceptionThrown()
         cleanup:

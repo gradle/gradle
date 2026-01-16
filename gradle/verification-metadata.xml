@@ -384,6 +384,9 @@
             <trusting group="^org[.]junit($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="FF986D345395D4AD1DC48137BB6FD5AD91D01857" group="org.seleniumhq.selenium"/>
+         <trusted-key id="FFFD810FFFDE203D5FA27263BEABCFBEE059E4E5" group="com.github.siom79.japicmp"/>
+         <trusted-key id="331224E1D7BE883D16E8A685825C06C827AF6B66" group="me.champeau.gradle"/>
+         <trusted-key id="D477D51812E692011DB11E66A6EA2E2BF22E0543" group="io.github.java-diff-utils"/>
       </trusted-keys>
    </configuration>
    <components>
@@ -612,11 +615,6 @@
             <pgp value="D4D4DEC73685B1A135E45E5C47933D17F199636B"/>
          </artifact>
       </component>
-      <component group="com.github.siom79.japicmp" name="japicmp" version="0.15.7">
-         <artifact name="japicmp-0.15.7.jar">
-            <pgp value="FFFD810FFFDE203D5FA27263BEABCFBEE059E4E5"/>
-         </artifact>
-      </component>
       <component group="com.google.apis" name="google-api-services-storage" version="v1-rev171-1.25.0">
          <artifact name="google-api-services-storage-v1-rev171-1.25.0.jar">
             <pgp value="47504B76CF89C15C0512D9AFE16AB52D79FD224F"/>
@@ -834,11 +832,6 @@
             <sha256 value="f9c53f4dad78c9041b36324402260a8f13264140f96c02ffbb4bafc4157be95f" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="io.github.java-diff-utils" name="java-diff-utils" version="4.12">
-         <artifact name="java-diff-utils-4.12.jar">
-            <pgp value="D477D51812E692011DB11E66A6EA2E2BF22E0543"/>
-         </artifact>
-      </component>
       <component group="io.github.microutils" name="kotlin-logging-jvm" version="2.1.23">
          <artifact name="kotlin-logging-jvm-2.1.23.jar">
             <pgp value="47EB6836245D2D40E89DFB4136D4E9618F3ADAB5"/>
@@ -937,11 +930,6 @@
       <component group="junit" name="junit" version="4.12">
          <artifact name="junit-4.12.jar">
             <pgp value="D4C89EA4AAF455FD88B22087EFE8086F9E93774E"/>
-         </artifact>
-      </component>
-      <component group="me.champeau.gradle" name="japicmp-gradle-plugin" version="0.4.1">
-         <artifact name="japicmp-gradle-plugin-0.4.1.jar">
-            <sha256 value="5e87d84077de0c60d9ff4eedbc9fac1506693019eb6f55652afc9e1ff2b482ba" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="me.champeau.jmh" name="jmh-gradle-plugin" version="0.7.2">

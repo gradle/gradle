@@ -37,12 +37,17 @@ import java.util.List;
 public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuilderInternal {
     private final List<DeclaredProjectFeatureBindingBuilderInternal<?, ?>> bindings = new ArrayList<>();
 
-    @Override
-    public <T extends Definition<V>, V extends BuildModel> DeclaredProjectFeatureBindingBuilder<T, V> bindProjectType(String name, Class<T> definitionClass, Class<V> buildModelClass, ProjectTypeApplyAction<T, V> transform) {
-        ProjectFeatureApplyAction<T, V, ?> featureTransform = (ProjectFeatureApplicationContext context, T definition, V buildModel, Object parentDefinition) ->
-            transform.transform(context, definition, buildModel);
+    private <T extends Definition<V>, V extends BuildModel> DeclaredProjectFeatureBindingBuilder<T, V> bindProjectType(String name, Class<T> definitionClass, Class<V> buildModelClass, ProjectTypeApplyAction<T, V> transform) {
+        // This needs to be an anonymous class for configuration cache compatibility
+        ProjectFeatureApplyAction<T, V, ?> featureTransform = new ProjectFeatureApplyAction<T, V, Object>() {
+            @Override
+            public void transform(ProjectFeatureApplicationContext context, T definition, V buildModel, Object parentDefinition) {
+                transform.transform(context, definition, buildModel);
+            }
+        };
 
-        DeclaredProjectFeatureBindingBuilderInternal<T, V> builder = new DefaultDeclaredProjectFeatureBindingBuilder<>(definitionClass,
+        DeclaredProjectFeatureBindingBuilderInternal<T, V> builder = new DefaultDeclaredProjectFeatureBindingBuilder<>(
+            definitionClass,
             buildModelClass,
             new TargetTypeInformation.DefinitionTargetTypeInformation<>(Project.class),
             Path.path(name),

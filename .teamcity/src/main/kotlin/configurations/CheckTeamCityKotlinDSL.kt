@@ -22,6 +22,8 @@ class CheckTeamCityKotlinDSL(
             name = "CheckTeamCityKotlinDSL"
             description = "Check Kotlin DSL in .teamcity/"
 
+            val os = os
+
             applyDefaultSettings(artifactRuleOverride = "")
 
             params {
@@ -29,7 +31,7 @@ class CheckTeamCityKotlinDSL(
                 // https://github.com/gradle/teamcity-jdk-provider-plugin/blob/main/teamcity-jdk-provider-plugin-agent/src/main/kotlin/org/gradle/teamcity_jdk_provider_plugin/JdkProviderAgentLifecycleListener.kt#L22
                 param("JdkProviderEnabled", "false")
                 // should be the same version we run TeamCity with
-                param("env.JAVA_HOME", javaHome(DefaultJvm(JvmVersion.JAVA_21, JvmVendor.OPENJDK), Os.LINUX))
+                param("env.JAVA_HOME", javaHome(DefaultJvm(JvmVersion.JAVA_21, JvmVendor.OPENJDK), os))
             }
 
             steps {

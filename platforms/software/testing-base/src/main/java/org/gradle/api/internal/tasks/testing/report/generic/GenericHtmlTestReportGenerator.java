@@ -21,9 +21,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
-import org.apache.commons.io.file.PathUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.EmptyFileVisitor;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.testing.TestReportGenerator;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
 import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
@@ -33,6 +37,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.SafeFileLocationUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.BuildOperationConstraint;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -49,13 +54,13 @@ import org.gradle.reporting.ReportRenderer;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Generates an HTML report based on test results based on binary results from {@link SerializableTestResultStore}.
@@ -94,19 +99,22 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
 
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final MetadataRendererRegistry metadataRendererRegistry;
+    private final Deleter deleter;
+    private final FileCollectionFactory fileCollectionFactory;
     private final Path reportsDirectory;
 
     @Inject
     public GenericHtmlTestReportGenerator(
         BuildOperationRunner buildOperationRunner,
         BuildOperationExecutor buildOperationExecutor,
-        MetadataRendererRegistry metadataRendererRegistry,
+        Deleter deleter,
+        FileCollectionFactory fileCollectionFactory,
         Path reportsDirectory
     ) {
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.metadataRendererRegistry = metadataRendererRegistry;
+        this.deleter = deleter;
+        this.fileCollectionFactory = fileCollectionFactory;
         this.reportsDirectory = reportsDirectory;
     }
 
@@ -132,7 +140,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
 
             TestTreeModel root = TestTreeModel.loadModelFromStores(stores);
             generateReport(root, outputReaders);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             CompositeStoppable.stoppable(outputReaders).stop();
@@ -151,20 +159,13 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
     private void generateFiles(TestTreeModel model, final List<TestOutputReader> outputReaders) {
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
-            buildOperationRunner.run(new DeleteOldReportOperation(reportsDirectory));
+            buildOperationRunner.run(new DeleteOldReportOperation(fileCollectionFactory, deleter, reportsDirectory));
 
             ListMultimap<String, Integer> namesToIndexes = ArrayListMultimap.create();
             List<String> rootDisplayNames = new ArrayList<>(model.getPerRootInfo().size());
             for (int i = 0; i < model.getPerRootInfo().size(); i++) {
                 // Roots should always have exactly one PerRootInfo entry
-                List<PerRootInfo> perRootInfos = model.getPerRootInfo().get(i);
-                if (perRootInfos.isEmpty()) {
-                    throw new IllegalStateException("Root model is missing display name info for root index " + i);
-                }
-                if (perRootInfos.size() > 1) {
-                    throw new IllegalStateException("Root model has multiple display name infos for root index " + i + ": " + Iterables.toString(perRootInfos));
-                }
-                String displayName = perRootInfos.get(0).getResult().getDisplayName();
+                String displayName = getDisplayName(model, i);
                 rootDisplayNames.add(displayName);
                 namesToIndexes.put(displayName, i);
             }
@@ -195,7 +196,10 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                     for (TestTreeModel childTree : tree.getChildren()) {
                         // A container also emits all of its leaf children
                         if (childTree.getChildren().isEmpty()) {
-                            requestsBuilder.add(childTree);
+                            // Skip generating separate HTML files for leaves that don't need them
+                            if (childTree.hasUsefulDetails()) {
+                                requestsBuilder.add(childTree);
+                            }
                         } else {
                             queueTree(queue, childTree, output);
                         }
@@ -204,8 +208,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                         requestsBuilder.build(),
                         output,
                         outputReaders,
-                        rootDisplayNames,
-                        metadataRendererRegistry
+                        rootDisplayNames
                     ));
                 }
             }, reportsDirectory.toFile());
@@ -214,25 +217,33 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         }
     }
 
+    private static String getDisplayName(TestTreeModel model, int rootIndex) {
+        List<PerRootInfo> perRootInfos = model.getPerRootInfo().get(rootIndex);
+        if (perRootInfos.isEmpty()) {
+            throw new IllegalStateException("Root model is missing display name info for root index " + rootIndex);
+        }
+        if (perRootInfos.size() > 1) {
+            throw new IllegalStateException("Root model has multiple display name infos for root index " + rootIndex + ": " + Iterables.toString(perRootInfos));
+        }
+        return SerializableTestResult.getCombinedDisplayName(perRootInfos.get(0).getResults());
+    }
+
     private static final class HtmlReportFileGenerator implements RunnableBuildOperation {
         private final List<TestTreeModel> requests;
         private final HtmlReportBuilder output;
         private final List<TestOutputReader> outputReaders;
         private final List<String> rootDisplayNames;
-        private final MetadataRendererRegistry metadataRendererRegistry;
 
         HtmlReportFileGenerator(
             List<TestTreeModel> requests,
             HtmlReportBuilder output,
             List<TestOutputReader> outputReaders,
-            List<String> rootDisplayNames,
-            MetadataRendererRegistry metadataRendererRegistry
+            List<String> rootDisplayNames
         ) {
             this.requests = requests;
             this.output = output;
             this.outputReaders = outputReaders;
             this.rootDisplayNames = rootDisplayNames;
-            this.metadataRendererRegistry = metadataRendererRegistry;
         }
 
         @Override
@@ -246,7 +257,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
 
         @Override
         public void run(BuildOperationContext context) {
-            GenericPageRenderer renderer = new GenericPageRenderer(outputReaders, rootDisplayNames, metadataRendererRegistry);
+            GenericPageRenderer renderer = new GenericPageRenderer(outputReaders, rootDisplayNames);
             for (TestTreeModel request : requests) {
                 output.renderHtmlPage(getFilePath(request), request, renderer);
             }
@@ -254,30 +265,33 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
     }
 
     private static final class DeleteOldReportOperation implements RunnableBuildOperation {
+        private final FileCollectionFactory fileCollectionFactory;
+        private final Deleter deleter;
         private final Path reportsDirectory;
 
-        private DeleteOldReportOperation(Path reportsDirectory) {
+        private DeleteOldReportOperation(FileCollectionFactory fileCollectionFactory, Deleter deleter, Path reportsDirectory) {
+            this.fileCollectionFactory = fileCollectionFactory;
+            this.deleter = deleter;
             this.reportsDirectory = reportsDirectory;
         }
 
         @Override
         public void run(BuildOperationContext context) {
-            // Clean-up old HTML report
-            Path indexHtml = reportsDirectory.resolve("index.html");
-            try {
-                PathUtils.deleteFile(indexHtml);
-            } catch (IOException e) {
-                LOG.info("Could not delete HTML test reports index.html '{}'.", indexHtml, e);
-            }
-            // Delete all directories, but not files, in the reports directory
+            // Delete all HTML files in the reports directory
             // This avoids deleting files from other report types that may be in the same directory
-            try (Stream<Path> children = Files.list(reportsDirectory)) {
-                for (Path dir : children.filter(Files::isDirectory).collect(Collectors.toList())) {
-                    PathUtils.deleteDirectory(dir);
+            ConfigurableFileTree oldHtmlReports = fileCollectionFactory.fileTree();
+            oldHtmlReports.setDir(reportsDirectory);
+            oldHtmlReports.include("**/*.html");
+            oldHtmlReports.visit(new EmptyFileVisitor() {
+                @Override
+                public void visitFile(FileVisitDetails fileDetails) {
+                    try {
+                        deleter.delete(fileDetails.getFile());
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
                 }
-            } catch (IOException e) {
-                LOG.info("Could not clean HTML test reports directory '{}'.", reportsDirectory, e);
-            }
+            });
         }
 
         @Override

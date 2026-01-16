@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
@@ -74,8 +75,8 @@ public abstract class JvmEcosystemPlugin implements Plugin<Project> {
         JavaEcosystemSupport.configureServices(attributesSchema, attributeDescribers, objectFactory);
         handler.addFailureDescriber(NoCompatibleVariantsFailure.class, TargetJVMVersionOnLibraryTooNewFailureDescriber.class);
 
-        project.getDependencies().getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE).getAttributes()
-            .attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME))
-            .attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
+        AttributeContainer attrs = project.getDependencies().getArtifactTypes().create(ArtifactTypeDefinition.JAR_TYPE).getAttributes();
+        attrs.attribute(Usage.USAGE_ATTRIBUTE, attrs.named(Usage.class, Usage.JAVA_RUNTIME));
+        attrs.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, attrs.named(LibraryElements.class, LibraryElements.JAR));
     }
 }

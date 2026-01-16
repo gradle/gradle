@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
 
@@ -36,25 +36,25 @@ public interface ResolvedGraphDependency {
     ModuleVersionResolveException getFailure();
 
     /**
-     * Returns the simple id of the selected component, as per {@link ResolvedGraphComponent#getResultId()}.
+     * Returns the simple ID of the selected component, as per {@link ResolvedGraphComponent#getResultId()}.
+     *
+     * @throws IllegalStateException if {@link #getFailure()} is not null.
      */
-    @Nullable
-    Long getSelected();
+    long getTargetComponentId();
 
     /**
      * Not null only when failure is not null.
      */
     @Nullable
-    ComponentSelectionReason getReason();
+    ComponentSelectionReasonInternal getReason();
 
     boolean isConstraint();
 
     /**
-     * Returns the simple id of the selected variant, as per {@link ResolvedGraphVariant#getNodeId()}.
-     * <p>
-     * If at the end of graph traversal this method returns null, <strong>the graph is broken and a bug
-     * in the dependency resolution has been encountered.</strong>
+     * Returns the simple ID of the selected variant, as per {@link ResolvedGraphVariant#getNodeId()}.
+     *
+     * @throws IllegalStateException if {@link #getFailure()} is not null.
      */
-    @Nullable
-    Long getSelectedVariant();
+    long getTargetVariantId();
+
 }

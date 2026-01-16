@@ -15,6 +15,62 @@
 [[best_practices_for_performance]]
 = Best Practices for Performance
 
+[[prefer_bin_distribution]]
+== Prefer the `-bin` Gradle Distribution
+
+Gradle publishes two distribution variants for each release: `-bin` (binaries only) and `-all` (binaries, sources, and documentation).
+For most builds, you should prefer the smaller `-bin` distribution.
+
+Using `-bin` reduces download size and verification effort, speeds up CI and developer builds, and limits the number of artifacts you need to trust.
+
+=== Explanation
+
+Each Gradle release provides:
+
+- `gradle-<version>-bin.zip` – binaries only
+- `gradle-<version>-all.zip` – binaries plus sources and offline documentation
+
+In modern setups:
+
+- IDEs and build tools can download sources and documentation directly from repositories or online docs (even when using `-bin` releases).
+- The `-all` distribution is rarely required outside of specific offline or air-gapped environments.
+
+Preferring `-bin` helps because:
+
+- It **reduces download and cache size** for CI and local builds.
+- There is **less to verify and fewer artifacts to trust** (one smaller archive instead of a larger “everything included” zip).
+- It **shortens the feedback loop** when upgrading Gradle.
+
+In special cases (for example, fully offline environments), you can still use `-all`, but it should be a conscious exception rather than the default.
+
+==== Don't Do This
+
+Make sure your Wrapper doesn't point to the `-all` distribution:
+
+`gradle/wrapper/gradle-wrapper.properties`:
+[source,properties]
+----
+distributionUrl=https\://services.gradle.org/distributions/gradle-<version>-all.zip
+----
+
+==== Do This Instead
+
+Configure the Wrapper to use the `-bin` distribution:
+
+`gradle/wrapper/gradle-wrapper.properties`:
+[source,properties]
+----
+distributionUrl=https\://services.gradle.org/distributions/gradle-<version>-bin.zip
+----
+
+=== References
+
+- <</gradle_wrapper.adoc#configuring_checksum_verification,Gradle Wrapper checksum verification>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:upgrades,`#upgrades`>>`, `<<tags_reference.adoc#tag:wrapper,#wrapper>>`
+
 [[use_utf8_encoding]]
 == Use UTF-8 File Encoding
 
@@ -62,7 +118,7 @@ If the inputs are the same, the outputs will be too, resulting in faster, more e
 Build caching is disabled by default:
 
 ====
-include::sample[dir="snippets/bestPractices/useBuildCache-avoid/kotlin",files="gradle.properties[]"]
+include::sample[dir="snippets/bestPractices/useBuildCache-avoid/common",files="gradle.properties[]"]
 ====
 
 ==== Do This Instead
@@ -70,7 +126,7 @@ include::sample[dir="snippets/bestPractices/useBuildCache-avoid/kotlin",files="g
 To enable the Build Cache, add the following to your `gradle.properties` file:
 
 ====
-include::sample[dir="snippets/bestPractices/useBuildCache-do/kotlin",files="gradle.properties[]"]
+include::sample[dir="snippets/bestPractices/useBuildCache-do/common",files="gradle.properties[]"]
 ====
 
 When you build your project for the first time, Gradle populates the cache with the outputs of tasks like compilation.
@@ -126,7 +182,7 @@ Enabling it by default could lead to unexpected build failures, so Gradle uses a
 Configuration Caching is not enabled by default:
 
 ====
-include::sample[dir="snippets/bestPractices/useConfigurationCache-avoid/kotlin",files="gradle.properties[]"]
+include::sample[dir="snippets/bestPractices/useConfigurationCache-avoid/common",files="gradle.properties[]"]
 ====
 
 ==== Do This Instead
@@ -134,7 +190,7 @@ include::sample[dir="snippets/bestPractices/useConfigurationCache-avoid/kotlin",
 To enable the Configuration Cache, add the following to your `gradle.properties` file:
 
 ====
-include::sample[dir="snippets/bestPractices/useConfigurationCache-do/kotlin",files="gradle.properties[]"]
+include::sample[dir="snippets/bestPractices/useConfigurationCache-do/common",files="gradle.properties[]"]
 ====
 
 When you build your project for the first time, Gradle stores the outcome of the configuration phase, including the task graph, in the Configuration Cache.

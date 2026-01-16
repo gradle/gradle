@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.WorkerTestDefinitionProcessorFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
@@ -33,7 +34,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,13 +44,13 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
 
     private final DefaultTestFilter filter;
     private final Provider<Boolean> dryRun;
-    private final File workingDir;
+    private final ProjectLayout projectLayout;
 
     @Inject
-    public JUnitPlatformTestFramework(DefaultTestFilter filter, Provider<Boolean> dryRun, File workingDir) {
+    public JUnitPlatformTestFramework(DefaultTestFilter filter, Provider<Boolean> dryRun, ProjectLayout projectLayout) {
         this.filter = filter;
         this.dryRun = dryRun;
-        this.workingDir = workingDir;
+        this.projectLayout = projectLayout;
     }
 
     @UsedByScanPlugin("test-retry")
@@ -59,7 +59,7 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
         JUnitPlatformTestFramework newTestFramework = getObjectFactory().newInstance(JUnitPlatformTestFramework.class,
             newTestFilters,
             dryRun,
-            workingDir);
+            projectLayout);
 
         newTestFramework.getOptions().copyFrom(getOptions());
         return newTestFramework;
@@ -73,7 +73,7 @@ public abstract class JUnitPlatformTestFramework implements TestFramework {
         validateOptions();
         return new JUnitPlatformTestDefinitionProcessorFactory(new JUnitPlatformSpec(
             filter.toSpec(), getOptions().getIncludeEngines(), getOptions().getExcludeEngines(),
-            getOptions().getIncludeTags(), getOptions().getExcludeTags(), dryRun.get(), workingDir
+            getOptions().getIncludeTags(), getOptions().getExcludeTags(), dryRun.get(), projectLayout.getProjectDirectory().getAsFile()
         ));
     }
 

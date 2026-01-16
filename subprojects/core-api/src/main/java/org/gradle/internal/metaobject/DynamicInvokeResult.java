@@ -36,7 +36,7 @@ public class DynamicInvokeResult {
         return DynamicInvokeResult.NOT_FOUND;
     }
 
-    private final Object value;
+    private final @Nullable Object value;
 
     private DynamicInvokeResult(@Nullable Object value) {
         this.value = value;
@@ -53,5 +53,16 @@ public class DynamicInvokeResult {
 
     public boolean isFound() {
         return value != NO_VALUE;
+    }
+
+    @Override
+    public String toString() {
+        if (!isFound()) {
+            return "DynamicInvokeResult.notFound()";
+        } else if (value == null) {
+            return "DynamicInvokeResult.found(null)";
+        } else {
+            return "DynamicInvokeResult.found(" + value.getClass().getSimpleName() + ": " + value + ")";
+        }
     }
 }

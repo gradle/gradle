@@ -58,6 +58,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 import org.gradle.internal.concurrent.CompositeStoppable.stoppable
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.TextFileResourceLoader
@@ -254,7 +255,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     private
     fun validatePluginRequestsOf(plugin: PrecompiledScriptPlugin, requests: PluginRequests) {
-        val validationErrors = requests.mapNotNull { validationErrorFor(it) }
+        val validationErrors = requests.mapNotNull { validationErrorFor(plugin, it) }
         if (validationErrors.isNotEmpty()) {
             throw LocationAwareException(
                 IllegalArgumentException(validationErrors.joinToString("\n")),
@@ -265,12 +266,26 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     }
 
     private
-    fun validationErrorFor(pluginRequest: PluginRequestInternal): String? {
+    fun validationErrorFor(plugin: PrecompiledScriptPlugin, pluginRequest: PluginRequestInternal): String? {
         if (pluginRequest.version != null) {
-            return "Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. " +
-                "Please remove the version from the offending request and make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $projectDesc."
+            return buildString {
+                append("Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. ")
+                if (pluginRequest.id.id == "org.gradle.kotlin.kotlin-dsl") {
+                    append("If you have been using the `kotlin-dsl` helper function, then simply replace it by 'id(\"org.gradle.kotlin.kotlin-dsl\")'. ")
+                } else {
+                    append("Please remove the version from the offending request. ")
+                }
+                append("Make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $projectDesc.")
+            }
         }
-        // TODO:kotlin-dsl validate apply false
+        if (!pluginRequest.isApply) {
+            DeprecationLogger.deprecateIndirectUsage("'apply false' in precompiled script plugins")
+                .withAdvice("Remove 'apply false' from the plugin request for '${pluginRequest.id}' in '${projectRelativePathOf(plugin)}'.")
+                .withContext("'apply false' does not do anything as the plugin will already be added to the classpath when added as a dependency to the precompiled script plugin's build file.")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(9, "deprecate_apply_false_in_precompiled_script_plugins")
+                .nagUser()
+        }
         return null
     }
 
@@ -478,10 +493,11 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun failedToGenerateAccessorsFor(plugins: List<PrecompiledScriptPlugin>, stdout: String, stderr: String): String =
         buildString {
-            append(plugins.joinToString(
-                prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
-                separator = "\n",
-            ) { " - " + projectRelativePathOf(it) })
+            append(
+                plugins.joinToString(
+                    prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
+                    separator = "\n",
+                ) { " - " + projectRelativePathOf(it) })
             appendStdoutStderr(stdout, stderr)
         }
 

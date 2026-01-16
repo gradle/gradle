@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
@@ -104,7 +103,7 @@ public class ThisBuildTreeOnlyComponentResultSerializer implements ComponentResu
     @Override
     public void readComponentResult(Decoder decoder, ResolvedComponentVisitor visitor) throws Exception {
         long resultId = decoder.readSmallLong();
-        ComponentSelectionReason reason = reasonSerializer.read(decoder);
+        ComponentSelectionReasonInternal reason = reasonSerializer.read(decoder);
         String repo = decoder.readNullableString();
         ComponentGraphResolveState component = readComponentReference(decoder);
         visitor.startVisitComponent(resultId, reason, repo, component.getId(), component.getMetadata().getModuleVersionId());

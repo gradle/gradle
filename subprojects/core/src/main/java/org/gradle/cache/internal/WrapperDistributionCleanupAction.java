@@ -24,14 +24,13 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.cache.MonitoredCleanupAction;
 import org.gradle.internal.versionedcache.UsedGradleVersions;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DefaultGradleVersion;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -63,7 +62,7 @@ public class WrapperDistributionCleanupAction implements MonitoredCleanupAction 
     private static final Logger LOGGER = LoggerFactory.getLogger(WrapperDistributionCleanupAction.class);
 
     private static final ImmutableMap<String, Pattern> JAR_FILE_PATTERNS_BY_PREFIX;
-    private static final String BUILD_RECEIPT_ZIP_ENTRY_PATH = StringUtils.removeStart(DefaultGradleVersion.RESOURCE_NAME, "/");
+    private static final String BUILD_RECEIPT_ZIP_ENTRY_PATH = Strings.CS.removeStart(DefaultGradleVersion.RESOURCE_NAME, "/");
 
     static {
         Set<String> prefixes = ImmutableSet.of(
@@ -93,7 +92,7 @@ public class WrapperDistributionCleanupAction implements MonitoredCleanupAction 
     }
 
     @Override
-    public boolean execute(@NonNull CleanupProgressMonitor progressMonitor) {
+    public boolean execute(CleanupProgressMonitor progressMonitor) {
         long maximumTimestamp = Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1));
         Set<GradleVersion> usedVersions = this.usedGradleVersions.getUsedGradleVersions();
         Multimap<GradleVersion, File> checksumDirsByVersion = determineChecksumDirsByVersion();

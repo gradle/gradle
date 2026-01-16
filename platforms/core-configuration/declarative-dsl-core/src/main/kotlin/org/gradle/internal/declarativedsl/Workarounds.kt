@@ -36,7 +36,7 @@ object Workarounds {
     }
 
     private val kFunctionImplSignature: (KFunction<*>) -> String by lazy {
-        val property: KProperty<*> = Class.forName("kotlin.reflect.jvm.internal.KFunctionImpl").kotlin.memberProperties.first { it.name == "signature" }.apply { isAccessible = true }
+        val property: KProperty<*> = Class.forName("kotlin.reflect.jvm.internal.DescriptorKFunction").kotlin.memberProperties.first { it.name == "signature" }.apply { isAccessible = true }
         return@lazy { kFunction: KFunction<*> -> property.call(kFunction) as String }
     }
 
@@ -61,6 +61,6 @@ object Workarounds {
     }
 
     private val descriptorMethod by lazy {
-        Class.forName("kotlin.reflect.jvm.internal.KClassifierImpl").methods.single { it.name == "getDescriptor" }
+        Class.forName("kotlin.reflect.jvm.internal.KTypeParameterImpl").methods.single { it.name == "getDescriptor" }
     }
 }

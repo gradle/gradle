@@ -26,12 +26,6 @@ gradleModule {
     }
 }
 
-errorprone {
-    disabledChecks.addAll(
-        "ReferenceEquality", // 2 occurrences
-    )
-}
-
 strictCompile {
     ignoreRawTypes() // some raw types remain, but must be cleaned up
 }

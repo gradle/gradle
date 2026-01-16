@@ -26,8 +26,10 @@ import com.google.common.collect.Multimaps
 import com.google.common.collect.Multisets
 import com.google.common.collect.Sets
 import com.google.common.collect.Streams
+import org.gradle.api.Action
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.lazy.Lazy
+import org.gradle.internal.time.TimeFormatting
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
@@ -36,6 +38,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
 import java.nio.file.Files
+import java.time.Duration
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
@@ -53,7 +56,7 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
         try (Stream<java.nio.file.Path> paths = Files.walk(reportPath)) {
             return paths.filter {
                 it.getFileName().toString().endsWith(".html")
-            }.map {
+            }.collect {
                 def html = Jsoup.parse(it.toFile(), null)
                 def breadcrumbs = html.selectFirst(".breadcrumbs")
                 if (breadcrumbs == null) {
@@ -67,8 +70,9 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
                 for (int i = 1; i < elements.size(); i++) {
                     path = path.child(elements[i])
                 }
-                return path
-            }.collect(Collectors.toSet())
+                def childrenWithoutFiles = html.select("td.path").collect { path.child(it.text()) }
+                return [path] + childrenWithoutFiles
+            }.flatten().toSet()
         }
     })
     private final File htmlReportDirectory
@@ -89,6 +93,14 @@ class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
      */
     Set<Path> getExecutedTestPaths() {
         return executedTestPathsLazy.get()
+    }
+
+    GenericTestExecutionResult assertHtml(String cssQuery, Action<Collection<?>> action) {
+        def parsedHtml = Jsoup.parse(htmlReportDirectory.toPath().resolve("index.html").toFile(), null)
+        def matched = parsedHtml.select(cssQuery)
+        assert matched : "Queried HTML report for $cssQuery"
+        action.execute(matched)
+        return this
     }
 
     @SuppressWarnings('GroovyAssignabilityCheck')
@@ -157,7 +169,153 @@ Unexpected paths: ${unexpectedPaths}""")
     @Override
     TestPathExecutionResult testPath(String rootTestPath) {
         assertAtLeastTestPathsExecuted(rootTestPath)
-        return new HtmlTestPathExecutionResult(testFramework, diskPathForTestPath(frameworkTestPath(rootTestPath)).toFile())
+
+        def reportPath = diskPathForTestPath(frameworkTestPath(rootTestPath))
+        if (Files.exists(reportPath)) {
+            return new HtmlTestPathExecutionResult(testFramework, reportPath.toFile())
+        } else {
+            return new TestPathExecutionResult() {
+                private final TestPathRootExecutionResult doesNotExist = new TestPathRootExecutionResult() {
+                    @Override
+                    TestPathRootExecutionResult assertOnlyChildrenExecuted(String... testNames) {
+                        assert !testNames.empty
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildrenExecuted(String... testNames) {
+                        assert !testNames.empty
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildCount(int tests, int failures) {
+                        assert tests == 0
+                        return this
+                    }
+
+                    @Override
+                    int getExecutedChildCount() {
+                        return 0
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildrenSkipped(String... testNames) {
+                        assert !testNames.empty
+                        return this
+                    }
+
+                    @Override
+                    int getSkippedChildCount() {
+                        return 0
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildrenFailed(String... testNames) {
+                        assert !testNames.empty
+                        return this
+                    }
+
+                    @Override
+                    int getFailedChildCount() {
+                        return 0
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertStdout(Matcher<? super String> matcher) {
+                        matcher.matches("")
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertStderr(Matcher<? super String> matcher) {
+                        matcher.matches("")
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertHasResult(TestResult.ResultType resultType) {
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertDisplayName(Matcher<? super String> matcher) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertFailureMessages(Matcher<? super String> matcher) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertThatSingleDuration(Matcher<? super Duration> matcher) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    String getFailureMessages() {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertMetadataKeys(List<String> keys) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertMetadata(List<Map.Entry<String, String>> metadata) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertFileAttachments(Map<String, TestPathRootExecutionResult.ShowAs> expectedAttachments) {
+                        assert false
+                        return this
+                    }
+                }
+
+                @Override
+                TestPathRootExecutionResult onlyRoot() {
+                    return doesNotExist
+                }
+
+                @Override
+                TestPathRootExecutionResult singleRootWithRun(int runNumber) {
+                    assert false
+                    return doesNotExist
+                }
+
+                @Override
+                TestPathRootExecutionResult root(String rootName) {
+                    assert false
+                    return doesNotExist
+                }
+
+                @Override
+                TestPathRootExecutionResult rootAndRun(String rootName, int runNumber) {
+                    assert false
+                    return doesNotExist
+                }
+
+                @Override
+                List<String> getRootNames() {
+                    return [rootTestPath]
+                }
+
+                @Override
+                int getRunCount(String rootName) {
+                    assert false
+                    return 0
+                }
+            }
+        }
     }
 
     TestPathExecutionResult testPathPreNormalized(String rootTestPath) {
@@ -492,6 +650,16 @@ Unexpected paths: ${unexpectedPaths}""")
         }
 
         @Override
+        TestPathRootExecutionResult assertThatSingleDuration(Matcher<? super Duration> matcher) {
+            def durationText = html.selectFirst('.summary .infoBox.duration .counter').text()
+            def durationTexts = durationText.split(' ')
+            assertThat("multiple durations in " + displayName, durationTexts.length, equalTo(1))
+            def duration = TimeFormatting.parseDurationVeryTerse(durationTexts[0])
+            assertThat("in " + displayName, duration, matcher)
+            return this
+        }
+
+        @Override
         String getFailureMessages() {
             html.selectFirst('.result-details pre')?.text() ?: ''
         }
@@ -511,6 +679,31 @@ Unexpected paths: ${unexpectedPaths}""")
                 Maps.immutableEntry(it[0], it[1])
             }
             assertThat("in " + displayName, metadata, equalTo(expectedMetadata))
+            return this
+        }
+
+        @Override
+        TestPathRootExecutionResult assertFileAttachments(Map<String, ShowAs> expectedAttachments) {
+            def fileAttachments = html.select('.attachments tr').findAll { it.getElementsByTag('td').size() > 0 }
+            Map<String, ShowAs> actual = fileAttachments.collectEntries {
+                def columns = it.getElementsByTag("td")
+                assert columns.size() == 2 : "unexpected table"
+                def key = columns[0]
+                def content = columns[1]
+                def shownAs
+                if (content.getElementsByTag("img").size() > 0) {
+                    shownAs = ShowAs.IMAGE
+                } else if (content.getElementsByTag("video").size() > 0) {
+                    shownAs = ShowAs.VIDEO
+                } else if (content.getElementsByTag("a").size() > 0) {
+                    shownAs = ShowAs.LINK
+                } else {
+                    shownAs = null
+                }
+                [key.text(), shownAs]
+            }
+
+            assertThat("in " + displayName, actual, equalTo(expectedAttachments))
             return this
         }
     }

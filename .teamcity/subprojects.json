@@ -121,7 +121,7 @@
   {
     "name": "build-discovery",
     "path": "platforms/core-runtime/build-discovery",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -129,6 +129,13 @@
     "name": "build-discovery-impl",
     "path": "platforms/core-runtime/build-discovery-impl",
     "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "build-discovery-reporting",
+    "path": "platforms/core-runtime/build-discovery-reporting",
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -231,6 +238,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "collections",
+    "path": "platforms/core-runtime/collections",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "composite-builds",
     "path": "subprojects/composite-builds",
     "unitTests": true,
@@ -303,6 +317,13 @@
   {
     "name": "core-serialization-codecs",
     "path": "platforms/core-configuration/core-serialization-codecs",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "daemon-logging",
+    "path": "platforms/core-runtime/daemon-logging",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -598,7 +619,7 @@
     "name": "gradle-cli",
     "path": "platforms/core-runtime/gradle-cli",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -1130,7 +1151,7 @@
     "name": "project-features",
     "path": "platforms/core-configuration/project-features",
     "unitTests": false,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

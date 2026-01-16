@@ -44,6 +44,14 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
         fixture.only("Configure project :")
     }
 
+    def "produces operations trace when no path is provided"() {
+        when:
+        run "help", "-D${BuildOperationTrace.SYSPROP}="
+
+        then:
+        file("operations-log.txt").exists()
+    }
+
     def "no tree files are produced by default"() {
         when:
         run "help", "-D${BuildOperationTrace.SYSPROP}=trace"
@@ -79,21 +87,46 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
         tmpDir.file("custom-trace-tree.json").exists()
     }
 
-    def "trace files are relative to the current directory when parameter is #description"() {
+    def "when running from subdirectory, trace files are relative to the root directory for #description parameter"() {
+        // Explicit settings file to ensure test directory is the root directory of the build
+        settingsFile """
+            rootProject.name = "root"
+            include("sub")
+        """
+        createDirs("sub")
+
         when:
         inDirectory "sub"
         run "help", "-D${BuildOperationTrace.TREE_SYSPROP}=true", "-D${BuildOperationTrace.SYSPROP}=$trace"
 
         then:
-        file("sub/$output-log.txt").exists()
-        file("sub/$output-tree.txt").exists()
-        file("sub/$output-tree.json").exists()
+        file("$trace-log.txt").exists()
+        file("$trace-tree.txt").exists()
+        file("$trace-tree.json").exists()
 
         where:
-        description       | trace          | output
-        "empty"           | ""             | "operations"
-        "a file name"     | "custom"       | "custom"
-        "a relative path" | "build/custom" | "build/custom"
+        description       | trace
+        "a file name"     | "custom"
+        "a relative path" | "build/custom"
     }
 
+    def "trace parameters can be provided in gradle.properties as #description"() {
+        file("gradle.properties") << """
+            ${BuildOperationTrace.SYSPROP}=$trace
+            ${BuildOperationTrace.TREE_SYSPROP}=true
+        """
+
+        when:
+        run "help"
+
+        then:
+        file("$trace-log.txt").exists()
+        file("$trace-tree.txt").exists()
+        file("$trace-tree.json").exists()
+
+        where:
+        description       | trace
+        "a file name"     | "custom"
+        "a relative path" | "build/custom"
+    }
 }

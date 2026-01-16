@@ -111,6 +111,7 @@ class ApplyDefaultConfigurationTest {
                 "MARK_BUILD_SUCCESSFUL_ON_RETRY_SUCCESS",
                 "KILL_PROCESSES_STARTED_BY_GRADLE",
                 "CHECK_CLEAN_M2_ANDROID_USER_HOME",
+                "EC2_POST_BUILD",
             ),
             steps.items.map(BuildStep::name),
         )
@@ -175,6 +176,7 @@ class ApplyDefaultConfigurationTest {
                 "%linux.java17.openjdk.64bit%",
                 "%linux.java21.openjdk.64bit%",
                 "%linux.java25.openjdk.64bit%",
+                "%linux.java26.openjdk.64bit%",
             )
         val windowsPaths =
             listOf(
@@ -183,6 +185,7 @@ class ApplyDefaultConfigurationTest {
                 "%windows.java17.openjdk.64bit%",
                 "%windows.java21.openjdk.64bit%",
                 "%windows.java25.openjdk.64bit%",
+                "%windows.java26.openjdk.64bit%",
             )
         val expectedInstallationPaths = (if (os == Os.WINDOWS) windowsPaths else linuxPaths).joinToString(",")
         return listOf(

@@ -15,13 +15,20 @@
  */
 package org.gradle.integtests.fixtures
 
+import com.google.common.collect.ListMultimap
+import com.google.common.collect.MultimapBuilder
 import groovy.xml.XmlParser
 import groovy.xml.XmlSlurper
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.CollectionUtils
 
-import static org.hamcrest.CoreMatchers.*
-import static org.hamcrest.core.StringStartsWith.startsWith
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.hasItem
+import static org.hamcrest.CoreMatchers.hasItems
+import static org.hamcrest.CoreMatchers.not
+import static org.hamcrest.CoreMatchers.notNullValue
 import static org.hamcrest.MatcherAssert.assertThat
+import static org.hamcrest.core.StringStartsWith.startsWith
 
 class JUnitXmlTestExecutionResult implements TestExecutionResult {
     private final TestFile testResultsDir
@@ -42,15 +49,15 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
     }
 
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {
-        Map<String, File> classes = findClasses()
-        assertThat(classes.keySet(), equalTo(testClasses as Set))
+        Set<String> classes = findClasses().keySet()
+        assertThat(classes, equalTo(testClasses as Set))
         return this
     }
 
     TestExecutionResult assertTestClassesNotExecuted(String... testClasses) {
         if (testResultsDir.exists()) {
-            Map<String, File> classes = findClasses()
-            assertThat(classes.keySet(), not(hasItems(testClasses)))
+            Set<String> classes = findClasses().keySet()
+            assertThat(classes, not(hasItems(testClasses)))
             this
         }
         return this
@@ -62,8 +69,8 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
     }
 
     boolean testClassExists(String testClass) {
-        def classes = findClasses()
-        return (classes.keySet().contains(testClass))
+        Set<String> classes = findClasses().keySet()
+        return (classes.contains(testClass))
     }
 
     boolean testClassDoesNotExist(String testClass) {
@@ -76,6 +83,18 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
 
     TestClassExecutionResult testClass(String testClass) {
         return new JUnitTestClassExecutionResult(findTestClass(testClass), testClass, testClass, outputAssociation)
+    }
+
+    TestClassExecutionResult testClass(String testClass, int run) {
+        def classes = findClasses()
+        assertThat(classes.keySet(), hasItem(testClass))
+        def classFiles = classes.get(testClass).toSorted()
+        assert classFiles.size() >= run
+
+        def classFile = classFiles[run]
+        def xml = new XmlSlurper().parse(classFile)
+
+        return new JUnitTestClassExecutionResult(xml, testClass, testClass, outputAssociation)
     }
 
     TestClassExecutionResult testClassStartsWith(String testClass) {
@@ -91,7 +110,7 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
     private def findTestClass(String testClass) {
         def classes = findClasses()
         assertThat(classes.keySet(), hasItem(testClass))
-        def classFile = classes.get(testClass)
+        def classFile = CollectionUtils.single(classes.get(testClass))
         assertThat(classFile, notNullValue())
         return new XmlSlurper().parse(classFile)
     }
@@ -99,8 +118,8 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
     private def findTestClassStartsWith(String testClass) {
         def classes = findClasses()
         assertThat(classes.keySet(), hasItem(startsWith(testClass)))
-        def classEntry = classes.find { it.key.startsWith(testClass) }
-        def classFile = classEntry.value
+        def classEntry = classes.asMap().find { it.key.startsWith(testClass) }
+        def classFile = CollectionUtils.single(classEntry.value)
         assertThat(classFile, notNullValue())
         return [classEntry.key, new XmlSlurper().parse(classFile)]
     }
@@ -108,11 +127,12 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
     private def findClasses() {
         testResultsDir.assertIsDir()
 
-        Map<String, File> classes = [:]
+        ListMultimap<String, File> classes = MultimapBuilder.linkedHashKeys().arrayListValues().build()
+
         testResultsDir.eachFile { File file ->
             def matcher = (file.name=~/TEST-(.+)\.xml/)
             if (matcher.matches()) {
-                classes[fromFileToTestClass(file)] = file
+                classes.put(fromFileToTestClass(file), file)
             }
         }
         return classes
@@ -145,8 +165,8 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
     }
 
     private Node getTestClassXmlDoc(String testClass) {
-        Map<String, File> classes = findClasses()
-        def xmlTest = classes[testClass].text
+        def classes = findClasses()
+        def xmlTest = CollectionUtils.single(classes.get(testClass)).text
         def doc = new XmlParser().parseText(xmlTest)
 
         return doc.tap {

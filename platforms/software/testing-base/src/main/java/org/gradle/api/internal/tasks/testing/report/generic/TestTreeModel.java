@@ -17,10 +17,11 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
-import org.gradle.api.internal.tasks.testing.results.serializable.OutputTrackedResult;
+import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
+import org.gradle.api.internal.tasks.testing.results.serializable.OutputRanges;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.util.Path;
@@ -28,15 +29,12 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.OptionalLong;
 import java.util.function.Consumer;
 
 /**
@@ -106,7 +104,7 @@ public class TestTreeModel {
      * @param stores the stores to load the models from
      * @return the merged tree model
      */
-    public static TestTreeModel loadModelFromStores(List<SerializableTestResultStore> stores) throws IOException {
+    public static TestTreeModel loadModelFromStores(List<SerializableTestResultStore> stores) throws Exception {
         Map<SmallPath, TestTreeModel.Builder> modelsByPath = new HashMap<>();
         int rootCount = stores.size();
         for (int i = 0; i < rootCount; i++) {
@@ -120,7 +118,7 @@ public class TestTreeModel {
         return rootBuilder.build();
     }
 
-    private static final class StoreLoader implements Consumer<OutputTrackedResult> {
+    private static final class StoreLoader implements SerializableTestResultStore.ResultProcessor {
 
         private static final class Child {
             private final long id;
@@ -145,8 +143,9 @@ public class TestTreeModel {
         }
 
         @Override
-        public void accept(OutputTrackedResult result) {
-            List<Child> children = childrenByParentId.get(result.getId());
+        public void process(long id, @Nullable Long parentId, SerializableTestResult result, OutputRanges outputRanges)
+            throws IOException {
+            List<Child> children = childrenByParentId.get(id);
             int totalLeafCount = 0;
             int failedLeafCount = 0;
             int skippedLeafCount = 0;
@@ -155,32 +154,22 @@ public class TestTreeModel {
                 failedLeafCount += child.info.getFailedLeafCount();
                 skippedLeafCount += child.info.getSkippedLeafCount();
             }
-            if (children.isEmpty()) {
+            boolean isLeaf = children.isEmpty();
+            if (isLeaf) {
                 // This is a leaf, so compute the counts for itself.
                 totalLeafCount = 1;
-                if (result.getInnerResult().getResultType() == TestResult.ResultType.FAILURE) {
+                if (result.getResultType() == TestResult.ResultType.FAILURE) {
                     failedLeafCount = 1;
-                } else if (result.getInnerResult().getResultType() == TestResult.ResultType.SKIPPED) {
+                } else if (result.getResultType() == TestResult.ResultType.SKIPPED) {
                     skippedLeafCount = 1;
                 }
             }
-            List<String> childNames = new ArrayList<>(children.size());
-            BitSet childIsLeaf = new BitSet(children.size());
-            for (int i = 0; i < children.size(); i++) {
-                Child child = children.get(i);
-                String name = child.info.getName();
-                childNames.add(name);
-                if (child.info.isLeaf()) {
-                    childIsLeaf.set(i);
-                }
-            }
-            PerRootInfo.Builder thisInfo = new PerRootInfo.Builder(result, childNames, childIsLeaf, totalLeafCount, failedLeafCount, skippedLeafCount);
-            OptionalLong parentOutputId = result.getParentId();
-            if (!parentOutputId.isPresent()) {
+            PerRootInfo.Builder thisInfo = new PerRootInfo.Builder(id, result, outputRanges, isLeaf, totalLeafCount, failedLeafCount, skippedLeafCount);
+            if (parentId == null) {
                 // We have the root, so now we can resolve all paths and attach to the models.
-                finalizePath(SmallPath.ROOT, result.getId(), thisInfo);
+                finalizePath(SmallPath.ROOT, id, thisInfo);
             } else {
-                childrenByParentId.put(parentOutputId.getAsLong(), new Child(result.getId(), thisInfo));
+                childrenByParentId.put(parentId, new Child(id, thisInfo));
             }
         }
 
@@ -305,19 +294,114 @@ public class TestTreeModel {
         return children;
     }
 
-    public Iterable<TestTreeModel> getChildrenOf(int rootIndex) {
-        // There should only be one perRootInfo with children.
-        PerRootInfo perRootInfoWithChildren = perRootInfo.get(rootIndex).stream()
-            .filter(info -> !info.getChildren().isEmpty())
-            .findFirst()
-            .orElse(null);
-        if (perRootInfoWithChildren == null) {
-            return Collections.emptyList();
+    /**
+     * Returns true if this node is a leaf and has an assumption failure.
+     * Assumption failures are recorded when a test is skipped due to an assumption.
+     *
+     * @return true if this is a leaf with an assumption failure
+     */
+    public boolean hasAssumptionFailure() {
+        for (List<PerRootInfo> infos : getPerRootInfo()) {
+            for (PerRootInfo info : infos) {
+                for (SerializableTestResult result : info.getResults()) {
+                    if (result.getAssumptionFailure() != null) {
+                        return true;
+                    }
+                }
+            }
         }
-        // Take a unique ordered set of the child names, to only return one result per unique child name.
-        // Consumers of this should iterate over the getPerRootInfo() to get all results for a given child name.
-        ImmutableSet<String> childNames = ImmutableSet.copyOf(perRootInfoWithChildren.getChildren());
-        return Iterables.filter(children, c -> childNames.contains(c.path.segment));
+        return false;
+    }
+
+    /**
+     * Returns true if this node is a leaf and all its results are successful
+     * (not failed and not skipped).
+     *
+     * @return true if this is a successful leaf node
+     */
+    public boolean isSuccessfulLeaf() {
+        for (List<PerRootInfo> infos : getPerRootInfo()) {
+            for (PerRootInfo info : infos) {
+                // A successful leaf has no failures and no skipped tests
+                if (info.getFailedLeafCount() > 0 || info.getSkippedLeafCount() > 0) {
+                    return false;
+                }
+            }
+        }
+        return !perRootInfo.isEmpty();
+    }
+
+    /**
+     * Determines if this leaf test needs has useful details.
+     * <p>
+     * This checks if the test is:
+     * - A failed test (always useful)
+     * - A skipped test with an assumption failure
+     * - A successful test is useful if it has output or metadata
+     *
+     * @return true if this leaf has useful details
+     */
+    public boolean hasUsefulDetails() {
+        if (!children.isEmpty()) {
+            // Non-leaves are always useful
+            return true;
+        }
+
+        // Failed tests are always useful
+        if (!isSuccessfulLeaf()) {
+            return true;
+        }
+
+        // Tests with an assumption failure are useful
+        if (hasAssumptionFailure()) {
+            return true;
+        }
+
+        // Tests with metadata are useful
+        if (hasMetadata()) {
+            return true;
+        }
+
+        // Tests with output are useful
+        return hasOutput();
+    }
+
+    /**
+     * @return true if this test has any output (standard output or standard error)
+     */
+    private boolean hasOutput() {
+        for (List<PerRootInfo> infos : getPerRootInfo()) {
+            for (PerRootInfo info : infos) {
+                for (OutputEntry outputEntry : info.getOutputEntries()) {
+                    if (outputEntry.getOutputRanges().hasOutput()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if this leaf node has metadata.
+     *
+     * @return true if the leaf has metadata
+     */
+    private boolean hasMetadata() {
+        for (List<PerRootInfo> infos : getPerRootInfo()) {
+            for (PerRootInfo info : infos) {
+                if (!Iterables.isEmpty(info.getMetadatas())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public Iterable<TestTreeModel> getChildrenOf(int rootIndex) {
+        // Filter children to only those that have results for this root.
+        // A child belongs to a root if it has a non-empty perRootInfo list for that root index.
+        return Iterables.filter(children, c -> !c.perRootInfo.get(rootIndex).isEmpty());
     }
 
     /**

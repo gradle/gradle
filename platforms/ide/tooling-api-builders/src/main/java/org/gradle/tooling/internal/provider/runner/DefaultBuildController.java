@@ -24,6 +24,7 @@ import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.buildtree.BuildTreeModelTarget;
+import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
@@ -110,25 +111,20 @@ class DefaultBuildController implements
     @Override
     public BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter)
         throws BuildExceptionVersion1, InternalUnsupportedModelException {
-        ToolingModelBuilderResultInternal model = doGetModel(target, modelIdentifier, parameter);
+        ToolingModelBuilderResultInternal model = doGetModel(target, new ToolingModelRequestContext(modelIdentifier.getName(), parameter, false));
         return new ProviderBuildResult<>(model.getModel());
     }
 
-    private ToolingModelBuilderResultInternal doGetModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter)
+    private ToolingModelBuilderResultInternal doGetModel(@Nullable Object target, ToolingModelRequestContext modelRequestContext)
         throws BuildExceptionVersion1, InternalUnsupportedModelException {
         assertCanQuery();
         if (cancellationToken.isCancellationRequested()) {
-            throw new BuildCancelledException(String.format("Could not build '%s' model. Build cancelled.", modelIdentifier.getName()));
+            throw new BuildCancelledException(String.format("Could not build '%s' model. Build cancelled.", modelRequestContext.getModelName()));
         }
 
         BuildTreeModelTarget scopedTarget = resolveTarget(target);
         try {
-            Object model = controller.getModel(scopedTarget, modelIdentifier.getName(), parameter);
-            if (model instanceof ToolingModelBuilderResultInternal) {
-                return (ToolingModelBuilderResultInternal) model;
-            } else {
-                return ToolingModelBuilderResultInternal.of(model);
-            }
+            return controller.getModel(scopedTarget, modelRequestContext);
         } catch (UnknownModelException e) {
             throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
         }
@@ -176,9 +172,9 @@ class DefaultBuildController implements
     @Override
     public <M> InternalFetchModelResult<M> fetch(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) {
         try {
-            ToolingModelBuilderResultInternal model = doGetModel(target, modelIdentifier, parameter);
-            List<InternalFailure> failures = toInternalFailures(model.getFailures());
-            return new DefaultInternalFetchModelResult<>(uncheckedNonnullCast(model.getModel()), failures);
+            ToolingModelBuilderResultInternal resultInternal = doGetModel(target, new ToolingModelRequestContext(modelIdentifier.getName(), parameter, true));
+            List<InternalFailure> failures = toInternalFailures(resultInternal.getFailures());
+            return new DefaultInternalFetchModelResult<>(uncheckedNonnullCast(resultInternal.getModel()), failures);
         } catch (Exception e) {
             List<InternalFailure> failures = ImmutableList.of(DefaultFailure.fromThrowable(e));
             return new DefaultInternalFetchModelResult<>(null, failures);

@@ -85,7 +85,7 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
         models.projects.path == [':', ':a', ':b']
     }
 
-    @TargetGradleVersion(">=6.8")
+    @TargetGradleVersion(">=6.8 <9.4.0")
     def "nested actions that query a project model do not run in parallel when target Gradle version supports it and #args is used"() {
         given:
         setupBuildWithDependencyResolution()

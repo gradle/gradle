@@ -46,7 +46,7 @@ public interface ProviderInternalTestExecutionRequest {
     /**
      * @since 7.6
      */
-    boolean isRunDefaultTasks(boolean dafaults);
+    boolean isRunDefaultTasks(boolean defaults);
 
     /**
      * @since 7.6

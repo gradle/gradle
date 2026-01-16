@@ -21,6 +21,8 @@ import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecution
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.testing.nonclassbased.AbstractNonClassBasedTestingIntegrationTest.DEFAULT_DEFINITIONS_LOCATION
+
 /**
  * Integration test to verify that Cucumber JVM feature files can be executed
  * without using non-class-based testing support via {@code @RunWith} or other JUnit annotations.
@@ -45,7 +47,7 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
 
                 dependencies {
                     implementation("io.cucumber:cucumber-java:7.15.0")
-                    implementation("io.cucumber:cucumber-junit-platform-engine:7.15.0")
+                    runtimeOnly("io.cucumber:cucumber-junit-platform-engine:7.15.0")
                 }
 
                 targets.all {
@@ -67,7 +69,48 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
         result.testPathPreNormalized(":$testLocation/helloworld.feature:Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
 
         where:
-        testLocation << ["src/test/resources", AbstractNonClassBasedTestingIntegrationTest.DEFAULT_DEFINITIONS_LOCATION]
+        testLocation << ["src/test/resources", DEFAULT_DEFINITIONS_LOCATION]
+    }
+
+    def "can run Cucumber tests with a custom test workingDir and report names are relative to project dir"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            File customWorkingDir = file("custom/WorkingDir")
+            customWorkingDir.mkdirs()
+
+            testing.suites.test {
+                useJUnitJupiter()
+
+                dependencies {
+                    implementation("io.cucumber:cucumber-java:7.15.0")
+                    implementation("io.cucumber:cucumber-junit-platform-engine:7.15.0")
+                }
+
+                targets.all {
+                    testTask.configure {
+
+                        workingDir = customWorkingDir
+                        testDefinitionDirs.from("src/test/resources")
+                    }
+                }
+            }
+        """
+
+        writeCucumberFeatureFiles()
+        writeCucumberStepDefinitions()
+
+        when:
+        succeeds("test")
+
+        then:
+        def result = resultsFor()
+        result.testPathPreNormalized(":src/test/resources/helloworld.feature:Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     private writeCucumberStepDefinitions(String path = "src/test/java") {

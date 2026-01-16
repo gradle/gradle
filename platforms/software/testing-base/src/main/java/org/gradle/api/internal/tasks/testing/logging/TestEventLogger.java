@@ -16,9 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing.logging;
 
+import org.gradle.api.tasks.testing.TestFileAttachmentDataEvent;
+import org.gradle.api.tasks.testing.TestKeyValueDataEvent;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.tasks.testing.TestMetadataListener;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestOutputListener;
 import org.gradle.api.tasks.testing.TestResult;
@@ -26,11 +30,14 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NullMarked;
+
+import java.util.stream.Collectors;
 
 /**
  * Console logger for test events.
  */
-public class TestEventLogger extends AbstractTestLogger implements TestListener, TestOutputListener {
+public class TestEventLogger extends AbstractTestLogger implements TestListener, TestOutputListener, TestMetadataListener {
     private static final String INDENT = "    ";
 
     private final TestExceptionFormatter exceptionFormatter;
@@ -70,6 +77,23 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
         } else if (outputEvent.getDestination() == TestOutputEvent.Destination.StdErr
                 && isLoggedEventType(TestLogEvent.STANDARD_ERROR)) {
             logEvent(descriptor, TestLogEvent.STANDARD_ERROR, TextUtil.indent(outputEvent.getMessage(), INDENT) + "\n");
+        }
+    }
+
+    @Override
+    @NullMarked
+    public void onMetadata(TestDescriptor testDescriptor, TestMetadataEvent metadataEvent) {
+        if (shouldLogEvent(testDescriptor, TestLogEvent.METADATA)) {
+            if (metadataEvent instanceof TestKeyValueDataEvent) {
+                TestKeyValueDataEvent keyValueDataEvent = (TestKeyValueDataEvent) metadataEvent;
+                String values = keyValueDataEvent.getValues().entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining());
+                logEvent(testDescriptor, TestLogEvent.METADATA, values);
+            } else if (metadataEvent instanceof TestFileAttachmentDataEvent) {
+                TestFileAttachmentDataEvent attachmentDataEvent = (TestFileAttachmentDataEvent) metadataEvent;
+                logEvent(testDescriptor, TestLogEvent.METADATA, attachmentDataEvent.getPath().toString());
+            } else {
+                logEvent(testDescriptor, TestLogEvent.METADATA, "Unknown metadata event type: " + metadataEvent.getClass());
+            }
         }
     }
 

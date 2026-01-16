@@ -7,16 +7,8 @@ description = """This project contains the Build Init plugin, which is automatic
 
 This project should NOT be used as an implementation dependency anywhere (except when building a Gradle distribution)."""
 
-errorprone {
-    disabledChecks.addAll(
-        "DefaultCharset", // 6 occurrences
-        "GetClassOnEnum", // 1 occurrences
-        "ImmutableEnumChecker", // 2 occurrences
-        "ReferenceEquality", // 1 occurrences
-    )
-}
-
 dependencies {
+    api(libs.guava)
     api(libs.inject)
     api(libs.jspecify)
     api(libs.maven3Settings)
@@ -50,7 +42,6 @@ dependencies {
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
-    implementation(libs.guava)
     implementation(libs.gson)
     implementation(libs.commonsLang)
     implementation(libs.maven3SettingsBuilder)

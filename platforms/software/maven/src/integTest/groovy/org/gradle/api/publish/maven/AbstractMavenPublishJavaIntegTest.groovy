@@ -641,7 +641,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Declaring a dependency on an unpublished project has been deprecated. This will fail with an error in Gradle 10. A dependency was declared on project ':b', but that project does not declare any publications. Ensure project ':b' declares at least one publication. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#publishing_dependency_on_unpublished_project")
+        executer.expectDocumentedDeprecationWarning("Declaring a dependency on an unpublished project has been deprecated. This will fail with an error in Gradle 10. A dependency was declared on project ':b', but that project does not declare any publications. Ensure project ':b' declares at least one publication. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#publishing_dependency_on_unpublished_project")
         succeeds "publish"
     }
 
@@ -1201,13 +1201,14 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.1")).withModuleMetadata().publish()
 
-        createBuildScripts("""
-
-            tasks.compileJava {
-                // Avoid resolving the classpath when caching the configuration
-                classpath = files()
+        file("src/main/java/Dummy.java") << """
+            public class Dummy {
+                public static void main(String[] args) {
+                    System.out.println("Hello, World!");
+                }
             }
-
+        """
+        createBuildScripts("""
             dependencies {
                 api "org.test:bar:1.0"
                 api platform("org.test:platform:1.0")

@@ -328,9 +328,9 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
             // Changes here may require changes in DefaultExternalModuleDependencyVariantSpec
             ModuleDependency moduleDependency = (ModuleDependency) dependency;
             moduleDependency.endorseStrictVersions();
-            platformSupport.addPlatformAttribute(moduleDependency, toCategory(Category.REGULAR_PLATFORM));
+            platformSupport.addPlatformAttribute(moduleDependency, Category.REGULAR_PLATFORM);
         } else if (dependency instanceof HasConfigurableAttributes) {
-            platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) dependency, toCategory(Category.REGULAR_PLATFORM));
+            platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) dependency, Category.REGULAR_PLATFORM);
         }
         return dependency;
     }
@@ -351,9 +351,9 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
             AbstractExternalModuleDependency externalModuleDependency = (AbstractExternalModuleDependency) platformDependency;
             MutableVersionConstraint constraint = (MutableVersionConstraint) externalModuleDependency.getVersionConstraint();
             constraint.strictly(externalModuleDependency.getVersion());
-            platformSupport.addPlatformAttribute(externalModuleDependency, toCategory(Category.ENFORCED_PLATFORM));
+            platformSupport.addPlatformAttribute(externalModuleDependency, Category.ENFORCED_PLATFORM);
         } else if (platformDependency instanceof HasConfigurableAttributes) {
-            platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) platformDependency, toCategory(Category.ENFORCED_PLATFORM));
+            platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) platformDependency, Category.ENFORCED_PLATFORM);
         }
         return platformDependency;
     }
@@ -386,7 +386,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
     @Override
     public Provider<MinimalExternalModuleDependency> variantOf(Provider<MinimalExternalModuleDependency> dependencyProvider, Action<? super ExternalModuleDependencyVariantSpec> variantSpec) {
         return dependencyProvider.map(dep -> {
-            DefaultExternalModuleDependencyVariantSpec spec = objects.newInstance(DefaultExternalModuleDependencyVariantSpec.class, objects, dep);
+            DefaultExternalModuleDependencyVariantSpec spec = objects.newInstance(DefaultExternalModuleDependencyVariantSpec.class, dep);
             variantSpec.execute(spec);
             // TODO: We "lose" endorsingStrictVersions here. We should copy that over to the returned variant.
             return new DefaultMinimalDependencyVariant(dep, spec.attributesAction, spec.capabilitiesMutator, spec.classifier, spec.artifactType);
@@ -405,12 +405,8 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
             DefaultExternalModuleDependencyVariantSpec defaultSpec = (DefaultExternalModuleDependencyVariantSpec) spec;
             MutableVersionConstraint versionConstraint = (MutableVersionConstraint) defaultSpec.dep.getVersionConstraint();
             versionConstraint.strictly(defaultSpec.dep.getVersion());
-            defaultSpec.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.ENFORCED_PLATFORM));
+            defaultSpec.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, attrs.named(Category.class, Category.ENFORCED_PLATFORM));
         });
-    }
-
-    private Category toCategory(String category) {
-        return objects.named(Category.class, category);
     }
 
     private class DirectDependencyAdder implements DynamicAddDependencyMethods.DependencyAdder<Dependency> {
@@ -424,7 +420,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
 
     public static class DefaultExternalModuleDependencyVariantSpec implements ExternalModuleDependencyVariantSpec {
 
-        private final ObjectFactory objects;
         private final MinimalExternalModuleDependency dep;
         private Action<? super AttributeContainer> attributesAction = null;
         private Action<ModuleDependencyCapabilitiesHandler> capabilitiesMutator = null;
@@ -432,15 +427,14 @@ public abstract class DefaultDependencyHandler implements DependencyHandlerInter
         private String artifactType;
 
         @Inject
-        public DefaultExternalModuleDependencyVariantSpec(ObjectFactory objects, MinimalExternalModuleDependency dep) {
-            this.objects = objects;
+        public DefaultExternalModuleDependencyVariantSpec(MinimalExternalModuleDependency dep) {
             this.dep = dep;
         }
 
         @Override
         public void platform() {
             this.dep.endorseStrictVersions();
-            this.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
+            this.attributesAction = attrs -> attrs.attribute(Category.CATEGORY_ATTRIBUTE, attrs.named(Category.class, Category.REGULAR_PLATFORM));
         }
 
         @Override

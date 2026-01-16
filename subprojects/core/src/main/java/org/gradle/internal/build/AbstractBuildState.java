@@ -46,21 +46,18 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     public AbstractBuildState(BuildTreeState buildTree, BuildDefinition buildDefinition, @Nullable BuildState parent) {
         this.parent = parent;
 
-        // Create the controllers using the services of the nested tree
-        BuildModelControllerServices buildModelControllerServices = buildTree.getServices().get(BuildModelControllerServices.class);
-        BuildModelControllerServices.Supplier supplier = buildModelControllerServices.servicesForBuild(buildDefinition, this);
-        buildServices = prepareServices(buildTree, buildDefinition, supplier);
+        buildServices = prepareServices(buildTree, buildDefinition);
         buildLifecycleController = Lazy.locking().of(() -> buildServices.get(BuildLifecycleController.class));
         projectStateRegistry = Lazy.locking().of(() -> buildServices.get(ProjectStateRegistry.class));
         workGraphController = Lazy.locking().of(() -> buildServices.get(BuildWorkGraphController.class));
     }
 
-    private CloseableServiceRegistry prepareServices(BuildTreeState buildTree, BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
+    private CloseableServiceRegistry prepareServices(BuildTreeState buildTree, BuildDefinition buildDefinition) {
         return ServiceRegistryBuilder.builder()
             .displayName("Build-scoped services")
             .scopeStrictly(Scope.Build.class)
             .parent(buildTree.getServices())
-            .provider(prepareServicesProvider(buildDefinition, supplier))
+            .provider(prepareServicesProvider(buildDefinition))
             .build();
     }
 
@@ -69,8 +66,8 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
         return parent;
     }
 
-    protected ServiceRegistrationProvider prepareServicesProvider(BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
-        return new BuildScopeServices(supplier);
+    protected ServiceRegistrationProvider prepareServicesProvider(BuildDefinition buildDefinition) {
+        return new BuildScopeServices(buildDefinition, this);
     }
 
     protected CloseableServiceRegistry getBuildServices() {
@@ -165,8 +162,8 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     }
 
     @Override
-    public <T> T withToolingModels(Function<? super BuildToolingModelController, T> action) {
-        return getBuildController().withToolingModels(action);
+    public <T> T withToolingModels(boolean inResilientContext, Function<? super BuildToolingModelController, T> action) {
+        return getBuildController().withToolingModels(inResilientContext, action);
     }
 
 }

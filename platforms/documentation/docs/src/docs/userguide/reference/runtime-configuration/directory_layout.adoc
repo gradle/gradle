@@ -38,14 +38,14 @@ It is roughly structured as follows:
 ----
 ├── caches              // <1>
 │   ├── 4.8         // <2>
-│   ├── 4.9             // <2>
+│   ├── 9.2.0             // <2>
 │   ├── ⋮
 │   ├── jars-3      // <3>
 │   └── modules-2       // <3>
 ├── daemon          // <4>
 │   ├── ⋮
 │   ├── 4.8
-│   └── 4.9
+│   └── 9.2.0
 ├── init.d              // <5>
 │   └── my-setup.gradle
 ├── jdks                // <6>
@@ -55,8 +55,8 @@ It is roughly structured as follows:
 │   └── dists           // <7>
 │       ├── ⋮
 │       ├── gradle-4.8-bin
-│       ├── gradle-4.9-all
-│       └── gradle-4.9-bin
+│       ├── gradle-9.2.0-all
+│       └── gradle-9.2.0-bin
 └── gradle.properties   // <8>
 ----
 <1> Global cache directory (for everything that is not project-specific).
@@ -91,13 +91,16 @@ Depending on whether the file can be recreated locally or downloaded from a remo
 - Gradle distributions in `wrapper/dists/` are checked for whether they are still in use, i.e., whether there's a corresponding version-specific cache directory.
 +
 Unused distributions are deleted.
+- Daemon log files in `daemon/<GRADLE_VERSION>/` directories are checked for their last modification time.
++
+Log files older than 14 days are automatically deleted to prevent the daemon directory from growing indefinitely.
 
 [[dir:gradle_user_home:configure_cache_cleanup]]
 ==== Configuring cleanup of caches and distributions
 
 The retention periods of the various caches can be configured.
 
-Caches are classified into five categories:
+Caches are classified into six categories:
 
 1. *Released wrapper distributions:* Distributions and related version-specific caches corresponding to released versions (e.g., `4.6.2` or `8.0`).
 +
@@ -114,12 +117,15 @@ Default retention for unused resources is 7 days.
 5. *Build cache:* The local build cache (e.g., build-cache-1).
 +
 Default retention for unused build cache entries is 7 days.
+6. *Daemon logs:* Log files from Gradle Daemon processes in `daemon/<GRADLE_VERSION>/` directories.
++
+Default retention for daemon logs is 14 days.
 
 The retention period for each category can be configured independently via an <<init_scripts.adoc#init_scripts,init script>> in the Gradle User Home:
 
 ====
-include::sample[dir="snippets/initScripts/cacheRetention/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
-include::sample[dir="snippets/initScripts/cacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
+include::sample[dir="snippets/initScripts/cacheRetention/kotlin",files="gradleUserHome/init.d/cache-settings.init.gradle.kts"]
+include::sample[dir="snippets/initScripts/cacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.init.gradle"]
 ====
 
 The frequency at which cache cleanup is invoked is also configurable.
@@ -139,8 +145,8 @@ However, this performs cache cleanup during the build (rather than in the backgr
 To disable cache cleanup:
 
 ====
-include::sample[dir="snippets/initScripts/disableCacheCleanup/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
-include::sample[dir="snippets/initScripts/disableCacheCleanup/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
+include::sample[dir="snippets/initScripts/disableCacheCleanup/kotlin",files="gradleUserHome/init.d/cache-settings.init.gradle.kts"]
+include::sample[dir="snippets/initScripts/disableCacheCleanup/groovy",files="gradleUserHome/init.d/cache-settings.init.gradle"]
 ====
 
 NOTE: Cache cleanup settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle User Home.
@@ -178,15 +184,15 @@ NOTE: The version-compliant script should reside somewhere other than the `init.
 To configure cache cleanup in a version-safe manner:
 
 ====
-include::sample[dir="snippets/initScripts/multiVersionCacheRetention/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
-include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
+include::sample[dir="snippets/initScripts/multiVersionCacheRetention/kotlin",files="gradleUserHome/init.d/cache-settings.init.gradle.kts"]
+include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.init.gradle"]
 ====
 
 Version-compliant cache configuration script:
 
 ====
-include::sample[dir="snippets/initScripts/multiVersionCacheRetention/kotlin",files="gradleUserHome/init.d/gradle8/cache-settings.gradle.kts"]
-include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/gradle8/cache-settings.gradle"]
+include::sample[dir="snippets/initScripts/multiVersionCacheRetention/kotlin",files="gradleUserHome/init.d/gradle8/cache-settings.init.gradle.kts"]
+include::sample[dir="snippets/initScripts/multiVersionCacheRetention/groovy",files="gradleUserHome/init.d/gradle8/cache-settings.init.gradle"]
 ====
 
 [[dir:gradle_user_home:cache_marking]]
@@ -205,8 +211,8 @@ By default, the directories `caches`, `wrapper/dists`, `daemon`, and `jdks` in t
 The cache marking feature can be configured via an init script in the Gradle User Home:
 
 ====
-include::sample[dir="snippets/initScripts/cacheMarking/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
-include::sample[dir="snippets/initScripts/cacheMarking/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
+include::sample[dir="snippets/initScripts/cacheMarking/kotlin",files="gradleUserHome/init.d/cache-settings.init.gradle.kts"]
+include::sample[dir="snippets/initScripts/cacheMarking/groovy",files="gradleUserHome/init.d/cache-settings.init.gradle"]
 ====
 
 NOTE: Cache marking settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle User Home. This effectively couples the configuration of cache marking to the Gradle User Home to which those settings apply and limits the possibility of different conflicting settings from different projects being applied to the same directory.

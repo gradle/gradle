@@ -16,13 +16,16 @@
 
 package org.gradle.plugins.ide.internal.tooling
 
+import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.IncludedBuildState
+import org.gradle.internal.composite.BuildIncludeListener
 import org.gradle.internal.composite.IncludedBuildInternal
+import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
@@ -47,10 +50,13 @@ class GradleBuildBuilderTest extends Specification {
     def child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
 
     def "builds model"() {
-        def builder = new GradleBuildBuilder(project.services.get(BuildStateRegistry))
+        def buildIncludeListener = Mock(BuildIncludeListener)
+        buildIncludeListener.getBrokenBuilds() >> []
+        buildIncludeListener.getBrokenSettings() >> []
+        def builder = new GradleBuildBuilder(project.services.get(BuildStateRegistry), buildIncludeListener, Mock(FailureFactory))
 
         expect:
-        def model = builder.buildAll("org.gradle.tooling.model.gradle.GradleBuild", startProject)
+        def model = builder.buildAll("org.gradle.tooling.model.gradle.GradleBuild", startProject).model
         model.rootProject.path == ":"
         model.rootProject.name == "root"
         model.rootProject.parent == null
@@ -133,11 +139,17 @@ class GradleBuildBuilderTest extends Specification {
         build1.includedBuilds() >> [includedBuild2]
         build1.parent >> rootBuild
 
+        def buildDefinition1 = Mock(BuildDefinition)
+        buildDefinition1.getBuildRootDir() >> dir1
+        includedBuildState1.getBuildDefinition() >> buildDefinition1
         includedBuildState1.mutableModel >> build1
 
+        def buildDefinition2 = Mock(BuildDefinition)
+        buildDefinition2.getBuildRootDir() >> dir2
         includedBuildState2.projects >> projects2
         includedBuildState2.buildRootDir >> dir2
         includedBuildState2.importableBuild >> true
+        includedBuildState2.getBuildDefinition() >> buildDefinition2
 
         build2.includedBuilds() >> []
         build2.parent >> rootBuild
@@ -150,10 +162,14 @@ class GradleBuildBuilderTest extends Specification {
             consumer.accept(includedBuildState2)
         }
 
-        def builder = new GradleBuildBuilder(buildRegistry)
+        def buildIncludeListener = Mock(BuildIncludeListener)
+        buildIncludeListener.getBrokenBuilds() >> []
+        buildIncludeListener.getBrokenSettings() >> []
+
+        def builder = new GradleBuildBuilder(buildRegistry, buildIncludeListener, Mock(FailureFactory))
 
         expect:
-        def model = builder.create(rootBuildState)
+        def model = builder.create(rootBuildState).model
         model.includedBuilds.size() == 1
 
         def model1 = model.includedBuilds[0]

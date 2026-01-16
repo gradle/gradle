@@ -15,10 +15,14 @@
  */
 package org.gradle.api.internal.tasks.testing.report.generic;
 
+import com.google.common.collect.Iterables;
 import com.google.common.io.Resources;
 import com.google.common.net.UrlEscapers;
 import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
+import org.gradle.api.tasks.testing.TestFileAttachmentDataEvent;
+import org.gradle.api.tasks.testing.TestKeyValueDataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.reporting.ReportRenderer;
@@ -59,16 +63,13 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
 
     private final List<TestOutputReader> outputReaders;
     private final List<String> rootDisplayNames;
-    private final MetadataRendererRegistry metadataRendererRegistry;
 
     GenericPageRenderer(
         List<TestOutputReader> outputReaders,
-        List<String> rootDisplayNames,
-        MetadataRendererRegistry metadataRendererRegistry
+        List<String> rootDisplayNames
     ) {
         this.outputReaders = outputReaders;
         this.rootDisplayNames = rootDisplayNames;
-        this.metadataRendererRegistry = metadataRendererRegistry;
     }
 
     private void renderBreadcrumbs(SimpleHtmlWriter htmlWriter) throws IOException {
@@ -146,17 +147,33 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                 final TabsRenderer<TestTreeModel> perRootInfoTabsRenderer = new TabsRenderer<>();
                 perRootInfoTabsRenderer.add("summary", new PerRootTabRenderer.ForSummary(rootIndex, perRootInfoIndex));
                 TestOutputReader outputReader = outputReaders.get(rootIndex);
-                OutputEntry outputEntry = info.getOutputEntry();
-                if (outputEntry != null) {
+                boolean hasStdout = false;
+                boolean hasStderr = false;
+                for (OutputEntry outputEntry : info.getOutputEntries()) {
                     if (outputReader.hasOutput(outputEntry, TestOutputEvent.Destination.StdOut)) {
-                        perRootInfoTabsRenderer.add("standard output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdOut));
+                        hasStdout = true;
                     }
                     if (outputReader.hasOutput(outputEntry, TestOutputEvent.Destination.StdErr)) {
-                        perRootInfoTabsRenderer.add("error output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdErr));
+                        hasStderr = true;
+                    }
+
+                    // Early exit if we have both
+                    if (hasStdout && hasStderr) {
+                        break;
                     }
                 }
-                if (!info.getMetadatas().isEmpty()) {
-                    perRootInfoTabsRenderer.add("metadata", new PerRootTabRenderer.ForMetadata(rootIndex, perRootInfoIndex, metadataRendererRegistry));
+                if (hasStdout) {
+                    perRootInfoTabsRenderer.add("standard output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdOut));
+                }
+                if (hasStderr) {
+                    perRootInfoTabsRenderer.add("error output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdErr));
+                }
+                // TODO: This should be handled differently so that the renders know what to expect vs the GenericPageRenderer doing something special
+                if (Iterables.any(info.getMetadatas(), event -> event instanceof TestKeyValueDataEvent)) {
+                    perRootInfoTabsRenderer.add("data", new PerRootTabRenderer.ForKeyValues(rootIndex, perRootInfoIndex));
+                }
+                if (Iterables.any(info.getMetadatas(), event -> event instanceof TestFileAttachmentDataEvent)) {
+                    perRootInfoTabsRenderer.add("attachments", new PerRootTabRenderer.ForFileAttachments(rootIndex, perRootInfoIndex));
                 }
 
                 perRootInfoTabsRenderers.add(perRootInfoTabsRenderer);
@@ -172,11 +189,25 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                     directlyBelowRootTabsRenderer.add("run " + (i + 1), perRootInfoTabsRenderers.get(i));
                 }
             }
-            rootTabsRenderer.add(rootDisplayNames.get(rootIndex), new ReportRenderer<TestTreeModel, SimpleHtmlWriter>() {
+            String rootState = "successGroup";
+            for (PerRootInfo info : infos) {
+                if (info.getFailedLeafCount() > 0) {
+                    // Failures are the most serious state
+                    rootState = "failureGroup";
+                    break;
+                }
+                if (info.getSkippedLeafCount() == info.getTotalLeafCount()) {
+                    // If everything is skipped, show that
+                    rootState = "skippedGroup";
+                    break;
+                }
+            }
+
+            rootTabsRenderer.add(rootDisplayNames.get(rootIndex), rootState, new ReportRenderer<TestTreeModel, SimpleHtmlWriter>() {
                 @Override
                 public void render(TestTreeModel model, SimpleHtmlWriter output) throws IOException {
-                    // Assume all runs share the same display name, it's probably not materially relevant if they don't.
-                    output.startElement("h1").characters(infos.get(0).getResult().getDisplayName()).endElement();
+                    String displayName = SerializableTestResult.getCombinedDisplayName(infos.get(0).getResults());
+                    output.startElement("h1").characters(displayName).endElement();
                     directlyBelowRootTabsRenderer.render(model, output);
                 }
             });

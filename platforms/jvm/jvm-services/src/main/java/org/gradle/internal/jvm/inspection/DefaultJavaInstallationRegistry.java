@@ -236,7 +236,6 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         return t -> seen.add(keyExtractor.apply(t));
     }
 
-    @NullMarked
     private static class ToolchainDetectionBuildOperation implements CallableBuildOperation<Set<InstallationLocation>> {
         private final Callable<Set<InstallationLocation>> detectionStrategy;
 
@@ -257,7 +256,6 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         }
     }
 
-    @NullMarked
     private static class Installations {
 
         private final Supplier<Set<InstallationLocation>> initializer;

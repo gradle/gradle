@@ -22,6 +22,8 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.initialization.internal.SharedModelDefaultsInternal
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.initialization.ActionBasedDefault
+import org.gradle.api.internal.plugins.BuildModel
+import org.gradle.api.internal.plugins.Definition
 import org.gradle.internal.Cast
 import org.gradle.plugin.software.internal.ModelDefault
 import org.gradle.plugin.software.internal.ModelDefaultsApplicator.ClassLoaderContext
@@ -54,7 +56,7 @@ class ActionBasedModelDefaultsHandler(
         }
     }
 
-    private fun <T : Any, V : Any> executeActionVisitor(
+    private fun <T : Definition<V>, V : BuildModel> executeActionVisitor(
         projectFeatureImplementation: ProjectFeatureImplementation<T, V>,
         modelObject: Any?
     ): ModelDefault.Visitor<Action<in T>> {
