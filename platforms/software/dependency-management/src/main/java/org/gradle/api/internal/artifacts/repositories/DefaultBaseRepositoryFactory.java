@@ -28,14 +28,20 @@ import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.repositories.distribution.GradleDistributionRepository;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
@@ -52,11 +58,13 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
 
 public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
+
     private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
     private final FileResolver fileResolver;
     private final Instantiator instantiator;
@@ -82,40 +90,42 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final ProviderFactory providerFactory;
     private final VersionParser versionParser;
 
-    public DefaultBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
-                                        FileResolver fileResolver,
-                                        FileCollectionFactory fileCollectionFactory,
-                                        RepositoryTransportFactory transportFactory,
-                                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                        FileStore<ModuleComponentArtifactIdentifier> artifactFileStore,
-                                        FileStore<String> externalResourcesFileStore,
-                                        MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
-                                        GradleModuleMetadataParser metadataParser,
-                                        AuthenticationSchemeRegistry authenticationSchemeRegistry,
-                                        IvyContextManager ivyContextManager,
-                                        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                        InstantiatorFactory instantiatorFactory,
-                                        FileResourceRepository fileResourceRepository,
-                                        MavenMutableModuleMetadataFactory mavenMetadataFactory,
-                                        IvyMutableModuleMetadataFactory ivyMetadataFactory,
-                                        IsolatableFactory isolatableFactory,
-                                        ObjectFactory objectFactory,
-                                        CollectionCallbackActionDecorator callbackActionDecorator,
-                                        DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
-                                        ChecksumService checksumService,
-                                        ProviderFactory providerFactory,
-                                        VersionParser versionParser
+    @Inject
+    public DefaultBaseRepositoryFactory(
+        LocalMavenRepositoryLocator localMavenRepositoryLocator,
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        RepositoryTransportFactory transportFactory,
+        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+        FileStoreAndIndexProvider fileStoreAndIndexProvider,
+        VersionSelectorScheme versionSelectorScheme,
+        AttributesFactory attributesFactory,
+        NamedObjectInstantiator instantiator,
+        AuthenticationSchemeRegistry authenticationSchemeRegistry,
+        IvyContextManager ivyContextManager,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        InstantiatorFactory instantiatorFactory,
+        FileResourceRepository fileResourceRepository,
+        MavenMutableModuleMetadataFactory mavenMetadataFactory,
+        IvyMutableModuleMetadataFactory ivyMetadataFactory,
+        IsolatableFactory isolatableFactory,
+        ObjectFactory objectFactory,
+        CollectionCallbackActionDecorator callbackActionDecorator,
+        DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
+        ChecksumService checksumService,
+        ProviderFactory providerFactory,
+        VersionParser versionParser
     ) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.metadataParser = metadataParser;
+        this.metadataParser = new GradleModuleMetadataParser(attributesFactory, moduleIdentifierFactory, instantiator);
         this.instantiator = instantiatorFactory.decorateLenient();
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
-        this.artifactFileStore = artifactFileStore;
-        this.externalResourcesFileStore = externalResourcesFileStore;
-        this.pomParser = pomParser;
+        this.artifactFileStore = fileStoreAndIndexProvider.getArtifactIdentifierFileStore();
+        this.externalResourcesFileStore = fileStoreAndIndexProvider.getExternalResourceFileStore();
+        this.pomParser = new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, fileResourceRepository, mavenMetadataFactory);
         this.authenticationSchemeRegistry = authenticationSchemeRegistry;
         this.ivyContextManager = ivyContextManager;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
@@ -135,6 +145,11 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     @Override
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
         return objectFactory.newInstance(DefaultFlatDirArtifactRepository.class, fileCollectionFactory, transportFactory, locallyAvailableResourceFinder, artifactFileStore, ivyMetadataFactory, instantiatorFactory, objectFactory, checksumService, versionParser);
+    }
+
+    @Override
+    public ArtifactRepository createGradleDistributionRepository() {
+        return objectFactory.newInstance(GradleDistributionRepository.class);
     }
 
     @Override
@@ -179,7 +194,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         return createMavenRepository(new DefaultMavenArtifactRepository.DefaultDescriber());
     }
 
-    public MavenArtifactRepository createMavenRepository(Transformer<String, MavenArtifactRepository> describer) {
+    private MavenArtifactRepository createMavenRepository(Transformer<String, MavenArtifactRepository> describer) {
         MavenArtifactRepository repository = objectFactory.newInstance(DefaultMavenArtifactRepository.class, describer, fileResolver, transportFactory, locallyAvailableResourceFinder, instantiatorFactory, artifactFileStore, pomParser, metadataParser, createAuthenticationContainer(), externalResourcesFileStore, fileResourceRepository, mavenMetadataFactory, isolatableFactory, objectFactory, urlArtifactRepositoryFactory, checksumService, providerFactory, versionParser);
         repository.getAllowInsecureContinueWhenDisabled().convention(false);
         return repository;
@@ -211,4 +226,5 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
             return repository.getName() + '(' + url + ')';
         }
     }
+
 }

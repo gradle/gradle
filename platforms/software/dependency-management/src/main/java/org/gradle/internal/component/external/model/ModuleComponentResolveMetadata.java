@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.jspecify.annotations.Nullable;
@@ -65,9 +67,15 @@ public interface ModuleComponentResolveMetadata extends ExternalComponentResolve
     /**
      * Creates an artifact for this module. Does not mutate this metadata.
      */
-    ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
+    default ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier)  {
+        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getModuleVersionId().getName(), type, extension, classifier);
+        return new DefaultModuleComponentArtifactMetadata(getId(), ivyArtifactName);
+    }
 
-    ModuleComponentArtifactMetadata optionalArtifact(String type, @Nullable String extension, @Nullable String classifier);
+    default ModuleComponentArtifactMetadata optionalArtifact(String type, @Nullable String extension, @Nullable String classifier) {
+        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getModuleVersionId().getName(), type, extension, classifier);
+        return new ModuleComponentOptionalArtifactMetadata(getId(), ivyArtifactName);
+    }
 
     /**
      * Returns the variants of this component

@@ -29,6 +29,8 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleDependencyMetadataConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ProjectDependencyMetadataConverter;
+import org.gradle.api.internal.artifacts.repositories.distribution.AvailableDistributionModules;
+import org.gradle.api.internal.artifacts.repositories.distribution.DefaultAvailableDistributionModules;
 import org.gradle.api.internal.artifacts.transform.CacheableTransformTypeAnnotationHandler;
 import org.gradle.api.internal.artifacts.transform.InputArtifactAnnotationHandler;
 import org.gradle.api.internal.artifacts.transform.InputArtifactDependenciesAnnotationHandler;
@@ -74,6 +76,7 @@ class DependencyManagementGlobalScopeServices implements ServiceRegistrationProv
         registration.add(ExcludeRuleConverter.class, DefaultExcludeRuleConverter.class);
         registration.add(PropertyAnnotationHandler.class, InjectAnnotationHandler.class, InputArtifactAnnotationHandler.class);
         registration.add(PropertyAnnotationHandler.class, InjectAnnotationHandler.class, InputArtifactDependenciesAnnotationHandler.class);
+        registration.add(AvailableDistributionModules.class, DefaultAvailableDistributionModules.class);
     }
 
     @Provides

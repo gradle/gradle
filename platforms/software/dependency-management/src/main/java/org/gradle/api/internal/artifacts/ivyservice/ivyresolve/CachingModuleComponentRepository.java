@@ -201,7 +201,9 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             DefaultBuildableModuleComponentMetaDataResolveResult<ModuleComponentResolveMetadata> localResult = new DefaultBuildableModuleComponentMetaDataResolveResult<>();
             delegate.getLocalAccess().resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, localResult);
             if (localResult.hasResult()) {
-                localResult.applyTo(result, resolveStateFactory::stateFor);
+                localResult.applyTo(result, metadata ->
+                    resolveStateFactory.stateFor(attachRepositorySource(metadata))
+                );
                 return;
             }
 

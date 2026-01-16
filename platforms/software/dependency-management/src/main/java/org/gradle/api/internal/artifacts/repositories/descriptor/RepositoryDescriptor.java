@@ -32,7 +32,8 @@ public abstract class RepositoryDescriptor {
     public enum Type {
         MAVEN,
         IVY,
-        FLAT_DIR
+        FLAT_DIR,
+        DISTRIBUTION
     }
 
     private final String id;

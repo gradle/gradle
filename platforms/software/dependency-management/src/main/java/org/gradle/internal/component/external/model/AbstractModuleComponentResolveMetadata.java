@@ -25,11 +25,8 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ImmutableModuleSources;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -163,18 +160,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     @Override
     public ImmutableList<? extends ComponentVariant> getVariants() {
         return variants;
-    }
-
-    @Override
-    public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
-        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getModuleVersionId().getName(), type, extension, classifier);
-        return new DefaultModuleComponentArtifactMetadata(getId(), ivyArtifactName);
-    }
-
-    @Override
-    public ModuleComponentArtifactMetadata optionalArtifact(String type, @Nullable String extension, @Nullable String classifier) {
-        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getModuleVersionId().getName(), type, extension, classifier);
-        return new ModuleComponentOptionalArtifactMetadata(getId(), ivyArtifactName);
     }
 
     /**
