@@ -592,12 +592,6 @@ samples {
             category = "Build organization"
         }
 
-        val compositeBuildsPluginDevelopment by creating {
-            sampleDirectory = samplesRoot.dir("build-organization/composite-builds/plugin-dev")
-            description = "Developing a Gradle plugin in a build without publishing."
-            category = "Build organization"
-        }
-
         val crossProjectOutputSharing by creating {
             sampleDirectory = samplesRoot.dir("build-organization/cross-project-output-sharing")
             displayName = "Sharing task outputs across projects in a multi-project build"
