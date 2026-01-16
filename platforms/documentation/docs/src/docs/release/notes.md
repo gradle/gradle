@@ -18,6 +18,13 @@ It also [enhances build authoring](#build-authoring-improvements) with a new `At
 
 There are [error and warning reporting improvements](#error-and-warning-reporting-improvements), with Problems API reports now rendered in the console when using `--warning-mode=all`.
 
+Finally, this release addresses two security vulnerabilities:
+
+* [Failure to disable repositories with an unknown host can expose builds to malicious artifacts](https://github.com/gradle/gradle/security/advisories/GHSA-w78c-w6vf-rw82)
+* [Failure to disable repositories failing to answer can expose builds to malicious artifacts](https://github.com/gradle/gradle/security/advisories/GHSA-mqwm-5m85-gmcv)
+
+Review the advisories above for mitigation strategies if an immediate upgrade is not feasible.
+
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Adam](https://github.com/adam-enko),
 [Adam](https://github.com/aSemy),
