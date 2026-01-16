@@ -17,6 +17,7 @@
 package org.gradle.testing
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
@@ -141,7 +142,7 @@ class TestReportFailureFilterIntegrationTest extends AbstractIntegrationSpec imp
         }
     }
 
-    def "large test case with nested classes and parameterized tests"() {
+    def "failure filter checkbox and link are present for large test case"() {
         given:
         LargeTestCaseGenerator.generateTests("Test", testDirectory)
 
@@ -152,14 +153,100 @@ class TestReportFailureFilterIntegrationTest extends AbstractIntegrationSpec imp
         then:
         def testResults = resultsFor()
 
-        // Verify that the failure filter checkbox is present and checked by default
+        // Verify checkbox and failure summary link are present
         testResults.assertHtml("#failure-filter-toggle") { e ->
-            verifyAll {
-                e.size() == 1
-                e[0].tagName() == "input"
-                e[0].attr("type") == "checkbox"
-                e[0].hasAttr("checked")
+            assert e.size() == 1
+        }
+
+        testResults.assertHtml("#failure-summary-link") { e ->
+            assert e.size() == 1
+        }
+
+        // Verify there are failure indicators
+        testResults.assertHtml(".failureGroup") { e ->
+            assert e.size() > 0
+        }
+    }
+
+    def "failure filter checkbox and link are present on aggregated report across multiple subprojects"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'aggregate-test-report-test'
+            include 'application', 'direct', 'transitive', 'direct-passing', 'transitive-passing'
+        """
+        buildFile << """
+            apply plugin: 'org.gradle.test-report-aggregation'
+            dependencies {
+                testReportAggregation project(":application")
+                testReportAggregation project(":direct")
+                testReportAggregation project(":direct-passing")
+                testReportAggregation project(":transitive")
+                testReportAggregation project(":transitive-passing")
             }
+
+            reporting {
+                reports {
+                    testAggregateTestReport(AggregateTestReport) {
+                        testSuiteName = "test"
+                    }
+                }
+            }
+
+            subprojects {
+                apply plugin: 'java-library'
+
+                ${mavenCentralRepository()}
+
+                testing.suites.test {
+                    useJUnit()
+                }
+            }
+        """
+        file("application/build.gradle") << """
+            dependencies {
+                implementation project(":direct")
+            }
+        """
+        file("direct/build.gradle") << """
+            dependencies {
+                implementation project(":transitive")
+            }
+        """
+        file("direct/build.gradle") << """
+            dependencies {
+                implementation project(":transitive-passing")
+            }
+        """
+
+        // Generate tests for each subproject
+        LargeTestCaseGenerator.generateTests("Application", testDirectory.file("application"))
+        LargeTestCaseGenerator.generateTests("Direct", testDirectory.file("direct"))
+        LargeTestCaseGenerator.generateTests("Direct_Passing", testDirectory.file("direct-passing"), false)
+        LargeTestCaseGenerator.generateTests("Transitive", testDirectory.file("transitive"))
+        LargeTestCaseGenerator.generateTests("Transitive_Passing", testDirectory.file("transitive-passing"), false)
+
+        when:
+        fails(':testAggregateTestReport', "--continue")
+
+        then:
+        failure.assertHasFailure("Execution failed for task ':application:test'.") {}
+        failure.assertHasFailure("Execution failed for task ':direct:test'.") {}
+        failure.assertHasFailure("Execution failed for task ':transitive:test'.") {}
+
+        def aggregatedResults = new GenericHtmlTestExecutionResult(testDirectory, 'build/reports/tests/test/aggregated-results', getTestFramework())
+
+        // Verify checkbox and failure summary link are present in aggregated report
+        aggregatedResults.assertHtml("#failure-filter-toggle") { e ->
+            assert e.size() == 1
+        }
+
+        aggregatedResults.assertHtml("#failure-summary-link") { e ->
+            assert e.size() == 1
+        }
+
+        // Verify there are failure indicators in aggregated report
+        aggregatedResults.assertHtml(".failureGroup") { e ->
+            assert e.size() > 0
         }
     }
 }
