@@ -95,6 +95,7 @@ public class Download implements IDownload {
             addAuthentication(uri, conn);
             conn.setRequestProperty("User-Agent", calculateUserAgent());
             conn.setConnectTimeout(networkTimeout);
+            conn.setReadTimeout(networkTimeout);
             conn.connect();
             responseCode = conn.getResponseCode();
             if (responseCode != 200) {
