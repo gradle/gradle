@@ -159,7 +159,7 @@ public class DefaultFileLockManager implements FileLockManager {
     private boolean lockRepresentsStateOnFileSystem(DefaultFileLock fileLock) {
         // Skip for first lock access to optimize the first use case. We assume that if we hold the lock,
         // and we are the first to access it, then no other Gradle process was able to delete/recreate the lock file.
-        return fileLock.isFirstLockAccess() || !fileLock.hasBeenUpdatedOnFileSystem();
+        return fileLock.isFirstLockAccess() || fileLock.lockRepresentsStateOnFileSystem();
     }
 
     static File determineLockTargetFile(File target) {
@@ -342,25 +342,25 @@ public class DefaultFileLockManager implements FileLockManager {
             return mode;
         }
 
-        private boolean hasBeenUpdatedOnFileSystem() {
+        private boolean lockRepresentsStateOnFileSystem() {
             if (isUseCrossVersionImplementation || mode == LockMode.Shared) {
-                throw new UnsupportedOperationException("DefaultFileLock.hasBeenUpdatedOnFileSystem() is not supported for shared or cross-version file locks.");
+                throw new UnsupportedOperationException("DefaultFileLock.lockRepresentsStateOnFileSystem() is not supported for shared or cross-version file locks.");
             }
 
             if (OperatingSystem.current().isWindows()) {
                 // On Windows, if we hold the lock it means lock was not updated on the file system,
                 // since OS won't allow to modify the state region or delete the file due to lock
-                return lock == null;
+                return lock != null;
             }
 
             if (lock == null || !lockFile.exists()) {
-                return true;
+                return false;
             }
 
             try (RandomAccessFile randomAccessFile = new RandomAccessFile(lockFile, "r")) {
-                return lockStateAccess.readState(randomAccessFile).hasBeenUpdatedSince(lockState);
+                return !lockStateAccess.readState(randomAccessFile).hasBeenUpdatedSince(lockState);
             } catch (IOException e) {
-                return true;
+                return false;
             }
         }
 

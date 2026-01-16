@@ -23,9 +23,10 @@ public interface LockOptions {
 
     /**
      * Ensures that the acquired lock represents a file state on the file system.
-     *
+     * <p>
      * This safeguard is necessary when a Gradle process is allowed to delete a
      * lock file while holding it.
+     * </p>
      *
      * <p>
      * Example Scenario:
