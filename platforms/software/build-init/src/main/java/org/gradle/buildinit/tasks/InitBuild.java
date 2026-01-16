@@ -33,8 +33,8 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.api.tasks.wrapper.internal.WrapperDefaults;
@@ -82,6 +82,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  * Generates a Gradle project structure.
  */
 @DisableCachingByDefault(because = "Not worth caching")
+@UntrackedTask(because = "This task will never be up-to-date")
 public abstract class InitBuild extends DefaultTask {
     private static final String SOURCE_PACKAGE_DEFAULT = "org.example";
     private static final String SOURCE_PACKAGE_PROPERTY = "org.gradle.buildinit.source.package";
@@ -216,7 +217,7 @@ public abstract class InitBuild extends DefaultTask {
      *
      * @since 9.4.0
      */
-    @OutputDirectory
+    @Internal
     @Incubating
     @Option(option = "into", description = "Set the directory where the project is generated.")
     public abstract DirectoryProperty getProjectDirectory();
@@ -455,19 +456,9 @@ public abstract class InitBuild extends DefaultTask {
     private void validateBuildDirectory(UserQuestions userQuestions) {
         if (!isPomConversion()) {
             File projectDirFile = getProjectDirectory().get().getAsFile();
-            boolean isEmptyDirectory = true;
+            File[] existingProjectFiles = projectDirFile.listFiles();
 
-            File[] projectDirFiles = projectDirFile.listFiles();
-            if (projectDirFiles != null) {
-                for (File file : projectDirFiles) {
-                    // We expect .gradle/ to be present even if the directory was empty when Gradle was invoked
-                    if (!file.isDirectory() || !file.getName().equals(".gradle")) {
-                        isEmptyDirectory = false;
-                        break;
-                    }
-                }
-            }
-
+            boolean isEmptyDirectory = existingProjectFiles == null || existingProjectFiles.length == 0;
             if (!isEmptyDirectory) {
                 boolean fileOverwriteAllowed = getAllowFileOverwrite().get();
                 if (!fileOverwriteAllowed) {
