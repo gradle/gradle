@@ -138,6 +138,29 @@ dependencies {
 }
 ```
 
+### Support for CSV, Code Climate, and SARIF reports in the PMD plugin
+The [PMD plugin](userguide/pmd_plugin.html) now supports generating reports in CSV, Code Climate, and SARIF formats in addition to the existing XML and HTML formats.
+
+They are not enabled by default, but can be configured as follows:
+```kotlin
+// Note that report configuration must be done on the `Pmd` task (here `pmdMain`), not the `pmd` extension.
+tasks.pmdMain {
+    reports {
+        csv.required = true
+        // Optional, defaults to "<project dir>/build/reports/pmd/main.csv"
+        csv.outputLocation = layout.buildDirectory.file("reports/my-custom-pmd-report.csv")
+        
+        codeClimate.required = true
+        // Optional, defaults to "<project dir>/build/reports/pmd/main.codeclimate.json"
+        codeClimate.outputLocation = layout.buildDirectory.file("reports/my-custom-codeclimate-pmd-report.json")
+        
+        sarif.required = true
+        // Optional, defaults to "<project dir>/build/reports/pmd/main.sarif.json"
+        sarif.outputLocation = layout.buildDirectory.file("reports/my-custom-sarif-pmd-report.json")
+    }
+}
+```
+
 ## Plugin development
 
 ### Stricter validation for published plugins
