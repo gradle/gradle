@@ -1288,7 +1288,7 @@ public class NodeState implements DependencyGraphNode {
         try {
             for (EdgeState outgoingEdge : outgoingEdges) {
                 //noinspection ConstantConditions
-                return outgoingEdge.getSelectedNode();
+                return outgoingEdge.getFirstTargetNode();
             }
             return null;
         } finally {
