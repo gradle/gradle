@@ -524,8 +524,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyConstraintFactoryInternal dependencyConstraintFactory, ObjectFactory objects, PlatformSupport platformSupport) {
-            return instantiator.newInstance(DefaultDependencyConstraintHandler.class, configurationContainer, dependencyConstraintFactory, objects, platformSupport);
+        DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyConstraintFactoryInternal dependencyConstraintFactory, PlatformSupport platformSupport) {
+            return instantiator.newInstance(DefaultDependencyConstraintHandler.class, configurationContainer, dependencyConstraintFactory, platformSupport);
         }
 
         @Provides({ComponentMetadataHandler.class, ComponentMetadataHandlerInternal.class})
