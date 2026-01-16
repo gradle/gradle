@@ -21,6 +21,7 @@ import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.platform.PlatformBinaryResolver;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
 import org.jspecify.annotations.Nullable;
 
@@ -39,7 +40,7 @@ public class DefaultWindowsSdkLocator implements WindowsSdkLocator {
     }
 
     public DefaultWindowsSdkLocator(OperatingSystem operatingSystem, WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
-        this(new LegacyWindowsSdkLocator(operatingSystem, windowsRegistry), new WindowsKitWindowsSdkLocator(windowsRegistry, systemInfo));
+        this(new LegacyWindowsSdkLocator(PlatformBinaryResolver.forOs(operatingSystem), windowsRegistry), new WindowsKitWindowsSdkLocator(windowsRegistry, systemInfo));
     }
 
     @Override

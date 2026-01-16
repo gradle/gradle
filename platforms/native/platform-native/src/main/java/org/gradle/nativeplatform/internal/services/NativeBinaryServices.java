@@ -23,6 +23,7 @@ import org.gradle.api.reporting.components.internal.AbstractBinaryRenderer;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.platform.PlatformBinaryResolver;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -116,12 +117,12 @@ public class NativeBinaryServices extends AbstractGradleModuleServices {
 
         @Provides
         VswhereVersionLocator createVswhereVersionLocator(WindowsRegistry windowsRegistry, OperatingSystem os) {
-            return new DefaultVswhereVersionLocator(windowsRegistry, os);
+            return new DefaultVswhereVersionLocator(windowsRegistry, PlatformBinaryResolver.forOs(os));
         }
 
         @Provides
         SystemPathVersionLocator createSystemPathVersionLocator(OperatingSystem os, VisualStudioMetaDataProvider versionDeterminer) {
-            return new SystemPathVersionLocator(os, versionDeterminer);
+            return new SystemPathVersionLocator(PlatformBinaryResolver.forOs(os), versionDeterminer);
         }
 
         @Provides

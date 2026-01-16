@@ -20,7 +20,7 @@ import com.google.common.base.Splitter
 import org.gradle.ide.fixtures.IdeCommandLineUtil
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.OperatingSystemFamily
@@ -63,15 +63,15 @@ rootProject.name = "${rootProjectName}"
     }
 
     protected TestFile exe(String str) {
-        file(OperatingSystem.current().getExecutableName(str))
+        file(PlatformBinaryResolver.forCurrentOs().getExecutableName(str))
     }
 
     protected TestFile sharedLib(String str) {
-        file(OperatingSystem.current().getSharedLibraryName(str))
+        file(PlatformBinaryResolver.forCurrentOs().getSharedLibraryName(str))
     }
 
     protected TestFile staticLib(String str) {
-        file(OperatingSystem.current().getStaticLibraryName(str))
+        file(PlatformBinaryResolver.forCurrentOs().getStaticLibraryName(str))
     }
 
     protected TestFile xctest(String str) {

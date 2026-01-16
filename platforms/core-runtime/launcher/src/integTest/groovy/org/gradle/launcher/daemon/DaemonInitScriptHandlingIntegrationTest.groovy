@@ -20,7 +20,7 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.integtests.fixtures.executer.DefaultGradleDistribution
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -76,7 +76,7 @@ class DaemonInitScriptHandlingIntegrationTest extends DaemonIntegrationSpec {
     TestFile createDistribution(int i) {
         def distro = file("distro$i")
         distro.copyFrom(distribution.getGradleHomeDir())
-        distro.file("bin", OperatingSystem.current().getScriptName("gradle")).permissions = 'rwx------'
+        distro.file("bin", PlatformBinaryResolver.forCurrentOs().getScriptName("gradle")).permissions = 'rwx------'
         distro.file("init.d/init.gradle") << """
             gradle.rootProject {
                 println "from distro $i"

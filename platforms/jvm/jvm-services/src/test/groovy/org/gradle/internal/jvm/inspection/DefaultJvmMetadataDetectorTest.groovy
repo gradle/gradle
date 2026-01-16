@@ -18,7 +18,7 @@ package org.gradle.internal.jvm.inspection
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ClientExecHandleBuilder
@@ -63,9 +63,9 @@ class DefaultJvmMetadataDetectorTest extends Specification {
         if (!jre) {
             def binDir = javaHome.file("bin")
             if (binDir.mkdir()) {
-                binDir.file(OperatingSystem.current().getExecutableName('javac')).touch()
-                binDir.file(OperatingSystem.current().getExecutableName('javadoc')).touch()
-                binDir.file(OperatingSystem.current().getExecutableName('jar')).touch()
+                binDir.file(PlatformBinaryResolver.forCurrentOs().getExecutableName('javac')).touch()
+                binDir.file(PlatformBinaryResolver.forCurrentOs().getExecutableName('javadoc')).touch()
+                binDir.file(PlatformBinaryResolver.forCurrentOs().getExecutableName('jar')).touch()
             }
         }
         def metadata = detector.getMetadata(testLocation(javaHome))

@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain
 
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
@@ -80,13 +81,13 @@ model {
         run 'mainExe'
 
         then:
-        file(OperatingSystem.WINDOWS.getStaticLibraryName("build/libs/hello/static/hello")).file
-        file(OperatingSystem.WINDOWS.getExecutableName("build/exe/main/main")).file
+        file(PlatformBinaryResolver.forOs(OperatingSystem.WINDOWS).getStaticLibraryName("build/libs/hello/static/hello")).file
+        file(PlatformBinaryResolver.forOs(OperatingSystem.WINDOWS).getExecutableName("build/exe/main/main")).file
 
         when:
         run 'helloSharedLib'
 
         then:
-        file(OperatingSystem.WINDOWS.getSharedLibraryName("build/libs/hello/shared/hello")).file
+        file(PlatformBinaryResolver.forOs(OperatingSystem.WINDOWS).getSharedLibraryName("build/libs/hello/shared/hello")).file
     }
 }

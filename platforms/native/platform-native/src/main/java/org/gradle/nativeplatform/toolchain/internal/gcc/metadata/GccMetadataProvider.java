@@ -22,7 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
-import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.platform.PlatformBinaryResolver;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
@@ -164,12 +164,12 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
 
     private File findCygpath(List<File> path) {
         for (File dir : path) {
-            File exe = new File(dir, OperatingSystem.current().getExecutableName("cygpath"));
+            File exe = new File(dir, PlatformBinaryResolver.forCurrentOs().getExecutableName("cygpath"));
             if (exe.exists()) {
                 return exe;
             }
         }
-        File exe = OperatingSystem.current().findInPath("cygpath");
+        File exe = PlatformBinaryResolver.forCurrentOs().findExecutableInPath("cygpath");
         if (exe != null) {
             return exe;
         }

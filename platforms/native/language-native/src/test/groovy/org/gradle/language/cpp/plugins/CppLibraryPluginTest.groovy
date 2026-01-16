@@ -20,6 +20,7 @@ import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.language.cpp.CppLibrary
 import org.gradle.language.cpp.CppSharedLibrary
 import org.gradle.language.cpp.CppStaticLibrary
@@ -139,7 +140,7 @@ class CppLibraryPluginTest extends Specification {
 
         def linkDebug = project.tasks.linkDebug
         linkDebug instanceof LinkSharedLibrary
-        linkDebug.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        linkDebug.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/" + PlatformBinaryResolver.forCurrentOs().getSharedLibraryName("testLib"))
         linkDebug.debuggable
 
         def compileReleaseCpp = project.tasks.compileReleaseCpp
@@ -152,7 +153,7 @@ class CppLibraryPluginTest extends Specification {
 
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkSharedLibrary
-        linkRelease.linkedFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        linkRelease.linkedFile.get().asFile == projectDir.file("build/lib/main/release/" + PlatformBinaryResolver.forCurrentOs().getSharedLibraryName("testLib"))
         linkRelease.debuggable
     }
 
@@ -175,7 +176,7 @@ class CppLibraryPluginTest extends Specification {
 
         def linkDebug = project.tasks.linkDebugShared
         linkDebug instanceof LinkSharedLibrary
-        linkDebug.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        linkDebug.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/shared/" + PlatformBinaryResolver.forCurrentOs().getSharedLibraryName("testLib"))
         linkDebug.debuggable
 
         def compileRelease = project.tasks.compileReleaseSharedCpp
@@ -187,7 +188,7 @@ class CppLibraryPluginTest extends Specification {
 
         def linkRelease = project.tasks.linkReleaseShared
         linkRelease instanceof LinkSharedLibrary
-        linkRelease.linkedFile.get().asFile == projectDir.file("build/lib/main/release/shared/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        linkRelease.linkedFile.get().asFile == projectDir.file("build/lib/main/release/shared/" + PlatformBinaryResolver.forCurrentOs().getSharedLibraryName("testLib"))
         linkRelease.debuggable
 
         and:
@@ -200,7 +201,7 @@ class CppLibraryPluginTest extends Specification {
 
         def createDebugStatic = project.tasks.createDebugStatic
         createDebugStatic instanceof CreateStaticLibrary
-        createDebugStatic.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/static/" + OperatingSystem.current().getStaticLibraryName("testLib"))
+        createDebugStatic.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/static/" + PlatformBinaryResolver.forCurrentOs().getStaticLibraryName("testLib"))
 
         def compileReleaseStatic = project.tasks.compileReleaseStaticCpp
         compileReleaseStatic instanceof CppCompile
@@ -211,7 +212,7 @@ class CppLibraryPluginTest extends Specification {
 
         def createReleaseStatic = project.tasks.createReleaseStatic
         createReleaseStatic instanceof CreateStaticLibrary
-        createReleaseStatic.binaryFile.get().asFile == projectDir.file("build/lib/main/release/static/" + OperatingSystem.current().getStaticLibraryName("testLib"))
+        createReleaseStatic.binaryFile.get().asFile == projectDir.file("build/lib/main/release/static/" + PlatformBinaryResolver.forCurrentOs().getStaticLibraryName("testLib"))
     }
 
     def "adds compile and link tasks for static linkage only"() {
@@ -237,7 +238,7 @@ class CppLibraryPluginTest extends Specification {
 
         def createDebug = project.tasks.createDebug
         createDebug instanceof CreateStaticLibrary
-        createDebug.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getStaticLibraryName("testLib"))
+        createDebug.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + PlatformBinaryResolver.forCurrentOs().getStaticLibraryName("testLib"))
 
         def compileRelease = project.tasks.compileReleaseCpp
         compileRelease instanceof CppCompile
@@ -248,7 +249,7 @@ class CppLibraryPluginTest extends Specification {
 
         def createRelease = project.tasks.createRelease
         createRelease instanceof CreateStaticLibrary
-        createRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystem.current().getStaticLibraryName("testLib"))
+        createRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/" + PlatformBinaryResolver.forCurrentOs().getStaticLibraryName("testLib"))
     }
 
     def "cannot change the library linkages after binaries have been calculated"() {
@@ -276,7 +277,7 @@ class CppLibraryPluginTest extends Specification {
 
         then:
         def link = project.tasks.linkDebug
-        link.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("test_lib"))
+        link.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/" + PlatformBinaryResolver.forCurrentOs().getSharedLibraryName("test_lib"))
     }
 
     def "output locations reflects changes to buildDir"() {
@@ -292,7 +293,7 @@ class CppLibraryPluginTest extends Specification {
         compileCpp.objectFileDir.get().asFile == project.file("output/obj/main/debug")
 
         def link = project.tasks.linkDebug
-        link.linkedFile.get().asFile == projectDir.file("output/lib/main/debug/" + OperatingSystem.current().getSharedLibraryName("testLib"))
+        link.linkedFile.get().asFile == projectDir.file("output/lib/main/debug/" + PlatformBinaryResolver.forCurrentOs().getSharedLibraryName("testLib"))
     }
 
     def "adds header zip task when maven-publish plugin is applied"() {

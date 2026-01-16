@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version
 
 class DefaultVswhereVersionLocatorTest extends VswhereSpec {
-    def locator = new DefaultVswhereVersionLocator(windowsRegistry, os)
+    def locator = new DefaultVswhereVersionLocator(windowsRegistry, binaryResolver)
 
     def "finds vswhere executable in Program Files"() {
         given:
@@ -59,7 +59,7 @@ class DefaultVswhereVersionLocatorTest extends VswhereSpec {
 
         given:
         vswhereInProgramFiles()
-        _ * os.findInPath("vswhere.exe") >> pathVswhere
+        _ * binaryResolver.findExecutableInPath("vswhere.exe") >> pathVswhere
         assert pathVswhere.absolutePath != vswhere.absolutePath
 
         expect:
@@ -71,7 +71,7 @@ class DefaultVswhereVersionLocatorTest extends VswhereSpec {
 
         given:
         vswhereInProgramFilesX86()
-        _ * os.findInPath("vswhere.exe") >> pathVswhere
+        _ * binaryResolver.findExecutableInPath("vswhere.exe") >> pathVswhere
         assert pathVswhere.absolutePath != vswhere.absolutePath
 
         expect:
@@ -81,18 +81,18 @@ class DefaultVswhereVersionLocatorTest extends VswhereSpec {
     @Override
     void vswhereInPath() {
         super.vswhereInPath()
-        1 * os.findInPath(_) >> vswhere
+        1 * binaryResolver.findExecutableInPath(_) >> vswhere
     }
 
     @Override
     void vswhereNotFound() {
         super.vswhereNotFound()
-        1 * os.findInPath(_) >> null
+        1 * binaryResolver.findExecutableInPath(_) >> null
     }
 
     @Override
     void vswhereNotFoundX86Registry() {
         super.vswhereNotFoundX86Registry()
-        1 * os.findInPath(_) >> null
+        1 * binaryResolver.findExecutableInPath(_) >> null
     }
 }

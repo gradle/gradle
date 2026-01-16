@@ -16,6 +16,7 @@
 package org.gradle.nativeplatform.platform.internal;
 
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.platform.PlatformBinaryResolver;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 
 public class DefaultOperatingSystem implements OperatingSystemInternal {
@@ -23,6 +24,7 @@ public class DefaultOperatingSystem implements OperatingSystemInternal {
 
     private final String name;
     private final OperatingSystem internalOs;
+    private final PlatformBinaryResolver binaryResolver;
 
     public DefaultOperatingSystem(String name) {
         this(name, OperatingSystem.forName(name));
@@ -31,6 +33,7 @@ public class DefaultOperatingSystem implements OperatingSystemInternal {
     public DefaultOperatingSystem(String name, OperatingSystem internalOs) {
         this.name = name;
         this.internalOs = internalOs;
+        this.binaryResolver = PlatformBinaryResolver.forOs(internalOs);
     }
 
     @Override
@@ -51,6 +54,11 @@ public class DefaultOperatingSystem implements OperatingSystemInternal {
     @Override
     public OperatingSystem getInternalOs() {
         return internalOs;
+    }
+
+    @Override
+    public PlatformBinaryResolver getBinaryResolver() {
+        return binaryResolver;
     }
 
     @Override

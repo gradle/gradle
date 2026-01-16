@@ -18,7 +18,7 @@ package org.gradle.internal.jvm.inspection;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.jvm.JavaVersionParser;
-import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.platform.PlatformBinaryResolver;
 import org.gradle.internal.serialization.Cached;
 import org.jspecify.annotations.Nullable;
 
@@ -262,7 +262,7 @@ public interface JvmInstallationMetadata {
         }
 
         private File getToolByExecutable(String name) {
-            return new File(new File(javaHome.toFile(), "bin"), OperatingSystem.current().getExecutableName(name));
+            return new File(new File(javaHome.toFile(), "bin"), PlatformBinaryResolver.forCurrentOs().getExecutableName(name));
         }
 
         @Override

@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -87,7 +88,7 @@ model {
     }
 
     def checkInstall(String path, AvailableToolChains.InstalledToolChain toolChain) {
-        def executable = file(OperatingSystem.current().getScriptName(path))
+        def executable = file(PlatformBinaryResolver.forCurrentOs().getScriptName(path))
         executable.assertExists()
         assert executable.execute([], toolChain.runtimeEnv).out == helloWorld.expectedOutput(toolChain)
         return true

@@ -23,6 +23,7 @@ import org.gradle.api.internal.provider.PropertyInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.Property
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.language.nativeplatform.internal.Names
 import org.gradle.language.swift.SwiftPlatform
 import org.gradle.language.swift.SwiftVersion
@@ -100,7 +101,7 @@ class SwiftBasePluginTest extends Specification {
         then:
         def link = project.tasks[linkTask]
         link instanceof LinkExecutable
-        link.linkedFile.get().asFile == projectDir.file("build/exe/$exeDir" + OperatingSystem.current().getExecutableName("test_app"))
+        link.linkedFile.get().asFile == projectDir.file("build/exe/$exeDir" + PlatformBinaryResolver.forCurrentOs().getExecutableName("test_app"))
 
         def install = project.tasks[installTask]
         install instanceof InstallExecutable
@@ -134,7 +135,7 @@ class SwiftBasePluginTest extends Specification {
         then:
         def link = project.tasks[taskName]
         link instanceof LinkSharedLibrary
-        link.linkedFile.get().asFile == projectDir.file("build/lib/${libDir}" + OperatingSystem.current().getSharedLibraryName("test_lib"))
+        link.linkedFile.get().asFile == projectDir.file("build/lib/${libDir}" + PlatformBinaryResolver.forCurrentOs().getSharedLibraryName("test_lib"))
 
         where:
         name        | taskName        | libDir

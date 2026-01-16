@@ -247,7 +247,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         where:
         forkOption   | configure                                       | appendPath
         "java home"  | 'options.forkOptions.javaHome = file("<path>")' | ''
-        "executable" | 'options.forkOptions.executable = "<path>"'     | OperatingSystem.current().getExecutableName('/bin/javac')
+        "executable" | 'options.forkOptions.executable = "<path>"'     | org.gradle.internal.platform.PlatformBinaryResolver.forCurrentOs().getExecutableName('/bin/javac')
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22398")
@@ -279,7 +279,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         where:
         forkOption   | configure                                       | appendPath
         "java home"  | 'options.forkOptions.javaHome = file("<path>")' | ''
-        "executable" | 'options.forkOptions.executable = "<path>"'     | OperatingSystem.current().getExecutableName('/bin/javac')
+        "executable" | 'options.forkOptions.executable = "<path>"'     | org.gradle.internal.platform.PlatformBinaryResolver.forCurrentOs().getExecutableName('/bin/javac')
     }
 
     def 'fails when requesting not available toolchain'() {
