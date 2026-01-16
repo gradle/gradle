@@ -264,6 +264,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
     }
 
+    // TODO: The behavior in this test has changed
     def "preserves the requested attributes when performing a composite substitution using mapping"() {
         platformDependency 'org.test:platform:1.0'
 
@@ -332,6 +333,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
     }
 
+    // TODO: The behavior in this test has changed
     def "preserves the requested capabilities when performing a composite substitution using mapping"() {
         buildA.buildFile << """
             dependencies {

@@ -17,6 +17,13 @@
 
 package org.gradle.integtests.resolve
 
+import org.gradle.api.JavaVersion
+import org.gradle.api.attributes.Bundling
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.LibraryElements
+import org.gradle.api.attributes.Usage
+import org.gradle.api.attributes.java.TargetJvmVersion
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
@@ -1696,6 +1703,202 @@ Required by:
                 }
             }
         }
+    }
 
+    def "can substitute unversioned selector using attributes"() {
+        mavenRepo.module("org", "foo", "1").publish()
+
+        mavenRepo.module("org", "bar", "1")
+            .withModuleMetadata()
+            .variant("bar", [(Category.CATEGORY_ATTRIBUTE.name): "bat"])
+            .publish()
+
+        settingsFile << """
+            include(":other")
+        """
+
+        buildFile("other/build.gradle", """
+            configurations.consumable("bar") {
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "bat"))
+                }
+            }
+
+            version = "1"
+        """)
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            ${resolve.configureProject("runtimeClasspath")}
+
+            dependencies {
+                implementation("org:foo:1")
+                implementation("org:foo:1") {
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "cat"))
+                    }
+                }
+            }
+
+            configurations.runtimeClasspath {
+                resolutionStrategy.dependencySubstitution {
+                    def from = variant(module('org:foo')) {
+                        attributes {
+                            attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "cat"))
+                        }
+                    }
+
+                    if ($toProject) {
+                        substitute(from).using(variant(project(':other')) {
+                            attributes {
+                                attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "bat"))
+                            }
+                        })
+                    } else {
+                        substitute(from).using(variant(module("org:bar:1")) {
+                            attributes {
+                                attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "bat"))
+                            }
+                        })
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":depsub:") {
+                module("org:foo:1")
+                if (toProject) {
+                    edge("org:foo:1", ":other", "depsub:other:1") {
+                        byReason("selected by rule")
+                        variant("bar", [
+                            (Category.CATEGORY_ATTRIBUTE.name): "bat"
+                        ])
+                        noArtifacts()
+                    }
+                } else {
+                    edge("org:foo:1", "org:bar:1") {
+                        byReason("selected by rule")
+                        variant("bar", [
+                            (Category.CATEGORY_ATTRIBUTE.name): "bat",
+                            (ProjectInternal.STATUS_ATTRIBUTE.name): "release"
+                        ])
+                    }
+                }
+            }
+        }
+
+        where:
+        toProject << [true, false]
+    }
+
+    def "can substitute unversioned selector using capabilities"() {
+        mavenRepo.module("org", "foo", "1").publish()
+
+        mavenRepo.module("org", "bar", "1")
+            .withModuleMetadata()
+            .variant("testFixtures", [(Category.CATEGORY_ATTRIBUTE.name): Category.LIBRARY]) {
+                capability("org", "bar-test-fixtures", "1")
+            }
+            .publish()
+
+        settingsFile << """
+            include(":other")
+        """
+
+        buildFile("other/build.gradle", """
+            plugins {
+                id("java-library")
+                id("java-test-fixtures")
+            }
+
+            version = "1"
+        """)
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            ${resolve.configureProject("runtimeClasspath")}
+
+            dependencies {
+                implementation("org:foo:1")
+                implementation(testFixtures("org:foo:1"))
+            }
+
+            configurations.runtimeClasspath {
+                resolutionStrategy.dependencySubstitution {
+                    def from = variant(module('org:foo')) {
+                        capabilities {
+                            requireFeature("test-fixtures")
+                        }
+                    }
+
+                    if ($toProject) {
+                        substitute(from).using(variant(project(':other')) {
+                            capabilities {
+                                requireFeature("test-fixtures")
+                            }
+                        })
+                    } else {
+                        substitute(from).using(variant(module("org:bar:1")) {
+                            capabilities {
+                                requireFeature("test-fixtures")
+                            }
+                        })
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":depsub:") {
+                module("org:foo:1")
+                if (toProject) {
+                    edge("org:foo:1", ":other", "depsub:other:1") {
+                        project(":other", "depsub:other:1") {
+                            artifact(name: "other")
+                        }
+
+                        byReason("selected by rule")
+                        variant("testFixturesRuntimeElements", [
+                            (Category.CATEGORY_ATTRIBUTE.name): Category.LIBRARY,
+                            (Bundling.BUNDLING_ATTRIBUTE.name): Bundling.EXTERNAL,
+                            (TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.name): JavaVersion.current().majorVersion,
+                            (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name): LibraryElements.JAR,
+                            (Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME
+                        ])
+                        artifact(classifier: "test-fixtures")
+                    }
+                } else {
+                    edge("org:foo:1", "org:bar:1") {
+                        byReason("selected by rule")
+                        variant("testFixtures", [
+                            (Category.CATEGORY_ATTRIBUTE.name): Category.LIBRARY,
+                            (ProjectInternal.STATUS_ATTRIBUTE.name): "release"
+                        ])
+                    }
+                }
+            }
+        }
+
+        where:
+        toProject << [true, false]
     }
 }

@@ -265,14 +265,15 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
                 boolean projectInvolved = substituted instanceof ProjectComponentSelector || notation instanceof ProjectComponentSelector;
 
                 if (substituted instanceof UnversionedModuleComponentSelector) {
-                    final ModuleIdentifier moduleId = ((UnversionedModuleComponentSelector) substituted).getModuleIdentifier();
+                    UnversionedModuleComponentSelector unversioned = (UnversionedModuleComponentSelector) substituted;
+                    final ModuleIdentifier moduleId = unversioned.getModuleIdentifier();
                     if (notation instanceof ModuleComponentSelector) {
                         if (((ModuleComponentSelector) notation).getModuleIdentifier().equals(moduleId)) {
                             // This substitution is effectively a force
                             substitutionReason = substitutionReason.markAsEquivalentToForce();
                         }
                     }
-                    addSubstitution(new ModuleMatchDependencySubstitutionAction(substitutionReason, moduleId, notation, () -> artifactAction), projectInvolved);
+                    addSubstitution(new ModuleMatchDependencySubstitutionAction(substitutionReason, unversioned, notation, () -> artifactAction), projectInvolved);
                 } else {
                     addSubstitution(new ExactMatchDependencySubstitutionAction(substitutionReason, substituted, notation, () -> artifactAction), projectInvolved);
                 }
@@ -395,8 +396,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             this.artifactSelectionAction = artifactSelectionAction;
         }
 
-        @Override
-        public void execute(DependencySubstitution dependencySubstitution) {
+        protected void applyArtifactSelectionAction(DependencySubstitution dependencySubstitution) {
             dependencySubstitution.artifactSelection(artifactSelectionAction.get());
         }
     }
@@ -416,7 +416,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         @Override
         public void execute(DependencySubstitution dependencySubstitution) {
             if (substituted.equals(dependencySubstitution.getRequested())) {
-                super.execute(dependencySubstitution);
+                applyArtifactSelectionAction(dependencySubstitution);
                 ((DependencySubstitutionInternal) dependencySubstitution).useTarget(substitute, selectionReason);
             }
         }
@@ -425,13 +425,13 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
     private static class ModuleMatchDependencySubstitutionAction extends AbstractDependencySubstitutionAction {
         private final ComponentSelectionDescriptorInternal selectionReason;
-        private final ModuleIdentifier moduleId;
+        private final UnversionedModuleComponentSelector unversioned;
         private final ComponentSelector substitute;
 
-        public ModuleMatchDependencySubstitutionAction(ComponentSelectionDescriptorInternal selectionReason, ModuleIdentifier moduleId, ComponentSelector substitute, Supplier<Action<? super ArtifactSelectionDetails>> artifactSelectionAction) {
+        public ModuleMatchDependencySubstitutionAction(ComponentSelectionDescriptorInternal selectionReason, UnversionedModuleComponentSelector unversioned, ComponentSelector substitute, Supplier<Action<? super ArtifactSelectionDetails>> artifactSelectionAction) {
             super(artifactSelectionAction);
             this.selectionReason = selectionReason;
-            this.moduleId = moduleId;
+            this.unversioned = unversioned;
             this.substitute = substitute;
         }
 
@@ -439,8 +439,11 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         public void execute(DependencySubstitution dependencySubstitution) {
             if (dependencySubstitution.getRequested() instanceof ModuleComponentSelector) {
                 ModuleComponentSelector requested = (ModuleComponentSelector) dependencySubstitution.getRequested();
-                if (moduleId.equals(requested.getModuleIdentifier())) {
-                    super.execute(dependencySubstitution);
+                if (unversioned.getModuleIdentifier().equals(requested.getModuleIdentifier()) &&
+                    unversioned.getAttributes().equals(requested.getAttributes()) &&
+                    unversioned.getCapabilitySelectors().equals(requested.getCapabilitySelectors())
+                ) {
+                    applyArtifactSelectionAction(dependencySubstitution);
                     ((DependencySubstitutionInternal) dependencySubstitution).useTarget(substitute, selectionReason);
                 }
             }
@@ -461,7 +464,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
         @Override
         public void execute(DependencySubstitution substitution) {
-            super.execute(substitution);
+            applyArtifactSelectionAction(substitution);
             ModuleVersionIdentifier requested = componentSelectorConverter.getModuleVersionId(substitution.getRequested());
             DefaultDependencyResolveDetails details = instantiator.newInstance(DefaultDependencyResolveDetails.class, substitution, requested);
             delegate.execute(details);
@@ -518,34 +521,25 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             this.selector = selector;
         }
 
-        private void createComponentOfCategory(String category) {
-            if (selector instanceof ProjectComponentSelector) {
-                AttributeContainerInternal container = createCategory(category);
-                selector = DefaultProjectComponentSelector.withAttributes((ProjectComponentSelector) selector, container.asImmutable());
-            } else if (selector instanceof ModuleComponentSelector) {
-                AttributeContainerInternal container = createCategory(category);
-                selector = DefaultModuleComponentSelector.withAttributes((ModuleComponentSelector) selector, container.asImmutable());
-            }
-        }
-
-        private AttributeContainerInternal createCategory(String category) {
-            return (AttributeContainerInternal) attributesFactory.mutable()
-                .attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, category));
+        private void withCategoryAttribute(String category) {
+            attributes(attrs ->
+                attrs.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, category))
+            );
         }
 
         @Override
         public void platform() {
-            createComponentOfCategory(Category.REGULAR_PLATFORM);
+            withCategoryAttribute(Category.REGULAR_PLATFORM);
         }
 
         @Override
         public void enforcedPlatform() {
-            createComponentOfCategory(Category.ENFORCED_PLATFORM);
+            withCategoryAttribute(Category.ENFORCED_PLATFORM);
         }
 
         @Override
         public void library() {
-            createComponentOfCategory(Category.LIBRARY);
+            withCategoryAttribute(Category.LIBRARY);
         }
 
         @Override
@@ -556,6 +550,10 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
                 selector = DefaultProjectComponentSelector.withAttributes((ProjectComponentSelector) selector, container.asImmutable());
             } else if (selector instanceof ModuleComponentSelector) {
                 selector = DefaultModuleComponentSelector.withAttributes((ModuleComponentSelector) selector, container.asImmutable());
+            } else if (selector instanceof UnversionedModuleComponentSelector) {
+                selector = ((UnversionedModuleComponentSelector) selector).withAttributes(container.asImmutable());
+            } else {
+                throw new IllegalArgumentException("Unknown selector type: " + selector.getClass());
             }
         }
 
@@ -569,6 +567,10 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
                 selector = DefaultProjectComponentSelector.withCapabilities((ProjectComponentSelector) selector, ImmutableSet.copyOf(handler.getCapabilitySelectors().get()));
             } else if (selector instanceof ModuleComponentSelector) {
                 selector = DefaultModuleComponentSelector.withCapabilities((ModuleComponentSelector) selector, ImmutableSet.copyOf(handler.getCapabilitySelectors().get()));
+            } else if (selector instanceof UnversionedModuleComponentSelector) {
+                selector = ((UnversionedModuleComponentSelector) selector).withCapabilities(ImmutableSet.copyOf(handler.getCapabilitySelectors().get()));
+            } else {
+                throw new IllegalArgumentException("Unknown selector type: " + selector.getClass());
             }
         }
     }
