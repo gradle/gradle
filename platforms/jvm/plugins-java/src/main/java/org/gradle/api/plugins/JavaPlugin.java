@@ -378,7 +378,11 @@ public abstract class JavaPlugin implements Plugin<Project> {
         // Force the realization of this test suite, targets and task
         JvmTestSuite suite = testSuite.get();
 
-        tasks.named(JavaBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(testSuite));
+        tasks.named(JavaBasePlugin.CHECK_TASK_NAME, checkTask ->
+            suite.getTargets().all(jvmTestSuiteTarget ->
+                checkTask.dependsOn(jvmTestSuiteTarget.getTestTask())
+            )
+        );
 
         return suite;
     }
