@@ -35,7 +35,7 @@ import java.util.jar.Manifest
 import static org.hamcrest.CoreMatchers.containsString
 
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
-    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("9ea3aa44b232bb132fb940420253268126341aae8bd5fe8a72293990ea2e8bf1")
+    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("05f861840524c805e30c138be22139b8b89a134dbe89f571372633718b30f873")
 
     def "generated wrapper scripts use correct line separators"() {
         buildFile << """

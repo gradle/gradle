@@ -20,6 +20,8 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
+import java.util.function.Consumer
+
 @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperUserHomeIntegrationTest extends AbstractWrapperIntegrationSpec {
 
@@ -56,10 +58,8 @@ class WrapperUserHomeIntegrationTest extends AbstractWrapperIntegrationSpec {
         given:
         prepareWrapper().run()
         def gradleUserHome = testDirectory.file('some-custom-user-home')
-        Properties props = new Properties();
-        props.setProperty('systemProp.gradle.user.home', gradleUserHome.absolutePath)
-        try (OutputStream out = new FileOutputStream(testDirectory.file('gradle.properties'))) {
-            props.store(out, null);
+        writeProperties(testDirectory.file('gradle.properties')) { props ->
+            props.setProperty('systemProp.gradle.user.home', gradleUserHome.absolutePath)
         }
 
         when:
@@ -74,10 +74,8 @@ class WrapperUserHomeIntegrationTest extends AbstractWrapperIntegrationSpec {
         prepareWrapper().run()
         def userGradleUserHome = testDirectory.file('user-custom-user-home')
         def cmdGradleUserHome = testDirectory.file('cmd-custom-user-home')
-        Properties props = new Properties();
-        props.setProperty('systemProp.gradle.user.home', userGradleUserHome.absolutePath)
-        try (OutputStream out = new FileOutputStream(testDirectory.file('gradle.properties'))) {
-            props.store(out, null);
+        writeProperties(testDirectory.file('gradle.properties')) { props ->
+            props.setProperty('systemProp.gradle.user.home', userGradleUserHome.absolutePath)
         }
 
         when:
@@ -100,5 +98,13 @@ class WrapperUserHomeIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         res.assertOutputContains("WARNING Ignored custom Gradle user home location configured in Gradle user home: ${userGradleProperties.absolutePath}")
+    }
+
+    private static def writeProperties(File target, Consumer<Properties> config) {
+        Properties props = new Properties()
+        config.accept(props)
+        try (OutputStream out = new FileOutputStream(target)) {
+            props.store(out, null);
+        }
     }
 }
