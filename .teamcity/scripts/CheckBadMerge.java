@@ -17,6 +17,8 @@
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,6 +46,7 @@ import java.util.stream.Collectors;
  *
  * Usage (Java 11+ single-file source execution):
  *   java .teamcity/scripts/CheckBadMerge.java <commits_file>
+ *   java .teamcity/scripts/CheckBadMerge.java -   # read commits from stdin
  *
  * If any "bad" merge commit is found, it will print the details and exit with non-zero code.
  */
@@ -64,11 +67,16 @@ public class CheckBadMerge {
             System.exit(1);
         }
 
-        Path commitsFile = Paths.get(args[0]);
-        List<String> commits = Files.readAllLines(commitsFile, StandardCharsets.UTF_8).stream()
-            .map(String::trim)
-            .filter(s -> !s.isEmpty())
-            .collect(Collectors.toList());
+        List<String> commits;
+        if ("-".equals(args[0])) {
+            commits = readCommitsFromStdin();
+        } else {
+            Path commitsFile = Paths.get(args[0]);
+            commits = Files.readAllLines(commitsFile, StandardCharsets.UTF_8).stream()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+        }
 
         try {
             for (String commit : commits) {
@@ -76,6 +84,15 @@ public class CheckBadMerge {
             }
         } finally {
             THREAD_POOL.shutdown();
+        }
+    }
+
+    private static List<String> readCommitsFromStdin() throws IOException {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8))) {
+            return br.lines()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
         }
     }
 

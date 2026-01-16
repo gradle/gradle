@@ -17,6 +17,8 @@
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
  *
  * Usage (Java 11+ single-file source execution):
  *   java .teamcity/scripts/CheckWrapper.java <target_branch_name>
+ *   java .teamcity/scripts/CheckWrapper.java -   # read commits from stdin (one SHA per line), checks wrapper per commit
  *
  * It determines the PR range from the current HEAD:
  * - Uses origin/<target_branch_name> as the target
@@ -60,6 +63,11 @@ public class CheckWrapper {
         if (targetBranch.isEmpty()) {
             System.err.println("target_branch_name must not be empty");
             System.exit(2);
+        }
+
+        if ("-".equals(targetBranch)) {
+            checkCommitsFromStdin();
+            return;
         }
 
         String targetRef = "refs/remotes/origin/" + targetBranch;
@@ -115,6 +123,33 @@ public class CheckWrapper {
         }
 
         run("git", "checkout", prHead, "--quiet", "--detach");
+    }
+
+    private static void checkCommitsFromStdin() throws IOException, InterruptedException {
+        String originalHead = stdout("git", "rev-parse", "HEAD").trim();
+
+        List<String> commits;
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8))) {
+            commits = br.lines()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+        }
+
+        for (String commit : commits) {
+            run("git", "checkout", commit, "--quiet", "--detach");
+            String wrapperVersion = readWrapperVersion();
+            System.out.println("Commit " + commit + " wrapper: " + wrapperVersion);
+            if (!ALLOWED_WRAPPER_VERSION.matcher(wrapperVersion).matches()) {
+                System.err.println(
+                    "Bad wrapper version " + wrapperVersion + " used in commit " + commit
+                        + ". Please rebase your branch to ensure that each commit uses only released Gradle versions in wrapper (GA, RC or milestone)."
+                );
+                System.exit(1);
+            }
+        }
+
+        run("git", "checkout", originalHead, "--quiet", "--detach");
     }
 
     private static boolean refExists(String ref) throws IOException, InterruptedException {

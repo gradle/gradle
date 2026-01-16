@@ -32,10 +32,11 @@ class LightweightChecks(
         stage = stage,
         init = {
             id("${model.projectId}_LightweightChecks")
-            name = "LightweightChecks"
+            name = "Lightweight Checks"
             description = "Lightweight checks that don't depend on other builds"
 
             val os = os
+            val defaultJavaBinary = "${javaHome(BuildToolBuildJvm, os)}/bin/java"
 
             applyDefaultSettings(artifactRuleOverride = "")
 
@@ -52,10 +53,8 @@ class LightweightChecks(
                     name = "CHECK_USED_WRAPPER"
                     scriptContent =
                         """
-                        "${javaHome(
-                            BuildToolBuildJvm,
-                            os,
-                        )}/bin/java" .teamcity/scripts/CheckWrapper.java ${model.branch.branchName}
+                        "$defaultJavaBinary" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
+                        "$defaultJavaBinary" .teamcity/scripts/CheckWrapper.java -
                         """.trimIndent()
                 }
                 if (model.branch.isMaster) {
@@ -65,45 +64,15 @@ class LightweightChecks(
                             """
                             set -eu
 
-                            TARGET_REF="refs/remotes/origin/${model.branch.branchName}"
-                            if ! git rev-parse --verify "${'$'}TARGET_REF" >/dev/null 2>&1; then
-                                echo "Target ref ${'$'}TARGET_REF not present locally; fetching origin/${model.branch.branchName}..."
-                                git fetch origin "${model.branch.branchName}"
-                            fi
-
-                            TARGET_SHA=$(git rev-parse "${'$'}TARGET_REF")
-                            HEAD_SHA=$(git rev-parse HEAD)
-
-                            PARENTS=$(git show --no-patch --format=%P "${'$'}HEAD_SHA")
-                            P1=$(echo "${'$'}PARENTS" | awk '{print ${'$'}1}')
-                            P2=$(echo "${'$'}PARENTS" | awk '{print ${'$'}2}')
-
-                            PR_HEAD="${'$'}HEAD_SHA"
-                            if [ -n "${'$'}P2" ]; then
-                                if [ "${'$'}P1" = "${'$'}TARGET_SHA" ]; then
-                                    PR_HEAD="${'$'}P2"
-                                elif [ "${'$'}P2" = "${'$'}TARGET_SHA" ]; then
-                                    PR_HEAD="${'$'}P1"
-                                fi
-                            fi
-
-                            BASE_SHA=$(git merge-base "${'$'}TARGET_SHA" "${'$'}PR_HEAD")
-                            git log --pretty=format:"%H" "${'$'}BASE_SHA..${'$'}PR_HEAD" > pr_commits.txt
-
-                            "${javaHome(
-                                BuildToolBuildJvm,
-                                os,
-                            )}/bin/java" .teamcity/scripts/CheckBadMerge.java pr_commits.txt
+                            "$defaultJavaBinary" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
+                            "$defaultJavaBinary" .teamcity/scripts/CheckBadMerge.java -
                             """.trimIndent()
                     }
                 }
                 script {
                     name = "CheckRemoteProjectRef"
                     scriptContent =
-                        "${javaHome(
-                            BuildToolBuildJvm,
-                            os,
-                        )}/bin/java .teamcity/scripts/CheckRemoteProjectRef.java ${remoteProjectRefs.joinToString(" ")}"
+                        "$defaultJavaBinary .teamcity/scripts/CheckRemoteProjectRef.java ${remoteProjectRefs.joinToString(" ")}"
                 }
                 script {
                     name = "RUN_MAVEN_CLEAN_VERIFY"
