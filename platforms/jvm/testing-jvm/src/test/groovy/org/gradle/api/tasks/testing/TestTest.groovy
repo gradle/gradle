@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing
 
 import org.apache.commons.io.FileUtils
+import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
@@ -159,7 +160,7 @@ class TestTest extends AbstractConventionTaskTest {
             oneSuccessfulTest(processor)
         }
         def output = outputEventListener.toString()
-        output.contains("Expected 5 test(s) but executed 1 test(s)")
+        output.contains("Task :testTask expected 5 test(s) but executed 1 test(s).")
     }
 
     def "test throws exception when expectedTestCount does not match actual count and failOnUnexpectedTestCount is true"() {
@@ -176,7 +177,7 @@ class TestTest extends AbstractConventionTaskTest {
             oneSuccessfulTest(processor)
         }
         def e = thrown(GradleException)
-        e.message == "Expected 5 test(s) but executed 1 test(s)."
+        e.message == "Task :testTask expected 5 test(s) but executed 1 test(s)."
     }
 
     def "test execute()"() {
