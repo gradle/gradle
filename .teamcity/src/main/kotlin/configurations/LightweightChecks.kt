@@ -54,7 +54,7 @@ class LightweightChecks(
                     scriptContent =
                         """
                         "$defaultJavaBinary" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
-                        "$defaultJavaBinary" .teamcity/scripts/CheckWrapper.java -
+                        "$defaultJavaBinary" .teamcity/scripts/CheckWrapper.java
                         """.trimIndent()
                 }
                 if (model.branch.isMaster) {
@@ -65,7 +65,7 @@ class LightweightChecks(
                             set -eu
 
                             "$defaultJavaBinary" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
-                            "$defaultJavaBinary" .teamcity/scripts/CheckBadMerge.java -
+                            "$defaultJavaBinary" .teamcity/scripts/CheckBadMerge.java
                             """.trimIndent()
                     }
                 }

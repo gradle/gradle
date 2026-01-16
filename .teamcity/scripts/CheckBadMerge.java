@@ -14,26 +14,11 @@
  * limitations under the License.
  */
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
+import java.io.*;
+import java.nio.charset.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.*;
 
 /**
  * See https://github.com/gradle/gradle-private/issues/3919
@@ -45,8 +30,7 @@ import java.util.stream.Collectors;
  * This script is to check if there is any merge commit that brings changes from release branch to master.
  *
  * Usage (Java 11+ single-file source execution):
- *   java .teamcity/scripts/CheckBadMerge.java <commits_file>
- *   java .teamcity/scripts/CheckBadMerge.java -   # read commits from stdin
+ *   java .teamcity/scripts/CheckBadMerge.java < commits.txt
  *
  * If any "bad" merge commit is found, it will print the details and exit with non-zero code.
  */
@@ -62,21 +46,12 @@ public class CheckBadMerge {
     ));
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 1) {
-            System.err.println("Usage: java CheckBadMerge.java <commits_file>");
-            System.exit(1);
+        if (args.length != 0) {
+            System.err.println("Usage: java CheckBadMerge.java < commits.txt");
+            System.exit(2);
         }
 
-        List<String> commits;
-        if ("-".equals(args[0])) {
-            commits = readCommitsFromStdin();
-        } else {
-            Path commitsFile = Paths.get(args[0]);
-            commits = Files.readAllLines(commitsFile, StandardCharsets.UTF_8).stream()
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .collect(Collectors.toList());
-        }
+        List<String> commits = readCommitsFromStdin();
 
         try {
             for (String commit : commits) {
