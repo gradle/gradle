@@ -486,7 +486,7 @@ public abstract class InitBuild extends DefaultTask {
         return Objects.equals(getType(), "pom");
     }
 
-    private void abortBuildDueToExistingFiles(File projectDirFile) {
+    private static void abortBuildDueToExistingFiles(File projectDirFile) {
         List<String> resolutions = Arrays.asList("Remove any existing files in the project directory and run the init task again.", "Enable the --overwrite option to allow existing files to be overwritten.");
         throw new BuildInitException("Aborting build initialization due to existing files in the project directory: '" + projectDirFile + "'.", resolutions);
     }
