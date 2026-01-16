@@ -138,7 +138,7 @@ dependencies {
 }
 ```
 
-### Extending from provided configurations
+### `Configuration.extendsFrom` accepts `Provider`s 
 
 Previously, calling `extendsFrom()` on a `Configuration` required the specified parent configuration to be a realized `Configuration` object.  
 It is now possible to specify a `Provider<Configuration>` instead, which does not require that a registered configuration be realized before specifying it as a parent configuration.
