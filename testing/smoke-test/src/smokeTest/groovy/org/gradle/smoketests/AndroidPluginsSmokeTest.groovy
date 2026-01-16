@@ -324,10 +324,10 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     @Override
     Map<String, Versions> getPluginsToValidate() {
         return [
-            'com.android.application': TestedVersions.androidGradle,
-            'com.android.library': TestedVersions.androidGradle,
-            'com.android.test': TestedVersions.androidGradle,
-            'com.android.dynamic-feature': TestedVersions.androidGradle,
+            'com.android.application': TestedVersions.androidGradlePlusNightly,
+            'com.android.library': TestedVersions.androidGradlePlusNightly,
+            'com.android.test': TestedVersions.androidGradlePlusNightly,
+            'com.android.dynamic-feature': TestedVersions.androidGradlePlusNightly,
         ]
     }
 
