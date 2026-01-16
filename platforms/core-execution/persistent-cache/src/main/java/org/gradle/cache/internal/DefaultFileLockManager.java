@@ -357,6 +357,7 @@ public class DefaultFileLockManager implements FileLockManager {
                 return false;
             }
 
+            // Compare the state directly from the file with the in-memory representation we have
             try (RandomAccessFile randomAccessFile = new RandomAccessFile(lockFile, "r")) {
                 return !lockStateAccess.readState(randomAccessFile).hasBeenUpdatedSince(lockState);
             } catch (IOException e) {

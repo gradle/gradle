@@ -48,8 +48,8 @@ import java.util.function.Supplier;
  * Example disk layout of this cache:
  * <pre>
  * │{@code <base-dir>/}
- * ├── {@code <key-1>/}                 # entry content created by the caller (directory or file)
- * ├── {@code <key-2>.bin}              # another entry (keys are logical, can map to files or dirs)
+ * ├── {@code <key-1>/}         # entry content created by the caller (directory or file)
+ * ├── {@code <key-2>}          # another entry (keys are logical, can map to a file or dir, but without extensions)
  * └── .internal/               # reserved for cache metadata
  *     ├── locks/               # per-key lock files
  *     │   ├── {@code <key-1>.lock}
@@ -98,7 +98,7 @@ public interface FineGrainedPersistentCache extends Closeable, CleanableStore, H
     /**
      * Performs some work against the cache for {@code <base-dir>/<key>} path in the same way as {@link #useCache(String, Supplier)} but without a thread lock.
      *
-     * This should be used if thread key locking is not needed or handled by the caller already. Otherwise prefer {@link #useCache(String, Supplier)}.
+     * This should be used only if thread locking is handled by the caller already. Otherwise prefer {@link #useCache(String, Supplier)}.
      */
     <T> T withFileLock(String key, Supplier<? extends T> action);
 

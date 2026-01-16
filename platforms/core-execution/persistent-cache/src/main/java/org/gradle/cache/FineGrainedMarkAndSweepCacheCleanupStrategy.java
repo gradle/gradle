@@ -16,6 +16,9 @@
 
 package org.gradle.cache;
 
+import org.gradle.internal.file.FileAccessTimeJournal;
+
+import java.io.File;
 import java.time.Duration;
 
 /**
@@ -28,6 +31,24 @@ import java.time.Duration;
  */
 public interface FineGrainedMarkAndSweepCacheCleanupStrategy extends FineGrainedCacheCleanupStrategy {
 
+    /**
+     * A duration after which entries are hard deleted.
+     * <p>
+     * Rationale for the chosen value (6 hours):<br/>
+     * - When an entry is soft-deleted, there might still be processes that picked it up moments earlier.
+     *   Those processes need time to finish safely without the entry disappearing underneath them.<br/>
+     * - Processes that picked an entry up moments earlier mark entry last access time, but
+     *   updating last access times can be asynchronous. Implementations of
+     *   {@link FileAccessTimeJournal#setLastAccessTime(File, long)} may delay
+     *   persisting the written timestamp. The 6-hour window is large enough so that, even if the
+     *   access time update is buffered or written later (e.g. on daemon stop or a periodic flush),
+     *   the journal update should be picked up by subsequent cleanup passes and prevent premature
+     *   hard deletion of actively used entries.
+     * </p>
+     * In short, 6 hours is a safety buffer: long enough to be robust against asynchronous journal
+     * writes and in-flight work, yet short enough to eventually free disk space for truly unused
+     * entries.
+     */
     Duration SOFT_DELETION_DURATION = Duration.ofHours(6);
 
     /**

@@ -24,8 +24,7 @@ public interface LockOptions {
     /**
      * Ensures that the acquired lock represents a file state on the file system.
      * <p>
-     * This safeguard is necessary when a Gradle process is allowed to delete a
-     * lock file while holding it.
+     * This safeguard is necessary for safe lock cleanup.
      * </p>
      *
      * <p>
@@ -33,7 +32,7 @@ public interface LockOptions {
      * <ol>
      * <li>Process 1 acquires the lock. Process 2 attempts to acquire it and waits.</li>
      * <li>Process 1 deletes the lock file from the disk, then releases the lock.</li>
-     * <li>Process 2 serves the wait and successfully acquires the lock.</li>
+     * <li>Process 2 then acquires the lock.</li>
      * </ol>
      *
      * At this point, Process 2 holds a lock on a file that no longer exists on the disk.

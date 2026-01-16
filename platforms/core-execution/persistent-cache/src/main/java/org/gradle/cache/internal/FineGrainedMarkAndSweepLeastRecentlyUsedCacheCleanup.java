@@ -32,6 +32,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import java.util.function.Function;
@@ -142,8 +143,9 @@ public class FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup implements Cle
         }
 
         private void cleanupOrphanGcDirsAndFileLocks() {
+            Collection<File> reservedCacheFiles = cache.getReservedCacheFiles();
             Set<String> entryKeys = listEntryKeys(cache.getBaseDir(),
-                file -> !cache.getReservedCacheFiles().contains(file),
+                file -> !reservedCacheFiles.contains(file),
                 Function.identity()
             );
             Set<String> locksKeys = listEntryKeys(getLocksDir(),
