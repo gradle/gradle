@@ -30,6 +30,7 @@ import java.util.Map;
 import static org.gradle.wrapper.Download.UNKNOWN_VERSION;
 
 public class GradleWrapperMain {
+
     public static final String GRADLE_USER_HOME_OPTION = "g";
     public static final String GRADLE_USER_HOME_DETAILED_OPTION = "gradle-user-home";
     public static final String GRADLE_QUIET_OPTION = "q";
@@ -37,6 +38,10 @@ public class GradleWrapperMain {
 
     public static void main(String[] args) throws Exception {
         File wrapperJar = wrapperJar();
+        prepareWrapper(args, wrapperJar).execute();
+    }
+
+    private static Action prepareWrapper(String[] args, File wrapperJar) throws Exception {
         File propertiesFile = wrapperProperties(wrapperJar);
         File rootDir = rootDir(wrapperJar);
 
@@ -71,10 +76,12 @@ public class GradleWrapperMain {
         WrapperConfiguration configuration = wrapperExecutor.getConfiguration();
         IDownload download = new Download(logger, "gradlew", UNKNOWN_VERSION, configuration.getNetworkTimeout());
 
-        wrapperExecutor.execute(
+        return () -> {
+            wrapperExecutor.execute(
                 args,
                 new Install(logger, download, new PathAssembler(gradleUserHome, rootDir)),
                 new BootstrapMainStarter());
+        };
     }
 
     private static void addSystemProperties(Map<String, String> projectSystemProperties, Map<String, String> userSystemProperties, Map<String, String> commandLineSystemProperties) {
@@ -139,5 +146,10 @@ public class GradleWrapperMain {
 
     private static Logger logger(ParsedCommandLine options) {
         return new Logger(options.hasOption(GRADLE_QUIET_OPTION));
+    }
+
+    @FunctionalInterface
+    private interface Action {
+        void execute() throws Exception;
     }
 }

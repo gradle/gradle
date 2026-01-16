@@ -27,6 +27,9 @@ class WrapperSystemPropertyPrecedenceIntegrationTest extends AbstractWrapperInte
     @Issue('https://github.com/gradle/gradle/issues/36189')
     def 'system properties respect project < user < cli precedence'() {
         given:
+        def originalSystemProps = new Properties()
+        originalSystemProps.putAll(System.getProperties())
+
         prepareWrapper().run()
         buildKotlinFile << 'println("foo=" + System.getProperty("foo", "<null>"))'
 
@@ -44,6 +47,9 @@ class WrapperSystemPropertyPrecedenceIntegrationTest extends AbstractWrapperInte
 
         then:
         res.assertOutputContains("foo=$expectedValue")
+
+        cleanup:
+        System.setProperties(originalSystemProps)
 
         where:
         project   | user   | cli   | expectedValue
