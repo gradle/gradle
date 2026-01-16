@@ -45,13 +45,12 @@ class DefaultFineGrainedPersistentCacheConcurrencyTest extends Specification {
     }
 
     FileLockManager lockManager = Mock(FileLockManager)
-    FileLock lock = Mock(FileLock)
 
     @Subject
     @AutoCleanup
     def cache = new DefaultFineGrainedPersistentCache(cacheDir, "<display>", lockManager, cacheCleanupStrategy)
 
-    def "does not block for different keys when used concurrently"() {
+    def "useCache does not block for different keys when used concurrently"() {
         given:
         def key1 = "k1"
         def key2 = "k2"
@@ -101,7 +100,7 @@ class DefaultFineGrainedPersistentCacheConcurrencyTest extends Specification {
         overlapped.get()
     }
 
-    def "blocks for the same key when used concurrently"() {
+    def "useCache blocks for the same key when used concurrently"() {
         given:
         def key = "same"
         cache.open()
@@ -158,5 +157,51 @@ class DefaultFineGrainedPersistentCacheConcurrencyTest extends Specification {
         secondCompleted.await(1, TimeUnit.SECONDS)
         runningKeyActionCounter.get() == 2
         !overlapped.get()
+    }
+
+    def "withFileLock does not block for the same key when used concurrently"() {
+        given:
+        def key = "same"
+        cache.open()
+
+        // Allow any number of lock acquisitions; return a fresh mock each time (no blocking via file locks in this test)
+        _ * lockManager.lock(_, _, _, _) >> { args -> Mock(FileLock) }
+
+        def bothStarted = new CountDownLatch(2)
+        def allowFinish = new CountDownLatch(1)
+        def overlapped = new AtomicBoolean(false)
+
+        when:
+        Thread t1 = new Thread({
+            cache.withFileLock(key) {
+                bothStarted.countDown()
+                // wait until the other thread also starts its action for the same key
+                bothStarted.await(5, TimeUnit.SECONDS)
+                overlapped.set(true)
+                allowFinish.await(5, TimeUnit.SECONDS)
+            }
+        }, "fg-cache-wfl-same-t1")
+
+        Thread t2 = new Thread({
+            cache.withFileLock(key) {
+                bothStarted.countDown()
+                bothStarted.await(5, TimeUnit.SECONDS)
+                overlapped.set(true)
+                allowFinish.await(5, TimeUnit.SECONDS)
+            }
+        }, "fg-cache-wfl-same-t2")
+        t1.start()
+        t2.start()
+
+        then:
+        bothStarted.await(5, TimeUnit.SECONDS)
+
+        when:
+        allowFinish.countDown()
+        t1.join(5000)
+        t2.join(5000)
+
+        then:
+        overlapped.get()
     }
 }

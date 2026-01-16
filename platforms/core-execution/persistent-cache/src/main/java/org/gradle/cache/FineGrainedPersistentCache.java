@@ -77,7 +77,6 @@ public interface FineGrainedPersistentCache extends Closeable, CleanableStore, H
      */
     String LOCKS_DIR_RELATIVE_PATH = ".internal/locks";
 
-
     /**
      * Opens this cache and returns self.
      */
@@ -86,18 +85,27 @@ public interface FineGrainedPersistentCache extends Closeable, CleanableStore, H
     /**
      * Performs some work against the cache for {@code <base-dir>/<key>} path.
      *
-     * Acquires exclusive locks on the {@code <base-dir>/<key>} path, so that the given action is the only action to execute across all processes (including this one).
+     * Acquires exclusive locks on the {@code <base-dir>/<key>} path, so that the given action is the only action to execute across all threads and processes.
      * Releases the locks and all resources at the end of the action.
      */
     <T> T useCache(String key, Supplier<? extends T> action);
 
     /**
-     * Performs some work against the cache for {@code <base-dir>/<key>} path.
-     *
-     * Acquires exclusive locks on the {@code <base-dir>/<key>} path, so that the given action is the only action to execute across all processes (including this one).
-     * Releases the locks and all resources at the end of the action.
+     * The same as {@link #useCache(String, Supplier)} for actions that don't return any result.
      */
     void useCache(String key, Runnable action);
+
+    /**
+     * Performs some work against the cache for {@code <base-dir>/<key>} path in the same way as {@link #useCache(String, Supplier)} but without a thread lock.
+     *
+     * This should be used if thread key locking is not needed or handled by the caller already. Otherwise prefer {@link #useCache(String, Supplier)}.
+     */
+    <T> T withFileLock(String key, Supplier<? extends T> action);
+
+    /**
+     * The same as {@link #withFileLock(String, Supplier)} for actions that don't return any result.
+     */
+    void withFileLock(String key, Runnable action);
 
     /**
      * Closes this cache, blocking until all operations are complete.

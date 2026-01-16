@@ -146,6 +146,44 @@ class DefaultFineGrainedPersistentCacheTest extends Specification {
         0 * _
     }
 
+    def "withFileLock(Supplier) acquires per-key exclusive lock and releases it"() {
+        given:
+        def key = "entryKey"
+        def expectedLockFile = cacheDir.file("${LOCKS_DIR_RELATIVE_PATH}/${key}.lock")
+        def lockOptions = DefaultLockOptions.mode(Exclusive).ensureAcquiredLockRepresentsStateOnFileSystem()
+
+        when:
+        cache.open()
+        def result = cache.withFileLock(key, {
+            return 42
+        } as Supplier<Integer>)
+        cache.close()
+
+        then:
+        result == 42
+        1 * lockManager.lock(expectedLockFile, lockOptions, "<display>", "acquireLock") >> lock
+        1 * lock.close()
+        0 * _
+    }
+
+    def "withFileLock(Runnable) acquires per-key exclusive lock and releases it"() {
+        given:
+        def key = "entryKey"
+        def expectedLockFile = cacheDir.file("${LOCKS_DIR_RELATIVE_PATH}/${key}.lock")
+        def lockOptions = DefaultLockOptions.mode(Exclusive).ensureAcquiredLockRepresentsStateOnFileSystem()
+
+        when:
+        cache.open()
+        cache.withFileLock(key) {
+        } as Runnable
+        cache.close()
+
+        then:
+        1 * lockManager.lock(expectedLockFile, lockOptions, "<display>", "acquireLock") >> lock
+        1 * lock.close()
+        0 * _
+    }
+
     def "runs cleanup action when it is due"() {
         when:
         cache.open()
@@ -215,6 +253,30 @@ class DefaultFineGrainedPersistentCacheTest extends Specification {
 
         when:
         cache.useCache(key, {
+            return 42
+        } as Supplier)
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == expectedMessage
+
+        where:
+        key        | description                       | expectedMessage
+        "bad/key"  | "contains Unix file separator"    | "Cache key path must not contain file separator: 'bad/key'"
+        "bad\\key" | "contains Windows file separator" | "Cache key path must not contain file separator: 'bad\\key'"
+        ".hidden"  | "starts with dot"                 | "Cache key must not start with '.' character: '.hidden'"
+    }
+
+    def "withFileLock method rejects invalid key that #description"() {
+        when:
+        cache.withFileLock(key) {}
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == expectedMessage
+
+        when:
+        cache.withFileLock(key, {
             return 42
         } as Supplier)
 
