@@ -18,6 +18,7 @@ package org.gradle.api.tasks;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
@@ -149,10 +150,11 @@ public abstract class GradleBuild extends ConventionTask {
 
     @TaskAction
     void build() {
-        // TODO: Allow us to inject plugins into nested builds too.
         StartParameterInternal startParameter = (StartParameterInternal) getStartParameter();
         nagForNonStringProjectProperties(startParameter.getProjectPropertiesUntracked());
-        runNestedRootBuild(buildName, startParameter, getServices());
+        // TODO: Allow us to inject plugins into nested builds too.
+        ClassPath injectedPluginClassPath = ClassPath.EMPTY;
+        runNestedRootBuild(buildName, startParameter, getServices(),  injectedPluginClassPath);
     }
 
     @SuppressWarnings("ConstantValue")
