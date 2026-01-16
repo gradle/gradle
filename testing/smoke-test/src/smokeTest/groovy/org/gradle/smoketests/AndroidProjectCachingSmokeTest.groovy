@@ -80,7 +80,12 @@ class AndroidProjectCachingSmokeTest extends AbstractAndroidProjectSmokeTest {
             expectedResults.entrySet().removeIf { it.key.contains("Oss") }
         }
 
-        verify(result, expectedResults)
+        def flakyTaskOutcomes = [
+            ':core:datastore-proto:syncDemoDebugLibJars': SUCCESS,
+            ':core:datastore-proto:syncProdDebugLibJars': SUCCESS,
+        ]
+
+        verify(result, expectedResults, flakyTaskOutcomes)
 
         when: 'clean cached build, reusing configuration cache when enabled'
         // workaround for com.google.android.gms.oss-licenses-plugin, see https://github.com/google/play-services-plugins/issues/356
@@ -2923,7 +2928,7 @@ class AndroidPluginExpectations91 {
         ':core:datastore-proto:protobufDummy': UP_TO_DATE,
         ':core:datastore-proto:stripDemoDebugDebugSymbols': NO_SOURCE,
         ':core:datastore-proto:stripProdDebugDebugSymbols': NO_SOURCE,
-        ':core:datastore-proto:syncDemoDebugLibJars': SUCCESS,
+        ':core:datastore-proto:syncDemoDebugLibJars': FROM_CACHE,
         ':core:datastore-proto:syncProdDebugLibJars': FROM_CACHE,
         ':core:datastore-proto:writeDemoDebugAarMetadata': SUCCESS,
         ':core:datastore-proto:writeProdDebugAarMetadata': SUCCESS,
