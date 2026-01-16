@@ -100,7 +100,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
         withInstallations(jdkCurrent, jdkOther).runAndFail(":javadoc")
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':javadoc'.")
+        failureDescriptionStartsWith("Execution failed for task ':javadoc' (registered by plugin 'org.gradle.java').")
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javadocTool` property")
     }
 
@@ -117,7 +117,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec implements
         withInstallations(jdkCurrent, jdkOther).runAndFail(":javadoc")
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':javadoc'.")
+        failureDescriptionStartsWith("Execution failed for task ':javadoc' (registered in build file 'build.gradle').")
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javadocTool` property")
     }
 

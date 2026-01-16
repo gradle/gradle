@@ -66,6 +66,8 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         fails "updateDaemonJvm"
 
         then:
+        failureDescriptionContains("Execution failed for task ':updateDaemonJvm' (registered in build file 'build.gradle').")
+        failure.assertHasDocumentationInResolutions('toolchains.html#sub:download_repositories')
         // TODO The description is different with CC on, and this should use the problem validation test API
 //        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'.")
         failureHasCause('Invalid task configuration')
@@ -153,7 +155,7 @@ tasks.named("updateDaemonJvm") {
         fails "updateDaemonJvm", "--jvm-version=7"
 
         then:
-        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
+        failureDescriptionContains("Execution failed for task ':updateDaemonJvm' (registered in build file 'build.gradle').")
         failureHasCause("Unsupported Java version '7' provided for the 'jvm-version' option. Gradle can only run with Java 8 and above.")
     }
 

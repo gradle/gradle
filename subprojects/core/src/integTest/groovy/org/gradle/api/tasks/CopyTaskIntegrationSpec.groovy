@@ -2288,7 +2288,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         and: "with a clear failure message"
         failure.assertHasCause("Cannot copy file '$unzippedFile2' to '${file('after/sub/new.txt').toPath()}' because file '$unzippedFile' has already been copied there.")
-        failure.assertHasDescription("Execution failed for task ':copy'.")
+        failure.assertHasDescription("Execution failed for task ':copy' (registered in build file 'build.gradle').")
     }
 
     // region duplicates in compressed files
@@ -2316,7 +2316,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         and: "with a clear failure message"
         failure.assertHasCause("Cannot copy zip entry '$zipFile!sub/c.txt' to '${file('after/sub/c.txt').toPath()}' because file '$unzippedFile' has already been copied there.")
-        failure.assertHasDescription("Execution failed for task ':copy'.")
+        failure.assertHasDescription("Execution failed for task ':copy' (registered in build file 'build.gradle').")
     }
 
     def "encountering duplicates in a zipTree vs another zipTree with DuplicateStrategy.FAIL should give a clear error"() {
@@ -2347,7 +2347,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         and: "with a clear failure message"
         failure.assertHasCause("Cannot copy zip entry '$zipFile2!sub/c.txt' to '${file('after/sub/c.txt').toPath()}' because zip entry '$zipFile!sub/c.txt' has already been copied there.")
-        failure.assertHasDescription("Execution failed for task ':copy'.")
+        failure.assertHasDescription("Execution failed for task ':copy' (registered in build file 'build.gradle').")
     }
 
     def "encountering duplicates in a tarTree vs an uncompressed dir with DuplicateStrategy.FAIL should give a clear error"() {
@@ -2374,7 +2374,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         and: "with a clear failure message"
         failure.assertHasCause("Cannot copy tar entry '$tarFile!sub/c.txt' to '${file('after/sub/c.txt').toPath()}' because file '$untarredFile' has already been copied there.")
-        failure.assertHasDescription("Execution failed for task ':copy'.")
+        failure.assertHasDescription("Execution failed for task ':copy' (registered in build file 'build.gradle').")
     }
 
     def "encountering duplicates in a tarTree vs another tarTree with DuplicateStrategy.FAIL should give a clear error"() {
@@ -2405,7 +2405,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         and: "with a clear failure message"
         failure.assertHasCause("Cannot copy tar entry '$tarFile2!sub/c.txt' to '${file('after/sub/c.txt').toPath()}' because tar entry '$tarFile!sub/c.txt' has already been copied there.")
-        failure.assertHasDescription("Execution failed for task ':copy'.")
+        failure.assertHasDescription("Execution failed for task ':copy' (registered in build file 'build.gradle').")
     }
 
     def "renaming 2 different source files contained in zip files to the same name in the dest dir should give a clear error"() {
@@ -2440,7 +2440,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         and: "with a clear failure message"
         failure.assertHasCause("Cannot copy zip entry '$zipFile2!sub/c.txt' to '${file('after/sub/new.txt').toPath()}' because zip entry '$zipFile!sub/c.txt' has already been copied there.")
-        failure.assertHasDescription("Execution failed for task ':copy'.")
+        failure.assertHasDescription("Execution failed for task ':copy' (registered in build file 'build.gradle').")
     }
     // endregion duplicates in compressed files
 

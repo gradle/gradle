@@ -113,9 +113,9 @@ BUILD SUCCESSFUL in [ \\dms]+
         and:
         // Ensure the failure is a location that the fixtures can see
         if (level == LogLevel.DEBUG) {
-            failure.assertThatDescription(containsString("Execution failed for task ':broken'"))
+            failure.assertThatDescription(containsString("Execution failed for task ':broken' (registered in build file 'build.gradle')."))
         } else {
-            failure.assertHasDescription("Execution failed for task ':broken'")
+            failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
         }
         failure.assertHasCause("broken")
 
@@ -126,7 +126,7 @@ BUILD SUCCESSFUL in [ \\dms]+
 
         outputWithFailureAndNoDebugging.contains("FAILURE: Build failed with an exception.")
         outputWithFailureAndNoDebugging.contains("* What went wrong:")
-        outputWithFailureAndNoDebugging.contains("Execution failed for task ':broken'.")
+        outputWithFailureAndNoDebugging.contains("Execution failed for task ':broken' (registered in build file 'build.gradle').")
 
         !outputWithoutFailure.contains("Build failed with an exception.")
         !outputWithoutFailure.contains("* What went wrong:")

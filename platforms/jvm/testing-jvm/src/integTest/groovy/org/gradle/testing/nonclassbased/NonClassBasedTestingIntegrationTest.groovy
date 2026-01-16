@@ -340,7 +340,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         fails("test")
 
         then:
-        failureDescriptionContains("Execution failed for task ':test'.")
+        failureDescriptionContains("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
         failureCauseContains("Path filter pattern is not a valid regex: mis(matched/parens")
 
         where:

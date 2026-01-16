@@ -210,7 +210,7 @@ class JUnitJupiterTestMetadataListenerIntegrationTest extends AbstractTestingMul
         fails('test')
 
         then:
-        failureDescriptionContains("Execution failed for task ':test'.")
+        failureDescriptionContains("Execution failed for task ':test' (registered in build file 'build.gradle').")
         failureCauseContains("Listener type org.gradle.api.tasks.testing.TestMetadataListener with service scope 'Project' cannot be used to generate events in scope 'Build'.")
     }
 }

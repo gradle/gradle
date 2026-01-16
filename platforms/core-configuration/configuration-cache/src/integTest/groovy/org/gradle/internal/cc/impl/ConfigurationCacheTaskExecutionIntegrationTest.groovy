@@ -40,7 +40,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCacheFails "broken"
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':broken'.")
+        failureDescriptionStartsWith("Execution failed for task ':broken' (registered in build file 'build.gradle').")
         failureCauseContains("Invocation of '$invocation' by task ':broken' at execution time is unsupported with the configuration cache.")
         outputDoesNotContain("UNREACHABLE")
 
@@ -79,7 +79,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCacheFails "broken"
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':broken'.")
+        failureDescriptionStartsWith("Execution failed for task ':broken' (registered in build file 'build.gradle').")
         failureCauseContains("Invocation of 'Task.$invocation' by task ':broken' at execution time is unsupported with the configuration cache.")
         outputDoesNotContain("UNREACHABLE")
 
@@ -161,7 +161,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         and:
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(6)
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
         failure.assertHasCause("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
 
         and:
@@ -218,7 +218,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCacheFails "broken"
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':broken'")
+        failureDescriptionStartsWith("Execution failed for task ':broken' (registered in build file 'build.gradle').")
         failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
 
         configurationCache.assertStateStoredAndDiscarded {
@@ -243,7 +243,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCacheFails "broken"
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':broken'")
+        failureDescriptionStartsWith("Execution failed for task ':broken' (registered in build file 'build.gradle').")
         failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
 
         configurationCache.assertStateStoredAndDiscarded {
@@ -268,7 +268,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCacheFails "broken", "-Dsome.property=value"
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':broken'")
+        failureDescriptionStartsWith("Execution failed for task ':broken' (registered in build file 'build.gradle').")
         failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
 
         configurationCache.assertStateStoredAndDiscarded {
@@ -302,7 +302,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCacheFails "broken"
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':broken'")
+        failureDescriptionStartsWith("Execution failed for task ':broken' (registered in build file 'build.gradle').")
         failureCauseContains("Invocation of 'Task.project' by task ':broken' at execution time is unsupported with the configuration cache.")
 
         configurationCache.assertStateStoredAndDiscarded {

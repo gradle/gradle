@@ -104,7 +104,7 @@ class ConfigurationCacheBuildSrcProblemReportingIntegrationTest extends Abstract
 
         then:
         failure.assertHasFailures(2)
-        failureDescriptionStartsWith("Execution failed for task ':buildSrc:broken'.")
+        failureDescriptionStartsWith("Execution failed for task ':buildSrc:broken' (registered in build file 'buildSrc/build.gradle').")
         failureHasCause("Invocation of 'Task.project' by task ':buildSrc:broken' at execution time is unsupported with the configuration cache.")
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
