@@ -112,6 +112,7 @@ public interface ConsoleMetaData {
     }
 
     boolean TASK_BAR_PROGRESS_SUPPORTED = evaluateTaskBarProgressSupport();
+
     /**
      * <p>Returns true if the terminal supports OSC 9;4 taskbar progress sequences.</p>
      *
@@ -132,10 +133,14 @@ public interface ConsoleMetaData {
             return true;
         }
 
-        // Ghostty supports OSC 9;4 sequences
+        // Ghostty and kitty support OSC 9;4 sequences
         String term = System.getenv("TERM");
-        if (term != null && term.toLowerCase(Locale.ROOT).contains("ghostty")) {
-            return true;
+        if (term != null) {
+            String termLowerCase = term.toLowerCase(Locale.ROOT);
+            if (termLowerCase.contains("ghostty") ||
+                termLowerCase.contains("kitty")) {
+                return true;
+            }
         }
 
         // iTerm2 supports OSC progress bar starting from version 3.6.6

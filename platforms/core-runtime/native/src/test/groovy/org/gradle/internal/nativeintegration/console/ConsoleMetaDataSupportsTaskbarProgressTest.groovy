@@ -72,6 +72,17 @@ class ConsoleMetaDataSupportsTaskbarProgressTest extends Specification {
         termValue << ['ghostty', 'GHOSTTY', 'Ghostty', 'ghostty-256color', 'xterm-ghostty']
     }
 
+    def "returns true when TERM contains kitty in different cases"() {
+        when:
+        env.setEnvironmentVariable('TERM', termValue)
+
+        then:
+        ConsoleMetaData.evaluateTaskBarProgressSupport()
+
+        where:
+        termValue << ['kitty', 'KITTY', 'Kitty', 'xterm-kitty', 'kitty-direct']
+    }
+
     def "returns false when TERM does not contain ghostty"() {
         when:
         env.setEnvironmentVariable('TERM', termValue)
