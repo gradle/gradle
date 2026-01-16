@@ -94,8 +94,6 @@ class DependencyResultSerializerTest extends Specification {
         then:
         out.requested == requested
         out.failure.cause.message == "Boo!"
-        out.targetComponentId == null
-        out.targetVariantId == null
         out.reason.conflictResolution
     }
 }

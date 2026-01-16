@@ -28,14 +28,14 @@ public class DetachedSuccessfulResolvedGraphDependency implements ResolvedGraphD
 
     private final boolean constraint;
     private final ComponentSelector requested;
-    private final Long targetComponent;
-    private final Long targetVariant;
+    private final long targetComponent;
+    private final long targetVariant;
 
     public DetachedSuccessfulResolvedGraphDependency(
         boolean constraint,
         ComponentSelector requested,
-        Long targetComponent,
-        Long targetVariant
+        long targetComponent,
+        long targetVariant
     ) {
         this.constraint = constraint;
         this.requested = requested;
@@ -54,12 +54,12 @@ public class DetachedSuccessfulResolvedGraphDependency implements ResolvedGraphD
     }
 
     @Override
-    public Long getTargetComponentId() {
+    public long getTargetComponentId() {
         return targetComponent;
     }
 
     @Override
-    public Long getTargetVariantId() {
+    public long getTargetVariantId() {
         return targetVariant;
     }
 

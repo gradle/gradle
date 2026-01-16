@@ -426,12 +426,12 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public @Nullable Long getTargetComponentId() {
+    public long getTargetComponentId() {
         NodeState targetNode = getFirstTargetNode();
         if (targetNode != null) {
             return targetNode.getComponent().getResultId();
         }
-        return null;
+        throw new IllegalStateException("No target component for edge " + this);
     }
 
     @Override
@@ -444,12 +444,12 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public @Nullable Long getTargetVariantId() {
+    public long getTargetVariantId() {
         NodeState targetNode = getFirstTargetNode();
         if (targetNode != null) {
             return targetNode.getNodeId();
         }
-        return null;
+        throw new IllegalStateException("No target variant for edge " + this);
     }
 
     public Collection<NodeState> getTargetNodes() {

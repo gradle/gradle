@@ -268,8 +268,6 @@ class ResolutionResultGraphBuilderSpec extends Specification {
                 getRequested() >> selector
                 getFailure() >> new ModuleVersionResolveException(selector, failure)
                 getReason() >> ComponentSelectionReasons.of(ComponentSelectionReasons.REQUESTED)
-                getTargetComponentId() >> null
-                getTargetVariantId() >> null
             }
         }
     }

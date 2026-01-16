@@ -58,15 +58,9 @@ public class DependencyResultSerializer {
         componentSelectorSerializer.write(encoder, value.getRequested());
         encoder.writeBoolean(value.isConstraint());
         if (value.getFailure() == null) {
-            Long targetVariantId = value.getTargetVariantId();
-            Long targetComponentId = value.getTargetComponentId();
-            if (targetComponentId != null && targetVariantId != null) {
-                encoder.writeBoolean(true);
-                encoder.writeSmallLong(targetComponentId);
-                encoder.writeSmallLong(targetVariantId);
-            } else {
-                throw new IllegalStateException("Expected target component and variant for edge " + value);
-            }
+            encoder.writeBoolean(true);
+            encoder.writeSmallLong(value.getTargetComponentId());
+            encoder.writeSmallLong(value.getTargetVariantId());
         } else {
             encoder.writeBoolean(false);
             componentSelectionReasonSerializer.write(encoder, value.getReason());

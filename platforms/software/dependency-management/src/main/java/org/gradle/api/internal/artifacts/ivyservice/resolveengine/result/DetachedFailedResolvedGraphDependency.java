@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphDependency;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.jspecify.annotations.Nullable;
 
 /**
  * The deserialized representation of a failed edge in the resolution result.
@@ -64,13 +63,13 @@ public class DetachedFailedResolvedGraphDependency implements ResolvedGraphDepen
     }
 
     @Override
-    public @Nullable Long getTargetComponentId() {
-        return null;
+    public long getTargetComponentId() {
+        throw new IllegalStateException("Cannot get target component ID for failed dependency");
     }
 
     @Override
-    public @Nullable Long getTargetVariantId() {
-        return null;
+    public long getTargetVariantId() {
+        throw new IllegalStateException("Cannot get target variant ID for failed dependency");
     }
 
 }
