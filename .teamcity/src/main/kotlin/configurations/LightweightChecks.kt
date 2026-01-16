@@ -68,11 +68,11 @@ class LightweightChecks(
                             "$defaultJavaBinary" .teamcity/scripts/CheckBadMerge.java
                             """.trimIndent()
                     }
-                }
-                script {
-                    name = "CheckRemoteProjectRef"
-                    scriptContent =
-                        "$defaultJavaBinary .teamcity/scripts/CheckRemoteProjectRef.java ${remoteProjectRefs.joinToString(" ")}"
+                    script {
+                        name = "CheckRemoteProjectRef"
+                        scriptContent =
+                            "$defaultJavaBinary .teamcity/scripts/CheckRemoteProjectRef.java ${remoteProjectRefs.joinToString(" ")}"
+                    }
                 }
                 script {
                     name = "RUN_MAVEN_CLEAN_VERIFY"
