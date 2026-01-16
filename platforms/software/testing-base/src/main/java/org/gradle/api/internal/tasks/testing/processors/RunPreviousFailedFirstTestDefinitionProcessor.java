@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.testing.ClassTestDefinition;
 import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
+import org.gradle.api.internal.tasks.testing.TestIdentifierTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 
 import java.io.File;
@@ -78,6 +79,8 @@ public class RunPreviousFailedFirstTestDefinitionProcessor<D extends TestDefinit
             return previousFailedTestClasses.contains(((ClassTestDefinition) testDefinition).getTestClassName());
         } else if (testDefinition instanceof DirectoryBasedTestDefinition){
             return previousFailedTestDefinitionDirectories.contains(((DirectoryBasedTestDefinition) testDefinition).getTestDefinitionsDir());
+        } else if (testDefinition instanceof TestIdentifierTestDefinition) {
+            return false; // TODO: implement tracking of previously failed TestIdentifierTestDefinitions
         } else {
             throw new IllegalStateException("Unexpected test definition type " + testDefinition.getClass().getName());
         }
