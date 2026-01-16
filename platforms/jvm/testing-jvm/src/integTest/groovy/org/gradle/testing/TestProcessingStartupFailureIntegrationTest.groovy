@@ -63,7 +63,7 @@ class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpe
         failure.assertHasErrorOutput("Error: A fatal exception has occurred. Program will exit.")
 
         and: "Task failure is reported"
-        assertTestWorkerFailedToStart(":test", " (registered by plugin 'org.gradle.jvm-test-suite')")
+        assertTestWorkerFailedToStart(":test")
 
         and: "No test class results are created"
         new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("MyTest")
