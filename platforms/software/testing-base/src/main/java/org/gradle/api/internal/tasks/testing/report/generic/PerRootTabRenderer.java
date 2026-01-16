@@ -190,7 +190,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
             htmlWriter.startElement("td");
             htmlWriter.startElement("div").attribute("class", "infoBox");
-            htmlWriter.startElement("div").attribute("class", "counter").characters(Integer.toString(info.getFailedLeafCount())).endElement();
+            htmlWriter.startElement("div").attribute("class", "counter failedCount").characters(Integer.toString(info.getFailedLeafCount())).endElement();
             htmlWriter.startElement("p").characters("failures").endElement();
             htmlWriter.endElement();
             htmlWriter.endElement();
