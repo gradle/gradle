@@ -173,3 +173,7 @@ span.wrapped pre {
 label.hidden {
     display: none;
 }
+
+.filtered-out {
+    display: none !important;
+}

@@ -38,7 +38,7 @@ public class TabsRenderer<T> extends ReportRenderer<T, SimpleHtmlWriter> {
 
     @Override
     public void render(T model, SimpleHtmlWriter htmlWriterWriter) throws IOException {
-        htmlWriterWriter.startElement("div").attribute("class", "tab-container");
+        htmlWriterWriter.startElement("div").attribute("class", "tab-container test-runs-tab");
             htmlWriterWriter.startElement("ul").attribute("class", "tabLinks");
                 for (TabDefinition tab : this.tabs) {
                     htmlWriterWriter.startElement("li");
