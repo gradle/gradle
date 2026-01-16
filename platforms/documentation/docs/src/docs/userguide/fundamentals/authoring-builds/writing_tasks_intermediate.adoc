@@ -181,11 +181,29 @@ include::sample[dir="snippets/tasks/tutorialTask/groovy", files="build.gradle[ta
 Now Gradle knows what the *task* needs and what it produces.
 If nothing changes, the *task* is skipped.
 
+++++
+<p>
+  <div style="position:relative;padding-top:56.25%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/McB2d4zp6f8?si=igUl4VCg-tPeuG3I&rel=0" frameborder="0" allowfullscreen
+      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+  </div>
+</p>
+++++
+
 == Task Action
 
 *Task actions* are the blocks of code that define what the *custom task* does when it runs.
 
 Every *task* can have one or more actions, and they’re executed during the execution phase of the Gradle build lifecycle.
+
+++++
+<p>
+  <div style="position:relative;padding-top:56.25%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/l3MT7Ie5Dcs?si=FfK8MWQpOC6fqfJc&rel=0" frameborder="0" allowfullscreen
+      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+  </div>
+</p>
+++++
 
 In the example below, a *custom task type* is created called `GreetingTask`.
 The `@TaskAction` annotation marks a method that Gradle should call when the *task* of this *type* is executed:
@@ -204,15 +222,6 @@ include::sample[dir="snippets/tutorial/hello/groovy", files="build.gradle[]"]
 
 In this example, the *action* is `println("Hello world!")`.
 It will run when the *task* is executed.
-
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/l3MT7Ie5Dcs?si=FfK8MWQpOC6fqfJc&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
 
 == Task Group and Description
 
@@ -250,7 +259,7 @@ include::{snippetsPath}/tutorial/intro/tests/intro.out[]
 ++++
 <p>
   <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/PLLQbIfXVLZqE4STE1K42Sdcg3VzE8osD8&rel=0" frameborder="0" allowfullscreen
+    <iframe src="https://www.youtube-nocookie.com/embed/nQczpMWYI7g?si=4fZ7oU_ROLUZCWZE&rel=0" frameborder="0" allowfullscreen
       style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
   </div>
 </p>
@@ -334,7 +343,7 @@ To write "good" Gradle tasks, you should focus on three things: **speed**, **cla
 ++++
 <p>
   <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/nQczpMWYI7g?si=N4s9nOVkTQ7KOwkx&rel=0" frameborder="0" allowfullscreen
+    <iframe src="https://www.youtube-nocookie.com/embed/c8fgpky91rE?si=pDdpmC0Nvpbm-SyX&rel=0" frameborder="0" allowfullscreen
       style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
   </div>
 </p>
