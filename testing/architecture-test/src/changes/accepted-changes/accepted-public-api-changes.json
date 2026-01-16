@@ -25,6 +25,38 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.testing.TestListener",
+            "member": "Method org.gradle.api.tasks.testing.TestListener.afterSuite(org.gradle.api.tasks.testing.TestDescriptor,org.gradle.api.tasks.testing.TestResult)",
+            "acceptation": "Add default methods for TestListener",
+            "changes": [
+                "Abstract method is now default method"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.TestListener",
+            "member": "Method org.gradle.api.tasks.testing.TestListener.afterTest(org.gradle.api.tasks.testing.TestDescriptor,org.gradle.api.tasks.testing.TestResult)",
+            "acceptation": "Add default methods for TestListener",
+            "changes": [
+                "Abstract method is now default method"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.TestListener",
+            "member": "Method org.gradle.api.tasks.testing.TestListener.beforeSuite(org.gradle.api.tasks.testing.TestDescriptor)",
+            "acceptation": "Add default methods for TestListener",
+            "changes": [
+                "Abstract method is now default method"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.TestListener",
+            "member": "Method org.gradle.api.tasks.testing.TestListener.beforeTest(org.gradle.api.tasks.testing.TestDescriptor)",
+            "acceptation": "Add default methods for TestListener",
+            "changes": [
+                "Abstract method is now default method"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
             "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.dependencyLocking(org.gradle.api.Action)",
             "acceptation": "faulty since detection",
