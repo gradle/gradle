@@ -1045,7 +1045,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Deprecated
     public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
-        DeprecationLogger.deprecateMethod(AbstractTestTask.class, "testFramework(Closure)")
+        DeprecationLogger.deprecateMethod(Test.class, "testFramework(Closure)")
             .willBeRemovedInGradle10()
             .withUpgradeGuideSection(9, "deprecated_test_methods")
             .nagUser();
