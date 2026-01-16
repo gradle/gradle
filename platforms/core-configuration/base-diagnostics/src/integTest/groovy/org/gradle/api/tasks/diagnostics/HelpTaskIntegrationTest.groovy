@@ -39,7 +39,7 @@ class HelpTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "shows help message when tasks #tasks run in a directory with no build definition present"() {
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
-        executer.requireOwnGradleUserHomeDir("").withArgument("--no-problems-report")
+        executer.withArgument("--no-problems-report")
 
         when:
         run(*tasks)
