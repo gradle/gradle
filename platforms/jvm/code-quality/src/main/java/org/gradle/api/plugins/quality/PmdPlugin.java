@@ -166,7 +166,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
         task.getReports().all(action(report -> {
             String name = report.getName();
-            boolean shouldRequireByDefault = !name.equals("sarif") && !name.equals("codeClimate");
+            boolean shouldRequireByDefault = name.equals("html") || name.equals("xml");
             report.getRequired().convention(shouldRequireByDefault);
             report.getOutputLocation().convention(
                 layout.getProjectDirectory().file(providers.provider(() -> {

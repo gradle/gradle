@@ -173,6 +173,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
                 reports {
                     xml.required = false
                     html.outputLocation = file("htmlReport.html")
+                    csv.required = true
                     csv.outputLocation = file("csvReport.csv")
                     codeClimate.required = true
                     codeClimate.outputLocation = file("codeClimateReport.json")
@@ -214,16 +215,14 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/main.sarif.json").exists()
     }
 
-    def "codeClimate and sarif are not required by default"() {
+    def "only xml and html reports are required by default"() {
         goodCode()
 
         expect:
         succeeds("check")
-        file("build/reports/pmd/main.xml").exists()
-        file("build/reports/pmd/main.html").exists()
-        file("build/reports/pmd/main.csv").exists()
-        !file("build/reports/pmd/main.codeclimate.json").exists()
-        !file("build/reports/pmd/main.sarif.json").exists()
+        file("build/reports/pmd/").assertHasDescendants(
+            "main.xml", "main.html", "test.xml", "test.html"
+        )
     }
 
     def "use custom rule set files"() {
