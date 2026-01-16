@@ -115,6 +115,7 @@ data class CIBuildModel(
                         SpecificBuild.CompileAll,
                         SpecificBuild.SanityCheck,
                         SpecificBuild.BuildLogicTest,
+                        SpecificBuild.LightweightChecks,
                     ),
                 functionalTests =
                     listOf(
@@ -141,7 +142,6 @@ data class CIBuildModel(
                         SpecificBuild.BuildDistributions,
                         SpecificBuild.Gradleception,
                         SpecificBuild.CheckLinks,
-                        SpecificBuild.LightweightChecks,
                         SpecificBuild.SmokeTestsMaxJavaVersion,
                         SpecificBuild.ConfigCacheAndroidProjectSmokeTests,
                         SpecificBuild.GradleBuildSmokeTests,
