@@ -27,8 +27,8 @@ public class PlaceholderExceptions {
 
     @UsedByScanPlugin
     public static String getExceptionClassName(Throwable t) {
-        if (t instanceof PlaceholderExceptionSupport pes) {
-            return pes.getExceptionClassName();
+        if (t instanceof PlaceholderExceptionSupport) {
+            return ((PlaceholderExceptionSupport)t).getExceptionClassName();
         } else {
             return t.getClass().getName();
         }
