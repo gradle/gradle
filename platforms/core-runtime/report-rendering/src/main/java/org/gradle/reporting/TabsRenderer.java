@@ -23,6 +23,15 @@ import java.util.List;
 
 public class TabsRenderer<T> extends ReportRenderer<T, SimpleHtmlWriter> {
     private final List<TabDefinition> tabs = new ArrayList<TabDefinition>();
+    private final boolean isTestRunsTab;
+
+    public TabsRenderer() {
+        this(false);
+    }
+
+    public TabsRenderer(boolean isTestRunsTab) {
+        this.isTestRunsTab = isTestRunsTab;
+    }
 
     public void add(String title, ReportRenderer<T, SimpleHtmlWriter> contentRenderer) {
         tabs.add(new TabDefinition(title, "", contentRenderer));
@@ -38,7 +47,8 @@ public class TabsRenderer<T> extends ReportRenderer<T, SimpleHtmlWriter> {
 
     @Override
     public void render(T model, SimpleHtmlWriter htmlWriterWriter) throws IOException {
-        htmlWriterWriter.startElement("div").attribute("class", "tab-container test-runs-tab");
+        String tabContainerClass = isTestRunsTab ? "tab-container test-runs-tab" : "tab-container";
+        htmlWriterWriter.startElement("div").attribute("class", tabContainerClass);
             htmlWriterWriter.startElement("ul").attribute("class", "tabLinks");
                 for (TabDefinition tab : this.tabs) {
                     htmlWriterWriter.startElement("li");

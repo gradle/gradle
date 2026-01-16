@@ -575,25 +575,68 @@
         select(i) {
             this.deselectAll();
 
-            const filtered = this.isFiltered(this.headers[i]);
+            const header = this.headers[i];
+            const filtered = this.isFiltered(header);
+
+            // Preserve existing classes like failureGroup, successGroup, skippedGroup
+            const link = header.querySelector("a");
+            const linkClasses = link ? getClassAttribute(link) : "";
+            const preservedClasses = this.getPreservedClasses(linkClasses);
+
             if (filtered) {
-                changeElementClass(this.headers[i], "selected filtered-out");
+                changeElementClass(header, "selected filtered-out");
             } else {
-                changeElementClass(this.headers[i], "selected");
+                changeElementClass(header, "selected");
             }
+
+            // Restore preserved classes to the link
+            if (link && preservedClasses) {
+                const currentClass = getClassAttribute(link) || "";
+                changeElementClass(link, (currentClass + " " + preservedClasses).trim());
+            }
+
             changeElementClass(this.tabs[i], "tab selected");
         }
 
         deselectAll() {
             for (let i = 0; i < this.tabs.length; i++) {
-                const filtered = this.isFiltered(this.headers[i]);
+                const header = this.headers[i];
+                const filtered = this.isFiltered(header);
+
+                // Preserve existing classes like failureGroup, successGroup, skippedGroup
+                const link = header.querySelector("a");
+                const linkClasses = link ? getClassAttribute(link) : "";
+                const preservedClasses = this.getPreservedClasses(linkClasses);
+
                 if (filtered) {
-                    changeElementClass(this.headers[i], "deselected filtered-out");
+                    changeElementClass(header, "deselected filtered-out");
                 } else {
-                    changeElementClass(this.headers[i], "deselected");
+                    changeElementClass(header, "deselected");
                 }
+
+                // Restore preserved classes to the link
+                if (link && preservedClasses) {
+                    const currentClass = getClassAttribute(link) || "";
+                    changeElementClass(link, (currentClass + " " + preservedClasses).trim());
+                }
+
                 changeElementClass(this.tabs[i], "tab deselected");
             }
+        }
+
+        getPreservedClasses(classString) {
+            if (!classString) {
+                return "";
+            }
+            const classes = [];
+            const classList = classString.split(" ");
+            for (let i = 0; i < classList.length; i++) {
+                const cls = classList[i].trim();
+                if (cls === "failureGroup" || cls === "successGroup" || cls === "skippedGroup") {
+                    classes.push(cls);
+                }
+            }
+            return classes.join(" ");
         }
 
         isFiltered(element) {

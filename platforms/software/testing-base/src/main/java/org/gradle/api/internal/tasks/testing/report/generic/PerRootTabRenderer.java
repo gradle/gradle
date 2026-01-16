@@ -113,7 +113,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 // No need to render tabs if there is only one tab
                 renderer = Objects.requireNonNull(childTableRenderers.get(0).right);
             } else {
-                TabsRenderer<TestTreeModel> tabsRenderer = new TabsRenderer<>();
+                TabsRenderer<TestTreeModel> tabsRenderer = new TabsRenderer<>(true);
                 childTableRenderers.forEach(p -> tabsRenderer.add(p.left, p.right));
                 renderer = tabsRenderer;
             }
