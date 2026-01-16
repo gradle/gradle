@@ -150,17 +150,11 @@ public class CheckBadMerge {
             .collect(Collectors.toList());
     }
 
-    private static class ExecResult {
-        final String stdout;
-        final String stderr;
-        final int returnCode;
-
-        ExecResult(String stdout, String stderr, int returnCode) {
-            this.stdout = stdout;
-            this.stderr = stderr;
-            this.returnCode = returnCode;
-        }
-
+    private record ExecResult(
+        String stdout,
+        String stderr,
+        int returnCode
+    ) {
         @Override
         public String toString() {
             return "ExecResult{returnCode=" + returnCode + ", stdout=" + summarize(stdout) + ", stderr=" + summarize(stderr) + "}";
@@ -196,10 +190,10 @@ public class CheckBadMerge {
 
     private static String getStdout(String[] command) throws IOException, InterruptedException, ExecutionException {
         ExecResult execResult = exec(command);
-        if (execResult.returnCode != 0) {
+        if (execResult.returnCode() != 0) {
             throw new AssertionError(String.join(" ", command) + " failed with return code: " + execResult);
         }
-        return execResult.stdout;
+        return execResult.stdout();
     }
 
     private static List<String> getStdoutLines(String[] command) throws IOException, InterruptedException, ExecutionException {
