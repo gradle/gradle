@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 
 package org.gradle.testing.junit.jupiter
-
 
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -205,15 +204,15 @@ class JUnitJupiterLoggingOutputCaptureIntegrationTest extends AbstractJUnitLoggi
             assert junitResult.getSuiteStandardOutput("OkTest").isPresent()
             assert junitResult.getTestCaseStandardOutput("OkTest", "isOk()").isPresent()
         } else {
-            assert !junitResult.getSuiteStandardOutput("OkTest").isPresent() // isEmpty not available in Java 8
-            assert !junitResult.getTestCaseStandardOutput("OkTest", "isOk()").isPresent()
+            assert junitResult.getSuiteStandardOutput("OkTest").isEmpty()
+            assert junitResult.getTestCaseStandardOutput("OkTest", "isOk()").isEmpty()
         }
         if (standardErrIncluded) {
             assert junitResult.getSuiteStandardError("OkTest").isPresent()
             assert junitResult.getTestCaseStandardError("OkTest", "isOk()").isPresent()
         } else {
-            assert !junitResult.getSuiteStandardError("OkTest").isPresent()
-            assert !junitResult.getTestCaseStandardError("OkTest", "isOk()").isPresent()
+            assert junitResult.getSuiteStandardError("OkTest").isEmpty()
+            assert junitResult.getTestCaseStandardError("OkTest", "isOk()").isEmpty()
         }
 
         and: "all output appeared in the console when running tests"

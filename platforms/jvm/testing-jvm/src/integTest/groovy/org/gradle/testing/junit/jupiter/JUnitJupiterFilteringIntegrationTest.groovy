@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.gradle.testing.junit.jupiter
 
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
 import spock.lang.Issue
@@ -35,7 +36,7 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         given:
         buildFile << """
             dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:${version}'
+                testImplementation 'org.junit.jupiter:junit-jupiter:${MultiVersionIntegrationSpec.version}'
             }
             test {
                 ${maybeConfigureFilters(withConfiguredFilters)}
@@ -126,7 +127,7 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         given:
         buildFile << """
             dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:${version}'
+                testImplementation 'org.junit.jupiter:junit-jupiter:${MultiVersionIntegrationSpec.version}'
             }
             test {
                 filter.excludeTest("${excludeFilter}", null)

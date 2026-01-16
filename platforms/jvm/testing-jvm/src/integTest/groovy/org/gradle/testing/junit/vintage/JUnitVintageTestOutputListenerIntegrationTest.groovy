@@ -22,5 +22,5 @@ import org.gradle.testing.AbstractTestOutputListenerIntegrationTest
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
 @TargetCoverage({ JUNIT_VINTAGE })
-class JUnitVintageTestOutputListenerIntegrationTest extends AbstractTestOutputListenerIntegrationTest implements JUnitVintageMultiVersionTest {
+class JUnitVintageTestOutputListenerIntegrationTest extends AbstractTestOutputListenerIntegrationTest implements JUnitVintageMultiVersionTest, IgnoresJUnit6VintageDeprecationWarning {
 }

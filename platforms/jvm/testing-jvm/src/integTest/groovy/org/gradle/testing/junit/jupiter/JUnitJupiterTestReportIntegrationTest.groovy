@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,16 @@ package org.gradle.testing.junit.jupiter
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractTestReportIntegrationTest
+import org.gradle.testing.fixture.JUnitCoverage
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.is
 
-@TargetCoverage({ JUNIT_JUPITER })
+@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
 class JUnitJupiterTestReportIntegrationTest extends AbstractTestReportIntegrationTest implements JUnitJupiterMultiVersionTest {
     @Override
     GenericTestExecutionResult.TestFramework getTestFramework() {
@@ -104,7 +106,7 @@ class JUnitJupiterTestReportIntegrationTest extends AbstractTestReportIntegratio
         buildFile """
             $junitSetup
             dependencies {
-                testImplementation(platform('org.junit:junit-bom:$version'))
+                testImplementation(platform('org.junit:junit-bom:$MultiVersionIntegrationSpec.version'))
                 testImplementation('org.junit.platform:junit-platform-launcher')
             }
         """

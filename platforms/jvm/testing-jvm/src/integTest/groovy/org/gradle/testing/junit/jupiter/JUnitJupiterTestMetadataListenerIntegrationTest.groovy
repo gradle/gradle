@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
+import org.gradle.testing.fixture.JUnitCoverage
 import spock.lang.Ignore
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
@@ -28,7 +29,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 /**
  * Integration tests for using {@link TestMetadataListener} with JUnit Jupiter tests.
  */
-@TargetCoverage({ JUNIT_JUPITER })
+@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
 class JUnitJupiterTestMetadataListenerIntegrationTest extends AbstractTestingMultiVersionIntegrationTest implements JUnitJupiterMultiVersionTest  {
     def setup() {
         buildFile << """

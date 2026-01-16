@@ -25,6 +25,8 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.testing.fixture.MultiJvmTestCompatibility
+import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -348,6 +350,7 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
     @Issue("https://issues.gradle.org/browse/GRADLE-2962")
     @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "incompatible user versions of classes that we also use don't affect test execution"() {
+        Assume.assumeTrue(VersionNumber.parse(version) < VersionNumber.version(6)) // Vintage 6 requires Java 17
 
         // These dependencies are quite particular.
         // Both jars contain 'com.google.common.collect.ImmutableCollection'
@@ -469,6 +472,8 @@ abstract class AbstractJUnitTestExecutionIntegrationTest extends AbstractTesting
     @Issue("https://github.com/gradle/gradle/issues/5305")
     @Requires(IntegTestPreconditions.Java11HomeAvailable)
     def "test can install an irreplaceable SecurityManager"() {
+        Assume.assumeTrue(VersionNumber.parse(version) < VersionNumber.version(6)) // Vintage 6 requires Java 17
+
         given:
         executer
             .withStackTraceChecksDisabled()

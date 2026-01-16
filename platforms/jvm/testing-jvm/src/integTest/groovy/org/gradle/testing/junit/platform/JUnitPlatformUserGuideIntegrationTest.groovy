@@ -27,6 +27,11 @@ import static org.hamcrest.CoreMatchers.containsString
  * These test cases are all from http://junit.org/junit5/docs/current/user-guide
  */
 class JUnitPlatformUserGuideIntegrationTest extends JUnitPlatformIntegrationSpec {
+    @Override
+    String getJupiterVersion() {
+        return LATEST_JUPITER_VERSION
+    }
+
     def 'can display test case and test class in @DisplayName'() {
         given:
         file('src/test/java/org/gradle/DisplayNameDemo.java') << '''
