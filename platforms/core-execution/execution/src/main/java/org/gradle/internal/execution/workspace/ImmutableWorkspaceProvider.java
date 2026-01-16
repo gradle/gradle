@@ -17,11 +17,11 @@
 package org.gradle.internal.execution.workspace;
 
 import java.io.File;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public interface ImmutableWorkspaceProvider {
-    AtomicMoveImmutableWorkspace getAtomicMoveWorkspace(String path);
-    LockingImmutableWorkspace getLockingWorkspace(String path);
+    ImmutableWorkspace getWorkspace(String path);
 
     interface ImmutableWorkspace {
         /**
@@ -31,6 +31,32 @@ public interface ImmutableWorkspaceProvider {
          *     and for {@link AtomicMoveImmutableWorkspace} this will normally be $GRADLE_USER_HOME/caches/transforms/[gradle-version]/[hash]/
          */
         File getImmutableLocation();
+
+        /**
+         * Executes the given action with process file lock.
+         */
+        <T> T withFileLock(Supplier<T> action);
+
+        /**
+         * Gets a result from the workspace if it's already running or computes it otherwise.
+         *
+         * This method makes sure only one thread is executing the given action for Workspace at a time.
+         *
+         * <p>
+         * If a result from another thread already exists then {@code concurrentResultMapper} is called, otherwise {@code action} is executed.
+         * </p>
+         */
+        <T> T getIfRunningOrCompute(Function<T, T> concurrentResultMapper, Supplier<T> action);
+
+        /**
+         * Returns true if the workspace has been soft deleted.
+         */
+        boolean isSoftDeleted();
+
+        /**
+         * Remove soft deletion marker, which means entry won't be deleted anymore.
+         */
+        void ensureUnSoftDeleted();
     }
 
     /**
