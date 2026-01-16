@@ -24,9 +24,6 @@ import org.gradle.api.internal.collections.IterationOrderRetainingSetElementSour
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> implements DomainObjectSet<T> {
 
     public DefaultDomainObjectSet(Class<? extends T> type, CollectionCallbackActionDecorator decorator) {
@@ -63,11 +60,5 @@ public class DefaultDomainObjectSet<T> extends DefaultDomainObjectCollection<T> 
     @Override
     public DomainObjectSet<T> matching(Closure spec) {
         return matching(Specs.<T>convertClosureToSpec(spec));
-    }
-
-    @Override
-    @Deprecated
-    public Set<T> findAll(Closure cl) {
-        return findAll(cl, new LinkedHashSet<T>());
     }
 }

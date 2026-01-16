@@ -49,11 +49,4 @@ public interface DomainObjectSet<T> extends DomainObjectCollection<T>, Set<T> {
      */
     @Override
     DomainObjectSet<T> matching(Closure spec);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Deprecated
-    Set<T> findAll(Closure spec);
 }

@@ -27,7 +27,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -156,12 +155,6 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
     @Override
     public <S extends T> NamedDomainObjectList<S> withType(Class<S> type) {
         return new DefaultNamedDomainObjectList<S>(this, createFilter(type), getInstantiator(), getNamer());
-    }
-
-    @Override
-    @Deprecated
-    public List<T> findAll(Closure cl) {
-        return findAll(cl, new ArrayList<T>());
     }
 
     private class ListIteratorImpl implements ListIterator<T> {
