@@ -268,8 +268,15 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun validationErrorFor(plugin: PrecompiledScriptPlugin, pluginRequest: PluginRequestInternal): String? {
         if (pluginRequest.version != null) {
-            return "Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. " +
-                "Please remove the version from the offending request and make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $projectDesc."
+            return buildString {
+                append("Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. ")
+                if (pluginRequest.id.id == "org.gradle.kotlin.kotlin-dsl") {
+                    append("If you have been using the `kotlin-dsl` helper function, then simply replace it by 'id(\"org.gradle.kotlin.kotlin-dsl\")'. ")
+                } else {
+                    append("Please remove the version from the offending request. ")
+                }
+                append("Make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $projectDesc.")
+            }
         }
         if (!pluginRequest.isApply) {
             DeprecationLogger.deprecateIndirectUsage("'apply false' in precompiled script plugins")
@@ -486,10 +493,11 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun failedToGenerateAccessorsFor(plugins: List<PrecompiledScriptPlugin>, stdout: String, stderr: String): String =
         buildString {
-            append(plugins.joinToString(
-                prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
-                separator = "\n",
-            ) { " - " + projectRelativePathOf(it) })
+            append(
+                plugins.joinToString(
+                    prefix = "Failed to generate type-safe Gradle model accessors for the following precompiled script plugins:\n",
+                    separator = "\n",
+                ) { " - " + projectRelativePathOf(it) })
             appendStdoutStderr(stdout, stderr)
         }
 

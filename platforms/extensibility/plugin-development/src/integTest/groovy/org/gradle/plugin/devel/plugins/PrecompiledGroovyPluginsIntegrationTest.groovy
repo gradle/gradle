@@ -607,7 +607,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         fails("help")
 
         then:
-        failureDescriptionContains("Invalid plugin request [id: 'some-plugin', version: '42.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin 'some-plugin' is an implementation dependency")
+        failureDescriptionContains("Invalid plugin request [id: 'some-plugin', version: '42.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request. Make sure the module containing the requested plugin 'some-plugin' is an implementation dependency")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/14437")

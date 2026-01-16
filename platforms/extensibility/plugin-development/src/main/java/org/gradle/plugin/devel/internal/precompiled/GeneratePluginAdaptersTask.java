@@ -124,11 +124,17 @@ public abstract class GeneratePluginAdaptersTask extends DefaultTask {
         Set<String> validationErrors = new HashSet<>();
         for (PluginRequestInternal pluginRequest : pluginRequests) {
             if (pluginRequest.getVersion() != null) {
+                String advice;
+                if ("org.gradle.kotlin.kotlin-dsl".equals(pluginRequest.getId().getId())) {
+                    advice = "If you have been using the `kotlin-dsl` helper function, then simply replace it by 'id(\"org.gradle.kotlin.kotlin-dsl\")'";
+                } else {
+                    advice = "Please remove the version from the offending request";
+                }
                 validationErrors.add(String.format("Invalid plugin request %s. " +
                         "Plugin requests from precompiled scripts must not include a version number. " +
-                        "Please remove the version from the offending request and make sure the module containing the " +
+                        "%s. Make sure the module containing the " +
                         "requested plugin '%s' is an implementation dependency",
-                    pluginRequest, pluginRequest.getId()));
+                    pluginRequest, advice, pluginRequest.getId()));
             }
             if (!pluginRequest.isApply()) {
                 DeprecationLogger.deprecateIndirectUsage("'apply false' in precompiled script plugins")
