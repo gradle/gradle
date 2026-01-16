@@ -18,11 +18,9 @@ package org.gradle.internal.declarativedsl.common
 
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.gradleConfigureLambdas
-import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
-import org.gradle.internal.declarativedsl.schemaBuilder.MemberKind
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionLambdaTypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionReturnTypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
-import org.gradle.internal.declarativedsl.schemaBuilder.toKType
-import kotlin.reflect.KClass
 
 
 /**
@@ -35,40 +33,4 @@ class TypeDiscoveryFromRestrictedFunctions : AnalysisSchemaComponent {
         FunctionLambdaTypeDiscovery(gradleConfigureLambdas),
         FunctionReturnTypeDiscovery()
     )
-}
-
-
-private
-class FunctionLambdaTypeDiscovery(
-    private val configureLambdas: ConfigureLambdaHandler,
-) : TypeDiscovery {
-    /**
-     * Collect everything that potentially looks like types configured by the lambdas.
-     * TODO: this may be excessive
-     */
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
-        typeDiscoveryServices.host.classMembers(kClass).potentiallyDeclarativeMembers
-            .filter { it.kind == MemberKind.FUNCTION }
-            .mapNotNullTo(mutableSetOf()) { fn ->
-                (fn.parameters.lastOrNull()?.type?.toKType())
-                    ?.let(configureLambdas::getTypeConfiguredByLambda)
-                    ?.classifier
-                    ?.let { it as? KClass<*> }
-                    ?.let { TypeDiscovery.DiscoveredClass(it, isHidden = false)
-                }
-            }
-}
-
-
-private
-class FunctionReturnTypeDiscovery : TypeDiscovery {
-    /**
-     * Collects everything that restricted functions mention as return values.
-     */
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
-        typeDiscoveryServices.host.classMembers(kClass).potentiallyDeclarativeMembers
-            .mapNotNullTo(mutableSetOf()) { fn ->
-                (fn.returnType.classifier as? KClass<*>)
-                    ?.let { TypeDiscovery.DiscoveredClass(it, isHidden = false) }
-            }
 }

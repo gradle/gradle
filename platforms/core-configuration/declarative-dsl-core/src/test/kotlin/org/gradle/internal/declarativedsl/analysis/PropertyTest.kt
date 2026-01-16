@@ -24,6 +24,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInforma
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
+import org.gradle.internal.declarativedsl.schemaBuilder.asSupported
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelClass
 import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -81,7 +82,7 @@ class PropertyTest {
                 listOf(
                     CollectedPropertyInformation(
                         "z",
-                        typeOf<Int>(),
+                        typeOf<Int>().asSupported()!!,
                         DataTypeInternal.DefaultIntDataType.ref,
                         DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
                         hasDefaultValue = false,
@@ -99,7 +100,7 @@ class PropertyTest {
         override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
             host.inContextOfModelClass(kClass) {
                 val returnType = host.modelTypeRef(type)
-                listOf(CollectedPropertyInformation(name, type, returnType, DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite, false, false, false, emptyList()))
+                listOf(CollectedPropertyInformation(name, type.asSupported()!!, returnType, DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite, false, false, false, emptyList()))
                     .filter { propertyNamePredicate(it.name) }
             }
     }

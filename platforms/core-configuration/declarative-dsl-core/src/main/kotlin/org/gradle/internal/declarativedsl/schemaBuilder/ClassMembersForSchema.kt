@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition
+import org.gradle.declarative.dsl.model.annotations.internal.DeclarativeWithHiddenMembers
 import org.gradle.internal.declarativedsl.schemaBuilder.MaybeDeclarativeClassInHierarchy.SuperclassWithMapping
 import org.gradle.internal.declarativedsl.schemaBuilder.MaybeDeclarativeClassInHierarchy.VisibleSuperclassInHierarchy
 import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection.SupportedType
@@ -54,6 +55,10 @@ internal fun collectMembersForSchema(host: SchemaBuildingHost, kClass: KClass<*>
         val unsupported: MutableMap<KClass<*>, MutableList<ClassMembersForSchema.NonDeclarativeMember>> = mutableMapOf()
 
         supertypesWithMapping.forEach { supertype ->
+            if (!isValidMemberHolderType(supertype.superClass)) {
+                return@forEach
+            }
+
             host.inContextOfModelClass(supertype.superClass) {
                 when (supertype) {
                     is SuperclassWithMapping -> {
@@ -72,6 +77,13 @@ internal fun collectMembersForSchema(host: SchemaBuildingHost, kClass: KClass<*>
 
         ClassMembersForSchema(mergeMembersBySignature(supported), unsupported)
     }
+}
+
+private fun isValidMemberHolderType(kClass: KClass<*>): Boolean = when {
+    kClass.qualifiedName?.startsWith("kotlin.") == true -> false
+    kClass.java.name.startsWith("java.") -> false
+    kClass.java.name.startsWith("org.gradle") && kClass.annotations.any { it is DeclarativeWithHiddenMembers } -> false
+    else -> true
 }
 
 private typealias TypeVariableAssignments = Map<KTypeParameter, SupportedType>
@@ -328,10 +340,7 @@ private fun checkDefinitionVisibilityInHierarchy(
 }
 
 private fun isVisibleDeclarativeDefinitionClass(kClass: KClass<*>): Boolean = when {
-    kClass == Any::class -> false
-    kClass == Iterable::class -> false
     kClass.annotations.any { it is HiddenInDefinition } -> false
-    kClass.java.name.startsWith("java.") || kClass.java.name.startsWith("kotlin.") -> false
     else -> true
 }
 

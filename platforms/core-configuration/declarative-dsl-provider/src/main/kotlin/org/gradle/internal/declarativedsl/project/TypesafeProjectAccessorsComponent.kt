@@ -30,9 +30,10 @@ import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInforma
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
+import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Special
 import kotlin.reflect.KClass
-import kotlin.reflect.full.createType
 import kotlin.reflect.full.isSubclassOf
 
 
@@ -58,7 +59,7 @@ class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : ObjectC
     val projectAccessorsExtension: CollectedPropertyInformation? = projectAccessorsClass?.let {
         CollectedPropertyInformation(
             "projects",
-            projectAccessorsClass.createType(),
+            SupportedTypeProjection.SupportedType(projectAccessorsClass, emptyList()),
             returnType = DataTypeRefInternal.DefaultName(DefaultFqName.parse(projectAccessorsClass.qualifiedName!!)),
             propertyMode = DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly,
             hasDefaultValue = true,
@@ -79,7 +80,7 @@ class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : ObjectC
     override fun typeDiscovery(): List<TypeDiscovery> = when (projectAccessorsClass) {
         null -> emptyList()
         else -> listOf(
-            FixedTypeDiscovery(ProjectTopLevelReceiver::class, listOf(projectAccessorsClass)),
+            FixedTypeDiscovery(ProjectTopLevelReceiver::class, listOf(TypeDiscovery.DiscoveredClass(projectAccessorsClass, listOf(Special("project accessors"))))),
             TypesafeProjectAccessorTypeDiscovery()
         )
     }
@@ -105,7 +106,7 @@ private
 class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
     override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> {
         return if (kClass.isGeneratedAccessors()) {
-            allClassesReachableFromGetters(typeDiscoveryServices.host, kClass).map { TypeDiscovery.DiscoveredClass(it, false) }
+            allClassesReachableFromGetters(typeDiscoveryServices.host, kClass).map { TypeDiscovery.DiscoveredClass(it, listOf(Special("type-safe project accessor"))) }
         } else {
             emptyList()
         }
