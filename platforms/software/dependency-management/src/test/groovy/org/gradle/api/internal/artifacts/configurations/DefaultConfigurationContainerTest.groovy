@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ConfigurationServicesBundle
+import org.gradle.api.internal.ConfigurationStateDB
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
@@ -68,6 +69,7 @@ class DefaultConfigurationContainerTest extends Specification {
     private AttributesFactory attributesFactory = AttributeTestUtil.attributesFactory()
 
     ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
+        new ConfigurationStateDB(),
         buildOperationRunner,
         projectStateRegistry,
         calculatedValueContainerFactory,

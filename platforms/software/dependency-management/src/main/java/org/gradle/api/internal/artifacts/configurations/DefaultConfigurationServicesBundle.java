@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConfigurationServicesBundle;
+import org.gradle.api.internal.ConfigurationStateDB;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -39,6 +40,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
  * Every service, factory, or other type in this bundle <strong>must</strong> be effectively immutable.
  */
 public final class DefaultConfigurationServicesBundle implements ConfigurationServicesBundle {
+    private final ConfigurationStateDB configurationStateDB;
     private final BuildOperationRunner buildOperationRunner;
     private final ProjectStateRegistry projectStateRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
@@ -52,7 +54,8 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     private final AttributeDesugaring attributeDesugaring;
     private final ResolveExceptionMapper exceptionMapper;
 
-    public DefaultConfigurationServicesBundle(BuildOperationRunner buildOperationRunner,
+    public DefaultConfigurationServicesBundle(ConfigurationStateDB configurationStateDB,
+                                              BuildOperationRunner buildOperationRunner,
                                               ProjectStateRegistry projectStateRegistry,
                                               CalculatedValueContainerFactory calculatedValueContainerFactory,
                                               ObjectFactory objectFactory,
@@ -64,6 +67,7 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
                                               InternalProblems problems,
                                               AttributeDesugaring attributeDesugaring,
                                               ResolveExceptionMapper exceptionMapper) {
+        this.configurationStateDB = configurationStateDB;
         this.buildOperationRunner = buildOperationRunner;
         this.projectStateRegistry = projectStateRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
@@ -76,6 +80,11 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
         this.problems = problems;
         this.attributeDesugaring = attributeDesugaring;
         this.exceptionMapper = exceptionMapper;
+    }
+
+    @Override
+    public ConfigurationStateDB getConfigurationStateDB() {
+        return configurationStateDB;
     }
 
     @Override

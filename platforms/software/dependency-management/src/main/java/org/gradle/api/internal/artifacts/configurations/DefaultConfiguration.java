@@ -51,6 +51,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.ConfigurationServicesBundle;
+import org.gradle.api.internal.ConfigurationStateDB;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
@@ -126,7 +127,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -140,6 +140,8 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  */
 @SuppressWarnings("rawtypes")
 public abstract class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator, ResettableConfiguration {
+    private final ConfigurationServicesBundle configurationServices;
+    private final int id;
     private final ConfigurationResolver resolver;
     private final DefaultDependencySet dependencies;
     private final DefaultDependencyConstraintSet dependencyConstraints;
@@ -161,14 +163,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final Path identityPath;
     private final Path projectPath;
 
-    private final String name;
     private final boolean isDetached;
     private final DefaultConfigurationPublications outgoing;
 
-    private boolean visible = true;
-    private boolean transitive = true;
     private Set<Configuration> extendsFrom = new LinkedHashSet<>();
-    private @Nullable String description;
     private final Set<Object> excludeRules = new LinkedHashSet<>();
     private @Nullable Set<ExcludeRule> parsedExcludeRules;
 
@@ -190,29 +188,21 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final FreezableAttributeContainer configurationAttributes;
     private final DomainObjectContext domainObjectContext;
     private final ResolutionAccess resolutionAccess;
-    private @Nullable FileCollectionInternal intrinsicFiles;
 
     private final DisplayName displayName;
     private final UserCodeApplicationContext userCodeApplicationContext;
 
-    private final AtomicInteger copyCount = new AtomicInteger();
-
-    private List<String> declarationAlternatives = ImmutableList.of();
-    private List<String> resolutionAlternatives = ImmutableList.of();
-
     private final CalculatedModelValue<Optional<ResolverResults>> currentResolveState;
 
-    private @Nullable ConfigurationInternal consistentResolutionSource;
-    private @Nullable String consistentResolutionReason;
-
-    /** This factory can't be extracted to the services bundle, as it would create a circular dependency between those two types. */
+    /**
+     * This factory can't be extracted to the services bundle, as it would create a circular dependency between those two types.
+     */
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
-    /** This factory has some unique usages during copy, so it can't be extracted to the services bundle. */
+    /**
+     * This factory has some unique usages during copy, so it can't be extracted to the services bundle.
+     */
     private Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
-    private @Nullable ResolutionStrategyInternal resolutionStrategy;
-
-    private final ConfigurationServicesBundle configurationServices;
 
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
@@ -233,10 +223,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         boolean lockUsage
     ) {
         super(configurationServices.getTaskDependencyFactory());
+        this.configurationServices = configurationServices;
+        this.id = db().register(name);
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.identityPath = domainObjectContext.identityPath(name);
         this.projectPath = domainObjectContext.projectPath(name);
-        this.name = name;
         this.isDetached = isDetached;
         this.resolver = resolver;
         this.resolutionStrategyFactory = resolutionStrategyFactory;
@@ -274,8 +265,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.declarationDeprecated = roleAtCreation.isDeclarationAgainstDeprecated();
         this.usageCanBeMutated = !lockUsage;
         this.roleAtCreation = roleAtCreation;
-
-        this.configurationServices = configurationServices;
     }
 
     private static Action<String> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -284,7 +273,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public String getName() {
-        return name;
+        return db().getName(id);
     }
 
     @Override
@@ -311,7 +300,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             .willBeRemovedInGradle10()
             .withUpgradeGuideSection(9, "deprecate-visible-property")
             .nagUser();
-        return visible;
+        return db().getVisible(id);
     }
 
     @Override
@@ -319,7 +308,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     public Configuration setVisible(boolean visible) {
         validateMutation(MutationType.BASIC_STATE);
         // TODO: Create a deprecation warning once https://youtrack.jetbrains.com/issue/KT-78754 is resolved
-        this.visible = visible;
+        db().setVisible(id, visible);
         return this;
     }
 
@@ -387,25 +376,25 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public boolean isTransitive() {
-        return transitive;
+        return db().getTransitive(id);
     }
 
     @Override
     public Configuration setTransitive(boolean transitive) {
         validateMutation(MutationType.BASIC_STATE);
-        this.transitive = transitive;
+        db().setTransitive(id, transitive);
         return this;
     }
 
     @Override
     @Nullable
     public String getDescription() {
-        return description;
+        return db().getDescription(id);
     }
 
     @Override
     public Configuration setDescription(@Nullable String description) {
-        this.description = description;
+        db().setDescription(id, description);
         return this;
     }
 
@@ -467,11 +456,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     private FileCollectionInternal getIntrinsicFiles() {
-        if (intrinsicFiles == null) {
-            assertIsResolvable();
-            intrinsicFiles = resolutionAccess.getPublicView().getFiles();
-        }
-        return intrinsicFiles;
+        return db().getIntrinsicFiles(id, this::resolveIntrinsicFiles);
+    }
+
+    private FileCollectionInternal resolveIntrinsicFiles() {
+        assertIsResolvable();
+        return resolutionAccess.getPublicView().getFiles();
     }
 
     @Override
@@ -640,6 +630,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
                 // Discard State
                 dependencyResolutionListeners.removeAll();
+                ResolutionStrategyInternal resolutionStrategy = db().getResolutionStrategy(id);
                 if (resolutionStrategy != null) {
                     resolutionStrategy.maybeDiscardStateRequiredForGraphResolution();
                 }
@@ -679,7 +670,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                         getDescription(),
                         domainObjectContext.getBuildPath().asString(),
                         projectPathString,
-                        visible,
+                        db().getVisible(id),
                         isTransitive(),
                         resolver.getAllRepositories()
                     ));
@@ -695,19 +686,21 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * called on a configuration that does not permit this usage.
      */
     @Override
-    public ConfigurationInternal getConsistentResolutionSource() {
+    public @Nullable ConfigurationInternal getConsistentResolutionSource() {
         warnOrFailOnInvalidInternalAPIUsage("getConsistentResolutionSource()", ProperMethodUsage.RESOLVABLE);
-        return consistentResolutionSource;
+        return db().getConsistentResolutionSource(id);
     }
 
     @Override
     public ImmutableList<ResolutionParameters.ModuleVersionLock> getConsistentResolutionVersionLocks() {
-        if (consistentResolutionSource == null) {
+        ConfigurationStateDB.ConsistentResolution consistentResolution = db().getConsistentResolution(id);
+        if (consistentResolution == null) {
             return ImmutableList.of();
         }
 
-        assertThatConsistentResolutionIsPropertyConfigured();
-        ResolvedComponentResult root = consistentResolutionSource.getIncoming().getResolutionResult().getRoot();
+        ConfigurationInternal versionsSource = consistentResolution.versionsSource;
+        assertThatConsistentResolutionIsPropertyConfigured(versionsSource);
+        ResolvedComponentResult root = versionsSource.getIncoming().getResolutionResult().getRoot();
 
         ImmutableList.Builder<ResolutionParameters.ModuleVersionLock> locks = ImmutableList.builder();
         eachElement(root, component -> {
@@ -716,7 +709,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 locks.add(new ResolutionParameters.ModuleVersionLock(
                     moduleId.getModuleIdentifier(),
                     moduleId.getVersion(),
-                    consistentResolutionReason,
+                    consistentResolution.reason,
                     true
                 ));
             }
@@ -724,7 +717,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return locks.build();
     }
 
-    private void assertThatConsistentResolutionIsPropertyConfigured() {
+    private void assertThatConsistentResolutionIsPropertyConfigured(ConfigurationInternal consistentResolutionSource) {
         if (!consistentResolutionSource.isCanBeResolved()) {
             throw new InvalidUserCodeException("You can't use " + consistentResolutionSource + " as a consistent resolution source for " + this + " because it isn't a resolvable configuration.");
         }
@@ -1087,16 +1080,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints) {
         DefaultConfiguration copiedConfiguration = copyAsDetached();
 
-        copiedConfiguration.visible = visible;
-        copiedConfiguration.transitive = transitive;
-        copiedConfiguration.description = description;
-
         copiedConfiguration.defaultDependencyActions = defaultDependencyActions;
         copiedConfiguration.withDependencyActions = withDependencyActions;
         copiedConfiguration.dependencyResolutionListeners = dependencyResolutionListeners.copy();
 
-        copiedConfiguration.declarationAlternatives = declarationAlternatives;
-        copiedConfiguration.resolutionAlternatives = resolutionAlternatives;
+        assert id != copiedConfiguration.id;
+        db().copy(id, copiedConfiguration.id);
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
@@ -1125,8 +1114,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return copiedConfiguration;
     }
 
+    private ConfigurationStateDB db() {
+        return configurationServices.getConfigurationStateDB();
+    }
+
     private DefaultConfiguration copyAsDetached() {
         String newName = getNameWithCopySuffix();
+
+        ResolutionStrategyInternal resolutionStrategy = db().getResolutionStrategy(id);
         Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
 
         @SuppressWarnings("deprecation")
@@ -1141,8 +1136,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     private String getNameWithCopySuffix() {
-        int count = copyCount.incrementAndGet();
-        String copyName = name + "Copy";
+        int count = db().incrementAndGetCopyCount(id);
+        String copyName = getName() + "Copy";
         return count == 1
             ? copyName
             : copyName + count;
@@ -1160,12 +1155,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public ResolutionStrategyInternal getResolutionStrategy() {
-        if (resolutionStrategy == null) {
-            resolutionStrategy = resolutionStrategyFactory.create();
+        return db().produceResolutionStrategy(id, () -> {
+            ResolutionStrategyInternal resolutionStrategy = resolutionStrategyFactory.create();
             resolutionStrategy.setMutationValidator(this);
             resolutionStrategyFactory = null;
-        }
-        return resolutionStrategy;
+            return resolutionStrategy;
+        });
     }
 
     @Override
@@ -1368,6 +1363,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private void assertIsResolvable() {
         if (!canBeResolved) {
+            String name = getName();
             throw new IllegalStateException("Resolving dependency configuration '" + name + "' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends '" + name + "' should be resolved.");
         }
     }
@@ -1561,41 +1557,28 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public List<String> getDeclarationAlternatives() {
-        return declarationAlternatives;
+        return db().getDeclarationAlternatives(id);
     }
 
     @Override
     public List<String> getResolutionAlternatives() {
-        return resolutionAlternatives;
+        return db().getResolutionAlternatives(id);
     }
 
     @Override
     public void addDeclarationAlternatives(String... alternativesForDeclaring) {
-        this.declarationAlternatives = ImmutableList.<String>builder()
-            .addAll(declarationAlternatives)
-            .addAll(Arrays.asList(alternativesForDeclaring))
-            .build();
+        db().addDeclarationAlternatives(id, alternativesForDeclaring);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @implNote Usage: This method can only be called on resolvable configurations and will throw an exception if
-     * called on a configuration that does not permit this usage.
-     */
     @Override
     public void addResolutionAlternatives(String... alternativesForResolving) {
-        this.resolutionAlternatives = ImmutableList.<String>builder()
-            .addAll(resolutionAlternatives)
-            .addAll(Arrays.asList(alternativesForResolving))
-            .build();
+        db().addResolutionAlternatives(id, alternativesForResolving);
     }
 
     @Override
     public Configuration shouldResolveConsistentlyWith(Configuration versionsSource) {
         warnOrFailOnInvalidUsage("shouldResolveConsistentlyWith(Configuration)", ProperMethodUsage.RESOLVABLE);
-        this.consistentResolutionSource = (ConfigurationInternal) versionsSource;
-        this.consistentResolutionReason = "version resolved in " + versionsSource + " by consistent resolution";
+        db().enableConsistentResolution(id, (ConfigurationInternal) versionsSource);
         return this;
     }
 
@@ -1608,8 +1591,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public Configuration disableConsistentResolution() {
         warnOrFailOnInvalidUsage("disableConsistentResolution()", ProperMethodUsage.RESOLVABLE);
-        this.consistentResolutionSource = null;
-        this.consistentResolutionReason = null;
+        db().disableConsistentResolution(id);
         return this;
     }
 
@@ -1647,7 +1629,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public String getName() {
-            return configuration.name;
+            return configuration.getName();
         }
 
         @Override

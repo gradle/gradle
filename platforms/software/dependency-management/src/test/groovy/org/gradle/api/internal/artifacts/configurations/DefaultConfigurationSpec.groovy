@@ -38,6 +38,7 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ConfigurationServicesBundle
+import org.gradle.api.internal.ConfigurationStateDB
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
@@ -1661,6 +1662,7 @@ This method is only meant to be called on configurations which allow the (non-de
         )
 
         ConfigurationServicesBundle configurationServices = new DefaultConfigurationServicesBundle(
+            new ConfigurationStateDB(),
             new TestBuildOperationRunner(),
             projectStateRegistry,
             calculatedValueContainerFactory,
