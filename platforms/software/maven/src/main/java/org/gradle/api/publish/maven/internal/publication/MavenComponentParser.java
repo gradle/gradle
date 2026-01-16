@@ -317,7 +317,9 @@ public class MavenComponentParser {
 
             if (dependency.getArtifacts().isEmpty()) {
                 ResolvedCoordinates coordinates = resolveDependency(dependency, true);
-                collector.accept(newDependency(coordinates, null, null, scope, allExcludeRules, optional));
+                // Use artifact type from resolved coordinates if available
+                String type = coordinates.getType();
+                collector.accept(newDependency(coordinates, type, null, scope, allExcludeRules, optional));
                 return;
             }
 

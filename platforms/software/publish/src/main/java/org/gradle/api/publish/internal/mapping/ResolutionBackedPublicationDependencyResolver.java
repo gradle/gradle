@@ -36,6 +36,7 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
@@ -106,6 +107,9 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
         Map<ModuleDependencyKey, ModuleVersionIdentifier> resolvedModuleVariants = new HashMap<>();
         Map<ProjectDependencyKey, ModuleVersionIdentifier> resolvedProjectVariants = new HashMap<>();
 
+        Map<ModuleDependencyKey, String> resolvedModuleArtifactTypes = new HashMap<>();
+        Map<ProjectDependencyKey, String> resolvedProjectArtifactTypes = new HashMap<>();
+
         visitFirstLevelEdges(rootComponent, rootVariant, edge -> {
 
             ComponentSelector requested = edge.getRequested();
@@ -128,6 +132,10 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
                     resolvedModuleVariants.remove(key);
                     incompatibleModuleDeps.add(key);
                 }
+
+                if (coordinates.type != null) {
+                    resolvedModuleArtifactTypes.put(key, coordinates.type);
+                }
             } else if (requested instanceof ProjectComponentSelector) {
                 ProjectComponentSelectorInternal requestedProject = (ProjectComponentSelectorInternal) requested;
 
@@ -146,6 +154,10 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
                     resolvedProjectVariants.remove(key);
                     incompatibleProjectDeps.add(key);
                 }
+
+                if (coordinates.type != null) {
+                    resolvedProjectArtifactTypes.put(key, coordinates.type);
+                }
             }
 
         });
@@ -155,6 +167,8 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
             resolvedProjectComponents,
             resolvedModuleVariants,
             resolvedProjectVariants,
+            resolvedModuleArtifactTypes,
+            resolvedProjectArtifactTypes,
             incompatibleModuleDeps,
             incompatibleProjectDeps
         );
@@ -186,29 +200,39 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
     ) {
         ComponentIdentifier componentId = variant.getOwner();
 
-        // TODO #3170: We should analyze artifacts to determine if we need to publish additional
-        // artifact information like type or classifier.
+        // Extract artifact type from variant attributes
+        String type = extractArtifactType(variant);
 
         if (componentId instanceof ProjectComponentIdentifier) {
-            return getProjectCoordinates(variant, (ProjectComponentIdentifierInternal) componentId, projectDependencyResolver);
+            return getProjectCoordinates(variant, (ProjectComponentIdentifierInternal) componentId, projectDependencyResolver, type);
         } else if (componentId instanceof ModuleComponentIdentifier) {
-            return getModuleCoordinates(variant, (ModuleComponentIdentifier) componentId, moduleIdentifierFactory);
+            return getModuleCoordinates(variant, (ModuleComponentIdentifier) componentId, moduleIdentifierFactory, type);
         } else {
             throw new UnsupportedOperationException("Unexpected component identifier type: " + componentId);
         }
     }
 
+    @Nullable
+    private static String extractArtifactType(ResolvedVariantResult variant) {
+        AttributeContainer attributes = variant.getAttributes();
+        String type = attributes.getAttribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE);
+        // Only return non-jar types, as jar is the default
+        return (type != null && !ArtifactTypeDefinition.JAR_TYPE.equals(type)) ? type : null;
+    }
+
     private static CoordinatePair getModuleCoordinates(
         ResolvedVariantResult variant,
         ModuleComponentIdentifier componentId,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        @Nullable String type
     ) {
         ModuleVersionIdentifier componentCoordinates = moduleIdentifierFactory.moduleWithVersion(componentId.getModuleIdentifier(), componentId.getVersion());
         ModuleVersionIdentifier variantCoordinates = getExternalCoordinates(variant, moduleIdentifierFactory);
 
         return new CoordinatePair(
             componentCoordinates,
-            variantCoordinates != null ? variantCoordinates : componentCoordinates
+            variantCoordinates != null ? variantCoordinates : componentCoordinates,
+            type
         );
     }
 
@@ -231,7 +255,8 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
     private static CoordinatePair getProjectCoordinates(
         ResolvedVariantResult variant,
         ProjectComponentIdentifierInternal componentId,
-        ProjectDependencyPublicationResolver projectDependencyResolver
+        ProjectDependencyPublicationResolver projectDependencyResolver,
+        @Nullable String type
     ) {
         Path identityPath = componentId.getIdentityPath();
 
@@ -248,7 +273,7 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
         }
 
         ModuleVersionIdentifier componentCoordinates = projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath);
-        return new CoordinatePair(componentCoordinates, variantCoordinates);
+        return new CoordinatePair(componentCoordinates, variantCoordinates, type);
     }
 
     @Override
@@ -259,7 +284,8 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
 
         ModuleVersionIdentifier resolved = mappings.resolvedModuleVariants.get(key);
         if (resolved != null) {
-            return ResolvedCoordinates.create(resolved);
+            String type = mappings.resolvedModuleArtifactTypes.get(key);
+            return ResolvedCoordinates.create(resolved, type);
         }
 
         if (mappings.incompatibleModules.contains(key)) {
@@ -289,7 +315,8 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
 
         ModuleVersionIdentifier resolved = mappings.resolvedProjectVariants.get(key);
         if (resolved != null) {
-            return ResolvedCoordinates.create(resolved);
+            String type = mappings.resolvedProjectArtifactTypes.get(key);
+            return ResolvedCoordinates.create(resolved, type);
         }
 
         if (mappings.incompatibleProjects.contains(key)) {
@@ -367,6 +394,9 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
         final Map<ModuleDependencyKey, ModuleVersionIdentifier> resolvedModuleVariants;
         final Map<ProjectDependencyKey, ModuleVersionIdentifier> resolvedProjectVariants;
 
+        final Map<ModuleDependencyKey, String> resolvedModuleArtifactTypes;
+        final Map<ProjectDependencyKey, String> resolvedProjectArtifactTypes;
+
         // Incompatible modules and projects are those that have multiple dependencies with the same
         // attributes and capabilities, but have somehow resolved to different coordinates. This can
         // often happen when the dependency is declared with a targetConfiguration.
@@ -378,6 +408,8 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
             Map<Path, ModuleVersionIdentifier> resolvedProjectComponents,
             Map<ModuleDependencyKey, ModuleVersionIdentifier> resolvedModuleVariants,
             Map<ProjectDependencyKey, ModuleVersionIdentifier> resolvedProjectVariants,
+            Map<ModuleDependencyKey, String> resolvedModuleArtifactTypes,
+            Map<ProjectDependencyKey, String> resolvedProjectArtifactTypes,
             Set<ModuleDependencyKey> incompatibleModules,
             Set<ProjectDependencyKey> incompatibleProjects
         ) {
@@ -385,6 +417,8 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
             this.resolvedProjectComponents = resolvedProjectComponents;
             this.resolvedModuleVariants = resolvedModuleVariants;
             this.resolvedProjectVariants = resolvedProjectVariants;
+            this.resolvedModuleArtifactTypes = resolvedModuleArtifactTypes;
+            this.resolvedProjectArtifactTypes = resolvedProjectArtifactTypes;
             this.incompatibleModules = incompatibleModules;
             this.incompatibleProjects = incompatibleProjects;
         }
@@ -393,13 +427,17 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
     private static class CoordinatePair {
         final ModuleVersionIdentifier componentCoordinates;
         final ModuleVersionIdentifier variantCoordinates;
+        @Nullable
+        final String type;
 
         private CoordinatePair(
             ModuleVersionIdentifier componentCoordinates,
-            ModuleVersionIdentifier variantCoordinates
+            ModuleVersionIdentifier variantCoordinates,
+            @Nullable String type
         ) {
             this.componentCoordinates = componentCoordinates;
             this.variantCoordinates = variantCoordinates;
+            this.type = type;
         }
     }
 
