@@ -24,6 +24,7 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.StyledText;
 import org.gradle.problems.ProblemDiagnostics;
 import org.jspecify.annotations.Nullable;
 
@@ -111,6 +112,9 @@ public interface InternalProblemSpec extends ProblemSpec {
 
     @Override
     InternalProblemSpec details(String details);
+
+    @Override
+    InternalProblemSpec details(StyledText details);
 
     @Override
     InternalProblemSpec solution(String solution);

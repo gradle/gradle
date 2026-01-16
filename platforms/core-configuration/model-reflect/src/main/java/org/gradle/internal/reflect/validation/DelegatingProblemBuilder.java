@@ -22,6 +22,7 @@ import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.StyledText;
 import org.gradle.api.problems.internal.AdditionalDataSpec;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
@@ -102,6 +103,11 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
 
     @Override
     public InternalProblemBuilder details(String details) {
+        return validateDelegate(delegate.details(details));
+    }
+
+    @Override
+    public InternalProblemBuilder details(StyledText details) {
         return validateDelegate(delegate.details(details));
     }
 

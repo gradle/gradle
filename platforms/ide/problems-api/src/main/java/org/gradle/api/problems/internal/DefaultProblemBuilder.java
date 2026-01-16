@@ -26,6 +26,7 @@ import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.StyledText;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.problems.Location;
@@ -47,7 +48,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private Severity severity;
     private final List<ProblemLocation> originLocations = new ArrayList<ProblemLocation>();
     private final List<ProblemLocation> contextLocations = new ArrayList<ProblemLocation>();
-    private String details;
+    private StyledText details;
     private DocLink docLink;
     private List<String> solutions;
     private Throwable exception;
@@ -74,7 +75,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.severity = problem.getDefinition().getSeverity();
         this.originLocations.addAll(problem.getOriginLocations());
         this.contextLocations.addAll(problem.getContextualLocations());
-        this.details = problem.getDetails();
+        this.details = problem.getStyledDetails();
         this.docLink = problem.getDefinition().getDocumentationLink();
         this.exception = problem.getException();
         this.additionalData = problem.getAdditionalData();
@@ -278,6 +279,12 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     public InternalProblemBuilder details(String details) {
+        this.details = StyledText.text(details);
+        return this;
+    }
+
+    @Override
+    public InternalProblemBuilder details(StyledText details) {
         this.details = details;
         return this;
     }
