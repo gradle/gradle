@@ -36,10 +36,10 @@ public class PendingDependencies {
         this.hardEdges = 0;
     }
 
-    boolean addIncomingHardEdge() {
+    void addIncomingHardEdge() {
         increaseHardEdgeCount();
         if (!hasConstraintProviders()) {
-            return false;
+            return;
         }
 
         assert hardEdges == 1;
@@ -48,8 +48,6 @@ public class PendingDependencies {
             node.prepareForConstraintNoLongerPending(moduleIdentifier);
         }
         constraintProvidingNodes.clear();
-
-        return true;
     }
 
     void registerConstraintProvider(NodeState nodeState) {
