@@ -65,11 +65,13 @@ executed Test ${maybeParentheses('test')}(AÆTest)
                 ${testFrameworkDependencies}
             }
             test.${configureTestFramework}
-            test.addTestListener(new TestListener() {
-                void beforeTest(TestDescriptor descriptor) {
-                    println "executed " + descriptor
+            class ExampleTestListener implements TestListener {
+                @Override
+                void beforeTest(TestDescriptor testDescriptor) {
+                    System.out.println("executed " + testDescriptor)
                 }
-            })
+            }
+            test.addTestListener(new ExampleTestListener())
         """
 
         when:
