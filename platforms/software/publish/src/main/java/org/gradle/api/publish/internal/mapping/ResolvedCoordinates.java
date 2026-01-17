@@ -41,7 +41,19 @@ public interface ResolvedCoordinates {
     @Nullable
     String getVersion();
 
+    /**
+     * The artifact type of the dependency, if different from the default (jar).
+     */
+    @Nullable
+    default String getType() {
+        return null;
+    }
+
     static ResolvedCoordinates create(String group, String name, @Nullable String version) {
+        return create(group, name, version, null);
+    }
+
+    static ResolvedCoordinates create(String group, String name, @Nullable String version, @Nullable String type) {
         return new ResolvedCoordinates() {
             @Override
             public String getGroup() {
@@ -57,11 +69,20 @@ public interface ResolvedCoordinates {
             public String getVersion() {
                 return version;
             }
+
+            @Override
+            public String getType() {
+                return type;
+            }
         };
     }
 
     // Returns a separate implementation than `create` to avoid deconstructing the identifier.
     static ResolvedCoordinates create(ModuleVersionIdentifier identifier) {
+        return create(identifier, null);
+    }
+
+    static ResolvedCoordinates create(ModuleVersionIdentifier identifier, @Nullable String type) {
         return new ResolvedCoordinates() {
             @Override
             public String getGroup() {
@@ -76,6 +97,11 @@ public interface ResolvedCoordinates {
             @Override
             public String getVersion() {
                 return identifier.getVersion();
+            }
+
+            @Override
+            public String getType() {
+                return type;
             }
         };
     }

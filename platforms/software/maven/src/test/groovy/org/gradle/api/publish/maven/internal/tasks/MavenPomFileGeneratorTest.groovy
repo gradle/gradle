@@ -279,6 +279,34 @@ class MavenPomFileGeneratorTest extends Specification {
         return new DefaultMavenPomDependencies(ImmutableList.of(dependency), ImmutableList.of())
     }
 
+    def "writes dependency with non-jar artifact type"() {
+        pom.getDependencies().set(pomDependencies([
+            new DefaultMavenDependency("org.jetbrains.kotlin", "kotlin-stdlib-native", "1.9.0", "klib", null, "compile", [] as Set, false),
+            new DefaultMavenDependency("com.example", "regular-lib", "2.0", null, null, "compile", [] as Set, false),
+        ]))
+
+        expect:
+        with (xml) {
+            dependencies.dependency.size() == 2
+            with (dependencies[0].dependency[0]) {
+                groupId == "org.jetbrains.kotlin"
+                artifactId == "kotlin-stdlib-native"
+                version == "1.9.0"
+                type == "klib"
+                classifier.empty
+                scope == "compile"
+            }
+            with (dependencies[0].dependency[1]) {
+                groupId == "com.example"
+                artifactId == "regular-lib"
+                version == "2.0"
+                type.empty
+                classifier.empty
+                scope == "compile"
+            }
+        }
+    }
+
     private MavenPomDependencies pomDependencies(Collection<MavenDependency> dependency) {
         return new DefaultMavenPomDependencies(ImmutableList.copyOf(dependency), ImmutableList.of())
     }
