@@ -19,6 +19,7 @@ package org.gradle.cache
 import org.gradle.cache.internal.locklistener.FileLockPacketPayload
 import org.gradle.cache.internal.locklistener.FileLockPacketType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
@@ -31,7 +32,12 @@ class LockCommunicationSoakTest extends AbstractIntegrationSpec {
     private final BlockingHttpServer blockingServer = new BlockingHttpServer()
     private final TestFile oldBuild = file("old-build").createDir()
     private final GradleDistribution oldDistribution = buildContext.distribution("8.12")
-    private final oldExecuter = new NoDaemonGradleExecuter(oldDistribution, temporaryFolder, buildContext).usingProjectDirectory(oldBuild)
+    private final oldExecuter = new NoDaemonGradleExecuter(oldDistribution, temporaryFolder, buildContext)
+        .usingProjectDirectory(oldBuild)
+        // Use a JVM compatible with the old distribution's daemon
+        .withJvm(AvailableJavaHomes.getAvailableJdk {
+            oldDistribution.daemonWorksWith(it.javaMajorVersion)
+        })
 
     def setup() {
         blockingServer.start()
