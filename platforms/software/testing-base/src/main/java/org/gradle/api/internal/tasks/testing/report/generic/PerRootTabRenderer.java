@@ -113,7 +113,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 // No need to render tabs if there is only one tab
                 renderer = Objects.requireNonNull(childTableRenderers.get(0).right);
             } else {
-                TabsRenderer<TestTreeModel> tabsRenderer = new TabsRenderer<>();
+                TabsRenderer<TestTreeModel> tabsRenderer = new TabsRenderer<>(true);
                 childTableRenderers.forEach(p -> tabsRenderer.add(p.left, p.right));
                 renderer = tabsRenderer;
             }
@@ -190,7 +190,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
             htmlWriter.startElement("td");
             htmlWriter.startElement("div").attribute("class", "infoBox");
-            htmlWriter.startElement("div").attribute("class", "counter").characters(Integer.toString(info.getFailedLeafCount())).endElement();
+            htmlWriter.startElement("div").attribute("class", "counter failedCount").characters(Integer.toString(info.getFailedLeafCount())).endElement();
             htmlWriter.startElement("p").characters("failures").endElement();
             htmlWriter.endElement();
             htmlWriter.endElement();
