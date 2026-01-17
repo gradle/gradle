@@ -132,15 +132,17 @@ abstract class AbstractConsoleJvmTestLoggingFunctionalTest extends AbstractInteg
     }
 
     def "can group output from custom test listener with task"() {
-        buildFile << """
+        buildFile """
             test {
                 def taskLogger = logger
-                beforeTest { descriptor ->
-                    taskLogger.quiet 'Starting test: ' + descriptor.className + ' > ' + descriptor.name
-                }
-                afterTest { descriptor, result ->
-                    taskLogger.quiet 'Finishing test: ' + descriptor.className + ' > ' + descriptor.name
-                }
+                addTestListener(new TestListener() {
+                    void beforeTest(TestDescriptor descriptor) {
+                        taskLogger.quiet 'Starting test: ' + descriptor.className + ' > ' + descriptor.name
+                    }
+                    void afterTest(TestDescriptor descriptor, TestResult result) {
+                        taskLogger.quiet 'Finishing test: ' + descriptor.className + ' > ' + descriptor.name
+                    }
+                })
             }
         """
         file(JAVA_TEST_FILE_PATH) << javaTestClass { '' }

@@ -610,6 +610,31 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         failureDescriptionContains("Invalid plugin request [id: 'some-plugin', version: '42.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request. Make sure the module containing the requested plugin 'some-plugin' is an implementation dependency")
     }
 
+    def "fails the build with help message for settings plugin spec with version"() {
+        given:
+        enablePrecompiledPluginsInBuildLogic()
+        file("build-logic/src/main/groovy/plugins/foo.settings.gradle") << """
+            plugins {
+                id 'some-plugin' version "42.0"
+            }
+        """
+
+        settingsFile << """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            plugins {
+                id 'foo'
+            }
+        """
+
+        when:
+        fails("help")
+
+        then:
+        failureDescriptionContains("Invalid plugin request [id: 'some-plugin', version: '42.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request. Make sure the module containing the requested plugin 'some-plugin' is an implementation dependency")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/14437")
     def "raises a deprecation warning with help message for plugin spec with apply false"() {
         given:
@@ -631,6 +656,37 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
             "'apply false' in precompiled script plugins has been deprecated. This will fail with an error in Gradle 10. " +
                 "'apply false' does not do anything as the plugin will already be added to the classpath when added as a dependency to the precompiled script plugin's build file. " +
                 "Remove 'apply false' from the plugin request for 'some-plugin' in 'src/main/groovy/plugins/foo.gradle'. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_apply_false_in_precompiled_script_plugins"
+        )
+
+        expect:
+        succeeds("help")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/14437")
+    def "raises a deprecation warning with help message for settings plugin spec with apply false"() {
+        given:
+        enablePrecompiledPluginsInBuildLogic()
+        file("build-logic/src/main/groovy/plugins/some-plugin.settings.gradle") << ""
+        file("build-logic/src/main/groovy/plugins/foo.settings.gradle") << """
+            plugins {
+                id 'some-plugin' apply false
+            }
+        """
+
+        settingsFile << """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            plugins {
+                id 'foo'
+            }
+        """
+
+        executer.expectDocumentedDeprecationWarning(
+            "'apply false' in precompiled script plugins has been deprecated. This will fail with an error in Gradle 10. " +
+                "'apply false' does not do anything as the plugin will already be added to the classpath when added as a dependency to the precompiled script plugin's build file. " +
+                "Remove 'apply false' from the plugin request for 'some-plugin' in 'src/main/groovy/plugins/foo.settings.gradle'. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_apply_false_in_precompiled_script_plugins"
         )
 
@@ -1126,6 +1182,14 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
     private void enablePrecompiledPluginsInBuildSrc() {
         file("buildSrc/build.gradle") << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+    }
+
+    private void enablePrecompiledPluginsInBuildLogic() {
+        file("build-logic/build.gradle") << """
             plugins {
                 id 'groovy-gradle-plugin'
             }
