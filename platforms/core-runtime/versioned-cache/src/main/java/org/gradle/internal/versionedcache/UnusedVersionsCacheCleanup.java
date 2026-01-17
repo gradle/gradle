@@ -96,7 +96,7 @@ public class UnusedVersionsCacheCleanup extends AbstractCacheCleanup {
     }
 
     @Override
-    protected void handleDeletion(File cacheDir) {
+    protected void doAfterDeletion(File cacheDir) {
         LOGGER.debug("Deleting unused versioned cache directory at {}", cacheDir);
     }
 

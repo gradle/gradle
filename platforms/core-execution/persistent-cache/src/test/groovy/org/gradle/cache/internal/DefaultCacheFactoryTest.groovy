@@ -15,7 +15,8 @@
  */
 package org.gradle.cache.internal
 
-import org.gradle.cache.PersistentCache
+import org.gradle.cache.CleanableStore
+import org.gradle.cache.HasCleanupAction
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -34,6 +35,7 @@ class DefaultCacheFactoryTest extends Specification {
     final Consumer<?> opened = Mock()
     final Consumer<?> closed = Mock()
     final ProcessMetaDataProvider metaDataProvider = Mock()
+    final File cacheDir = tmpDir.testDirectory.createDir("cache")
 
     private final DefaultCacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler()), Mock(ExecutorFactory)) {
         @Override
@@ -52,43 +54,53 @@ class DefaultCacheFactoryTest extends Specification {
         _ * metaDataProvider.processDisplayName >> 'process'
     }
 
-    void "creates directory backed cache instance"() {
+    void "creates directory backed #kind cache instance"() {
         when:
-        def cache = factory.open(tmpDir.testDirectory, "<display>", [prop: 'value'], mode(Shared), null, null)
+        def cache = open(kind)
 
         then:
-        cache.reference.cache instanceof DefaultPersistentDirectoryCache
-        cache.baseDir == tmpDir.testDirectory
-        cache.toString().startsWith "<display>"
+        expectedImpl.isAssignableFrom(cache.reference.cache.class)
+        cache.baseDir == cacheDir
+        cache.toString().startsWith(expectedDisplayName)
 
         cleanup:
         factory.close()
+
+        where:
+        kind     | expectedImpl                      | expectedDisplayName
+        'coarse' | DefaultPersistentDirectoryCache   | "<coarse>"
+        'fine'   | DefaultFineGrainedPersistentCache | "<fine>"
     }
 
-    void "reuses directory backed cache instances"() {
+    void "reuses directory backed #kind cache instances"() {
         when:
-        def ref1 = factory.open(tmpDir.testDirectory, null, [prop: 'value'], mode(Exclusive), null, null)
-        def ref2 = factory.open(tmpDir.testDirectory, null, [prop: 'value'], mode(Exclusive), null, null)
+        def ref1 = open(kind)
+        def ref2 = open(kind)
 
         then:
         ref1.reference.cache.is(ref2.reference.cache)
 
         and:
-        1 * opened.accept(_)
+        1 * opened.accept(_) >> { Closeable s -> assert expectedOpenedClass.isAssignableFrom(s.getClass()) }
         0 * opened._
 
         cleanup:
         factory.close()
+
+        where:
+        kind     | expectedOpenedClass
+        'coarse' | DefaultPersistentDirectoryStore
+        'fine'   | DefaultFineGrainedPersistentCache
     }
 
-    void "closes cache instance when factory is closed"() {
+    void "closes #kind cache instance when factory is closed"() {
         def implementation
 
         when:
-        factory.open(tmpDir.testDirectory, null, [prop: 'value'], mode(Exclusive), null, null)
+        open(kind)
 
         then:
-        1 * opened.accept(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
+        1 * opened.accept(_) >> { Closeable s -> implementation = s }
         0 * opened._
 
         when:
@@ -97,17 +109,20 @@ class DefaultCacheFactoryTest extends Specification {
         then:
         1 * closed.accept(implementation)
         0 * _
+
+        where:
+        kind << ['coarse', 'fine']
     }
 
-    void "closes cache instance when reference is closed"() {
+    void "closes #kind cache instance when reference is closed"() {
         def implementation
 
         when:
-        def cache1 = factory.open(tmpDir.testDirectory, null, [prop: 'value'], mode(Exclusive), null, null)
-        def cache2 = factory.open(tmpDir.testDirectory, null, [prop: 'value'], mode(Exclusive), null, null)
+        def cache1 = open(kind)
+        def cache2 = open(kind)
 
         then:
-        1 * opened.accept(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
+        1 * opened.accept(_) >> { Closeable s -> implementation = s }
         0 * opened._
 
         when:
@@ -122,16 +137,19 @@ class DefaultCacheFactoryTest extends Specification {
         then:
         1 * closed.accept(implementation)
         0 * _
+
+        where:
+        kind << ['coarse', 'fine']
     }
 
-    void "can close cache multiple times"() {
+    void "can close #kind cache multiple times"() {
         def implementation
 
         when:
-        def cache = factory.open(tmpDir.testDirectory, null, [prop: 'value'], mode(Exclusive), null, null)
+        def cache = open(kind)
 
         then:
-        1 * opened.accept(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
+        1 * opened.accept(_) >> { Closeable s -> implementation = s }
         0 * opened._
 
         when:
@@ -141,16 +159,19 @@ class DefaultCacheFactoryTest extends Specification {
         then:
         1 * closed.accept(implementation)
         0 * _
+
+        where:
+        kind << ['coarse', 'fine']
     }
 
-    void "can close factory after closing cache"() {
+    void "can close factory after closing #kind cache"() {
         def implementation
 
         when:
-        def cache = factory.open(tmpDir.testDirectory, null, [prop: 'value'], mode(Exclusive), null, null)
+        def cache = open(kind)
 
         then:
-        1 * opened.accept(_) >> { DefaultPersistentDirectoryStore s -> implementation = s }
+        1 * opened.accept(_) >> { Closeable s -> implementation = s }
         0 * opened._
 
         when:
@@ -160,6 +181,9 @@ class DefaultCacheFactoryTest extends Specification {
         then:
         1 * closed.accept(implementation)
         0 * _
+
+        where:
+        kind << ['coarse', 'fine']
     }
 
     void "fails when directory cache is already open with different properties"() {
@@ -192,24 +216,47 @@ class DefaultCacheFactoryTest extends Specification {
         factory.close()
     }
 
+    void "fails when directory cache is already open with different cache type"() {
+        when:
+        factory.open(tmpDir.testDirectory.file("foo"), "foo", [prop: 'value'], mode(Exclusive), null, null)
+        factory.openFineGrained(tmpDir.file("foo"), "foo", {  })
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == "Cache '${tmpDir.testDirectory.file("foo")}' is already open as 'org.gradle.cache.internal.DefaultPersistentDirectoryCache' that is not a subtype of expected 'org.gradle.cache.FineGrainedPersistentCache'."
+
+        when:
+        factory.openFineGrained(tmpDir.file("bar"), null, {  })
+        factory.open(tmpDir.testDirectory.file("bar"), null, [prop: 'value'], mode(Exclusive), null, null)
+
+
+        then:
+        e = thrown()
+        e.message == "Cache '${tmpDir.testDirectory.file("bar")}' is already open as 'org.gradle.cache.internal.DefaultFineGrainedPersistentCache' that is not a subtype of expected 'org.gradle.cache.PersistentCache'."
+
+        cleanup:
+        factory.close()
+    }
+
     void "can visit all caches created by factory"() {
         def visited = [] as Set
 
         when:
         factory.open(tmpDir.testDirectory.file('foo'), "foo", [prop: 'value'], mode(Shared), null, null)
         factory.open(tmpDir.testDirectory.file('bar'), "bar", [prop: 'value'], mode(Shared), null, null)
-        factory.open(tmpDir.testDirectory.file('baz'), "baz", [prop: 'value'], mode(Shared), null, null)
+        factory.openFineGrained(tmpDir.testDirectory.file('baz'), "baz", {})
+        factory.openFineGrained(tmpDir.testDirectory.file('qux'), "qux", {})
 
         and:
         factory.visitCaches(new CacheVisitor() {
             @Override
-            void visit(PersistentCache cache) {
+            <T extends CleanableStore & HasCleanupAction> void visit(T cache) {
                 visited << cache.displayName.split(' ')[0]
             }
         })
 
         then:
-        visited.containsAll(['foo', 'bar', 'baz'])
+        visited.containsAll(['foo', 'bar', 'baz', 'qux'])
 
         cleanup:
         factory.close()
@@ -221,15 +268,17 @@ class DefaultCacheFactoryTest extends Specification {
         when:
         factory.open(tmpDir.testDirectory.file('foo'), "foo", [prop: 'value'], mode(Shared), null, null)
         def bar = factory.open(tmpDir.testDirectory.file('bar'), "bar", [prop: 'value'], mode(Shared), null, null)
-        factory.open(tmpDir.testDirectory.file('baz'), "baz", [prop: 'value'], mode(Shared), null, null)
+        factory.openFineGrained(tmpDir.testDirectory.file('baz'), "baz", {  })
+        def qux = factory.openFineGrained(tmpDir.testDirectory.file('qux'), "qux", {  })
 
         and:
         bar.close()
+        qux.close()
 
         and:
         factory.visitCaches(new CacheVisitor() {
             @Override
-            void visit(PersistentCache cache) {
+            <T extends CleanableStore & HasCleanupAction> void visit(T cache) {
                 visited << cache.displayName.split(' ')[0]
             }
         })
@@ -237,8 +286,20 @@ class DefaultCacheFactoryTest extends Specification {
         then:
         visited.containsAll(['foo', 'baz'])
         !visited.contains('bar')
+        !visited.contains('qux')
 
         cleanup:
         factory.close()
+    }
+
+    private def open(String kind) {
+        switch (kind) {
+            case 'coarse':
+                return factory.open(cacheDir, '<coarse>', [prop: 'value'], mode(Exclusive), null, null)
+            case 'fine':
+                return factory.openFineGrained(cacheDir, '<fine>', { })
+            default:
+                throw new IllegalArgumentException("Unknown kind: $kind")
+        }
     }
 }
