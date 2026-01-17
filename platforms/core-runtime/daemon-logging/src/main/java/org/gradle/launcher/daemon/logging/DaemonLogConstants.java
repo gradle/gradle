@@ -39,4 +39,3 @@ public class DaemonLogConstants {
         // Utility class
     }
 }
-

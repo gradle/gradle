@@ -69,5 +69,3 @@ public class DefaultTarget implements Serializable {
     }
 
 }
-
-

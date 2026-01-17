@@ -163,4 +163,3 @@ public class TemplateFactory {
         void subproject(String subproject);
     }
 }
-

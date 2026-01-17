@@ -29,5 +29,3 @@ public @interface SpecificJvmCallInterceptors {
     String generatedClassName();
     BytecodeInterceptorType type() default BytecodeInterceptorType.INSTRUMENTATION;
 }
-
-

@@ -46,4 +46,3 @@ public final class ExecuteDomainObjectCollectionCallbackBuildOperationType imple
     private ExecuteDomainObjectCollectionCallbackBuildOperationType() {
     }
 }
-
