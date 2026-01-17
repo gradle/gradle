@@ -138,6 +138,19 @@ dependencies {
 }
 ```
 
+### `Configuration.extendsFrom` accepts `Provider`s 
+
+Previously, calling `extendsFrom()` on a `Configuration` required the specified parent configuration to be a realized `Configuration` object.  
+It is now possible to specify a `Provider<Configuration>` instead, which does not require that a registered configuration be realized before specifying it as a parent configuration.
+
+```kotlin
+configurations {
+    val parent = dependencyScope("parent")
+    val child = resolvable("child") {
+        extendsFrom(parent) // previously required 'parent.get()'
+    }
+```
+
 ### Support for CSV, Code Climate, and SARIF reports in the PMD plugin
 The [PMD plugin](userguide/pmd_plugin.html) now supports generating reports in CSV, Code Climate, and SARIF formats in addition to the existing XML and HTML formats.
 
