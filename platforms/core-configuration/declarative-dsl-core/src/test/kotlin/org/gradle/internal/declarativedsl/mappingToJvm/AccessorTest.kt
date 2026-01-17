@@ -22,6 +22,7 @@ import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultSettingsExtensionAccessorIdentifier
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
@@ -80,7 +81,7 @@ class AccessorTest {
     // don't make this private, will produce failures on Java 8 (due to https://youtrack.jetbrains.com/issue/KT-37660)
     val runtimeCustomAccessors = object : RuntimeCustomAccessors {
         override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType =
-            if (receiverObject is MyReceiver && accessor.customAccessorIdentifier == "test")
+            if (receiverObject is MyReceiver && accessor.accessorIdentifier.name == "test")
                 InstanceAndPublicType.unknownPublicType(receiverObject.myHiddenInstance.value)
             else InstanceAndPublicType.NULL
     }
@@ -97,7 +98,7 @@ class AccessorTest {
                         emptyList(),
                         false,
                         FunctionSemanticsInternal.DefaultAccessAndConfigure(
-                            ConfigureAccessorInternal.DefaultCustom(objectType, "test"),
+                            ConfigureAccessorInternal.DefaultExtension(objectType, DefaultSettingsExtensionAccessorIdentifier("test")),
                             FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
                             objectType,
                             FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired

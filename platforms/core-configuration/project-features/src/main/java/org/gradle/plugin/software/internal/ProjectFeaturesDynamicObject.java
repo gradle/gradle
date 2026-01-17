@@ -24,6 +24,8 @@ import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Provides a dynamic object that allows project features to be queried and applied to a target object as dynamic
@@ -55,12 +57,13 @@ abstract public class ProjectFeaturesDynamicObject extends AbstractDynamicObject
             return false;
         }
 
-        ProjectFeatureImplementation<?, ?> feature = getProjectFeatureRegistry().getProjectFeatureImplementations().get(name);
-        if (feature == null) {
+        Set<ProjectFeatureImplementation<?, ?>> candidateFeatures = getProjectFeatureRegistry().getProjectFeatureImplementations().get(name);
+        if (candidateFeatures == null) {
             return false;
         }
 
-        return TargetTypeInformationChecks.isValidBindingType(feature.getTargetDefinitionType(), target.getClass());
+        return candidateFeatures.stream().anyMatch(feature ->
+            TargetTypeInformationChecks.isValidBindingType(feature.getTargetDefinitionType(), target.getClass()));
     }
 
     @Override
@@ -69,7 +72,21 @@ abstract public class ProjectFeaturesDynamicObject extends AbstractDynamicObject
             return DynamicInvokeResult.found(context);
         }
         if (isFeatureConfigureMethod(name, arguments)) {
-            Object projectFeatureConfigurationModel = getProjectFeatureApplicator().applyFeatureTo(target, getProjectFeatureRegistry().getProjectFeatureImplementations().get(name));
+            Set<ProjectFeatureImplementation<?, ?>> candidateFeatures = getProjectFeatureRegistry().getProjectFeatureImplementations().get(name);
+            if (candidateFeatures == null) {
+                return DynamicInvokeResult.notFound();
+            }
+            Set<ProjectFeatureImplementation<?, ?>> matchingFeatures = candidateFeatures.stream().filter(feature ->
+                TargetTypeInformationChecks.isValidBindingType(feature.getTargetDefinitionType(), target.getClass())
+            ).collect(Collectors.toSet());
+            if (matchingFeatures.isEmpty()) {
+                return DynamicInvokeResult.notFound();
+            }
+            if (matchingFeatures.size() > 1) {
+                // This should not be possible if the project feature bindings are correctly disambiguated at registration time
+                throw new IllegalStateException(String.format("Multiple project features of name '%s' match target type '%s'. Cannot disambiguate.", name, target.getClass().getName()));
+            }
+            Object projectFeatureConfigurationModel = getProjectFeatureApplicator().applyFeatureTo(target, matchingFeatures.iterator().next());
             return DynamicInvokeResult.found(ConfigureUtil.configure((Closure) arguments[0], projectFeatureConfigurationModel));
         }
         return DynamicInvokeResult.notFound();

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.evaluator.defaults
 
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ProjectFeatureIdentifier
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
 import org.gradle.internal.declarativedsl.analysis.NestedObjectAccessRecord
@@ -28,20 +29,20 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
  */
 internal
 object ModelDefaultsResolutionProcessor {
-    fun process(resolutionResult: ResolutionResult): Map<String, ModelDefaultsResolutionResults> {
+    fun process(resolutionResult: ResolutionResult): Map<ProjectFeatureIdentifier, ModelDefaultsResolutionResults> {
         val assignments = resolutionResult.assignments.groupBy { assignment ->
-            getProjectFeature(assignment.lhs.receiverObject).function.simpleName
+            getProjectFeature(assignment.lhs.receiverObject).accessor.projectFeatureAccessorIdOrNull()
         }
         val additions = resolutionResult.additions.groupBy { addition ->
-            getProjectFeature(addition.container).function.simpleName
+            getProjectFeature(addition.container).accessor.projectFeatureAccessorIdOrNull()
         }
         val nestedObjectAccess = resolutionResult.nestedObjectAccess.mapNotNull { access ->
-            findProjectFeature(access.dataObject)?.let { access to it.function.simpleName }
+            findProjectFeature(access.dataObject)?.let { access to it.accessor.projectFeatureAccessorIdOrNull() }
         }.groupBy({ (_, projectFeatureName) -> projectFeatureName }, valueTransform = { (access, _) -> access })
 
-        val projectFeatureNames = assignments.keys + additions.keys + nestedObjectAccess.keys
+        val projectFeatureIds = assignments.keys + additions.keys + nestedObjectAccess.keys
 
-        return projectFeatureNames.associateWith {
+        return projectFeatureIds.filterNotNull().associateWith {
             ModelDefaultsResolutionResults(it, assignments[it].orEmpty(), additions[it].orEmpty(), nestedObjectAccess[it].orEmpty())
         }
     }
@@ -52,7 +53,7 @@ object ModelDefaultsResolutionProcessor {
  * The operations for model defaults extracted from a resolution result.
  */
 data class ModelDefaultsResolutionResults(
-    val projectFeatureName: String,
+    val projectFeatureId: ProjectFeatureIdentifier,
     val assignments: List<AssignmentRecord>,
     val additions: List<DataAdditionRecord>,
     val nestedObjectAccess: List<NestedObjectAccessRecord>

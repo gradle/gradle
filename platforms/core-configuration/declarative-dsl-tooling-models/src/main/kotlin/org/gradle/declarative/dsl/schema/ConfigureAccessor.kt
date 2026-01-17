@@ -26,6 +26,7 @@ import java.io.Serializable
 @ToolingModelContract(subTypes = [
     Property::class,
     Custom::class,
+    CustomAccessorIdentifier::class,
     ConfiguringLambdaArgument::class
 ])
 sealed interface ConfigureAccessor : Serializable {
@@ -39,7 +40,7 @@ sealed interface ConfigureAccessor : Serializable {
     }
 
     interface Custom : ConfigureAccessor {
-        val customAccessorIdentifier: String
+        val accessorIdentifier: CustomAccessorIdentifier
     }
 
     interface ConfiguringLambdaArgument : ConfigureAccessor

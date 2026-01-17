@@ -174,6 +174,38 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         return pluginBuilder
     }
 
+    PluginBuilder withTwoProjectFeaturesThatHaveTheSameNameButDifferentBindings() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
+        def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
+        def projectFeature = new ProjectFeaturePluginClassBuilder(projectFeatureDefinition)
+
+        def anotherProjectTypeDefinition = new AnotherProjectTypeDefinitionClassBuilder()
+        def anotherProjectType = new ProjectTypePluginClassBuilder(anotherProjectTypeDefinition)
+            .name("anotherProjectType")
+            .projectTypePluginClassName("AnotherProjectTypePlugin")
+            .withoutConventions()
+        def anotherFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
+            .withPublicClassName("AnotherFeatureDefinition")
+        def anotherProjectFeature = new ProjectFeaturePluginClassBuilder(anotherFeatureDefinition)
+            .bindingTypeClassName(anotherProjectTypeDefinition.publicTypeClassName)
+            .projectFeaturePluginClassName("AnotherProjectFeatureImplPlugin")
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectType(anotherProjectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+            .registersProjectFeature(anotherProjectFeature.projectFeaturePluginClassName)
+
+        def pluginBuilder = withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+
+        anotherProjectType.build(pluginBuilder)
+        anotherProjectTypeDefinition.build(pluginBuilder)
+        anotherProjectFeature.build(pluginBuilder)
+        anotherFeatureDefinition.build(pluginBuilder)
+
+        return pluginBuilder
+    }
+
     PluginBuilder withProjectFeatureDefinitionThatHasPublicAndImplementationTypes() {
         def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)

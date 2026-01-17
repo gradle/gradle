@@ -17,11 +17,21 @@
 package org.gradle.api.internal.plugins;
 
 public interface TargetTypeInformation<T> {
+
+    String getTargetClassName();
+
     class DefinitionTargetTypeInformation<T> implements TargetTypeInformation<T> {
         public final Class<T> definitionType;
+        private final String targetClassName;
 
         public DefinitionTargetTypeInformation(Class<T> definitionType) {
             this.definitionType = definitionType;
+            this.targetClassName = definitionType.getName();
+        }
+
+        @Override
+        public String getTargetClassName() {
+            return targetClassName;
         }
 
         @Override
@@ -49,9 +59,16 @@ public interface TargetTypeInformation<T> {
 
     class BuildModelTargetTypeInformation<T extends BuildModel> implements TargetTypeInformation<Definition<T>> {
         public final Class<T> buildModelType;
+        private final String targetClassName;
 
         public BuildModelTargetTypeInformation(Class<T> buildModelType) {
             this.buildModelType = buildModelType;
+            this.targetClassName = buildModelType.getName();
+        }
+
+        @Override
+        public String getTargetClassName() {
+            return targetClassName;
         }
 
         @Override

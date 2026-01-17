@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.evaluator.main
 
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ProjectFeatureIdentifier
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsDefinitionRegistrar
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsRepository
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsResolutionResults
@@ -24,13 +25,13 @@ import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsResolu
 internal
 class ModelDefaultsStorage : ModelDefaultsDefinitionRegistrar, ModelDefaultsRepository {
     private
-    val modelDefaultsMap = mutableMapOf<String, ModelDefaultsResolutionResults>()
+    val modelDefaultsById = mutableMapOf<ProjectFeatureIdentifier, ModelDefaultsResolutionResults>()
 
-    override fun registerDefaults(modelDefaultsByProjectFeature: Map<String, ModelDefaultsResolutionResults>) {
-        modelDefaultsMap.clear()
-        modelDefaultsMap.putAll(modelDefaultsByProjectFeature)
+    override fun registerDefaults(modelDefaultsByProjectFeatureId: Map<ProjectFeatureIdentifier, ModelDefaultsResolutionResults>) {
+        modelDefaultsById.clear()
+        modelDefaultsById.putAll(modelDefaultsByProjectFeatureId)
     }
 
-    override fun findDefaults(featureName: String): ModelDefaultsResolutionResults? =
-        modelDefaultsMap[featureName]
+    override fun findDefaults(featureId: ProjectFeatureIdentifier): ModelDefaultsResolutionResults? =
+        modelDefaultsById[featureId]
 }

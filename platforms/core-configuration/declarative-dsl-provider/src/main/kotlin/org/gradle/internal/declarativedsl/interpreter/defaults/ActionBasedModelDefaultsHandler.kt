@@ -30,6 +30,7 @@ import org.gradle.plugin.software.internal.ModelDefaultsApplicator.ClassLoaderCo
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
 import org.gradle.plugin.software.internal.ProjectFeatureImplementation
 import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.plugin.software.internal.TargetTypeInformationChecks
 
 class ActionBasedModelDefaultsHandler(
     private val sharedModelDefaults: SharedModelDefaultsInternal,
@@ -38,9 +39,13 @@ class ActionBasedModelDefaultsHandler(
 ) : ModelDefaultsHandler {
 
     override fun apply(target: Any, definition: Any, classLoaderContext: ClassLoaderContext, projectFeatureName: String, plugin: Plugin<*>) {
-        val projectFeatureImplementation: ProjectFeatureImplementation<*, *> = projectFeatureDeclarations.getProjectFeatureImplementations()[projectFeatureName]!!
+        val projectFeatureImplementations: Set<ProjectFeatureImplementation<*, *>> = projectFeatureDeclarations.getProjectFeatureImplementations()[projectFeatureName]!!
 
-        if (target is DynamicObjectAware) {
+        val projectFeatureImplementation: ProjectFeatureImplementation<*, *>? = projectFeatureImplementations.find {
+            TargetTypeInformationChecks.isValidBindingType(it.targetDefinitionType, target.javaClass)
+        }
+
+        if (target is DynamicObjectAware && projectFeatureImplementation != null) {
             sharedModelDefaults.setProjectLayout(projectLayout)
             try {
                 projectFeatureImplementation.visitModelDefaults(

@@ -18,7 +18,9 @@ package org.gradle.internal.declarativedsl.interpreter.defaults
 
 import org.gradle.api.Plugin
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ProjectFeatureIdentifier
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
+import org.gradle.internal.declarativedsl.analysis.DefaultProjectFeatureAccessorIdentifier
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
@@ -53,7 +55,7 @@ import javax.inject.Inject
  * A {@link ConventionHandler} for applying declarative conventions.
  */
 abstract class DeclarativeModelDefaultsHandler @Inject constructor(
-    projectFeatureDeclarations: ProjectFeatureDeclarations,
+    val projectFeatureDeclarations: ProjectFeatureDeclarations,
     interpretationSchemaBuilder: InterpretationSchemaBuilder
 ) : ModelDefaultsHandler {
     private
@@ -66,10 +68,14 @@ abstract class DeclarativeModelDefaultsHandler @Inject constructor(
     val modelDefaultsRepository = projectFeatureRegistryBasedModelDefaultsRepository(projectFeatureDeclarations)
 
     override fun apply(target: Any, definition: Any, classLoaderContext: ClassLoaderContext, projectFeatureName: String, plugin: Plugin<*>) {
+        // TODO - this works because there should only be one implementation for each project type.  We'll need to revisit this
+        // when we support defaults for project features which can have multiple implementations.
+        val projectFeature = projectFeatureDeclarations.projectFeatureImplementations.getValue(projectFeatureName).first()
+
         val analysisStepRunner = ApplyDefaultsOnlyAnalysisStepRunner()
         val analysisStepContext = AnalysisStepContext(
             emptySet(),
-            setOf(SingleProjectTypeApplyModelDefaultsHandler(modelDefaultsRepository, projectFeatureName))
+            setOf(SingleProjectTypeApplyModelDefaultsHandler(modelDefaultsRepository, DefaultProjectFeatureAccessorIdentifier(projectFeature.featureName, projectFeature.targetDefinitionType.targetClassName)))
         )
 
         val result = AnalysisAndConversionStepRunner(analysisStepRunner)
@@ -128,8 +134,8 @@ fun emptyResolutionResultForReceiver(receiver: ObjectOrigin.TopLevelReceiver) = 
 
 
 private
-class SingleProjectTypeApplyModelDefaultsHandler(val modelDefaultsRepository: ModelDefaultsRepository, val projectTypeName: String) : ApplyModelDefaultsHandler {
+class SingleProjectTypeApplyModelDefaultsHandler(val modelDefaultsRepository: ModelDefaultsRepository, val projectTypeId: ProjectFeatureIdentifier) : ApplyModelDefaultsHandler {
     override fun getDefaultsResolutionResults(resolutionResult: ResolutionResult): List<ModelDefaultsResolutionResults> {
-        return listOf(modelDefaultsRepository.findDefaults(projectTypeName)).requireNoNulls()
+        return listOf(modelDefaultsRepository.findDefaults(projectTypeId)).requireNoNulls()
     }
 }

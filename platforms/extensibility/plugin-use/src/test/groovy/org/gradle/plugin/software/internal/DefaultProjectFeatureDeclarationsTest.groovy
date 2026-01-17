@@ -61,7 +61,7 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         declarations.addDeclaration(pluginId, ProjectTypeImpl, DeclaringPlugin)
 
         and:
-        def implementations = declarations.projectFeatureImplementations.values()
+        def implementations = declarations.projectFeatureImplementations.values().flatten()
 
         then:
         1 * inspectionScheme.getMetadataStore() >> metadataStore
@@ -96,7 +96,7 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         declarations.addDeclaration(pluginId, ProjectTypeImpl, DeclaringPlugin)
 
         and:
-        def implementations = declarations.projectFeatureImplementations.values()
+        def implementations = declarations.projectFeatureImplementations.values().flatten()
 
         then:
         1 * inspectionScheme.getMetadataStore() >> metadataStore
@@ -173,7 +173,7 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         implementations.size() == 1
     }
 
-    def "cannot declare two plugins with the same feature name"() {
+    def "cannot declare two plugins with the same feature name and overlapping target types (#description)"() {
         def pluginTypeMetadata = Mock(TypeMetadata)
         def duplicatePluginTypeMetadata = Mock(TypeMetadata)
         def pluginTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
@@ -199,7 +199,11 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         1 * instantiator.newInstance(Binding) >> featureBinding
         1 * featureBinding.bind(_) >> { args ->
             def builder = args[0] as ProjectFeatureBindingBuilderInternal
-            builder.bindProjectFeatureToDefinition("test", TestDefinition, ParentBuildModel, Mock(ProjectFeatureApplyAction))
+            if (Definition.isAssignableFrom(alreadyRegisteredTargetType)) {
+                builder.bindProjectFeatureToDefinition("test", TestDefinition, alreadyRegisteredTargetType, Mock(ProjectFeatureApplyAction))
+            } else {
+                builder.bindProjectFeatureToBuildModel("test", TestDefinition, alreadyRegisteredTargetType, Mock(ProjectFeatureApplyAction))
+            }
         }
         1 * metadataStore.getTypeMetadata(TestDefinition) >> definitionTypeMetadata
         1 * definitionTypeMetadata.getTypeAnnotationMetadata() >> definitionTypeAnnotationMetadata
@@ -211,8 +215,16 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         1 * instantiator.newInstance(Binding) >> featureBinding
         1 * featureBinding.bind(_) >> { args ->
             def builder = args[0] as ProjectFeatureBindingBuilderInternal
-            builder.bindProjectFeatureToDefinition("test", TestDefinition, ParentBuildModel, Mock(ProjectFeatureApplyAction))
+            if (Definition.isAssignableFrom(toBeRegisteredTargetType)) {
+                builder.bindProjectFeatureToDefinition("test", TestDefinition, toBeRegisteredTargetType, Mock(ProjectFeatureApplyAction))
+            } else {
+                builder.bindProjectFeatureToBuildModel("test", TestDefinition, toBeRegisteredTargetType, Mock(ProjectFeatureApplyAction))
+            }
         }
+        1 * metadataStore.getTypeMetadata(TestDefinition) >> definitionTypeMetadata
+        1 * definitionTypeMetadata.getTypeAnnotationMetadata() >> definitionTypeAnnotationMetadata
+        1 * definitionTypeAnnotationMetadata.getPropertiesAnnotationMetadata() >> ImmutableSortedSet.of()
+
         1 * problemReporter.internalCreate(_) >> Stub(InternalProblem) {
             getDefinition() >> Stub(ProblemDefinition) {
                 getSeverity() >> Severity.ERROR
@@ -222,11 +234,97 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         and:
         def e = thrown(IllegalArgumentException)
         e.message.startsWith("Project feature 'test' is registered by multiple plugins")
+
+        where:
+        alreadyRegisteredTargetType          | toBeRegisteredTargetType   | description
+        ParentDefinition                     | ParentDefinition           | "definition is the same as registered definition"
+        ParentDefinition                     | SubClassOfParentDefinition | "definition is sub class of registered definition"
+        SubClassOfParentDefinition           | ParentDefinition           | "definition is super class of registered definition"
+        ParentBuildModel                     | ParentBuildModel           | "build model is the same as registered build model"
+        ParentBuildModel                     | SubClassOfParentBuildModel | "build model is sub class of registered build model"
+        SubClassOfParentBuildModel           | ParentBuildModel           | "build model is super class of registered build model"
+        ParentDefinition                     | ParentBuildModel           | "build model is the same as registered definition's build model"
+        SubClassOfParentDefinition           | ParentBuildModel           | "build model is same as registered definition's inherited build model"
+        ParentDefinition                     | SubClassOfParentBuildModel | "build model is sub class of registered definition's build model"
+        SubClassOfParentBuildModelDefinition | ParentBuildModel           | "build model is super class of registered definition's build model"
+    }
+
+    def "can declare two plugins with the same feature name if they bind to different targets (#description)"() {
+        def pluginTypeMetadata = Mock(TypeMetadata)
+        def duplicatePluginTypeMetadata = Mock(TypeMetadata)
+        def pluginTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
+        def duplicatePluginTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
+        def definitionTypeMetadata = Mock(TypeMetadata)
+        def definitionTypeAnnotationMetadata = Mock(TypeAnnotationMetadata)
+
+        when:
+        declarations.addDeclaration(pluginId, ProjectTypeImpl, DeclaringPlugin)
+        declarations.addDeclaration(pluginId+".duplicate", DuplicateProjectTypeImpl, DeclaringPlugin)
+        def implementations = declarations.getProjectFeatureImplementations()
+
+        then:
+        _ * inspectionScheme.getMetadataStore() >> metadataStore
+        1 * metadataStore.getTypeMetadata(ProjectTypeImpl) >> pluginTypeMetadata
+        1 * metadataStore.getTypeMetadata(DuplicateProjectTypeImpl) >> duplicatePluginTypeMetadata
+        1 * pluginTypeMetadata.getTypeAnnotationMetadata() >> pluginTypeAnnotationMetadata
+        1 * duplicatePluginTypeMetadata.getTypeAnnotationMetadata() >> duplicatePluginTypeAnnotationMetadata
+
+        1 * pluginTypeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.of(bindsProjectFeatureAnnotation)
+        1 * pluginTypeAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
+        1 * bindsProjectFeatureAnnotation.value() >> Binding
+        1 * instantiator.newInstance(Binding) >> featureBinding
+        1 * featureBinding.bind(_) >> { args ->
+            def builder = args[0] as ProjectFeatureBindingBuilderInternal
+            if (Definition.isAssignableFrom(targetType)) {
+                builder.bindProjectFeatureToDefinition("test", TestDefinition, targetType, Mock(ProjectFeatureApplyAction))
+            } else {
+                builder.bindProjectFeatureToBuildModel("test", TestDefinition, targetType, Mock(ProjectFeatureApplyAction))
+            }
+        }
+        1 * metadataStore.getTypeMetadata(TestDefinition) >> definitionTypeMetadata
+        1 * definitionTypeMetadata.getTypeAnnotationMetadata() >> definitionTypeAnnotationMetadata
+        1 * definitionTypeAnnotationMetadata.getPropertiesAnnotationMetadata() >> ImmutableSortedSet.of()
+
+        1 * duplicatePluginTypeAnnotationMetadata.getAnnotation(BindsProjectFeature.class) >> Optional.of(bindsProjectFeatureAnnotation)
+        1 * duplicatePluginTypeAnnotationMetadata.getAnnotation(BindsProjectType.class) >> Optional.empty()
+        1 * bindsProjectFeatureAnnotation.value() >> Binding
+        1 * instantiator.newInstance(Binding) >> featureBinding
+        1 * featureBinding.bind(_) >> { args ->
+            def builder = args[0] as ProjectFeatureBindingBuilderInternal
+            if (Definition.isAssignableFrom(anotherTargetType)) {
+                builder.bindProjectFeatureToDefinition("test", TestDefinition, anotherTargetType, Mock(ProjectFeatureApplyAction))
+            } else {
+                builder.bindProjectFeatureToBuildModel("test", TestDefinition, anotherTargetType, Mock(ProjectFeatureApplyAction))
+            }
+        }
+        1 * metadataStore.getTypeMetadata(TestDefinition) >> definitionTypeMetadata
+        1 * definitionTypeMetadata.getTypeAnnotationMetadata() >> definitionTypeAnnotationMetadata
+        1 * definitionTypeAnnotationMetadata.getPropertiesAnnotationMetadata() >> ImmutableSortedSet.of()
+
+        and:
+        implementations.size() == 1
+        implementations.get("test").size() == 2
+
+        where:
+        targetType       | anotherTargetType       | description
+        ParentDefinition | AnotherParentDefinition | "different definitions"
+        ParentBuildModel | AnotherParentBuildModel | "different build models"
+        ParentDefinition | AnotherParentBuildModel | "different definition and build model"
     }
 
     private interface ParentDefinition extends Definition<ParentBuildModel> { }
 
+    private interface SubClassOfParentDefinition extends ParentDefinition { }
+
+    private interface SubClassOfParentBuildModelDefinition extends Definition<SubClassOfParentBuildModel> {}
+
     private interface ParentBuildModel extends BuildModel { }
+
+    private interface SubClassOfParentBuildModel extends ParentBuildModel { }
+
+    private interface AnotherParentDefinition extends Definition<AnotherParentBuildModel> { }
+
+    private interface AnotherParentBuildModel extends BuildModel { }
 
     private interface TestDefinition extends Definition<TestModel> { }
 
