@@ -81,4 +81,3 @@ public interface BuildFeature {
     Provider<Boolean> getActive();
 
 }
-

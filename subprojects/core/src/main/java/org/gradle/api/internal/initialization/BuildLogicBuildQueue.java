@@ -34,4 +34,3 @@ public interface BuildLogicBuildQueue {
 
     <T> T buildBuildSrc(StandAloneNestedBuild buildSrcBuild, Function<BuildTreeLifecycleController, T> continuationUnderLock);
 }
-

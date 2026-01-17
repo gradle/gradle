@@ -5,4 +5,3 @@ public class Java {
         return "Hello world!";
     }
 }
-

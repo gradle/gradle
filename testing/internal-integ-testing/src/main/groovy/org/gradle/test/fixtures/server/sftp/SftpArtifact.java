@@ -44,4 +44,3 @@ public class SftpArtifact extends SftpResource implements RemoteArtifact {
         return new SftpResource(getServer(), getFile().getParentFile().file(getFile().getName() + ".sha512"));
     }
 }
-

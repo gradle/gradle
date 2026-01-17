@@ -248,4 +248,3 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
     }
 }
-
