@@ -287,4 +287,3 @@ public class VersionNumber implements Comparable<VersionNumber> {
     }
 
 }
-

@@ -42,4 +42,3 @@ public interface OptionDescriptor extends Comparable<OptionDescriptor> {
      */
     void apply(Object object, List<String> values) throws TypeConversionException;
 }
-

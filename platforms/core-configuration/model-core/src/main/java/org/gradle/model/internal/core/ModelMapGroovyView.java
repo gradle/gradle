@@ -106,4 +106,3 @@ public abstract class ModelMapGroovyView<I> extends GroovyObjectSupport implemen
     }
 
 }
-

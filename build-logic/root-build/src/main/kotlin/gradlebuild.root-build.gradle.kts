@@ -41,3 +41,5 @@ configure<DependencyAnalysisExtension> {
 
     useTypesafeProjectAccessors(true)
 }
+
+apply(from = "gradle/quality-gate.gradle")

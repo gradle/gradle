@@ -59,4 +59,3 @@ public interface ModuleComponentIdentifier extends ComponentIdentifier {
      */
     ModuleIdentifier getModuleIdentifier();
 }
-

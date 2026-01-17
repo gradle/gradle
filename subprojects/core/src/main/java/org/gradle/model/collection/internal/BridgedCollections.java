@@ -116,4 +116,3 @@ public abstract class BridgedCollections {
     }
 
 }
-

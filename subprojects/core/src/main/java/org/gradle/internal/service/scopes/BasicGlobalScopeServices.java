@@ -160,4 +160,3 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
         return new DefaultListenerManager(Global.class);
     }
 }
-

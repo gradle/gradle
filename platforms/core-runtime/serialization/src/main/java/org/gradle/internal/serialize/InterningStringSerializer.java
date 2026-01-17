@@ -35,4 +35,3 @@ public class InterningStringSerializer extends AbstractSerializer<String> {
         encoder.writeString(value);
     }
 }
-

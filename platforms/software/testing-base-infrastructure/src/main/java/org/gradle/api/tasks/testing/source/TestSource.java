@@ -30,4 +30,3 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface TestSource {
 }
-

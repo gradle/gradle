@@ -34,5 +34,3 @@ public class TransformActionScheme extends AbstractTypeScheme {
         return TransformAction.class.isAssignableFrom(type);
     }
 }
-
-

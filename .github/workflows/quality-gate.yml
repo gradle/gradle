@@ -1,0 +1,64 @@
+name: "Quality Gate"
+
+on:
+  push:
+    branches: [ main, master, release ]
+  schedule:
+    - cron: '0 5 * * *'
+
+permissions: {}
+
+jobs:
+  quality-gate:
+    permissions:
+      actions: read  # for github/codeql-action/init to get workflow details
+      contents: read  # for actions/checkout to fetch code
+      security-events: write  # for github/codeql-action/analyze to upload SARIF results
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Override automatic language detection by changing the below list
+        # Supported options are ['csharp', 'cpp', 'go', 'java', 'javascript', 'python']
+        language: ['java']
+        # Learn more...
+        # https://docs.github.com/en/github/finding-security-vulnerabilities-and-errors-in-your-code/configuring-code-scanning#overriding-automatic-language-detection
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        # Checkout must run before the caching key is computed using the `hashFiles` method
+
+      - name: Cache Gradle Modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches/modules-2/
+            ~/.gradle/caches/build-cache-1/
+            ~/.gradle/caches/signatures/
+            ~/.gradle/caches/keyrings/
+          key: ${{ runner.os }}-gradle-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+          if: ${{ matrix.language == 'java' }}
+
+      - name: Disable checksum offloading
+        # See: https://github.com/actions/virtual-environments/issues/1187#issuecomment-686735760
+        run: sudo ethtool -K eth0 tx off rx off
+
+      # Install and setup JDK 17
+      - name: Setup JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Spotless
+        shell: bash
+        run: ./gradlew spotlessCheck
+
+      - name: Cleanup Gradle Cache
+        # Cleans up the Gradle caches before being cached
+        run: |
+          rm -f ~/.gradle/caches/modules-2/modules-2.lock
+          rm -f ~/.gradle/caches/modules-2/gc.properties
+        if: ${{ matrix.language == 'java' }}

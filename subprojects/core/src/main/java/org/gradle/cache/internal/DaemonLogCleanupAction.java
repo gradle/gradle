@@ -111,4 +111,3 @@ public class DaemonLogCleanupAction implements MonitoredCleanupAction {
         }
     }
 }
-

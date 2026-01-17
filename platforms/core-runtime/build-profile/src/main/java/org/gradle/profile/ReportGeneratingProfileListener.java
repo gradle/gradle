@@ -76,4 +76,3 @@ public class ReportGeneratingProfileListener {
         textOutput.println();
     }
 }
-

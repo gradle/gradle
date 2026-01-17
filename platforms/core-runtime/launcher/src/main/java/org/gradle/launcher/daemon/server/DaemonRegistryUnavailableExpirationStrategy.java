@@ -78,4 +78,3 @@ public class DaemonRegistryUnavailableExpirationStrategy implements DaemonExpira
         return DaemonExpirationResult.NOT_TRIGGERED;
     }
 }
-
