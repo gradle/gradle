@@ -67,11 +67,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             "-Pandroid.injected.invoked.from.ide=$ide"
         )
         when: 'first build'
-        def result = runner
-            .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecation(agpVersion)
-            }
-            .build()
+        def result = runner.build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -87,11 +83,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         }
 
         when: 'up-to-date build'
-        result = runner
-            .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
-            }
-            .build()
+        result = runner.build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.UP_TO_DATE
@@ -106,11 +98,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         when: 'abi change on library'
         abiChange.run()
-        result = runner
-            .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
-            }
-            .build()
+        result = runner.build()
 
         then: 'dependent sources are recompiled'
         result.task(':library:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -124,15 +112,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         }
 
         when: 'clean re-build'
-        agpRunner(agpVersion, 'clean')
-            .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecation(agpVersion)
-            }
-            .build()
-        result = runner
-            .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
-            }.build()
+        agpRunner(agpVersion, 'clean').build()
+        result = runner.build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -343,11 +324,10 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     @Override
     Map<String, Versions> getPluginsToValidate() {
         return [
-            'com.android.application': TestedVersions.androidGradle,
-            'com.android.library': TestedVersions.androidGradle,
-            'com.android.test': TestedVersions.androidGradle,
-            'com.android.reporting': TestedVersions.androidGradleBefore9,
-            'com.android.dynamic-feature': TestedVersions.androidGradle,
+            'com.android.application': TestedVersions.androidGradlePlusNightly,
+            'com.android.library': TestedVersions.androidGradlePlusNightly,
+            'com.android.test': TestedVersions.androidGradlePlusNightly,
+            'com.android.dynamic-feature': TestedVersions.androidGradlePlusNightly,
         ]
     }
 

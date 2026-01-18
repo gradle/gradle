@@ -65,11 +65,8 @@ androidHomeWarmup {
     rootProjectDir = project.layout.projectDirectory.dir("../..")
     sdkVersions.set(
         listOf(
-            // Build-tools 35.0.0 (used by AGP < 9.0)
-            SdkVersion(compileSdk = 36, buildTools = "35.0.0", agpVersion = "8.13.1"),
-
             // Build-tools 36.0.0 (used by AGP >= 9.0)
-            SdkVersion(compileSdk = 36, buildTools = "36.0.0", agpVersion = "9.0.0-beta02"),
+            SdkVersion(compileSdk = 36, buildTools = "36.0.0", agpVersion = "9.0.0"),
         ),
     )
 }

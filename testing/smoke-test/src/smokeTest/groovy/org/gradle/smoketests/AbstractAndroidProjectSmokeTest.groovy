@@ -66,21 +66,15 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildLocation(File projectDir, String agpVersion) {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug", *excludingCCIncompatibleTasks())
-            .deprecations(AndroidProjectDeprecations) {
-                expectMultiStringNotationDeprecation(agpVersion)
-            }
             .build()
     }
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildCachedLocation(File projectDir, String agpVersion) {
         return runnerForLocation(projectDir, agpVersion, "assembleDebug", *excludingCCIncompatibleTasks())
-            .deprecations(AndroidProjectDeprecations) {
-                expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
-            }
             .build()
     }
 
-    static class AndroidProjectDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
+    static class AndroidProjectDeprecations extends BaseDeprecations {
         AndroidProjectDeprecations(SmokeTestGradleRunner runner) {
             super(runner)
         }

@@ -42,7 +42,7 @@ class AndroidProjectDeprecationSmokeTest extends AndroidProjectSmokeTest {
         }
 
         where:
-        agpVersion << TestedVersions.androidGradle9AndAbove.versions
+        agpVersion << TestedVersions.androidGradle.versions
     }
 }
 
@@ -79,7 +79,7 @@ class AndroidProjectIncrementalCompilationSmokeTest extends AndroidProjectSmokeT
         }
 
         where:
-        agpVersion << TestedVersions.androidGradle9AndAbove.versions
+        agpVersion << TestedVersions.androidGradle.versions
     }
 }
 
@@ -98,11 +98,7 @@ class AndroidProjectLintSmokeTest extends AndroidProjectSmokeTest {
         )
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
-        def result = runner
-            .deprecations(AndroidProjectDeprecations) {
-                expectMultiStringNotationDeprecation(agpVersion)
-            }
-            .buildAndFail()
+        def result = runner.buildAndFail()
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
@@ -125,6 +121,6 @@ class AndroidProjectLintSmokeTest extends AndroidProjectSmokeTest {
         result.output.contains("Lint found errors in the project; aborting build.")
 
         where:
-        agpVersion << TestedVersions.androidGradle9AndAbove.versions
+        agpVersion << TestedVersions.androidGradle.versions
     }
 }
