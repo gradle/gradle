@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl.barrier
 
-import org.gradle.StartParameter
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildStateRegistry
@@ -39,7 +38,6 @@ internal class BarrierAwareBuildTreeLifecycleControllerFactory(
     taskGraph: BuildTreeWorkGraphController,
     buildOperationExecutor: BuildOperationExecutor,
     stateTransitionControllerFactory: StateTransitionControllerFactory,
-    startParameter: StartParameter,
     parameterCarrierFactory: ToolingModelParameterCarrier.Factory,
     buildStateRegistry: BuildStateRegistry,
     buildOperationRunner: BuildOperationRunner
@@ -48,7 +46,6 @@ internal class BarrierAwareBuildTreeLifecycleControllerFactory(
     taskGraph,
     buildOperationExecutor,
     stateTransitionControllerFactory,
-    startParameter,
     parameterCarrierFactory,
     buildStateRegistry,
     buildOperationRunner
