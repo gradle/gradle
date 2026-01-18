@@ -19,6 +19,9 @@ package org.gradle.launcher.daemon.toolchain
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration
 import org.gradle.launcher.daemon.ToolchainPropertiesDeprecationsFixture
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+import spock.lang.Issue
 
 class ToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec implements ToolchainPropertiesDeprecationsFixture {
     def "nags when toolchain property is specified as a project property on the command line"() {
@@ -70,6 +73,32 @@ class ToolchainPropertiesIntegrationTest extends AbstractIntegrationSpec impleme
         succeeds("printProperty")
 
         and:
+        outputContains("Project property '${ToolchainConfiguration.AUTO_DETECT}': false")
+        outputContains("Toolchain auto-detect enabled: false")
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/35998')
+    @Requires(IntegTestPreconditions.IsConfigCached)
+    def "does not invalidate CC when when toolchain property is specified as a Gradle property on the command line and unrelated property changes"() {
+        given:
+        def configCache = newConfigurationCacheFixture()
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << printProjectProperty(ToolchainConfiguration.AUTO_DETECT)
+
+        when:
+        args("-D${ToolchainConfiguration.AUTO_DETECT}=false", "-Punrelated=1")
+
+        then:
+        succeeds("printProperty")
+
+        when:
+        args("-D${ToolchainConfiguration.AUTO_DETECT}=false", "-Punrelated=2")
+
+        then:
+        succeeds("printProperty")
+
+        and:
+        configCache.assertStateLoaded()
         outputContains("Project property '${ToolchainConfiguration.AUTO_DETECT}': false")
         outputContains("Toolchain auto-detect enabled: false")
     }

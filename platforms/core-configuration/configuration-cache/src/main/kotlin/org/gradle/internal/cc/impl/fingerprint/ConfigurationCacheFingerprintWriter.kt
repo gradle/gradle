@@ -17,7 +17,6 @@
 package org.gradle.internal.cc.impl.fingerprint
 
 import com.google.common.collect.Sets.newConcurrentHashSet
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.gradle.api.Describable
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
@@ -1028,20 +1027,6 @@ class ConfigurationCacheFingerprintWriter(
             reportGradlePropertyInput(propertyScope, propertyName)
         }
     }
-
-    private
-    fun shouldTrackGradlePropertyInput(
-        keysPerScope: ConcurrentHashMap<GradlePropertyScope, MutableSet<String>>,
-        propertyScope: GradlePropertyScope,
-        propertyKey: String
-    ): Boolean = keysPerScope
-        .computeIfAbsent(propertyScope) {
-            ObjectOpenHashSet()
-        }.let { keys ->
-            synchronized(keys) {
-                keys.add(propertyKey)
-            }
-        }
 
     private
     fun reportGradlePropertyInput(
