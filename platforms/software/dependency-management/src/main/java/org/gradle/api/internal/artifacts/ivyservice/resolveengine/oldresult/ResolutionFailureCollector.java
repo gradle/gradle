@@ -17,29 +17,26 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Describable;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultUnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphPathResolver.calculatePaths;
 
 public class ResolutionFailureCollector implements DependencyGraphVisitor {
 
@@ -76,16 +73,12 @@ public class ResolutionFailureCollector implements DependencyGraphVisitor {
         if (extraFailures.isEmpty() && failuresByRevisionId.isEmpty()) {
             return ImmutableSet.of();
         }
-
         ImmutableSet.Builder<UnresolvedDependency> builder = ImmutableSet.builder();
         builder.addAll(extraFailures);
         for (Map.Entry<ComponentSelector, BrokenDependency> entry : failuresByRevisionId.entrySet()) {
-            Collection<List<Describable>> paths = DependencyGraphPathResolver.calculatePaths(entry.getValue().requiredBy, root, owner);
-
-            ComponentSelector key = entry.getKey();
-            ModuleVersionIdentifier moduleVersionId = componentSelectorConverter.getModuleVersionId(key);
-            ModuleVersionSelector selector = DefaultModuleVersionSelector.newSelector(moduleVersionId);
-            builder.add(new DefaultUnresolvedDependency(selector, entry.getValue().failure.withIncomingPaths(paths)));
+            builder.add(new DefaultUnresolvedDependency(
+                newSelector(componentSelectorConverter.getModuleVersionId(entry.getKey())),
+                entry.getValue().failure.withIncomingPaths(calculatePaths(entry.getValue().requiredBy, root, owner))));
         }
         return builder.build();
     }

@@ -32,6 +32,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Formatter;
 import java.util.List;
+import java.util.Objects;
+
+import static java.util.stream.Collectors.toList;
 
 @Contextual
 public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoStackTrace {
@@ -105,25 +108,30 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
         if (paths.isEmpty()) {
             return super.getMessage();
         }
-        Formatter formatter = new Formatter();
-        formatter.format("%s%nRequired by:", super.getMessage());
-        for (List<Describable> path : paths) {
-            formatter.format("%n    %s", toString(path.get(0)));
+        return getMessage(
+            new Formatter().format("%s%nRequired by:", super.getMessage()),
+            paths.stream().filter(ModuleVersionResolveException::validPath).collect(toList()));
+    }
+
+    private static String getMessage(Formatter formatter, List<List<Describable>> collect) {
+        for (List<Describable> path : collect) {
+            formatter.format("%n    %s", path.get(0).getDisplayName());
             for (int i = 1; i < path.size(); i++) {
-                formatter.format(" > %s", toString(path.get(i)));
+                formatter.format(" > %s", path.get(i).getDisplayName());
             }
         }
         return formatter.toString();
     }
 
-    private String toString(Describable identifier) {
-        return identifier.getDisplayName();
+    private static boolean validPath(List<Describable> p) {
+        return p != null
+            && !p.isEmpty()
+            && p.stream().allMatch(Objects::nonNull);
     }
 
     protected ModuleVersionResolveException createCopy() {
         try {
-            String message = getMessage();
-            return getClass().getConstructor(ComponentSelector.class, Factory.class).newInstance(getSelector(), (Factory<String>) () -> message);
+            return getClass().getConstructor(ComponentSelector.class, Factory.class).newInstance(getSelector(), (Factory<String>) this::getMessage);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
