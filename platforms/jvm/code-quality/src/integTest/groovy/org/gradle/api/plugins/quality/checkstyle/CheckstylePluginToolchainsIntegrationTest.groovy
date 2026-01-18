@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality.checkstyle
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
@@ -183,6 +184,49 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
 
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34759")
+    @Requires(IntegTestPreconditions.Java8HomeAvailable)
+    def "fails with helpful error when using incompatible Java 8 toolchain with Checkstyle 10.x"() {
+        given:
+        goodCode()
+        writeDummyConfig()
+        def java8 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
+        withInstallations(java8)
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'checkstyle'
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(8)
+                }
+            }
+
+            checkstyle {
+                toolVersion = '10.24.0'  // Requires Java 11+, incompatible with Java 8 toolchain
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+        """
+
+        when:
+        fails("checkstyleMain")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
+        failure.assertHasCause("Checkstyle 10.24.0 is not compatible with the configured Java version (Java 8)")
+        failure.assertThatCause(containsString("Use a newer Java toolchain for Checkstyle"))
+        failure.assertThatCause(containsString("tasks.withType(Checkstyle).configureEach"))
+        failure.assertThatCause(containsString("languageVersion = JavaLanguageVersion.of(<appropriate-version>)"))
+        failure.assertThatCause(containsString("Use a Checkstyle version compatible with Java 8"))
+        failure.assertThatCause(containsString("https://checkstyle.org/releasenotes.html"))
     }
 
     Jvm setupExecutorForToolchains() {
