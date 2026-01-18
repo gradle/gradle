@@ -356,10 +356,10 @@ final class PersistentMapTrie<K, V> implements PersistentMap<K, V> {
                 }
             } else {
                 // Entry does not exist
-                int curKeyHash = curKey.hashCode();
-                Object curVal = content[keyIndex + 1];
-                V newVal = f.apply(key, (V) curVal);
+                V newVal = f.apply(key, null);
                 if (newVal != null) {
+                    Object curVal = content[keyIndex + 1];
+                    int curKeyHash = curKey.hashCode();
                     Object newNode = curKeyHash == hash
                         ? new HashCollisionNode(hash, new Object[]{curKey, curVal, key, newVal})
                         : branchOnKeys(key, hash, newVal, curKey, curKeyHash, curVal, shift + BITS, modification);

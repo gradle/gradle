@@ -28,7 +28,7 @@ import java.io.IOException;
  * A thread-safe and reusable serializer for {@link ComponentSelectionDescriptor} if and only if the passed in
  * {@link ComponentSelectionDescriptorFactory} is thread-safe and reusable.
  */
-public class ComponentSelectionDescriptorSerializer implements Serializer<ComponentSelectionDescriptor> {
+public class ComponentSelectionDescriptorSerializer implements Serializer<ComponentSelectionDescriptorInternal> {
 
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
 
@@ -37,7 +37,7 @@ public class ComponentSelectionDescriptorSerializer implements Serializer<Compon
     }
 
     @Override
-    public ComponentSelectionDescriptor read(Decoder decoder) throws IOException {
+    public ComponentSelectionDescriptorInternal read(Decoder decoder) throws IOException {
         ComponentSelectionCause cause = ComponentSelectionCause.values()[decoder.readByte()];
         String desc = decoder.readString();
         String defaultReason = cause.getDefaultReason();
@@ -48,7 +48,7 @@ public class ComponentSelectionDescriptorSerializer implements Serializer<Compon
     }
 
     @Override
-    public void write(Encoder encoder, ComponentSelectionDescriptor value) throws IOException {
+    public void write(Encoder encoder, ComponentSelectionDescriptorInternal value) throws IOException {
         encoder.writeByte((byte) value.getCause().ordinal());
         encoder.writeString(value.getDescription());
     }

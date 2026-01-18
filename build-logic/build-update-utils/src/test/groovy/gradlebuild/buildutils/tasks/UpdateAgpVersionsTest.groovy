@@ -22,6 +22,21 @@ import spock.lang.Specification
 
 class UpdateAgpVersionsTest extends Specification {
 
+    def "selects matching gradle major versions when rc available (minimumSupported=#minimumSupported)"() {
+        given:
+        def gradleVersion = GradleVersion.version("9.2")
+        def allVersions = [
+            "8.8.0", "8.9.0",
+            "9.0.0-alpha01", "9.0.0-beta01", "9.0.0-rc01"
+        ].shuffled()
+
+        when:
+        def selected = UpdateAgpVersions.selectVersionsFrom(gradleVersion, null, allVersions)
+
+        then:
+        selected == ["8.9.0", "9.0.0-rc01"]
+    }
+
     def "selects matching gradle major versions when stable or rc available (minimumSupported=#minimumSupported)"() {
         given:
         def gradleVersion = GradleVersion.version("9.2")

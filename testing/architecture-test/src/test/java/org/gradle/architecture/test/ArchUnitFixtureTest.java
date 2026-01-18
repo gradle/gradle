@@ -18,6 +18,9 @@ package org.gradle.architecture.test;
 
 import com.google.common.collect.ImmutableList;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaConstructor;
+import com.tngtech.archunit.core.domain.JavaField;
+import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
@@ -34,7 +37,6 @@ import org.gradlebuild.nonnullapi.notinpackage.NullMarkedApiType;
 import org.gradlebuild.nonnullapi.notinpackage.NullUnmarkedApiMethod;
 import org.gradlebuild.nonnullapi.notinpackage.NullUnmarkedApiType;
 import org.jspecify.annotations.NullMarked;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -101,15 +103,43 @@ public class ArchUnitFixtureTest {
     public void reports_invalid_array_types_return_type() {
         ConditionEvent event = checkThatHasOnlyAllowedTypes("invalidArrayTypeParameterInReturnType");
 
-        assertHasViolation(event, File[].class);
+        assertHasViolation(event, File.class);
     }
 
     @Test
     public void reports_invalid_generic_type_of_parameter() {
         ConditionEvent event = checkThatMethodHasOnlyAllowedArgumentTypesOrReturnTypes("invalidTypeParameterInParameterType", String.class, List.class);
 
-        // TODO: Should detect the violation
-        Assertions.assertThrows(AssertionError.class, () -> assertHasViolation(event, File.class));
+        assertHasViolation(event, File.class);
+    }
+
+
+    @Test
+    public void does_not_report_valid_constructor_parameters() {
+        ConditionEvent event = checkThatConstructorHasOnlyAllowedArgumentTypesOrReturnTypes(String.class);
+
+        assertNoViolation(event);
+    }
+
+    @Test
+    public void reports_invalid_constructor_parameters() {
+        ConditionEvent event = checkThatConstructorHasOnlyAllowedArgumentTypesOrReturnTypes(File.class);
+
+        assertHasViolation(event, File.class);
+    }
+
+    @Test
+    public void does_not_report_valid_public_field_types() {
+        ConditionEvent event = checkThatFieldHasOnlyAllowedArgumentTypesOrReturnTypes("validFieldType");
+
+        assertNoViolation(event);
+    }
+
+    @Test
+    public void reports_invalid_public_field_types() {
+        ConditionEvent event = checkThatFieldHasOnlyAllowedArgumentTypesOrReturnTypes("invalidFieldType");
+
+        assertHasViolation(event, File.class);
     }
 
     @Test
@@ -216,9 +246,29 @@ public class ArchUnitFixtureTest {
     }
 
     private ConditionEvent checkThatMethodHasOnlyAllowedArgumentTypesOrReturnTypes(String methodName, Class<?>... arguments) {
-        ArchCondition<JavaMethod> archCondition = haveOnlyArgumentsOrReturnTypesThatAre(resideInAnyPackage("java.lang").or(primitive).or(resideInAnyPackage("java.util")).as("allowed"));
+        ArchCondition<JavaMember> archCondition = haveOnlyArgumentsOrReturnTypesThatAre(resideInAnyPackage("java.lang").or(primitive).or(resideInAnyPackage("java.util")).as("allowed"));
         JavaClass javaClass = new ClassFileImporter().importClass(AllowedMethodTypesClass.class);
         JavaMethod validMethod = javaClass.getMethod(methodName, arguments);
+        CollectingConditionEvents events = new CollectingConditionEvents();
+        archCondition.check(validMethod, events);
+        assertThat(events.getAllEvents()).hasSize(1);
+        return events.getAllEvents().iterator().next();
+    }
+
+    private ConditionEvent checkThatConstructorHasOnlyAllowedArgumentTypesOrReturnTypes(Class<?>... arguments) {
+        ArchCondition<JavaMember> archCondition = haveOnlyArgumentsOrReturnTypesThatAre(resideInAnyPackage("java.lang").or(primitive).or(resideInAnyPackage("java.util")).as("allowed"));
+        JavaClass javaClass = new ClassFileImporter().importClass(AllowedMethodTypesClass.class);
+        JavaConstructor validMethod = javaClass.getConstructor(arguments);
+        CollectingConditionEvents events = new CollectingConditionEvents();
+        archCondition.check(validMethod, events);
+        assertThat(events.getAllEvents()).hasSize(1);
+        return events.getAllEvents().iterator().next();
+    }
+
+    private ConditionEvent checkThatFieldHasOnlyAllowedArgumentTypesOrReturnTypes(String name) {
+        ArchCondition<JavaMember> archCondition = haveOnlyArgumentsOrReturnTypesThatAre(resideInAnyPackage("java.lang").or(primitive).or(resideInAnyPackage("java.util")).as("allowed"));
+        JavaClass javaClass = new ClassFileImporter().importClass(AllowedMethodTypesClass.class);
+        JavaField validMethod = javaClass.getField(name);
         CollectingConditionEvents events = new CollectingConditionEvents();
         archCondition.check(validMethod, events);
         assertThat(events.getAllEvents()).hasSize(1);

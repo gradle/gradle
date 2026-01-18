@@ -18,6 +18,7 @@ package org.gradle.docs.releasenotes
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -68,6 +69,7 @@ class StaticReleaseNotesTest extends Specification {
         brokenAnchorLinks.empty
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/35334")
     def "does not use <a> name attribute"() {
         when:
         def links = renderedDocument.select("a")

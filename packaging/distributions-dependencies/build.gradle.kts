@@ -46,7 +46,7 @@ val sshdVersion = "2.15.0"
 val jGitVersion = "7.2.1.202505142326-r"
 
 // test only
-val archunitVersion = "1.2.0"
+val archunitVersion = "1.4.1"
 val bytebuddyVersion = "1.17.5"
 val jettyVersion = "9.4.36.v20210114"
 
@@ -186,7 +186,7 @@ dependencies {
         // compile only
         api(libs.maven3Compat)          { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
         api(libs.maven3PluginApi)       { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
-        api(libs.zinc)                  { version { strictly("1.10.4") } }
+        api(libs.zinc)                  { version { strictly("1.12.0") } }
 
         // test only
         api(libs.aircompressor)         { version { strictly("0.27") }}

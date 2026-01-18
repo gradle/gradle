@@ -32,6 +32,7 @@ public interface CacheConfigurationsInternal extends CacheConfigurations {
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES = 30;
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES = 7;
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES = 7;
+    int DEFAULT_MAX_AGE_IN_DAYS_FOR_DAEMON_LOGS = 14;
 
     @Override
     CacheResourceConfigurationInternal getReleasedWrappers();
@@ -43,6 +44,8 @@ public interface CacheConfigurationsInternal extends CacheConfigurations {
     CacheResourceConfigurationInternal getCreatedResources();
     @Override
     CacheResourceConfigurationInternal getBuildCache();
+    @Override
+    CacheResourceConfigurationInternal getDaemonLogs();
 
     @Override
     Property<Cleanup> getCleanup();

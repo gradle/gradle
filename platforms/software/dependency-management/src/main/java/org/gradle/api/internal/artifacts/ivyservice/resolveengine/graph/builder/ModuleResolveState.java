@@ -26,9 +26,9 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -53,10 +53,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * Resolution state for a given module.
@@ -267,7 +263,7 @@ public class ModuleResolveState implements CandidateModule {
 
     public void removeUnattachedEdge(EdgeState edge) {
         if (unattachedEdges.remove(edge)) {
-            edge.markAttached();
+            edge.markNotUnattached();
         }
     }
 
@@ -344,14 +340,6 @@ public class ModuleResolveState implements CandidateModule {
         return dependencyAttributes;
     }
 
-    public List<ComponentSelectionReasonInternal> getSelectionReasons() {
-        return StreamSupport.stream(
-                Spliterators.spliteratorUnknownSize(selectors.iterator(), Spliterator.ORDERED),
-                false
-            ).map(SelectorState::getSelectionReason)
-            .collect(Collectors.toList());
-    }
-
     Set<EdgeState> getIncomingEdges() {
         Set<EdgeState> incoming = new LinkedHashSet<>();
         if (selected != null) {
@@ -374,8 +362,9 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     void disconnectIncomingEdge(NodeState removalSource, EdgeState incomingEdge) {
-        incomingEdge.clearSelector();
+        // Remove the unattached edge first, as clearing the selector may trigger re-selection and mutate the unattached edge
         removeUnattachedEdge(incomingEdge);
+        incomingEdge.clearSelector();
         if (!incomingEdge.isConstraint()) {
             pendingDependencies.decreaseHardEdgeCount();
             if (pendingDependencies.isPending()) {
@@ -401,7 +390,7 @@ public class ModuleResolveState implements CandidateModule {
     private void clearIncomingUnattachedConstraints(NodeState removalSource) {
         for (EdgeState unattachedEdge : unattachedEdges) {
             disconnectIncomingConstraint(removalSource, unattachedEdge);
-            unattachedEdge.markAttached();
+            unattachedEdge.markNotUnattached();
         }
         unattachedEdges.clear();
     }
@@ -512,23 +501,15 @@ public class ModuleResolveState implements CandidateModule {
         return null;
     }
 
-    /* package */ Set<EdgeState> getAllEdges() {
+    /**
+     * Get all edges targeting this module, including those which were not successfully
+     * attached to a node.
+     */
+    public Set<? extends DependencyGraphEdge> getAllIncomingEdges() {
         Set<EdgeState> allEdges = new LinkedHashSet<>();
         allEdges.addAll(getIncomingEdges());
         allEdges.addAll(getUnattachedEdges());
         return allEdges;
     }
 
-    public Map<SelectorState, List<List<String>>> getSegmentedPathsBySelectors() {
-        return getAllEdges().stream()
-            .collect(Collectors.toMap(
-                EdgeState::getSelector,
-                MessageBuilderHelper::segmentedPathsTo,
-                (a, b) -> {
-                    List<List<String>> combined = new ArrayList<>(a);
-                    combined.addAll(b);
-                    return combined;
-                }
-            ));
-    }
 }

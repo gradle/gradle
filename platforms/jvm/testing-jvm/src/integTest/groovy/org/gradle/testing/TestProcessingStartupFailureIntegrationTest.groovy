@@ -100,6 +100,7 @@ class TestProcessingStartupFailureIntegrationTest extends AbstractIntegrationSpe
 
         failure.assertHasFailure("Execution failed for task ':test'.") {
             it.assertHasCause("Could not execute test class 'MyOtherTest'.")
+            it.assertHasCause("Incompatible magic value 1668248178 in class file MyOtherTest")
         }
         def testResults = new DefaultTestExecutionResult(testDirectory)
         testResults.testClassDoesNotExist("MyOtherTest")

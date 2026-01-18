@@ -31,7 +31,6 @@ import org.jspecify.annotations.NullMarked;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -68,21 +67,22 @@ public class GradleDslBaseScriptModelBuilder implements BuildScopeModelBuilder {
     }
 
     private static ClassPath getKotlinScriptTemplatesClassPath(ModuleRegistry moduleRegistry) {
-        return Stream.of("gradle-core")
-            .map(moduleRegistry::getModule)
-            .flatMap(it -> it.getAllRequiredModules().stream())
-            .flatMap(it -> it.getClasspath().getAsFiles().stream())
-            .filter(GradleDslBaseScriptModelBuilder::isNeededOnScriptTemplateClassPath)
-            .sorted()
-            .reduce(ClassPath.EMPTY, (classPath, file) -> classPath.plus(Collections.singleton(file)), ClassPath::plus);
-    }
+        // TODO: We should allow the ModuleRegistry to generate this list instead of
+        // controlling it manually. We should have a separate project for our script templates,
+        // where its runtime classpath contains only dependencies we want, so when loading the
+        // template module from the registry we get this list auto-generated for us.
+        Stream<String> moduleNames = Stream.of(
+            "gradle-base-services",
+            "gradle-base-services-groovy",
+            "gradle-core-api",
+            "gradle-kotlin-dsl",
+            "gradle-kotlin-dsl-shared-runtime",
+            "gradle-kotlin-dsl-tooling-models",
+            "kotlin-script-runtime"
+        );
 
-    private static boolean isNeededOnScriptTemplateClassPath(File file) {
-        String name = file.getName();
-        if (!name.endsWith(".jar")) {
-            return false;
-        }
-        return name.startsWith("gradle-kotlin-dsl-") || name.startsWith("gradle-core-api-") || name.startsWith("gradle-base-services-") || name.startsWith("kotlin-script-runtime-");
+        return moduleNames.map(name -> moduleRegistry.getModule(name).getImplementationClasspath())
+            .reduce(ClassPath.EMPTY, ClassPath::plus, ClassPath::plus);
     }
 }
 

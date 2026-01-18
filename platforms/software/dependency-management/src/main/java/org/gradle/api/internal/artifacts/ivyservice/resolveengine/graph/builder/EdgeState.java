@@ -17,19 +17,22 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.artifacts.component.ComponentSelectorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
+import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -38,11 +41,18 @@ import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.BY_ANCESTOR;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.CONSTRAINT;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.FORCED;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.REQUESTED;
 
 /**
  * Represents the edges in the dependency graph.
@@ -70,7 +80,6 @@ class EdgeState implements DependencyGraphEdge {
     private ExcludeSpec cachedEdgeExclusions;
     private ExcludeSpec cachedExclusions;
 
-    private @Nullable NodeState resolvedVariant;
     private boolean unattached;
 
     public EdgeState(
@@ -138,8 +147,7 @@ class EdgeState implements DependencyGraphEdge {
         return getSelectedComponent();
     }
 
-    @Override
-    public SelectorState getSelector() {
+    SelectorState getSelector() {
         assert selector != null : "No selector for " + this;
         return selector;
     }
@@ -228,32 +236,25 @@ class EdgeState implements DependencyGraphEdge {
             return;
         }
         if (isConstraint) {
-            List<NodeState> nodes = targetComponent.getNodes();
-            for (NodeState node : nodes) {
-                if (node.isSelected() && !node.isRoot()) {
-                    targetNodes.add(node);
-                }
-            }
-            if (targetNodes.isEmpty()) {
-                // There is a chance we could not attach target configurations previously
-                List<EdgeState> unattachedEdges = targetComponent.getModule().getUnattachedEdges();
-                if (!unattachedEdges.isEmpty()) {
-                    for (EdgeState otherEdge : unattachedEdges) {
-                        if (!otherEdge.isConstraint()) {
-                            otherEdge.attachToTargetNodes();
-                            if (otherEdge.targetNodeSelectionFailure != null) {
-                                // Copy selection failure
-                                this.targetNodeSelectionFailure = otherEdge.targetNodeSelectionFailure;
-                                return;
-                            }
-                            break;
+            // We are a constraint and therefore may have deferred selection and attachment
+            // of some other module/edge. Make sure to attach that deferred edge now that we have
+            // performed selection.
+            List<EdgeState> unattachedEdges = targetComponent.getModule().getUnattachedEdges();
+            if (!unattachedEdges.isEmpty()) {
+                for (EdgeState otherEdge : new ArrayList<>(unattachedEdges)) {
+                    if (!otherEdge.isConstraint()) {
+                        otherEdge.attachToTargetNodes();
+                        if (otherEdge.targetNodeSelectionFailure != null) {
+                            // Copy selection failure
+                            this.targetNodeSelectionFailure = otherEdge.targetNodeSelectionFailure;
+                            return;
                         }
                     }
                 }
-                for (NodeState node : nodes) {
-                    if (node.isSelected() && !node.isRoot()) {
-                        targetNodes.add(node);
-                    }
+            }
+            for (NodeState node : targetComponent.getNodes()) {
+                if (node.isSelected() && !node.isRoot()) {
+                    targetNodes.add(node);
                 }
             }
             return;
@@ -329,6 +330,11 @@ class EdgeState implements DependencyGraphEdge {
         );
 
         return new GraphVariantSelectionResult(legacyVariants, false);
+    }
+
+    @Override
+    public boolean isFromLock() {
+        return dependencyState.isFromLock();
     }
 
     public static class GraphVariantSelectionResult {
@@ -420,67 +426,85 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public Long getSelected() {
-        return getSelectedComponent().getResultId();
+    public long getTargetComponentId() {
+        NodeState targetNode = getFirstTargetNode();
+        if (targetNode != null) {
+            return targetNode.getComponent().getResultId();
+        }
+        throw new IllegalStateException("No target component for edge " + this);
     }
 
     @Override
     public boolean isTargetVirtualPlatform() {
-        ComponentState selectedComponent = getSelectedComponent();
-        return selectedComponent != null && selectedComponent.getModule().isVirtualPlatform();
+        NodeState targetNode = getFirstTargetNode();
+        if (targetNode != null) {
+            return targetNode.getComponent().getModule().isVirtualPlatform();
+        }
+        return false;
     }
 
-    @Nullable
     @Override
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public Long getSelectedVariant() {
-        NodeState node = getSelectedNode();
-        if (node == null) {
-            return null;
-        } else {
-            assert node.getComponent() == getSelectedComponent();
-            return node.getNodeId();
+    public long getTargetVariantId() {
+        NodeState targetNode = getFirstTargetNode();
+        if (targetNode != null) {
+            return targetNode.getNodeId();
         }
+        throw new IllegalStateException("No target variant for edge " + this);
     }
 
     public Collection<NodeState> getTargetNodes() {
         return targetNodes;
     }
 
-    @Nullable
-    public NodeState getSelectedNode() {
-        if (resolvedVariant != null) {
-            return resolvedVariant;
-        }
-
-        List<NodeState> targetNodes = this.targetNodes;
+    public @Nullable NodeState getFirstTargetNode() {
         if (targetNodes.isEmpty()) {
-            // TODO: This code is not correct. At the end of graph traversal,
-            // all edges that are part of the graph should have target nodes.
-            // Going to the target component and grabbing all of its nodes
-            // is certainly not the right thing to do here.
-            ComponentState targetComponent = getTargetComponent();
-            if (targetComponent != null) {
-                targetNodes = targetComponent.getNodes();
-            }
+            return null;
         }
 
-        assert !targetNodes.isEmpty();
-
-        for (NodeState targetNode : targetNodes) {
-            // TODO: The target node should _always_ be selected. By definition, since we are an edge
-            // and the node is our target, the node is selected.
-            if (targetNode.isSelected()) {
-                resolvedVariant = targetNode;
-                return resolvedVariant;
-            }
-        }
-        return null;
+        return targetNodes.get(0);
     }
 
     @Override
-    public ComponentSelectionReason getReason() {
-        return selector.getSelectionReason();
+    public ComponentSelectionReasonInternal getReason() {
+        ImmutableSet.Builder<ComponentSelectionDescriptorInternal> dependencyReasons = ImmutableSet.builderWithExpectedSize(4);
+        visitSelectionReasons(dependencyReasons::add);
+        return ComponentSelectionReasons.of(dependencyReasons.build());
+    }
+
+    @Override
+    public void visitSelectionReasons(Consumer<ComponentSelectionDescriptorInternal> visitor) {
+        visitor.accept(getMainReason());
+
+        ImmutableList<ComponentSelectionDescriptorInternal> ruleDescriptors = dependencyState.getRuleDescriptors();
+        if (!ruleDescriptors.isEmpty()) {
+            ruleDescriptors.forEach(visitor);
+        }
+
+        if (dependencyState.isForced()) {
+            visitor.accept(FORCED);
+        }
+    }
+
+    private ComponentSelectionDescriptorInternal getMainReason() {
+        if (selector != null && selector.isVersionProvidedByAncestor()) {
+            return withDependencyReason(BY_ANCESTOR);
+        } else if (dependencyState.getDependency().isConstraint()) {
+            return withSelectorReason(withDependencyReason(CONSTRAINT));
+        } else {
+            return withSelectorReason(withDependencyReason(REQUESTED));
+        }
+    }
+
+    private ComponentSelectionDescriptorInternal withDependencyReason(ComponentSelectionDescriptorInternal dependencyDescriptor) {
+        String reason = dependencyState.getDependency().getReason();
+        if (reason != null) {
+            dependencyDescriptor = dependencyDescriptor.withDescription(Describables.of(reason));
+        }
+        return dependencyDescriptor;
+    }
+
+    private ComponentSelectionDescriptorInternal withSelectorReason(ComponentSelectionDescriptorInternal descriptor) {
+        return selector == null ? descriptor : selector.maybeEnhanceReason(descriptor);
     }
 
     @Override
@@ -533,7 +557,7 @@ class EdgeState implements DependencyGraphEdge {
         this.unattached = true;
     }
 
-    public void markAttached() {
+    public void markNotUnattached() {
         this.unattached = false;
     }
 

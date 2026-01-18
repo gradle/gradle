@@ -30,6 +30,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.slf4jApi)
+    compileOnly(libs.jspecify)
 
     implementation(projects.internalInstrumentationApi)
 }

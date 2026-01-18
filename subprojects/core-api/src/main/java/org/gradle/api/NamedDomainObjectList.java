@@ -66,5 +66,6 @@ public interface NamedDomainObjectList<T> extends NamedDomainObjectCollection<T>
      * {@inheritDoc}
      */
     @Override
+    @Deprecated
     List<T> findAll(Closure spec);
 }

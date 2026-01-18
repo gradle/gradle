@@ -128,7 +128,7 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     Configuration setVisible(boolean visible);
 
     /**
-     * Returns the names of the configurations which this configuration extends from. The artifacts of the super
+     * Returns the configurations which this configuration extends from. The artifacts of the super
      * configurations are also available in this configuration.
      *
      * @return The super configurations. Returns an empty set when this configuration does not extend any others.
@@ -154,6 +154,19 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * @return this configuration
      */
     Configuration extendsFrom(Configuration... superConfigs);
+
+    /**
+     * Adds the given configurations to the set of configuration which this configuration extends from.
+     * <p>
+     * Configurations are only allowed to extend from other configurations in the same project.
+     *
+     * @param superConfigs The super configurations.
+     * @return this configuration
+     *
+     * @since 9.4.0
+     */
+    @Incubating
+    Configuration extendsFrom(Provider<? extends Configuration> superConfigs);
 
     /**
      * Returns the transitivity of this configuration. A transitive configuration contains the transitive closure of its

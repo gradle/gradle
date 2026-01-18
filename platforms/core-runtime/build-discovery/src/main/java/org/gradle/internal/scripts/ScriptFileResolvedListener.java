@@ -18,13 +18,13 @@ package org.gradle.internal.scripts;
 
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
-@ServiceScope(Scope.Global.class)
+/**
+ * Registered through {@link ScriptFileResolverListeners}. These events are not sent through {@code ListenerManager}.
+ */
 @EventScope(Scope.Global.class)
 public interface ScriptFileResolvedListener {
-
     void onScriptFileResolved(File scriptFile);
 }

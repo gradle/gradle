@@ -19,6 +19,7 @@ package org.gradle.internal.logging.sink;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.config.LoggingRouter;
@@ -147,9 +148,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     @Override
-    public void attachProcessConsole(ConsoleOutput consoleOutput) {
+    public void attachProcessConsole(ConsoleOutput consoleOutput, ConsoleUnicodeSupport consoleUnicodeSupport) {
         synchronized (lock) {
-            ConsoleConfigureAction.execute(this, consoleOutput);
+            ConsoleConfigureAction.execute(this, consoleOutput, consoleUnicodeSupport);
         }
     }
 

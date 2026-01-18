@@ -344,6 +344,52 @@ class PersistentMapTest extends Specification {
         map << [PersistentMap.of(), PersistentMap.of("key", "value"), PersistentMap.of("key", "value").assoc("a", "1")]
     }
 
+    def 'modify with hash collisions'() {
+        given:
+        // A few sibling keys (in the 0xFF range)
+        def key1 = new HashCollision(0)
+        def key2 = new HashCollision(17)
+        def key3 = new HashCollision(32)
+        def collision = new HashCollision(0)
+        def map = PersistentMap.of(key1, "key1").assoc(key2, "key2")
+
+        when:
+        def valuePassedToFunction = "not null"
+        map = map.modify(key3, { k, v ->
+            valuePassedToFunction = v
+            "key3"
+        })
+
+        then:
+        valuePassedToFunction == null
+
+        when:
+        valuePassedToFunction = "not null"
+        map = map.modify(collision, { k, v ->
+            valuePassedToFunction = v
+            "collision"
+        })
+
+        then:
+        valuePassedToFunction == null
+
+        when:
+        map = map.modify(key1, { k, v ->
+            valuePassedToFunction = v
+            return "key1*"
+        })
+
+        then:
+        valuePassedToFunction == "key1"
+
+        and:
+        map == PersistentMap.of()
+            .assoc(key1, "key1*")
+            .assoc(key2, "key2")
+            .assoc(key3, "key3")
+            .assoc(collision, "collision")
+    }
+
     def 'dissoc is inverse to assoc'() {
         given:
         def random = new Random(42)

@@ -252,6 +252,39 @@ java {
 If your build uses a toolchain, ensure it matches the `JAVA_HOME` value, or at least know they differ intentionally.
 You should also check your IDE settings to make sure they match as well.
 
+[[sec:daemon_logs]]
+== Daemon Logs
+
+The Gradle Daemon writes detailed log files to help diagnose build issues and understand daemon behavior.
+
+These logs are stored in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home>> directory under `daemon/<gradle-version>/`:
+
+[source,text]
+----
+~/.gradle/daemon/9.4.0/
+├── daemon-<pid>.out.log
+├── daemon-<pid>.out.log
+└── registry.bin
+----
+
+Each daemon process creates its own log file named `daemon-<pid>.out.log`, where `<pid>` is the process ID of that daemon instance.
+
+[[sec:daemon_log_cleanup]]
+=== Automatic Log Cleanup
+
+Gradle automatically cleans up old daemon logs to prevent the daemon directory from growing indefinitely.
+
+By default, daemon logs older than 14 days are deleted during build execution as part of Gradle's periodic cache cleanup.
+This cleanup runs alongside other <<directory_layout.adoc#dir:gradle_user_home:cache_cleanup,cache cleanup operations>>.
+
+The cleanup is triggered during builds:
+
+- In the background between builds when using the daemon (default behavior)
+- In the foreground after the build when using `--no-daemon`
+
+The 14-day retention period for daemon logs can be configured via an <<init_scripts.adoc#init_scripts,init script>>, just like other cache retention periods.
+See <<directory_layout.adoc#dir:gradle_user_home:configure_cache_cleanup,Configuring cleanup of caches and distributions>> for configuration examples.
+
 [[sec:configuring_daemon_jvm]]
 == Daemon JVM Toolchains
 

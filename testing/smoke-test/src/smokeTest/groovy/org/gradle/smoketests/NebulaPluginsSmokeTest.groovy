@@ -70,7 +70,7 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         """
 
         then:
-        runner('groovydoc', '-s').build()
+        runner('groovydoc', '-s').expectDeprecationWarning("The DomainObjectCollection.findAll(Closure) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#findAll_removal", "https://github.com/nebula-plugins/gradle-info-plugin/issues/115").build()
     }
 
     @Ignore("https://github.com/nebula-plugins/gradle-lint-plugin/issues/417")

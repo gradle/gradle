@@ -18,6 +18,7 @@ package org.gradle.internal.logging;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
@@ -30,6 +31,7 @@ import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,6 +46,7 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         new LogLevelOption(),
         new StacktraceOption(),
         new ConsoleOption(),
+        new ConsoleUnicodeOption(),
         new WarningsOption()
     );
 
@@ -191,6 +194,28 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
             try {
                 ConsoleOutput consoleOutput = ConsoleOutput.valueOf(consoleValue);
                 settings.setConsoleOutput(consoleOutput);
+            } catch (IllegalArgumentException e) {
+                origin.handleInvalidValue(value);
+            }
+        }
+    }
+
+    @NullMarked
+    public static class ConsoleUnicodeOption extends StringBuildOption<LoggingConfiguration> {
+        public static final String LONG_OPTION = "console-unicode";
+        public static final String GRADLE_PROPERTY = "org.gradle.console.unicode";
+
+        public ConsoleUnicodeOption() {
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies which character types are allowed in console output to generate. Values are 'auto' (default), 'disable' or 'enable'."));
+        }
+
+        @Override
+        public void applyTo(String value, LoggingConfiguration settings, Origin origin) {
+            String normalized = value.toLowerCase(Locale.ROOT);
+            String consoleValue = TextUtil.capitalize(normalized);
+            try {
+                ConsoleUnicodeSupport consoleUnicodeSupport = ConsoleUnicodeSupport.valueOf(consoleValue);
+                settings.setConsoleUnicodeSupport(consoleUnicodeSupport);
             } catch (IllegalArgumentException e) {
                 origin.handleInvalidValue(value);
             }

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeEverything;
@@ -27,10 +26,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdSetExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
+import org.gradle.internal.collect.PersistentSet;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Set;
 
 public class DefaultExcludeFactory implements ExcludeFactory {
     @Override
@@ -60,22 +58,22 @@ public class DefaultExcludeFactory implements ExcludeFactory {
 
     @Override
     public ExcludeSpec anyOf(ExcludeSpec one, ExcludeSpec two) {
-        return DefaultExcludeAnyOf.of(ImmutableSet.of(one, two));
+        return DefaultExcludeAnyOf.of(PersistentSet.of(one, two));
     }
 
     @Override
     public ExcludeSpec allOf(ExcludeSpec one, ExcludeSpec two) {
-        return DefaultExcludeAllOf.of(ImmutableSet.of(one, two));
+        return DefaultExcludeAllOf.of(PersistentSet.of(one, two));
     }
 
     @Override
-    public ExcludeSpec anyOf(Set<ExcludeSpec> specs) {
-        return DefaultExcludeAnyOf.of(ImmutableSet.copyOf(specs));
+    public ExcludeSpec anyOf(PersistentSet<ExcludeSpec> specs) {
+        return DefaultExcludeAnyOf.of(specs);
     }
 
     @Override
-    public ExcludeSpec allOf(Set<ExcludeSpec> specs) {
-        return DefaultExcludeAllOf.of(ImmutableSet.copyOf(specs));
+    public ExcludeSpec allOf(PersistentSet<ExcludeSpec> specs) {
+        return DefaultExcludeAllOf.of(specs);
     }
 
     @Override
@@ -84,17 +82,17 @@ public class DefaultExcludeFactory implements ExcludeFactory {
     }
 
     @Override
-    public ModuleIdSetExclude moduleIdSet(Set<ModuleIdentifier> modules) {
+    public ModuleIdSetExclude moduleIdSet(PersistentSet<ModuleIdentifier> modules) {
         return DefaultModuleIdSetExclude.of(modules);
     }
 
     @Override
-    public GroupSetExclude groupSet(Set<String> groups) {
+    public GroupSetExclude groupSet(PersistentSet<String> groups) {
         return new DefaultGroupSetExclude(groups);
     }
 
     @Override
-    public ModuleSetExclude moduleSet(Set<String> modules) {
+    public ModuleSetExclude moduleSet(PersistentSet<String> modules) {
         return new DefaultModuleSetExclude(modules);
     }
 }

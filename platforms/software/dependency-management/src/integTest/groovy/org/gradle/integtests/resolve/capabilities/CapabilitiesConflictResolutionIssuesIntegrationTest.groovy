@@ -113,7 +113,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             resolve.expectGraph {
                 root(":", ":test:") {
                     edge("org.hamcrest:hamcrest-core:2.2", "org.hamcrest:hamcrest:2.2") {
-                        notRequested()
                         byConflictResolution('Explicit selection of org.hamcrest:hamcrest:2.2 variant runtime')
                     }
                 }
@@ -165,7 +164,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             resolve.expectGraph {
                 root(":", ":test:") {
                     edge("org:parent:2.2", "org:child:2.2") {
-                        notRequested()
                         byConflictResolution('Explicit selection of org:child:2.2 variant runtime')
                     }
                 }
@@ -227,7 +225,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             resolve.expectGraph {
                 root(":", ":test:") {
                     edge("org:A:1.0", "org:B:1.0") {
-                        notRequested()
                         byConflictResolution("Explicit selection of org:B:1.0 variant runtime")
                     }
                     module("org:x:1.0") {
@@ -902,7 +899,8 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         fails(':checkDeps')
 
         then:
-        failure.assertHasCause("Component is the target of multiple version constraints with conflicting requirements")
+        failure.assertHasCause("Module 'org.slf4j:slf4j-simple' has been rejected")
+        failure.assertHasCause("Module 'org.apache.logging.log4j:log4j-slf4j2-impl' has been rejected")
     }
 
     @UnsupportedWithConfigurationCache(because = "Uses allDependencies")

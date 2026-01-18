@@ -17,6 +17,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.daemonLogging)
     api(projects.daemonProtocol)
     api(projects.enterpriseLogging)
     api(projects.execution)
@@ -69,6 +70,10 @@ dependencies {
     runtimeOnly(libs.commonsIo)
     runtimeOnly(libs.commonsLang)
     runtimeOnly(libs.slf4jApi)
+
+    runtimeOnly(projects.kotlinDsl) {
+        because("KotlinScriptPluginFactory is loaded dynamically at runtime by ScriptPluginFactorySelector")
+    }
 
     // The wrapper expects the launcher Jar to have classpath entries that contain the main class and its runtime classpath
     manifestClasspath(projects.gradleCliMain)

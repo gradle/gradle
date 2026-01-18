@@ -30,7 +30,7 @@ class TestNGPreserveOrderIntegrationTest extends MultiVersionIntegrationSpec {
             dependencies { testImplementation 'org.testng:testng:$version' }
             test {
                 useTestNG { preserveOrder = true }
-                onOutput { test, event -> print "\$event.message" }
+                addTestOutputListener { test, event -> print "\$event.message" }
             }
         """
 

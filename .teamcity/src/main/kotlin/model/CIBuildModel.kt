@@ -14,6 +14,7 @@ import common.toCapitalized
 import configurations.BuildDistributions
 import configurations.BuildLogicTest
 import configurations.CheckLinks
+import configurations.CheckRemoteProjectRef
 import configurations.CheckTeamCityKotlinDSL
 import configurations.CompileAll
 import configurations.DocsTestType
@@ -142,6 +143,7 @@ data class CIBuildModel(
                         SpecificBuild.Gradleception,
                         SpecificBuild.CheckLinks,
                         SpecificBuild.CheckTeamCityKotlinDSL,
+                        SpecificBuild.CheckRemoteProjectRef,
                         SpecificBuild.SmokeTestsMaxJavaVersion,
                         SpecificBuild.ConfigCacheAndroidProjectSmokeTests,
                         SpecificBuild.GradleBuildSmokeTests,
@@ -541,7 +543,7 @@ enum class TestType(
     ALL_VERSIONS_INTEG_MULTI_VERSION(false, true, false),
     PARALLEL(false, true, false),
 
-    NO_DAEMON(false, true, false, 360),
+    NO_DAEMON(false, true, false, 470),
     CONFIG_CACHE(false, true, false),
     ISOLATED_PROJECTS(false, true, false),
     SOAK(false, false, false),
@@ -653,6 +655,13 @@ enum class SpecificBuild {
             stage: Stage,
             flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType = CheckTeamCityKotlinDSL(model, stage)
+    },
+    CheckRemoteProjectRef {
+        override fun create(
+            model: CIBuildModel,
+            stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
+        ): OsAwareBaseGradleBuildType = CheckRemoteProjectRef(model, stage)
     },
     TestPerformanceTest {
         override fun create(

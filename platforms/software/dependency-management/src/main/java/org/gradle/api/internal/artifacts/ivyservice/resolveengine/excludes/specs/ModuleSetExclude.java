@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs;
 
-import java.util.Set;
+import org.gradle.internal.collect.PersistentSet;
 
 public interface ModuleSetExclude extends ExcludeSpec {
-    Set<String> getModules();
+    PersistentSet<String> getModules();
 }

@@ -53,6 +53,18 @@ Both Basic authentication and Bearer token authentication can now be configured 
 
 See the [Wrapper documentation](userguide/gradle_wrapper.html#sec:authenticated_download) for further details.  
 
+### Enhanced terminal progress bars
+
+Gradle's progress bars are now more compatible with modern terminal environments:
+Unicode characters are now used to render the progress bar where supported.
+* Ligature-Safe Rendering: Progress bars no longer interfere with ligature fonts, ensuring a clean visual experience.
+* Unicode Support: High-resolution Unicode characters are now used for rendering whenever the terminal supports them.
+* Native Terminal Integration: Added support for OSC 9;4 escape sequences. This allows native progress bar display in terminals like [Ghostty](https://ghostty.org/) and [iTerm2 >3.6.6](https://iterm2.com/).
+OSC 9;4 progress bar codes are now supported.
+This allows the progress bars to be displayed correctly on terminals that support them.
+
+![gradle-progress-bar-new.gif](release-notes-assets/gradle-progress-bar-new.gif)
+
 ### Problems HTML report refinements
 
 The incubating Problems HTML report has been refined to provide a more useful user experience.
@@ -64,6 +76,9 @@ Everything is sorted alphabetically and by location.
 Problem details are displayed with a monospaced font to preserve the alignment of multi-line messages.
 Duplicate information is reduced across the board for a better readability.
 The size of the report file is reduced.
+
+Printing a link to the report at the end of the build can now be influenced via the `org.gradle.warning.mode` Gradle property.
+If the mode is set to `none`, the report is still generated but a link is omitted from the build output.
 
 ### Test Metadata Logging
 
@@ -87,6 +102,8 @@ This addition enables support for additional JUnit Platform features, and allows
 ### Daemon logging improvements
 
 Daemon logs older than 14 days are now automatically cleaned up when the daemon shuts down, eliminating the need for manual cleanup.
+
+See the [daemon documentation](userguide/gradle_daemon.html#sec:daemon_log_cleanup) for more details.
 
 ### POM exclusion importing
 
@@ -121,6 +138,42 @@ dependencies {
 }
 ```
 
+### `Configuration.extendsFrom` accepts `Provider`s 
+
+Previously, calling `extendsFrom()` on a `Configuration` required the specified parent configuration to be a realized `Configuration` object.  
+It is now possible to specify a `Provider<Configuration>` instead, which does not require that a registered configuration be realized before specifying it as a parent configuration.
+
+```kotlin
+configurations {
+    val parent = dependencyScope("parent")
+    val child = resolvable("child") {
+        extendsFrom(parent) // previously required 'parent.get()'
+    }
+```
+
+### Support for CSV, Code Climate, and SARIF reports in the PMD plugin
+The [PMD plugin](userguide/pmd_plugin.html) now supports generating reports in CSV, Code Climate, and SARIF formats in addition to the existing XML and HTML formats.
+
+They are not enabled by default, but can be configured as follows:
+```kotlin
+// Note that report configuration must be done on the `Pmd` task (here `pmdMain`), not the `pmd` extension.
+tasks.pmdMain {
+    reports {
+        csv.required = true
+        // Optional, defaults to "<project dir>/build/reports/pmd/main.csv"
+        csv.outputLocation = layout.buildDirectory.file("reports/my-custom-pmd-report.csv")
+        
+        codeClimate.required = true
+        // Optional, defaults to "<project dir>/build/reports/pmd/main.codeclimate.json"
+        codeClimate.outputLocation = layout.buildDirectory.file("reports/my-custom-codeclimate-pmd-report.json")
+        
+        sarif.required = true
+        // Optional, defaults to "<project dir>/build/reports/pmd/main.sarif.json"
+        sarif.outputLocation = layout.buildDirectory.file("reports/my-custom-sarif-pmd-report.json")
+    }
+}
+```
+
 ## Plugin development
 
 ### Stricter validation for published plugins
@@ -135,6 +188,23 @@ tasks.validatePlugins {
     enableStricterValidation = true
 }
 ```
+
+### Simpler plugin registration
+
+Plugin builds that use the `java-gradle-plugin` can now register each plugin with less ceremony.
+The plugin ID is now set to the registration's name by default:
+
+```kotlin
+gradlePlugin {
+    plugins {
+        register("my.plugin-id") {
+            implementationClass = "my.PluginClass"
+        }
+    }
+}
+```
+
+See the [Java Gradle Plugin](userguide/java_gradle_plugin.html#sec:gradle_plugin_dev_usage) plugin documentation for more information.
 
 ## Tooling integration improvements
 
@@ -204,6 +274,14 @@ For Wistia, contact Gradle's Video Team.
 ==========================================================
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
+
+### Support for Java 26
+
+With this release, Gradle supports [Java 26](https://openjdk.org/projects/jdk/26/).
+This means you can now use Java 26 for the [daemon](userguide/gradle_daemon.html) in addition to [toolchains](userguide/toolchains.html).
+Third-party tool compatibility with Java 26 may still be limited.
+
+See [the compatibility documentation](userguide/compatibility.html#java_runtime) for more details.
 
 
 ### Non-Class Based Testing
@@ -309,6 +387,40 @@ In the JUnit XML report, the data is represented as:
 - `FileEntry` values as `[[ATTACHMENT|/path/to/file]]`, following conventions used by Jenkins, Azure Pipelines, and GitLab
 
 This information is captured for both class-based and non-class-based tests, and includes data published during test construction as well as setup/teardown phases.
+
+<a id="config-cache"></a>
+## Configuration Cache improvements
+
+The [Configuration Cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing it for subsequent builds. This feature can significantly improve build performance.
+
+### Clearer Attribution for Closures and Lambdas
+
+Identifying the source of configuration cache violations can be challenging when a task contains multiple lambdas or closures.
+Common examples include task actions like `doFirst`/`doLast`, or task predicates such as `onlyIf`, `upToDateWhen`, and `cacheIf`/`doNotCacheIf`. 
+Previously, if one of these closures captured an unsupported type (such as a reference to the enclosing script), the [problem report](userguide/reporting_problems.html#sec:generated_html_report) was often ambiguous:
+
+```kotlin
+fun myFalse() = false
+
+fun noOp() { } 
+
+tasks.register("myTask") {
+    outputs.cacheIf { myFalse() }
+    outputs.doNotCacheIf("reason") { myFalse() }
+    outputs.upToDateWhen { myFalse() }
+    onlyIf { myFalse() }
+    doLast { noOp() }
+}
+```    
+
+In earlier versions, the report would reference a cryptic generated class name, leaving you to guess which specific block was the culprit:
+
+![before-action-attribution-in-cc-report.png](release-notes-assets/before-action-attribution-in-cc-report.png)
+
+Starting with this release, the [Configuration Cache report](userguide/configuration_cache_debugging.html#config_cache:troubleshooting) now explicitly identifies the type of action or spec associated with each lambda. 
+This provides the necessary context to pinpoint and fix the violation immediately:
+
+![action-attribution-in-cc-report.png](release-notes-assets/action-attribution-in-cc-report.png)
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

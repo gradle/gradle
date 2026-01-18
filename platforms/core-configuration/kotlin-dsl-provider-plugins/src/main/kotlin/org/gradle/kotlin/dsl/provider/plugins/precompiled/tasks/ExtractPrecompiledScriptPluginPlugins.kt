@@ -36,7 +36,6 @@ import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.scriptPluginFilesOf
-import org.gradle.kotlin.dsl.support.KotlinScriptType
 import java.io.File
 
 
@@ -83,10 +82,7 @@ fun extractPrecompiledScriptPluginPluginsTo(outputDir: File, scriptPlugins: List
 
 private
 fun pluginsBlockOf(scriptPlugin: PrecompiledScriptPlugin): Program.Plugins? =
-    when (scriptPlugin.scriptType) {
-        KotlinScriptType.PROJECT -> pluginsBlockOf(parse(scriptPlugin))
-        else -> null
-    }
+    pluginsBlockOf(parse(scriptPlugin))
 
 
 private

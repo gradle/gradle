@@ -477,11 +477,6 @@ public class StaticInnerTest {
             dependencies {
                 testImplementation 'org.junit.platform:junit-platform-engine:${LATEST_PLATFORM_VERSION}'
             }
-            test {
-                afterSuite { descriptor, result ->
-                    println("afterSuite: \$descriptor -> \$result")
-                }
-            }
         """
         file('src/test/java/EngineFailingExecution.java') << '''
             import org.junit.platform.engine.*;
@@ -515,6 +510,5 @@ public class StaticInnerTest {
 
         then:
         failureCauseContains('There were failing tests.')
-        outputContains("afterSuite: Test class engine_EngineFailingExecution -> FAILURE")
     }
 }

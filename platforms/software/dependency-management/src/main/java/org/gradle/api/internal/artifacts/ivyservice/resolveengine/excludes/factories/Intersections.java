@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeAnyOf;
@@ -27,14 +26,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdSetExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
+import org.gradle.internal.collect.PersistentSet;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-
-import static java.util.stream.Collectors.toSet;
 
 @NullMarked
 class Intersections {
@@ -96,19 +93,17 @@ class Intersections {
 
         @Override
         public ExcludeSpec doIntersect(ExcludeAnyOf left, ExcludeAnyOf right, ExcludeFactory factory) {
-            Set<ExcludeSpec> leftComponents = left.getComponents();
-            Set<ExcludeSpec> rightComponents = right.getComponents();
-            Set<ExcludeSpec> common = Sets.newHashSet(leftComponents);
-            common.retainAll(rightComponents);
+            PersistentSet<ExcludeSpec> leftComponents = left.getComponents();
+            PersistentSet<ExcludeSpec> rightComponents = right.getComponents();
+
+            PersistentSet<ExcludeSpec> common = leftComponents.intersect(rightComponents);
             if (!common.isEmpty()) {
                 ExcludeSpec alpha = factory.fromUnion(common);
                 if (leftComponents.equals(common) || rightComponents.equals(common)) {
                     return alpha;
                 }
-                Set<ExcludeSpec> remainderLeft = Sets.newHashSet(leftComponents);
-                remainderLeft.removeAll(common);
-                Set<ExcludeSpec> remainderRight = Sets.newHashSet(rightComponents);
-                remainderRight.removeAll(common);
+                PersistentSet<ExcludeSpec> remainderLeft = leftComponents.except(common);
+                PersistentSet<ExcludeSpec> remainderRight = rightComponents.except(common);
 
                 ExcludeSpec unionLeft = factory.fromUnion(remainderLeft);
                 ExcludeSpec unionRight = factory.fromUnion(remainderRight);
@@ -117,7 +112,7 @@ class Intersections {
             } else {
                 // slowest path, full distribution
                 // (A ∪ B) ∩ (C ∪ D) = (A ∩ C) ∪ (A ∩ D) ∪ (B ∩ C) ∪ (B ∩ D)
-                Set<ExcludeSpec> intersections = Sets.newHashSetWithExpectedSize(leftComponents.size() * rightComponents.size());
+                PersistentSet<ExcludeSpec> intersections = PersistentSet.of();
                 for (ExcludeSpec leftSpec : leftComponents) {
                     for (ExcludeSpec rightSpec : rightComponents) {
                         ExcludeSpec merged = tryIntersect(leftSpec, rightSpec);
@@ -125,7 +120,7 @@ class Intersections {
                             merged = factory.allOf(leftSpec, rightSpec);
                         }
                         if (!(merged instanceof ExcludeNothing)) {
-                            intersections.add(merged);
+                            intersections = intersections.plus(merged);
                         }
                     }
                 }
@@ -142,11 +137,10 @@ class Intersections {
         @Override
         @Nullable
         public ExcludeSpec doIntersect(ExcludeAnyOf left, ExcludeSpec right, ExcludeFactory factory) {
-            Set<ExcludeSpec> leftComponents = left.getComponents();
             // Here, we will distribute A ∩ (B ∪ C) if, and only if, at
             // least one of the distribution operations (A ∩ B) can be simplified
-            ExcludeSpec[] excludeSpecs = leftComponents.toArray(new ExcludeSpec[0]);
-            ExcludeSpec[] intersections = null;
+            ExcludeSpec[] excludeSpecs = left.getComponents().toArray(new ExcludeSpec[0]);
+            @Nullable ExcludeSpec[] intersections = null;
             for (int i = 0; i < excludeSpecs.length; i++) {
                 ExcludeSpec excludeSpec = tryIntersect(excludeSpecs[i], right);
                 if (excludeSpec != null) {
@@ -157,16 +151,16 @@ class Intersections {
                 }
             }
             if (intersections != null) {
-                Set<ExcludeSpec> simplified = Sets.newHashSetWithExpectedSize(excludeSpecs.length);
+                PersistentSet<ExcludeSpec> simplified = PersistentSet.of();
                 for (int i = 0; i < intersections.length; i++) {
                     ExcludeSpec intersection = intersections[i];
                     if (intersection instanceof ExcludeNothing) {
                         continue;
                     }
                     if (intersection != null) {
-                        simplified.add(intersection);
+                        simplified = simplified.plus(intersection);
                     } else {
-                        simplified.add(factory.allOf(excludeSpecs[i], right));
+                        simplified = simplified.plus(factory.allOf(excludeSpecs[i], right));
                     }
                 }
                 return factory.fromUnion(simplified);
@@ -219,7 +213,7 @@ class Intersections {
         @Override
         public ExcludeSpec doIntersect(GroupExclude left, GroupSetExclude right, ExcludeFactory factory) {
             String group = left.getGroup();
-            if (right.getGroups().stream().anyMatch(g -> g.equals(group))) {
+            if (right.getGroups().anyMatch(g -> g.equals(group))) {
                 return left;
             }
             return factory.nothing();
@@ -234,7 +228,7 @@ class Intersections {
         @Override
         public ExcludeSpec doIntersect(GroupExclude left, ModuleIdSetExclude right, ExcludeFactory factory) {
             String group = left.getGroup();
-            Set<ModuleIdentifier> moduleIds = right.getModuleIds().stream().filter(id -> id.getGroup().equals(group)).collect(toSet());
+            PersistentSet<ModuleIdentifier> moduleIds = right.getModuleIds().filter(id -> id.getGroup().equals(group));
             return factory.fromModuleIds(moduleIds);
         }
     }
@@ -257,10 +251,8 @@ class Intersections {
 
         @Override
         public ExcludeSpec doIntersect(GroupExclude left, ModuleSetExclude right, ExcludeFactory factory) {
-            return factory.moduleIdSet(right.getModules()
-                .stream()
-                .map(module -> DefaultModuleIdentifier.newId(left.getGroup(), module))
-                .collect(toSet())
+            return factory.moduleIdSet(
+                right.getModules().map(module -> DefaultModuleIdentifier.newId(left.getGroup(), module))
             );
         }
     }
@@ -272,9 +264,8 @@ class Intersections {
 
         @Override
         public ExcludeSpec doIntersect(GroupSetExclude left, GroupSetExclude right, ExcludeFactory factory) {
-            Set<String> groups = left.getGroups();
-            Set<String> common = Sets.newHashSet(right.getGroups());
-            common.retainAll(groups);
+            PersistentSet<String> groups = left.getGroups();
+            PersistentSet<String> common = right.getGroups().intersect(groups);
             return factory.fromGroups(common);
         }
     }
@@ -286,7 +277,7 @@ class Intersections {
 
         @Override
         public ExcludeSpec doIntersect(GroupSetExclude left, ModuleIdExclude right, ExcludeFactory factory) {
-            Set<String> groups = left.getGroups();
+            PersistentSet<String> groups = left.getGroups();
             if (groups.contains(right.getModuleId().getGroup())) {
                 return right;
             }
@@ -301,11 +292,9 @@ class Intersections {
 
         @Override
         public ExcludeSpec doIntersect(GroupSetExclude left, ModuleIdSetExclude right, ExcludeFactory factory) {
-            Set<String> groups = left.getGroups();
-            Set<ModuleIdentifier> filtered = right.getModuleIds()
-                .stream()
-                .filter(id -> groups.contains(id.getGroup()))
-                .collect(toSet());
+            PersistentSet<String> groups = left.getGroups();
+            PersistentSet<ModuleIdentifier> filtered = right.getModuleIds()
+                .filter(id -> groups.contains(id.getGroup()));
             return factory.fromModuleIds(filtered);
         }
     }
@@ -350,7 +339,7 @@ class Intersections {
         @Override
         public ExcludeSpec doIntersect(ModuleExclude left, ModuleSetExclude right, ExcludeFactory factory) {
             String module = left.getModule();
-            if (right.getModules().stream().anyMatch(g -> g.equals(module))) {
+            if (right.getModules().anyMatch(g -> g.equals(module))) {
                 return left;
             }
             return factory.nothing();
@@ -365,7 +354,7 @@ class Intersections {
         @Override
         public ExcludeSpec doIntersect(ModuleExclude left, ModuleIdSetExclude right, ExcludeFactory factory) {
             String module = left.getModule();
-            Set<ModuleIdentifier> common = right.getModuleIds().stream().filter(id -> id.getName().equals(module)).collect(toSet());
+            PersistentSet<ModuleIdentifier> common = right.getModuleIds().filter(id -> id.getName().equals(module));
             return factory.fromModuleIds(common);
         }
     }
@@ -391,7 +380,7 @@ class Intersections {
 
         @Override
         public ExcludeSpec doIntersect(ModuleIdExclude left, ModuleIdSetExclude right, ExcludeFactory factory) {
-            Set<ModuleIdentifier> rightModuleIds = right.getModuleIds();
+            PersistentSet<ModuleIdentifier> rightModuleIds = right.getModuleIds();
             if (rightModuleIds.contains(left.getModuleId())) {
                 return left;
             }
@@ -421,9 +410,8 @@ class Intersections {
 
         @Override
         public ExcludeSpec doIntersect(ModuleIdSetExclude left, ModuleIdSetExclude right, ExcludeFactory factory) {
-            Set<ModuleIdentifier> moduleIds = left.getModuleIds();
-            Set<ModuleIdentifier> common = Sets.newHashSet(right.getModuleIds());
-            common.retainAll(moduleIds);
+            PersistentSet<ModuleIdentifier> moduleIds = left.getModuleIds();
+            PersistentSet<ModuleIdentifier> common = right.getModuleIds().intersect(moduleIds);
             return factory.fromModuleIds(common);
         }
     }
@@ -435,11 +423,10 @@ class Intersections {
 
         @Override
         public ExcludeSpec doIntersect(ModuleIdSetExclude left, ModuleSetExclude right, ExcludeFactory factory) {
-            Set<ModuleIdentifier> moduleIds = left.getModuleIds();
-            Set<String> modules = right.getModules();
-            Set<ModuleIdentifier> identifiers = moduleIds.stream()
-                .filter(e -> modules.contains(e.getName()))
-                .collect(toSet());
+            PersistentSet<ModuleIdentifier> moduleIds = left.getModuleIds();
+            PersistentSet<String> modules = right.getModules();
+            PersistentSet<ModuleIdentifier> identifiers = moduleIds
+                .filter(e -> modules.contains(e.getName()));
             if (identifiers.isEmpty()) {
                 return factory.nothing();
             }
@@ -458,8 +445,7 @@ class Intersections {
 
         @Override
         public ExcludeSpec doIntersect(ModuleSetExclude left, ModuleSetExclude right, ExcludeFactory factory) {
-            Set<String> modules = Sets.newHashSet(left.getModules());
-            modules.retainAll(right.getModules());
+            PersistentSet<String> modules = left.getModules().intersect(right.getModules());
             if (modules.isEmpty()) {
                 return factory.nothing();
             }
@@ -477,7 +463,7 @@ class Intersections {
 
         @Override
         public ExcludeSpec doIntersect(ModuleSetExclude left, GroupSetExclude right, ExcludeFactory factory) {
-            return factory.moduleIdSet(right.getGroups().stream().flatMap(group -> left.getModules().stream().map(module -> DefaultModuleIdentifier.newId(group, module))).collect(toSet()));
+            return factory.moduleIdSet(right.getGroups().flatMap(group -> left.getModules().map(module -> DefaultModuleIdentifier.newId(group, module))));
         }
     }
 
@@ -488,7 +474,7 @@ class Intersections {
 
         @Override
         public ExcludeSpec doIntersect(ModuleExclude left, GroupSetExclude right, ExcludeFactory factory) {
-            return factory.moduleIdSet(right.getGroups().stream().map(group -> DefaultModuleIdentifier.newId(group, left.getModule())).collect(toSet()));
+            return factory.moduleIdSet(right.getGroups().map(group -> DefaultModuleIdentifier.newId(group, left.getModule())));
         }
     }
 }

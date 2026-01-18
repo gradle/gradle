@@ -26,6 +26,9 @@ class MavenS3SnapshotRepoIntegrationTest extends AbstractS3DependencyResolutionT
 
     def setup() {
         module = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
+        executer.beforeExecute {
+            executer.withArgument("-Daws.java.v1.disableDeprecationAnnouncement=true")
+        }
     }
 
     def "resolves a maven snapshot module stored in S3"() {

@@ -52,6 +52,7 @@ class ToolingApi implements TestRule {
     private boolean requireIsolatedDaemons
     private ConnectorFactory connectorFactory = new SharedConnectorFactory()
     private context = IntegrationTestBuildContext.INSTANCE
+    private GradleVersion toolingApiVersion
 
     private final List<Closure> connectorConfigurers = []
     boolean verboseLogging = LOGGER.debugEnabled
@@ -67,14 +68,24 @@ class ToolingApi implements TestRule {
         this.daemonBaseDir = context.daemonBaseDir
         this.requiresDaemon = !IntegrationTestBuildContext.embedded
         this.testWorkDirProvider = testWorkDirProvider
+        this.toolingApiVersion = null
     }
 
     void setDist(GradleDistribution dist) {
         this.dist = dist
     }
 
+
     GradleDistribution getDistribution() {
         return dist
+    }
+
+    void setToolingApiVersion(GradleVersion toolingApiVersion) {
+        this.toolingApiVersion = toolingApiVersion
+    }
+
+    GradleVersion getToolingApiVersion() {
+        return toolingApiVersion
     }
 
     /**

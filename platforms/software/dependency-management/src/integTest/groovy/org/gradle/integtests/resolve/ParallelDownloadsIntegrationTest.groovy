@@ -17,6 +17,8 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.internal.resource.transport.http.DefaultHttpSettings
+import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Issue
@@ -132,11 +134,20 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         succeeds("resolve")
     }
 
-    def "parallel download honors max workers"() {
-        def m1 = mavenRepo.module('test', 'test1', '1.0').publish()
-        def m2 = mavenRepo.module('test', 'test2', '1.0').publish()
-        def m3 = mavenRepo.module('test', 'test3', '1.0').publish()
-        def m4 = mavenRepo.module('test', 'test4', '1.0').publish()
+    def "downloads more dependencies in parallel than the number of max workers"() {
+        def maxWorkers = 2 // Some arbitrary small number of max workers
+
+        // Ideally this would be the same as the metadata parallelism, but since we perform
+        // artifact transforms and artifact downloads in the same executor, we currently
+        // constrain artifact download parallelism to the max workers.
+        def expectedArtifactParallelism = maxWorkers
+        def expectedMetadataParallelism = DefaultHttpSettings.DEFAULT_MAX_PER_ROUTE
+
+        def maxParallelism = Math.max(expectedMetadataParallelism, expectedArtifactParallelism)
+        // Create a number of dependencies equal to some some multiple of the max expected parallelism
+        List<MavenModule> dependencies = (0..<(maxParallelism * 3)).collect {
+            mavenRepo.module('test', "test$it", '1.0').publish()
+        }
 
         buildFile << """
             repositories {
@@ -145,12 +156,11 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
                     $authConfig
                 }
             }
-            configurations { compile }
+            configurations {
+                compile
+            }
             dependencies {
-                compile 'test:test1:1.0'
-                compile 'test:test2:1.0'
-                compile 'test:test3:1.0'
-                compile 'test:test4:1.0'
+                ${dependencies.collect { "compile('test:${it.artifactId}:1.0')" }.join('\n')}
             }
             task resolve {
                 def files = configurations.compile
@@ -159,37 +169,45 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
                     println files
                 }
             }
-"""
+        """
 
         given:
-        def metadataRequests = blockingServer.expectConcurrentAndBlock(2,
-            blockingServer.get(m1.pom.path).sendFile(m1.pom.file),
-            blockingServer.get(m2.pom.path).sendFile(m2.pom.file),
-            blockingServer.get(m3.pom.path).sendFile(m3.pom.file),
-            blockingServer.get(m4.pom.path).sendFile(m4.pom.file))
-        def requests = blockingServer.expectConcurrentAndBlock(2,
-            blockingServer.get(m1.artifact.path).sendFile(m1.artifact.file),
-            blockingServer.get(m2.artifact.path).sendFile(m2.artifact.file),
-            blockingServer.get(m3.artifact.path).sendFile(m3.artifact.file),
-            blockingServer.get(m4.artifact.path).sendFile(m4.artifact.file))
+        def metadataRequests = blockingServer.expectConcurrentAndBlock(
+            expectedMetadataParallelism,
+            dependencies.collect {
+                blockingServer.get(it.pom.path).sendFile(it.pom.file)
+            }
+        )
+        def requests = blockingServer.expectConcurrentAndBlock(
+            expectedArtifactParallelism,
+            dependencies.collect {
+                blockingServer.get(it.artifact.path).sendFile(it.artifact.file)
+            }
+        )
 
         expect:
-        executer.withArguments('--max-workers', '2')
+        executer.withArguments('--max-workers', Integer.toString(maxWorkers))
         def build = executer.withTasks("resolve").start()
 
-        metadataRequests.waitForAllPendingCalls()
-        metadataRequests.release(2)
+        for (int i = 0; i < divideExact(dependencies.size(), expectedMetadataParallelism); i++) {
+            metadataRequests.waitForAllPendingCalls()
+            metadataRequests.release(expectedMetadataParallelism)
+        }
 
-        metadataRequests.waitForAllPendingCalls()
-        metadataRequests.release(2)
-
-        requests.waitForAllPendingCalls()
-        requests.release(2)
-
-        requests.waitForAllPendingCalls()
-        requests.release(2)
+        int artifactIterations = divideExact(dependencies.size(), expectedArtifactParallelism)
+        for (int i = 0; i < artifactIterations; i++) {
+            requests.waitForAllPendingCalls()
+            requests.release(expectedArtifactParallelism)
+        }
 
         build.waitForFinish()
+    }
+
+    private static int divideExact(int x, int y) {
+        if (x % y != 0) {
+            throw new ArithmeticException("Division is not exact; remainder is " + (x % y))
+        }
+        return x / y
     }
 
     def "component metadata rules are executed synchronously"() {

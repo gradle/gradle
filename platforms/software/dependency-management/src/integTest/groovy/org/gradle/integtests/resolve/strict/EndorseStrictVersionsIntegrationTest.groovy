@@ -138,7 +138,6 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
                     byConflictResolution("between versions 2.0 and 1.0")
                     constraint('org:bar:1.0')
                     constraint('org:foo:1.0', 'org:foo:2.0') {
-                        notRequested()
                         byConstraint()
                         byConflictResolution("between versions 2.0 and 1.0")
                     }

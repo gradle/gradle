@@ -254,6 +254,36 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.threads.get() == 2
     }
 
+    def "can enable PMD CSV report via extension"() {
+        def task = project.tasks.create("pmdCustom", Pmd)
+        task.reports {
+            csv.required = true
+        }
+
+        expect:
+        task.reports.csv.required.get() == true
+    }
+
+    def "can enable PMD code climate report via extension"() {
+        def task = project.tasks.create("pmdCustom", Pmd)
+        task.reports {
+            codeClimate.required = true
+        }
+
+        expect:
+        task.reports.codeClimate.required.get() == true
+    }
+
+    def "can enable PMD sarif report via extension"() {
+        def task = project.tasks.create("pmdCustom", Pmd)
+        task.reports {
+            sarif.required = true
+        }
+
+        expect:
+        task.reports.sarif.required.get() == true
+    }
+
     def "configures pmd classpath based on sourcesets"() {
         project.pluginManager.apply(JavaBasePlugin)
         project.sourceSets {

@@ -20,6 +20,7 @@ import com.google.gson.Gson
 import com.google.gson.stream.JsonWriter
 import gradlebuild.binarycompatibility.AcceptedApiChange
 import gradlebuild.binarycompatibility.AcceptedApiChanges
+import gradlebuild.binarycompatibility.AcceptedViolationsProvider
 import gradlebuild.binarycompatibility.ApiChange
 import gradlebuild.binarycompatibility.BinaryCompatibilityRepository
 import gradlebuild.binarycompatibility.BinaryCompatibilityRepositorySetupRule
@@ -50,8 +51,8 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
     private final File projectRootDir
 
     AbstractGradleViolationRule(Map<String, Object> params) {
-        Map<String, String> acceptedApiChanges = (Map<String, String>)params.get("acceptedApiChanges")
-        this.acceptedApiChanges = acceptedApiChanges ? AcceptedApiChanges.fromAcceptedChangesMap(acceptedApiChanges) : [:]
+        AcceptedViolationsProvider acceptedApiChanges = ((AcceptedViolationsProvider) params.get("acceptedApiChanges"))
+        this.acceptedApiChanges = acceptedApiChanges ? AcceptedApiChanges.fromAcceptedChangesMap(acceptedApiChanges.get()) : [:]
 
         // Tests will not supply these
         this.mainApiChangesJsonFile = params.get("mainApiChangesJsonFile") ? new File(params.get("mainApiChangesJsonFile") as String) : null
@@ -130,7 +131,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
     }
 
     Violation acceptOrReject(JApiCompatibility member, Violation rejection) {
-        List<String> changes = member.compatibilityChanges.collect { Violation.describe(it) }
+        List<String> changes = member.compatibilityChanges.collect { Violation.describe(it.getType()) }
         return acceptOrReject(member, changes, rejection)
     }
 

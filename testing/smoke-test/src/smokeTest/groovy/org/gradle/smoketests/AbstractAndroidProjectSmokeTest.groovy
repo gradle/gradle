@@ -141,7 +141,7 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
         }
     }
 
-    protected static boolean verify(BuildResult result, Map<String, TaskOutcome> outcomes) {
+    protected static boolean verify(BuildResult result, Map<String, TaskOutcome> outcomes, Map<String, TaskOutcome> flakyOutcomes = [:]) {
         println "> Expecting ${outcomes.size()} tasks with outcomes:"
         outcomes.values().groupBy { it }.sort().forEach { outcome, instances -> println "> - $outcome: ${instances.size()}" }
 
@@ -162,8 +162,11 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
         outcomesWithMatchingTasks.each { taskName, expectedOutcome ->
             def taskOutcome = result.task(taskName)?.outcome
             if (taskOutcome != expectedOutcome) {
-                println "> Task '$taskName' was $taskOutcome but should have been $expectedOutcome"
-                allOutcomesMatched = false
+                TaskOutcome flakyOutcome = flakyOutcomes[taskName]
+                if (taskOutcome != flakyOutcome) {
+                    println "> Task '$taskName' was $taskOutcome but should have been $expectedOutcome"
+                    allOutcomesMatched = false
+                }
             }
         }
         return hasMatchingTasks && allOutcomesMatched

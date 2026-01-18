@@ -16,13 +16,14 @@
 
 package org.gradle.wrapper;
 
+import org.gradle.util.internal.WrapperCredentials;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Method;
 import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
@@ -127,7 +128,7 @@ public class Download implements IDownload {
             conn.setRequestProperty("User-Agent", userAgentValue);
             conn.setConnectTimeout(networkTimeout);
             conn.setReadTimeout(networkTimeout);
-            
+
             // Check HTTP response code before downloading
             if (conn instanceof HttpURLConnection) {
                 HttpURLConnection httpConn = (HttpURLConnection) conn;
@@ -136,7 +137,7 @@ public class Download implements IDownload {
                     throw new IOException("Server returned HTTP response code: " + responseCode + " for URL: " + safeUrl);
                 }
             }
-            
+
             in = conn.getInputStream();
             byte[] buffer = new byte[BUFFER_SIZE];
             int numRead;
@@ -186,80 +187,17 @@ public class Download implements IDownload {
     }
 
     private void addAuthentication(URI address, URLConnection connection) throws IOException {
-        String token = getSystemProperty(address.getHost(), "wrapperToken");
-        if (token == null) {
-            addBasicAuthentication(address, connection);
-        } else {
-            addBearerTokenAuthentication(token, address, connection);
-        }
-    }
-
-    private void addBasicAuthentication(URI address, URLConnection connection) {
-        String userInfo = calculateUserInfo(address);
-        if (userInfo == null) {
+        WrapperCredentials credentials = WrapperCredentials.findCredentials(address, systemProperties::get);
+        if (credentials == null) {
             return;
         }
+
         if (!"https".equals(address.getScheme())) {
-            logger.log("WARNING Using HTTP Basic Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.");
+            logger.log("WARNING Using HTTP " + credentials.authorizationTypeDisplayName() + " Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.");
         }
-        connection.setRequestProperty("Authorization", "Basic " + base64Encode(userInfo));
-    }
 
-    private void addBearerTokenAuthentication(String token, URI address, URLConnection connection) {
-        if (!"https".equals(address.getScheme())) {
-            logger.log("WARNING Using HTTP Bearer Token Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.");
-        }
-        connection.setRequestProperty("Authorization", "Bearer " + token);
-    }
-
-    /**
-     * Base64 encode user info for HTTP Basic Authentication.
-     *
-     * Try to use {@literal java.util.Base64} encoder which is available starting with Java 8.
-     * Fallback to {@literal javax.xml.bind.DatatypeConverter} from JAXB which is available starting with Java 6 but is not anymore in Java 9.
-     * Fortunately, both of these two Base64 encoders implement the right Base64 flavor, the one that does not split the output in multiple lines.
-     *
-     * @param userInfo user info
-     * @return Base64 encoded user info
-     * @throws RuntimeException if no public Base64 encoder is available on this JVM
-     */
-    @SuppressWarnings("StringCharset")
-    private String base64Encode(String userInfo) {
-        ClassLoader loader = getClass().getClassLoader();
-        try {
-            Method getEncoderMethod = loader.loadClass("java.util.Base64").getMethod("getEncoder");
-            Method encodeMethod = loader.loadClass("java.util.Base64$Encoder").getMethod("encodeToString", byte[].class);
-            Object encoder = getEncoderMethod.invoke(null);
-            return (String) encodeMethod.invoke(encoder, new Object[]{userInfo.getBytes("UTF-8")});
-        } catch (Exception java7OrEarlier) {
-            try {
-                Method encodeMethod = loader.loadClass("javax.xml.bind.DatatypeConverter").getMethod("printBase64Binary", byte[].class);
-                return (String) encodeMethod.invoke(null, new Object[]{userInfo.getBytes("UTF-8")});
-            } catch (Exception java5OrEarlier) {
-                throw new RuntimeException("Downloading Gradle distributions with HTTP Basic Authentication is not supported on your JVM.", java5OrEarlier);
-            }
-        }
-    }
-
-    private String getSystemProperty(String host, String key) {
-        if (host != null) {
-            String hostEscaped = host.replace('.', '_');
-            String hostProperty = systemProperties.get("gradle." + hostEscaped + '.' + key);
-            if (hostProperty != null) {
-                return hostProperty;
-            }
-        }
-        return systemProperties.get("gradle." + key);
-    }
-
-    private String calculateUserInfo(URI uri) {
-        String host = uri.getHost();
-        String username = getSystemProperty(host, "wrapperUser");
-        String password = getSystemProperty(host, "wrapperPassword");
-        if (username != null && password != null) {
-            return username + ':' + password;
-        }
-        return uri.getUserInfo();
+        Map.Entry<String, String> authHeader = credentials.authorizationHeader();
+        connection.setRequestProperty(authHeader.getKey(), authHeader.getValue());
     }
 
     private String calculateUserAgent() {

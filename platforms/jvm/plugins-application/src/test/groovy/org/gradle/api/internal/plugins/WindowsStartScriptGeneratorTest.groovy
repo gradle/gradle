@@ -159,6 +159,19 @@ class WindowsStartScriptGeneratorTest extends Specification {
         ['path\\to\\Jar.jar'] | '-classpath "%CLASSPATH%"' | true
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/30101")
+    def "windows start script does not contain any embedded documentation with gradle github links"() {
+        given:
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(null, 'bin')
+        Writer destination = new StringWriter()
+
+        when:
+        generator.generateScript(details, destination)
+
+        then:
+        !destination.toString().contains("https://github.com/gradle/gradle")
+    }
+
     private JavaAppStartScriptGenerationDetails createScriptGenerationDetails(
         List<String> defaultJvmOpts,
         String scriptRelPath,
@@ -166,6 +179,6 @@ class WindowsStartScriptGeneratorTest extends Specification {
         List<String> classpath = ['path/to/Jar.jar']
     ) {
         final String applicationName = 'TestApp'
-        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, null, null, appEntryPoint, defaultJvmOpts, classpath, [], scriptRelPath, null)
+        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, null, null, null, appEntryPoint, defaultJvmOpts, classpath, [], scriptRelPath, null)
     }
 }

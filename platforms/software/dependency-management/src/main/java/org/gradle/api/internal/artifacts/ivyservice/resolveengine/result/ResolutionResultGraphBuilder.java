@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -55,7 +54,7 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
     private final Long2ObjectMap<DefaultResolvedComponentResult> components = new Long2ObjectOpenHashMap<>();
     private final CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
     private long id;
-    private ComponentSelectionReason selectionReason;
+    private ComponentSelectionReasonInternal selectionReason;
     private ComponentIdentifier componentId;
     private ModuleVersionIdentifier moduleVersion;
     private String repoName;
@@ -100,7 +99,7 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
     }
 
     @Override
-    public void startVisitComponent(Long id, ComponentSelectionReason selectionReason, @Nullable String repoName, ComponentIdentifier componentId, ModuleVersionIdentifier moduleVersion) {
+    public void startVisitComponent(Long id, ComponentSelectionReasonInternal selectionReason, @Nullable String repoName, ComponentIdentifier componentId, ModuleVersionIdentifier moduleVersion) {
         this.id = id;
         this.selectionReason = selectionReason;
         this.selectedVariants.clear();
@@ -139,22 +138,25 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
         }
         for (ResolvedGraphDependency d : dependencies) {
             DependencyResult dependencyResult;
-            if (d.getFailure() != null) {
-                dependencyResult = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), fromComponent, d.isConstraint(), d.getReason(), d.getFailure());
+
+            ModuleVersionResolveException failure = d.getFailure();
+            if (failure != null) {
+                ComponentSelectionReasonInternal reason = d.getReason();
+                if (reason == null) {
+                    throw new IllegalStateException("Corrupt serialized resolution result. Cannot find reason for " + fromVariant + " -> " + d.getRequested().getDisplayName());
+                }
+                dependencyResult = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), fromComponent, d.isConstraint(), reason, failure);
             } else {
-                DefaultResolvedComponentResult selectedComponent = components.get(d.getSelected().longValue());
+                DefaultResolvedComponentResult selectedComponent = components.get(d.getTargetComponentId());
                 if (selectedComponent == null) {
-                    throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected component (" + d.getSelected() + ") for " + (d.isConstraint() ? "constraint " : "") + fromVariant + " -> " + d.getRequested().getDisplayName());
+                    throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected component for " + fromVariant + " -> " + d.getRequested().getDisplayName());
                 }
-                ResolvedVariantResult selectedVariant;
-                if (d.getSelectedVariant() != null) {
-                    selectedVariant = selectedComponent.getVariant(d.getSelectedVariant());
-                    if (selectedVariant == null) {
-                        throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected variant (" + d.getSelectedVariant() + ") for " + (d.isConstraint() ? "constraint " : "") + fromVariant + " -> " + d.getRequested().getDisplayName());
-                    }
-                } else {
-                    selectedVariant = null;
+
+                ResolvedVariantResult selectedVariant = selectedComponent.getVariant(d.getTargetVariantId());
+                if (selectedVariant == null) {
+                    throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected variant for " + fromVariant + " -> " + d.getRequested().getDisplayName());
                 }
+
                 dependencyResult = dependencyResultFactory.createResolvedDependency(d.getRequested(), fromComponent, selectedComponent, selectedVariant, d.isConstraint());
                 selectedComponent.addDependent((ResolvedDependencyResult) dependencyResult);
             }

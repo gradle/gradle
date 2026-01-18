@@ -18,11 +18,12 @@ package gradlebuild.binarycompatibility.rules
 
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
-import japicmp.model.JApiCompatibilityChange
 import javassist.CtClass
 import javassist.CtMethod
 import javassist.Modifier
 import me.champeau.gradle.japicmp.report.Violation
+
+import static japicmp.model.JApiCompatibilityChangeType.METHOD_REMOVED_IN_SUPERCLASS
 
 class MethodsRemovedInInternalSuperClassRule extends AbstractSuperClassChangesRule {
 
@@ -31,7 +32,7 @@ class MethodsRemovedInInternalSuperClassRule extends AbstractSuperClassChangesRu
     }
 
     protected boolean changed(JApiCompatibility member) {
-        return member.compatibilityChanges.contains(JApiCompatibilityChange.METHOD_REMOVED_IN_SUPERCLASS)
+        return member.compatibilityChanges.any { it.type == METHOD_REMOVED_IN_SUPERCLASS }
     }
 
     protected Violation checkSuperClassChanges(JApiClass c, CtClass oldClass, CtClass newClass) {

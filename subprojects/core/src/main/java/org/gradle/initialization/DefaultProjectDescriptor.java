@@ -26,6 +26,7 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolver;
+import org.gradle.internal.scripts.ScriptResolutionResult;
 import org.gradle.util.Path;
 import org.gradle.util.internal.NameValidator;
 import org.jspecify.annotations.Nullable;
@@ -45,11 +46,14 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
     private final PathToFileResolver fileResolver;
     private final ScriptFileResolver scriptFileResolver;
     private File dir;
+    @Nullable
     private File canonicalDir;
+    @Nullable
     private final ProjectDescriptorInternal parent;
     private final Set<ProjectDescriptorInternal> children = new LinkedHashSet<>();
     private ProjectDescriptorRegistry projectDescriptorRegistry;
     private Path path;
+    @Nullable
     private String buildFileName;
 
     public DefaultProjectDescriptor(
@@ -174,11 +178,13 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
         if (buildFileName != null) {
             return new File(getProjectDir(), buildFileName);
         }
-        File buildScriptFile = scriptFileResolver.resolveScriptFile(getProjectDir(), BUILD_SCRIPT_BASENAME);
-        if (buildScriptFile != null) {
-            return buildScriptFile;
+        ScriptResolutionResult buildScriptFileResolution = scriptFileResolver.resolveScriptFile(getProjectDir(), BUILD_SCRIPT_BASENAME);
+        File selectedCandidate = buildScriptFileResolution.getSelectedCandidate();
+        if (selectedCandidate != null) {
+            return selectedCandidate;
+        } else {
+            return new File(getProjectDir(), Project.DEFAULT_BUILD_FILE);
         }
-        return new File(getProjectDir(), Project.DEFAULT_BUILD_FILE);
     }
 
     public ProjectDescriptorRegistry getProjectDescriptorRegistry() {

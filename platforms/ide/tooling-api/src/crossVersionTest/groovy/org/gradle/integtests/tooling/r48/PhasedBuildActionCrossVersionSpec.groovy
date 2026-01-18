@@ -28,6 +28,8 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.task.TaskFailureResult
+import org.gradle.tooling.events.task.TaskFinishEvent
 
 import java.util.regex.Pattern
 
@@ -253,6 +255,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         assertHasConfigureFailedLogging()
     }
 
+    @TargetGradleVersion("<9.4.0")
     def "build finished action does not run when build fails"() {
         def projectsLoadedHandler = new IntermediateResultHandlerCollector()
         def buildFinishedHandler = new IntermediateResultHandlerCollector()
@@ -465,5 +468,49 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         UnsupportedVersionException e = thrown()
         e.message == "The version of Gradle you are using (${version}) does not support the PhasedBuildActionExecuter API. Support for this is available in Gradle 4.8 and all later versions."
+    }
+
+    /**
+     * With Gradle 9.4.0+ buildFinished BuildAction is run even if tasks fail. So in this specific scenario CustomBuildFinishedAction fails
+     * since it calls BuildController.getModel(). And due to that we get a BuildActionException instead a BuildException as expected in this test.
+     */
+    @TargetGradleVersion("<9.4.0")
+    def "can listen to task failures with a phased build"() {
+        def projectsLoadedHandler = new IntermediateResultHandlerCollector()
+        def buildFinishedHandler = new IntermediateResultHandlerCollector()
+
+        buildFile << """
+            task broken {
+                doLast { throw new RuntimeException("broken") }
+            }
+        """
+        def failedTasks = []
+
+        when:
+        fails { connection ->
+            connection.action()
+                .projectsLoaded(new CustomProjectsLoadedAction(), projectsLoadedHandler)
+                .buildFinished(new CustomBuildFinishedAction(), buildFinishedHandler)
+                .build()
+                .addProgressListener(new ProgressListener() {
+                    @Override
+                    void statusChanged(ProgressEvent e) {
+                        if (e instanceof TaskFinishEvent && e.getResult() instanceof TaskFailureResult) {
+                            failedTasks.add(e.descriptor.taskPath)
+                        }
+                    }
+                }, OperationType.TASK)
+                .forTasks("broken")
+                .run()
+        }
+
+        then:
+        BuildException e = thrown()
+        e.message.startsWith("Could not run phased build action using")
+        e.cause.message.contains("Execution failed for task ':broken'.")
+        failedTasks == [":broken"]
+
+        and:
+        failure.assertHasDescription("Execution failed for task ':broken'.")
     }
 }

@@ -122,7 +122,7 @@ baz:1.0 requested
                         if (it.id instanceof ModuleComponentIdentifier && it.id.module == 'leaf') {
                             def selectionReason = it.selectionReason
                             assert selectionReason.conflictResolution
-                            def descriptions = selectionReason.descriptions.reverse()
+                            def descriptions = selectionReason.descriptions
                             assert descriptions.size() > 1
                             descriptions.each {
                                 println "\$it.cause : \$it.description"
@@ -194,7 +194,7 @@ baz:1.0 requested
                         if (it.id instanceof ModuleComponentIdentifier && it.id.module == 'leaf') {
                             def selectionReason = it.selectionReason
                             assert selectionReason.conflictResolution
-                            def descriptions = selectionReason.descriptions.reverse()
+                            def descriptions = selectionReason.descriptions
                             assert descriptions.size() > 1
                             descriptions.each {
                                 println "\$it.cause : \$it.description"

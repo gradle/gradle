@@ -31,6 +31,9 @@ class MavenS3RepoResolveIntegrationTest extends AbstractS3DependencyResolutionTe
 
     def setup(){
         module = getMavenS3Repo().module("org.gradle", "test", artifactVersion)
+        executer.beforeExecute {
+            executer.withArgument("-Daws.java.v1.disableDeprecationAnnouncement=true")
+        }
     }
 
     def "should not download artifacts when already present in maven home"() {

@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts
 
 import groovy.transform.CompileStatic
 import org.gradle.api.artifacts.result.ComponentSelectionCause
-import org.gradle.api.artifacts.result.ComponentSelectionDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor
 import org.gradle.internal.Describables
 
@@ -27,12 +27,12 @@ import org.gradle.internal.Describables
 class TestComponentDescriptorFactory implements ComponentSelectionDescriptorFactory {
 
     @Override
-    ComponentSelectionDescriptor newDescriptor(ComponentSelectionCause cause, String reason) {
+    ComponentSelectionDescriptorInternal newDescriptor(ComponentSelectionCause cause, String reason) {
         new DefaultComponentSelectionDescriptor(cause, Describables.of(reason))
     }
 
     @Override
-    ComponentSelectionDescriptor newDescriptor(ComponentSelectionCause cause) {
+    ComponentSelectionDescriptorInternal newDescriptor(ComponentSelectionCause cause) {
         new DefaultComponentSelectionDescriptor(cause)
     }
 }

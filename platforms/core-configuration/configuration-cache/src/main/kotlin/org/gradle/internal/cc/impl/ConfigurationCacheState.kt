@@ -755,6 +755,7 @@ class ConfigurationCacheState(
             write(cacheConfigurations.downloadedResources.entryRetention)
             write(cacheConfigurations.createdResources.entryRetention)
             write(cacheConfigurations.buildCache.entryRetention)
+            write(cacheConfigurations.daemonLogs.entryRetention)
             write(cacheConfigurations.cleanup)
             write(cacheConfigurations.markingStrategy)
         }
@@ -768,6 +769,7 @@ class ConfigurationCacheState(
             cacheConfigurations.downloadedResources.entryRetention.value(readNonNull<Provider<EntryRetention>>())
             cacheConfigurations.createdResources.entryRetention.value(readNonNull<Provider<EntryRetention>>())
             cacheConfigurations.buildCache.entryRetention.value(readNonNull<Provider<EntryRetention>>())
+            cacheConfigurations.daemonLogs.entryRetention.value(readNonNull<Provider<EntryRetention>>())
             cacheConfigurations.cleanup.value(readNonNull<Provider<Cleanup>>())
             cacheConfigurations.markingStrategy.value(readNonNull<Provider<MarkingStrategy>>())
         }

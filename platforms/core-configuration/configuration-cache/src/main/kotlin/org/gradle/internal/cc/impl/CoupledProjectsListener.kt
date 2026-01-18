@@ -17,11 +17,14 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
-
-@EventScope(Scope.Build::class)
+/**
+ * Receives events about cross project dependencies while building tooling models.
+ * These events are not sent through {@code ListenerManager}.
+ */
+@ServiceScope(Scope.Build::class)
 interface CoupledProjectsListener {
     /**
      * Notified when the build logic for a [referrer] project accesses the mutable state of some other [target] project.

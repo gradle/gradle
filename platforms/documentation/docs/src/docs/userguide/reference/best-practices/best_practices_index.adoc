@@ -73,6 +73,7 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_tasks.adoc#dont_resolve_configurations_before_task_execution,Don't resolve Configurations before Task Execution>> | Task | 9.1.0
 | <<best_practices_tasks.adoc#avoid_eager_file_collection_apis,Avoid using eager APIs on File Collections>> | Task | 9.1.0
 | <<best_practices_tasks.adoc#default_path_sensitivities,Prefer `@PathSensitivity.NONE` for file inputs and `@PathSensitivity.RELATIVE` for directories>> | Task | 9.2.0
+| <<best_practices_tasks.adoc#use_unique_output_files_and_directories,Use unique output files and directories>> | Task | 9.3.0
 
 | <<best_practices_performance.adoc#use_utf8_encoding,Enable UTF‑8>> | Performance | 9.0.0
 | <<best_practices_performance.adoc#use_build_cache,Use the Build Cache>> | Performance | 9.1.0

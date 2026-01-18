@@ -38,7 +38,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.impl.DefaultDeleter;
 import org.gradle.internal.hash.DefaultFileHasher;
@@ -54,7 +53,8 @@ import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.resource.ExternalResourceFactory;
-import org.gradle.internal.resource.transport.http.HttpClientHelper;
+import org.gradle.internal.resource.transport.http.ApacheCommonsHttpClientFactory;
+import org.gradle.internal.resource.transport.http.HttpClientFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.time.Clock;
@@ -101,7 +101,6 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
     protected JavaToolchainQueryService createJavaToolchainQueryService(
         JvmMetadataDetector jvmMetadataDetector,
         FileSystem fileSystem,
-        ListenerManager listenerManager,
         ProgressLoggerFactory progressLoggerFactory,
         Clock clock,
         BuildOperationIdFactory operationIdFactory,
@@ -140,8 +139,16 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
         JdkCacheDirectory jdkCacheDirectory = new DefaultJdkCacheDirectory(gradleUserHomeDirProvider, fileOperations, fileLockManager, new DefaultJvmMetadataDetector(execHandleFactory, gradleUserHomeTemporaryFileProvider), gradleUserHomeTemporaryFileProvider);
         JavaInstallationRegistry javaInstallationRegistry = new DefaultJavaInstallationRegistry(toolchainConfiguration, installationSuppliers, jvmMetadataDetector, null, OperatingSystem.current(), progressLoggerFactory, fileResolver, jdkCacheDirectory, new JvmInstallationProblemReporter());
         JavaToolchainHttpRedirectVerifierFactory redirectVerifierFactory = new JavaToolchainHttpRedirectVerifierFactory();
-        HttpClientHelper.Factory httpClientHelperFactory = HttpClientHelper.Factory.createFactory(new DocumentationRegistry());
-        ExternalResourceFactory externalResourceFactory = new DaemonToolchainExternalResourceFactory(fileSystem, listenerManager, redirectVerifierFactory, httpClientHelperFactory, progressLoggerFactory, clock, operationIdFactory, buildProgressListener);
+        HttpClientFactory httpClientFactory = new ApacheCommonsHttpClientFactory(new DocumentationRegistry());
+        ExternalResourceFactory externalResourceFactory = new DaemonToolchainExternalResourceFactory(
+            fileSystem,
+            redirectVerifierFactory,
+            httpClientFactory,
+            progressLoggerFactory,
+            clock,
+            operationIdFactory,
+            buildProgressListener
+        );
         SecureFileDownloader secureFileDownloader = new SecureFileDownloader(externalResourceFactory);
         DaemonJavaToolchainProvisioningService javaToolchainProvisioningService = new DaemonJavaToolchainProvisioningService(secureFileDownloader, jdkCacheDirectory, currentBuildPlatform, toolchainDownloadUrlProvider, toolchainConfiguration.isDownloadEnabled(), progressLoggerFactory);
         return new JavaToolchainQueryService(jvmMetadataDetector, filePropertyFactory, javaToolchainProvisioningService, javaInstallationRegistry, null);

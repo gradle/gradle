@@ -251,4 +251,186 @@ Extended Configurations
     - conf1
 """)
     }
+
+    def "can extend from a configuration provider"() {
+        given:
+        buildFile """
+            def conf1 = configurations.resolvable('conf1')
+
+            configurations {
+                resolvable('conf2') {
+                    extendsFrom conf1
+                }
+            }
+        """
+
+        expect:
+        succeeds 'resolvableConfigurations', '--all'
+        outputContains("""
+--------------------------------------------------
+Configuration conf2
+--------------------------------------------------
+
+Extended Configurations
+    - conf1
+""")
+    }
+
+    def "extending from provided configuration does not impact iteration order"() {
+        mavenRepo.module("org", "foo").publish()
+        mavenRepo.module("org", "bar").publish()
+        mavenRepo.module("org", "baz").publish()
+
+        buildFile << """
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+            configurations {
+                resolvable('child')
+
+                def one = dependencyScope('one')
+                child.extendsFrom one
+
+                two
+                child.extendsFrom two
+
+                def zzz = dependencyScope('zzz')
+                child.extendsFrom zzz
+            }
+            dependencies {
+                one "org:foo:1.0"
+                two "org:bar:1.0"
+                zzz "org:baz:1.0"
+            }
+
+            task checkResolveChild {
+                def files = configurations.child
+                doFirst {
+                    println files*.name
+                }
+            }
+        """
+
+        when:
+        succeeds "checkResolveChild"
+
+        then:
+        outputContains("[foo-1.0.jar, bar-1.0.jar, baz-1.0.jar]")
+    }
+
+    def "simply extending from a provided configuration does not realize it"() {
+        mavenRepo.module("org", "foo").publish()
+        mavenRepo.module("org", "bar").publish()
+        mavenRepo.module("org", "baz").publish()
+
+        buildFile << """
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+            configurations {
+                resolvable('child')
+
+                def one = dependencyScope('one') {
+                    println "Realizing one"
+                    dependencies.add(project.dependencies.create("org:foo:1.0"))
+                }
+                child.extendsFrom one
+
+                two
+                child.extendsFrom two
+
+                def zzz = dependencyScope('zzz') {
+                    println "Realizing zzz"
+                    dependencies.add(project.dependencies.create("org:baz:1.0"))
+                }
+                child.extendsFrom zzz
+            }
+            dependencies {
+                two "org:bar:1.0"
+            }
+
+            task checkResolveTwo {
+                def files = configurations.two
+                doFirst {
+                    println files*.name
+                }
+            }
+
+            task checkResolveChild {
+                def files = configurations.child
+                doFirst {
+                    println files*.name
+                }
+            }
+        """
+
+        when:
+        succeeds "checkResolveTwo"
+
+        then:
+        outputContains("[bar-1.0.jar]")
+        outputDoesNotContain("Realizing one")
+        outputDoesNotContain("Realizing zzz")
+
+        when:
+        succeeds "checkResolveChild"
+
+        then:
+        outputContains("[foo-1.0.jar, bar-1.0.jar, baz-1.0.jar]")
+        outputContains("Realizing one")
+        outputContains("Realizing zzz")
+    }
+
+    def "resetting extended configurations does not realize provided configurations that are no longer included"() {
+        mavenRepo.module("org", "foo").publish()
+        mavenRepo.module("org", "bar").publish()
+        mavenRepo.module("org", "baz").publish()
+
+        buildKotlinFile()
+        buildFile << """
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+            configurations {
+                resolvable('child')
+
+                def one = dependencyScope('one') {
+                    println "Realizing one"
+                    dependencies.add(project.dependencies.create("org:foo:1.0"))
+                }
+                child.extendsFrom one
+
+                two
+                child.extendsFrom two
+
+                def zzz = dependencyScope('zzz') {
+                    println "Realizing zzz"
+                    dependencies.add(project.dependencies.create("org:baz:1.0"))
+                }
+                child.extendsFrom zzz
+
+                // Now reset the extended configurations to exclude 'zzz'
+                child.extendsFrom = [two]
+                child.extendsFrom one
+            }
+            dependencies {
+                two "org:bar:1.0"
+            }
+
+            task checkResolveChild {
+                def files = configurations.child
+                doFirst {
+                    println files*.name
+                }
+            }
+        """
+
+        when:
+        succeeds "checkResolveChild"
+
+        then:
+        outputContains("[foo-1.0.jar, bar-1.0.jar]")
+        outputContains("Realizing one")
+        outputDoesNotContain("Realizing zzz")
+    }
 }

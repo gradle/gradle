@@ -17,15 +17,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simp
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
+import org.gradle.internal.collect.PersistentSet;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.Set;
-
 final class DefaultModuleSetExclude implements ModuleSetExclude {
-    private final Set<String> modules;
+    private final PersistentSet<String> modules;
     private final int hashCode;
 
-    DefaultModuleSetExclude(Set<String> modules) {
+    DefaultModuleSetExclude(PersistentSet<String> modules) {
         this.modules = modules;
         this.hashCode = modules.hashCode();
     }
@@ -51,7 +50,7 @@ final class DefaultModuleSetExclude implements ModuleSetExclude {
     }
 
     @Override
-    public Set<String> getModules() {
+    public PersistentSet<String> getModules() {
         return modules;
     }
 

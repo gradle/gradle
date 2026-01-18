@@ -16,10 +16,13 @@
 
 package org.gradle.internal.buildoption;
 
-import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-@EventScope(Scope.BuildTree.class)
+/**
+ * Receives events related to {@link FeatureFlag}. These events are not sent through {@code ListenerManager}.
+ */
+@ServiceScope(Scope.BuildTree.class)
 public interface FeatureFlagListener {
     void flagRead(FeatureFlag flag);
 }

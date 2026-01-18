@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.jspecify.annotations.NullMarked;
 
@@ -26,6 +27,7 @@ import java.util.List;
 /**
  * Thrown when some internal exception occurs executing a test suite.
  */
+@Contextual
 @NullMarked
 public class TestSuiteExecutionException extends GradleException implements ResolutionProvider {
     public TestSuiteExecutionException(String message, Throwable cause) {

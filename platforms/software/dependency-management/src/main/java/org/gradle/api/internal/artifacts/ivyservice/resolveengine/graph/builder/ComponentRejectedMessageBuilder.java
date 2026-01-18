@@ -16,7 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.base.Joiner;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 
@@ -27,7 +29,7 @@ import java.util.Set;
 /**
  * A utility class that packages the logic necessary to build a message describing why a {@link ComponentState} was rejected.
  */
-/* package */ class ComponentRejectedMessageBuilder {
+class ComponentRejectedMessageBuilder {
     String buildFailureMessage(ModuleResolveState module) {
         boolean hasRejectAll = false;
         for (SelectorState candidate : module.getSelectors()) {
@@ -43,30 +45,29 @@ import java.util.Set;
             sb.append("Cannot find a version of '").append(module.getId()).append("' that satisfies the version constraints:\n");
         }
 
-        Set<EdgeState> allEdges = module.getAllEdges();
+        Set<? extends DependencyGraphEdge> allEdges = module.getAllIncomingEdges();
         renderEdges(sb, allEdges);
         return sb.toString();
     }
 
-    private void renderEdges(StringBuilder sb, Set<EdgeState> incomingEdges) {
-        for (EdgeState incomingEdge : incomingEdges) {
-            SelectorState selector = incomingEdge.getSelector();
+    private static void renderEdges(StringBuilder sb, Set<? extends DependencyGraphEdge> incomingEdges) {
+        for (DependencyGraphEdge incomingEdge : incomingEdges) {
+            ComponentSelector selector = incomingEdge.getDependencyMetadata().getSelector();
             for (String path : MessageBuilderHelper.formattedPathsTo(incomingEdge)) {
                 sb.append("   ").append(path);
                 sb.append(" --> ");
                 renderSelector(sb, selector);
-                renderReason(sb, selector);
+                renderReason(sb, incomingEdge.getReason());
                 sb.append("\n");
             }
         }
     }
 
-    private static void renderSelector(StringBuilder sb, SelectorState selectorState) {
-        sb.append('\'').append(selectorState.getRequested()).append('\'');
+    private static void renderSelector(StringBuilder sb, ComponentSelector selector) {
+        sb.append('\'').append(selector.getDisplayName()).append('\'');
     }
 
-    private static void renderReason(StringBuilder sb, SelectorState selector) {
-        ComponentSelectionReasonInternal selectionReason = selector.getSelectionReason();
+    private static void renderReason(StringBuilder sb, ComponentSelectionReasonInternal selectionReason) {
         if (selectionReason.hasCustomDescriptions()) {
             sb.append(" because of the following reason");
             List<String> reasons = new ArrayList<>(1);
