@@ -289,6 +289,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         withConnection {
             it.newBuild()
                 .forTasks(":reportProblem")
+            /**
+             * We are checking for a *differentVersion* via the {@link IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable}, so
+             * shouldn't this be {@link AvailableJavaHomes#getDifferentVersion} instead?
+             */
                 .setJavaHome(AvailableJavaHomes.differentJdk.javaHome)
                 .addProgressListener(listener)
                 .run()

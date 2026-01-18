@@ -149,7 +149,7 @@ class AbstractDaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     void startForegroundDaemonWithAlternateJavaHome() {
         run {
-            jvm = AvailableJavaHomes.differentJdk
+            jvm = AvailableJavaHomes.getDifferentJdk()
             startForegroundDaemonNow()
             jvm = null
         }

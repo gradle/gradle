@@ -237,6 +237,10 @@ class DaemonLifecycleSpec extends AbstractDaemonLifecycleSpec {
 
         and:
         foregroundDaemonContext {
+            /**
+             * We are checking for a *differentVersion* via the {@link IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable}, so
+             * shouldn't this be {@link AvailableJavaHomes#getDifferentVersion} instead?
+             */
             assert javaHome.canonicalPath == AvailableJavaHomes.differentJdk.javaHome.canonicalPath
         }
 

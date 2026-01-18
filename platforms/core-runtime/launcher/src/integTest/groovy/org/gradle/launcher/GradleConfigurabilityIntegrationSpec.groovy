@@ -88,6 +88,7 @@ assert providers.systemProperty('some-prop').get() == 'i have space'
         """
     }
 
+    @Requires(IntegTestPreconditions.DifferentJdkAvailable)
     def "honours jvm option that contain a space in gradle.properties"() {
         given:
         file("gradle.properties") << 'org.gradle.jvmargs=-XX:HeapDumpPath="/tmp/with space" -Dsome-prop="and some more stress..."'
@@ -99,7 +100,7 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
 """
     }
 
-    String useAlternativeJavaPath(Jvm jvm = AvailableJavaHomes.differentJdk) {
+    String useAlternativeJavaPath(Jvm jvm = AvailableJavaHomes.getDifferentJdk()) {
         File javaHome = jvm.javaHome
         file("gradle.properties").writeProperties("org.gradle.java.home": javaHome.canonicalPath)
         return javaHome.canonicalPath

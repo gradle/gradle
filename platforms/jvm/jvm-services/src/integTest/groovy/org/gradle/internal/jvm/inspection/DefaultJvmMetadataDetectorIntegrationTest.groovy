@@ -37,6 +37,10 @@ class DefaultJvmMetadataDetectorIntegrationTest extends AbstractIntegrationSpec 
             DefaultClientExecHandleBuilderFactory.of(TestFiles.pathToFileResolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken()),
             TestFiles.tmpDirTemporaryFileProvider(new File(SystemProperties.getInstance().getJavaIoTmpDir()))
         )
+        /**
+         * We are checking for a *differentVersion* via the {@link IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable}, so
+         * shouldn't this be {@link AvailableJavaHomes#getDifferentVersion} instead?
+         */
         Jvm jvm = AvailableJavaHomes.differentJdk //the detector has special handling for the current JVM
         def javaHome = InstallationLocation.userDefined(jvm.getJavaHome(), "test")
         def metadata = detector.getMetadata(javaHome)
