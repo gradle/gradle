@@ -131,7 +131,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         result == "result"
 
         and:
-        0 * workController.scheduleAndRunRequestedTasks(_)
+        0 * workController.scheduleAndRunRequestedTasks(null)
 
         and:
         1 * modelCreator.fromBuildModel(action) >> "result"
