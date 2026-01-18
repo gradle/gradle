@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
-
-import static org.gradle.internal.FileUtils.withExtension;
-
 
 @SuppressWarnings("ClassInitializationDeadlock")
 public abstract class OperatingSystem {
@@ -262,6 +259,16 @@ public abstract class OperatingSystem {
         @Override
         public String getPathVar() {
             return "Path";
+        }
+
+        private static String withExtension(String filePath, String extension) {
+            if (filePath.toLowerCase(Locale.ROOT).endsWith(extension)) {
+                return filePath;
+            }
+            int lastFileSeparator = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'));
+            int lastDot = filePath.lastIndexOf('.');
+            String base = lastDot > lastFileSeparator ? filePath.substring(0, lastDot) : filePath;
+            return base + extension;
         }
     }
 

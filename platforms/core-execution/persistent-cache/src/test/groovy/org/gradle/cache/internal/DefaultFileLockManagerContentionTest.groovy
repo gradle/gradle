@@ -19,6 +19,7 @@ package org.gradle.cache.internal
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.FileLockReleasedSignal
+import org.gradle.cache.LockOptions
 import org.gradle.cache.LockTimeoutException
 import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
@@ -29,6 +30,8 @@ import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 
 import java.util.function.Consumer
@@ -147,8 +150,135 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         1 * whenContended.accept(_)
     }
 
+    // On Windows we can't delete a file that is open
+    @Requires(UnitTestPreconditions.NotWindows)
+    def "#description protect against a deletion of a lock file #lockOptionsDescription"() {
+        given:
+        def file = tmpDir.file("lock-file.bin")
+        def lockFile = tmpDir.file("lock-file.bin.lock")
+        def action1 = Mock(Consumer)
+        def action2 = Mock(Consumer)
+
+        when:
+        def lock1 = createLock(lockOptions, file, manager, action1)
+
+        then:
+        lock1
+        lock1.isLockFile(lockFile)
+        lockFile.exists()
+
+        when:
+        def lock2 = createLock(lockOptions, file, manager2, action2)
+
+        then:
+        lock2
+        lock2.isLockFile(lockFile)
+        lockFile.exists() == expectLockFileExistsAfterLock2
+        1 * action1.accept(_) >> { FileLockReleasedSignal signal ->
+            // Delete the lock file before releasing just after lock2 signals that it wants to access the lock
+            assert lockFile.delete()
+            assert !lockFile.exists()
+            lock1.close()
+            signal.trigger()
+        }
+
+        when:
+        def lock3 = createLock(lockOptions, file, manager, null)
+
+        then:
+        lock3
+        lock3.isLockFile(lockFile)
+        expectedLock2ContentionCalls * action2.accept(_) >> { FileLockReleasedSignal signal ->
+            lock2.close()
+            signal.trigger()
+        }
+
+        where:
+        description | expectedLock2ContentionCalls | lockOptionsDescription                  | lockOptions                                                                        | expectLockFileExistsAfterLock2
+        "does NOT"  | 0                            | "WITHOUT ensure file system check flag" | DefaultLockOptions.mode(Exclusive)                                                 | false
+        "does"      | 1                            | "WITH ensure file system check flag"    | DefaultLockOptions.mode(Exclusive).ensureAcquiredLockRepresentsStateOnFileSystem() | true
+    }
+
+    // On Windows we can't delete a file that is open
+    @Requires(UnitTestPreconditions.NotWindows)
+    def "#description protect against recreating a lock file #lockOptionsDescription"() {
+        given:
+        def file = tmpDir.file("lock-file.bin")
+        def lockFile = tmpDir.file("lock-file.bin.lock")
+        def lock1ContentionAction = Mock(Consumer)
+        def lock2ContentionAction = Mock(Consumer)
+        def recreationState = null
+
+        when:
+        def lock1 = createLock(lockOptions, file, manager, lock1ContentionAction)
+
+        then:
+        lock1
+        lock1.isLockFile(lockFile)
+        lockFile.exists()
+
+        when:
+        def lock2 = createLock(lockOptions, file, manager2, lock2ContentionAction)
+
+        then:
+        lock2
+        lock2.isLockFile(lockFile)
+        recreationState
+        lock2.state
+        lock2.state.hasBeenUpdatedSince(recreationState) == expectedUpdated
+        1 * lock1ContentionAction.accept(_) >> { FileLockReleasedSignal signal ->
+            // Simulate recreate of the lock file with a different state just after lock2 signals that it wants to access the lock
+            assert lockFile.delete()
+            assert !lockFile.exists()
+            lock1.close()
+            def recreatingLock = createLock(lockOptions, file, manager, lock1ContentionAction)
+            recreationState = recreatingLock.state
+            recreatingLock.close()
+            assert recreatingLock.isLockFile(lockFile)
+            assert lockFile.exists()
+            signal.trigger()
+        }
+
+        when:
+        def lock3 = createLock(lockOptions, file, manager, null)
+
+        then:
+        lock3
+        lock3.isLockFile(lockFile)
+        expectedLock2ContentionCalls * lock2ContentionAction.accept(_) >> { FileLockReleasedSignal signal ->
+            lock2.close()
+            signal.trigger()
+        }
+
+        where:
+        description | expectedLock2ContentionCalls | expectedUpdated | lockOptionsDescription                  | lockOptions
+        "does NOT"  | 0                            | true            | "WITHOUT ensure file system check flag" | DefaultLockOptions.mode(Exclusive)
+        "does"      | 1                            | false           | "WITH ensure file system check flag"    | DefaultLockOptions.mode(Exclusive).ensureAcquiredLockRepresentsStateOnFileSystem()
+    }
+
+    @Requires(UnitTestPreconditions.Windows)
+    def "lock file cannot be deleted while lock is held on Windows"() {
+        given:
+        def file = tmpDir.file("held.bin")
+        def lockFile = tmpDir.file("held.bin.lock")
+
+        when:
+        FileLock lock = createLock(DefaultLockOptions.mode(Exclusive), file, manager, null)
+
+        then:
+        lock
+        lock.isLockFile(lockFile)
+        lockFile.exists()
+        !lockFile.delete()
+        lockFile.exists()
+    }
+
     FileLock createLock(FileLockManager.LockMode lockMode, File file, FileLockManager lockManager = manager, Consumer<FileLockReleasedSignal> whenContended = null) {
-        def lock = lockManager.lock(file, DefaultLockOptions.mode(lockMode), "foo", "operation", whenContended)
+        return createLock(DefaultLockOptions.mode(lockMode), file, lockManager, whenContended)
+    }
+
+    FileLock createLock(LockOptions lockOptions, File file, FileLockManager lockManager, Consumer<FileLockReleasedSignal> whenContended) {
+        def lock = lockManager.lock(file, lockOptions, "foo", "operation", whenContended)
         openedLocks << lock
         lock
     }
