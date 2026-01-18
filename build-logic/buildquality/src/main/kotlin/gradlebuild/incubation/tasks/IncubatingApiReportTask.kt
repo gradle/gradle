@@ -1,7 +1,8 @@
 package gradlebuild.incubation.tasks
 
+// Using star import to workaround https://youtrack.jetbrains.com/issue/KTIJ-24390
+import gradle.kotlin.dsl.accessors._5f797893abbda96219bd64dacbf070a8.versionCatalogs
 import gradlebuild.incubation.action.IncubatingApiReportWorkAction
-import gradlebuild.modules.extension.ExternalModulesExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ProjectLayout
@@ -15,7 +16,6 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-// Using star import to workaround https://youtrack.jetbrains.com/issue/KTIJ-24390
 import org.gradle.kotlin.dsl.*
 import org.gradle.workers.WorkerExecutor
 import javax.inject.Inject
@@ -25,9 +25,10 @@ import javax.inject.Inject
 abstract class IncubatingApiReportTask : DefaultTask() {
 
     private val additionalClasspath = project.objects.fileCollection().apply {
+        val libs = project.versionCatalogs.named("libs")
         from(
             project.configurations.detachedConfiguration(
-                project.dependencies.create(project.the<ExternalModulesExtension>().futureKotlin("compiler-embeddable"))
+                project.dependencies.create(libs.findLibrary("kotlinCompilerEmbeddable").get().get())
             )
         )
     }

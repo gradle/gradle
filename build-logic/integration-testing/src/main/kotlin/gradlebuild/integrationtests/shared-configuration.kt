@@ -28,11 +28,11 @@ import gradlebuild.integrationtests.extension.IntegrationTestExtension
 import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.integrationtests.tasks.GenerateAutoTestedSamplesTestTask
 import gradlebuild.integrationtests.tasks.IntegrationTest
-import gradlebuild.modules.extension.ExternalModulesExtension
 import gradlebuild.testing.services.BuildBucketProvider
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
@@ -88,11 +88,12 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
 
     // do not attempt to find projects when the plugin is applied just to generate accessors
     if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "enterprise-plugin-performance" && project.name != "test" /* remove once wrapper is updated */) {
+        val libs = project.the<VersionCatalogsExtension>().named("libs")
         dependencies {
             "${prefix}TestImplementation"(project)
-            "${prefix}TestImplementation"(project.the<ExternalModulesExtension>().junitJupiter)
-            "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junitPlatform)
-            "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5Vintage)
+            "${prefix}TestImplementation"(libs.findLibrary("junitJupiter").get())
+            "${prefix}TestRuntimeOnly"(libs.findLibrary("junitPlatform").get())
+            "${prefix}TestRuntimeOnly"(libs.findLibrary("junit5Vintage").get())
             "${prefix}TestImplementation"(project(":internal-integ-testing"))
             "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributions-full"))
             // Add the agent JAR to the test runtime classpath so the InProcessGradleExecuter can find the module and spawn daemons.

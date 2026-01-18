@@ -122,9 +122,9 @@ project.plugins.withType<JavaBasePlugin> {
             )
         }
 
-        // don't forget to update the version in distributions-dependencies/build.gradle.kts
-        addErrorProneDependency("com.google.errorprone:error_prone_core:2.42.0")
-        addErrorProneDependency("com.uber.nullaway:nullaway:0.12.10")
+        // don't forget to update the version in gradle/libs.versions.toml
+        addErrorProneDependency("com.google.errorprone:error_prone_core:2.42.0") // FIXME: switch to version catalog API
+        addErrorProneDependency("com.uber.nullaway:nullaway:0.12.10") // FIXME: switch to version catalog API
 
         project.tasks.named<JavaCompile>(this.compileJavaTaskName) {
             options.errorprone {
