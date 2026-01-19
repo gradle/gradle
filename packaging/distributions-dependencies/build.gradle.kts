@@ -173,6 +173,7 @@ dependencies {
         api(libs.kotlinJvmAbiGenEmbeddable)
         api(libs.kotlinxSerializationCore)
         api(libs.kotlinxSerializationJson)
+        api(libs.kotlinxCoroutinesJvm)
         api(libs.littleproxy)
         api(libs.maven3ResolverProvider)
         api(libs.mavenResolverApi)

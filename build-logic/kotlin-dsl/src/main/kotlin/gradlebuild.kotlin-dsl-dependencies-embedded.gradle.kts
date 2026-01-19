@@ -28,7 +28,7 @@ val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin
 
 val publishedKotlinDslPluginVersion = "6.5.2"
 val libs = project.versionCatalogs.named("libs")
-val kotlinVersion = libs.findVersion("kotlin").get().displayName
+val kotlinVersion = libs.findVersion("kotlin").get().getStrictVersion()
 
 tasks {
 

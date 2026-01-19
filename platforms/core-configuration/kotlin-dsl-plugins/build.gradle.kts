@@ -32,10 +32,10 @@ dependencies {
     api(libs.kotlinStdlib)
 
 
-    implementation(libs.kotlinGradlePlugin)
-    implementation(libs.kotlinGradlePluginApi)
-    implementation(libs.kotlinSamWithReceiver)
-    implementation(libs.kotlinAssignment)
+    implementation(libs.kotlinGradlePlugin.relaxRestriction())
+    implementation(libs.kotlinGradlePluginApi.relaxRestriction())
+    implementation(libs.kotlinSamWithReceiver.relaxRestriction())
+    implementation(libs.kotlinAssignment.relaxRestriction())
 
 
     testImplementation(projects.logging)
@@ -45,6 +45,16 @@ dependencies {
         because("mockito-kotlin 1.6 requires kotlin-reflect in 1.0.7, we want to overrule that")
     }
     testImplementation(libs.mockitoKotlin)
+}
+
+// Note: these dependencies have strict versions, but Gradle currently supports the scenario when higher version of kotlin can be used
+fun<T: ExternalModuleDependency> Provider<T>.relaxRestriction() = map {
+    it.copy().apply {
+        version {
+            require(strictVersion)
+            strictly("")
+        }
+    }
 }
 
 packageCycles {
