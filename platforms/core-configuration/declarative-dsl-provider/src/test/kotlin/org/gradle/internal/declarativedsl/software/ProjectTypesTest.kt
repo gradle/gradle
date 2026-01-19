@@ -33,7 +33,6 @@ import org.gradle.plugin.software.internal.ModelDefault
 import org.gradle.plugin.software.internal.ProjectFeatureImplementation
 import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import org.junit.Assert
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -79,8 +78,8 @@ class ProjectTypesTest {
         listOf(schemaForSettings, schemaForProject).forEach { schema ->
             assertTrue(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == Supertype::class.qualifiedName })
 
-            assertFalse(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == Any::class.qualifiedName })
-            assertFalse(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == "java.lang.Object" })
+            assertTrue(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == Any::class.qualifiedName })
+            assertTrue(schema.analysisSchema.dataClassTypesByFqName.any { it.value.javaTypeName == "java.lang.Object" })
         }
 
         schemaForProject.analysisSchema.topLevelReceiverType.memberFunctions.single { it.simpleName == "subtype" }.run {

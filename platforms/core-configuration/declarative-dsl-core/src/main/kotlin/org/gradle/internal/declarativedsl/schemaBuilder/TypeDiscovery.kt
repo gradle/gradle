@@ -69,7 +69,7 @@ interface TypeDiscovery {
                         }
                     }
                     visitType(kType)
-                }.toList().map { DiscoveredClass(it, discoveryTags.toList()) }
+                }.map { DiscoveredClass(it, discoveryTags.toList()) }
         }
     }
 
