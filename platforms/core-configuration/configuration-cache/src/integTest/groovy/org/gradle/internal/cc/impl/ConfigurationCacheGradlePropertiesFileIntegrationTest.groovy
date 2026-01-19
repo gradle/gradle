@@ -142,7 +142,7 @@ class ConfigurationCacheGradlePropertiesFileIntegrationTest extends AbstractConf
         outputContains "configuration cache cannot be reused because Gradle property 'foo' has changed."
     }
 
-    def "invalidates cache when properties file is added"() {
+    def "invalidates cache when properties file with property used at configuration time is added"() {
         given:
         buildFile """
             def access = project.hasProperty('foo')
@@ -163,6 +163,47 @@ class ConfigurationCacheGradlePropertiesFileIntegrationTest extends AbstractConf
         then:
         configurationCache.assertStateStored()
         outputContains "configuration cache cannot be reused because Gradle property 'foo' has changed."
+
+        when: 'file is removed, cache is invalidated'
+        propertiesFile.delete()
+
+        and:
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "configuration cache cannot be reused because Gradle property 'foo' has changed."
+    }
+
+    def "reuses cache when properties file with unused property is added"() {
+        given:
+        buildFile """
+            def access = project.hasProperty('foo')
+            println("Access: '\${access}'")
+            tasks.register("some")
+        """
+
+        when:
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        propertiesFile.writeProperties(bar: 'one')
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when: 'file is removed, cache is reused'
+        propertiesFile.delete()
+
+        and:
+        configurationCacheRun "some"
+
+        then:
+        configurationCache.assertStateLoaded()
     }
 
     def "reuses cache when system property used at execution time changes on disk"() {
