@@ -225,7 +225,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         lock2.isLockFile(lockFile)
         recreationState
         lock2.state
-        recreationState != lock2.state
+        lock2.state.hasBeenUpdatedSince(recreationState) == expectedUpdated
         1 * lock1ContentionAction.accept(_) >> { FileLockReleasedSignal signal ->
             // Simulate recreate of the lock file with a different state just after lock2 signals that it wants to access the lock
             assert lockFile.delete()
@@ -251,9 +251,26 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         }
 
         where:
-        description | expectedLock2ContentionCalls | lockOptionsDescription                  | lockOptions
-        "does NOT"  | 0                            | "WITHOUT ensure file system check flag" | DefaultLockOptions.mode(Exclusive)
-        "does"      | 1                            | "WITH ensure file system check flag"    | DefaultLockOptions.mode(Exclusive).ensureAcquiredLockRepresentsStateOnFileSystem()
+        description | expectedLock2ContentionCalls | expectedUpdated | lockOptionsDescription                  | lockOptions
+        "does NOT"  | 0                            | true            | "WITHOUT ensure file system check flag" | DefaultLockOptions.mode(Exclusive)
+        "does"      | 1                            | false           | "WITH ensure file system check flag"    | DefaultLockOptions.mode(Exclusive).ensureAcquiredLockRepresentsStateOnFileSystem()
+    }
+
+    @Requires(UnitTestPreconditions.Windows)
+    def "lock file cannot be deleted while lock is held on Windows"() {
+        given:
+        def file = tmpDir.file("held.bin")
+        def lockFile = tmpDir.file("held.bin.lock")
+
+        when:
+        FileLock lock = createLock(DefaultLockOptions.mode(Exclusive), file, manager, null)
+
+        then:
+        lock
+        lock.isLockFile(lockFile)
+        lockFile.exists()
+        !lockFile.delete()
+        lockFile.exists()
     }
 
     FileLock createLock(FileLockManager.LockMode lockMode, File file, FileLockManager lockManager = manager, Consumer<FileLockReleasedSignal> whenContended = null) {
