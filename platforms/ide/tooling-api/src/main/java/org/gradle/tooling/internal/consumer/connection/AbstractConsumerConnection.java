@@ -130,7 +130,6 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
         return false;
     }
 
-    @SuppressWarnings("unchecked")
     private <T> T handleHelpOrVersion(Class<T> type, ConsumerOperationParameters operationParameters) {
         List<String> args = operationParameters.getArguments();
         boolean help = args.contains("--help") || args.contains("-h") || args.contains("-?");
