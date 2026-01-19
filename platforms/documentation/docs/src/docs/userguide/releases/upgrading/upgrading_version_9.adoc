@@ -88,6 +88,17 @@ tasks.withType<CodeNarc>().configureEach {
 }
 ----
 
+==== System property priority for wrapper execution has changed
+
+System properties can be defined for a build at multiple places: on the command line, in the Gradle user home and in the `gradle.properties` file of a project.
+In previous Gradle versions, the priority of these options was not following the documented order: command-line options were potentially overridden by properties defined by entries in `gradle.properties` files.
+From this version onwards, the priority of system properties follows the documented order:
+- Command-line options (highest priority).
+- Properties defined in the Gradle user home `gradle.properties` file.
+- Properties defined in `gradle.properties` files. (lowest priority).
+
+For more details see the link:https://github.com/gradle/gradle/issues/36189[related issue].
+
 ==== Upgrade to Kotlin 2.3.0
 
 The embedded Kotlin has been upgraded from 2.2.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.0[Kotlin 2.3.0].
