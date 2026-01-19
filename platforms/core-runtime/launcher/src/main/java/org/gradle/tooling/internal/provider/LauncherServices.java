@@ -242,6 +242,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
                 new BuildCompletionNotifyingBuildActionRunner(
                     gradleEnterprisePluginManager,
                     failureFactory,
+                    buildOperationRunner,
                     new FileSystemWatchingBuildActionRunner(
                         eventEmitter,
                         virtualFileSystem,
