@@ -19,6 +19,7 @@ package org.gradle.api.file;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+import org.gradle.declarative.dsl.model.annotations.ValueFactories;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
@@ -38,6 +39,7 @@ public interface ProjectLayout {
     /**
      * Returns the project directory.
      */
+    @ValueFactories
     Directory getProjectDirectory();
 
     /**
@@ -54,6 +56,7 @@ public interface ProjectLayout {
      *
      * @since 8.13
      */
+    @ValueFactories
     Directory getSettingsDirectory();
 
     /**
