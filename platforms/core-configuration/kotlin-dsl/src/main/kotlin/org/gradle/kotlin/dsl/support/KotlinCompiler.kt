@@ -23,9 +23,38 @@ import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.util.internal.CollectionUtils
 import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentRegistrar
 import org.jetbrains.kotlin.assignment.plugin.AssignmentConfigurationKeys
+import org.jetbrains.kotlin.assignment.plugin.AssignmentPluginNames
+import org.jetbrains.kotlin.buildtools.api.CompilationResult
+import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.API_VERSION
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.COMPILER_PLUGINS
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.LANGUAGE_VERSION
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_SKIP_METADATA_VERSION_CHECK
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_SKIP_PRERELEASE_CHECK
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_USE_FIR_LT
+import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPlugin
+import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPluginOption
+import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.CLASSPATH
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.JVM_DEFAULT
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.JVM_TARGET
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.MODULE_NAME
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.NO_REFLECT
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.NO_STDLIB
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.SCRIPT_TEMPLATES
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_ALLOW_UNSTABLE_DEPENDENCIES
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_JSR305
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_SAM_CONVERSIONS
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
@@ -44,10 +73,8 @@ import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.JDK_HOME
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.JVM_TARGET
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.SAM_CONVERSIONS
 import org.jetbrains.kotlin.config.JvmAnalysisFlags
 import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
 import org.jetbrains.kotlin.config.JvmDefaultMode
@@ -62,6 +89,8 @@ import org.jetbrains.kotlin.load.java.ReportLevel
 import org.jetbrains.kotlin.name.NameUtils
 import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverComponentRegistrar
 import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverConfigurationKeys
+import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverPluginNames
+import org.jetbrains.kotlin.scripting.compiler.plugin.KOTLIN_SCRIPTING_PLUGIN_ID
 import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
 import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingK2CompilerPluginRegistrar
 import org.jetbrains.kotlin.scripting.compiler.plugin.impl.ScriptJvmCompilerFromEnvironment
@@ -73,7 +102,10 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
+import java.nio.file.Path
+import kotlin.io.path.Path
 import kotlin.reflect.KClass
+import kotlin.reflect.jvm.jvmName
 import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.ScriptDiagnostic
@@ -94,6 +126,8 @@ import kotlin.script.experimental.jvm.updateClasspath
 import kotlin.script.experimental.jvmhost.BasicJvmScriptClassFilesGenerator
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.JvmScriptCompiler
+
+private const val MODULE_NAME = "buildscript"
 
 fun scriptDefinitionFromTemplate(
     template: KClass<out Any>,
@@ -134,7 +168,7 @@ fun compileKotlinScriptToDirectory(
     compileKotlinScriptModuleTo(
         outputDirectory,
         compilerOptions,
-        "buildscript",
+        org.gradle.kotlin.dsl.support.MODULE_NAME,
         listOf(scriptFile.path),
         scriptDef,
         classPath,
@@ -142,6 +176,108 @@ fun compileKotlinScriptToDirectory(
     )
 
     return NameUtils.getScriptNameForFile(scriptFile.name).asString()
+}
+
+
+@OptIn(ExperimentalBuildToolsApi::class)
+private class BTACompiler {
+
+    // TODO: this should be done in an isolated classloader and then we can load an
+    //  implementation with a different version than the API we are using, thus making it configurable to users
+    //  supported versions range from -3 major version to +1 major version
+    private val toolchains = KotlinToolchains.loadImplementation(this::class.java.classLoader)
+
+    // TODO: session should be closed after no longer needed, for cleanup to happen
+    private val buildSession = toolchains.createBuildSession()
+
+    @OptIn(ExperimentalCompilerArgument::class)
+    fun compile(sources: List<Path>, destinationDirectory: Path, arguments: (JvmCompilerArguments.Builder) -> Unit): CompilationResult {
+        val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, destinationDirectory)
+
+        // compilation operation config
+        operationBuilder[JvmCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
+        // TODO: incremental compilation should make explicit fingerprint checking obsolete
+
+        arguments.invoke(operationBuilder.compilerArguments)
+
+        val operation = operationBuilder.build()
+
+        // TODO: executeOperation has an overload with configurable ExecutionPolicy, that's how Deamon mode can be enabled
+        return buildSession.executeOperation(operation)
+    }
+}
+
+private val btaCompiler by lazy { BTACompiler() }
+
+
+@ExperimentalCompilerArgument
+internal
+fun btaCompileKotlinScriptToDirectory(
+    outputDirectory: File,
+    compilerOptions: KotlinCompilerOptions,
+    scriptFile: File,
+    classPath: List<File>,
+    template: KClass<out Any>,
+): CompilationResult {
+    fun configureClasspath(arguments: JvmCompilerArguments.Builder, classPath: List<File>) {
+        arguments[NO_STDLIB] = true // Don't automatically include the Kotlin/JVM stdlib and Kotlin reflection dependencies in the classpath.
+        arguments[NO_REFLECT] = true // Don't automatically include the Kotlin reflection dependency in the classpath. // TODO: is it really covered by NO_STDLIB?
+        arguments[CLASSPATH] = CollectionUtils.join(File.pathSeparator, classPath)
+    }
+
+    fun configurePlugins(arguments: JvmCompilerArguments.Builder, classPath: List<File>) {
+        arguments[COMPILER_PLUGINS] = listOf(
+            CompilerPlugin(
+                pluginId = KOTLIN_SCRIPTING_PLUGIN_ID,
+                classpath = listOf(classPath.first { it.name.contains("kotlin-scripting-compiler-embeddable") }.toPath()),
+                rawArguments = listOf(),
+                orderingRequirements = setOf()
+            ),
+            CompilerPlugin(
+                pluginId = SamWithReceiverPluginNames.PLUGIN_ID,
+                classpath = listOf(classPath.first { it.name.contains("kotlin-sam-with-receiver-compiler-plugin") }.toPath()),
+                rawArguments = listOf(CompilerPluginOption(SamWithReceiverPluginNames.ANNOTATION_OPTION_NAME, HasImplicitReceiver::class.qualifiedName!!)),
+                orderingRequirements = setOf()
+            ),
+            CompilerPlugin(
+                pluginId = AssignmentPluginNames.PLUGIN_ID,
+                classpath = listOf(classPath.first { it.name.contains("kotlin-assignment-compiler-plugin-embeddable") }.toPath()),
+                rawArguments = listOf(CompilerPluginOption(AssignmentPluginNames.ANNOTATION_OPTION_NAME, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)),
+                orderingRequirements = setOf()
+            ),
+        )
+    }
+
+    return btaCompiler.compile(listOf(Path(scriptFile.path)), outputDirectory.toPath()) {
+        // TODO: put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
+        it[X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS] = true
+        it[X_USE_FIR_LT] = false
+        it[JVM_TARGET] = org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.valueOf("JVM_" + compilerOptions.jvmTarget.toKotlinJvmTarget().description) // TODO: ugly conversion
+        it[X_SAM_CONVERSIONS] = "class"
+        // TODO: addJvmSdkRoot(...)
+
+        it.also { // apply language version settings
+            it[LANGUAGE_VERSION] = org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion.V2_2
+            it[API_VERSION] = org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion.V2_2
+            it.also { // apply analysis flags
+                it[X_SKIP_METADATA_VERSION_CHECK] = compilerOptions.skipMetadataVersionCheck
+                it[X_SKIP_PRERELEASE_CHECK] = true
+                it[X_ALLOW_UNSTABLE_DEPENDENCIES] = true
+                it[JVM_DEFAULT] = "enable"
+                it.also { // apply java type enhancement settings
+                    it[X_JSR305] = arrayOf("strict", "under-migration:strict")
+                    // TODO: not sure what the equivalent of `getReportLevelForAnnotation` is... maybe JvmCompilerArguments.X_JSPECIFY_ANNOTATIONS, but that defaults to the right value
+                }
+            }
+        }
+
+        it[MODULE_NAME] = org.gradle.kotlin.dsl.support.MODULE_NAME
+
+        configureClasspath(it, classPath)
+        configurePlugins(it, classPath)
+
+        it[SCRIPT_TEMPLATES] = arrayOf(template.jvmName)
+    }
 }
 
 
@@ -314,9 +450,9 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions
     CompilerConfiguration().apply {
         put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         put(CommonConfigurationKeys.USE_FIR, true) // Enables K2
-        put(JVM_TARGET, compilerOptions.jvmTarget.toKotlinJvmTarget())
-        put(JDK_HOME, File(System.getProperty("java.home")))
-        put(SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
+        put(JVMConfigurationKeys.JVM_TARGET, compilerOptions.jvmTarget.toKotlinJvmTarget())
+        put(JVMConfigurationKeys.JDK_HOME, File(System.getProperty("java.home")))
+        put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
         addJvmSdkRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
         put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettingsFor(compilerOptions))
         put(CommonConfigurationKeys.ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS, true)
