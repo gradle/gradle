@@ -84,6 +84,9 @@ public class ZipHasher implements RegularFileSnapshotContextHasher, Configurable
     public void appendConfigurationToHasher(Hasher hasher) {
         hasher.putString(getClass().getName());
         resourceHasher.appendConfigurationToHasher(hasher);
+        if (fallbackZipHasher != null) {
+            fallbackZipHasher.appendConfigurationToHasher(hasher);
+        }
     }
 
     @Nullable
