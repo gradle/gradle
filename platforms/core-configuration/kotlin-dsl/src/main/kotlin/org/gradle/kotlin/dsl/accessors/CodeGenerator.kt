@@ -73,6 +73,21 @@ fun extensionAccessor(spec: TypedAccessorSpec): String = spec.run {
     }
 }
 
+internal
+fun nestedModelAccessor(spec: TypedAccessorSpec): String = spec.run {
+    when (type) {
+        is TypeAccessibility.Accessible -> accessibleNestedModelAccessorFor(
+            receiver.type.kotlinString,
+            name,
+            type.type.kotlinString,
+            type.deprecation(),
+            uniqueOptInAnnotations(receiver, type)
+        )
+        is TypeAccessibility.Inaccessible -> inaccessibleExtensionAccessorForNestedModel(receiver.type.kotlinString, name, type)
+    }
+}
+
+
 internal fun maybeDeprecationAnnotations(deprecation: Deprecated?): String {
     fun deprecatedAnnotation(deprecation: Deprecated) =
         "@Deprecated(\"${TextUtil.escapeString(deprecation.message)}\", level = DeprecationLevel.${deprecation.level.name})"
@@ -173,6 +188,26 @@ fun accessibleExtensionAccessorFor(
     """.trimMargin()
 }
 
+private
+fun accessibleNestedModelAccessorFor(
+    targetType: String,
+    name: AccessorNameSpec,
+    type: String,
+    deprecation: Deprecated?,
+    optInAnnotations: List<AnnotationRepresentation>
+): String = name.run {
+    val annotations = "${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(optInAnnotations)}"
+    """
+        /**
+         * Configures the [$original][$type] nested model.
+         */
+        ${annotations}fun $targetType.`$kotlinIdentifier`(configure: Action<$type>): Unit =
+            action.execute($kotlinIdentifier)
+
+    """.trimMargin()
+}
+
+
 
 private
 fun inaccessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
@@ -196,6 +231,19 @@ fun inaccessibleExtensionAccessorFor(targetType: String, name: AccessorNameSpec,
     """
 }
 
+private
+fun inaccessibleExtensionAccessorForNestedModel(targetType: String, name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
+    """
+        /**
+         * Configures the `$original` nested model.
+         *
+         * ${documentInaccessibilityReasons(name, typeAccess)}
+         */
+        fun $targetType.`$kotlinIdentifier`(configure: Action<Any>): Unit =
+            configure.execute($kotlinIdentifier)
+
+    """
+}
 
 internal
 fun existingTaskAccessor(spec: TypedAccessorSpec): String = spec.run {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.integration
+package org.gradle.kotlin.dsl.integration.declarative
 
 import org.gradle.api.Namer
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer
@@ -25,12 +25,10 @@ import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectTypeBinding
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.kotlin.dsl.accessors.DCL_ENABLED_PROPERTY_NAME
-import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.junit.Test
 
 
-class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegrationTest() {
+class KotlinDslContainerElementFactoryIntegrationTest : AbstractDeclarativeKotlinIntegrationTest() {
     @Test
     fun `a named domain object container gets a synthetic element factory function`() {
         testKtsDefinitionWithDeclarativePlugin(withPluginsBlock = false, withCustomElementFactoryName = false)
@@ -88,50 +86,10 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
         }
     }
 
-    private fun withEcosystemAndPluginBuildInBuildLogic() {
-        withFile(
-            "build-logic/build.gradle.kts", """
-                plugins {
-                    id("java-gradle-plugin")
-                    `kotlin-dsl`
-                }
-
-                repositories {
-                    mavenCentral()
-                }
-
-                gradlePlugin {
-                    plugins {
-                        create("myPlugin") {
-                            id = "com.example.myPlugin"
-                            implementationClass = "com.example.MyPlugin"
-                        }
-                        create("myEcosystemPlugin") {
-                            id = "com.example.myEcosystemPlugin"
-                            implementationClass = "com.example.MyEcosystemPlugin"
-                        }
-                    }
-                }
-            """.trimIndent()
-        )
-
-        withFile(
-            "settings.gradle.kts", """
-            pluginManagement {
-                includeBuild("build-logic")
-            }
-
-            plugins {
-                id("com.example.myEcosystemPlugin")
-            }
-        """.trimIndent()
-        )
-    }
-
     private fun withCustomSoftwarePluginWithContainer(customElementFactoryName: String? = null) {
         withEcosystemAndPluginBuildInBuildLogic()
 
-        withEcosystemPluginRegisteringMyPlugin()
+        withEcosystemPluginRegisteringPluginClass()
 
         withFile(
             "build-logic/src/main/kotlin/MyPlugin.kt", """
@@ -205,27 +163,4 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegratio
                 """.trimIndent()
         )
     }
-
-    private fun withEcosystemPluginRegisteringMyPlugin() {
-        withFile(
-            "build-logic/src/main/kotlin/MyEcosystemPlugin.kt", """
-                package com.example
-
-                import org.gradle.api.Plugin
-                import org.gradle.api.initialization.Settings
-                import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
-
-                @RegistersSoftwareTypes(MyPlugin::class)
-                class MyEcosystemPlugin : Plugin<Settings> {
-                    override fun apply(settings: Settings) = Unit
-                }
-            """.trimIndent()
-        )
-    }
-
-    private fun enableDclInGradleProperties() =
-        withFile("gradle.properties").appendText("\n$DCL_ENABLED_PROPERTY_NAME=true\n")
-
-    private val enableDclCliFlag =
-        "-D${DCL_ENABLED_PROPERTY_NAME}=true"
 }

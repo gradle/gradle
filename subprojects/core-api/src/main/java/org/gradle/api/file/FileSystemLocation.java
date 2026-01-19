@@ -16,6 +16,8 @@
 
 package org.gradle.api.file;
 
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+
 import java.io.File;
 
 /**
@@ -31,5 +33,6 @@ public interface FileSystemLocation {
      *
      * @return the File
      */
+    @HiddenInDefinition
     File getAsFile();
 }
