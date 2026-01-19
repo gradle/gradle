@@ -26,6 +26,11 @@ import org.gradle.internal.logging.ConsoleRenderer
 import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentRegistrar
 import org.jetbrains.kotlin.assignment.plugin.AssignmentConfigurationKeys
+import org.jetbrains.kotlin.buildtools.api.CompilationResult
+import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
@@ -73,6 +78,8 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
+import java.nio.file.Path
+import kotlin.io.path.Path
 import kotlin.reflect.KClass
 import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
@@ -141,7 +148,46 @@ fun compileKotlinScriptToDirectory(
         messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation)
     )
 
-    return NameUtils.getScriptNameForFile(scriptFile.name).asString()
+    val retVal = NameUtils.getScriptNameForFile(scriptFile.name).asString()
+
+    val secondaryOutputDir = Path(outputDirectory.absolutePath + "_")
+    val result = btCompiler.compile(listOf(Path(scriptFile.path)), scriptDef, classPath, secondaryOutputDir)
+    println("result = ${result}")
+
+    return retVal
+}
+
+@OptIn(ExperimentalBuildToolsApi::class)
+private class BTCompiler {
+
+    private val toolchains = KotlinToolchains.loadImplementation(this::class.java.classLoader)
+
+    private val buildSession = toolchains.createBuildSession()
+
+    fun compile(sources: List<Path>, destinationDirectory: Path, configuration: (JvmCompilerArguments) -> Unit): CompilationResult {
+        val operation = toolchains.jvm.createJvmCompilationOperation(sources, destinationDirectory)
+        configuration.invoke(operation.compilerArguments)
+        return buildSession.executeOperation(operation)
+    }
+}
+
+private val btCompiler by lazy { BTCompiler() }
+
+
+internal
+fun btCompileKotlinScriptToDirectory(
+    outputDirectory: File,
+    scriptFile: File,
+    configuration: (JvmCompilerArguments) -> Unit,
+): String {
+
+    val retVal = NameUtils.getScriptNameForFile(scriptFile.name).asString()
+
+    val secondaryOutputDir = Path(outputDirectory.absolutePath + "_")
+    val result = btCompiler.compile(listOf(Path(scriptFile.path)), secondaryOutputDir, configuration)
+    println("result = ${result}")
+
+    return retVal
 }
 
 
