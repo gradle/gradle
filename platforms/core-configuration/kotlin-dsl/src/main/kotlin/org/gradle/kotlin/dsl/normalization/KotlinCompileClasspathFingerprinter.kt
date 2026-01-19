@@ -38,7 +38,7 @@ import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.jvm.AccessibleClassSnapshot
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshot
 import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
-import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation
 import java.io.File
 
@@ -154,10 +154,8 @@ private class Snapshotter {
 
     private val buildSession = toolchains.createBuildSession()
 
-    private val jvmToolchains = toolchains.getToolchain(JvmPlatformToolchain::class.java)
-
     fun snapshot(file: File): Map<String, ClassSnapshot> {
-        val snapshotOperation = jvmToolchains.createClasspathSnapshottingOperation(file.toPath())
+        val snapshotOperation = toolchains.jvm.createClasspathSnapshottingOperation(file.toPath())
             .apply {
                 this[JvmClasspathSnapshottingOperation.GRANULARITY] = ClassSnapshotGranularity.CLASS_LEVEL
                 this[JvmClasspathSnapshottingOperation.PARSE_INLINED_LOCAL_CLASSES] = true
