@@ -84,7 +84,46 @@ class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification
             """.stripIndent()
     }
 
-    def "nothing broken in buildSrc"() {
+    def "broken convention plugin defined in buildSrc"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+        """
+        buildKotlinFile << """
+            plugins {
+                id("my-conventions")
+            }
+        """
+
+        file("buildSrc/build.gradle.kts") << """
+            plugins {
+                `kotlin-dsl`
+            }
+            
+            repositories {
+                gradlePluginPortal()
+            }
+        """
+
+        file("buildSrc/src/main/kotlin/my-conventions.gradle.kts") << """
+             broken !!! 
+        """
+
+        when:
+        fails { model(it) }
+
+        then:
+        def e = thrown(BuildException)
+        e.cause.message.contains("Execution failed for task ':buildSrc:compileKotlin'.")
+        def model = modelCollector.model
+        assertFailures(model,
+                "Execution failed for task ':buildSrc:compileKotlin'.",
+                "Execution failed for task ':buildSrc:compileKotlin'.",
+        )
+        assertModel(model, true, [], ["buildSrc"])
+    }
+
+    def "build included from buildSrc - nothing broken"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -110,7 +149,7 @@ class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification
         assertModel(model, true, [], ["buildSrc", "buildSrc-included"])
     }
 
-    def "compilation failure in buildSrc (#brokenFile)"() {
+    def "build included from buildSrc - compilation failures (#brokenFile)"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
