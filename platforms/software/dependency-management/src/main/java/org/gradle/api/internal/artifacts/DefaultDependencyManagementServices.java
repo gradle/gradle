@@ -57,28 +57,18 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultConfigurationResolver;
-import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionExecutor;
 import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitingResolutionExecutor;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyGraphBuilder;
-import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQueryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultBaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultUrlArtifactRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
-import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformRegistrationFactory;
@@ -104,20 +94,16 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.Cache;
 import org.gradle.cache.ManualEvictionInMemoryCache;
-import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.component.resolution.failure.transform.TransformedVariantConverter;
@@ -129,7 +115,6 @@ import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.NonLockingMutableWorkspaceProvider;
-import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -144,8 +129,6 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.resource.local.FileResourceListener;
-import org.gradle.internal.resource.local.FileResourceRepository;
-import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -257,6 +240,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(ArtifactTypeRegistry.class);
             registration.add(GlobalDependencyResolutionRules.class);
             registration.add(PublishArtifactNotationParserFactory.class);
+            registration.add(BaseRepositoryFactory.class, DefaultBaseRepositoryFactory.class);
         }
 
         @Provides
@@ -363,59 +347,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         @Provides
         DefaultUrlArtifactRepository.Factory createDefaultUrlArtifactRepositoryFactory(FileResolver fileResolver) {
             return new DefaultUrlArtifactRepository.Factory(fileResolver);
-        }
-
-        @Provides
-        BaseRepositoryFactory createBaseRepositoryFactory(
-            LocalMavenRepositoryLocator localMavenRepositoryLocator,
-            FileResolver fileResolver,
-            FileCollectionFactory fileCollectionFactory,
-            RepositoryTransportFactory repositoryTransportFactory,
-            LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-            FileStoreAndIndexProvider fileStoreAndIndexProvider,
-            VersionSelectorScheme versionSelectorScheme,
-            AuthenticationSchemeRegistry authenticationSchemeRegistry,
-            IvyContextManager ivyContextManager,
-            AttributesFactory attributesFactory,
-            ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-            InstantiatorFactory instantiatorFactory,
-            FileResourceRepository fileResourceRepository,
-            MavenMutableModuleMetadataFactory metadataFactory,
-            IvyMutableModuleMetadataFactory ivyMetadataFactory,
-            IsolatableFactory isolatableFactory,
-            ObjectFactory objectFactory,
-            CollectionCallbackActionDecorator callbackDecorator,
-            NamedObjectInstantiator instantiator,
-            DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
-            ChecksumService checksumService,
-            ProviderFactory providerFactory,
-            VersionParser versionParser
-        ) {
-            return new DefaultBaseRepositoryFactory(
-                localMavenRepositoryLocator,
-                fileResolver,
-                fileCollectionFactory,
-                repositoryTransportFactory,
-                locallyAvailableResourceFinder,
-                fileStoreAndIndexProvider.getArtifactIdentifierFileStore(),
-                fileStoreAndIndexProvider.getExternalResourceFileStore(),
-                new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, fileResourceRepository, metadataFactory),
-                new GradleModuleMetadataParser(attributesFactory, moduleIdentifierFactory, instantiator),
-                authenticationSchemeRegistry,
-                ivyContextManager,
-                moduleIdentifierFactory,
-                instantiatorFactory,
-                fileResourceRepository,
-                metadataFactory,
-                ivyMetadataFactory,
-                isolatableFactory,
-                objectFactory,
-                callbackDecorator,
-                urlArtifactRepositoryFactory,
-                checksumService,
-                providerFactory,
-                versionParser
-            );
         }
 
         @Provides

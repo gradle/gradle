@@ -48,10 +48,11 @@ import static org.gradle.util.internal.CollectionUtils.flattenCollections;
 
 public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandlerInternal {
 
-    public static final String GRADLE_PLUGIN_PORTAL_REPO_NAME = "Gradle Central Plugin Repository";
-    public static final String GOOGLE_REPO_NAME = "Google";
+    private static final String GRADLE_DISTRIBUTION_REPO_NAME = "Gradle Distribution";
+    private static final String GRADLE_PLUGIN_PORTAL_REPO_NAME = "Gradle Central Plugin Repository";
+    private static final String GOOGLE_REPO_NAME = "Google";
 
-    public static final String FLAT_DIR_DEFAULT_NAME = "flatDir";
+    private static final String FLAT_DIR_DEFAULT_NAME = "flatDir";
     private static final String MAVEN_REPO_DEFAULT_NAME = "maven";
     private static final String IVY_REPO_DEFAULT_NAME = "ivy";
 
@@ -83,6 +84,11 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
             modifiedArgs.put("dirs", flattenCollections(modifiedArgs.get("dirs")));
         }
         return flatDir(new ConfigureByMapAction<>(modifiedArgs));
+    }
+
+    @Override
+    public ArtifactRepository gradleDistribution() {
+        return addRepository(repositoryFactory.createGradleDistributionRepository(), GRADLE_DISTRIBUTION_REPO_NAME);
     }
 
     @Override

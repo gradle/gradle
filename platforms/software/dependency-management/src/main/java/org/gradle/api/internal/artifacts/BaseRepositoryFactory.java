@@ -33,6 +33,8 @@ public interface BaseRepositoryFactory {
 
     FlatDirectoryArtifactRepository createFlatDirRepository();
 
+    ArtifactRepository createGradleDistributionRepository();
+
     ArtifactRepository createGradlePluginPortal();
 
     MavenArtifactRepository createMavenLocalRepository();

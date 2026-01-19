@@ -1,0 +1,14 @@
+
+> Task :dependencies
+
+------------------------------------------------------------
+Root project 'gradle-distribution-repository'
+------------------------------------------------------------
+
+runtimeClasspath - Runtime classpath of source set 'main'.
+\--- org.apache.groovy:groovy:4+ -> 4.0.29
+
+A web-based, searchable dependency report is available by adding the --scan option.
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

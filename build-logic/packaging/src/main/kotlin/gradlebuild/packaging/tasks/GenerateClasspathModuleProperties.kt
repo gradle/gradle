@@ -170,18 +170,13 @@ abstract class GenerateClasspathModuleProperties : DefaultTask() {
     @TaskAction
     fun generate() {
         val outputDirectory = outputDir.get()
-        val nodesByComponentId = graphNodes.get()
+        val artifactsById = getArtifactsById()
+        val nodesByComponentId = simplifyGraph(graphNodes.get(), artifactsById)
 
         val nodesWithoutArtifacts = nodesByComponentId.toMutableMap()
 
         // Generate a module for each node with an artifact
-        val names = artifactNames.get()
-        val ids = artifactComponentIds.get()
-        require(names.size == ids.size)
-        for (i in names.indices) {
-            val artifactFileName = names[i]
-            val componentId = ids[i]
-
+        artifactsById.forEach { (componentId, artifactFileName) ->
             nodesWithoutArtifacts.remove(componentId)
             val graphNode = nodesByComponentId[componentId] ?:
                 error("Could not find graph node for artifact $componentId")
@@ -212,6 +207,37 @@ abstract class GenerateClasspathModuleProperties : DefaultTask() {
                 outputDirectory.file(node.moduleName + ".properties").asFile
             )
         }
+    }
+
+    private fun getArtifactsById(): Map<ComponentIdentifier, String> {
+        val names = artifactNames.get()
+        val ids = artifactComponentIds.get()
+        require(names.size == ids.size)
+        return ids.zip(names).toMap()
+    }
+
+    /**
+     * Recursively simplify the graph by removing nodes that contain no artifacts
+     * and no dependencies. In practice, this removes platforms/BOMs from the graph.
+     */
+    tailrec fun simplifyGraph(
+        graph: Map<ComponentIdentifier, GraphNode>,
+        artifactsById: Map<ComponentIdentifier, String>
+    ): Map<ComponentIdentifier, GraphNode> {
+        val danglingModules = graph.filter { (id, node) ->
+            artifactsById[id] == null && node.dependencyComponentIds.isEmpty()
+        }.keys
+
+        if (danglingModules.isEmpty()) {
+            return graph
+        }
+
+        val next = graph.filterKeys { it !in danglingModules }
+            .mapValues { (_, node) ->
+                node.copy(dependencyComponentIds = node.dependencyComponentIds.filter { it !in danglingModules }.toSet())
+            }
+
+        return simplifyGraph(next, artifactsById)
     }
 
     private
