@@ -19,17 +19,28 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
+import org.gradle.kotlin.dsl.integration.KotlinScriptCompilerTest.TheImplicitReceiver
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
-import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
-import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
+import org.gradle.kotlin.dsl.support.btaCompileKotlinScriptToDirectory
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
+import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
 import org.junit.Test
 import org.mockito.kotlin.mock
 import java.io.File
+import kotlin.reflect.KClass
+import kotlin.script.experimental.annotations.KotlinScript
+import kotlin.script.experimental.api.ScriptCompilationConfiguration
+import kotlin.script.experimental.api.defaultImports
+import kotlin.script.experimental.api.implicitReceivers
 
+object TheScriptCompilationConfiguration : ScriptCompilationConfiguration(
+    {
+        implicitReceivers(TheImplicitReceiver::class)
+        defaultImports(emptyList())
+    })
 
+@KotlinScript(compilationConfiguration = TheScriptCompilationConfiguration::class)
 open class TheKotlinScriptTemplate(
     @Suppress("unused_parameter") host: Host
 ) {
@@ -43,15 +54,12 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
     fun canInjectImplicitReceiver() {
         outputDir().let { outputDir ->
 
-            compileKotlinScriptTo(
-                outputDir,
-                "bar()",
-                scriptDefinitionFromTemplate(
-                    template = TheKotlinScriptTemplate::class,
-                    implicitImports = emptyList(),
-                    implicitReceiver = TheImplicitReceiver::class
-                )
-            )
+            val script = """
+                    println("Calling bar()...") // making sure we have access to the standard library
+                    bar()
+                    """.trimIndent()
+
+            compileKotlinScriptTo(outputDir, script, TheKotlinScriptTemplate::class)
 
             withClassLoaderFor(outputDir) {
 
@@ -80,21 +88,21 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
     private
     fun outputDir() = root.resolve("classes").apply { mkdir() }
 
+    @OptIn(ExperimentalCompilerArgument::class)
     private
     fun compileKotlinScriptTo(
         outputDir: File,
         script: String,
-        scriptDefinition: ScriptDefinition
+        template: KClass<out Any>,
     ) {
-        compileKotlinScriptToDirectory(
+        btaCompileKotlinScriptToDirectory(
             outputDir,
             KotlinCompilerOptions(),
             file("script.kts").apply {
                 writeText(script)
             },
-            scriptDefinition,
             testRuntimeClassPath.asFiles,
-            mock()
-        ) { it }
+            template
+        )
     }
 }
