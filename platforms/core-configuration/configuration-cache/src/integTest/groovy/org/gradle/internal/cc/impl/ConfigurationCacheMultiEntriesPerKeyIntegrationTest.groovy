@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.util.internal.CollectionUtils.single
@@ -142,7 +143,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         when:
         2.times {
             settingsFile.text = "// branch $it"
-            configurationCacheRun 'help'
+            configurationCacheRun "help", "-D${StartParameterBuildOptions.ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
         }
 
         then:
@@ -153,7 +154,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         settingsFile.text = "// branch 3"
 
         and:
-        configurationCacheRun 'help'
+        configurationCacheRun "help", "-D${StartParameterBuildOptions.ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
 
         then:
         def allEntries = configurationCacheEntryDirs
@@ -166,7 +167,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         settingsFile.text == "// branch 4"
 
         and:
-        configurationCacheRun 'help'
+        configurationCacheRun "help", "-D${StartParameterBuildOptions.ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
 
         then: "only newly created and newest entries remain"
         def remainingEntries = configurationCacheEntryDirs
