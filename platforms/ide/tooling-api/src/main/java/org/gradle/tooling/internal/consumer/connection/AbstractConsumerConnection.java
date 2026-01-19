@@ -154,7 +154,7 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
                     operationParameters.getStandardOutput().write(helpModel.getRenderedText().getBytes(StandardCharsets.UTF_8));
                 } catch (UnknownModelException e) {
                     // Fallback if Help model is not supported by this Gradle version
-                    operationParameters.getStandardOutput().write("Help is not supported by this Gradle version.\n".getBytes(StandardCharsets.UTF_8));
+                    operationParameters.getStandardOutput().write(("Help is not supported by this Gradle version." + System.lineSeparator()).getBytes(StandardCharsets.UTF_8));
                 }
                 return null;
             }
