@@ -351,28 +351,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
     }
 
-    def "invalidates cache when properties file is added"() {
-        buildFile """
-            def access = project.hasProperty('foo')
-            println("Access: '\${access}'")
-            tasks.register("some")
-        """
-
-        when:
-        configurationCacheRun "some"
-
-        then:
-        configurationCache.assertStateStored()
-
-        when:
-        propertiesFile.writeProperties(foo: 'one')
-        configurationCacheRun "some"
-
-        then:
-        configurationCache.assertStateStored()
-        outputContains "configuration cache cannot be reused because Gradle property 'foo' has changed."
-    }
-
     def "invalidates cache when project property changes on command-line, if used at configuration time via #description"() {
         buildFile """
             tasks.register("some")
