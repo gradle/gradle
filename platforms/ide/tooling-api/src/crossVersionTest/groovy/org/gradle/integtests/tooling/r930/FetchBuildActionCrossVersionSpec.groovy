@@ -20,12 +20,16 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.FetchModelResult
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.util.GradleVersion
+
+import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
+import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
 @ToolingApiVersion(">=9.3.0")
 class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
@@ -49,11 +53,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         given:
         settingsFile.delete()
         settingsKotlinFile.delete()
-        if (dsl == 'Kotlin') {
-            settingsKotlinFile << error
-        } else {
-            settingsFile << error
-        }
+        writeSettingsFile(dsl, error)
 
         when:
         def result = succeeds {
@@ -68,10 +68,10 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         description          | error                                                        | cause                     | dsl
-        "script compilation" | "broken !!!"                                                 | "Unexpected input"        | 'Groovy'
-        "runtime exception"  | """throw RuntimeException("broken settings script")"""       | "broken settings script"  | 'Groovy'
-        "script compilation" | "broken !!!"                                                 | "broken !!!"              | 'Kotlin'
-        "runtime exception"  | """throw RuntimeException("broken settings script")"""       | "broken settings script"  | 'Kotlin'
+        "script compilation" | "broken !!!"                                                 | "Unexpected input"        | GROOVY
+        "runtime exception"  | """throw RuntimeException("broken settings script")"""       | "broken settings script"  | GROOVY
+        "script compilation" | "broken !!!"                                                 | "broken !!!"              | KOTLIN
+        "runtime exception"  | """throw RuntimeException("broken settings script")"""       | "broken settings script"  | KOTLIN
     }
 
     def "can request unknown model"() {
@@ -102,7 +102,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         result.causes.isEmpty()
 
         where:
-        dsl << ['Groovy', 'Kotlin']
+        dsl << [GROOVY, KOTLIN]
     }
 
     def "returns a failure if a model builder throws an exception with #dsl DSL"() {
@@ -119,20 +119,14 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         result.modelValue == null
         result.failureMessages == ["broken builder"]
-
-        where:
-        dsl << ['Groovy', 'Kotlin']
     }
 
     def "returns a failure if project configuration fails due to #description with #dsl DSL"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         setupInitScriptWithCustomModelBuilder()
-        if (dsl == 'Kotlin') {
-            buildFileKts << error
-        } else {
-            buildFile << error
-        }
+
+        writeBuildFile(dsl, error)
 
         when:
         def result = succeeds {
@@ -149,13 +143,21 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         description          | error                                                            | cause                                               | dsl
-        "script compilation" | "broken !!!"                                                     | "Could not compile build file "                     | 'Groovy'
-        "runtime exception"  | """throw new RuntimeException("broken project configuration")""" | "A problem occurred evaluating root project 'root'" | 'Groovy'
-        "script compilation" | "broken !!!"                                                     | "broken !!!"                                        | 'Kotlin'
-        "runtime exception"  | """throw RuntimeException("broken project configuration")"""     | "broken project configuration"                      | 'Kotlin'
+        "script compilation" | "broken !!!"                                                     | "Could not compile build file "                     | GROOVY
+        "runtime exception"  | """throw new RuntimeException("broken project configuration")""" | "A problem occurred evaluating root project 'root'" | GROOVY
+        "script compilation" | "broken !!!"                                                     | "broken !!!"                                        | KOTLIN
+        "runtime exception"  | """throw RuntimeException("broken project configuration")"""     | "broken project configuration"                      | KOTLIN
     }
 
-    def "'#method' method returns the same successful result as other fetch methods with #dsl DSL"() {
+    private void writeBuildFile(GradleDsl dsl, String s) {
+        if (dsl == KOTLIN) {
+            buildFileKts << s
+        } else {
+            buildFile << s
+        }
+    }
+
+    def "'#method' method returns the same successful result as other fetch methods"() {
         given:
         setupInitScriptWithCustomModelBuilder()
 
@@ -172,26 +174,19 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         result.causes.isEmpty()
 
         where:
-        method                                                       | buildAction                                              | dsl
-        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | 'Groovy'
-        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | 'Groovy'
-        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | 'Groovy'
-        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | 'Groovy'
-        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | 'Kotlin'
-        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | 'Kotlin'
-        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | 'Kotlin'
-        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | 'Kotlin'
+        method                                                       | buildAction
+        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()
+        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()
+        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()
+        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
     }
 
     def "'#method' returns the same result as other fetch methods in the presence of project build script failures"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         setupInitScriptWithCustomModelBuilder()
-        if(dsl == 'Kotlin') {
-            buildFileKts << "broken !!!"
-        } else {
-            buildFile << "broken !!!"
-        }
+
+        writeBuildFile(dsl, "broken !!!")
 
         when:
         def result = succeeds {
@@ -207,26 +202,22 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         method                                                       | buildAction                                              | dsl
-        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | 'Groovy'
-        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | 'Groovy'
-        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | 'Groovy'
-        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | 'Groovy'
-        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | 'Kotlin'
-        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | 'Kotlin'
-        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | 'Kotlin'
-        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | 'Kotlin'
+        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | GROOVY
+        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | GROOVY
+        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | GROOVY
+        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | GROOVY
+        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | KOTLIN
+        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | KOTLIN
+        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | KOTLIN
+        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | KOTLIN
 
     }
 
     def "'#method' method returns the same failed result as other fetch methods with #dsl DSL"() {
         given:
         setupInitScriptWithCustomModelBuilder()
-        if (dsl == 'Kotlin') {
-            settingsFile.delete()
-            settingsKotlinFile << "garbage !!!"
-        } else {
-            settingsFile << "garbage !!!"
-        }
+
+        writeSettingsFile(dsl, "garbage !!!")
 
         when:
         def result = succeeds {
@@ -241,7 +232,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         // A bit different error messages from Gradle 8.7 onwards,
         // compilation error was wrapped in a more generic error message before
         def expectedFailure
-        if(dsl == "Groovy") {
+        if(dsl == GROOVY) {
             expectedFailure = targetVersion >= GradleVersion.version("8.7")
                 ? "Could not compile settings file"
                 : "Could not open cp_settings generic class cache for settings file"
@@ -253,14 +244,23 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         method                                                       | buildAction                                              | dsl
-        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | 'Groovy'
-        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | 'Groovy'
-        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | 'Groovy'
-        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | 'Groovy'
-        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | 'Kotlin'
-        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | 'Kotlin'
-        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | 'Kotlin'
-        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | 'Kotlin'
+        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | GROOVY
+        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | GROOVY
+        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | GROOVY
+        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | GROOVY
+        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | KOTLIN
+        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | KOTLIN
+        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | KOTLIN
+        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | KOTLIN
+    }
+
+    private void writeSettingsFile(GradleDsl dsl, String s) {
+        if (dsl == KOTLIN) {
+            settingsFile.delete()
+            settingsKotlinFile << s
+        } else {
+            settingsFile << s
+        }
     }
 
     def "can query models per project"() {
