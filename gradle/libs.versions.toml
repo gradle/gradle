@@ -25,7 +25,7 @@ develocityTestAnnotation = "2.0.1!!"
 dockerJavaApi = "3.4.0!!"
 eclipseSisuPlexus = "0.3.5!!"
 equalsverifier = "2.1.6!!"
-errorProneAnnotations = "2.42.0!!" # don't forget to upgrade errorprone in gradlebuild.code-quality.gradle.kts
+errorProne = "2.42.0!!"
 fastutil = "8.5.2!!"
 gcs = "v1-rev20220705-1.32.1!!"
 googleApiClient = "1.34.0!!"
@@ -150,7 +150,8 @@ develocityTestAnnotation = { group = "com.gradle", name = "develocity-testing-an
 dockerJavaApi = { group = "com.github.docker-java", name = "docker-java-api", version.ref = "dockerJavaApi" }
 eclipseSisuPlexus = { group = "org.eclipse.sisu", name = "org.eclipse.sisu.plexus", version.ref = "eclipseSisuPlexus" }
 equalsverifier = { group = "nl.jqno.equalsverifier", name = "equalsverifier", version.ref = "equalsverifier" }
-errorProneAnnotations = { group = "com.google.errorprone", name = "error_prone_annotations", version.ref = "errorProneAnnotations" }
+errorProne = { module = "com.google.errorprone:error_prone_core", version.ref = "errorProne" }
+errorProneAnnotations = { group = "com.google.errorprone", name = "error_prone_annotations", version.ref = "errorProne" }
 fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil" }
 gcs = { group = "com.google.apis", name = "google-api-services-storage", version.ref = "gcs" }
 googleApiClient = { group = "com.google.api-client", name = "google-api-client", version.ref = "googleApiClient" }
@@ -281,6 +282,7 @@ mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", versio
 mySqlConnector = { group = "com.mysql", name = "mysql-connector-j", version.ref = "mySqlConnector" }
 nativePlatform = { group = "net.rubygrapefruit", name = "native-platform", version.ref = "nativePlatform" }
 netty = { group = "io.netty", name = "netty-all", version.ref = "netty" }
+nullaway = { module = "com.uber.nullaway:nullaway", version = "0.12.10" }
 objenesis = { group = "org.objenesis", name = "objenesis", version.ref = "objenesis" }
 opentest4j = { group = "org.opentest4j", name = "opentest4j", version.ref = "opentest4j" }
 plexusCipher = { group = "org.sonatype.plexus", name = "plexus-cipher", version.ref = "plexusCipher" }

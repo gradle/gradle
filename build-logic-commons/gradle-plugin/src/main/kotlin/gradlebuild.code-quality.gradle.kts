@@ -115,16 +115,17 @@ project.plugins.withType<JavaBasePlugin> {
         }
 
         @Suppress("UnstableApiUsage")
-        fun addErrorProneDependency(dep: String) {
+        fun addErrorProneDependency(dep: Provider<out ExternalModuleDependency>) {
             project.dependencies.addProvider(
                 annotationProcessorConfigurationName,
-                extension.enabled.filter { it }.map { dep }
+                extension.enabled.filter { it }.flatMap { dep }
             )
         }
-
-        // don't forget to update the version in gradle/libs.versions.toml
-        addErrorProneDependency("com.google.errorprone:error_prone_core:2.42.0") // FIXME: switch to version catalog API
-        addErrorProneDependency("com.uber.nullaway:nullaway:0.12.10") // FIXME: switch to version catalog API
+        if (project.name != "gradle-kotlin-dsl-accessors") {
+            val buildDeps = project.versionCatalogs.named("libs")
+            addErrorProneDependency(buildDeps.findLibrary("errorProne").get())
+            addErrorProneDependency(buildDeps.findLibrary("nullaway").get())
+        }
 
         project.tasks.named<JavaCompile>(this.compileJavaTaskName) {
             options.errorprone {
