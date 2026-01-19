@@ -20,14 +20,19 @@ import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
+import org.gradle.kotlin.dsl.support.btCompileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 import org.junit.Test
 import org.mockito.kotlin.mock
 import java.io.File
+import kotlin.reflect.jvm.jvmName
 
 
 open class TheKotlinScriptTemplate(
@@ -39,6 +44,7 @@ open class TheKotlinScriptTemplate(
 
 class KotlinScriptCompilerTest : TestWithTempFiles() {
 
+    @OptIn(ExperimentalCompilerArgument::class)
     @Test
     fun canInjectImplicitReceiver() {
         outputDir().let { outputDir ->
@@ -52,6 +58,13 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
                     implicitReceiver = TheImplicitReceiver::class
                 )
             )
+
+            btCompileKotlinScriptTo(
+                outputDir,
+                "bar()"
+            ) { conf ->
+                conf[JvmCompilerArguments.SCRIPT_TEMPLATES] = arrayOf(TheKotlinScriptTemplate::class.jvmName)
+            }
 
             withClassLoaderFor(outputDir) {
 
@@ -96,5 +109,20 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
             testRuntimeClassPath.asFiles,
             mock()
         ) { it }
+    }
+
+    private
+    fun btCompileKotlinScriptTo(
+        outputDir: File,
+        script: String,
+        configuration: (JvmCompilerArguments) -> Unit
+    ) {
+        btCompileKotlinScriptToDirectory(
+            outputDir,
+            file("script.kts").apply {
+                writeText(script)
+            },
+            configuration
+        )
     }
 }

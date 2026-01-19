@@ -26,6 +26,18 @@ import org.gradle.internal.logging.ConsoleRenderer
 import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentRegistrar
 import org.jetbrains.kotlin.assignment.plugin.AssignmentConfigurationKeys
+import org.jetbrains.kotlin.buildtools.api.CompilationResult
+import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
+import org.jetbrains.kotlin.buildtools.api.SourcesChanges
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationOptions.Companion.USE_FIR_RUNNER
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
@@ -73,6 +85,9 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
+import java.nio.file.Path
+import java.nio.file.Paths
+import kotlin.io.path.Path
 import kotlin.reflect.KClass
 import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
@@ -141,7 +156,64 @@ fun compileKotlinScriptToDirectory(
         messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation)
     )
 
-    return NameUtils.getScriptNameForFile(scriptFile.name).asString()
+    val retVal = NameUtils.getScriptNameForFile(scriptFile.name).asString()
+
+    return retVal
+}
+
+@OptIn(ExperimentalBuildToolsApi::class)
+private class BTCompiler {
+
+    private val toolchains = KotlinToolchains.loadImplementation(this::class.java.classLoader)
+
+    private val buildSession = toolchains.createBuildSession()
+
+    @OptIn(ExperimentalCompilerArgument::class)
+    fun compile(sources: List<Path>, destinationDirectory: Path, arguments: (JvmCompilerArguments) -> Unit): CompilationResult {
+        val operation = toolchains.jvm.createJvmCompilationOperation(sources, destinationDirectory)
+
+        // compilation operation config
+        operation[JvmCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
+        /*operation[JvmCompilationOperation.INCREMENTAL_COMPILATION] = JvmSnapshotBasedIncrementalCompilationConfiguration(
+            workingDirectory = Paths.get(destinationDirectory.toString(), "build/kotlin"),
+            sourcesChanges = SourcesChanges.ToBeCalculated,
+            dependenciesSnapshotFiles = listOf(Paths.get(destinationDirectory.toString(), "build/deps")),
+            shrunkClasspathSnapshot = Paths.get(destinationDirectory.toString(), "build/shrunk"),
+            options = operation.createSnapshotBasedIcOptions().also { options ->
+                options[USE_FIR_RUNNER] = false
+            },
+        )*/
+
+        // implicit compiler arguments
+        operation.compilerArguments.also { args ->
+            args[JvmCompilerArguments.NO_STDLIB] = true
+            args[CommonCompilerArguments.X_USE_FIR_LT] = false
+        }
+
+        // explicit compiler argument
+        arguments.invoke(operation.compilerArguments)
+
+        return buildSession.executeOperation(operation)
+    }
+}
+
+private val btCompiler by lazy { BTCompiler() }
+
+
+internal
+fun btCompileKotlinScriptToDirectory(
+    outputDirectory: File,
+    scriptFile: File,
+    configuration: (JvmCompilerArguments) -> Unit,
+): String {
+
+    val retVal = NameUtils.getScriptNameForFile(scriptFile.name).asString()
+
+    val secondaryOutputDir = Path(outputDirectory.absolutePath + "_")
+    val result = btCompiler.compile(listOf(Path(scriptFile.path)), secondaryOutputDir, configuration)
+    println("result = ${result}")
+
+    return retVal
 }
 
 
@@ -428,8 +500,8 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
 
     val errors: List<ScriptCompilationError> by unsafeLazy {
         scriptCompilationErrors.filter { it.location == null } +
-            scriptCompilationErrors.filter { it.location != null }
-                .sortedBy { it.location!!.line }
+                scriptCompilationErrors.filter { it.location != null }
+                    .sortedBy { it.location!!.line }
     }
 
     init {
@@ -441,10 +513,10 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
 
     override val message: String
         get() = (
-            listOf("Script compilation $errorPlural:")
-                + indentedErrorMessages()
-                + "${errors.size} $errorPlural"
-            )
+                listOf("Script compilation $errorPlural:")
+                        + indentedErrorMessages()
+                        + "${errors.size} $errorPlural"
+                )
             .joinToString("\n\n")
 
     private
@@ -461,10 +533,10 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
     fun errorAt(location: CompilerMessageSourceLocation, message: String): String {
         val columnIndent = " ".repeat(5 + maxLineNumberStringLength + 1 + location.column)
         return "Line ${lineNumber(location)}: ${location.lineContent}\n" +
-            "^ $message".lines().joinToString(
-                prefix = columnIndent,
-                separator = "\n$columnIndent  $INDENT"
-            )
+                "^ $message".lines().joinToString(
+                    prefix = columnIndent,
+                    separator = "\n$columnIndent  $INDENT"
+                )
     }
 
     private
