@@ -88,9 +88,9 @@ tasks.withType<CodeNarc>().configureEach {
 }
 ----
 
-==== Upgrade to Kotlin 2.3.0
+==== Upgrade to Kotlin 2.3.10-RC
 
-The embedded Kotlin has been upgraded from 2.2.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.0[Kotlin 2.3.0].
+The embedded Kotlin has been upgraded from 2.2.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.10-RC[Kotlin 2.3.10-RC].
 
 ==== Upgrade to Zinc 1.12.0
 
