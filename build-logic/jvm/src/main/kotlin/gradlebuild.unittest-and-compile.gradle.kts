@@ -422,11 +422,6 @@ fun TaskContainer.registerCITestDistributionLifecycleTasks() {
         group = ciGroup
     }
 
-    register("allVersionsCrossVersionTest") {
-        description = "Run cross-version tests against all released versions (latest patch release of each)"
-        group = ciGroup
-    }
-
     register("allVersionsIntegMultiVersionTest") {
         description = "Run all multi-version integration tests with all version to cover"
         group = ciGroup
