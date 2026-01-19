@@ -16,12 +16,37 @@
 
 package org.gradle.internal.declarativedsl.common
 
+import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.schemaBuilder.SupertypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import kotlin.reflect.full.isSubclassOf
 
 
 internal
 class SupertypeTypeDiscovery : AnalysisSchemaComponent {
-    override fun typeDiscovery(): List<TypeDiscovery> = listOf(SupertypeDiscovery())
+    /**
+     * Collect the supertypes using [SupertypeDiscovery].
+     * Exclude the build model types to avoid bringing the build models into the schema (as they are likely to have non-declarative members)
+     * if they only appear in the supertype (as in Foo : Definition<FooBuildModel>).
+     *
+     * TODO: This is not a precise solution, as it will reject BuildModel subtypes discovered in the type hierarchy even if they are not used as type arguments to Definition<T>, e.g. in
+     *
+     * ```kotlin
+     * class SomeModel : BuildModel
+     * class Foo : Definition<FooModel>, UnrelatedUsage<SomeModel> // excludes SomeModel as well
+     * ```
+     *
+     * Properly detecting only types used as arguments to Definition<T> is more complex, especially in cases like:
+     *
+     * ```kotlin
+     * open class Foo<T> : Definition<T>
+     * class Bar : Foo<BarBuildModel>()
+     * ```
+     *
+     * ```kotlin
+     * open class Foo<T> : Definition<ParameterizedModel<T>>
+     * ```
+     */
+    override fun typeDiscovery(): List<TypeDiscovery> = listOf(SupertypeDiscovery { it.isSubclassOf(BuildModel::class) })
 }

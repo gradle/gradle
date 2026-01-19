@@ -22,9 +22,12 @@ import kotlin.reflect.KClass
  * Discovers all supertypes of a type that might be potentially declarative.
  * So, for `A : B` and `B : C`, if `A` is included in the schema, this component will also discover `B` and `C`.
  */
-class SupertypeDiscovery : TypeDiscovery {
+class SupertypeDiscovery(
+    val isBuildModelType: (KClass<*>) -> Boolean = { false }
+) : TypeDiscovery {
     override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
         withAllPotentiallyDeclarativeSupertypes(typeDiscoveryServices.host, kClass)
+            .filter { !isBuildModelType(it.kClass) }
 }
 
 internal
