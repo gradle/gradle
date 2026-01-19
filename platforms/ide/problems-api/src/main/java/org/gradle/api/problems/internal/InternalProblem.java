@@ -20,6 +20,7 @@ import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemLocation;
+import org.gradle.api.problems.StyledText;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -56,6 +57,8 @@ public interface InternalProblem extends Problem {
      */
     @Nullable
     String getDetails();
+
+    StyledText getStyledDetails();
 
     /**
      * Returns the locations where the problem originated.

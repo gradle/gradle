@@ -26,6 +26,7 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemLocation
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.StyledText
 import org.gradle.api.problems.internal.InternalDocLink
 import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemBuilder
@@ -43,6 +44,7 @@ class ReceivedProblem implements InternalProblem {
     private final ReceivedProblemDefinition definition
     private final String contextualLabel
     private final String details
+    private final StyledText styledDetails
     private final List<String> solutions
     private final List<ProblemLocation> originLocations
     private final List<ProblemLocation> contextualLocations
@@ -54,6 +56,16 @@ class ReceivedProblem implements InternalProblem {
         this.definition = new ReceivedProblemDefinition(problemDetails['definition'] as Map<String, Object>)
         this.contextualLabel = problemDetails['contextualLabel'] as String
         this.details =  problemDetails['details'] as String
+        def styledDetails = problemDetails['styledDetails']
+        if (styledDetails) {
+            def spans = (styledDetails['spans'] as List<Object>).collect {
+                new StyledText.Span(
+                    it['text'] as String,
+                    StyledText.Style.valueOf(it['style'] as String)
+                )
+            }
+            this.styledDetails = new StyledText(spans)
+        }
         this.solutions = problemDetails['solutions'] as List<String>
         this.originLocations = fromList(problemDetails['originLocations'] as List<Object>)
         this.contextualLocations = fromList(problemDetails['contextualLocations'] as List<Object>)
@@ -127,6 +139,11 @@ class ReceivedProblem implements InternalProblem {
     @Override
     String getDetails() {
        details
+    }
+
+    @Override
+    StyledText getStyledDetails() {
+        return styledDetails
     }
 
     @Override

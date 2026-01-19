@@ -17,6 +17,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.problems.ProblemSpec",
+            "member": "Method org.gradle.api.problems.ProblemSpec.details(org.gradle.api.problems.StyledText)",
+            "acceptation": "Method override",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getSoftwareTypeRegistry()",
             "acceptation": "Internal and unpublished API",

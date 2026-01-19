@@ -28,6 +28,7 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemLocation
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.StyledText
 import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.api.problems.internal.ProblemReportCreator
@@ -140,7 +141,7 @@ internal class JsonProblemWriter(
             writeProblemId(problem.definition.id)
             writeSeverity(problem.definition.severity)
             writeContextualLabel(problem.contextualLabel)
-            writeDetails(problem.details)
+            writeStyledDetails(problem.styledDetails)
             writeDocumentationLink(problem.definition.documentationLink)
             writeException(problem.exception)
             writeLocations(problem.originLocations, problem.contextualLocations)
@@ -158,9 +159,9 @@ internal class JsonProblemWriter(
         }
     }
 
-    private fun JsonWriter.writeDetails(details: String?) {
+    private fun JsonWriter.writeStyledDetails(details: StyledText?) {
         if (details != null) {
-            property("problemDetails", details)
+            property("problemDetails", details.toHtmlString())
         }
     }
 
