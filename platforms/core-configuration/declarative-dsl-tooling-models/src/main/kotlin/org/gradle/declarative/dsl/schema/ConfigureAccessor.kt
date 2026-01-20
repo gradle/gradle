@@ -18,6 +18,7 @@ package org.gradle.declarative.dsl.schema
 
 import org.gradle.declarative.dsl.schema.ConfigureAccessor.ConfiguringLambdaArgument
 import org.gradle.declarative.dsl.schema.ConfigureAccessor.Custom
+import org.gradle.declarative.dsl.schema.ConfigureAccessor.ProjectFeature
 import org.gradle.declarative.dsl.schema.ConfigureAccessor.Property
 import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
@@ -26,6 +27,7 @@ import java.io.Serializable
 @ToolingModelContract(subTypes = [
     Property::class,
     Custom::class,
+    ProjectFeature::class,
     CustomAccessorIdentifier::class,
     ConfiguringLambdaArgument::class
 ])
@@ -41,6 +43,19 @@ sealed interface ConfigureAccessor : Serializable {
 
     interface Custom : ConfigureAccessor {
         val accessorIdentifier: CustomAccessorIdentifier
+    }
+
+    interface ProjectFeature : Custom {
+        val bindingTargetStrategy: BindingTargetStrategy
+
+        @ToolingModelContract(subTypes = [
+            BindingTargetStrategy.ToDefinition::class,
+            BindingTargetStrategy.ToBuildModel::class
+        ])
+        sealed interface BindingTargetStrategy : Serializable {
+            interface ToDefinition : BindingTargetStrategy
+            interface ToBuildModel : BindingTargetStrategy
+        }
     }
 
     interface ConfiguringLambdaArgument : ConfigureAccessor

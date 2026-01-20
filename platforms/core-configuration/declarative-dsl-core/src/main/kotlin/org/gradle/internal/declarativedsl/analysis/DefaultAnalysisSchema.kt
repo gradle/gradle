@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.AssignmentAugmentation
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
+import org.gradle.declarative.dsl.schema.ConfigureAccessor.ProjectFeature.BindingTargetStrategy
 import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ContainerAccessorIdentifier
 import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ExtensionAccessorIdentifier
 import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ProjectFeatureIdentifier
@@ -316,7 +317,7 @@ object ConfigureAccessorInternal {
 
     @Serializable
     @SerialName("projectFeature")
-    data class DefaultProjectFeature(override val objectType: DataTypeRef, override val accessorIdentifier: ProjectFeatureIdentifier) : ConfigureAccessor.Custom
+    data class DefaultProjectFeature(override val objectType: DataTypeRef, override val accessorIdentifier: ProjectFeatureIdentifier, override val bindingTargetStrategy: BindingTargetStrategy) : ConfigureAccessor.ProjectFeature
 
     @Serializable
     @SerialName("configuringLambdaArgument")
@@ -324,6 +325,25 @@ object ConfigureAccessorInternal {
 
     // TODO: configure all elements by addition key?
     // TODO: Do we want to support configuring external objects?
+}
+
+
+object BindingTargetStrategyInternal {
+    @Serializable
+    @SerialName("toDefinition")
+    data object ToDefinition : BindingTargetStrategy.ToDefinition {
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = ToDefinition
+    }
+
+    @Serializable
+    @SerialName("toBuildModel")
+    data object ToBuildModel : BindingTargetStrategy.ToBuildModel {
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = ToBuildModel
+    }
 }
 
 

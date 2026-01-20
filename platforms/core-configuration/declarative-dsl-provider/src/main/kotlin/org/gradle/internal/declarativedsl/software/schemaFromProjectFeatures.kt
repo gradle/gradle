@@ -28,6 +28,7 @@ import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
+import org.gradle.internal.declarativedsl.analysis.BindingTargetStrategyInternal
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultProjectFeatureAccessorIdentifier
@@ -180,6 +181,11 @@ data class ProjectFeatureInfo<T : Definition<V>, V : BuildModel>(
     val delegate: ProjectFeatureImplementation<T, V>
 ) : ProjectFeatureImplementation<T, V> by delegate {
     val customAccessorId = DefaultProjectFeatureAccessorIdentifier(delegate.featureName, delegate.targetDefinitionType.targetClassName)
+    val bindingTargetStrategy = when(delegate.targetDefinitionType) {
+        is DefinitionTargetTypeInformation<*> -> BindingTargetStrategyInternal.ToDefinition
+        is BuildModelTargetTypeInformation<*> -> BindingTargetStrategyInternal.ToBuildModel
+        else -> error("binding target type information does not represent a BuildModel or a Definition type: ${delegate.targetDefinitionType}")
+    }
 
     fun schemaFunction(host: SchemaBuildingHost, schemaTypeToExtend: KClass<*>) = host.withTag(softwareConfiguringFunctionTag(delegate.featureName)) {
         val receiverTypeRef = host.containerTypeRef(schemaTypeToExtend)
@@ -190,7 +196,7 @@ data class ProjectFeatureInfo<T : Definition<V>, V : BuildModel>(
             emptyList(),
             isDirectAccessOnly = true,
             semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
-                accessor = ConfigureAccessorInternal.DefaultProjectFeature(definitionType, customAccessorId),
+                accessor = ConfigureAccessorInternal.DefaultProjectFeature(definitionType, customAccessorId, bindingTargetStrategy),
                 FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
                 definitionType,
                 FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired

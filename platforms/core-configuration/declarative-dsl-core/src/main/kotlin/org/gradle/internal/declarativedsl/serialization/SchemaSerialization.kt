@@ -42,6 +42,7 @@ import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberOrigin
 import org.gradle.declarative.dsl.schema.VarargParameter
 import org.gradle.internal.declarativedsl.analysis.AssignmentAugmentationKindInternal
+import org.gradle.internal.declarativedsl.analysis.BindingTargetStrategyInternal
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
@@ -96,6 +97,11 @@ object SchemaSerialization {
                 subclass(DefaultSettingsExtensionAccessorIdentifier.SettingsAccessorType::class)
                 subclass(DefaultContainerAccessorIdentifier.ContainerAccessorType::class)
                 subclass(DefaultProjectFeatureAccessorIdentifier.ProjectFeatureAccessorType::class)
+            }
+
+            polymorphic(ConfigureAccessor.ProjectFeature.BindingTargetStrategy::class) {
+                subclass(BindingTargetStrategyInternal.ToDefinition::class)
+                subclass(BindingTargetStrategyInternal.ToBuildModel::class)
             }
 
             fun PolymorphicModuleBuilder<DataType.PrimitiveType>.allPrimitiveTypes() {
