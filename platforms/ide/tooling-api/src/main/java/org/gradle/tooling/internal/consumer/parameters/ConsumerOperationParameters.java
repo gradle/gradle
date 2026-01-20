@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -46,10 +47,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * This is used via reflection from {@code ProviderOperationParameters}.
  */
+@SuppressWarnings("UnnecessaryLambda")
 public class ConsumerOperationParameters implements BuildParameters {
 
     public static Builder builder() {
@@ -264,8 +268,16 @@ public class ConsumerOperationParameters implements BuildParameters {
             javaHome = operationParameters.javaHome;
             injectedPluginClasspath = operationParameters.injectedPluginClasspath;
             systemProperties = operationParameters.systemProperties;
+            entryPoint = operationParameters.entryPointName;
+            parameters = operationParameters.parameters;
+            arguments = operationParameters.arguments;
         }
     }
+
+    private static final Predicate<String> isHelpArg = s -> "--help".equals(s) || "-h".equals(s) || "-?".equals(s);
+    private static final Predicate<String> isVersionArg = s -> "--version".equals(s) || "-v".equals(s);
+    private static final Predicate<String> isShowVersionArg = s -> "--show-version".equals(s) || "-V".equals(s);
+    private static final Predicate<String> isHelpOrVersion = isHelpArg.or(isVersionArg).or(isShowVersionArg);
 
     private final String entryPointName;
     private final ProgressListenerAdapter progressListener;
@@ -353,8 +365,45 @@ public class ConsumerOperationParameters implements BuildParameters {
         }
     }
 
-    public ConnectionParameters getConnectionParameters() {
-        return parameters;
+    public boolean containsHelpArg() {
+        return containsArg(isHelpArg);
+    }
+
+    public boolean containsVersionArg() {
+        return containsArg(isVersionArg);
+    }
+
+    public boolean containsShowVersionArg() {
+        return containsArg(isShowVersionArg);
+    }
+
+    public boolean containsHelpOrVersionArgs() {
+        return containsArg(isHelpOrVersion);
+    }
+
+    private boolean containsArg(Predicate<String> predicate) {
+        return arguments.stream().filter(predicate).findFirst().isPresent();
+    }
+
+    public ConsumerOperationParameters withoutHelpOrVersionArgs() {
+        ConsumerOperationParameters.Builder builder = ConsumerOperationParameters.builder();
+        builder.copyFrom(this);
+        builder.setArguments(arguments.stream().filter(isHelpOrVersion.negate()).collect(Collectors.toList()));
+        return builder.build();
+    }
+
+    public ConsumerOperationParameters withArgs(Function<List<String>, List<String>> updateArgs) {
+        ConsumerOperationParameters.Builder builder = ConsumerOperationParameters.builder();
+        builder.copyFrom(this);
+        builder.setArguments(updateArgs.apply(getArguments()));
+        return builder.build();
+    }
+
+    public ConsumerOperationParameters withEmptyTasks() {
+        ConsumerOperationParameters.Builder builder = ConsumerOperationParameters.builder();
+        builder.copyFrom(this);
+        builder.setTasks(Collections.emptyList());
+        return builder.build();
     }
 
     public String getEntryPointName() {
