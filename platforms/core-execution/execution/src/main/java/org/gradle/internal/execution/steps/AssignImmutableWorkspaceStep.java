@@ -68,7 +68,7 @@ import static org.gradle.internal.snapshot.SnapshotVisitResult.CONTINUE;
  * <li>We then check if the workspace is soft-deleted</li>
  * <li>If an immutable workspace already exists and it's not soft-deleted, it is checked for consistency, and is returned
  * if found correct.</li>
- * <li>If the workspace doesn't exist or is soft-deleted or or {@code metadata.bin} doesn't exist or is inconsistent (the output hashes stored in {@code metadata.bin} do not match
+ * <li>If the workspace doesn't exist or is soft-deleted or {@code metadata.bin} doesn't exist or is inconsistent (the output hashes stored in {@code metadata.bin} do not match
  * the hashes taken by snapshotting the current outputs), we acquire a file lock to re-execute it.</li>
  * <li>Under file lock we check again if another process already created a workspace and we check it if consistent (double-checked locking) </li>
  * <li>If workspace is still not found we execute work</li>
