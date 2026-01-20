@@ -17,13 +17,11 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.internal.consumer.PhasedBuildAction;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.build.Help;
 import org.gradle.tooling.model.internal.Exceptions;
@@ -105,26 +103,15 @@ public abstract class HelpAndVersionHandlingConsumerConnection extends AbstractC
 
     private void queryAndPrintHelp(ConsumerOperationParameters operationParameters, ConsumerOperationParameters modelParams){
         OutputStream standardOutput = operationParameters.getStandardOutput();
-        try {
-            Help helpModel = getModelProducer().produceModel(Help.class, modelParams);
-            print(standardOutput, helpModel.getRenderedText());
-        } catch (UnknownModelException e) {
-            // Fallback if Help model is not supported by this Gradle version
-            print(standardOutput, "Failed to get help content for the selected Gradle distribution." + System.lineSeparator());
-        }
+        Help helpModel = getModelProducer().produceModel(Help.class, modelParams);
+        print(standardOutput, helpModel.getRenderedText());
     }
 
     private void queryAndPrintVersion(ConsumerOperationParameters operationParameters, ConsumerOperationParameters modelParams) {
         BuildEnvironment env = getModelProducer().produceModel(BuildEnvironment.class, modelParams);
         OutputStream standardOutput = operationParameters.getStandardOutput();
-        try {
-            String output = env.getVersionInfo();
-            print(standardOutput, output);
-        } catch (UnsupportedMethodException e) {
-            // Fallback for older Gradle versions that don't have getVersionInfo()
-            String fallback = "Gradle " + env.getGradle().getGradleVersion() + System.lineSeparator();
-            print(standardOutput, fallback);
-        }
+        String output = env.getVersionInfo();
+        print(standardOutput, output);
     }
 
     private static void print(OutputStream stdOut, String content) {

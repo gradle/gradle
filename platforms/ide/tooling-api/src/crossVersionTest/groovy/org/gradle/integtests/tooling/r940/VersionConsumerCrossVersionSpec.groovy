@@ -41,7 +41,6 @@ class VersionConsumerCrossVersionSpec extends ToolingApiSpecification {
         result.assertTaskExecuted(":projects")
     }
 
-
     def "prints version and ignores tasks when --version is present"() {
         when:
         withConnection { connection ->
