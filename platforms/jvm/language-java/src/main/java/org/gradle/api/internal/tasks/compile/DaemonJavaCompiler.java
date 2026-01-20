@@ -101,17 +101,4 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
             .build();
     }
 
-    public static class JavaCompilerParameters extends CompilerWorkerExecutor.CompilerParameters {
-        private final JavaCompileSpec compileSpec;
-
-        public JavaCompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, JavaCompileSpec compileSpec) {
-            super(compilerClassName, compilerInstanceParameters);
-            this.compileSpec = compileSpec;
-        }
-
-        @Override
-        public JavaCompileSpec getCompileSpec() {
-            return compileSpec;
-        }
-    }
 }
