@@ -146,6 +146,7 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
         modelParamsBuilder.setTasks(Collections.emptyList());
         ConsumerOperationParameters modelParams = modelParamsBuilder.build();
 
+
         try {
             // --help takes precedence over version flags (matching CLI behavior)
             if (help) {
@@ -154,7 +155,7 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
                     operationParameters.getStandardOutput().write(helpModel.getRenderedText().getBytes(StandardCharsets.UTF_8));
                 } catch (UnknownModelException e) {
                     // Fallback if Help model is not supported by this Gradle version
-                    operationParameters.getStandardOutput().write(("Help is not supported by this Gradle version." + System.lineSeparator()).getBytes(StandardCharsets.UTF_8));
+                    operationParameters.getStandardOutput().write(("Failed to get help content for the selected Gradle distribution." + System.lineSeparator()).getBytes(StandardCharsets.UTF_8));
                 }
                 return null;
             }
@@ -166,7 +167,7 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
                     operationParameters.getStandardOutput().write(output.getBytes(StandardCharsets.UTF_8));
                 } catch (UnsupportedMethodException e) {
                     // Fallback for older Gradle versions that don't have getVersionInfo()
-                    String fallback = "Gradle " + env.getGradle().getGradleVersion() + "\n";
+                    String fallback = "Gradle " + env.getGradle().getGradleVersion() + System.lineSeparator();
                     operationParameters.getStandardOutput().write(fallback.getBytes(StandardCharsets.UTF_8));
                 }
                 if (version) {
