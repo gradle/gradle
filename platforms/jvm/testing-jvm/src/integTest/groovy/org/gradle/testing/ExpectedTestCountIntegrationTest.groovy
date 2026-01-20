@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
  * Integration tests for the {@link Test#getExpectedTestCount()} feature of the Test task.
  */
 class ExpectedTestCountIntegrationTest extends AbstractIntegrationSpec {
-
     def setup() {
         buildFile << """
             plugins {
@@ -384,5 +383,89 @@ class ExpectedTestCountIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":test")
+    }
+
+    def "expectedTestCount validation is skipped when --tests command line argument is used"() {
+        given:
+        file("src/test/java/Test1.java") << """
+            import org.junit.Test;
+
+            public class Test1 {
+                @Test
+                public void test1() {
+                }
+
+                @Test
+                public void test2() {
+                }
+            }
+        """
+
+        file("src/test/java/Test2.java") << """
+            import org.junit.Test;
+
+            public class Test2 {
+                @Test
+                public void test3() {
+                }
+            }
+        """
+
+        buildFile << """
+            test {
+                expectedTestCount = 3
+                failOnUnexpectedTestCount = true
+            }
+        """
+
+        when:
+        // Using --tests to filter to only Test1, which has 2 tests
+        // Expected count is 3, but only 2 tests will run
+        // This should succeed because --tests filtering bypasses expectedTestCount validation
+        succeeds("test", "--tests", "Test1")
+
+        then:
+        executedAndNotSkipped(":test")
+        // Verify no warning or error was emitted about mismatched test count
+        !output.contains("expected 3 test(s) but executed 2 test(s)")
+    }
+
+    def "expectedTestCount validation is skipped when --tests filters to specific test method"() {
+        given:
+        file("src/test/java/MyTest.java") << """
+            import org.junit.Test;
+
+            public class MyTest {
+                @Test
+                public void test1() {
+                }
+
+                @Test
+                public void test2() {
+                }
+
+                @Test
+                public void test3() {
+                }
+            }
+        """
+
+        buildFile << """
+            test {
+                expectedTestCount = 3
+                failOnUnexpectedTestCount = true
+            }
+        """
+
+        when:
+        // Using --tests to filter to only one test method
+        // Expected count is 3, but only 1 test will run
+        // This should succeed because --tests filtering bypasses expectedTestCount validation
+        succeeds("test", "--tests", "MyTest.test1")
+
+        then:
+        executedAndNotSkipped(":test")
+        // Verify no warning or error was emitted about mismatched test count
+        !output.contains("expected 3 test(s) but executed 1 test(s)")
     }
 }

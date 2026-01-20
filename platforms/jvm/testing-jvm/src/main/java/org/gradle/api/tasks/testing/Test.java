@@ -758,9 +758,12 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             getLogger().info("Running tests for remote debugging.");
         }
 
-        // Track test counts if expectedTestCount is set
+        // Track test counts if expectedTestCount property is set and --tests is not used.
+        // When --tests is used, the expected test count validation should have no effect.
+        boolean shouldTrackTestCount = getExpectedTestCount().isPresent()
+            && ((DefaultTestFilter) getFilter()).getCommandLineIncludePatterns().isEmpty();
         TestCountTracker testCountTracker = null;
-        if (getExpectedTestCount().isPresent()) {
+        if (shouldTrackTestCount) {
             testCountTracker = new TestCountTracker();
             addTestListener(testCountTracker);
         }
@@ -771,8 +774,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             CompositeStoppable.stoppable(getTestFramework()).stop();
         }
 
-        // Validate expected test count after execution
-        if (testCountTracker != null) {
+        if (shouldTrackTestCount) {
             long actualCount = testCountTracker.getTotalTests();
             long expectedCount = getExpectedTestCount().get();
             if (actualCount != expectedCount) {
