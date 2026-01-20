@@ -20,12 +20,16 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildController
+import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.model.GradleProject
 
 @ToolingApiVersion(">=9.4.0")
 @TargetGradleVersion(">=9.4.0")
 class VersionConsumerCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion("<9.4.0")
+    @TargetGradleVersion(">=4.0 <9.4.0")
     def "version request is ignored for old Gradle version"() {
         when:
         withConnection { connection ->
@@ -56,6 +60,41 @@ class VersionConsumerCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         arg << ['--version', '-v']
+    }
+
+    def "requesting version via #entryPoint is ignored"() {
+        setup:
+        buildFile << """
+            plugins { id 'java-library' }
+            ${mavenCentralRepository()}
+            dependencies { testImplementation("junit:junit:4.13.2") }
+        """
+        file('src/test/java/MyTest.java') << """
+            public class MyTest {
+                @org.junit.Test public void testSomething() {
+                    org.junit.Assert.assertTrue(true);
+                }
+            }
+        """
+
+        when:
+        withConnection { connection ->  entryPointConfig(connection) }
+
+        then:
+        assertSuccessful()
+        result.assertHasErrorOutput('The Tooling API does not support --help, --version or --show-version arguments for this operation. These arguments have been ignored.')
+
+        where:
+        entryPoint      | entryPointConfig
+        "test launcher" | { ProjectConnection conn -> conn.newTestLauncher().withJvmTestClasses("MyTest").withArguments('--version').run() }
+        "model builder" | { ProjectConnection conn -> conn.model(GradleProject) .withArguments('--version').get() }
+        "build action"  | { ProjectConnection conn -> conn.action(new GetGradleProjectAction()).withArguments('--version').run() }
+    }
+
+    static class GetGradleProjectAction implements BuildAction<GradleProject> {
+        GradleProject execute(BuildController controller) {
+            return controller.getModel(GradleProject)
+        }
     }
 
     def "prints version and runs tasks when --show-version is present"() {

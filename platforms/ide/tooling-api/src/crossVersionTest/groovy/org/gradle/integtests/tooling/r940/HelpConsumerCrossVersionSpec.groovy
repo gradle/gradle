@@ -19,12 +19,16 @@ package org.gradle.integtests.tooling.r940
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.BuildAction
+import org.gradle.tooling.BuildController
+import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.model.GradleProject
 
 @ToolingApiVersion(">=9.4.0")
 @TargetGradleVersion(">=9.4.0")
 class HelpConsumerCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion("<9.4.0")
+    @TargetGradleVersion(">=4.0 <9.4.0")
     def "help request is ignored for old Gradle version"() {
         when:
         withConnection { connection ->
@@ -55,6 +59,41 @@ class HelpConsumerCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         arg << ['--help', '-h', '-?']
+    }
+
+    def "requesting help via #entryPoint is ignored"() {
+        setup:
+        buildFile << """
+            plugins { id 'java-library' }
+            ${mavenCentralRepository()}
+            dependencies { testImplementation("junit:junit:4.13.2") }
+        """
+        file('src/test/java/MyTest.java') << """
+            public class MyTest {
+                @org.junit.Test public void testSomething() {
+                    org.junit.Assert.assertTrue(true);
+                }
+            }
+        """
+
+        when:
+        withConnection { connection ->  entryPointConfig(connection) }
+
+        then:
+        assertSuccessful()
+        result.assertHasErrorOutput('The Tooling API does not support --help, --version or --show-version arguments for this operation. These arguments have been ignored.')
+
+        where:
+        entryPoint      | entryPointConfig
+        "test launcher" | { ProjectConnection conn -> conn.newTestLauncher().withJvmTestClasses("MyTest").withArguments('--help').run() }
+        "model builder" | { ProjectConnection conn -> conn.model(GradleProject) .withArguments('--help').get() }
+        "build action"  | { ProjectConnection conn -> conn.action(new GetGradleProjectAction()).withArguments('--help').run() }
+    }
+
+    static class GetGradleProjectAction implements BuildAction<GradleProject> {
+        GradleProject execute(BuildController controller) {
+            return controller.getModel(GradleProject)
+        }
     }
 
     def "help takes precedence over version flags"() {

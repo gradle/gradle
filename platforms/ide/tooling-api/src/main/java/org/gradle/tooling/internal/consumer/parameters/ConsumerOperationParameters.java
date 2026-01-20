@@ -381,7 +381,7 @@ public class ConsumerOperationParameters implements BuildParameters {
     }
 
     private boolean containsArg(Predicate<String> predicate) {
-        return arguments.stream().filter(predicate).findFirst().isPresent();
+        return arguments == null ? false : arguments.stream().filter(predicate).findFirst().isPresent();
     }
 
     public ConsumerOperationParameters withoutHelpOrVersionArgs() {

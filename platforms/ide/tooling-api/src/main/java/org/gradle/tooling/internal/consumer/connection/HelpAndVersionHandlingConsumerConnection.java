@@ -43,17 +43,17 @@ public abstract class HelpAndVersionHandlingConsumerConnection extends AbstractC
             return handleHelpOrVersion(type, operationParameters);
         }
         // For model requests, remove help/version args and continue
-        return getModelProducer().produceModel(type, removeHelpVersionArgs(operationParameters, true));
+        return getModelProducer().produceModel(type, removeHelpVersionArgs(operationParameters));
     }
 
     @Override
     public <T> T run(BuildAction<T> action, ConsumerOperationParameters operationParameters) {
-        return getActionRunner().run(action, removeHelpVersionArgs(operationParameters, true));
+        return getActionRunner().run(action, removeHelpVersionArgs(operationParameters));
     }
 
     @Override
     public void run(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters) {
-        doRun(phasedBuildAction, removeHelpVersionArgs(operationParameters, true));
+        doRun(phasedBuildAction, removeHelpVersionArgs(operationParameters));
     }
 
     protected void doRun(PhasedBuildAction phasedBuildAction, ConsumerOperationParameters operationParameters) {
@@ -62,7 +62,7 @@ public abstract class HelpAndVersionHandlingConsumerConnection extends AbstractC
 
     @Override
     public void runTests(final TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {
-        doRunTests(testExecutionRequest, removeHelpVersionArgs(operationParameters, true));
+        doRunTests(testExecutionRequest, removeHelpVersionArgs(operationParameters));
     }
 
     protected void doRunTests(final TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {
@@ -74,7 +74,7 @@ public abstract class HelpAndVersionHandlingConsumerConnection extends AbstractC
         boolean containsVersionArg = operationParameters.containsVersionArg();
         boolean containsShowVersionArg = operationParameters.containsShowVersionArg();
 
-        ConsumerOperationParameters cleanParams = removeHelpVersionArgs(operationParameters, false);
+        ConsumerOperationParameters cleanParams = operationParameters.withoutHelpOrVersionArgs();
         ConsumerOperationParameters modelParams = cleanParams.withNoTasks();
 
         // help was requested: print help and omit producing the model
@@ -116,19 +116,19 @@ public abstract class HelpAndVersionHandlingConsumerConnection extends AbstractC
 
     private static void print(OutputStream stdOut, String content) {
         try {
-            stdOut.write(content.getBytes(StandardCharsets.UTF_8));
+            if (stdOut != null) {
+                stdOut.write(content.getBytes(StandardCharsets.UTF_8));
+            }
         } catch (IOException e) {
             throw new RuntimeException("Cannot write to stdout", e);
         }
     }
 
-    private static ConsumerOperationParameters removeHelpVersionArgs(ConsumerOperationParameters parameters, boolean warn) {
+    private static ConsumerOperationParameters removeHelpVersionArgs(ConsumerOperationParameters parameters) {
         if (!parameters.containsHelpOrVersionArgs()) {
             return parameters;
         }
-        if (warn) {
-            print(parameters.getStandardError(), "The Tooling API does not support --help, --version or --show-version arguments for this operation. These arguments have been ignored.");
-        }
+        print(parameters.getStandardError(), "The Tooling API does not support --help, --version or --show-version arguments for this operation. These arguments have been ignored.");
         return parameters.withoutHelpOrVersionArgs();
     }
 }
