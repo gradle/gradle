@@ -50,5 +50,3 @@ public class SingleValueOptionElement extends AbstractOptionElement {
         setter.setValue(object, arg);
     }
 }
-
-

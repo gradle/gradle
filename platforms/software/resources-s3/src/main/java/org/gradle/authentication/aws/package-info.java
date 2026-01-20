@@ -20,5 +20,3 @@
  * @since 3.1
  */
 package org.gradle.authentication.aws;
-
-

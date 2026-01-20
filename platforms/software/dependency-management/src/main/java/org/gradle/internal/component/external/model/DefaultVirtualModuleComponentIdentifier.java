@@ -103,4 +103,3 @@ public class DefaultVirtualModuleComponentIdentifier implements VirtualComponent
     }
 
 }
-

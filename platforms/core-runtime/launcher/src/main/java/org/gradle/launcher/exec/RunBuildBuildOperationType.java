@@ -34,4 +34,3 @@ public final class RunBuildBuildOperationType implements BuildOperationType<RunB
         Failure getFailure();
     }
 }
-
