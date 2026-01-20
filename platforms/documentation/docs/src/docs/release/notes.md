@@ -10,9 +10,25 @@
 <meta name="twitter:description" content="Gradle @version@ adds support for Java 24, Native Image toolchains, improved skipped test reporting, lazy dependency configuration for better performance, richer diagnostics via the Problems API, and a new integrity check mode for the configuration cache.">
 <meta name="twitter:image" content="https://gradle.org/images/releases/gradle-default.png">
 
-Gradle @version@ is the third patch release for Gradle 8.14 (released [@releaseDate@](https://gradle.org/releases/)).
+Gradle @version@ is the fourth patch release for Gradle 8.14 (released [@releaseDate@](https://gradle.org/releases/)).
 
-It fixes the following issues:
+This release addresses two security vulnerabilities:
+
+* [Failure to disable repositories failing to answer can expose builds to malicious artifacts](https://github.com/gradle/gradle/security/advisories/GHSA-mqwm-5m85-gmcv)
+* [Failure to disable repositories with unknown host can expose builds to malicious artifacts](https://github.com/gradle/gradle/security/advisories/GHSA-w78c-w6vf-rw82)
+
+It also fixes the following issues:
+
+* [#34365](https://github.com/gradle/gradle/issues/34365) [Backport] Gradle doesn't stop forked processes
+* [#35125](https://github.com/gradle/gradle/issues/35125) [Backport] Precompiled script plugin with @file annotation loses package and breaks
+* [#35184](https://github.com/gradle/gradle/issues/35184) [Backport] Different fingerprints in the compile classpath for the same dependency
+* [#35228](https://github.com/gradle/gradle/issues/35228) [Backport] Fix dependency resolution issues
+* [#35288](https://github.com/gradle/gradle/issues/35288) [Backport] Include `GradleDslBaseScriptModel` in 8.x
+* [#36326](https://github.com/gradle/gradle/issues/36326) [Backport] Improve repository disabling logic
+* [#36396](https://github.com/gradle/gradle/issues/36396) [Backport] Add partial cgroups v2 support
+* [#36420](https://github.com/gradle/gradle/issues/36420) [Backport] Improve Java 25 support in Gradle 8.14
+
+Issues fixed in the third patch release:
 
 * [#33943](https://github.com/gradle/gradle/issues/33943) [Backport] Missing dependency even if all paths do not exclude it
 
