@@ -3,6 +3,7 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.writeScriptPluginAdapterTo
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.startsWith
@@ -14,6 +15,7 @@ import spock.lang.Issue
 import java.io.File
 
 
+@LeaksFileHandles
 class PrecompiledScriptPluginTest : TestWithTempFiles() {
 
     @Test
@@ -102,6 +104,26 @@ class PrecompiledScriptPluginTest : TestWithTempFiles() {
                 """
             ).id,
             equalTo("my-script")
+        )
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/34101")
+    fun `package name detection works when there is a class keyword in the file annotation`() {
+
+        assertThat(
+            scriptPlugin(
+                "my-script.gradle.kts",
+                """
+                    @file:OptIn(NeedsOptIn::class)
+
+                    package test
+
+                    class SomeClass {
+                    }
+                """
+            ).id,
+            equalTo("test.my-script")
         )
     }
 
