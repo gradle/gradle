@@ -150,6 +150,6 @@ class UriNotationConverterTest extends Specification {
         assert e.message == toPlatformLineSeparators("""Cannot convert the provided notation to a URI: $value.
 The following types/formats are supported:
   - A URI or URL instance.
-  - A String or CharSequence URI, for example "http://www.gradle.org".""")
+  - A String or CharSequence URI, for example "https://www.gradle.org".""")
     }
 }
