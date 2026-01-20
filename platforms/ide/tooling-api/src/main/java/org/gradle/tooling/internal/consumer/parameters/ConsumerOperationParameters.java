@@ -273,10 +273,10 @@ public class ConsumerOperationParameters implements BuildParameters {
         }
     }
 
-    private static final Predicate<String> isHelpArg = s -> "--help".equals(s) || "-h".equals(s) || "-?".equals(s);
-    private static final Predicate<String> isVersionArg = s -> "--version".equals(s) || "-v".equals(s);
-    private static final Predicate<String> isShowVersionArg = s -> "--show-version".equals(s) || "-V".equals(s);
-    private static final Predicate<String> isHelpOrVersion = isHelpArg.or(isVersionArg).or(isShowVersionArg);
+    private static final Predicate<String> IS_HELP_ARG = s -> "--help".equals(s) || "-h".equals(s) || "-?".equals(s);
+    private static final Predicate<String> IS_VERSION_ARG = s -> "--version".equals(s) || "-v".equals(s);
+    private static final Predicate<String> IS_SHOW_VERSION_ARG = s -> "--show-version".equals(s) || "-V".equals(s);
+    private static final Predicate<String> IS_HELP_OR_VERSION = IS_HELP_ARG.or(IS_VERSION_ARG).or(IS_SHOW_VERSION_ARG);
 
     private final String entryPointName;
     private final ProgressListenerAdapter progressListener;
@@ -365,19 +365,19 @@ public class ConsumerOperationParameters implements BuildParameters {
     }
 
     public boolean containsHelpArg() {
-        return containsArg(isHelpArg);
+        return containsArg(IS_HELP_ARG);
     }
 
     public boolean containsVersionArg() {
-        return containsArg(isVersionArg);
+        return containsArg(IS_VERSION_ARG);
     }
 
     public boolean containsShowVersionArg() {
-        return containsArg(isShowVersionArg);
+        return containsArg(IS_SHOW_VERSION_ARG);
     }
 
     public boolean containsHelpOrVersionArgs() {
-        return containsArg(isHelpOrVersion);
+        return containsArg(IS_HELP_OR_VERSION);
     }
 
     private boolean containsArg(Predicate<String> predicate) {
@@ -387,7 +387,7 @@ public class ConsumerOperationParameters implements BuildParameters {
     public ConsumerOperationParameters withoutHelpOrVersionArgs() {
         ConsumerOperationParameters.Builder builder = ConsumerOperationParameters.builder();
         builder.copyFrom(this);
-        builder.setArguments(arguments.stream().filter(isHelpOrVersion.negate()).collect(Collectors.toList()));
+        builder.setArguments(arguments.stream().filter(IS_HELP_OR_VERSION.negate()).collect(Collectors.toList()));
         return builder.build();
     }
 
