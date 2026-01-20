@@ -69,9 +69,15 @@ It has now been correctly updated to a `DirectoryProperty` to reflect the intend
 
 Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.25.html[Groovy 3.0.25].
 
+Since the previous version was 3.0.22, this includes changes for https://groovy-lang.org/changelogs/changelog-3.0.24.html[Groovy 3.0.24] and https://groovy-lang.org/changelogs/changelog-3.0.23.html[Groovy 3.0.23] as well.
+
 ==== Upgrade to JaCoCo 0.8.13
 
 JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.13].
+
+==== Upgrade to ASM 9.8
+
+ASM was upgraded from 9.7.1 to https://asm.ow2.io/versions.html[9.8].
 
 === Deprecations
 
