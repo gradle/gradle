@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
@@ -84,6 +86,7 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         "unconfigured"                              | false           | false
     }
 
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "identify whether #tool toolchain corresponds to the #current JVM"() {
         def jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(jvm as Jvm)
 
@@ -117,6 +120,7 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         current = (isCurrentJvm ? "current" : "non-current")
     }
 
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "fails when trying to change java extension toolchain spec property after it has been used to resolve a toolchain"() {
         def jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         def jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
@@ -144,6 +148,7 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         failure.assertHasCause("The value for property 'languageVersion' is final and cannot be changed any further")
     }
 
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "fails when trying to change captured toolchain spec property after it has been used to resolve a toolchain"() {
         def jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         def jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)

@@ -266,6 +266,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events2, jdkMetadata2, "JavaLauncher")
     }
 
+    @Requires(IntegTestPreconditions.DifferentJdkAvailable)
     def "emits toolchain usages for compilation that configures #option via fork options"() {
         JvmInstallationMetadata curJdk = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)

@@ -237,7 +237,7 @@ class DaemonLifecycleSpec extends AbstractDaemonLifecycleSpec {
 
         and:
         foregroundDaemonContext {
-            assert javaHome.canonicalPath == AvailableJavaHomes.differentJdk.javaHome.canonicalPath
+            assert javaHome.canonicalPath == AvailableJavaHomes.differentVersion.javaHome.canonicalPath
         }
 
         when:
