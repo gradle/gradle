@@ -27,11 +27,14 @@ plugins {
 val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
 val publishedKotlinDslPluginVersion = "6.5.2"
+val libs = project.versionCatalogs.named("libs")
+val kotlinVersion = libs.findVersion("kotlin").get().getStrictVersion()
 
 tasks {
+
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
         outputDir = apiExtensionsOutputDir
-        embeddedKotlinVersion = libs.kotlinVersion
+        embeddedKotlinVersion = kotlinVersion
         kotlinDslPluginsVersion = publishedKotlinDslPluginVersion
     }
 
@@ -54,7 +57,7 @@ tasks {
 // -- Version manifest properties --------------------------------------
     val writeVersionsManifest by registering(WriteProperties::class) {
         destinationFile = layout.buildDirectory.file("versionsManifest/gradle-kotlin-dsl-versions.properties")
-        property("kotlin", libs.kotlinVersion)
+        property("kotlin", kotlinVersion)
     }
 
     processResources {
@@ -67,8 +70,8 @@ tasks {
 val embeddedKotlinBaseDependencies by configurations.creating
 
 dependencies {
-    embeddedKotlinBaseDependencies(libs.kotlinStdlib)
-    embeddedKotlinBaseDependencies(libs.kotlinReflect)
+    embeddedKotlinBaseDependencies(libs.findLibrary("kotlinStdlib").get())
+    embeddedKotlinBaseDependencies(libs.findLibrary("kotlinReflect").get())
 }
 
 val writeEmbeddedKotlinDependencies by tasks.registering {
