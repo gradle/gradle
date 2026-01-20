@@ -1433,7 +1433,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * </p>
      *
      * @return the expected test count property
-     * @since 9.4.0
+     * @since 9.5.0
      */
     @Incubating
     @Input
@@ -1452,7 +1452,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * </p>
      *
      * @return the fail on unexpected test count property
-     * @since 9.4.0
+     * @since 9.5.0
      */
     @Incubating
     @Input
