@@ -15,6 +15,7 @@ dependencies {
     implementation(projects.jvm)
     implementation(projects.packaging)
     implementation(projects.profiling)
+    implementation(projects.refactoring)
 
     implementation(kotlin("gradle-plugin"))
     implementation("com.autonomousapps:dependency-analysis-gradle-plugin") {

@@ -27,6 +27,7 @@
                   <project path="$PROJECT_DIR$/build-logic/packaging" />
                   <project path="$PROJECT_DIR$/build-logic/performance-testing" />
                   <project path="$PROJECT_DIR$/build-logic/profiling" />
+                  <project path="$PROJECT_DIR$/build-logic/refactoring" />
                   <project path="$PROJECT_DIR$/build-logic/root-build" />
                   <project path="$PROJECT_DIR$/build-logic/uber-plugins" />
                 </projects>
@@ -84,6 +85,7 @@
             <option value="$PROJECT_DIR$/build-logic/packaging" />
             <option value="$PROJECT_DIR$/build-logic/performance-testing" />
             <option value="$PROJECT_DIR$/build-logic/profiling" />
+            <option value="$PROJECT_DIR$/build-logic/refactoring" />
             <option value="$PROJECT_DIR$/build-logic/root-build" />
             <option value="$PROJECT_DIR$/build-logic/uber-plugins" />
             <option value="$PROJECT_DIR$/packaging/core-platform" />
