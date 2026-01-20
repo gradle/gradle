@@ -14,14 +14,13 @@ import common.toCapitalized
 import configurations.BuildDistributions
 import configurations.BuildLogicTest
 import configurations.CheckLinks
-import configurations.CheckRemoteProjectRef
-import configurations.CheckTeamCityKotlinDSL
 import configurations.CompileAll
 import configurations.DocsTestType
 import configurations.DocsTestType.CONFIG_CACHE_DISABLED
 import configurations.DocsTestType.CONFIG_CACHE_ENABLED
 import configurations.FunctionalTest
 import configurations.Gradleception
+import configurations.LightweightChecks
 import configurations.OsAwareBaseGradleBuildType
 import configurations.SanityCheck
 import configurations.SmokeIdeTests
@@ -116,6 +115,7 @@ data class CIBuildModel(
                         SpecificBuild.CompileAll,
                         SpecificBuild.SanityCheck,
                         SpecificBuild.BuildLogicTest,
+                        SpecificBuild.LightweightChecks,
                     ),
                 functionalTests =
                     listOf(
@@ -142,8 +142,6 @@ data class CIBuildModel(
                         SpecificBuild.BuildDistributions,
                         SpecificBuild.Gradleception,
                         SpecificBuild.CheckLinks,
-                        SpecificBuild.CheckTeamCityKotlinDSL,
-                        SpecificBuild.CheckRemoteProjectRef,
                         SpecificBuild.SmokeTestsMaxJavaVersion,
                         SpecificBuild.ConfigCacheAndroidProjectSmokeTests,
                         SpecificBuild.GradleBuildSmokeTests,
@@ -649,19 +647,12 @@ enum class SpecificBuild {
             flakyTestStrategy: FlakyTestStrategy,
         ): OsAwareBaseGradleBuildType = CheckLinks(model, stage)
     },
-    CheckTeamCityKotlinDSL {
+    LightweightChecks {
         override fun create(
             model: CIBuildModel,
             stage: Stage,
             flakyTestStrategy: FlakyTestStrategy,
-        ): OsAwareBaseGradleBuildType = CheckTeamCityKotlinDSL(model, stage)
-    },
-    CheckRemoteProjectRef {
-        override fun create(
-            model: CIBuildModel,
-            stage: Stage,
-            flakyTestStrategy: FlakyTestStrategy,
-        ): OsAwareBaseGradleBuildType = CheckRemoteProjectRef(model, stage)
+        ): OsAwareBaseGradleBuildType = LightweightChecks(model, stage)
     },
     TestPerformanceTest {
         override fun create(
