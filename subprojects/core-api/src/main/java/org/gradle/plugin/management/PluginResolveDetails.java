@@ -16,6 +16,12 @@
 
 package org.gradle.plugin.management;
 
+import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderConvertible;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -34,7 +40,18 @@ public interface PluginResolveDetails {
     /**
      * Sets the implementation module to use for this plugin.
      *
-     * @param notation the module to use, supports the same notations as {@link org.gradle.api.artifacts.dsl.DependencyHandler}
+     * <p>
+     * It accepts the following notations:
+     * <ul>
+     *   <li>String in a format of: 'group:name:version', for example: 'org.gradle:gradle-core:1.0'</li>
+     *   <li>Map with keys 'group', 'name' and 'version'; for example: [group: 'org.gradle', name: 'gradle-core', version: '1.0']</li>
+     *   <li>{@link Provider} and {@link ProviderConvertible} of {@link MinimalExternalModuleDependency}</li>
+     *   <li>instance of {@link ExternalDependency}</li>
+     *   <li>instance of {@link ModuleComponentSelector}</li>
+     *   <li>instance of {@link ModuleVersionSelector} (deprecated)</li>
+     * </ul>
+     *
+     * @param notation the module to use
      */
     void useModule(Object notation);
 
