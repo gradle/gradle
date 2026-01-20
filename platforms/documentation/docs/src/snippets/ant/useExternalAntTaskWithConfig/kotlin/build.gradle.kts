@@ -19,9 +19,9 @@ tasks.register("check") {
                       "classpath" to pmd.asPath)
             "pmd"("shortFilenames" to true,
                   "failonruleviolation" to true,
-                  "rulesetfiles" to file("pmd-rules.xml").toURI().toString()) {
+                  "rulesetfiles" to file("../common/pmd-rules.xml").toURI().toString()) {
                 "formatter"("type" to "text", "toConsole" to "true")
-                "fileset"("dir" to "src")
+                "fileset"("dir" to "../common/src")
             }
         }
     }

@@ -1,1 +1,1 @@
-ant.importBuild("build.xml")
+ant.importBuild("../common/build.xml")

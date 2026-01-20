@@ -1,3 +1,3 @@
-ant.importBuild("build.xml") { antTargetName ->
+ant.importBuild("../common/build.xml") { antTargetName ->
     "a-" + antTargetName
 }
