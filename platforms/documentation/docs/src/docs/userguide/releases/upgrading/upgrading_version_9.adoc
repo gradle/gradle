@@ -36,6 +36,136 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.4.0]]
+== Upgrading from 9.3.0 and earlier
+
+=== Potential breaking changes
+
+==== The `java-gradle-plugin` plugin now adds the `gradleApi()` dependency to the `compileOnlyApi` scope
+
+The dependency on `gradleApi()` added by the `java-gradle-plugin` will be added to the `compileOnlyApi` scope instead of `api`.
+
+For most plugin projects, this change should be transparent and without any side effects.
+
+==== Stricter validation for published plugins
+
+For plugin builds that apply any of the `com.gradle.plugin-publish`, `ivy-publish`, or `maven-publish` plugins, Gradle now automatically enables stricter validation of plugin code.
+
+In order not to break your builds, this does not apply to local plugins (in `buildSrc` or included builds containing build logic).
+However, we encourage you to always enable stricter validation:
+
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.validatePlugins {
+    enableStricterValidation = true
+}
+----
+
+
+==== CodeNarc compilation classpath is set by default
+
+Some of the rulesets included with CodeNarc make use of link:https://codenarc.org/codenarc-enhanced-classpath-rules.html[enhanced classpath rules], which require additional dependencies to be present on the CodeNarc task's compilation classpath.
+Previously, this had to be configured explicitly, but the CodeNarc plugin now adds the compile classpath of a source set to its CodeNarc task `compilationClasspath` by default.
+If your build relies on a custom configuration for the `compilationClasspath` of a CodeNarc task, you will need to continue explicitly setting it to override the new default behavior.
+
+A side effect of this change is that there is now a task dependency between the CodeNarc task and the associated source set's compile task.
+Previously, these tasks could run in parallel, but now the CodeNarc task will wait for the compile task to complete first so that it can add the compiled classes to its classpath.
+In some cases, this may lead to longer build times if CodeNarc tasks were previously running in parallel with compile tasks.
+If you are not using any enhanced classpath rules, you can avoid this task dependency by setting an empty `compilationClasspath` for the CodeNarc task:
+
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("groovy")
+    id("codenarc")
+}
+
+tasks.withType<CodeNarc>().configureEach {
+    // Override the default compilation classpath
+    compilationClasspath = files()
+}
+----
+
+==== System property priority for wrapper execution has changed
+
+System properties can be defined for a build at multiple places: on the command line, in the Gradle user home and in the `gradle.properties` file of a project.
+In previous Gradle versions, the priority of these options was not following the documented order: command-line options were potentially overridden by properties defined by entries in `gradle.properties` files.
+From this version onwards, the priority of system properties follows the documented order:
+- Command-line options (highest priority).
+- Properties defined in the Gradle user home `gradle.properties` file.
+- Properties defined in `gradle.properties` files. (lowest priority).
+
+For more details see the link:https://github.com/gradle/gradle/issues/36189[related issue].
+
+==== Upgrade to Kotlin 2.3.0
+
+The embedded Kotlin has been upgraded from 2.2.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.0[Kotlin 2.3.0].
+
+==== Upgrade to Zinc 1.12.0
+
+Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.12.0[1.12.0].
+
+=== Deprecations
+
+[[findAll_removal]]
+==== Deprecation of `DomainObjectCollection.findAll(Closure)`
+
+`DomainObjectCollection.findAll(Closure)` has been deprecated. This API relies on a Groovy type and eagerly evaluates the contents of the container.
+
+This API will be removed in Gradle 10 with no direct replacement.
+`DomainObjectCollection.matching(Spec)` is a similar API for selecting elements without evaluating the contents of the container immediately.
+
+[[deprecated_test_methods]]
+==== Deprecation of methods taking `Closure` on `Test` tasks
+
+The following APIs have been deprecated and will be removed in Gradle 10.0.0:
+
+- `AbstractTestTask.onOutput(Closure)` can be replaced with `AbstractTestTask.addTestOutputListener(TestOutputListener)`
+- `AbstractTestTask.beforeTest(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
+- `AbstractTestTask.afterTest(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
+- `AbstractTestTask.beforeSuite(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
+- `AbstractTestTask.beforeSuite(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
+- `Test.testFramework(Closure)` can be replaced with `Test.options(Action)`
+
+[[deprecate_apply_false_in_precompiled_script_plugins]]
+==== Deprecation of `apply false` in precompiled script plugins
+The use of `apply false` in <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins, precompiled script plugins>> has been deprecated and will become an error in Gradle 10.0.0.
+
+Using `apply false` does not have any effect in precompiled script plugins (the plugin is still applied), and it can lead to confusion for users who expect it to prevent the plugin from being applied.
+Plugins used in precompiled script plugins are already available on the classpath, so using `apply false` would do nothing.
+
+To fix this deprecation, remove the plugin declaration from the precompiled script plugin:
+.my-plugin.gradle.kts
+[source,kotlin]
+----
+plugins {
+    // Delete the following line to remove the deprecation warning:
+    id("org.gradle.test-retry") apply false
+    // The plugin will still be on the classpath, but it will not be applied as part of this precompiled script plugin.
+}
+----
+
+[[deprecate_version_in_precompiled_settings_script_plugins]]
+==== Deprecation of `version` in precompiled settings script plugins
+The use of `version` in <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins, precompiled script plugins>> has been deprecated and will become an error in Gradle 10.0.0.
+
+Using `version` does not have any effect in precompiled script plugins and can lead to confusion for users who expect it to change the version of the plugin being applied.
+Plugins used in precompiled script plugins are already available on the classpath and have their versions determined by the precompiled script plugin's build file.
+
+To fix this deprecation, remove the `version` call for the plugin declaration in the precompiled script plugin:
+.my-plugin.gradle.kts
+[source,kotlin]
+----
+plugins {
+    // Before:
+    id("org.gradle.test-retry") version "x.y.z"
+    // After:
+    id("org.gradle.test-retry")
+}
+----
+
 [[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier
 

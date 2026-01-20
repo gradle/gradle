@@ -305,8 +305,6 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         """
 
         when:
-        // Due to exception logged by Kotlin plugin
-        executer.withStackTraceChecksDisabled()
         run("someTask")
 
         then:

@@ -21,11 +21,11 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
 import org.gradle.api.tasks.testing.TestFailure;
-import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.UncheckedException;
@@ -108,7 +108,7 @@ public final class SerializableTestResultStore {
         private long nextId = 1;
 
         // Map from testDescriptor -> Serialized metadata associated with that descriptor
-        private final Multimap<TestDescriptorInternal, SerializedMetadata> metadatas = LinkedHashMultimap.create();
+        private final Multimap<TestDescriptorInternal, TestMetadataEvent> metadatas = LinkedHashMultimap.create();
 
         private Writer(Path serializedResultsFile, Path outputEventsFile, int diskSkipLevels) throws IOException {
             this.serializedResultsFile = serializedResultsFile;
@@ -181,7 +181,7 @@ public final class SerializableTestResultStore {
                 testNodeBuilder.addFailure(convertToSerializableFailure(failure));
             }
 
-            for (SerializedMetadata metadata : metadatas.removeAll(testDescriptor)) {
+            for (TestMetadataEvent metadata : metadatas.removeAll(testDescriptor)) {
                 testNodeBuilder.addMetadata(metadata);
             }
 
@@ -205,7 +205,7 @@ public final class SerializableTestResultStore {
                 extraFlattenedResults.clear();
 
                 for (TestDescriptorInternal flattenedDescriptor : extraFlattenedDescriptors) {
-                    for (SerializedMetadata metadata : metadatas.removeAll(flattenedDescriptor)) {
+                    for (TestMetadataEvent metadata : metadatas.removeAll(flattenedDescriptor)) {
                         testNodeBuilder.addMetadata(metadata);
                     }
                 }
@@ -285,7 +285,7 @@ public final class SerializableTestResultStore {
 
         @Override
         public void metadata(TestDescriptorInternal testDescriptor, TestMetadataEvent event) {
-            metadatas.put(testDescriptor, new SerializedMetadata(event.getLogTime(), event.getValues()));
+            metadatas.put(testDescriptor, event);
         }
 
         @Override
@@ -353,7 +353,7 @@ public final class SerializableTestResultStore {
      * Exists for backwards compatibility with TestFilesCleanupService.
      */
     @SuppressWarnings("unused")
-    public void forEachResult(Consumer<FacadeForOutputTrackedResult> consumer) throws IOException {
+    public void forEachResult(Consumer<FacadeForOutputTrackedResult> consumer) throws Exception {
         forEachResult((id, parentId, result, outputRanges) ->
             consumer.accept(new FacadeForOutputTrackedResult(result))
         );
@@ -366,7 +366,7 @@ public final class SerializableTestResultStore {
      * @param processor the processor to call for each result
      * @throws IOException if an error occurs while reading the results
      */
-    public void forEachResult(ResultProcessor processor) throws IOException {
+    public void forEachResult(ResultProcessor processor) throws Exception {
         try (KryoBackedDecoder resultsDecoder = openAndInitializeDecoder()) {
             while (true) {
                 long id = resultsDecoder.readSmallLong();
@@ -381,7 +381,7 @@ public final class SerializableTestResultStore {
                     ranges = OutputRanges.SERIALIZER.read(resultsDecoder);
                 } catch (Exception e) {
                     if (e instanceof IOException) {
-                        throw (IOException) e;
+                        throw e;
                     }
                     throw UncheckedException.throwAsUncheckedException(e);
                 }

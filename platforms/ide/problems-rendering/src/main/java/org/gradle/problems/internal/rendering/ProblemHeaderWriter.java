@@ -35,11 +35,8 @@ class ProblemHeaderWriter implements PartialProblemWriter {
 
     private String headerFor(RenderOptions options, InternalProblem problem) {
         StringBuilder result = new StringBuilder(options.getPrefix());
-        String displayName = problem.getDefinition().getId().getDisplayName();
-        String name = (displayName == null || displayName.isEmpty()) ? problem.getDefinition().getId().toString() : displayName;
-        name = name.replaceAll("\\r?\\n", " ");
-        result.append(name);
-        if (options.isRenderId() && displayName != null && !displayName.isEmpty()) {
+        result.append(problem.getDefinition().getId().getDisplayName());
+        if (options.isRenderId()) {
             result.append(" (id: ");
             result.append(problem.getDefinition().getId());
             result.append(")");

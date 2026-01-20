@@ -4,7 +4,7 @@ package org.gradle.internal.declarativedsl.demo.demoPlugins
 fun main() {
     val topLevelScope = TopLevelScope()
     topLevelScope.run {
-        plugins {
+        plugins.run {
             val kotlinVersion = "1.9.20"
 
             id("org.jetbrains.kotlin.jvm") version kotlinVersion

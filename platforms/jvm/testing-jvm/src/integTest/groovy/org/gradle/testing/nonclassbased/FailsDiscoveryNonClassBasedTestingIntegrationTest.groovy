@@ -16,14 +16,11 @@
 
 package org.gradle.testing.nonclassbased
 
-import spock.lang.Ignore
-
 import static org.gradle.util.Matchers.matchesRegexp
 
 /**
  * Tests that exercise and demonstrate a broken Non-Class-Based Testing Engine that fails during discovery.
  */
-@Ignore
 class FailsDiscoveryNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
     @Override
     List<TestEngines> getEnginesToSetup() {
@@ -53,7 +50,7 @@ class FailsDiscoveryNonClassBasedTestingIntegrationTest extends AbstractNonClass
         writeTestDefinitions()
 
         when:
-        fails("test", "--info", "-S")
+        fails("test", "-S")
 
         then:
         failure.assertThatCause(matchesRegexp(/Could not complete execution for Gradle Test Executor \d+\./))

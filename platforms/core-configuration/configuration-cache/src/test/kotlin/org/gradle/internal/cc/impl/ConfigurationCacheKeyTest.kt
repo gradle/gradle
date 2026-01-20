@@ -17,12 +17,11 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.Option
 import org.gradle.internal.buildtree.RunTasksRequirements
-import org.gradle.internal.cc.buildtree.DefaultBuildModelParameters
+import org.gradle.internal.buildtree.control.BuildModelParametersProvider
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.encryption.EncryptionConfiguration
 import org.gradle.internal.hash.HashCode
@@ -136,28 +135,13 @@ class ConfigurationCacheKeyTest {
     private
     fun cacheKeyStringFromStartParameter(configure: StartParameterInternal.() -> Unit): String {
         val startParameter = StartParameterInternal().apply(configure)
-        val isolatedProjects = startParameter.isolatedProjects.get()
+        val internalOptions = DefaultInternalOptions(mapOf())
         return ConfigurationCacheKey(
             ConfigurationCacheStartParameter(
                 BuildTreeLocations(BuildLayout(file("root"), null, DefaultScriptFileResolver())),
                 startParameter,
-                DefaultInternalOptions(mapOf()),
-                DefaultBuildModelParameters(
-                    requiresToolingModels = false,
-                    parallelProjectExecution = false,
-                    configureOnDemand = false,
-                    configurationCache = true,
-                    configurationCacheParallelStore = isolatedProjects,
-                    configurationCacheParallelLoad = isolatedProjects,
-                    isolatedProjects = isolatedProjects,
-                    parallelProjectConfiguration = isolatedProjects,
-                    intermediateModelCache = false,
-                    parallelToolingApiActions = false,
-                    invalidateCoupledProjects = false,
-                    modelAsProjectDependency = false,
-                    resilientModelBuilding = false,
-                ),
-                ConfigurationCacheLoggingParameters(LogLevel.LIFECYCLE)
+                internalOptions,
+                BuildModelParametersProvider.parameters(RunTasksRequirements(startParameter), internalOptions),
             ),
             RunTasksRequirements(startParameter),
             object : EncryptionConfiguration {

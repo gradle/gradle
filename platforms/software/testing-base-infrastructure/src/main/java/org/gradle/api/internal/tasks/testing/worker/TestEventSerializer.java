@@ -26,20 +26,38 @@ import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailureDetails;
-import org.gradle.api.internal.tasks.testing.DefaultTestMetadataEvent;
+import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent;
+import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
-import org.gradle.api.internal.tasks.testing.FileComparisonFailureDetails;
 import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
+import org.gradle.api.internal.tasks.testing.FileComparisonFailureDetails;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestFailureSerializationException;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
+import org.gradle.api.internal.tasks.testing.source.DefaultClassSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultClasspathResourceSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultDirectorySource;
+import org.gradle.api.internal.tasks.testing.source.DefaultFilePosition;
+import org.gradle.api.internal.tasks.testing.source.DefaultFileSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultMethodSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultNoSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultOtherSource;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.internal.Cast;
+import org.gradle.api.tasks.testing.source.ClassSource;
+import org.gradle.api.tasks.testing.source.ClasspathResourceSource;
+import org.gradle.api.tasks.testing.source.DirectorySource;
+import org.gradle.api.tasks.testing.source.FilePosition;
+import org.gradle.api.tasks.testing.source.FileSource;
+import org.gradle.api.tasks.testing.source.MethodSource;
+import org.gradle.api.tasks.testing.source.NoSource;
+import org.gradle.api.tasks.testing.source.OtherSource;
+import org.gradle.api.tasks.testing.source.TestSource;
 import org.gradle.internal.id.CompositeIdGenerator;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
@@ -53,6 +71,8 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +96,7 @@ public class TestEventSerializer {
         registry.register(TestStartEvent.class, new TestStartEventSerializer());
         registry.register(TestCompleteEvent.class, new TestCompleteEventSerializer(factory));
         registry.register(DefaultTestOutputEvent.class, new DefaultTestOutputEventSerializer(factory));
-        registry.register(DefaultTestMetadataEvent.class, new TestMetadataEventSerializer());
+        registry.register(TestMetadataEvent.class, new TestMetadataEventSerializer());
 
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
         registry.register(Throwable.class, throwableSerializer);
@@ -85,7 +105,6 @@ public class TestEventSerializer {
         return registry;
     }
 
-    @NullMarked
     private static class NullableSerializer<T> implements Serializer<@Nullable T> {
         private final Serializer<T> serializer;
 
@@ -135,7 +154,6 @@ public class TestEventSerializer {
         }
     }
 
-    @NullMarked
     private static class DirectoryBasedTestDefinitionSerializer implements Serializer<DirectoryBasedTestDefinition> {
         @Override
         public DirectoryBasedTestDefinition read(Decoder decoder) throws Exception {
@@ -165,21 +183,39 @@ public class TestEventSerializer {
         }
     }
 
-    @NullMarked
-    private static class TestMetadataEventSerializer implements Serializer<DefaultTestMetadataEvent> {
+    private static class TestMetadataEventSerializer implements Serializer<TestMetadataEvent> {
         private final MapSerializer<String, String> mapSerializer = new MapSerializer<>(BaseSerializerFactory.STRING_SERIALIZER, BaseSerializerFactory.STRING_SERIALIZER);
+        private final Serializer<Path> pathSerializer = BaseSerializerFactory.PATH_SERIALIZER;
+
+        private static final int MAP_TYPE = 0;
+        private static final int FILE_ATTACHMENT_TYPE = 1;
 
         @Override
-        public DefaultTestMetadataEvent read(Decoder decoder) throws Exception {
-            long logTime = decoder.readLong();
-            Map<String, String> keyValues = mapSerializer.read(decoder);
-            return new DefaultTestMetadataEvent(logTime, Cast.uncheckedNonnullCast(keyValues));
+        public TestMetadataEvent read(Decoder decoder) throws Exception {
+            Instant logTime = Instant.ofEpochMilli(decoder.readLong());
+            int type = decoder.readInt();
+            switch (type) {
+                case MAP_TYPE:
+                    Map<String, String> keyValues = mapSerializer.read(decoder);
+                    return new DefaultTestKeyValueDataEvent(logTime, keyValues);
+                case FILE_ATTACHMENT_TYPE:
+                    return new DefaultTestFileAttachmentDataEvent(logTime, pathSerializer.read(decoder), decoder.readNullableString());
+            }
+            throw new IllegalStateException("Unknown type of test metadata: " + type);
         }
 
         @Override
-        public void write(Encoder encoder, DefaultTestMetadataEvent value) throws Exception {
-            encoder.writeLong(value.getLogTime());
-            mapSerializer.write(encoder, Cast.uncheckedNonnullCast(value.getValues()));
+        public void write(Encoder encoder, TestMetadataEvent value) throws Exception {
+            encoder.writeLong(value.getLogTime().toEpochMilli());
+
+            if (value instanceof DefaultTestKeyValueDataEvent) {
+                encoder.writeInt(MAP_TYPE);
+                mapSerializer.write(encoder, ((DefaultTestKeyValueDataEvent) value).getValues());
+            } else if (value instanceof DefaultTestFileAttachmentDataEvent) {
+                encoder.writeInt(FILE_ATTACHMENT_TYPE);
+                pathSerializer.write(encoder, ((DefaultTestFileAttachmentDataEvent) value).getPath());
+                encoder.writeNullableString(((DefaultTestFileAttachmentDataEvent) value).getMediaType());
+            }
         }
     }
 
@@ -227,7 +263,6 @@ public class TestEventSerializer {
         }
     }
 
-    @NullMarked
     private static class DefaultTestFailureSerializer implements Serializer<TestFailure> {
         private final Serializer<Throwable> throwableSerializer;
 
@@ -407,7 +442,6 @@ public class TestEventSerializer {
         }
     }
 
-    @NullMarked
     private static class DefaultParameterizedTestDescriptorSerializer implements Serializer<DefaultParameterizedTestDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
@@ -448,6 +482,100 @@ public class TestEventSerializer {
         }
     }
 
+    private static class TestSourceSerializer implements Serializer<TestSource> {
+
+        Serializer<FilePosition> filePositionSerializer = new NullableSerializer<>(new FilePositionSerializer());
+
+        @Override
+        public TestSource read(Decoder decoder) throws Exception {
+            int i = decoder.readSmallInt();
+            if (i == 0) {
+                return DefaultOtherSource.getInstance();
+            } else if (i == 1) {
+                return DefaultNoSource.getInstance();
+            } else if (i == 2) {
+                String absolutePath = decoder.readString();
+                FilePosition filePosition = filePositionSerializer.read(decoder);
+                return new DefaultFileSource(new File(absolutePath), filePosition);
+            } else if (i == 3) {
+                String absolutePath = decoder.readString();
+                return new DefaultDirectorySource(new File(absolutePath));
+            } else if (i == 4) {
+                String classpathResourceName = decoder.readString();
+                FilePosition position = filePositionSerializer.read(decoder);
+                return new DefaultClasspathResourceSource(classpathResourceName, position);
+            } else if (i == 5) {
+                String className = decoder.readString();
+                return new DefaultClassSource(className);
+            } else if (i == 6) {
+                String className = decoder.readString();
+                String methodName = decoder.readString();
+                return new DefaultMethodSource(className, methodName);
+            } else {
+                throw new IllegalArgumentException("Unknown TestSource type id: " + i);
+            }
+        }
+
+        @Override
+        public void write(Encoder encoder, TestSource value) throws Exception {
+            if (value instanceof OtherSource) {
+                encoder.writeSmallInt(0);
+            } else if (value instanceof NoSource) {
+                encoder.writeSmallInt(1);
+            } else if (value instanceof FileSource) {
+                encoder.writeSmallInt(2);
+                FileSource fileSource = (FileSource) value;
+                encoder.writeString(fileSource.getFile().getAbsolutePath());
+                filePositionSerializer.write(encoder, fileSource.getPosition());
+            } else if (value instanceof DirectorySource) {
+                encoder.writeSmallInt(3);
+                encoder.writeString(((DirectorySource) value).getFile().getAbsolutePath());
+            } else if (value instanceof ClasspathResourceSource) {
+                encoder.writeSmallInt(4);
+                ClasspathResourceSource classpathResourceSource = (ClasspathResourceSource) value;
+                encoder.writeString(classpathResourceSource.getClasspathResourceName());
+                filePositionSerializer.write(encoder, classpathResourceSource.getPosition());
+            } else if (value instanceof ClassSource) {
+                encoder.writeSmallInt(5);
+                ClassSource classSource = (ClassSource) value;
+                encoder.writeString(classSource.getClassName());
+            } else if (value instanceof MethodSource) {
+                encoder.writeSmallInt(6);
+                MethodSource methodSource = (MethodSource) value;
+                encoder.writeString(methodSource.getClassName());
+                encoder.writeString(methodSource.getMethodName());
+            } else {
+                throw new IllegalArgumentException("Unknown TestSource type: " + value.getClass().getName());
+            }
+        }
+    }
+
+    private static class FilePositionSerializer implements Serializer<FilePosition> {
+
+        @Override
+        public FilePosition read(Decoder decoder) throws Exception {
+            int line = decoder.readInt();
+            boolean hasColumn = decoder.readBoolean();
+            if (hasColumn) {
+                int column = decoder.readInt();
+                return new DefaultFilePosition(line, Integer.valueOf(column));
+            } else {
+                return new DefaultFilePosition(line, null);
+            }
+        }
+
+        @Override
+        public void write(Encoder encoder, @Nullable FilePosition position) throws Exception {
+            encoder.writeInt(position.getLine());
+            if (position.getColumn() == null) {
+                encoder.writeBoolean(false);
+            } else {
+                encoder.writeBoolean(true);
+                encoder.writeInt(position.getColumn());
+            }
+        }
+    }
+
     private static class DefaultTestClassDescriptorSerializer implements Serializer<DefaultTestClassDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
 
@@ -469,6 +597,7 @@ public class TestEventSerializer {
 
     private static class DefaultTestDescriptorSerializer implements Serializer<DefaultTestDescriptor> {
         final Serializer<CompositeIdGenerator.CompositeId> idSerializer = new IdSerializer();
+        final Serializer<TestSource> testSourceSerializer = new TestSourceSerializer();
 
         @Override
         public DefaultTestDescriptor read(Decoder decoder) throws Exception {
@@ -477,7 +606,8 @@ public class TestEventSerializer {
             String classDisplayName = decoder.readString();
             String name = decoder.readString();
             String displayName = decoder.readString();
-            return new DefaultTestDescriptor(id, className, name, classDisplayName, displayName);
+            TestSource source = testSourceSerializer.read(decoder);
+            return new DefaultTestDescriptor(id, className, name, classDisplayName, displayName, source);
         }
 
         @Override
@@ -487,6 +617,7 @@ public class TestEventSerializer {
             encoder.writeString(value.getClassDisplayName());
             encoder.writeString(value.getName());
             encoder.writeString(value.getDisplayName());
+            testSourceSerializer.write(encoder, value.getSource());
         }
     }
 

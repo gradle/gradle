@@ -17,10 +17,11 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestStartedProgressEvent;
 
-public class DefaultTestStartedProgressEvent extends AbstractProgressEvent<DefaultTestDescriptor> implements InternalTestStartedProgressEvent, InternalOperationStartedProgressEvent {
-    public DefaultTestStartedProgressEvent(long eventTime, DefaultTestDescriptor descriptor) {
+public class DefaultTestStartedProgressEvent extends AbstractProgressEvent<InternalTestDescriptor> implements InternalTestStartedProgressEvent, InternalOperationStartedProgressEvent {
+    public DefaultTestStartedProgressEvent(long eventTime, InternalTestDescriptor descriptor) {
         super(eventTime, descriptor);
     }
 

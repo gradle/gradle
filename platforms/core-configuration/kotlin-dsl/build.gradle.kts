@@ -19,6 +19,7 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.concurrent)
+    api(projects.declarativeDslApi)
     api(projects.fileOperations)
     api(projects.hashing)
     api(projects.kotlinDslToolingModels)
@@ -51,6 +52,7 @@ dependencies {
     implementation(projects.io)
     implementation(projects.logging)
     implementation(projects.messaging)
+    implementation(projects.projectFeaturesApi)
     implementation(projects.resources)
     implementation(projects.scopedPersistentCache)
     implementation(projects.serialization)
@@ -58,6 +60,7 @@ dependencies {
     implementation(projects.serviceProvider)
     implementation(projects.snapshots)
     implementation(projects.projectFeatures)
+    implementation(projects.wrapperShared)
 
     implementation(projects.javaApiExtractor)
     implementation("org.gradle:kotlin-dsl-shared-runtime")
@@ -166,7 +169,14 @@ tasks.shadowJar {
     configurations = setOf(project.configurations.shadow.get())
     relocate("kotlin.metadata", "org.gradle.kotlin.dsl.internal.relocated.kotlin.metadata")
     relocate("kotlinx.metadata", "org.gradle.kotlin.dsl.internal.relocated.kotlinx.metadata")
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     mergeServiceFiles()
+    filesMatching("META-INF/services/**") {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+
     exclude("META-INF/kotlin-metadata-jvm.kotlin_module")
     exclude("META-INF/kotlin-metadata.kotlin_module")
     exclude("META-INF/metadata.jvm.kotlin_module")

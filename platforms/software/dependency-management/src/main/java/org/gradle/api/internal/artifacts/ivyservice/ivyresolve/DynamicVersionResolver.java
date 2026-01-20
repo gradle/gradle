@@ -170,6 +170,7 @@ public class DynamicVersionResolver {
     }
 
     @Nullable
+    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private RepositoryChainModuleResolution findLatestModule(LinkedList<RepositoryResolveState> queue, RepositoryFailureCollector failures, Collection<RepositoryResolveState> missing) {
         RepositoryChainModuleResolution best = null;
         while (!queue.isEmpty()) {

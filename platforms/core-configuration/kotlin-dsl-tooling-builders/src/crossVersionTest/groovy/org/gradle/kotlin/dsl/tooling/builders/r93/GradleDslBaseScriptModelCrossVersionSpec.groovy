@@ -59,6 +59,11 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
 
         and: "Kotlin DSL script templates classpath"
         !kotlinModel.templateClassNames.isEmpty()
+        println "=========================="
+        for (final def item in kotlinModel.scriptTemplatesClassPath) {
+            println item
+        }
+        println "=========================="
         loadClassesFrom(kotlinModel.scriptTemplatesClassPath, ["org.gradle.api.HasImplicitReceiver"])
         loadClassesFrom(kotlinModel.scriptTemplatesClassPath, kotlinModel.templateClassNames)
 

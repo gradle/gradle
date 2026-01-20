@@ -21,7 +21,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
-public class ExecutionRequestContext implements Context {
+public class ExecutionRequestContext implements ValidatingContext {
     @Nullable
     private final String nonIncrementalReason;
     private final WorkValidationContext validationContext;
@@ -38,14 +38,15 @@ public class ExecutionRequestContext implements Context {
     /**
      * If incremental mode is disabled, this returns the reason, otherwise it's empty.
      */
-    Optional<String> getNonIncrementalReason() {
+    public Optional<String> getNonIncrementalReason() {
         return Optional.ofNullable(nonIncrementalReason);
     }
 
     /**
      * The validation context to use during the execution of the work.
      */
-    WorkValidationContext getValidationContext() {
+    @Override
+    public WorkValidationContext getValidationContext() {
         return validationContext;
     }
 }

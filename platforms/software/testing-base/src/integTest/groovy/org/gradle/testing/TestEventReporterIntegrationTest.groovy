@@ -203,177 +203,6 @@ Custom test root > My Suite > another failing test FAILED
         firstTestMetadataDetails[0]["values"]["my key"] == "my value"
     }
 
-    def "captures List metadata for custom test"() {
-        given:
-        singleCustomTestRecordingMetadata("my key", "[1, 2, 3]")
-
-        when:
-        succeeds "customTest"
-
-        then: "metadata is retrievable from build operations"
-        List<BuildOperationRecord.Progress> testMetadata = getMetadataForOnlyTest()
-        testMetadata.size() == 1
-        def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
-        firstTestMetadataDetails.size() == 1
-        firstTestMetadataDetails[0]["values"]["my key"] == [1, 2, 3]
-    }
-
-    def "captures calendar metadata for custom test"() {
-        given:
-        singleCustomTestRecordingMetadata("my key", "new GregorianCalendar(2024, 11, 27)")
-
-        when:
-        succeeds "customTest"
-
-        then: "metadata is retrievable from build operations"
-        List<BuildOperationRecord.Progress> testMetadata = getMetadataForOnlyTest()
-        testMetadata.size() == 1
-        def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
-        firstTestMetadataDetails.size() == 1
-        firstTestMetadataDetails[0]["values"]["my key"] == new GregorianCalendar(2024, 11, 27).toInstant().toEpochMilli()
-    }
-
-    def "captures File metadata for custom test"() {
-        given:
-        buildFile("""
-            import java.time.Instant
-            import javax.inject.Inject
-
-            abstract class CustomTestTask extends DefaultTask {
-                private someFile = project.layout.buildDirectory.file('somefile.txt').get().getAsFile()
-
-                @Inject
-                abstract TestEventReporterFactory getTestEventReporterFactory()
-
-                @Inject
-                abstract ProjectLayout getLayout()
-
-                @TaskAction
-                void runTests() {
-                    try (def reporter = testEventReporterFactory.createTestEventReporter(
-                        "Custom test root",
-                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
-                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
-                    )) {
-                       reporter.started(Instant.now())
-                       try (def mySuite = reporter.reportTestGroup("My Suite")) {
-                            mySuite.started(Instant.now())
-                            try (def myTest = mySuite.reportTest("MyTestInternal", "My test!")) {
-                                 myTest.started(Instant.now())
-                                 myTest.metadata(Instant.now(), "my key", someFile)
-                                 myTest.succeeded(Instant.now())
-                            }
-                            mySuite.succeeded(Instant.now())
-                       }
-                       reporter.succeeded(Instant.now())
-                   }
-                }
-            }
-
-            tasks.register("customTest", CustomTestTask)
-        """)
-
-        when:
-        succeeds "customTest"
-
-        then: "metadata is retrievable from build operations"
-        List<BuildOperationRecord.Progress> testMetadata = getMetadataForOnlyTest()
-        testMetadata.size() == 1
-        def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
-        firstTestMetadataDetails.size() == 1
-        firstTestMetadataDetails[0]["values"]["my key"] == new File(testDirectory.file("build", "somefile.txt").absolutePath).absolutePath
-    }
-
-    def "captures URL metadata for custom test"() {
-        given:
-        buildFile("""
-            import java.time.Instant
-            import javax.inject.Inject
-
-            abstract class CustomTestTask extends DefaultTask {
-                private someURL = project.layout.buildDirectory.file('somefile.txt').get().getAsFile().toURI().toURL()
-
-                @Inject
-                abstract TestEventReporterFactory getTestEventReporterFactory()
-
-                @Inject
-                abstract ProjectLayout getLayout()
-
-                @TaskAction
-                void runTests() {
-                    try (def reporter = testEventReporterFactory.createTestEventReporter(
-                        "Custom test root",
-                        getLayout().getBuildDirectory().dir("test-results/Custom test root").get(),
-                        getLayout().getBuildDirectory().dir("reports/tests/Custom test root").get()
-                    )) {
-                       reporter.started(Instant.now())
-                       try (def mySuite = reporter.reportTestGroup("My Suite")) {
-                            mySuite.started(Instant.now())
-                            try (def myTest = mySuite.reportTest("MyTestInternal", "My test!")) {
-                                 myTest.started(Instant.now())
-                                 myTest.metadata(Instant.now(), "my key", someURL)
-                                 myTest.succeeded(Instant.now())
-                            }
-                            mySuite.succeeded(Instant.now())
-                       }
-                       reporter.succeeded(Instant.now())
-                   }
-                }
-            }
-
-            tasks.register("customTest", CustomTestTask)
-        """)
-
-        when:
-        succeeds "customTest"
-
-        then: "metadata is retrievable from build operations"
-        List<BuildOperationRecord.Progress> testMetadata = getMetadataForOnlyTest()
-        testMetadata.size() == 1
-        def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
-        firstTestMetadataDetails.size() == 1
-        firstTestMetadataDetails[0]["values"]["my key"] == new File(testDirectory.file("build", "somefile.txt").absolutePath).toURI().toURL().toString()
-    }
-
-    @SuppressWarnings(['UnnecessaryQualifiedReference', 'GroovyResultOfObjectAllocationIgnored'])
-    def "captures custom serializable object metadata for custom test"() {
-        given:
-        buildFile("""
-            class TestType implements org.gradle.internal.operations.trace.CustomOperationTraceSerialization, Serializable {
-                private int field
-
-                TestType(int field) {
-                    this.field = field
-                }
-
-                @Override
-                Object getCustomOperationTraceSerializableModel() {
-                    return ["my custom serializable type", "with some values", "in a list", field]
-                }
-
-                private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-                    out.writeInt(field)
-                }
-
-                private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-                    field = in.readInt()
-                }
-            }
-        """)
-
-        singleCustomTestRecordingMetadata("my key", """new TestType(2024)""")
-
-        when:
-        succeeds "customTest"
-
-        then: "metadata is retrievable from build operations"
-        List<BuildOperationRecord.Progress> testMetadata = getMetadataForOnlyTest()
-        testMetadata.size() == 1
-        def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
-        firstTestMetadataDetails.size() == 1
-        firstTestMetadataDetails[0]["values"]["my key"]["customOperationTraceSerializableModel"] == ["my custom serializable type", "with some values", "in a list", 2024]
-    }
-
     def "captures multiple metadata values for custom test"() {
         given:
         buildFile("""
@@ -400,7 +229,7 @@ Custom test root > My Suite > another failing test FAILED
                                  myTest.started(Instant.now())
                                  myTest.metadata(Instant.now(), "key1", "value1")
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
-                                 myTest.metadata(Instant.now(), "key2", 2)
+                                 myTest.metadata(Instant.now(), "key2", "2")
                                  myTest.succeeded(Instant.now())
                             }
                             mySuite.succeeded(Instant.now())
@@ -422,7 +251,7 @@ Custom test root > My Suite > another failing test FAILED
         def firstTestMetadataDetails = testMetadata*.details.metadata as List<Map<String, ?>>
         firstTestMetadataDetails.size() == 2
         firstTestMetadataDetails[0]["values"]["key1"] == "value1"
-        firstTestMetadataDetails[1]["values"]["key2"] == 2
+        firstTestMetadataDetails[1]["values"]["key2"] == "2"
     }
 
     def "captures multiple metadata values for multiple custom tests and correctly associates them"() {
@@ -451,7 +280,7 @@ Custom test root > My Suite > another failing test FAILED
                                  myTest.started(Instant.now())
                                  myTest.metadata(Instant.now(), "key1", "value1")
                                  myTest.output(Instant.now(), TestOutputEvent.Destination.StdOut, "This is a test output on stdout")
-                                 myTest.metadata(Instant.now(), "key2", 2)
+                                 myTest.metadata(Instant.now(), "key2", "2")
                                  myTest.succeeded(Instant.now())
                             }
 
@@ -499,7 +328,7 @@ Custom test root > My Suite > another failing test FAILED
         def firstTestMetadataDetails = testMetadata1*.details.metadata as List<Map<String, ?>>
         firstTestMetadataDetails.size() == 2
         firstTestMetadataDetails[0]["values"]["key1"] == "value1"
-        firstTestMetadataDetails[1]["values"]["key2"] == 2
+        firstTestMetadataDetails[1]["values"]["key2"] == "2"
 
         List<BuildOperationRecord.Progress> testMetadata2 = firstLevelTestOps[1].progress(ExecuteTestBuildOperationType.Metadata)
         testMetadata2.size() == 1

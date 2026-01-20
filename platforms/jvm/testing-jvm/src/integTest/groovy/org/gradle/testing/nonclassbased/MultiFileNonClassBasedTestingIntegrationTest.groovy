@@ -16,14 +16,11 @@
 
 package org.gradle.testing.nonclassbased
 
-import spock.lang.Ignore
-
 /**
  * Tests that exercise and demonstrate Non-Class-Based Testing using the {@code Test} task
  * and a sample resource-based JUnit Platform Test Engine that defines tests across multiple files
  * in a directory.
  */
-@Ignore
 class MultiFileNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
     @Override
     List<TestEngines> getEnginesToSetup() {
@@ -58,13 +55,10 @@ class MultiFileNonClassBasedTestingIntegrationTest extends AbstractNonClassBased
         }
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
-        // Once reporting is addressed, this should use more robust verification using existing report-checking fixtures
-        outputContains("INFO: Executing resource-based test: Test[file=first-half.txt, name=test1]")
-        outputContains("INFO: Executing resource-based test: Test[file=first-half.txt, name=test2]")
-        outputContains("INFO: Executing resource-based test: Test[file=second-half.txt, name=test1]")
-        outputContains("INFO: Executing resource-based test: Test[file=second-half.txt, name=test2]")
+        resultsFor().assertTestPathsExecuted(":first-half.txt - test1", ":first-half.txt - test2",
+            ":second-half.txt - test1", ":second-half.txt - test2")
     }
 }

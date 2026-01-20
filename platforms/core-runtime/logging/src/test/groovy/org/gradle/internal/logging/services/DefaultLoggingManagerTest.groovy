@@ -18,6 +18,7 @@ package org.gradle.internal.logging.services
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.api.logging.configuration.ConsoleUnicodeSupport
 import org.gradle.internal.logging.config.LoggingRouter
 import org.gradle.internal.logging.config.LoggingSourceSystem
 import org.gradle.internal.logging.config.LoggingSystem
@@ -434,14 +435,14 @@ class DefaultLoggingManagerTest extends Specification {
     def "attaches process console on start and restores on stop"() {
         def snapshot = Stub(LoggingSystem.Snapshot)
 
-        loggingManager.attachProcessConsole(ConsoleOutput.Auto)
+        loggingManager.attachProcessConsole(ConsoleOutput.Auto, ConsoleUnicodeSupport.Auto)
 
         when:
         loggingManager.start()
 
         then:
         1 * loggingRouter.snapshot() >> snapshot
-        1 * loggingRouter.attachProcessConsole(ConsoleOutput.Auto)
+        1 * loggingRouter.attachProcessConsole(ConsoleOutput.Auto, ConsoleUnicodeSupport.Auto)
         0 * loggingRouter._
 
         when:
@@ -463,10 +464,10 @@ class DefaultLoggingManagerTest extends Specification {
         0 * loggingRouter._
 
         when:
-        loggingManager.attachProcessConsole(ConsoleOutput.Auto)
+        loggingManager.attachProcessConsole(ConsoleOutput.Auto, ConsoleUnicodeSupport.Auto)
 
         then:
-        1 * loggingRouter.attachProcessConsole(ConsoleOutput.Auto)
+        1 * loggingRouter.attachProcessConsole(ConsoleOutput.Auto, ConsoleUnicodeSupport.Auto)
         0 * loggingRouter._
 
         when:

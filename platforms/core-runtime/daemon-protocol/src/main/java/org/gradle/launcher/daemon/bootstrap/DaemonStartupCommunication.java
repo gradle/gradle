@@ -97,7 +97,18 @@ public class DaemonStartupCommunication {
         return message.contains(daemonGreeting());
     }
 
+    public boolean containsDebugMessage(String message) {
+        if (message == null) {
+            return false;
+        }
+        return message.contains(debugMessage());
+    }
+
     private static String daemonGreeting() {
         return DaemonMessages.ABOUT_TO_CLOSE_STREAMS;
+    }
+
+    private static String debugMessage() {
+        return DaemonMessages.WAITING_FOR_DEBUGGER;
     }
 }

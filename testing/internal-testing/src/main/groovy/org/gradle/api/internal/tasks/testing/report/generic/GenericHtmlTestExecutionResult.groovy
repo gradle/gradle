@@ -29,6 +29,7 @@ import com.google.common.collect.Streams
 import org.gradle.api.Action
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.lazy.Lazy
+import org.gradle.internal.time.TimeFormatting
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
@@ -37,6 +38,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 
 import java.nio.file.Files
+import java.time.Duration
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
@@ -249,6 +251,12 @@ Unexpected paths: ${unexpectedPaths}""")
                     }
 
                     @Override
+                    TestPathRootExecutionResult assertThatSingleDuration(Matcher<? super Duration> matcher) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
                     String getFailureMessages() {
                         assert false
                         return this
@@ -262,6 +270,12 @@ Unexpected paths: ${unexpectedPaths}""")
 
                     @Override
                     TestPathRootExecutionResult assertMetadata(List<Map.Entry<String, String>> metadata) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertFileAttachments(Map<String, TestPathRootExecutionResult.ShowAs> expectedAttachments) {
                         assert false
                         return this
                     }
@@ -636,6 +650,16 @@ Unexpected paths: ${unexpectedPaths}""")
         }
 
         @Override
+        TestPathRootExecutionResult assertThatSingleDuration(Matcher<? super Duration> matcher) {
+            def durationText = html.selectFirst('.summary .infoBox.duration .counter').text()
+            def durationTexts = durationText.split(' ')
+            assertThat("multiple durations in " + displayName, durationTexts.length, equalTo(1))
+            def duration = TimeFormatting.parseDurationVeryTerse(durationTexts[0])
+            assertThat("in " + displayName, duration, matcher)
+            return this
+        }
+
+        @Override
         String getFailureMessages() {
             html.selectFirst('.result-details pre')?.text() ?: ''
         }
@@ -655,6 +679,31 @@ Unexpected paths: ${unexpectedPaths}""")
                 Maps.immutableEntry(it[0], it[1])
             }
             assertThat("in " + displayName, metadata, equalTo(expectedMetadata))
+            return this
+        }
+
+        @Override
+        TestPathRootExecutionResult assertFileAttachments(Map<String, ShowAs> expectedAttachments) {
+            def fileAttachments = html.select('.attachments tr').findAll { it.getElementsByTag('td').size() > 0 }
+            Map<String, ShowAs> actual = fileAttachments.collectEntries {
+                def columns = it.getElementsByTag("td")
+                assert columns.size() == 2 : "unexpected table"
+                def key = columns[0]
+                def content = columns[1]
+                def shownAs
+                if (content.getElementsByTag("img").size() > 0) {
+                    shownAs = ShowAs.IMAGE
+                } else if (content.getElementsByTag("video").size() > 0) {
+                    shownAs = ShowAs.VIDEO
+                } else if (content.getElementsByTag("a").size() > 0) {
+                    shownAs = ShowAs.LINK
+                } else {
+                    shownAs = null
+                }
+                [key.text(), shownAs]
+            }
+
+            assertThat("in " + displayName, actual, equalTo(expectedAttachments))
             return this
         }
     }

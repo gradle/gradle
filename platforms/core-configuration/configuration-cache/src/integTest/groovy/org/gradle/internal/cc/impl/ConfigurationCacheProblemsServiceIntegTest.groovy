@@ -42,10 +42,10 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(1)
+            totalProblemsCount = 1
             withUniqueProblems(
                 "Build file 'build.gradle': line 2: registration of listener on 'Gradle.buildFinished' is unsupported")
-            withProblemsWithStackTraceCount(1)
+            problemsWithStackTraceCount = 1
         }
 
         and:

@@ -18,8 +18,6 @@ package org.gradle.internal.declarativedsl
 
 import org.gradle.api.Action
 import org.gradle.api.provider.Property
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
@@ -82,7 +80,6 @@ class GeneralGradleDslSchemaTest {
 
     private
     abstract class TopLevelReceiver {
-        @Configuring
         @Suppress("unused")
         abstract fun configureNestedReceiver(configure: Action<in NestedReceiver>)
     }
@@ -92,18 +89,15 @@ class GeneralGradleDslSchemaTest {
 
     private
     abstract class NestedReceiver : NestedReceiverSupertype {
-        @get:Restricted
         @Suppress("unused")
         abstract val intProperty: Property<Int>
 
-        @get:Restricted
         @Suppress("unused")
         abstract val enumProperty: Property<Enum>
     }
 
     private
     abstract class UtilsContainer {
-        @Restricted
         @Suppress("unused")
         abstract fun nestedReceiver(): NestedReceiver
     }
@@ -116,10 +110,8 @@ class GeneralGradleDslSchemaTest {
 
     @Suppress("unused")
     private interface TypeDiscoveryTestReceiver {
-        @get:Restricted
         var javaBeanProperty: Enum
 
-        @get:Restricted
         val propertyApiProperty: Property<UtilsContainer>
     }
 }

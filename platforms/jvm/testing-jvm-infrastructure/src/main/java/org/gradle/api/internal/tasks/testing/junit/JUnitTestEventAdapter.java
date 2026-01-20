@@ -32,8 +32,12 @@ import org.gradle.api.internal.tasks.testing.failure.mappers.AssertjMultipleAsse
 import org.gradle.api.internal.tasks.testing.failure.mappers.JUnitComparisonTestFailureMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestAssertionFailedMapper;
 import org.gradle.api.internal.tasks.testing.failure.mappers.OpenTestMultipleFailuresErrorMapper;
+import org.gradle.api.internal.tasks.testing.source.DefaultClassSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultMethodSource;
+import org.gradle.api.internal.tasks.testing.source.DefaultOtherSource;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.api.tasks.testing.source.TestSource;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.time.Clock;
 import org.jspecify.annotations.NullMarked;
@@ -78,7 +82,6 @@ public class JUnitTestEventAdapter extends RunListener {
         new AssertErrorMapper()
     );
 
-    @NullMarked
     private static final class TestNode {
         @Nullable
         private final TestNode parent;
@@ -176,7 +179,6 @@ public class JUnitTestEventAdapter extends RunListener {
         return null;
     }
 
-    @NullMarked
     private enum RegistrationMode {
         TEST,
         SUITE,
@@ -600,17 +602,30 @@ public class JUnitTestEventAdapter extends RunListener {
         TestDescriptorInternal descriptor;
         if (registrationMode == RegistrationMode.SUITE || (registrationMode == RegistrationMode.DETECTED && description.isSuite())) {
             if (supportsTestClassMethod() && getTestClassIfPossible(description) == null) {
-                descriptor = new DefaultTestSuiteDescriptor(id, className);
+                descriptor = new DefaultTestSuiteDescriptor(id, className, DefaultOtherSource.getInstance());
             } else {
-                descriptor = new DefaultTestClassDescriptor(id, className, classDisplayName(className));
+                descriptor = new DefaultTestClassDescriptor(id, className, classDisplayName(className), new DefaultClassSource(className));
             }
         } else {
             String methodName = methodName(description);
-            if (methodName != null) {
-                descriptor = new DefaultTestDescriptor(id, className, methodName);
-            } else {
-                descriptor = new DefaultTestDescriptor(id, className, "classMethod");
+            TestSource testSource = null;
+            if (registrationMode != RegistrationMode.TEST) {
+                // If a test wasn't specifically asked for, infer a different source based on available fields
+                if (supportsTestClassMethod() && getTestClassIfPossible(description) == null) {
+                    testSource = DefaultOtherSource.getInstance();
+                } else if (methodName == null) {
+                    testSource = new DefaultClassSource(className);
+                }
             }
+            // Apply fallback for method name if missing
+            if (methodName == null) {
+                methodName = "classMethod";
+            }
+            // Apply default method source if no other source was inferred
+            if (testSource == null) {
+                testSource = new DefaultMethodSource(className, methodName);
+            }
+            descriptor = new DefaultTestDescriptor(id, className, methodName, testSource);
         }
         return new TestNode(parent, description, descriptor);
     }

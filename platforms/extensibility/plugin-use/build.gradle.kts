@@ -14,10 +14,9 @@ dependencies {
     api(projects.logging)
     api(projects.messaging)
     api(projects.modelCore)
-    api(projects.modelReflect)
     api(projects.problemsApi)
-    api(projects.projectFeaturesApi)
     api(projects.projectFeatures)
+    api(projects.projectFeaturesApi)
 
     api(libs.guava)
     api(libs.inject)
@@ -25,6 +24,7 @@ dependencies {
 
     implementation(projects.functional)
     implementation(projects.jvmServices)
+    implementation(projects.modelReflect)
 
     implementation(libs.slf4jApi)
 

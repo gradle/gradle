@@ -91,7 +91,39 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
 
     def "HTML report contains metadata from both suites"() {
         given:
-        buildFile << taskWithTwoSameNameSuites("doubled")
+        buildFile """
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        name,
+                        getLayout().getBuildDirectory().dir("test-results/" + name).get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/" + name).get()
+                    )) {
+                       reporter.started(Instant.now())
+                       for (int i = 0; i < 2; i++) {
+                           try (def mySuite = reporter.reportTestGroup(name + " suite")) {
+                                mySuite.started(Instant.now())
+                                try (def myTest = mySuite.reportTest(name + " test", name + " test")) {
+                                     myTest.started(Instant.now())
+                                     myTest.succeeded(Instant.now())
+                                }
+                                mySuite.metadata(Instant.now(), "index", ""+i)
+                                mySuite.succeeded(Instant.now())
+                           }
+                       }
+                       reporter.failed(Instant.now())
+                   }
+                }
+            }
+            tasks.register("doubled", CustomTestTask)
+        """
 
         when:
         fails("doubled")
@@ -403,45 +435,6 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                                  myTest.failed(Instant.now(), "failure message")
                             }
                             mySuite.failed(Instant.now())
-                       }
-                       reporter.failed(Instant.now())
-                   }
-                }
-            }
-
-            tasks.register("${name}", ${name}CustomTestTask)
-        """
-    }
-
-    def taskWithTwoSameNameSuites(String name) {
-        assert !name.toCharArray().any { it.isWhitespace() }
-
-        """
-            abstract class ${name}CustomTestTask extends DefaultTask {
-                @Inject
-                abstract TestEventReporterFactory getTestEventReporterFactory()
-
-                @Inject
-                abstract ProjectLayout getLayout()
-
-                @TaskAction
-                void runTests() {
-                    try (def reporter = testEventReporterFactory.createTestEventReporter(
-                        "${name}",
-                        getLayout().getBuildDirectory().dir("test-results/${name}").get(),
-                        getLayout().getBuildDirectory().dir("reports/tests/${name}").get()
-                    )) {
-                       reporter.started(Instant.now())
-                       for (int i = 0; i < 2; i++) {
-                           try (def mySuite = reporter.reportTestGroup("${name} suite")) {
-                                mySuite.started(Instant.now())
-                                try (def myTest = mySuite.reportTest("${name} test", "${name} test")) {
-                                     myTest.started(Instant.now())
-                                     myTest.succeeded(Instant.now())
-                                }
-                                mySuite.metadata(Instant.now(), "index", i)
-                                mySuite.succeeded(Instant.now())
-                           }
                        }
                        reporter.failed(Instant.now())
                    }

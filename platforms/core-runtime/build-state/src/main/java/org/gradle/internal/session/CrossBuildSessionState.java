@@ -17,6 +17,8 @@
 package org.gradle.internal.session;
 
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.internal.options.InternalOptionsFactory;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationsParameters;
 import org.gradle.internal.operations.DefaultBuildOperationsParameters;
@@ -86,6 +88,11 @@ public class CrossBuildSessionState implements Closeable {
             registration.add(CrossBuildSessionParameters.class, new CrossBuildSessionParameters(startParameter, userActionRootDir));
             registration.add(CrossBuildSessionState.class, CrossBuildSessionState.this);
             registration.add(BuildOperationsParameters.class, DefaultBuildOperationsParameters.class);
+        }
+
+        @Provides
+        InternalOptions createInternalOptions(CrossBuildSessionParameters parameters) {
+            return InternalOptionsFactory.createInternalOptions(startParameter, parameters.getUserActionRootDirectory());
         }
     }
 }

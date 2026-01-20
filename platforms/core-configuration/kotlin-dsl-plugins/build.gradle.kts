@@ -6,7 +6,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "6.4.3"
+version = "6.5.3"
 
 base.archivesName = "plugins"
 

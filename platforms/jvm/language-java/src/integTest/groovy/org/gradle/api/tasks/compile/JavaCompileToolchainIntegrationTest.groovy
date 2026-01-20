@@ -251,6 +251,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22398")
+    @Requires(IntegTestPreconditions.DifferentJdkAvailable)
     def "ignore #forkOption if not forking"() {
         def curJvm = Jvm.current()
         def otherJvm = AvailableJavaHomes.getDifferentJdk()

@@ -26,9 +26,9 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -53,10 +53,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * Resolution state for a given module.
@@ -203,21 +199,6 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     /**
-     * Changes the selected target component for this module due to version conflict resolution.
-     */
-    private void changeSelection(ComponentState newSelection) {
-        assert this.selected != null;
-        assert newSelection != null;
-        assert this.selected != newSelection;
-        assert newSelection.getModule() == this;
-
-        this.selected = newSelection;
-        this.replaced = false;
-
-        doRestart(newSelection);
-    }
-
-    /**
      * Clears the current selection for the module, to prepare for conflict resolution.
      * - For the current selection, disconnect and remove any outgoing dependencies.
      * - Make all 'selected' component versions selectable.
@@ -238,37 +219,24 @@ public class ModuleResolveState implements CandidateModule {
         replaced = false;
     }
 
-    /**
-     * Overrides the component selection for this module, when this module has been replaced
-     * by another due to capability conflict resolution.
-     */
     @Override
-    public void replaceWith(ComponentState selected) {
-        if (!selected.getModule().getId().equals(getId())) {
-            this.overriddenSelection = true;
-        }
-        this.selected = selected;
-        this.replaced = computeReplaced(selected);
+    public void changeSelection(ComponentState newSelection) {
+        this.selected = newSelection;
+        this.replaced = !newSelection.getModule().getId().equals(getId());
 
         if (replaced) {
-            selected.getModule().getPendingDependencies().retarget(pendingDependencies);
+            this.overriddenSelection = true;
+            newSelection.getModule().getPendingDependencies().retarget(pendingDependencies);
         }
 
-        doRestart(selected);
-    }
-
-    private boolean computeReplaced(ComponentState selected) {
-        // This module might be resolved to a different module, through replacedBy
-        return !selected.getModule().getId().equals(getId());
-    }
-
-    private void doRestart(ComponentState selected) {
-        selectComponentAndEvictOthers(selected);
+        selectComponentAndEvictOthers(newSelection);
         for (ComponentState version : versions.values()) {
-            version.restartIncomingEdges(selected);
+            for (NodeState node : version.getNodes()) {
+                node.restart(newSelection);
+            }
         }
         for (SelectorState selector : selectors) {
-            selector.overrideSelection(selected);
+            selector.overrideSelection(newSelection);
         }
         if (!unattachedEdges.isEmpty()) {
             restartUnattachedEdges();
@@ -372,14 +340,6 @@ public class ModuleResolveState implements CandidateModule {
         return dependencyAttributes;
     }
 
-    public List<ComponentSelectionReasonInternal> getSelectionReasons() {
-        return StreamSupport.stream(
-                Spliterators.spliteratorUnknownSize(selectors.iterator(), Spliterator.ORDERED),
-                false
-            ).map(SelectorState::getSelectionReason)
-            .collect(Collectors.toList());
-    }
-
     Set<EdgeState> getIncomingEdges() {
         Set<EdgeState> incoming = new LinkedHashSet<>();
         if (selected != null) {
@@ -409,7 +369,7 @@ public class ModuleResolveState implements CandidateModule {
             pendingDependencies.decreaseHardEdgeCount();
             if (pendingDependencies.isPending()) {
                 // We are back to pending, since we no longer have any hard edges targeting us.
-                // All incoming constraint edges must now be removed.
+                // All incoming constraint edges must now be removed, as we are no longer part of the graph.
                 clearIncomingAttachedConstraints(removalSource);
                 clearIncomingUnattachedConstraints(removalSource);
             }
@@ -419,23 +379,33 @@ public class ModuleResolveState implements CandidateModule {
     private void clearIncomingAttachedConstraints(NodeState removalSource) {
         if (selected != null) {
             for (NodeState node : selected.getNodes()) {
-                node.clearIncomingConstraints(pendingDependencies, removalSource);
+                List<EdgeState> removedEdges = node.removeAllIncomingEdges();
+                for (EdgeState incomingEdge : removedEdges) {
+                    disconnectIncomingConstraint(removalSource, incomingEdge);
+                }
             }
         }
     }
 
     private void clearIncomingUnattachedConstraints(NodeState removalSource) {
         for (EdgeState unattachedEdge : unattachedEdges) {
-            assert unattachedEdge.getDependencyMetadata().isConstraint();
-            NodeState from = unattachedEdge.getFrom();
-            if (from != removalSource) {
-                // Only remove edges that come from a different node than the source of the dependency
-                // going back to pending. The edges from the "From" will be removed first.
-                from.removeOutgoingEdge(unattachedEdge);
-            }
-            pendingDependencies.registerConstraintProvider(from);
+            disconnectIncomingConstraint(removalSource, unattachedEdge);
+            unattachedEdge.markNotUnattached();
         }
         unattachedEdges.clear();
+    }
+
+    private void disconnectIncomingConstraint(NodeState removalSource, EdgeState incomingEdge) {
+        // Since we are back to pending, any edges targeting this module must be a constraint.
+        assert incomingEdge.getDependencyMetadata().isConstraint();
+
+        NodeState from = incomingEdge.getFrom();
+        if (from != removalSource) {
+            // Only remove edges that come from a different node than the source of the dependency going
+            // back to pending. The source of the removal is already removing outgoing edges from itself.
+            from.removeOutgoingEdge(incomingEdge);
+        }
+        pendingDependencies.registerConstraintProvider(from);
     }
 
     boolean isPending() {
@@ -457,6 +427,7 @@ public class ModuleResolveState implements CandidateModule {
         pendingDependencies.unregisterConstraintProvider(nodeState);
     }
 
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public void maybeUpdateSelection() {
         if (replaced) {
             // Never update selection for a replaced module
@@ -530,23 +501,15 @@ public class ModuleResolveState implements CandidateModule {
         return null;
     }
 
-    /* package */ Set<EdgeState> getAllEdges() {
+    /**
+     * Get all edges targeting this module, including those which were not successfully
+     * attached to a node.
+     */
+    public Set<? extends DependencyGraphEdge> getAllIncomingEdges() {
         Set<EdgeState> allEdges = new LinkedHashSet<>();
         allEdges.addAll(getIncomingEdges());
         allEdges.addAll(getUnattachedEdges());
         return allEdges;
     }
 
-    public Map<SelectorState, List<List<String>>> getSegmentedPathsBySelectors() {
-        return getAllEdges().stream()
-            .collect(Collectors.toMap(
-                EdgeState::getSelector,
-                MessageBuilderHelper::segmentedPathsTo,
-                (a, b) -> {
-                    List<List<String>> combined = new ArrayList<>(a);
-                    combined.addAll(b);
-                    return combined;
-                }
-            ));
-    }
 }

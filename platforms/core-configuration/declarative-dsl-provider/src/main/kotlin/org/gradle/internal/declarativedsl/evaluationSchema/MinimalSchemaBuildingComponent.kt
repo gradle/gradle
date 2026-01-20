@@ -16,17 +16,37 @@
 
 package org.gradle.internal.declarativedsl.evaluationSchema
 
+import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.provider.Provider
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.GetterBasedConfiguringFunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
-
+import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection
+import org.gradle.internal.declarativedsl.schemaBuilder.isValidNestedModelType
+import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
 
 /**
- * Defines a minimal set of features for Declarative DSL evaluation. The only Gradle-related customization in this component is [gradleConfigureLambdas].
+ * Defines a minimal set of features for Declarative DSL evaluation.
+ * The only Gradle-related customization in this component are [gradleConfigureLambdas] and NDOC & Provider type awareness in [GetterBasedConfiguringFunctionExtractor].
  * Besides, no custom Gradle APIs are considered as schema contributors.
  */
 class MinimalSchemaBuildingComponent : AnalysisSchemaComponent {
     override fun propertyExtractors(): List<PropertyExtractor> = listOf(DefaultPropertyExtractor())
-    override fun functionExtractors(): List<FunctionExtractor> = listOf(DefaultFunctionExtractor(configureLambdas = gradleConfigureLambdas))
+    override fun functionExtractors(): List<FunctionExtractor> = listOf(
+        DefaultFunctionExtractor(configureLambdas = gradleConfigureLambdas),
+        GetterBasedConfiguringFunctionExtractor(::isValidNestedGradleModelType)
+    )
 }
+
+private fun isValidNestedGradleModelType(type: SupportedTypeProjection.SupportedType): Boolean =
+    (type.classifier as? KClass<*>)?.let {
+        isValidNestedModelType(type) && !it.isSubclassOf(Provider::class) &&
+            /**
+             * For NDOCs, we generate the configuring functions with synthetic types in [org.gradle.internal.declarativedsl.ndoc.ContainersSchemaComponent]
+             * TODO replace this check with a generic schema member inclusion tracking mechanism
+             */
+            !it.isSubclassOf(NamedDomainObjectContainer::class)
+    } == true

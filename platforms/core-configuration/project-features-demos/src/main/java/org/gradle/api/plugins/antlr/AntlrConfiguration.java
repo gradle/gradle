@@ -16,18 +16,11 @@
 
 package org.gradle.api.plugins.antlr;
 
-import org.gradle.api.Named;
 import org.gradle.api.provider.Property;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-@Restricted
-public interface AntlrConfiguration extends Named, HasAntlrGrammars {
-    @Restricted
+public interface AntlrConfiguration extends HasAntlrGrammars {
     Property<Boolean> getTrace();
-    @Restricted
     Property<Boolean> getTraceLexer();
-    @Restricted
     Property<Boolean> getTraceParser();
-    @Restricted
     Property<Boolean> getTraceTreeWalker();
 }

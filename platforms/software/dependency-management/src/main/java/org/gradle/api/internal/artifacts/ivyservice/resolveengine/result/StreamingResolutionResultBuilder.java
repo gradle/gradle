@@ -188,14 +188,10 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         public ResolvedDependencyGraph create() {
             synchronized (lock) {
                 return cache.load(() -> {
-                    try {
-                        return data.read(this::deserialize);
-                    } finally {
-                        try {
-                            data.close();
-                        } catch (IOException e) {
-                            throw throwAsUncheckedException(e);
-                        }
+                    try (BinaryStore.BinaryData reader = data) {
+                        return reader.read(this::deserialize);
+                    } catch (IOException e) {
+                        throw throwAsUncheckedException(e);
                     }
                 });
             }

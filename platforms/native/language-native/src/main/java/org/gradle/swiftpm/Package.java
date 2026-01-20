@@ -26,6 +26,7 @@ import java.util.Set;
  * @since 4.6
  */
 @HasInternalProtocol
+@SuppressWarnings("JavaLangClash")
 public interface Package {
     /**
      * Returns the products of this package.

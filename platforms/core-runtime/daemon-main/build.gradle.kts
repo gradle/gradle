@@ -35,3 +35,7 @@ dependencies {
     manifestClasspath(projects.concurrent)
     manifestClasspath(projects.serviceLookup)
 }
+
+errorprone {
+    nullawayEnabled = true
+}

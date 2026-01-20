@@ -20,6 +20,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ServiceScope(Scope.Build.class)
@@ -38,6 +39,6 @@ public class SharedResourceLeaseRegistry extends AbstractResourceLockRegistry<St
 
     public ResourceLock getResourceLock(final String sharedResource) {
         String displayName = "lease for " + sharedResource;
-        return new DefaultLease(displayName, coordinationService, this, sharedResources.get(sharedResource));
+        return new DefaultLease(displayName, coordinationService, this, Objects.requireNonNull(sharedResources.get(sharedResource), "No lease found for " + sharedResource));
     }
 }

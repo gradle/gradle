@@ -16,12 +16,9 @@
 
 package org.gradle.testing.nonclassbased
 
-import spock.lang.Ignore
-
 /**
  * Tests that exercise and demonstrate incorrect Non-Class-Based Testing setups.
  */
-@Ignore
 class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIntegrationTest {
     @Override
     List<TestEngines> getEnginesToSetup() {
@@ -49,10 +46,10 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         """
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
-        testTaskWasSkippedDueToNoSources()
+        skipped(":test")
     }
 
     def "some test definitions dirs are non-existent warns and testing proceeds with other dirs"() {
@@ -81,7 +78,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         writeTestDefinitions(DEFAULT_DEFINITIONS_LOCATION)
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
         outputContains("Test definitions directory does not exist: " + testDirectory.file(badPath).absolutePath)
@@ -116,10 +113,10 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         }
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
-        testTaskWasSkippedDueToNoSources()
+        skipped(":test")
     }
 
     def "some test definitions dirs are empty proceeds silently with other dirs"() {
@@ -149,7 +146,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         file(emptyPath).createDir()
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
         nonClassBasedTestsExecuted()
@@ -212,11 +209,11 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         writeTestDefinitions()
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
         outputContains("Test definitions directory is not a directory: " + testDirectory.file(badPath).absolutePath)
-        nonClassBasedTestsExecuted()
+        nonClassBasedTestsExecuted(false)
     }
 
     def "missing test classes and/or definitions is skipped or fails when appropriate (scan for test classes = #scanForTestClasses, has test classes = #hasTestClasses, add test defs dir = #addTestDefsDir, has test defs = #hasTestDefs)"() {
@@ -253,22 +250,22 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
 
         when:
         if (shouldFail) {
-            fails("test", "--info")
+            fails("test")
         } else {
-            succeeds("test", "--info")
+            succeeds("test")
         }
 
         then:
         if (shouldBeSkipped) {
-            testTaskWasSkippedDueToNoSources()
+            skipped(":test")
         } else if (shouldFail) {
             sourcesPresentAndNoTestsFound()
         } else {
             if (scanForTestClasses && hasTestClasses) {
-                classBasedTestsExecuted()
+                classBasedTestsExecuted(false)
             }
             if (addTestDefsDir && hasTestDefs) {
-                nonClassBasedTestsExecuted()
+                nonClassBasedTestsExecuted(false)
             }
         }
 
@@ -326,10 +323,105 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         "JUnit"           | "useJUnit()"
     }
 
-    // Once reporting is addressed, this should use more robust verification using existing report-checking fixtures
-    @Override
-    protected void classBasedTestsExecuted() {
-        outputContains("SomeTest > testMethod()")
-        outputContains("Tested!")
+    def "when TestEngine matches nothing then task fails, even if non test def files are present in test defs dir"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+                    }
+                }
+            }
+        """
+
+        file("$DEFAULT_DEFINITIONS_LOCATION/plain-text-file.txt") << "I'm a distractor!"
+
+        when:
+        fails("test")
+
+        then:
+        sourcesPresentAndNoTestsFound()
+    }
+
+    def "when given class-based filters with no class-based tests, task fails (filter: #filterType)"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("$DEFAULT_DEFINITIONS_LOCATION")
+
+                        filter {
+                            ${filterType}TestsMatching "ClassBasedFilter.methodName"
+                        }
+                    }
+                }
+            }
+        """
+
+        // Add non-class-based tests so that the task runs
+        writeTestDefinitions(DEFAULT_DEFINITIONS_LOCATION)
+
+        when:
+        fails("test")
+
+        then:
+        failureDescriptionContains("Execution failed for task ':test'.")
+        failureCauseContains("${filterType.capitalize()} pattern 'ClassBasedFilter.methodName' is class-based, but no class-based tests were found. Please remove class-based $filterType patterns when running only non-class-based tests.")
+
+        where:
+        filterType << ["include", "exclude"]
+    }
+
+    def "when given non-class-based filters with no non-class-based tests, task fails (filter: #filterType)"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                ${enableEngineForSuite()}
+
+                targets.all {
+                    testTask.configure {
+                        filter {
+                            ${filterType}TestsMatching "/PathBasedFilter/.*/myTest.xml"
+                        }
+                    }
+                }
+            }
+        """
+
+        writeTestClasses()
+
+        when:
+        fails("test")
+
+        then:
+        failureDescriptionContains("Execution failed for task ':test'.")
+        failureCauseContains("${filterType.capitalize()} pattern '/PathBasedFilter/.*/myTest.xml' is path-based, but no non-class-based tests were found. Please remove path-based $filterType patterns when running only class-based tests.")
+
+        where:
+        filterType << ["include", "exclude"]
     }
 }

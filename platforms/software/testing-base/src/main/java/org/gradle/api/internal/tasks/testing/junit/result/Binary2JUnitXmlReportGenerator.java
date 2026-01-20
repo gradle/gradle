@@ -64,7 +64,7 @@ public class Binary2JUnitXmlReportGenerator {
     ) {
         this.testResultsDir = testResultsDir;
         this.testResultsProvider = testResultsProvider;
-        this.xmlWriter = new JUnitXmlResultWriter(hostnameLookup.getHostname(), testResultsProvider, options);
+        this.xmlWriter = new JUnitXmlResultWriter(testResultsDir.toPath(), hostnameLookup.getHostname(), testResultsProvider, options);
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
     }

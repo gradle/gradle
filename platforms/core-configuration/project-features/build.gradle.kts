@@ -24,6 +24,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.modelCore)
     api(projects.baseServices)
+    api(projects.projectFeaturesApi)
     api(projects.stdlibJavaExtensions)
     api(libs.kotlinStdlib)
 
@@ -33,5 +34,9 @@ dependencies {
     api(libs.jspecify)
 
     implementation(libs.groovy)
+
+    testFixturesImplementation(testFixtures(projects.declarativeDslProvider))
+
+    integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 

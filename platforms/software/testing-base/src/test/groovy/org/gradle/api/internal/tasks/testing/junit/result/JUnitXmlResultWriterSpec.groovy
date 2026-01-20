@@ -17,12 +17,15 @@
 package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata
+import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent
+import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent
 import org.gradle.integtests.fixtures.JUnitTestClassExecutionResult
 import org.gradle.integtests.fixtures.TestResultOutputAssociation
 import org.gradle.internal.SystemProperties
 import spock.lang.Issue
 import spock.lang.Specification
+
+import java.time.Instant
 
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdErr
 import static org.gradle.api.tasks.testing.TestOutputEvent.Destination.StdOut
@@ -116,8 +119,8 @@ class JUnitXmlResultWriterSpec extends Specification {
         def options = new JUnitXmlResultOptions(false, false, true, true)
 
         and:
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest", startTime, [new SerializedMetadata(0, Collections.singletonMap("classKey", "value"))])
-        result.add(new TestMethodResult(1, "some test", "some test", SUCCESS, 100L, startTime+300, [new SerializedMetadata(0, Collections.singletonMap("testKey", "value"))]))
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest", startTime, [new DefaultTestKeyValueDataEvent(Instant.now(), Collections.singletonMap("classKey", "value"))])
+        result.add(new TestMethodResult(1, "some test", "some test", SUCCESS, 100L, startTime+300, [new DefaultTestKeyValueDataEvent(Instant.now(), Collections.singletonMap("testKey", "value"))]))
         _ * provider.writeAllOutput(_, _, _)
 
         when:
@@ -136,6 +139,72 @@ class JUnitXmlResultWriterSpec extends Specification {
   </testcase>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
+</testsuite>
+"""
+    }
+
+    def "writes file attachments into XML"() {
+        given:
+        def options = new JUnitXmlResultOptions(false, false, true, true)
+        def classFile = new File("sub/class.file").toPath()
+        def testFile = new File("sub/sub/test.file").toPath()
+
+        and:
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest", startTime, [new DefaultTestFileAttachmentDataEvent(Instant.now(), classFile, "application/json")])
+        result.add(new TestMethodResult(1, "some test", "some test", SUCCESS, 100L, startTime+300, [new DefaultTestFileAttachmentDataEvent(Instant.now(), testFile, "text/plain")]))
+        provider.writeAllOutput(1, StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
+        provider.writeAllOutput(1, StdErr, _) >> { args -> args[2].write("err") }
+
+        when:
+        def xml = getXml(result, options)
+
+        then:
+        xml == """<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28.049Z" hostname="localhost" time="0.3">
+  <properties/>
+  <testcase name="some test" classname="com.foo.FooTest" time="0.1">
+    <system-out><![CDATA[
+[[ATTACHMENT|sub/sub/test.file]]
+]]></system-out>
+  </testcase>
+  <system-out><![CDATA[1st output message
+2nd output message
+
+[[ATTACHMENT|sub/class.file]]
+]]></system-out>
+  <system-err><![CDATA[err]]></system-err>
+</testsuite>
+"""
+    }
+
+    def "writes file attachments into XML when sysout is disabled"() {
+        given:
+        def options = new JUnitXmlResultOptions(false, false, false, true)
+        def classFile = new File("sub/class.file").toPath()
+        def testFile = new File("sub/sub/test.file").toPath()
+
+        and:
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest", startTime, [new DefaultTestFileAttachmentDataEvent(Instant.now(), classFile, "application/json")])
+        result.add(new TestMethodResult(1, "some test", "some test", SUCCESS, 100L, startTime+300, [new DefaultTestFileAttachmentDataEvent(Instant.now(), testFile, "text/plain")]))
+        provider.writeAllOutput(1, StdOut, _) >> { args -> args[2].write("1st output message\n2nd output message\n") }
+        provider.writeAllOutput(1, StdErr, _) >> { args -> args[2].write("err") }
+
+        when:
+        def xml = getXml(result, options)
+
+        then:
+        xml == """<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28.049Z" hostname="localhost" time="0.3">
+  <properties/>
+  <testcase name="some test" classname="com.foo.FooTest" time="0.1">
+    <system-out><![CDATA[
+[[ATTACHMENT|sub/sub/test.file]]
+]]></system-out>
+  </testcase>
+  <system-out><![CDATA[
+[[ATTACHMENT|sub/class.file]]
+]]></system-out>
+  <system-err><![CDATA[err]]></system-err>
 </testsuite>
 """
     }
@@ -389,7 +458,7 @@ class JUnitXmlResultWriterSpec extends Specification {
     }
 
     private JUnitXmlResultWriter getGenerator(JUnitXmlResultOptions options) {
-        return new JUnitXmlResultWriter("localhost", provider, options)
+        return new JUnitXmlResultWriter(new File("").toPath(), "localhost", provider, options)
     }
 
     private BuildableTestResultsProvider.BuildableTestClassResult generateTestClassWithOutput(BuildableTestResultsProvider provider) {

@@ -17,9 +17,10 @@
 package org.gradle.internal.declarativedsl.common
 
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
+import org.gradle.internal.declarativedsl.schemaBuilder.MaybeDeclarativeClassInHierarchy
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import kotlin.reflect.KClass
-import kotlin.reflect.KType
 
 
 /**
@@ -31,24 +32,16 @@ internal
 class SupertypeTypeDiscovery : AnalysisSchemaComponent {
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
         object : TypeDiscovery {
-            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
-                withAllPotentiallyDeclarativeSupertypes(kClass)
+            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
+                withAllPotentiallyDeclarativeSupertypes(typeDiscoveryServices.host, kClass)
         }
     )
 }
 
 
 internal
-fun withAllPotentiallyDeclarativeSupertypes(kClass: KClass<*>) = buildSet<KClass<*>> {
-    fun visit(type: KType) {
-        val classifier = type.classifier
-        if (classifier is KClass<*> && add(classifier)) {
-            classifier.supertypes.forEach(::visit)
-        }
-    }
-    add(kClass)
-    kClass.supertypes.forEach(::visit)
-
-    // No need to include Any, it only clutters the schema
-    remove(Any::class)
-}
+fun withAllPotentiallyDeclarativeSupertypes(host: SchemaBuildingHost, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
+    host.declarativeSupertypesHierarchy(kClass)
+        // Include visible as well as hidden types, as we might still need explicitly exposed members of the hidden types. Just exclude incompatible types.
+        .filter { it !is MaybeDeclarativeClassInHierarchy.NonDeclarativeSuperclassInHierarchy }
+        .map { TypeDiscovery.DiscoveredClass(it.superClass, it is MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy) }

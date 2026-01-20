@@ -33,7 +33,6 @@ object Workarounds {
     fun isIgnoredStartParameterProperty(key: String): Boolean =
         ignoredStartParameterProperties.contains(key)
 
-
     fun canReadSystemProperty(from: String): Boolean =
         withWorkaroundsFor("systemProps") {
             isBuildScanPlugin(from)

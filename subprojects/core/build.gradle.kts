@@ -8,14 +8,6 @@ configurations {
     register("reports")
 }
 
-tasks.classpathManifest {
-    optionalProjects.add("gradle-kotlin-dsl")
-    // The gradle-runtime-api-info.jar is added by a 'distributions-...' project if it is on the (integration test) runtime classpath.
-    // It contains information services in ':core' need to reason about the complete Gradle distribution.
-    // To allow parts of ':core' code to be instantiated in unit tests without relying on this functionality, the dependency is optional.
-    optionalProjects.add("gradle-runtime-api-info")
-}
-
 // Instrumentation interceptors for tests
 // Separated from the test source set since we don't support incremental annotation processor with Java/Groovy joint compilation
 val testInterceptors = sourceSets.create("testInterceptors") {
@@ -42,17 +34,6 @@ val testInterceptorsImplementation: Configuration by configurations.getting {
     extendsFrom(configurations.implementation.get())
 }
 
-errorprone {
-    disabledChecks.addAll(
-        "NonApiType", // 1 occurrences
-        "NonCanonicalType", // 16 occurrences
-        "ReferenceEquality", // 2 occurrences
-        "StreamResourceLeak", // 6 occurrences
-        "TypeParameterShadowing", // 1 occurrences
-        "TypeParameterUnusedInFormals", // 2 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseAsm)
     api(projects.baseServices)
@@ -70,6 +51,7 @@ dependencies {
     api(projects.buildProcessServices)
     api(projects.classloaders)
     api(projects.cli)
+    api(projects.collections)
     api(projects.concurrent)
     api(projects.coreApi)
     api(projects.declarativeDslApi)
@@ -121,7 +103,9 @@ dependencies {
     api(libs.jsr305)
     api(libs.nativePlatform)
 
+    implementation(projects.buildDiscoveryReporting)
     implementation(projects.buildOperationsTrace)
+    implementation(projects.daemonLogging)
     implementation(projects.groovyLoader)
     implementation(projects.inputTracking)
     implementation(projects.io)
@@ -275,6 +259,7 @@ dependencies {
     integTestImplementation(libs.littleproxy)
     integTestImplementation(testFixtures(projects.native))
     integTestImplementation(testFixtures(projects.fileTemp))
+    integTestImplementation(testFixtures(projects.launcher))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("This is required by ProjectBuilder, but ProjectBuilder cannot declare :distributions-core as a dependency due to conflicts with other distributions.")

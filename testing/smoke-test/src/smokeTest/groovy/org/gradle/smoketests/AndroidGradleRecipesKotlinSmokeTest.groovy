@@ -31,6 +31,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
     def "android gradle recipes: custom BuildConfig field in Kotlin (agp=#agpVersion, provider=#providerType)"() {
         given:
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+        boolean isAgp8 = VersionNumber.parse(agpVersion).major < 9
 
         and:
         file('settings.gradle.kts') << '''
@@ -38,12 +39,13 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
             rootProject.name = "customBuildConfigField"
         '''
 
+        String agp8KgpDep = isAgp8 ? """classpath(kotlin("gradle-plugin", version = "$kotlinVersionNumber"))""" : ""
         file('build.gradle.kts') << """
             buildscript {
                 $repositoriesBlock
                 dependencies {
                     classpath("com.android.tools.build:gradle:$agpVersion")
-                    classpath(kotlin("gradle-plugin", version = "$kotlinVersionNumber"))
+                    $agp8KgpDep
                 }
             }
             allprojects {
@@ -51,14 +53,21 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
             }
         """
 
+        String agp8KgpPlugin = isAgp8 ? """kotlin("android")""" : ""
+        String agp8KgpConfig = isAgp8 ? """
+            kotlin {
+                compilerOptions {
+                    jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+                }
+            }
+            """ : ""
         file('app/build.gradle.kts') << """
             import com.android.build.api.artifact.*
             import com.android.build.api.variant.*
-            import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
             plugins {
                 id("com.android.application")
-                kotlin("android")
+                $agp8KgpPlugin
             }
 
             abstract class CustomFieldValueProvider : DefaultTask() {
@@ -78,21 +87,13 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
                 outputs.upToDateWhen { false }
             }
 
+            $agp8KgpConfig
+
             android {
                 namespace = "org.gradle.smoketests.androidrecipes"
                 compileSdk = 29
                 buildToolsVersion("${AGP_VERSIONS.getBuildToolsVersionFor(agpVersion)}")
                 buildFeatures { buildConfig = true }
-                compileOptions {
-                    sourceCompatibility = JavaVersion.VERSION_1_8
-                    targetCompatibility = JavaVersion.VERSION_1_8
-                }
-            }
-
-            kotlin {
-                compilerOptions {
-                    jvmTarget.set(JvmTarget.JVM_1_8)
-                }
             }
 
             androidComponents {

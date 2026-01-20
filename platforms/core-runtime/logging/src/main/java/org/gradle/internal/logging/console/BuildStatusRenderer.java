@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.console;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.FlushOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -27,6 +26,7 @@ import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -36,11 +36,6 @@ import java.util.Set;
  * <p>This listener displays nothing unless it receives periodic {@link UpdateNowEvent} clock events.</p>
  */
 public class BuildStatusRenderer implements OutputEventListener {
-    public static final int PROGRESS_BAR_WIDTH = 13;
-    public static final String PROGRESS_BAR_PREFIX = "<";
-    public static final char PROGRESS_BAR_COMPLETE_CHAR = '=';
-    public static final char PROGRESS_BAR_INCOMPLETE_CHAR = '-';
-    public static final String PROGRESS_BAR_SUFFIX = ">";
 
     private enum Phase {
         Initializing, Configuring, Executing
@@ -50,13 +45,13 @@ public class BuildStatusRenderer implements OutputEventListener {
     private final StyledLabel buildStatusLabel;
     private final Console console;
     private final ConsoleMetaData consoleMetaData;
-    private OperationIdentifier buildProgressOperationId;
-    private Phase currentPhase;
-    private final Set<OperationIdentifier> currentPhaseChildren = new HashSet<OperationIdentifier>();
+    private @Nullable OperationIdentifier buildProgressOperationId;
+    private @Nullable Phase currentPhase;
+    private final Set<OperationIdentifier> currentPhaseChildren = new HashSet<>();
     private long currentTimePeriod;
 
     // What actually shows up on the console
-    private ProgressBar progressBar;
+    private @Nullable ProgressBar progressBar;
 
     // Used to maintain timer
     private long buildStartTimestamp;
@@ -129,7 +124,8 @@ public class BuildStatusRenderer implements OutputEventListener {
         timerEnabled = true;
         currentPhase = phase;
         currentPhaseChildren.clear();
-        progressBar = newProgressBar(phase.name().toUpperCase(Locale.ROOT), 0, progressStartEvent.getTotalProgress());
+        int totalProgress = progressStartEvent.getTotalProgress();
+        progressBar = ProgressBar.createProgressBar(consoleMetaData, phase.name().toUpperCase(Locale.ROOT), totalProgress);
     }
 
     private void phaseHasMoreProgress(ProgressStartEvent progressStartEvent) {
@@ -143,21 +139,10 @@ public class BuildStatusRenderer implements OutputEventListener {
     }
 
     private void buildEnded() {
-        progressBar = newProgressBar("WAITING", 0, 1);
+        progressBar = ProgressBar.createProgressBar(consoleMetaData, "WAITING", 1);
         currentPhase = null;
         buildProgressOperationId = null;
         currentPhaseChildren.clear();
         timerEnabled = false;
-    }
-
-    @VisibleForTesting
-    public ProgressBar newProgressBar(String initialSuffix, int initialProgress, int totalProgress) {
-        return new ProgressBar(consoleMetaData,
-            PROGRESS_BAR_PREFIX,
-            PROGRESS_BAR_WIDTH,
-            PROGRESS_BAR_SUFFIX,
-            PROGRESS_BAR_COMPLETE_CHAR,
-            PROGRESS_BAR_INCOMPLETE_CHAR,
-            initialSuffix, initialProgress, totalProgress);
     }
 }

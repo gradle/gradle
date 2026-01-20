@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems
 
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -452,6 +453,25 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 solutions == ["solution"]
             }
         }
+    }
+
+    def "problem report message is not rendered in the output if --warning-mode=none is set"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.contextualLabel("Some problem")
+            }
+        """
+
+        when:
+        executer.withWarningMode(WarningMode.None)
+        run("reportProblem")
+
+        then:
+        testDirectory.file(problemsReportOutputDirectory, problemsReportHtmlName).exists()
+        !output.contains(problemsReportOutputPrefix)
+        receivedProblem != null
     }
 
     def "problems are rendered on the console when WarningMode=all configured"() {

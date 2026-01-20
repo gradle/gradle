@@ -22,7 +22,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.internal.build.BuildLifecycleController
-import org.gradle.internal.build.BuildModelControllerServices
+import org.gradle.internal.build.BuildLifecycleControllerFactory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -31,22 +31,20 @@ import spock.lang.Specification
 
 class DefaultIncludedBuildTest extends Specification {
     def owningBuild = Mock(BuildState)
-    def buildFactory = Mock(BuildModelControllerServices)
     def buildDefinition = Stub(BuildDefinition)
+    def controllerFactory = Mock(BuildLifecycleControllerFactory)
     def controller = Mock(BuildLifecycleController)
     def gradle = Mock(GradleInternal)
     def buildTree = Mock(BuildTreeState)
     DefaultIncludedBuild build
 
     def setup() {
-        _ * buildFactory.servicesForBuild(buildDefinition, _) >> Mock(BuildModelControllerServices.Supplier)
-        _ * owningBuild.nestedBuildFactory >> buildFactory
-        _ * buildFactory.newInstance(_, _, _, _) >> controller
+        _ * controllerFactory.newInstance(_, _) >> controller
         _ * controller.gradle >> gradle
         _ * gradle.settings >> Stub(SettingsInternal)
         def services = new DefaultServiceRegistry()
         services.add(gradle)
-        services.add(buildFactory)
+        services.add(controllerFactory)
         services.add(controller)
         services.add(Stub(DocumentationRegistry))
         services.add(Stub(BuildTreeWorkGraphController))

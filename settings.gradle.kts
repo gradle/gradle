@@ -30,7 +30,7 @@ buildscript {
 plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.configuration-cache-compatibility")
-    id("com.gradle.develocity").version("4.3") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+    id("com.gradle.develocity").version("4.3.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
     id("io.github.gradle.develocity-conventions-plugin").version("0.12.1")
     id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }
@@ -63,6 +63,7 @@ val core = platform("core") {
         subproject("build-configuration")
         subproject("build-discovery")
         subproject("build-discovery-impl")
+        subproject("build-discovery-reporting")
         subproject("build-operations")
         subproject("build-operations-trace")
         subproject("build-option")
@@ -72,11 +73,13 @@ val core = platform("core") {
         subproject("classloaders")
         subproject("cli")
         subproject("client-services")
+        subproject("collections")
         subproject("concurrent")
         subproject("daemon-main")
         subproject("daemon-protocol")
         subproject("daemon-services")
         subproject("daemon-server")
+        subproject("daemon-logging")
         subproject("file-temp")
         subproject("files")
         subproject("functional")

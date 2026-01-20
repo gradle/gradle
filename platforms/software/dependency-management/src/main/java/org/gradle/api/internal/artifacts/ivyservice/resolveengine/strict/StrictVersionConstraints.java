@@ -16,16 +16,15 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.internal.collect.PersistentSet;
 import org.jspecify.annotations.NullMarked;
 
-import java.util.Set;
-
 @NullMarked
+@SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
 public class StrictVersionConstraints {
 
-    public static final StrictVersionConstraints EMPTY = new StrictVersionConstraints(ImmutableSet.of()) {
+    public static final StrictVersionConstraints EMPTY = new StrictVersionConstraints(PersistentSet.of()) {
         @Override
         public StrictVersionConstraints union(StrictVersionConstraints other) {
             return other;
@@ -57,20 +56,20 @@ public class StrictVersionConstraints {
         }
     };
 
-    private final ImmutableSet<ModuleIdentifier> modules;
+    private final PersistentSet<ModuleIdentifier> modules;
 
-    private StrictVersionConstraints(ImmutableSet<ModuleIdentifier> modules) {
+    private StrictVersionConstraints(PersistentSet<ModuleIdentifier> modules) {
         this.modules = modules;
     }
 
-    public static StrictVersionConstraints of(ImmutableSet<ModuleIdentifier> modules) {
+    public static StrictVersionConstraints of(PersistentSet<ModuleIdentifier> modules) {
         if (modules.isEmpty()) {
             return EMPTY;
         }
         return new StrictVersionConstraints(modules);
     }
 
-    public ImmutableSet<ModuleIdentifier> getModules() {
+    public PersistentSet<ModuleIdentifier> getModules() {
         return modules;
     }
 
@@ -90,35 +89,25 @@ public class StrictVersionConstraints {
             // this happens quite a lot!
             return this;
         }
-        if (this.modules.equals(other.modules)) {
+        PersistentSet<ModuleIdentifier> union = this.modules.union(other.modules);
+        if (union == this.modules) {
             return this;
         }
-        ImmutableSet.Builder<ModuleIdentifier> builder = ImmutableSet.builderWithExpectedSize(modules.size() + other.modules.size());
-        builder.addAll(modules);
-        builder.addAll(other.modules);
-        return of(builder.build());
+        return of(union);
     }
 
     public StrictVersionConstraints intersect(StrictVersionConstraints other) {
-        if (other.modules == modules) {
-            return this;
-        }
         if (other == EMPTY) {
             return EMPTY;
         }
-
-        Set<ModuleIdentifier> smaller = (modules.size() < other.modules.size()) ? modules : other.modules;
-        Set<ModuleIdentifier> larger = (smaller == modules) ? other.modules : modules;
-        ImmutableSet.Builder<ModuleIdentifier> builder = ImmutableSet.builderWithExpectedSize(smaller.size());
-
-        // Iterating over the smaller set to minimize the number of contains() checks
-        for (ModuleIdentifier module : smaller) {
-            if (larger.contains(module)) {
-                builder.add(module);
-            }
+        if (this == other) {
+            return this;
         }
-
-        return of(builder.build());
+        PersistentSet<ModuleIdentifier> intersect = this.modules.intersect(other.modules);
+        if (intersect == this.modules) {
+            return this;
+        }
+        return of(intersect);
     }
 
     @Override
@@ -130,26 +119,24 @@ public class StrictVersionConstraints {
         if (other == EMPTY) {
             return this;
         }
-
-        if (this == other || this == EMPTY) {
+        if (this == other) {
             return EMPTY;
         }
-
-        ImmutableSet.Builder<ModuleIdentifier> builder = ImmutableSet.builderWithExpectedSize(modules.size());
-        for (ModuleIdentifier module : modules) {
-            if (!other.modules.contains(module)) {
-                builder.add(module);
-            }
+        PersistentSet<ModuleIdentifier> diff = this.modules.except(other.modules);
+        if (diff == this.modules) {
+            return this;
         }
-        return of(builder.build());
+        return of(diff);
     }
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         StrictVersionConstraints that = (StrictVersionConstraints) o;
         return modules.equals(that.modules);
     }

@@ -70,7 +70,7 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
             TestTreeModel root = TestTreeModel.loadModelFromStores(Collections.singletonList(resultsStore));
             TestTreeModelResultsProvider resultsProvider = new TestTreeModelResultsProvider(root, resultsStore.createOutputReader(testOutputEventSerializer));
             resultsConsumer.accept(resultsProvider);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }

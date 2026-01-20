@@ -78,7 +78,7 @@ class TestPerformanceTest(
                 listOf(
                     "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",
                     "org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)",
-                    "org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest.help with lazy and eager tasks",
+                    "org.gradle.performance.crossbuild.TaskAvoidancePerformanceTest.help with lazy and eager tasks",
                 ),
             )
 

@@ -19,7 +19,8 @@ package org.gradle.api.tasks.internal;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.internal.SpecificInstallationToolchainSpec;
+import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
+import org.gradle.jvm.toolchain.internal.SpecificExecutableToolchainSpec;
 import org.jspecify.annotations.Nullable;
 
 public class JavaExecExecutableUtils {
@@ -28,7 +29,7 @@ public class JavaExecExecutableUtils {
     public static JavaToolchainSpec getExecutableOverrideToolchainSpec(JavaExec task, PropertyFactory propertyFactory) {
         String customExecutable = task.getExecutable();
         if (customExecutable != null) {
-            return SpecificInstallationToolchainSpec.fromJavaExecutable(propertyFactory, customExecutable);
+            return new SpecificExecutableToolchainSpec(propertyFactory, JavaExecutableUtils.resolveExecutable(customExecutable));
         }
 
         return null;

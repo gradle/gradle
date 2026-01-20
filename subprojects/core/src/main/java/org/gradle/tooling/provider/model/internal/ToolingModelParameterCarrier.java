@@ -35,7 +35,6 @@ public interface ToolingModelParameterCarrier {
      */
     HashCode getHash();
 
-    @NullMarked
     @ServiceScope(Scope.BuildTree.class)
     interface Factory {
 

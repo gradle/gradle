@@ -39,3 +39,7 @@ tasks.register("soakTest") {
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+errorprone {
+    nullawayEnabled = true
+}

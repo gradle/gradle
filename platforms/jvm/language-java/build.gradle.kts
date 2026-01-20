@@ -12,13 +12,6 @@ jvmCompile {
     }
 }
 
-errorprone {
-    disabledChecks.addAll(
-        "CheckReturnValue", // 2 occurrences
-        "DoNotClaimAnnotations", // 6 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.buildEvents)

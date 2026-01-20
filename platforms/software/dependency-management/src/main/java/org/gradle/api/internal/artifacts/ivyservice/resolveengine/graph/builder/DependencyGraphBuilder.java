@@ -248,11 +248,6 @@ public class DependencyGraphBuilder {
                     // Have an unprocessed/new selector for this module. Need to re-select the target version (if there are any selectors that can be used).
                     performSelection(resolveState, module);
                 }
-
-                // Some corner case results in the edge being marked unused, in that case we should not mark it as unattached.
-                if (edge.isUsed()) {
-                    module.addUnattachedEdge(edge);
-                }
             }
         }
     }
