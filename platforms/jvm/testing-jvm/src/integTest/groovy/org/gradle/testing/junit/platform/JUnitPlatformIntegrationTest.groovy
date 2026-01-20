@@ -520,8 +520,9 @@ public class StaticInnerTest {
         fails('test')
 
         then:
+        failureDescriptionContains("Execution failed for task ':test'.")
         failureCauseContains('There were failing tests.')
-        outputContains("afterSuite: Test class engine_EngineFailingExecution -> FAILURE")
+        outputContains("EngineFailingExecution > initializationError FAILED")
 
         where:
         platformVersion << JUNIT_PLATFORM

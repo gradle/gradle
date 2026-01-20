@@ -48,5 +48,5 @@ class JUnitCoverage {
     final static List<String> JUNIT_6_VINTAGE = [LATEST_JUNIT6_VERSION]
     final static List<String> JUNIT_VINTAGE = [JUNIT_6_VINTAGE, JUNIT_5_VINTAGE].flatten() as List<String>
 
-    final static List<String> JUNIT_PLATFORM = ['1.14.1']
+    final static List<String> JUNIT_PLATFORM = [LATEST_PLATFORM_VERSION, '1.14.1']
 }
