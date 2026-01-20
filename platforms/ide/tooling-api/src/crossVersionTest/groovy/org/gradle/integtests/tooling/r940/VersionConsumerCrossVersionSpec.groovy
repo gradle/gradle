@@ -16,24 +16,47 @@
 
 package org.gradle.integtests.tooling.r940
 
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 
 @ToolingApiVersion(">=9.4.0")
+@TargetGradleVersion(">=9.4.0")
 class VersionConsumerCrossVersionSpec extends ToolingApiSpecification {
+
+    @TargetGradleVersion("<9.4.0")
+    def "version request is ignored for old Gradle version"() {
+        when:
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks("projects")
+                .withArguments("--version")
+                .run()
+        }
+
+        then:
+        assertSuccessful()
+        result.assertHasErrorOutput('The Tooling API does not support --help, --version or --show-version arguments for this operation. These arguments have been ignored.')
+        result.assertTaskExecuted(":projects")
+    }
+
 
     def "prints version and ignores tasks when --version is present"() {
         when:
         withConnection { connection ->
             connection.newBuild()
                 .forTasks("invalidTask")
-                .withArguments("--version")
+                .withArguments(arg)
                 .run()
         }
 
         then:
-        result.output.contains("Gradle")
-        !result.output.contains("Task 'invalidTask' not found")
+        assertVersionInfoRendered(result)
+        result.assertNotOutput("BUILD") // no BUILD SUCCESSFUL or BUILD FAILED message at the end
+
+        where:
+        arg << ['--version', '-v']
     }
 
     def "prints version and runs tasks when --show-version is present"() {
@@ -46,7 +69,16 @@ class VersionConsumerCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        result.output.contains("Gradle")
-        result.output.contains("BUILD SUCCESSFUL")
+        assertSuccessful()
+        assertVersionInfoRendered(result)
+
+        where:
+        arg << ['--show-version', '-V']
+    }
+
+    private static void assertVersionInfoRendered(ExecutionResult result) {
+        result.assertOutputContains('Gradle')
+        result.assertOutputContains('Build time:')
+        result.assertOutputContains('Revision:')
     }
 }

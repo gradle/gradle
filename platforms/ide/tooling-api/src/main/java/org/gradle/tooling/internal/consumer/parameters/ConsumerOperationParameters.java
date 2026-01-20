@@ -39,7 +39,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -399,10 +398,10 @@ public class ConsumerOperationParameters implements BuildParameters {
         return builder.build();
     }
 
-    public ConsumerOperationParameters withEmptyTasks() {
+    public ConsumerOperationParameters withNoTasks() {
         ConsumerOperationParameters.Builder builder = ConsumerOperationParameters.builder();
         builder.copyFrom(this);
-        builder.setTasks(Collections.emptyList());
+        builder.setTasks(null);
         return builder.build();
     }
 

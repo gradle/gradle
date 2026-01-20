@@ -27,8 +27,6 @@ import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.build.Help;
 import org.gradle.tooling.model.internal.Exceptions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -36,15 +34,13 @@ import java.nio.charset.StandardCharsets;
 
 public abstract class HelpAndVersionHandlingConsumerConnection extends AbstractConsumerConnection {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HelpAndVersionHandlingConsumerConnection.class);
-
     public HelpAndVersionHandlingConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData) {
         super(delegate, providerMetaData);
     }
 
     @Override
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) {
-        if (operationParameters.containsHelpOrVersionArgs() && type == Void.class) {
+        if (operationParameters.containsHelpOrVersionArgs() && type == Void.class && getVersionDetails().supportsHelpToolingModel()) {
             // For task execution, handle --help/--version and skip task execution
             return handleHelpOrVersion(type, operationParameters);
         }
@@ -81,7 +77,7 @@ public abstract class HelpAndVersionHandlingConsumerConnection extends AbstractC
         boolean containsShowVersionArg = operationParameters.containsShowVersionArg();
 
         ConsumerOperationParameters cleanParams = removeHelpVersionArgs(operationParameters, false);
-        ConsumerOperationParameters modelParams = cleanParams.withEmptyTasks();
+        ConsumerOperationParameters modelParams = cleanParams.withNoTasks();
 
         // help was requested: print help and omit producing the model
         if (containsHelpArg) {
@@ -144,7 +140,7 @@ public abstract class HelpAndVersionHandlingConsumerConnection extends AbstractC
             return parameters;
         }
         if (warn) {
-            LOGGER.warn("The Tooling API does not support --help, --version or --show-version arguments for this operation. These arguments have been ignored.");
+            print(parameters.getStandardError(), "The Tooling API does not support --help, --version or --show-version arguments for this operation. These arguments have been ignored.");
         }
         return parameters.withoutHelpOrVersionArgs();
     }

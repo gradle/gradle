@@ -16,25 +16,45 @@
 
 package org.gradle.integtests.tooling.r940
 
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 
 @ToolingApiVersion(">=9.4.0")
+@TargetGradleVersion(">=9.4.0")
 class HelpConsumerCrossVersionSpec extends ToolingApiSpecification {
+
+    @TargetGradleVersion("<9.4.0")
+    def "help request is ignored for old Gradle version"() {
+        when:
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks("projects")
+                .withArguments("--help")
+                .run()
+        }
+
+        then:
+        assertSuccessful()
+        result.assertHasErrorOutput('The Tooling API does not support --help, --version or --show-version arguments for this operation. These arguments have been ignored.')
+        result.assertTaskExecuted(":projects")
+    }
 
     def "prints help and ignores tasks when --help is present"() {
         when:
         withConnection { connection ->
             connection.newBuild()
                 .forTasks("invalidTask")
-                .withArguments("--help")
+                .withArguments(arg)
                 .run()
         }
 
         then:
-        def out = result.output
-        (out.contains("Welcome to Gradle") || out.contains("USAGE: gradle") || out.contains("Help is not supported"))
-        !out.contains("Task 'invalidTask' not found")
+        result.assertOutputContains('USAGE: gradle [option...] [task...]')
+        result.assertNotOutput("BUILD") // no BUILD SUCCESSFUL or BUILD FAILED message at the end
+
+        where:
+        arg << ['--help', '-h', '-?']
     }
 
     def "help takes precedence over version flags"() {
@@ -47,9 +67,9 @@ class HelpConsumerCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        def out = result.output
-        (out.contains("Welcome to Gradle") || out.contains("USAGE: gradle") || out.contains("Help is not supported"))
-        !out.contains("Build time:")  // Version output should not appear
+        result.assertOutputContains('USAGE: gradle [option...] [task...]')
+        result.assertNotOutput("Build time:")  // Version output should not appear
+        result.assertNotOutput("BUILD") // no BUILD SUCCESSFUL or BUILD FAILED message at the end
     }
 
     def "help takes precedence over show-version flag"() {
@@ -62,8 +82,8 @@ class HelpConsumerCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        def out = result.output
-        (out.contains("Welcome to Gradle") || out.contains("USAGE: gradle") || out.contains("Help is not supported"))
-        !out.contains("BUILD SUCCESSFUL")  // Tasks should not run
+        result.assertOutputContains('USAGE: gradle [option...] [task...]')
+        result.assertNotOutput("Build time:")  // Version output should not appear
+        result.assertNotOutput("BUILD") // no BUILD SUCCESSFUL or BUILD FAILED message at the end
     }
 }
