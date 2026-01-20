@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -314,9 +315,9 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
     def "uses script basename as application name for use in log messages"() {
         when:
         def binDir = distribution.gradleHomeDir.file('bin')
-        def newScript = binDir.file(OperatingSystem.current().getScriptName('my app'))
+        def newScript = binDir.file(PlatformBinaryResolver.forCurrentOs().getScriptName('my app'))
 
-        binDir.file(OperatingSystem.current().getScriptName('gradle')).copyTo(newScript)
+        binDir.file(PlatformBinaryResolver.forCurrentOs().getScriptName('gradle')).copyTo(newScript)
         newScript.permissions = 'rwx------'
 
         then:

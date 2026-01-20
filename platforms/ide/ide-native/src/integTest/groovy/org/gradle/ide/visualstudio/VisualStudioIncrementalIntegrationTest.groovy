@@ -17,7 +17,7 @@
 package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 
 import static org.apache.commons.io.FileUtils.copyFile
@@ -228,7 +228,7 @@ class VisualStudioIncrementalIntegrationTest extends AbstractVisualStudioIntegra
         and:
         final projectFile = projectFile("app.vcxproj")
         projectFile.projectConfigurations.values().each {
-            assert it.outputFile == OperatingSystem.current().getExecutableName("build/foo/main${it.name.capitalize()}/lib/app")
+            assert it.outputFile == PlatformBinaryResolver.forCurrentOs().getExecutableName("build/foo/main${it.name.capitalize()}/lib/app")
         }
 
         when:

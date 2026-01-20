@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal.tools
 import org.gradle.api.GradleException
 import org.gradle.internal.logging.text.DiagnosticsVisitor
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.nativeplatform.toolchain.internal.ToolType
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -27,13 +28,14 @@ import spock.lang.Specification
 class ToolSearchPathTest extends Specification {
     @Rule def TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def os = Stub(OperatingSystem)
-    def registry = new ToolSearchPath(os)
+    def binaryResolver = Spy(PlatformBinaryResolver.forOs(os))
+    def registry = new ToolSearchPath(os, binaryResolver)
 
     def "finds executable in system path"() {
         def file = tmpDir.createFile("cc.bin")
 
         given:
-        os.getExecutableName("cc") >> "cc.bin"
+        binaryResolver.getExecutableName("cc") >> "cc.bin"
         os.path >> [file.parentFile]
 
         when:
@@ -48,7 +50,7 @@ class ToolSearchPathTest extends Specification {
         def file = tmpDir.createFile("cc.bin")
 
         given:
-        os.getExecutableName("cc") >> "cc.bin"
+        binaryResolver.getExecutableName("cc") >> "cc.bin"
         registry.setPath([file.parentFile])
 
         when:
@@ -64,7 +66,7 @@ class ToolSearchPathTest extends Specification {
         def base = tmpDir.createFile("cc")
 
         given:
-        os.getExecutableName(base.absolutePath) >> file.absolutePath
+        binaryResolver.getExecutableName(base.absolutePath) >> file.absolutePath
 
         when:
         def result = registry.locate(ToolType.C_COMPILER, base.absolutePath)
@@ -101,7 +103,7 @@ class ToolSearchPathTest extends Specification {
         candidate1.setText("!<symlink>", "utf-8")
         candidate2.setText("!<symlink:abcd.bin", "utf-8")
         candidate3.setText("")
-        os.getExecutableName("cc") >> "cc.bin"
+        binaryResolver.getExecutableName("cc") >> "cc.bin"
         os.path >> [candidate1.parentFile, candidate2.parentFile, candidate3.parentFile, file.parentFile]
         os.windows >> true
 
@@ -120,7 +122,7 @@ class ToolSearchPathTest extends Specification {
 
         given:
         symlink.setText("!<symlink>../dir2/cc.bin\u0000", "utf-8")
-        os.getExecutableName("cc") >> "cc.bin"
+        binaryResolver.getExecutableName("cc") >> "cc.bin"
         os.path >> [symlink.parentFile, ignored.parentFile]
         os.windows >> true
 
@@ -138,7 +140,7 @@ class ToolSearchPathTest extends Specification {
         def dir2 = tmpDir.createDir("some-dir-2")
 
         given:
-        os.getExecutableName("cc") >> "cc.bin"
+        binaryResolver.getExecutableName("cc") >> "cc.bin"
         registry.setPath([dir1, dir2])
 
         when:
@@ -163,7 +165,7 @@ class ToolSearchPathTest extends Specification {
         def visitor = Mock(DiagnosticsVisitor)
 
         given:
-        os.getExecutableName("cc") >> "cc.bin"
+        binaryResolver.getExecutableName("cc") >> "cc.bin"
         os.path >> []
 
         when:
@@ -182,7 +184,7 @@ class ToolSearchPathTest extends Specification {
 
     def "cannot use an unavailable tool"() {
         given:
-        os.findInPath("cc") >> null
+        binaryResolver.findExecutableInPath("cc") >> null
 
         when:
         def result = registry.locate(ToolType.C_COMPILER, "cc")

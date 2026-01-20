@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.nativeplatform.platform.internal;
+@NullMarked
+package org.gradle.internal.platform;
 
-import org.gradle.api.tasks.Internal;
-import org.gradle.internal.platform.PlatformBinaryResolver;
-import org.gradle.nativeplatform.platform.OperatingSystem;
-
-public interface OperatingSystemInternal extends OperatingSystem {
-    @Internal
-    org.gradle.internal.os.OperatingSystem getInternalOs();
-
-    @Internal
-    PlatformBinaryResolver getBinaryResolver();
-
-    String toFamilyName();
-}
+import org.jspecify.annotations.NullMarked;

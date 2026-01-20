@@ -103,7 +103,7 @@ class CommandLineToolVersionLocatorTest extends VswhereSpec {
         then:
         versionMetadata != null
         versionMetadata.size() == 0
-        _ * vswhereLocator.getVswhereInstall() >> { new DefaultVswhereVersionLocator(windowsRegistry, os).getVswhereInstall() }
+        _ * vswhereLocator.getVswhereInstall() >> { new DefaultVswhereVersionLocator(windowsRegistry, binaryResolver).getVswhereInstall() }
     }
 
     def "returns empty list if Program Files (X86) cannot be found in registry"() {

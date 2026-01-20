@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.internal.time.Time
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
@@ -55,11 +56,11 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
     }
 
     String executableName(Object path) {
-        return path + OperatingSystem.current().getExecutableSuffix()
+        return path + PlatformBinaryResolver.forCurrentOs().getExecutableSuffix()
     }
 
     String getExecutableExtension() {
-        def suffix = OperatingSystem.current().executableSuffix
+        def suffix = PlatformBinaryResolver.forCurrentOs().executableSuffix
         return suffix.empty ? "" : suffix.substring(1)
     }
 
@@ -76,39 +77,39 @@ abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegra
     }
 
     String withLinkLibrarySuffix(Object path) {
-        return path + (toolChain.visualCpp ? OperatingSystem.current().linkLibrarySuffix : OperatingSystem.current().sharedLibrarySuffix)
+        return path + (toolChain.visualCpp ? PlatformBinaryResolver.forCurrentOs().linkLibrarySuffix : PlatformBinaryResolver.forCurrentOs().sharedLibrarySuffix)
     }
 
     String linkLibraryName(Object path) {
-        return toolChain.visualCpp ? OperatingSystem.current().getLinkLibraryName(path.toString()) : OperatingSystem.current().getSharedLibraryName(path.toString())
+        return toolChain.visualCpp ? PlatformBinaryResolver.forCurrentOs().getLinkLibraryName(path.toString()) : PlatformBinaryResolver.forCurrentOs().getSharedLibraryName(path.toString())
     }
 
     String getLinkLibrarySuffix() {
-        return toolChain.visualCpp ? OperatingSystem.current().linkLibrarySuffix.substring(1) : OperatingSystem.current().sharedLibrarySuffix.substring(1)
+        return toolChain.visualCpp ? PlatformBinaryResolver.forCurrentOs().linkLibrarySuffix.substring(1) : PlatformBinaryResolver.forCurrentOs().sharedLibrarySuffix.substring(1)
     }
 
     String staticLibraryName(Object path) {
-        return OperatingSystem.current().getStaticLibraryName(path.toString())
+        return PlatformBinaryResolver.forCurrentOs().getStaticLibraryName(path.toString())
     }
 
     String withStaticLibrarySuffix(Object path) {
-        return path + OperatingSystem.current().staticLibrarySuffix
+        return path + PlatformBinaryResolver.forCurrentOs().staticLibrarySuffix
     }
 
     String getStaticLibraryExtension() {
-        return OperatingSystem.current().staticLibrarySuffix.substring(1)
+        return PlatformBinaryResolver.forCurrentOs().staticLibrarySuffix.substring(1)
     }
 
     String withSharedLibrarySuffix(Object path) {
-        return path + OperatingSystem.current().sharedLibrarySuffix
+        return path + PlatformBinaryResolver.forCurrentOs().sharedLibrarySuffix
     }
 
     String sharedLibraryName(Object path) {
-        return OperatingSystem.current().getSharedLibraryName(path.toString())
+        return PlatformBinaryResolver.forCurrentOs().getSharedLibraryName(path.toString())
     }
 
     String getSharedLibraryExtension() {
-        return OperatingSystem.current().sharedLibrarySuffix.substring(1)
+        return PlatformBinaryResolver.forCurrentOs().sharedLibrarySuffix.substring(1)
     }
 
     SharedLibraryFixture sharedLibrary(Object path) {

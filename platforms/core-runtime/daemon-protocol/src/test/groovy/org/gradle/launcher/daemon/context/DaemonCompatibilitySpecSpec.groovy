@@ -15,9 +15,8 @@
  */
 package org.gradle.launcher.daemon.context
 
-
 import org.gradle.internal.nativeintegration.services.NativeServices
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
@@ -41,7 +40,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
     private TestFile javaHome = tmp.createDir("jdk")
 
     def setup() {
-        javaHome.file("bin", OperatingSystem.current().getExecutableName("java")).touch()
+        javaHome.file("bin", PlatformBinaryResolver.forCurrentOs().getExecutableName("java")).touch()
     }
 
     DaemonRequestContext clientWants(Map args) {
@@ -72,7 +71,7 @@ class DaemonCompatibilitySpecSpec extends Specification {
         clientWants(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.ORG_GRADLE_JAVA_HOME, javaHome))
 
         def daemonJdkHome = tmp.createDir("daemon-jdk")
-        daemonJdkHome.file("bin", OperatingSystem.current().getExecutableName("java")).touch()
+        daemonJdkHome.file("bin", PlatformBinaryResolver.forCurrentOs().getExecutableName("java")).touch()
 
         candidate.javaHome >> daemonJdkHome
 

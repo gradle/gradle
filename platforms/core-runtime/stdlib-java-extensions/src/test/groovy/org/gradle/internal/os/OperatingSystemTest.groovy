@@ -74,76 +74,6 @@ class OperatingSystemTest extends Specification {
         !os.macOsX
     }
 
-    def "windows transforms script names"() {
-        def os = new OperatingSystem.Windows()
-
-        expect:
-        os.getScriptName("a.bat") == "a.bat"
-        os.getScriptName("a.BAT") == "a.BAT"
-        os.getScriptName("a") == "a.bat"
-        os.getScriptName("a.exe") == "a.bat"
-        os.getScriptName("a.b/c") == "a.b/c.bat"
-        os.getScriptName("a.b\\c") == "a.b\\c.bat"
-    }
-
-    def "windows transforms executable names"() {
-        def os = new OperatingSystem.Windows()
-
-        expect:
-        os.executableSuffix == ".exe"
-        os.getExecutableName("a.exe") == "a.exe"
-        os.getExecutableName("a.EXE") == "a.EXE"
-        os.getExecutableName("a") == "a.exe"
-        os.getExecutableName("a.bat") == "a.exe"
-        os.getExecutableName("a.b/c") == "a.b/c.exe"
-        os.getExecutableName("a.b\\c") == "a.b\\c.exe"
-    }
-
-    def "windows transforms shared library names"() {
-        def os = new OperatingSystem.Windows()
-
-        expect:
-        os.sharedLibrarySuffix == ".dll"
-        os.linkLibrarySuffix == ".lib"
-        os.getSharedLibraryName("a.dll") == "a.dll"
-        os.getSharedLibraryName("a.DLL") == "a.DLL"
-        os.getSharedLibraryName("a") == "a.dll"
-        os.getSharedLibraryName("a.lib") == "a.dll"
-        os.getSharedLibraryName("a.b/c") == "a.b/c.dll"
-        os.getSharedLibraryName("a.b\\c") == "a.b\\c.dll"
-        os.getLinkLibraryName("a") == "a.lib"
-        os.getLinkLibraryName("a.lib") == "a.lib"
-    }
-
-    def "windows transforms static library names"() {
-        def os = new OperatingSystem.Windows()
-
-        expect:
-        os.staticLibrarySuffix == ".lib"
-        os.getStaticLibraryName("a.lib") == "a.lib"
-        os.getStaticLibraryName("a.LIB") == "a.LIB"
-        os.getStaticLibraryName("a") == "a.lib"
-        os.getStaticLibraryName("a.dll") == "a.lib"
-        os.getStaticLibraryName("a.b/c") == "a.b/c.lib"
-        os.getStaticLibraryName("a.b\\c") == "a.b\\c.lib"
-    }
-
-    def "windows searches for executable in path"() {
-        def exe = tmpDir.createFile("bin/a.exe")
-        tmpDir.createFile("bin2/a.exe")
-        def os = new OperatingSystem.Windows() {
-            @Override
-            List<File> getPath() {
-                return [tmpDir.file("bin"), tmpDir.file("bin2")]
-            }
-        }
-
-        expect:
-        os.findInPath("a.exe") == exe
-        os.findInPath("a") == exe
-        os.findInPath("unknown") == null
-    }
-
     def "uses os.name property to determine if macOS"() {
         when:
         System.properties['os.name'] = 'Mac OS X'
@@ -217,66 +147,6 @@ class OperatingSystemTest extends Specification {
         !os.macOsX
     }
 
-    def "UNIX does not transform script names"() {
-        def os = new OperatingSystem.Unix()
-
-        expect:
-        os.getScriptName("a.sh") == "a.sh"
-        os.getScriptName("a") == "a"
-    }
-
-    def "UNIX does not transforms executable names"() {
-        def os = new OperatingSystem.Unix()
-
-        expect:
-        os.executableSuffix == ""
-        os.getExecutableName("a.sh") == "a.sh"
-        os.getExecutableName("a") == "a"
-    }
-
-    def "UNIX transforms shared library names"() {
-        def os = new OperatingSystem.Unix()
-
-        expect:
-        os.sharedLibrarySuffix == ".so"
-        os.linkLibrarySuffix == ".so"
-        os.getSharedLibraryName("a.so") == "a.so"
-        os.getSharedLibraryName("liba.so") == "liba.so"
-        os.getSharedLibraryName("a") == "liba.so"
-        os.getSharedLibraryName("lib1") == "liblib1.so"
-        os.getSharedLibraryName("path/liba.so") == "path/liba.so"
-        os.getSharedLibraryName("path/a") == "path/liba.so"
-        os.getLinkLibraryName("a") == "liba.so"
-    }
-
-    def "UNIX transforms static library names"() {
-        def os = new OperatingSystem.Unix()
-
-        expect:
-        os.staticLibrarySuffix == ".a"
-        os.getStaticLibraryName("a.a") == "a.a"
-        os.getStaticLibraryName("liba.a") == "liba.a"
-        os.getStaticLibraryName("a") == "liba.a"
-        os.getStaticLibraryName("lib1") == "liblib1.a"
-        os.getStaticLibraryName("path/liba.a") == "path/liba.a"
-        os.getStaticLibraryName("path/a") == "path/liba.a"
-    }
-
-    def "UNIX searches for executable in path"() {
-        def exe = tmpDir.createFile("bin/a")
-        tmpDir.createFile("bin2/a")
-        def os = new OperatingSystem.Unix() {
-            @Override
-            List<File> getPath() {
-                return [tmpDir.file("bin"), tmpDir.file("bin2")]
-            }
-        }
-
-        expect:
-        os.findInPath("a") == exe
-        os.findInPath("unknown") == null
-    }
-
     def "solaris uses prefix of x86 for 32bit intel"() {
         given:
         System.properties['os.arch'] = arch
@@ -307,21 +177,6 @@ class OperatingSystemTest extends Specification {
 
         expect:
         osx.nativePrefix == 'darwin'
-    }
-
-    def "macOS transforms shared library names"() {
-        def os = new OperatingSystem.MacOs()
-
-        expect:
-        os.sharedLibrarySuffix == ".dylib"
-        os.linkLibrarySuffix == ".dylib"
-        os.getSharedLibraryName("a.dylib") == "a.dylib"
-        os.getSharedLibraryName("liba.dylib") == "liba.dylib"
-        os.getSharedLibraryName("a") == "liba.dylib"
-        os.getSharedLibraryName("lib1") == "liblib1.dylib"
-        os.getSharedLibraryName("path/liba.dylib") == "path/liba.dylib"
-        os.getSharedLibraryName("path/a") == "path/liba.dylib"
-        os.getLinkLibraryName("a") == "liba.dylib"
     }
 
     private static boolean resetOperatingSystemClassStaticFields() {

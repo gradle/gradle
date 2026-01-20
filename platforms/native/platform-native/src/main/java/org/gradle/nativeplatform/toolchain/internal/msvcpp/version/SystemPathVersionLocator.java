@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.platform.PlatformBinaryResolver;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NonNull;
@@ -33,11 +33,11 @@ public class SystemPathVersionLocator implements VisualStudioVersionLocator {
     private static final String LEGACY_COMPILER_FILENAME = "cl.exe";
 
     private static final Logger LOGGER = Logging.getLogger(SystemPathVersionLocator.class);
-    private final OperatingSystem os;
+    private final PlatformBinaryResolver binaryResolver;
     private final VisualStudioMetaDataProvider versionDeterminer;
 
-    public SystemPathVersionLocator(OperatingSystem os, VisualStudioMetaDataProvider versionDeterminer) {
-        this.os = os;
+    public SystemPathVersionLocator(PlatformBinaryResolver binaryResolver, VisualStudioMetaDataProvider versionDeterminer) {
+        this.binaryResolver = binaryResolver;
         this.versionDeterminer = versionDeterminer;
     }
 
@@ -46,7 +46,7 @@ public class SystemPathVersionLocator implements VisualStudioVersionLocator {
     public List<VisualStudioInstallCandidate> getVisualStudioInstalls() {
         List<VisualStudioInstallCandidate> installs = new ArrayList<>();
 
-        File compilerInPath = os.findInPath(LEGACY_COMPILER_FILENAME);
+        File compilerInPath = binaryResolver.findExecutableInPath(LEGACY_COMPILER_FILENAME);
         if (compilerInPath == null) {
             LOGGER.debug("No visual c++ compiler found in system path.");
         } else {

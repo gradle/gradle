@@ -42,6 +42,7 @@ import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.operations.TestBuildOperationRunner;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.platform.PlatformBinaryResolver;
 import org.gradle.internal.progress.NoOpProgressLoggerFactory;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
@@ -521,7 +522,7 @@ public abstract class AvailableJavaHomes {
                 return Arrays.stream(files)
                     .filter(File::isDirectory)
                     .filter(file -> file.getName().toLowerCase().contains("jdk") || file.getName().toLowerCase().contains("jre"))
-                    .filter(file -> new File(file, OperatingSystem.current().getExecutableName("bin/java")).exists())
+                    .filter(file -> new File(file, PlatformBinaryResolver.forCurrentOs().getExecutableName("bin/java")).exists())
                     .map(file -> InstallationLocation.autoDetected(file, getSourceName()))
                     .collect(Collectors.toSet());
             }

@@ -18,10 +18,11 @@ package org.gradle.ide.visualstudio
 
 import groovy.test.NotYetImplemented
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+
+import static org.gradle.internal.platform.PlatformBinaryResolver.forCurrentOs
 
 class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     def app = new CppHelloWorldApp()
@@ -105,7 +106,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
             assert it.macros == "TEST;foo=bar"
             assert it.includePath == filePath("src/main/headers")
             assert it.buildCommand.endsWith("gradle\" :install${it.name.capitalize()}")
-            assert it.outputFile == OperatingSystem.current().getExecutableName("build/install/main/${it.name.toLowerCase(Locale.ROOT)}/lib/app")
+            assert it.outputFile == forCurrentOs().getExecutableName("build/install/main/${it.name.toLowerCase(Locale.ROOT)}/lib/app")
         }
 
         and:
@@ -145,7 +146,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
             assert it.macros == "TEST;foo=bar"
             assert it.includePath == filePath("src/main/public", "src/main/headers")
             assert it.buildCommand.endsWith("gradle\" :link${it.name.capitalize()}")
-            assert it.outputFile == OperatingSystem.current().getSharedLibraryName("build/lib/main/${it.name.toLowerCase(Locale.ROOT)}/${stripped(it.name)}lib")
+            assert it.outputFile == forCurrentOs().getSharedLibraryName("build/lib/main/${it.name.toLowerCase(Locale.ROOT)}/${stripped(it.name)}lib")
         }
 
         and:
@@ -186,7 +187,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
             assert it.macros == "TEST;foo=bar"
             assert it.includePath == filePath("src/main/public", "src/main/headers")
             assert it.buildCommand.endsWith("gradle\" :create${it.name.capitalize()}")
-            assert it.outputFile == OperatingSystem.current().getStaticLibraryName("build/lib/main/${it.name.toLowerCase(Locale.ROOT)}/lib")
+            assert it.outputFile == forCurrentOs().getStaticLibraryName("build/lib/main/${it.name.toLowerCase(Locale.ROOT)}/lib")
         }
 
         and:
@@ -227,7 +228,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
             assert it.macros == "TEST;foo=bar"
             assert it.includePath == filePath("src/main/public", "src/main/headers")
             assert it.buildCommand.endsWith("gradle\" :create${it.name.capitalize()}Static")
-            assert it.outputFile == OperatingSystem.current().getStaticLibraryName("build/lib/main/${it.name.toLowerCase(Locale.ROOT)}/static/lib")
+            assert it.outputFile == forCurrentOs().getStaticLibraryName("build/lib/main/${it.name.toLowerCase(Locale.ROOT)}/static/lib")
         }
 
         and:
@@ -238,7 +239,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
             assert it.macros == "TEST;foo=bar"
             assert it.includePath == filePath("src/main/public", "src/main/headers")
             assert it.buildCommand.endsWith("gradle\" :link${it.name.capitalize()}Shared")
-            assert it.outputFile == OperatingSystem.current().getSharedLibraryName("build/lib/main/${it.name.toLowerCase(Locale.ROOT)}/shared/${stripped(it.name)}lib")
+            assert it.outputFile == forCurrentOs().getSharedLibraryName("build/lib/main/${it.name.toLowerCase(Locale.ROOT)}/shared/${stripped(it.name)}lib")
         }
 
         and:

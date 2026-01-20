@@ -16,7 +16,8 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version
 
-import org.gradle.internal.os.OperatingSystem
+
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
@@ -25,9 +26,9 @@ import spock.lang.Specification
 class SystemPathVersionLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    def os = Mock(OperatingSystem)
+    def binaryResolver = Mock(PlatformBinaryResolver)
     def versionDeterminer = Mock(VisualStudioMetaDataProvider)
-    def locator = new SystemPathVersionLocator(os, versionDeterminer)
+    def locator = new SystemPathVersionLocator(binaryResolver, versionDeterminer)
 
     def "can locate a known visual studio install on the path"() {
         def vsDir = tmpDir.createDir("vs")
@@ -37,7 +38,7 @@ class SystemPathVersionLocatorTest extends Specification {
         List<VisualStudioInstallCandidate> metadata = locator.getVisualStudioInstalls()
 
         then:
-        1 * os.findInPath("cl.exe") >> compiler
+        1 * binaryResolver.findExecutableInPath("cl.exe") >> compiler
         1 * versionDeterminer.getVisualStudioMetadataFromCompiler(compiler) >> vsMetadata(vsDir, "15.0")
 
         and:
@@ -56,7 +57,7 @@ class SystemPathVersionLocatorTest extends Specification {
         List<VisualStudioInstallCandidate> metadata = locator.getVisualStudioInstalls()
 
         then:
-        1 * os.findInPath("cl.exe") >> compiler
+        1 * binaryResolver.findExecutableInPath("cl.exe") >> compiler
         1 * versionDeterminer.getVisualStudioMetadataFromCompiler(compiler) >> vsMetadata(vsDir, null)
 
         and:
@@ -72,7 +73,7 @@ class SystemPathVersionLocatorTest extends Specification {
         List<VisualStudioInstallCandidate> metadata = locator.getVisualStudioInstalls()
 
         then:
-        1 * os.findInPath("cl.exe") >> null
+        1 * binaryResolver.findExecutableInPath("cl.exe") >> null
         0 * versionDeterminer.getVisualStudioMetadataFromCompiler(_)
 
         and:
@@ -87,7 +88,7 @@ class SystemPathVersionLocatorTest extends Specification {
         List<VisualStudioInstallCandidate> metadata = locator.getVisualStudioInstalls()
 
         then:
-        1 * os.findInPath("cl.exe") >> compiler
+        1 * binaryResolver.findExecutableInPath("cl.exe") >> compiler
         1 * versionDeterminer.getVisualStudioMetadataFromCompiler(compiler) >> null
 
         and:

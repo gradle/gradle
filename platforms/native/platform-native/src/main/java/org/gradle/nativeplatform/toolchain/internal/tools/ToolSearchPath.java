@@ -16,11 +16,13 @@
 
 package org.gradle.nativeplatform.toolchain.internal.tools;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.platform.PlatformBinaryResolver;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 
 import java.io.BufferedInputStream;
@@ -39,9 +41,16 @@ public class ToolSearchPath {
     private final List<File> pathEntries = new ArrayList<File>();
 
     private final OperatingSystem operatingSystem;
+    private final PlatformBinaryResolver binaryResolver;
 
     public ToolSearchPath(OperatingSystem operatingSystem) {
+        this(operatingSystem, PlatformBinaryResolver.forOs(operatingSystem));
+    }
+
+    @VisibleForTesting
+    ToolSearchPath(OperatingSystem operatingSystem, PlatformBinaryResolver binaryResolver) {
         this.operatingSystem = operatingSystem;
+        this.binaryResolver = binaryResolver;
     }
 
     public List<File> getPath() {
@@ -62,7 +71,7 @@ public class ToolSearchPath {
     public CommandLineToolSearchResult locate(ToolType key, String exeName) {
         File executable = executables.get(exeName);
         if (executable == null) {
-            executable = findExecutable(operatingSystem, exeName);
+            executable = findExecutable(exeName);
             if (executable != null) {
                 executables.put(exeName, executable);
             }
@@ -70,15 +79,15 @@ public class ToolSearchPath {
         return executable == null || !executable.isFile() ? new MissingTool(key, exeName, pathEntries) : new FoundTool(executable);
     }
 
-    private File findExecutable(OperatingSystem operatingSystem, String name) {
+    private File findExecutable(String name) {
         List<File> path = pathEntries.isEmpty() ? operatingSystem.getPath() : pathEntries;
-        String exeName = operatingSystem.getExecutableName(name);
+        String exeName = binaryResolver.getExecutableName(name);
         try {
             if (name.contains(File.separator)) {
-                return maybeResolveFile(operatingSystem, new File(name), new File(exeName));
+                return maybeResolveFile(new File(name), new File(exeName));
             }
             for (File pathEntry : path) {
-                File resolved = maybeResolveFile(operatingSystem, new File(pathEntry, name), new File(pathEntry, exeName));
+                File resolved = maybeResolveFile(new File(pathEntry, name), new File(pathEntry, exeName));
                 if (resolved != null) {
                     return resolved;
                 }
@@ -90,7 +99,7 @@ public class ToolSearchPath {
         return null;
     }
 
-    private File maybeResolveFile(OperatingSystem operatingSystem, File symlinkCandidate, File exeCandidate) throws IOException {
+    private File maybeResolveFile(File symlinkCandidate, File exeCandidate) throws IOException {
         if (exeCandidate.isFile()) {
             return exeCandidate;
         }

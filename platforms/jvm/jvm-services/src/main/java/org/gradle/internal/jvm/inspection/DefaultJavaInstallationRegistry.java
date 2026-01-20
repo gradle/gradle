@@ -28,6 +28,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.platform.PlatformBinaryResolver;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableJavaHomeInstallationSupplier;
@@ -59,6 +60,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
     private final JvmMetadataDetector metadataDetector;
     private final Logger logger;
     private final OperatingSystem os;
+    private final PlatformBinaryResolver binaryResolver;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final JvmInstallationProblemReporter problemReporter;
 
@@ -113,6 +115,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         }
         this.installations = new Installations(() -> maybeCollectInBuildOperation(allSuppliers));
         this.os = os;
+        this.binaryResolver = PlatformBinaryResolver.forOs(os);
         this.progressLoggerFactory = progressLoggerFactory;
         this.problemReporter = problemReporter;
     }
@@ -228,7 +231,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
     }
 
     private boolean hasJavaExecutable(File potentialHome) {
-        return new File(potentialHome, os.getExecutableName("bin/java")).exists();
+        return new File(potentialHome, binaryResolver.getExecutableName("bin/java")).exists();
     }
 
     public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {

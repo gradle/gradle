@@ -18,7 +18,7 @@ package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.TempDir
@@ -92,7 +92,7 @@ class InvalidJvmInstallationReportingIntegrationTest extends AbstractIntegration
 
     private File createInvalidJdkHome(String name) {
         def jdkHome = new File(temporaryDirectory, name)
-        def executableName = OperatingSystem.current().getExecutableName("java")
+        def executableName = PlatformBinaryResolver.forCurrentOs().getExecutableName("java")
         def executable = new File(jdkHome, "bin/$executableName")
         assert executable.mkdirs()
         executable.createNewFile()

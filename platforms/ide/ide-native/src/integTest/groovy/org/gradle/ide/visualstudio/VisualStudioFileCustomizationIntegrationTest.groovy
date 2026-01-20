@@ -18,6 +18,7 @@ package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 
 class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioIntegrationSpec {
@@ -84,7 +85,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
                 formattedGradleHomeDir = formattedGradleHomeDir.replace("\\", "/")
             }
             assert it.buildCommand == "\"${formattedGradleHomeDir}\" -p \"../../..\" :installMain${it.name.capitalize()}Executable"
-            assert it.outputFile == OperatingSystem.current().getExecutableName("../../../build/install/main/${it.name}/lib/main")
+            assert it.outputFile == PlatformBinaryResolver.forCurrentOs().getExecutableName("../../../build/install/main/${it.name}/lib/main")
         }
         def filtersFile = filtersFile("other/filters.vcxproj.filters")
 

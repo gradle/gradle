@@ -26,6 +26,7 @@ import org.gradle.integtests.fixtures.VersionedTool;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.platform.PlatformBinaryResolver;
 import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioLocatorTestFixture;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion;
@@ -56,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -142,7 +144,7 @@ public class AvailableToolChains {
         }
         if (toolChains.isEmpty()) {
             GccMetadataProvider versionDeterminer = GccMetadataProvider.forClang(TestFiles.execActionFactory());
-            Set<File> clangCandidates = ImmutableSet.copyOf(OperatingSystem.current().findAllInPath("clang"));
+            Set<File> clangCandidates = ImmutableSet.copyOf(findAllInPath(OperatingSystem.current(), "clang"));
             if (!clangCandidates.isEmpty()) {
                 File firstInPath = clangCandidates.iterator().next();
                 for (File candidate : clangCandidates) {
@@ -166,6 +168,19 @@ public class AvailableToolChains {
         toolChains.sort(LATEST_RELEASED_FIRST);
 
         return toolChains;
+    }
+
+    private static List<File> findAllInPath(OperatingSystem os, String name) {
+        List<File> all = new LinkedList<File>();
+
+        for (File dir : os.getPath()) {
+            File candidate = new File(dir, name);
+            if (candidate.isFile()) {
+                all.add(candidate);
+            }
+        }
+
+        return all;
     }
 
     static private boolean isTestableVisualStudioVersion(final VersionNumber version) {
@@ -229,7 +244,7 @@ public class AvailableToolChains {
     static private List<ToolChainCandidate> findGccs(boolean mustFind) {
         GccMetadataProvider versionDeterminer = GccMetadataProvider.forGcc(TestFiles.execActionFactory());
 
-        Set<File> gppCandidates = ImmutableSet.copyOf(OperatingSystem.current().findAllInPath("g++"));
+        Set<File> gppCandidates = ImmutableSet.copyOf(findAllInPath(OperatingSystem.current(), "g++"));
         List<ToolChainCandidate> toolChains = new ArrayList<>();
         if (!gppCandidates.isEmpty()) {
             File firstInPath = gppCandidates.iterator().next();
@@ -277,7 +292,7 @@ public class AvailableToolChains {
         // On macOS, we assume co-located Xcode is installed into /opt/xcode and default location at /Applications/Xcode.app
         toolChains.addAll(findXcodes().stream().map(InstalledXcode::getSwiftc).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList()));
 
-        List<File> swiftcCandidates = OperatingSystem.current().findAllInPath("swiftc");
+        List<File> swiftcCandidates = findAllInPath(OperatingSystem.current(), "swiftc");
         for (File candidate : swiftcCandidates) {
             SearchResult<SwiftcMetadata> version = versionDeterminer.getCompilerMetaData(Collections.emptyList(), spec -> spec.executable(candidate));
             if (version.isAvailable()) {
@@ -382,7 +397,7 @@ public class AvailableToolChains {
         public abstract String getInstanceDisplayName();
 
         public ExecutableFixture executable(Object path) {
-            return new ExecutableFixture(new TestFile(OperatingSystem.current().getExecutableName(path.toString())), this);
+            return new ExecutableFixture(new TestFile(PlatformBinaryResolver.forCurrentOs().getExecutableName(path.toString())), this);
         }
 
         public LinkerOptionsFixture linkerOptionsFor(Object path) {
@@ -394,15 +409,15 @@ public class AvailableToolChains {
         }
 
         public SharedLibraryFixture sharedLibrary(Object path) {
-            return new SharedLibraryFixture(new TestFile(OperatingSystem.current().getSharedLibraryName(path.toString())), this);
+            return new SharedLibraryFixture(new TestFile(PlatformBinaryResolver.forCurrentOs().getSharedLibraryName(path.toString())), this);
         }
 
         public StaticLibraryFixture staticLibrary(Object path) {
-            return new StaticLibraryFixture(new TestFile(OperatingSystem.current().getStaticLibraryName(path.toString())), this);
+            return new StaticLibraryFixture(new TestFile(PlatformBinaryResolver.forCurrentOs().getStaticLibraryName(path.toString())), this);
         }
 
         public NativeBinaryFixture resourceOnlyLibrary(Object path) {
-            return new NativeBinaryFixture(new TestFile(OperatingSystem.current().getSharedLibraryName(path.toString())), this);
+            return new NativeBinaryFixture(new TestFile(PlatformBinaryResolver.forCurrentOs().getSharedLibraryName(path.toString())), this);
         }
 
         /**
@@ -495,7 +510,7 @@ public class AvailableToolChains {
 
         protected File find(String tool) {
             if (getPathEntries().isEmpty()) {
-                return OperatingSystem.current().findInPath(tool);
+                return PlatformBinaryResolver.forCurrentOs().findExecutableInPath(tool);
             }
             return new File(getPathEntries().get(0), tool);
         }

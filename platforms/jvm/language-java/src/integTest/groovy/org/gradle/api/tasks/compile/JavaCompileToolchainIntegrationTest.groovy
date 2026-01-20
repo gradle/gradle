@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -247,7 +248,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         where:
         forkOption   | configure                                       | appendPath
         "java home"  | 'options.forkOptions.javaHome = file("<path>")' | ''
-        "executable" | 'options.forkOptions.executable = "<path>"'     | OperatingSystem.current().getExecutableName('/bin/javac')
+        "executable" | 'options.forkOptions.executable = "<path>"'     | PlatformBinaryResolver.forCurrentOs().getExecutableName('/bin/javac')
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22398")
@@ -279,7 +280,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         where:
         forkOption   | configure                                       | appendPath
         "java home"  | 'options.forkOptions.javaHome = file("<path>")' | ''
-        "executable" | 'options.forkOptions.executable = "<path>"'     | OperatingSystem.current().getExecutableName('/bin/javac')
+        "executable" | 'options.forkOptions.executable = "<path>"'     | PlatformBinaryResolver.forCurrentOs().getExecutableName('/bin/javac')
     }
 
     def 'fails when requesting not available toolchain'() {
