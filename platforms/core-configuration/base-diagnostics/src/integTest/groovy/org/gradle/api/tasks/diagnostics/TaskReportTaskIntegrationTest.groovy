@@ -26,6 +26,91 @@ class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
     private final static String GROUP_1 = 'Group 1'
     private final static String GROUP_2 = 'Group 2'
 
+    def "shows Default task defined in build file when run with --provenance"() {
+        given:
+        String projectName = 'test'
+        settingsFile << "rootProject.name = '$projectName'"
+
+        buildFile << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+
+        when:
+        succeeds "tasks", "--provenance"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sayHello (registered in build file 'build.gradle')""")
+    }
+
+    def "shows Default tasks with same name defined in multiple projects when run with --provenance]"() {
+        given:
+        settingsFile << "include 'sub1', 'sub2'"
+
+        file('sub1/build.gradle') << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+        file('sub2/build.gradle') << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+
+        when:
+        succeeds "tasks", "--provenance", "--all"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sub1:sayHello (registered in build file 'sub1/build.gradle')
+sub2:sayHello (registered in build file 'sub2/build.gradle')""")
+    }
+
+    def "shows Custom task defined in build file when run with --provenance"() {
+        given:
+        String projectName = 'test'
+        settingsFile << "rootProject.name = '$projectName'"
+
+        buildFile << """
+class HelloTask extends DefaultTask {
+    final Property<String> message = project.objects.property(String).convention("Hello!")
+
+    @TaskAction def sayHello() {
+        println(message.get())
+    }
+}
+
+task sayHi(type: HelloTask) {
+    group = 'Build'
+    message = 'Hi!'
+}"""
+
+        when:
+        succeeds "tasks", "--provenance"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sayHi (registered in build file 'build.gradle')""")
+    }
+
     def "shows Default task defined in build file when run with --types"() {
         given:
         String projectName = 'test'
@@ -109,6 +194,30 @@ task sayHi(type: HelloTask) {
 Build tasks
 -----------
 sayHi (HelloTask)""")
+    }
+
+    def "shows type and provenance for Default task defined in build file when run with --types and --provenance"() {
+        given:
+        String projectName = 'test'
+        settingsFile << "rootProject.name = '$projectName'"
+
+        buildFile << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+
+        when:
+        succeeds "tasks", "--types", "--provenance"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sayHello (org.gradle.api.DefaultTask) (registered in build file 'build.gradle')""")
     }
 
     def "always renders task rule running #tasks"() {

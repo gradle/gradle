@@ -26,7 +26,9 @@ import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.VerificationException;
 import org.gradle.internal.Factory;
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Configurable;
@@ -156,4 +158,42 @@ public interface TaskInternal extends Task, Configurable<Task> {
      */
     @Internal
     TaskDependency getLifecycleDependencies();
+
+    /**
+     * Build a failure message for display when this task fails execution.
+     * <p>
+     * This includes task provenance information to help diagnose the source of the failing task.
+     *
+     * @return the constructed failure message
+     */
+    @Internal
+    default String buildFailureMessage(Throwable cause) {
+        boolean isVerificationFailure = cause instanceof VerificationException;
+        String createdBy = "";
+        if (!isVerificationFailure) {
+            String provenance = getProvenance().orElse(null);
+            if (provenance != null) {
+                createdBy = String.format(" (%s)", provenance);
+            }
+        }
+        return String.format("Execution failed for %s%s.", this, createdBy);
+    }
+
+    @Internal
+    default Optional<String> getProvenance() {
+        UserCodeSource source = getTaskIdentity().getUserCodeSource();
+        String sourceDesc = source.getDisplayName().getDisplayName();
+
+        boolean isUnknownSource = source == UserCodeSource.UNKNOWN;
+        boolean isCreatedByRule = source == UserCodeSource.BY_RULE;
+        if (isUnknownSource) {
+            return Optional.empty();
+        } else if (isCreatedByRule) {
+            return Optional.of("registered by Rule");
+        } else {
+            boolean isPluginSource = sourceDesc.contains("plugin");
+            String preposition = isPluginSource ? "by" : "in";
+            return Optional.of(String.format("registered %s %s", preposition, sourceDesc));
+        }
+    }
 }

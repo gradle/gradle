@@ -54,7 +54,7 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements V
         when:
         fails "foo"
         then:
-        failure.assertHasDescription("Execution failed for task ':foo'.")
+        failure.assertHasDescription("Execution failed for task ':foo' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot fingerprint input property 'b': value 'xxx' cannot be serialized.")
     }
 

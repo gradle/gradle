@@ -116,7 +116,7 @@ class PrecompiledScriptPluginSyntheticIntegrationTest : AbstractKotlinIntegratio
         """
         )
         buildAndFail(":compileKotlin").apply {
-            assertHasFailure("Execution failed for task ':generatePrecompiledScriptPluginAccessors'.") {
+            assertHasFailure("Execution failed for task ':generatePrecompiledScriptPluginAccessors' (registered by plugin class 'org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins').") {
                 assertHasCause("Failed to collect plugin requests of 'src/main/kotlin/some.gradle.kts'")
                 assertHasCause("An operation is not implemented: some plugins block failure")
             }
@@ -135,7 +135,7 @@ class PrecompiledScriptPluginSyntheticIntegrationTest : AbstractKotlinIntegratio
         """
         )
         buildAndFail(":compileKotlin").apply {
-            assertHasFailure("Execution failed for task ':generatePrecompiledScriptPluginAccessors'.") {
+            assertHasFailure("Execution failed for task ':generatePrecompiledScriptPluginAccessors' (registered by plugin class 'org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins').") {
                 assertHasCause("Failed to generate type-safe Gradle model accessors for the following precompiled script plugins")
                 assertHasCause("An operation is not implemented: applied-output-fails plugin application failure")
             }

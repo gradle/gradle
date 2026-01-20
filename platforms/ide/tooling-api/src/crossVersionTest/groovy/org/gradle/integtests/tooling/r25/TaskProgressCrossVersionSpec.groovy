@@ -171,12 +171,12 @@ class TaskProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
 
         then:
         BuildException ex = thrown()
-        ex.cause.cause.message =~ /Execution failed for task ':test'/
+        ex.cause.cause.message.contains("Execution failed for task ':test'")
 
         def test = events.operation("Task :test")
         test.failed
         test.failures.size() == 1
-        test.failures[0].message == "Execution failed for task ':test'."
+        test.failures[0].message.startsWith("Execution failed for task ':test'")
 
         events.failed == [test]
     }

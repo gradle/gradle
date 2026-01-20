@@ -458,7 +458,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
         expect:
         fails "myTask"
-        failure.assertHasDescription("Execution failed for task ':myTask'.")
+        failure.assertHasDescription("Execution failed for task ':myTask' (registered in build file 'build.gradle').")
         failure.assertHasCause("BOOM")
 
         where:

@@ -311,7 +311,7 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
         def result = fails 'test'
 
         then:
-        result.assertTestsFailed()
+        result.assertTestsFailedWithProvenance()
     }
 
     def "tries to execute unparseable test classes"() {

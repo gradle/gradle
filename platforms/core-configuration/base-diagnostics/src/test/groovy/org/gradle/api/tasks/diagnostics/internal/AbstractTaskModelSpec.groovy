@@ -19,11 +19,11 @@ import org.gradle.util.Path
 import spock.lang.Specification
 
 abstract class AbstractTaskModelSpec extends Specification {
-
     def taskDetails(String path) {
         return TaskDetails.of(
             Path.path(path),
             "TYPE_NAME",
+            null,
             null
         )
     }
@@ -32,8 +32,8 @@ abstract class AbstractTaskModelSpec extends Specification {
         return TaskDetails.of(
             Path.path(path),
             "TYPE_NAME",
-            properties.description as String
+            properties.description as String,
+            null
         )
     }
-
 }

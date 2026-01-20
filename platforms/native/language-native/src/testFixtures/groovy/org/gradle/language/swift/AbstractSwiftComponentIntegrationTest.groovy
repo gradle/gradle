@@ -135,7 +135,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         fails taskNameToAssembleDevelopmentBinary
 
         then:
-        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
+        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask' (registered by plugin class 'org.gradle.language.swift.plugins.SwiftBasePlugin').")
         failure.assertHasCause("Swift compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT4.version}'")
     }
 
@@ -157,7 +157,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         fails taskNameToAssembleDevelopmentBinary
 
         then:
-        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
+        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask' (registered by plugin class 'org.gradle.language.swift.plugins.SwiftBasePlugin').")
         failure.assertHasCause("Swift compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT5.version}'")
     }
 
@@ -179,7 +179,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         fails taskNameToAssembleDevelopmentBinary
 
         then:
-        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
+        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask' (registered by plugin class 'org.gradle.language.swift.plugins.SwiftBasePlugin').")
         failure.assertHasCause("Swift compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT5.version}'")
     }
 
@@ -201,7 +201,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         fails taskNameToAssembleDevelopmentBinary
 
         then:
-        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
+        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask' (registered by plugin class 'org.gradle.language.swift.plugins.SwiftBasePlugin').")
         failure.assertHasCause("Swift compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT3.version}'")
     }
 
