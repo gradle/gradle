@@ -39,6 +39,7 @@ dependencies {
 
     implementation(projects.fileCollections)
     implementation(projects.fileOperations)
+    implementation(projects.javaCompilerWorker)
     implementation(projects.javadoc)
     implementation(projects.jvmServices)
     implementation(projects.logging)

@@ -233,6 +233,7 @@
             <option value="$PROJECT_DIR$/platforms/jvm/ear" />
             <option value="$PROJECT_DIR$/platforms/jvm/jacoco" />
             <option value="$PROJECT_DIR$/platforms/jvm/java-compiler-plugin" />
+            <option value="$PROJECT_DIR$/platforms/jvm/java-compiler-worker" />
             <option value="$PROJECT_DIR$/platforms/jvm/java-platform" />
             <option value="$PROJECT_DIR$/platforms/jvm/javadoc" />
             <option value="$PROJECT_DIR$/platforms/jvm/jvm-services" />

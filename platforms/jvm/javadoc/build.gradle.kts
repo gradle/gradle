@@ -21,7 +21,7 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.fileCollections)
-    implementation(projects.languageJava)
+    implementation(projects.javaCompilerWorker)
 
     implementation(libs.guava)
     implementation(libs.slf4jApi)
