@@ -98,7 +98,6 @@ class DefaultConfigurationCacheHost internal constructor(
             val name = projectPath.name
             require(name != null)
 
-            val problems = service<Problems>()
             // Adds the descriptor to the registry as a side effect
             DefaultProjectDescriptor(
                 getProjectDescriptor(projectPath.parent),
@@ -106,7 +105,7 @@ class DefaultConfigurationCacheHost internal constructor(
                 dir,
                 projectDescriptorRegistry,
                 fileResolver,
-                problems
+                service<Problems>().reporter
             )
             buildDirs[projectPath] = buildDir
         }
