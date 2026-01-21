@@ -118,18 +118,5 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         return gradleApiAndScalaSpec;
     }
 
-    public static class ScalaCompilerParameters<T extends ScalaJavaJointCompileSpec> extends CompilerWorkerExecutor.CompilerParameters {
-        private final T compileSpec;
-
-        public ScalaCompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, T compileSpec) {
-            super(compilerClassName, compilerInstanceParameters);
-            this.compileSpec = compileSpec;
-        }
-
-        @Override
-        public T getCompileSpec() {
-            return compileSpec;
-        }
-    }
 }
 
