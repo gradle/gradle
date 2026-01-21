@@ -1,4 +1,4 @@
-beforeSettings {
+gradle.beforeSettings {
     caches {
         releasedWrappers { setRemoveUnusedEntriesAfterDays(45) }
         snapshotWrappers { setRemoveUnusedEntriesAfterDays(10) }
