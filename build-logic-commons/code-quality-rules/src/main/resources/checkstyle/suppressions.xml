@@ -66,6 +66,14 @@
               files=".*[/\\]platform-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]java-platform[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]groovy-compiler-worker[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]compile[/\\][^/\\]+"/>
+
+    <!-- These packages are duplicated in scala-compiler-worker from scala, don't require a package-info.java in each place -->
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]scala-compiler-worker[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]language[/\\]scala[/\\]tasks[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]scala-compiler-worker[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]scala[/\\][^/\\]+"/>
 
     <!-- These packages are duplicated in ide-native from ide, don't require a package-info.java in each place -->
     <suppress checks="JavadocPackage"
