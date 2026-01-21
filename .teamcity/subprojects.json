@@ -1274,6 +1274,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "scala-compiler-worker",
+    "path": "platforms/jvm/scala-compiler-worker",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "scoped-persistent-cache",
     "path": "platforms/core-execution/scoped-persistent-cache",
     "unitTests": false,
