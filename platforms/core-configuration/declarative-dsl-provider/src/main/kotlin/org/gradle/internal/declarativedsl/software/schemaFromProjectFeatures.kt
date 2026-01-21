@@ -23,12 +23,15 @@ import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.TargetTypeInformation.BuildModelTargetTypeInformation
 import org.gradle.api.internal.plugins.TargetTypeInformation.DefinitionTargetTypeInformation
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
+import org.gradle.internal.declarativedsl.analysis.BindingTargetStrategyInternal
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultProjectFeatureAccessorIdentifier
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultProjectFeatureOrigin
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
@@ -36,7 +39,6 @@ import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuild
 import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
 import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
-import org.gradle.internal.declarativedsl.evaluator.projectTypes.SOFTWARE_TYPE_ACCESSOR_PREFIX
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
@@ -132,16 +134,16 @@ fun buildProjectFeatureInfo(
     projectFeatureDeclarations: ProjectFeatureDeclarations,
     mapPluginTypeToSchemaType: (KClass<*>) -> KClass<*>
 ): ProjectFeatureSchemaBindingIndex {
-    val featureImplementations = projectFeatureDeclarations.getProjectFeatureImplementations().values.groupBy { it.targetDefinitionType }
+    val featureImplementations = projectFeatureDeclarations.getProjectFeatureImplementations().values.flatten().groupBy { it.targetDefinitionType }
 
     val featuresBoundToDefinition = featureImplementations.entries.mapNotNull { (key, value) -> if (key is DefinitionTargetTypeInformation) key to value else null }.toMap()
     val featuresBoundToModel = featureImplementations.entries.mapNotNull { (key, value) -> if (key is BuildModelTargetTypeInformation<*>) key to value else null }.toMap()
 
     return ProjectFeatureSchemaBindingIndex(
         featuresBoundToDefinition.mapKeys { mapPluginTypeToSchemaType(it.key.definitionType.kotlin) }
-            .mapValues { (_, value) -> value.map { ProjectFeatureInfo(it, SOFTWARE_TYPE_ACCESSOR_PREFIX) } },
+            .mapValues { (_, value) -> value.map { ProjectFeatureInfo(it) } },
         featuresBoundToModel.mapKeys { mapPluginTypeToSchemaType(it.key.buildModelType.kotlin) }
-            .mapValues { (_, value) -> value.map { ProjectFeatureInfo(it, SOFTWARE_TYPE_ACCESSOR_PREFIX) } }
+            .mapValues { (_, value) -> value.map { ProjectFeatureInfo(it) } }
     )
 }
 
@@ -151,10 +153,10 @@ fun buildProjectTypeInfo(
     projectFeatureDeclarations: ProjectFeatureDeclarations,
     pluginTypeToSchemaClassMapping: (KClass<*>) -> KClass<*>
 ): ProjectFeatureSchemaBindingIndex {
-    val projectTypeInfo = projectFeatureDeclarations.getProjectFeatureImplementations().values.mapNotNull {
+    val projectTypeInfo = projectFeatureDeclarations.getProjectFeatureImplementations().values.flatten().mapNotNull {
         it.targetDefinitionType.run {
             if (this is DefinitionTargetTypeInformation && definitionType == Project::class.java)
-                ProjectFeatureInfo(it, SOFTWARE_TYPE_ACCESSOR_PREFIX)
+                ProjectFeatureInfo(it)
             else null
         }
     }
@@ -176,10 +178,14 @@ fun replaceProjectWithSchemaTopLevelType(bindingType: KClass<*>, rootSchemaType:
 
 private
 data class ProjectFeatureInfo<T : Definition<V>, V : BuildModel>(
-    val delegate: ProjectFeatureImplementation<T, V>,
-    val accessorIdPrefix: String
+    val delegate: ProjectFeatureImplementation<T, V>
 ) : ProjectFeatureImplementation<T, V> by delegate {
-    val customAccessorId = "$accessorIdPrefix:${delegate.featureName}"
+    val customAccessorId = DefaultProjectFeatureAccessorIdentifier(delegate.featureName, delegate.targetDefinitionType.targetClassName)
+    val bindingTargetStrategy = when(delegate.targetDefinitionType) {
+        is DefinitionTargetTypeInformation<*> -> BindingTargetStrategyInternal.ToDefinition
+        is BuildModelTargetTypeInformation<*> -> BindingTargetStrategyInternal.ToBuildModel
+        else -> error("binding target type information does not represent a BuildModel or a Definition type: ${delegate.targetDefinitionType}")
+    }
 
     fun schemaFunction(host: SchemaBuildingHost, schemaTypeToExtend: KClass<*>) = host.withTag(softwareConfiguringFunctionTag(delegate.featureName)) {
         val receiverTypeRef = host.containerTypeRef(schemaTypeToExtend)
@@ -190,7 +196,7 @@ data class ProjectFeatureInfo<T : Definition<V>, V : BuildModel>(
             emptyList(),
             isDirectAccessOnly = true,
             semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
-                accessor = ConfigureAccessorInternal.DefaultCustom(definitionType, customAccessorId),
+                accessor = ConfigureAccessorInternal.DefaultProjectFeature(definitionType, customAccessorId, bindingTargetStrategy),
                 FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
                 definitionType,
                 FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
@@ -242,7 +248,8 @@ private class RuntimeModelTypeAccessors(
     val modelTypeById = info.associate { it.customAccessorId to it.delegate }
 
     override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType {
-        val projectFeature = modelTypeById[accessor.customAccessorIdentifier]
+        require(accessor.accessorIdentifier is CustomAccessorIdentifier.ProjectFeatureIdentifier) { "unexpected accessor, expected an accessor with a ProjectFeatureIdentifier, got ${accessor.accessorIdentifier::class.simpleName}" }
+        val projectFeature = modelTypeById[accessor.accessorIdentifier]
             ?: return InstanceAndPublicType.NULL
         return InstanceAndPublicType.of(applyProjectFeaturePlugin(receiverObject, projectFeature, projectFeatureApplicator), projectFeature.definitionPublicType.kotlin)
     }

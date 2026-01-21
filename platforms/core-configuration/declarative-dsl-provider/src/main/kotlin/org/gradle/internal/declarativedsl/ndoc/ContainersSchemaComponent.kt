@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.ndoc
 
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.tasks.Internal
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ContainerAccessorIdentifier
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataMemberFunction
@@ -29,6 +30,7 @@ import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationException
+import org.gradle.internal.declarativedsl.analysis.DefaultContainerAccessorIdentifier
 import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
@@ -81,7 +83,7 @@ internal fun EvaluationSchemaBuilder.namedDomainObjectContainers() {
 
 
 internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConversionComponent {
-    private val containerByAccessorId = mutableMapOf<String, ContainerProperty>()
+    private val containerByAccessorId = mutableMapOf<ContainerAccessorIdentifier, ContainerProperty>()
     private val elementFactoryFunctions = hashSetOf<SchemaMemberFunction>()
     private val elementPublicTypes = mutableMapOf<SchemaMemberFunction, KClass<*>>()
 
@@ -142,7 +144,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
     override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = listOf(
         object : RuntimeCustomAccessors {
             override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType {
-                val callable = containerByAccessorId[accessor.customAccessorIdentifier]?.originDeclaration?.callable ?: return InstanceAndPublicType.NULL
+                val callable = containerByAccessorId[accessor.accessorIdentifier]?.originDeclaration?.callable ?: return InstanceAndPublicType.NULL
                 return InstanceAndPublicType.of(callable.call(receiverObject), callable.returnType.jvmErasure)
             }
         }
@@ -191,14 +193,14 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
             emptyList(),
             false,
             FunctionSemanticsInternal.DefaultAccessAndConfigure(
-                ConfigureAccessorInternal.DefaultCustom(containerTypeRef, accessorId(host)),
+                ConfigureAccessorInternal.DefaultContainer(containerTypeRef, accessorId(host)),
                 DefaultUnit,
                 containerTypeRef,
                 DefaultRequired
             )
         )
 
-        fun accessorId(host: SchemaBuildingHost) = "container:${dataTypeRefName(host, ownerType.starProjectedType)}:$name"
+        fun accessorId(host: SchemaBuildingHost) = DefaultContainerAccessorIdentifier(name, dataTypeRefName(host, ownerType.starProjectedType))
 
         fun generateSyntheticContainerType(host: SchemaBuildingHost): DataClass = DefaultDataClass(
             syntheticTypeName(host),

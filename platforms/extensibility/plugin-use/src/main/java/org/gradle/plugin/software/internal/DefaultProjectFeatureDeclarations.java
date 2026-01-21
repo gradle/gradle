@@ -40,6 +40,7 @@ import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Pair;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.reflect.Instantiator;
@@ -49,7 +50,6 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -66,10 +66,9 @@ import static java.util.Collections.singletonList;
  */
 public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarations {
     private final Map<RegisteringPluginKey, Set<Class<? extends Plugin<Project>>>> pluginClasses = new LinkedHashMap<>();
-    private final Map<String, Class<? extends Plugin<Project>>> registeredTypes = new HashMap<>();
 
     @Nullable
-    private Map<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementations;
+    private Map<String, Set<ProjectFeatureImplementation<?, ?>>> projectFeatureImplementations;
 
     @SuppressWarnings("unused")
     private final InspectionScheme inspectionScheme;
@@ -91,38 +90,26 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         pluginClasses.computeIfAbsent(pluginKey, k -> new LinkedHashSet<>()).add(pluginClass);
     }
 
-    private Map<String, ProjectFeatureImplementation<?, ?>> discoverProjectFeatureImplementations() {
-        final ImmutableMap.Builder<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementationsBuilder = ImmutableMap.builder();
+    private Map<String, Set<ProjectFeatureImplementation<?, ?>>> discoverProjectFeatureImplementations() {
+        Map<String, Set<ProjectFeatureImplementation<?, ?>>> projectFeatureDeclarations = new LinkedHashMap<>();
         pluginClasses.forEach((registeringPluginClass, registeredPluginClasses) ->
             registeredPluginClasses.forEach(pluginClass -> {
                 TypeMetadata pluginClassTypeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(pluginClass);
                 TypeAnnotationMetadata pluginClassAnnotationMetadata = pluginClassTypeMetadata.getTypeAnnotationMetadata();
-                registerTypeIfPresent(registeringPluginClass, pluginClass, pluginClassAnnotationMetadata, projectFeatureImplementationsBuilder);
-                registerFeaturesIfPresent(registeringPluginClass, pluginClass, pluginClassAnnotationMetadata, projectFeatureImplementationsBuilder);
+                registerTypeIfPresent(registeringPluginClass, pluginClass, pluginClassAnnotationMetadata, projectFeatureDeclarations);
+                registerFeaturesIfPresent(registeringPluginClass, pluginClass, pluginClassAnnotationMetadata, projectFeatureDeclarations);
             })
         );
-        return projectFeatureImplementationsBuilder.build();
+        return ImmutableMap.copyOf(projectFeatureDeclarations);
     }
 
     private <T extends Definition<V>, V extends BuildModel> void registerFeature(
         RegisteringPluginKey registeringPlugin,
         Class<? extends Plugin<Project>> pluginClass,
         ProjectFeatureBindingDeclaration<T, V> binding,
-        ImmutableMap.Builder<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementationsBuilder
+        Map<String, Set<ProjectFeatureImplementation<?, ?>>> projectFeatureDeclarations
     ) {
         String projectFeatureName = binding.getName();
-
-        Class<? extends Plugin<Project>> existingPluginClass = registeredTypes.put(projectFeatureName, pluginClass);
-        if (existingPluginClass != null && existingPluginClass != pluginClass) {
-            InternalProblem duplicateRegistrationProblem = problemReporter.internalCreate(builder -> builder
-                .id("duplicate-project-feature-registration", "Duplicate project feature registration", GradleCoreProblemGroup.configurationUsage())
-                .details("A project feature or type with a given name can only be registered by a single plugin.")
-                .contextualLabel("Project feature '" + projectFeatureName + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "'")
-                .solution("Remove one of the plugins from the build.")
-                .severity(Severity.ERROR)
-            );
-            throwTypeValidationException("Project feature '" + projectFeatureName + "' is registered by multiple plugins:", singletonList(duplicateRegistrationProblem));
-        }
 
         if (binding.getDefinitionSafety() == ProjectFeatureBindingDeclaration.Safety.SAFE) {
             validateDefinitionSafety(binding);
@@ -143,8 +130,35 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
             throwTypeValidationException("Project feature '" + projectFeatureName + "' is bound to an invalid type:", singletonList(bindingTypeProblem));
         }
 
-        projectFeatureImplementationsBuilder.put(
+        Set<ProjectFeatureImplementation<?, ?>> implementations = projectFeatureDeclarations.computeIfAbsent(
             projectFeatureName,
+            k -> new LinkedHashSet<>()
+        );
+
+        List<Class<? extends Plugin<Project>>> existingPluginClasses = implementations.stream().filter(existingFeature ->
+                // If the feature name matches another registration, check if the target types are ambiguous
+                existingFeature.getFeatureName().equals(binding.getName()) && TargetTypeInformationChecks.isOverlappingBindingType(existingFeature.getTargetDefinitionType(), binding.targetDefinitionType()))
+            .map(ProjectFeatureImplementation::getPluginClass)
+            .collect(Collectors.toList());
+
+        if (!existingPluginClasses.isEmpty()) {
+            List<InternalProblem> problems = new ArrayList<>();
+            existingPluginClasses.forEach(existingPluginClass -> {
+                problems.add(
+                    problemReporter.internalCreate(builder -> builder
+                        .id("duplicate-project-feature-registration", "Duplicate project feature registration", GradleCoreProblemGroup.configurationUsage())
+                        .details("A project feature or type with a given name must bind to a unique target type.")
+                        .contextualLabel("Project feature '" + projectFeatureName + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "' but their bindings have overlapping target types.")
+                        .solution("Remove one of the plugins from the build.")
+                        .severity(Severity.ERROR)
+                    )
+                );
+            });
+
+            throwTypeValidationException("Project feature '" + projectFeatureName + "' is registered by multiple plugins:", problems);
+        }
+
+        implementations.add(
             new DefaultProjectFeatureImplementation<>(
                 projectFeatureName,
                 binding.getDefinitionType(),
@@ -165,7 +179,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         RegisteringPluginKey registeringPluginClass,
         Class<? extends Plugin<Project>> pluginClass,
         TypeAnnotationMetadata pluginClassAnnotationMetadata,
-        ImmutableMap.Builder<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementationsBuilder
+        Map<String, Set<ProjectFeatureImplementation<?, ?>>> projectFeatureDeclarations
     ) {
         Optional<BindsProjectFeature> bindsProjectFeatureAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsProjectFeature.class);
         if (bindsProjectFeatureAnnotation.isPresent()) {
@@ -175,12 +189,17 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
             ProjectFeatureBindingBuilderInternal builder = new DefaultProjectFeatureBindingBuilder();
             bindingRegistration.bind(builder);
             builder.build().forEach(binding ->
-                registerFeature(registeringPluginClass, pluginClass, binding, projectFeatureImplementationsBuilder)
+                registerFeature(registeringPluginClass, pluginClass, binding, projectFeatureDeclarations)
             );
         }
     }
 
-    private void registerTypeIfPresent(RegisteringPluginKey registeringPluginKey, Class<? extends Plugin<Project>> pluginClass, TypeAnnotationMetadata pluginClassAnnotationMetadata, ImmutableMap.Builder<String, ProjectFeatureImplementation<?, ?>> projectFeatureImplementationsBuilder) {
+    private void registerTypeIfPresent(
+        RegisteringPluginKey registeringPluginKey,
+        Class<? extends Plugin<Project>> pluginClass,
+        TypeAnnotationMetadata pluginClassAnnotationMetadata,
+        Map<String, Set<ProjectFeatureImplementation<?, ?>>> projectFeatureDeclarations
+    ) {
         Optional<BindsProjectType> bindsProjectTypeAnnotation = pluginClassAnnotationMetadata.getAnnotation(BindsProjectType.class);
         if (bindsProjectTypeAnnotation.isPresent()) {
             BindsProjectType bindsProjectType = bindsProjectTypeAnnotation.get();
@@ -189,7 +208,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
             ProjectTypeBindingBuilderInternal builder = new DefaultProjectTypeBindingBuilder();
             bindingRegistration.bind(builder);
             builder.build().forEach(binding ->
-                registerFeature(registeringPluginKey, pluginClass, binding, projectFeatureImplementationsBuilder)
+                registerFeature(registeringPluginKey, pluginClass, binding, projectFeatureDeclarations)
             );
         }
     }
@@ -262,7 +281,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
     }
 
     @Override
-    public Map<String, ProjectFeatureImplementation<?, ?>> getProjectFeatureImplementations() {
+    public Map<String, Set<ProjectFeatureImplementation<?, ?>>> getProjectFeatureImplementations() {
         if (projectFeatureImplementations == null) {
             projectFeatureImplementations = discoverProjectFeatureImplementations();
         }
@@ -272,8 +291,10 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
     @Override
     public NamedDomainObjectCollectionSchema getSchema() {
         return () -> Iterables.transform(
-            () -> getProjectFeatureImplementations().entrySet().iterator(),
-            entry -> new ProjectFeatureSchema(entry.getKey(), entry.getValue().getDefinitionPublicType())
+            () -> getProjectFeatureImplementations().entrySet().stream().flatMap(entry ->
+                entry.getValue().stream().map(impl -> Pair.of(entry.getKey(), impl))
+            ).iterator(),
+            pair -> new ProjectFeatureSchema(pair.left, pair.right.getDefinitionPublicType())
         );
     }
 

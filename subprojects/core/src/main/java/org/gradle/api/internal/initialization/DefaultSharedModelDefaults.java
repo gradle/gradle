@@ -30,6 +30,7 @@ import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.inject.Inject;
+import java.util.Set;
 
 public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, MethodMixIn {
     private final ProjectFeatureDeclarations projectFeatureDeclarations;
@@ -65,14 +66,23 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
     @Override
     public <T> void add(String name, Class<T> publicType, Action<? super T> configureAction) {
         if (projectFeatureDeclarations.getProjectFeatureImplementations().containsKey(name)) {
-            ProjectFeatureImplementation<?, ?> projectFeature = projectFeatureDeclarations.getProjectFeatureImplementations().get(name);
+            Set<ProjectFeatureImplementation<?, ?>> implementations = projectFeatureDeclarations.getProjectFeatureImplementations().get(name);
+            if (implementations.isEmpty()) {
+                throw new IllegalArgumentException(String.format("Cannot add default for project type '%s' because it has no implementations.", name));
+            }
+            // TODO - this works for now because we only have one implementation per project type, but we need to revisit this when we support defaults
+            // for features where we could have multiple implementations binding to different target types
+            if (implementations.size() > 1) {
+                throw new IllegalArgumentException(String.format("Cannot add default for project feature '%s' because it has multiple registered implementations.", name));
+            }
+            ProjectFeatureImplementation<?, ?> projectFeature = implementations.iterator().next();
             if (projectFeature.getDefinitionPublicType().isAssignableFrom(publicType)) {
                 projectFeature.addModelDefault(new ActionBasedDefault<>(configureAction));
             } else {
-                throw new IllegalArgumentException(String.format("Cannot add convention for project type '%s' with public type '%s'. Expected public type to be assignable from '%s'.", name, publicType, projectFeature.getDefinitionPublicType()));
+                throw new IllegalArgumentException(String.format("Cannot add default for project type '%s' with public type '%s'. Expected public type to be assignable from '%s'.", name, publicType, projectFeature.getDefinitionPublicType()));
             }
         } else {
-            throw new IllegalArgumentException(String.format("Cannot add convention for unknown project type '%s'.", name));
+            throw new IllegalArgumentException(String.format("Cannot add default for unknown project type '%s'.", name));
         }
     }
 
@@ -92,12 +102,20 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
         @Override
         public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (hasMethod(name, arguments)) {
-                ProjectFeatureImplementation<?, ?> projectFeature = projectFeatureDeclarations.getProjectFeatureImplementations().get(name);
-                add(name, projectFeature.getDefinitionPublicType(), Cast.uncheckedNonnullCast(toAction(arguments[0])));
+                Set<ProjectFeatureImplementation<?, ?>> implementations = projectFeatureDeclarations.getProjectFeatureImplementations().get(name);
+                if (implementations.isEmpty()) {
+                    throw new IllegalArgumentException(String.format("Cannot resolve default for project type '%s' because it has no implementations.", name));
+                }
+
+                if (implementations.size() > 1) {
+                    throw new IllegalArgumentException(String.format("Cannot resolve default for project feature '%s' because it has multiple registered implementations.", name));
+                }
+                ProjectFeatureImplementation<?, ?> implementation = implementations.iterator().next();
+                add(name, implementation.getDefinitionPublicType(), Cast.uncheckedNonnullCast(toAction(arguments[0])));
                 return DynamicInvokeResult.found();
-            } else {
-                return DynamicInvokeResult.notFound();
             }
+
+            return DynamicInvokeResult.notFound();
         }
 
         private Action<?> toAction(Object argument) {

@@ -24,7 +24,9 @@ import org.gradle.internal.declarativedsl.evaluator.main.SimpleAnalysisEvaluator
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.tooling.events.ProgressListener
+import spock.lang.Ignore
 
+@Ignore("Until a version of the Android Ecosystem plugin that is compatible with Gradle 9.3+ is released.")
 @TargetGradleVersion(">=8.14 <9.3")
 @ToolingApiVersion('>=8.14')
 class AndroidEcosystemPrototypeCrossVersionTest extends AbstractDeclarativeDslToolingModelsCrossVersionTest {
