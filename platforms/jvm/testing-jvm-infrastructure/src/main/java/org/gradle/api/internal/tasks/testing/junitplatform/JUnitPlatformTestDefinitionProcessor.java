@@ -116,7 +116,6 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         }
     }
 
-    @NullMarked
     private static final class CollectThenExecuteTestDefinitionConsumer implements TestDefinitionConsumer<TestDefinition> {
         private final List<DiscoverySelector> selectors = new ArrayList<>();
 
@@ -162,7 +161,7 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
 
         private void processAllTestDefinitions() {
             LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest();
-            TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, spec.getBaseDefinitionsDir());
+            JUnitPlatformTestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator, spec.getBaseDefinitionsDir());
             Launcher launcher = Objects.requireNonNull(launcherSession).getLauncher();
             if (spec.isDryRun()) {
                 TestPlan testPlan = launcher.discover(discoveryRequest);
@@ -170,6 +169,7 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
             } else {
                 launcher.execute(discoveryRequest, executionListener);
             }
+            executionListener.throwAnyFatalExceptions();
         }
 
         private Class<?> loadClass(String className) {
@@ -284,7 +284,6 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         }
     }
 
-    @NullMarked
     private static final class BackwardsCompatibleLauncherSession implements AutoCloseable {
 
         static BackwardsCompatibleLauncherSession open() {

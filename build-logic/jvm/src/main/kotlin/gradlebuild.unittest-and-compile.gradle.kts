@@ -156,21 +156,26 @@ fun configureCompileTask(options: CompileOptions) {
 }
 
 fun addDependencies() {
+    if (project.name == "gradle-kotlin-dsl-accessors") return
+    val libs = project.versionCatalogs.named("libs")
+
+    fun getLibrary(name: String) = libs.findLibrary(name).get()
+
     dependencies {
-        testCompileOnly(libs.junit)
-        testRuntimeOnly(libs.junit5Vintage)
-        testImplementation(libs.groovy)
-        testImplementation(libs.groovyAnt)
-        testImplementation(libs.groovyJson)
-        testImplementation(libs.groovyTest)
-        testImplementation(libs.groovyXml)
-        testImplementation(libs.spock)
-        testImplementation(libs.junit5Vintage)
-        testImplementation(libs.spockJUnit4)
-        testImplementation(libs.develocityTestAnnotation)
-        testRuntimeOnly(libs.bytebuddy)
-        testRuntimeOnly(libs.objenesis)
-        testRuntimeOnly(libs.junitPlatform)
+        testCompileOnly(getLibrary("junit"))
+        testRuntimeOnly(getLibrary("junit5Vintage"))
+        testImplementation(getLibrary("groovy"))
+        testImplementation(getLibrary("groovyAnt"))
+        testImplementation(getLibrary("groovyJson"))
+        testImplementation(getLibrary("groovyTest"))
+        testImplementation(getLibrary("groovyXml"))
+        testImplementation(getLibrary("spock"))
+        testImplementation(getLibrary("junit5Vintage"))
+        testImplementation(getLibrary("spockJUnit4"))
+        testImplementation(getLibrary("develocityTestAnnotation"))
+        testRuntimeOnly(getLibrary("bytebuddy"))
+        testRuntimeOnly(getLibrary("objenesis"))
+        testRuntimeOnly(getLibrary("junitPlatform"))
 
         // use a separate configuration for the platform dependency that does not get published as part of 'apiElements' or 'runtimeElements'
         val platformImplementation by configurations.creating
@@ -255,16 +260,8 @@ abstract class AddOpensArgumentProvider : CommandLineArgumentProvider {
     @get:Input
     abstract val embedded: Property<Boolean>
 
-    override fun asArguments(): Iterable<String> {
-        return if (unitTest.get() || embedded.get()) {
-            JpmsConfiguration.forDaemonProcesses(jvmVersion.get().toInt(), true) +
-                // https://github.com/gradle/gradle-private/issues/4756
-                "--add-opens=java.base/java.time=ALL-UNNAMED"
-        } else {
-            listOf("--add-opens", "java.base/java.util=ALL-UNNAMED") + // Used in tests by native platform library: WrapperProcess.getEnv
-                listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")   // Used in tests by ClassLoaderUtils
-        }
-    }
+    override fun asArguments(): Iterable<String> =
+        JpmsConfiguration.forDaemonProcesses(jvmVersion.get(), true)
 }
 
 fun Test.addOsAsInputs() {

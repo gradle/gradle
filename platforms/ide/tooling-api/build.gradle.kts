@@ -51,7 +51,6 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.buildDiscoveryImpl)
-    implementation(projects.buildProcessServices)
     implementation(projects.core)
     implementation(projects.functional)
     implementation(projects.logging)
@@ -77,6 +76,7 @@ dependencies {
     testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(testFixtures(projects.buildProcessServices))
     testFixturesImplementation(testFixtures(projects.enterpriseLogging))
+    testFixturesImplementation(testFixtures(projects.launcher))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
 

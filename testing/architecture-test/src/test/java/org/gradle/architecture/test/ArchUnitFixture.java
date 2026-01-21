@@ -21,16 +21,12 @@ import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.base.HasDescription;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaGenericArrayType;
 import com.tngtech.archunit.core.domain.JavaMember;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.domain.JavaParameter;
-import com.tngtech.archunit.core.domain.JavaParameterizedType;
-import com.tngtech.archunit.core.domain.JavaType;
-import com.tngtech.archunit.core.domain.JavaTypeVariable;
-import com.tngtech.archunit.core.domain.JavaWildcardType;
 import com.tngtech.archunit.core.domain.PackageMatchers;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
@@ -56,18 +52,20 @@ import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.CodeSource;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -78,6 +76,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyP
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideOutsideOfPackages;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
 import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
@@ -162,6 +161,11 @@ public interface ArchUnitFixture {
             .as("Gradle Internal API");
     }
 
+    static DescribedPredicate<JavaClass> groovyApi() {
+        return resideInAnyPackage("org.apache.groovy..", "groovy..", "org.codehaus.groovy..")
+            .as("Groovy API");
+    }
+
     static DescribedPredicate<JavaClass> inGradlePublicApiPackages() {
         return new InGradlePublicApiPackages();
     }
@@ -185,15 +189,6 @@ public interface ArchUnitFixture {
             return input.isPrimitive();
         }
     };
-
-    static <T> DescribedPredicate<Collection<T>> thatAll(DescribedPredicate<T> predicate) {
-        return new DescribedPredicate<Collection<T>>("that all %s", predicate.getDescription()) {
-            @Override
-            public boolean test(Collection<T> input) {
-                return input.stream().allMatch(predicate);
-            }
-        };
-    }
 
     static ArchCondition<JavaClass> beAbstractClass() {
         return new ArchCondition<JavaClass>("be abstract") {
@@ -225,7 +220,7 @@ public interface ArchUnitFixture {
         return new HaveDirectSuperclassOrInterfaceThatAre(types);
     }
 
-    static ArchCondition<JavaMethod> haveOnlyArgumentsOrReturnTypesThatAre(DescribedPredicate<JavaClass> types) {
+    static ArchCondition<JavaMember> haveOnlyArgumentsOrReturnTypesThatAre(DescribedPredicate<JavaClass> types) {
         return new HaveOnlyArgumentsOrReturnTypesThatAre(types);
     }
 
@@ -323,12 +318,22 @@ public interface ArchUnitFixture {
         return new AnnotatedMaybeInSupertypePredicate(predicate);
     }
 
-    static ArchCondition<JavaClass> beAnnotatedOrInPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
-        return ArchConditions.be(annotatedOrInPackageAnnotatedWith(annotationType));
+    static ArchCondition<JavaClass> beNullMarkedClass() {
+        return ArchConditions.be(annotatedWithOrEnclosedByElementAnnotatedWith(NullMarked.class)).and(not(beAnnotatedWith(NullUnmarked.class)));
     }
 
-    static ArchCondition<JavaClass> beNullMarkedClass() {
-        return beAnnotatedOrInPackageAnnotatedWith(NullMarked.class).and(not(beAnnotatedWith(NullUnmarked.class)));
+    static ArchCondition<JavaClass> notBeUnnecessarilyAnnotatedWithNullMarked() {
+        // We can't forbid @NullMarked on top-level classes that are in a @NullMarked package yet
+        // because some of our split packages are not consistently annotated across subprojects.
+        DescribedPredicate<JavaClass> notEnclosedByNullMarkedExceptPackages =
+            inPackageAnnotatedWith(NullMarked.class).or(not(enclosedByElementAnnotatedWith(NullMarked.class)));
+        DescribedPredicate<JavaClass> notUnnecessarilyAnnotatedWithNullMarked =
+            notEnclosedByNullMarkedExceptPackages.or(not(annotatedWith(NullMarked.class)));
+        return ArchConditions.be(notUnnecessarilyAnnotatedWithNullMarked)
+            .as("not be unnecessarily annotated with @" + NullMarked.class.getName())
+            .describeEventsBy((predicateDescription, satisfied) ->
+                (satisfied ? "is not " : "is ") + "unnecessarily annotated with @" + NullMarked.class.getName()
+            );
     }
 
     static ArchCondition<JavaMethod> beNullUnmarkedMethod() {
@@ -340,6 +345,27 @@ public interface ArchUnitFixture {
      */
     static DescribedPredicate<JavaClass> annotatedOrInPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
         return new AnnotatedOrInPackageAnnotatedPredicate(annotationType);
+    }
+
+    /**
+     * Either the class is directly annotated with the given annotation type or the class is in an element that is annotated with the given annotation type.
+     */
+    static DescribedPredicate<JavaClass> annotatedWithOrEnclosedByElementAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return new AnnotatedOrEnclosedByElementAnnotatedPredicate(annotationType);
+    }
+
+    /**
+     * The class is in an element that is annotated with the given annotation type.
+     */
+    static DescribedPredicate<JavaClass> enclosedByElementAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return new EnclosedByElementAnnotatedPredicate(annotationType);
+    }
+
+    /**
+     * The class is in an element that is annotated with the given annotation type.
+     */
+    static DescribedPredicate<JavaClass> inPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
+        return new InPackageAnnotatedPredicate(annotationType);
     }
 
     class HaveGradleTypeEquivalent extends ArchCondition<JavaMethod> {
@@ -388,7 +414,7 @@ public interface ArchUnitFixture {
         }
     }
 
-    class HaveOnlyArgumentsOrReturnTypesThatAre extends ArchCondition<JavaMethod> {
+    class HaveOnlyArgumentsOrReturnTypesThatAre extends ArchCondition<JavaMember> {
         private final DescribedPredicate<JavaClass> types;
 
         public HaveOnlyArgumentsOrReturnTypesThatAre(DescribedPredicate<JavaClass> types) {
@@ -397,11 +423,14 @@ public interface ArchUnitFixture {
         }
 
         @Override
-        public void check(JavaMethod method, ConditionEvents events) {
-            Set<JavaClass> referencedTypes = new LinkedHashSet<>();
-            unpackJavaType(method.getReturnType(), referencedTypes);
-            method.getTypeParameters().forEach(typeParameter -> unpackJavaType(typeParameter, referencedTypes));
-            referencedTypes.addAll(method.getRawParameterTypes());
+        public void check(JavaMember member, ConditionEvents events) {
+            Set<JavaClass> referencedTypes = new TreeSet<>(new Comparator<JavaClass>() {
+                @Override
+                public int compare(JavaClass o1, JavaClass o2) {
+                    return o1.getFullName().compareTo(o2.getFullName());
+                }
+            });
+            referencedTypes.addAll(member.getAllInvolvedRawTypes());
             ImmutableSet<String> matchedClasses = referencedTypes.stream()
                 .filter(it -> !types.test(it))
                 .map(JavaClass::getName)
@@ -409,44 +438,18 @@ public interface ArchUnitFixture {
             boolean fulfilled = matchedClasses.isEmpty();
             String message = fulfilled
                 ? String.format("%s has only arguments/return type that are %s in %s",
-                method.getDescription(),
+                member.getDescription(),
                 types.getDescription(),
-                method.getSourceCodeLocation())
+                member.getSourceCodeLocation())
 
                 : String.format("%s has arguments/return type %s that %s not %s in %s",
-                method.getDescription(),
+                member.getDescription(),
                 String.join(", ", matchedClasses),
                 matchedClasses.size() == 1 ? "is" : "are",
                 types.getDescription(),
-                method.getSourceCodeLocation()
+                member.getSourceCodeLocation()
             );
-            events.add(new SimpleConditionEvent(method, fulfilled, message));
-        }
-
-        private void unpackJavaType(JavaType type, Set<JavaClass> referencedTypes) {
-            unpackJavaType(type, referencedTypes, new HashSet<>());
-        }
-
-        private void unpackJavaType(JavaType type, Set<JavaClass> referencedTypes, Set<JavaType> visited) {
-            if (!visited.add(type)) {
-                return;
-            }
-            if (type.toErasure().isEquivalentTo(Object.class)) {
-                return;
-            }
-            referencedTypes.add(type.toErasure());
-            if (type instanceof JavaTypeVariable) {
-                List<JavaType> upperBounds = ((JavaTypeVariable<?>) type).getUpperBounds();
-                upperBounds.forEach(bound -> unpackJavaType(bound, referencedTypes, visited));
-            } else if (type instanceof JavaGenericArrayType) {
-                unpackJavaType(((JavaGenericArrayType) type).getComponentType(), referencedTypes, visited);
-            } else if (type instanceof JavaWildcardType) {
-                JavaWildcardType wildcardType = (JavaWildcardType) type;
-                wildcardType.getUpperBounds().forEach(bound -> unpackJavaType(bound, referencedTypes, visited));
-                wildcardType.getLowerBounds().forEach(bound -> unpackJavaType(bound, referencedTypes, visited));
-            } else if (type instanceof JavaParameterizedType) {
-                ((JavaParameterizedType) type).getActualTypeArguments().forEach(argument -> unpackJavaType(argument, referencedTypes, visited));
-            }
+            events.add(new SimpleConditionEvent(member, fulfilled, message));
         }
     }
 
@@ -561,6 +564,20 @@ public interface ArchUnitFixture {
         }
     }
 
+    class InPackageAnnotatedPredicate extends DescribedPredicate<JavaClass> {
+        private final Class<? extends Annotation> annotationType;
+
+        InPackageAnnotatedPredicate(Class<? extends Annotation> annotationType) {
+            super("annotated via its package with @" + annotationType.getName());
+            this.annotationType = annotationType;
+        }
+
+        @Override
+        public boolean test(JavaClass input) {
+            return input.getPackage().isAnnotatedWith(annotationType);
+        }
+    }
+
     class AnnotatedOrInPackageAnnotatedPredicate extends DescribedPredicate<JavaClass> {
         private final Class<? extends Annotation> annotationType;
 
@@ -580,6 +597,105 @@ public interface ArchUnitFixture {
                 // Fall back to ArchUnit query
                 return input.isAnnotatedWith(annotationType) || input.getPackage().isAnnotatedWith(annotationType);
             }
+        }
+    }
+
+    class EnclosedByElementAnnotatedPredicate extends DescribedPredicate<JavaClass> {
+        private final AnnotatedOrEnclosedByElementAnnotatedPredicate delegate;
+
+        EnclosedByElementAnnotatedPredicate(Class<? extends Annotation> annotationType) {
+            super("annotated via an enclosing element with @" + annotationType.getName());
+            this.delegate = new AnnotatedOrEnclosedByElementAnnotatedPredicate(annotationType);
+        }
+
+        @Override
+        public boolean test(JavaClass input) {
+            try {
+                // Try to use reflection in order to find `TYPE_USE` annotations
+                // See https://github.com/TNG/ArchUnit/issues/1382
+                Class<?> clazz = input.reflect();
+                return delegate.isEnclosedByElementAnnotated(clazz);
+            } catch (NoClassDefFoundError e) {
+                // Fall back to ArchUnit query
+                return delegate.isEnclosedByElementAnnotated(input);
+            }
+        }
+    }
+
+    class AnnotatedOrEnclosedByElementAnnotatedPredicate extends DescribedPredicate<JavaClass> {
+        private final Class<? extends Annotation> annotationType;
+
+        AnnotatedOrEnclosedByElementAnnotatedPredicate(Class<? extends Annotation> annotationType) {
+            super("annotated (directly or via an enclosing element) with @" + annotationType.getName());
+            this.annotationType = annotationType;
+        }
+
+        @Override
+        public boolean test(JavaClass input) {
+            try {
+                // Try to use reflection in order to find `TYPE_USE` annotations
+                // See https://github.com/TNG/ArchUnit/issues/1382
+                Class<?> clazz = input.reflect();
+                return isAnnotatedOrEnclosedByElementAnnotated(clazz);
+            } catch (NoClassDefFoundError e) {
+                // Fall back to ArchUnit query
+                return isAnnotatedOrEnclosedByElementAnnotated(input);
+            }
+        }
+
+        private boolean isAnnotatedOrEnclosedByElementAnnotated(AnnotatedElement annotated) {
+            if (annotated.isAnnotationPresent(annotationType)) {
+                return true;
+            }
+            return isEnclosedByElementAnnotated(annotated);
+        }
+
+        private boolean isEnclosedByElementAnnotated(AnnotatedElement annotated) {
+            if (annotated instanceof Class<?> clazz) {
+                Class<?> enclosingClass = clazz.getEnclosingClass();
+                if (enclosingClass != null) {
+                    return isAnnotatedOrEnclosedByElementAnnotated(enclosingClass);
+                }
+                Method enclosingMethod = clazz.getEnclosingMethod();
+                if (enclosingMethod != null) {
+                    return isAnnotatedOrEnclosedByElementAnnotated(enclosingMethod);
+                }
+                Constructor<?> enclosingConstructor = clazz.getEnclosingConstructor();
+                if (enclosingConstructor != null) {
+                    return isAnnotatedOrEnclosedByElementAnnotated(enclosingConstructor);
+                }
+                Package pkg = clazz.getPackage();
+                if (pkg != null) {
+                    return isAnnotatedOrEnclosedByElementAnnotated(pkg);
+                }
+            }
+            if (annotated instanceof Member member) {
+                return isAnnotatedOrEnclosedByElementAnnotated(member.getDeclaringClass());
+            }
+            return false;
+        }
+
+        private boolean isAnnotatedOrEnclosedByElementAnnotated(CanBeAnnotated annotated) {
+            if (annotated.isAnnotatedWith(annotationType)) {
+                return true;
+            }
+            return isEnclosedByElementAnnotated(annotated);
+        }
+
+        private boolean isEnclosedByElementAnnotated(CanBeAnnotated annotated) {
+            if (annotated instanceof JavaClass javaClass) {
+                if (javaClass.getEnclosingClass().isPresent()) {
+                    return test(javaClass.getEnclosingClass().get());
+                }
+                if (javaClass.getEnclosingCodeUnit().isPresent()) {
+                    return isAnnotatedOrEnclosedByElementAnnotated(javaClass.getEnclosingCodeUnit().get());
+                }
+                return isAnnotatedOrEnclosedByElementAnnotated(javaClass.getPackage());
+            }
+            if (annotated instanceof JavaMember javaMember) {
+                return test(javaMember.getOwner());
+            }
+            return false;
         }
     }
 

@@ -37,6 +37,7 @@ USAGE: gradle [option...] [task...]
 --configure-on-demand              Configure necessary projects only. Gradle will attempt to reduce configuration time for large multi-project builds. [incubating]
 --no-configure-on-demand           Disables the use of configuration on demand. [incubating]
 --console                          Specifies which type of console output to generate. Values are 'plain', 'colored', 'auto' (default), 'rich' or 'verbose'.
+--console-unicode                  Specifies which character types are allowed in console output to generate. Values are 'auto' (default), 'disable' or 'enable'.
 --continue                         Continue task execution after a task failure.
 --no-continue                      Stop task execution after a task failure.
 -D, --system-prop                  Set system property of the JVM (e.g. -Dmyprop=myvalue).
@@ -76,7 +77,7 @@ USAGE: gradle [option...] [task...]
 --status                           Shows status of running and recently stopped Gradle daemon(s).
 --stop                             Stops the Gradle daemon if it is running.
 -t, --continuous                   Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.
---task-graph                       (Experimental) Print task graph instead of executing tasks.
+--task-graph                       Print task graph instead of executing tasks.
 -U, --refresh-dependencies         Refresh the state of dependencies.
 --update-locks                     Perform a partial update of the dependency lock, letting passed in module notations change version. [incubating]
 -V, --show-version                 Print version info and continue.

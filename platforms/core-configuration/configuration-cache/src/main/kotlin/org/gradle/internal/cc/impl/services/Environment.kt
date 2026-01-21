@@ -17,41 +17,29 @@
 package org.gradle.internal.cc.impl.services
 
 import org.gradle.initialization.Environment
-import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.extensions.core.getBroadcaster
 import org.gradle.internal.extensions.stdlib.filterKeysByPrefix
 import org.gradle.internal.extensions.stdlib.uncheckedCast
-import org.gradle.internal.resource.local.FileResourceListener
-import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.Scope
-import org.gradle.util.internal.GUtil
-import java.io.File
+import org.gradle.internal.service.scopes.ServiceScope
 
 
 /**
  * Augments the [DefaultEnvironment] to track access to properties files, environment variables and system properties.
  **/
 class ConfigurationCacheEnvironment(
-    private val listenerManager: ListenerManager
+    private val listener: Listener
 ) : DefaultEnvironment() {
 
-    @EventScope(Scope.BuildTree::class)
+    /**
+     * Receives events about reading environmental variables by Gradle runtime.
+     * These events are not sent through {@code ListenerManager}.
+     */
+    @ServiceScope(Scope.BuildTree::class)
     interface Listener {
         fun systemPropertiesPrefixedBy(prefix: String, snapshot: Map<String, String?>)
         fun systemProperty(name: String, value: String?)
         fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>)
         fun envVariable(name: String, value: String?)
-    }
-
-    private
-    val fileResourceListener: FileResourceListener by lazy(listenerManager::getBroadcaster)
-
-    private
-    val listener: Listener by lazy(listenerManager::getBroadcaster)
-
-    override fun propertiesFile(propertiesFile: File): Map<String, String>? {
-        fileResourceListener.fileObserved(propertiesFile)
-        return super.propertiesFile(propertiesFile)
     }
 
     override fun getSystemProperties(): Environment.Properties =
@@ -91,11 +79,6 @@ class ConfigurationCacheEnvironment(
  * Gives direct access to system resources.
  */
 open class DefaultEnvironment : Environment {
-
-    override fun propertiesFile(propertiesFile: File): Map<String, String>? = when {
-        propertiesFile.isFile -> GUtil.loadProperties(propertiesFile).uncheckedCast()
-        else -> null
-    }
 
     override fun getSystemProperties(): Environment.Properties =
         DefaultProperties(System.getProperties().uncheckedCast())

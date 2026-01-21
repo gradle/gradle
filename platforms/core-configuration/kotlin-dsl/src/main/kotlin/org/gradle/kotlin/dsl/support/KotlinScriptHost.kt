@@ -37,6 +37,7 @@ import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
+import org.gradle.kotlin.dsl.execution.KotlinMetadataCompatibilityChecker
 
 import org.gradle.kotlin.dsl.invoke
 
@@ -77,6 +78,11 @@ class KotlinScriptHost<out T : Any> internal constructor(
         // In this scope the TemporaryFileProvider would be provided by the ProjectScopeServices.
         // That would generate this temporary directory inside the project build directory.
         serviceRegistry.get<GradleUserHomeTemporaryFileProvider>()
+    }
+
+    internal
+    val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker by unsafeLazy {
+        serviceRegistry.get<KotlinMetadataCompatibilityChecker>()
     }
 
     internal

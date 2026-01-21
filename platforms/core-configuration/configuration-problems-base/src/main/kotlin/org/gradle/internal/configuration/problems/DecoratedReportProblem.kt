@@ -79,6 +79,15 @@ class DecoratedReportProblemJsonSource(private val problem: DecoratedReportProbl
                 }
             }
 
+            is PropertyTrace.VirtualProperty -> {
+                property("kind", "VirtualProperty")
+                property("name", trace.name)
+                property("owner", when (trace.owner) {
+                    is PropertyTrace.Task -> taskPathFrom(trace.owner)
+                    else -> firstTypeFrom(trace.owner).name
+                })
+            }
+
             is PropertyTrace.SystemProperty -> {
                 property("kind", "SystemProperty")
                 property("name", trace.name)

@@ -46,14 +46,14 @@ public class ConnectionFailureRepositoryDisabler implements RepositoryDisabler {
     }
 
     @Override
-    public boolean tryDisableRepository(String repositoryId, Throwable reason) {
+    public boolean tryDisableRepository(String repositoryId, Throwable reason, boolean maxRetriesExceeded) {
         boolean disabled = isDisabled(repositoryId);
 
         if (disabled) {
             return true;
         }
 
-        if (isCriticalFailure(reason)) {
+        if (isCriticalFailure(reason) || maxRetriesExceeded) {
             LOGGER.debug("Repository {} has been disabled for this build due to connectivity issues", repositoryId);
             disabledRepositories.put(repositoryId, reason);
             return true;

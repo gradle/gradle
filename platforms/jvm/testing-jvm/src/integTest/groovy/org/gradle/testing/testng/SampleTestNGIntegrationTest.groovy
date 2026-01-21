@@ -44,7 +44,7 @@ class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
         executer.inDirectory(testDir).withTasks('clean', 'test').run()
 
         def result = resultsFor(testDir)
-        result.testPathPreNormalized(':org.gradle.testng.UserImplTest:testOkFirstName').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPath(':org.gradle.testng.UserImplTest').onlyRoot().assertChildCount(1, 0).assertOnlyChildrenExecuted("testOkFirstName")
     }
 
     @Test

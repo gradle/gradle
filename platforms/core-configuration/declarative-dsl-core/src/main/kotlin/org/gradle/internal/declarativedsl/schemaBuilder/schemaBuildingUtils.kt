@@ -41,14 +41,31 @@ fun KCallable<*>.returnTypeToRefOrError(host: SchemaBuildingHost, typeMapping: (
     }
 }
 
-fun KParameter.parameterTypeToRefOrError(host: SchemaBuildingHost): DataTypeRef =
-    parameterTypeToRefOrError(host) { this.type }
+fun SupportedCallable.returnTypeToRefOrError(host: SchemaBuildingHost) =
+    returnTypeToRefOrError(host) { this.returnType }
 
-fun KParameter.parameterTypeToRefOrError(host: SchemaBuildingHost, typeMapping: (KParameter) -> KType): DataTypeRef =
-    host.withTag(parameter(name ?: "(no name)")) {
-        if (isVararg) {
+fun SupportedCallable.returnTypeToRefOrError(host: SchemaBuildingHost, typeMapping: (SupportedCallable) -> SupportedTypeProjection.SupportedType): DataTypeRef {
+    val returnType = typeMapping(this)
+
+    return host.withTag(returnValueType(returnType)) {
+        host.modelTypeRef(returnType.toKType())
+    }
+}
+
+fun KParameter.parameterTypeToRefOrError(host: SchemaBuildingHost): DataTypeRef {
+    val typeMapping = { it: KParameter -> type }
+    return host.withTag(parameter(this)) {
+        val type = typeMapping(this)
+        if (isVararg)
             host.varargTypeRef(type)
-        } else {
+        else
             host.modelTypeRef(typeMapping(this))
-        }
+    }
+}
+
+fun SupportedKParameter.parameterTypeToRefOrError(host: SchemaBuildingHost): DataTypeRef =
+    host.withTag(parameter(this)) {
+        if (isVararg)
+            host.varargTypeRef(type.toKType())
+        else host.modelTypeRef(type.toKType())
     }

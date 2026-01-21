@@ -21,7 +21,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.internal.tasks.testing.TestMetadataEvent;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.worker.TestEventSerializer;
@@ -169,7 +169,6 @@ public final class SerializableTestResultStore {
                 .name(testDescriptor.getName())
                 .displayName(testDescriptor.getDisplayName())
                 .className(testDescriptor.getClassName())
-                .classDisplayName(testDescriptor.getClassDisplayName())
                 .startTime(testResult.getStartTime())
                 .endTime(testResult.getEndTime())
                 .resultType(testResult.getResultType());

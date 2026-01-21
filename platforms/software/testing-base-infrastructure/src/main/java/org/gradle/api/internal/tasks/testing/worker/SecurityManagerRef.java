@@ -49,7 +49,6 @@ abstract class SecurityManagerRef {
         return new FakeSecurityManagerRef();
     }
 
-    @NullMarked
     private static final class RealSecurityManagerRef extends SecurityManagerRef {
         private final SecurityManager reference = System.getSecurityManager();
 
@@ -65,7 +64,6 @@ abstract class SecurityManagerRef {
         }
     }
 
-    @NullMarked
     private static final class FakeSecurityManagerRef extends SecurityManagerRef {
         @Override
         public void reinstall(Logger logger) {

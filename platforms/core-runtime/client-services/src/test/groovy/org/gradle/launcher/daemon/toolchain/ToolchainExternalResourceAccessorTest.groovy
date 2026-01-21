@@ -16,49 +16,31 @@
 
 package org.gradle.launcher.daemon.toolchain
 
+import com.google.common.collect.ImmutableMap
 import org.apache.http.HttpHeaders
-import org.apache.http.StatusLine
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.entity.InputStreamEntity
-import org.apache.http.message.BasicHeader
-import org.gradle.api.resources.ResourceException
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceName
-import org.gradle.internal.resource.transport.http.HttpClientHelper
-import org.gradle.internal.resource.transport.http.HttpClientResponse
+import org.gradle.internal.resource.transport.http.HttpClient
 import org.gradle.internal.time.Clock
 import spock.lang.Specification
 
 class ToolchainExternalResourceAccessorTest extends Specification {
 
     ToolchainExternalResourceAccessor externalResourceAccessor
-    def httpClientHelper = Mock(HttpClientHelper)
+    def httpClient = Mock(HttpClient)
     def progressListener = Mock(DownloadProgressListener)
     def action = Mock(ExternalResource.ContentAndMetadataAction)
     def clock = Mock(Clock)
     def uri = new URI("https://server.com/toolchain.zip")
 
     def setup() {
-        externalResourceAccessor = new ToolchainExternalResourceAccessor(httpClientHelper, clock, progressListener)
-    }
-
-    def "fails with expected message when response has no content"() {
-        def response = mockFailureHttpResponse()
-        httpClientHelper.performGet(_ as String, _ as Boolean) >> new HttpClientResponse("GET", uri, response)
-
-        when:
-        externalResourceAccessor.withContent(new ExternalResourceName(uri), false, action)
-
-        then:
-        def e = thrown(ResourceException)
-        e.message == "Could not get resource 'https://server.com/toolchain.zip'."
-        e.cause.message == "Response 500: null has no content!"
+        externalResourceAccessor = new ToolchainExternalResourceAccessor(httpClient, clock, progressListener)
     }
 
     def "should call close() on CloseableHttpResource when withContent is called"() {
         given:
         def response = mockSuccessfulHttpResponse(0)
-        httpClientHelper.performGet(_ as String, _ as Boolean) >> new HttpClientResponse("GET", uri, response)
+        httpClient.performGet(_ as URI, _ as ImmutableMap) >> response
 
         when:
         externalResourceAccessor.withContent(new ExternalResourceName(uri), false, action)
@@ -70,7 +52,7 @@ class ToolchainExternalResourceAccessorTest extends Specification {
     def "returns null when resource does not exist"() {
         when:
         def response = mockSuccessfulHttpResponse(0)
-        httpClientHelper.performGet(_ as String, _ as Boolean) >> new HttpClientResponse("GET", uri, response)
+        httpClient.performGet(_ as URI, _ as ImmutableMap) >> response
         def result = externalResourceAccessor.withContent(new ExternalResourceName(uri), false, action)
 
         then:
@@ -81,7 +63,7 @@ class ToolchainExternalResourceAccessorTest extends Specification {
     def "reads empty content"() {
         when:
         def response = mockSuccessfulHttpResponse(0)
-        httpClientHelper.performGet(_ as String, _ as Boolean) >> new HttpClientResponse("GET", uri, response)
+        httpClient.performGet(_ as URI, _ as ImmutableMap) >> response
         def result = externalResourceAccessor.withContent(new ExternalResourceName(uri), false, action)
 
         then:
@@ -92,7 +74,7 @@ class ToolchainExternalResourceAccessorTest extends Specification {
     def "fires progress events as content is read"() {
         when:
         def response = mockSuccessfulHttpResponse(4096)
-        httpClientHelper.performGet(_ as String, _ as Boolean) >> new HttpClientResponse("GET", uri, response)
+        httpClient.performGet(_ as URI, _ as ImmutableMap) >> response
         def result = externalResourceAccessor.withContent(new ExternalResourceName(uri), false, action)
 
         then:
@@ -119,7 +101,7 @@ class ToolchainExternalResourceAccessorTest extends Specification {
     def "fires complete event when action complete with partially read stream"() {
         when:
         def response = mockSuccessfulHttpResponse(4096)
-        httpClientHelper.performGet(_ as String, _ as Boolean) >> new HttpClientResponse("GET", uri, response)
+        httpClient.performGet(_ as URI, _ as ImmutableMap) >> response
         externalResourceAccessor.withContent(new ExternalResourceName(uri), false, action)
 
         then:
@@ -135,7 +117,7 @@ class ToolchainExternalResourceAccessorTest extends Specification {
     def "fires progress events when content size is not known"() {
         when:
         def response = mockSuccessfulHttpResponse(4096, false)
-        httpClientHelper.performGet(_ as String, _ as Boolean) >> new HttpClientResponse("GET", uri, response)
+        httpClient.performGet(_ as URI, _ as ImmutableMap) >> response
         def result = externalResourceAccessor.withContent(new ExternalResourceName(uri), false, action)
 
         then:
@@ -158,24 +140,21 @@ class ToolchainExternalResourceAccessorTest extends Specification {
         0 * progressListener._
     }
 
-    private CloseableHttpResponse mockSuccessfulHttpResponse(long responseStreamBytes, boolean hasHeaderContentLength = true) {
-        def response = Mock(CloseableHttpResponse)
-        response.getStatusLine() >> Mock(StatusLine) {
+    private HttpClient.Response mockSuccessfulHttpResponse(long responseStreamBytes, boolean hasHeaderContentLength = true) {
+        def response = Mock(HttpClient.Response) {
             getStatusCode() >> 200
+            getContent() >> new ByteArrayInputStream(new byte[responseStreamBytes])
         }
-        response.getEntity() >> new InputStreamEntity(new ByteArrayInputStream(new byte[responseStreamBytes]))
-        if (hasHeaderContentLength) {
-            response.getFirstHeader(HttpHeaders.CONTENT_LENGTH) >> new BasicHeader(HttpHeaders.CONTENT_LENGTH, responseStreamBytes.toString())
+        if (hasHeaderContentLength){
+            response.getHeader(HttpHeaders.CONTENT_LENGTH) >> responseStreamBytes.toString()
         }
         response
     }
 
-    private CloseableHttpResponse mockFailureHttpResponse() {
-        def response = Mock(CloseableHttpResponse)
-        response.getStatusLine() >> Mock(StatusLine) {
+    private HttpClient.Response mockFailureHttpResponse() {
+        Mock(HttpClient.Response) {
             getStatusCode() >> 500
         }
-        response.getEntity() >> null
-        response
     }
+
 }

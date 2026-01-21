@@ -29,6 +29,7 @@ import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildModelParametersFactory
 import org.gradle.internal.buildtree.control.DefaultBuildModelParametersFactory
+import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintEventHandler
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.problems.BuildNameProvider
 import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
@@ -74,6 +75,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             add(InputTrackingState::class.java)
             add(InstrumentedExecutionAccessListener::class.java)
             add(DefaultConfigurationCacheDegradationController::class.java)
+            add(ConfigurationCacheFingerprintEventHandler::class.java)
             addProvider(IgnoredConfigurationInputsProvider)
             addProvider(RemoteScriptUpToDateCheckerProvider)
             addProvider(ExecutionAccessCheckerProvider)

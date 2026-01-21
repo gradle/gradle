@@ -44,23 +44,38 @@ abstract class Minify : TransformAction<Minify.Parameters> {
 
     interface Parameters : TransformParameters {
         @get:Input
-        var keepClassesByArtifact: Map<String, Set<String>>
+        var keepClassesByCoordinates: Map<String, Set<String>>
     }
 
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
     @get:InputArtifact
     abstract val artifact: Provider<FileSystemLocation>
 
+    private
+    val jarArtifactRegex = Regex("""^(.*?)-\d+(\.\d+)*([.-][A-Za-z0-9]+)*\.jar$""")
+
+    private val keepClassesByArtifacts: Map<String, Set<String>> by lazy {
+        parameters.keepClassesByCoordinates.mapKeys { it.key.substringAfter(":") }
+    }
+
     override fun transform(outputs: TransformOutputs) {
-        for (entry in parameters.keepClassesByArtifact) {
-            val fileName = artifact.get().asFile.name
-            if (fileName.startsWith(entry.key)) {
-                val nameWithoutExtension = Files.getNameWithoutExtension(fileName)
-                minify(artifact.get().asFile, entry.value, outputs.file("$nameWithoutExtension-min.jar"))
-                return
-            }
+        val fileName = artifact.get().asFile.name
+        val artifactName = extractArtifactName(fileName)
+        val classesFilter = keepClassesByArtifacts[artifactName]
+        if (classesFilter != null) {
+            val nameWithoutExtension = Files.getNameWithoutExtension(fileName)
+            minify(artifact.get().asFile, classesFilter, outputs.file("$nameWithoutExtension-min.jar"))
+        } else {
+            outputs.file(artifact)
         }
-        outputs.file(artifact)
+    }
+
+    private
+    fun extractArtifactName(fileName: String): String {
+        return jarArtifactRegex.matchEntire(fileName)
+            ?.groupValues
+            ?.get(1)
+            ?: error("Cannot derive artifact name from: $fileName")
     }
 
     private

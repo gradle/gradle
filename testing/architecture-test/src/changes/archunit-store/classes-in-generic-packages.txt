@@ -69,7 +69,6 @@ Class <org.gradle.api.internal.AbstractTaskDependencyContainerVisitingContext> i
 Class <org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer> is in a generic package in (AbstractValidatingNamedDomainObjectContainer.java:0)
 Class <org.gradle.api.internal.BuildDefinition> is in a generic package in (BuildDefinition.java:0)
 Class <org.gradle.api.internal.BuildScopeListenerRegistrationListener> is in a generic package in (BuildScopeListenerRegistrationListener.java:0)
-Class <org.gradle.api.internal.BuildType> is in a generic package in (BuildType.java:0)
 Class <org.gradle.api.internal.ClassPathProvider> is in a generic package in (ClassPathProvider.java:0)
 Class <org.gradle.api.internal.ClassPathRegistry> is in a generic package in (ClassPathRegistry.java:0)
 Class <org.gradle.api.internal.CollectionCallbackActionDecorator> is in a generic package in (CollectionCallbackActionDecorator.java:0)

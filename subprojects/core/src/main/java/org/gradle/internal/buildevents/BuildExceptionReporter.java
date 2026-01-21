@@ -22,6 +22,8 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -32,6 +34,7 @@ import org.gradle.internal.exceptions.NonGradleCause;
 import org.gradle.internal.exceptions.NonGradleCauseExceptionsHolder;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.exceptions.StyledException;
+import org.gradle.internal.exceptions.WorkTypeAware;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -40,7 +43,6 @@ import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.problems.internal.rendering.ProblemWriter;
 import org.gradle.util.internal.GUtil;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -77,6 +79,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     public static final String RESOLUTION_LINE_PREFIX = "> ";
     public static final String LINE_PREFIX_LENGTH_SPACES = repeat(" ", RESOLUTION_LINE_PREFIX.length());
+
+    private static final int MAX_WORK_TYPE_SEARCH_DEPTH = 3;
 
     @NullMarked
     private enum ExceptionStyle {
@@ -126,12 +130,12 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     @Override
-    public void execute(@NonNull Throwable throwable) {
+    public void execute(Throwable throwable) {
         Failure failure = failureFactory.create(throwable);
         renderFailure(failure);
     }
 
-    private void renderFailure(@NonNull Failure failure) {
+    private void renderFailure(Failure failure) {
         List<Failure> causes = failure.getCauses();
         if (causes.size() > 1) {
             renderMultipleBuildExceptions(failure);
@@ -150,7 +154,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         for (int i = 0; i < flattenedFailures.size(); i++) {
             Failure cause = flattenedFailures.get(i);
-            FailureDetails details = constructFailureDetails("Task", cause);
+            FailureDetails details = constructFailureDetails(extractWorkType(cause), cause);
 
             output.println();
             output.withStyle(Failure).format("%s: ", i + 1);
@@ -162,6 +166,20 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
             output.println("==============================================================================");
         }
+    }
+
+    private static String extractWorkType(Failure failure) {
+        int depth = 0;
+        Throwable cause = failure.getOriginal();
+        String workType = null;
+        while (cause != null && depth++ < MAX_WORK_TYPE_SEARCH_DEPTH) {
+            if (cause instanceof WorkTypeAware) {
+                workType = ((WorkTypeAware) cause).getWorkType();
+                break;
+            }
+            cause = cause.getCause();
+        }
+        return workType != null ? workType : "Task";
     }
 
     private void renderSingleBuildException(Failure failure) {
@@ -405,7 +423,14 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         Collection<InternalProblem> all = failure.getProblems();
         for (InternalProblem problem : all) {
-            resolutions.addAll(problem.getSolutions());
+            // TODO (donat) integrate type validation failure rendering with problems-rendering and get rid of the special-casing here
+            ProblemGroup group = problem.getDefinition().getId().getGroup();
+            if (!GradleCoreProblemGroup.validation().type().equals(group) && !GradleCoreProblemGroup.validation().property().equals(group)) {
+                resolutions.addAll(problem.getSolutions());
+                if (problem.getDefinition().getDocumentationLink() != null) {
+                    resolutions.add("For more information, see " + problem.getDefinition().getDocumentationLink().getUrl());
+                }
+            }
         }
 
         for (Failure cause : failure.getCauses()) {

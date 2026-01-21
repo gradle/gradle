@@ -16,10 +16,10 @@
 
 package org.gradle.api.file;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
@@ -35,11 +35,12 @@ import java.io.File;
  * @since 4.1
  */
 @ServiceScope(Scope.Project.class)
+@HiddenInDefinition
 public interface ProjectLayout {
     /**
      * Returns the project directory.
      */
-    @Restricted
+    @VisibleInDefinition
     Directory getProjectDirectory();
 
     /**
@@ -55,8 +56,7 @@ public interface ProjectLayout {
      *
      * @since 8.13
      */
-    @Incubating
-    @Restricted
+    @VisibleInDefinition
     Directory getSettingsDirectory();
 
     /**

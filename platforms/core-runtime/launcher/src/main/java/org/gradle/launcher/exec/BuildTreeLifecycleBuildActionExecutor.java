@@ -18,6 +18,7 @@ package org.gradle.launcher.exec;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildLayoutValidator;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildtree.BuildActionModelRequirements;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildModelParameters;
@@ -48,15 +49,18 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
     private final BuildModelParametersFactory buildModelParametersFactory;
     private final BuildLayoutValidator buildLayoutValidator;
     private final ValueSnapshotter valueSnapshotter;
+    private final InternalOptions options;
 
     public BuildTreeLifecycleBuildActionExecutor(
         BuildModelParametersFactory modelParametersFactory,
         BuildLayoutValidator buildLayoutValidator,
-        ValueSnapshotter valueSnapshotter
+        ValueSnapshotter valueSnapshotter,
+        InternalOptions options
     ) {
         this.buildModelParametersFactory = modelParametersFactory;
         this.buildLayoutValidator = buildLayoutValidator;
         this.valueSnapshotter = valueSnapshotter;
+        this.options = options;
     }
 
     @Override
@@ -66,7 +70,7 @@ public class BuildTreeLifecycleBuildActionExecutor implements BuildSessionAction
             buildLayoutValidator.validate(action.getStartParameter());
 
             BuildActionModelRequirements actionRequirements = buildActionModelRequirementsFor(action);
-            BuildModelParameters buildModelParameters = buildModelParametersFactory.parametersForRootBuildTree(actionRequirements);
+            BuildModelParameters buildModelParameters = buildModelParametersFactory.parametersForRootBuildTree(actionRequirements, options);
             result = runRootBuildAction(action, buildSession.getServices(), actionRequirements, buildModelParameters);
         } catch (Throwable t) {
             if (result == null) {

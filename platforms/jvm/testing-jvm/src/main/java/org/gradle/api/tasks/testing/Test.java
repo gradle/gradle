@@ -37,6 +37,7 @@ import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
@@ -70,6 +71,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -146,9 +148,11 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  *   jvmArgs('-XX:MaxPermSize=256m')
  *
  *   // listen to events in the test execution lifecycle
- *   beforeTest { descriptor -&gt;
- *      logger.lifecycle("Running test: " + descriptor)
- *   }
+ *   addTestListener(new TestListener() {
+ *      void beforeTest(TestDescriptor descriptor) {
+ *          logger.lifecycle("Running test: " + descriptor)
+ *      }
+ *   })
  *
  *   // fail the 'test' task on the first test failure
  *   failFast = true
@@ -157,7 +161,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  *   dryRun = true
  *
  *   // listen to standard out and standard error of the test JVM(s)
- *   onOutput { descriptor, event -&gt;
+ *   addTestOutputListener { descriptor, event -&gt;
  *      logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
  *   }
  * }
@@ -747,6 +751,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             ));
         }
 
+        verifyAppropriateFilterConfiguration();
+
         if (getDebug()) {
             getLogger().info("Running tests for remote debugging.");
         }
@@ -755,6 +761,40 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             super.executeTests();
         } finally {
             CompositeStoppable.stoppable(getTestFramework()).stop();
+        }
+    }
+
+    private void verifyAppropriateFilterConfiguration() {
+        boolean hasClassBasedTests = !getTestClassesDirs().getAsFileTree().isEmpty();
+        boolean hasDefinitionBasedTests = !getTestDefinitionDirs().isEmpty();
+
+        if (!hasClassBasedTests) {
+            getFilter().getExcludePatterns().forEach(exclude -> {
+                if (TestSelectionMatcher.isClassBasedPattern(exclude)) {
+                    throw new IllegalArgumentException("Exclude pattern '" + exclude + "' is class-based, but no class-based tests were found. " +
+                        "Please remove class-based exclude patterns when running only non-class-based tests.");
+                }
+            });
+            getFilter().getIncludePatterns().forEach(include -> {
+                if (TestSelectionMatcher.isClassBasedPattern(include)) {
+                    throw new IllegalArgumentException("Include pattern '" + include + "' is class-based, but no class-based tests were found. " +
+                        "Please remove class-based include patterns when running only non-class-based tests.");
+                }
+            });
+        }
+        if (!hasDefinitionBasedTests) {
+            getFilter().getExcludePatterns().forEach(exclude -> {
+                if (TestSelectionMatcher.isPathBasedPattern(exclude)) {
+                    throw new IllegalArgumentException("Exclude pattern '" + exclude + "' is path-based, but no non-class-based tests were found. " +
+                        "Please remove path-based exclude patterns when running only class-based tests.");
+                }
+            });
+            getFilter().getIncludePatterns().forEach(include -> {
+                if (TestSelectionMatcher.isPathBasedPattern(include)) {
+                    throw new IllegalArgumentException("Include pattern '" + include + "' is path-based, but no non-class-based tests were found. " +
+                        "Please remove path-based include patterns when running only class-based tests.");
+                }
+            });
         }
     }
 
@@ -999,8 +1039,16 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         return testFramework.get();
     }
 
+    /**
+     * Do not call this method.
+     * @deprecated This will be removed in Gradle 10
+     */
+    @Deprecated
     public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
-        // TODO: Deprecate and remove this method
+        DeprecationLogger.deprecateMethod(Test.class, "testFramework(Closure)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_test_methods")
+            .nagUser();
         options(testFrameworkConfigure);
         return getTestFramework();
     }

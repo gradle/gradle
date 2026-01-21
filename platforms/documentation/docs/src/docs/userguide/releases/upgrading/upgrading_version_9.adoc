@@ -41,6 +41,12 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== The `java-gradle-plugin` plugin now adds the `gradleApi()` dependency to the `compileOnlyApi` scope
+
+The dependency on `gradleApi()` added by the `java-gradle-plugin` will be added to the `compileOnlyApi` scope instead of `api`.
+
+For most plugin projects, this change should be transparent and without any side effects.
+
 ==== Stricter validation for published plugins
 
 For plugin builds that apply any of the `com.gradle.plugin-publish`, `ivy-publish`, or `maven-publish` plugins, Gradle now automatically enables stricter validation of plugin code.
@@ -82,7 +88,83 @@ tasks.withType<CodeNarc>().configureEach {
 }
 ----
 
+==== System property priority for wrapper execution has changed
+
+System properties can be defined for a build at multiple places: on the command line, in the Gradle user home and in the `gradle.properties` file of a project.
+In previous Gradle versions, the priority of these options was not following the documented order: command-line options were potentially overridden by properties defined by entries in `gradle.properties` files.
+From this version onwards, the priority of system properties follows the documented order:
+- Command-line options (highest priority).
+- Properties defined in the Gradle user home `gradle.properties` file.
+- Properties defined in `gradle.properties` files. (lowest priority).
+
+For more details see the link:https://github.com/gradle/gradle/issues/36189[related issue].
+
+==== Upgrade to Kotlin 2.3.0
+
+The embedded Kotlin has been upgraded from 2.2.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.0[Kotlin 2.3.0].
+
+==== Upgrade to Zinc 1.12.0
+
+Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.12.0[1.12.0].
+
 === Deprecations
+
+[[findAll_removal]]
+==== Deprecation of `DomainObjectCollection.findAll(Closure)`
+
+`DomainObjectCollection.findAll(Closure)` has been deprecated. This API relies on a Groovy type and eagerly evaluates the contents of the container.
+
+This API will be removed in Gradle 10 with no direct replacement.
+`DomainObjectCollection.matching(Spec)` is a similar API for selecting elements without evaluating the contents of the container immediately.
+
+[[deprecated_test_methods]]
+==== Deprecation of methods taking `Closure` on `Test` tasks
+
+The following APIs have been deprecated and will be removed in Gradle 10.0.0:
+
+- `AbstractTestTask.onOutput(Closure)` can be replaced with `AbstractTestTask.addTestOutputListener(TestOutputListener)`
+- `AbstractTestTask.beforeTest(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
+- `AbstractTestTask.afterTest(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
+- `AbstractTestTask.beforeSuite(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
+- `AbstractTestTask.beforeSuite(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
+- `Test.testFramework(Closure)` can be replaced with `Test.options(Action)`
+
+[[deprecate_apply_false_in_precompiled_script_plugins]]
+==== Deprecation of `apply false` in precompiled script plugins
+The use of `apply false` in <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins, precompiled script plugins>> has been deprecated and will become an error in Gradle 10.0.0.
+
+Using `apply false` does not have any effect in precompiled script plugins (the plugin is still applied), and it can lead to confusion for users who expect it to prevent the plugin from being applied.
+Plugins used in precompiled script plugins are already available on the classpath, so using `apply false` would do nothing.
+
+To fix this deprecation, remove the plugin declaration from the precompiled script plugin:
+.my-plugin.gradle.kts
+[source,kotlin]
+----
+plugins {
+    // Delete the following line to remove the deprecation warning:
+    id("org.gradle.test-retry") apply false
+    // The plugin will still be on the classpath, but it will not be applied as part of this precompiled script plugin.
+}
+----
+
+[[deprecate_version_in_precompiled_settings_script_plugins]]
+==== Deprecation of `version` in precompiled settings script plugins
+The use of `version` in <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins, precompiled script plugins>> has been deprecated and will become an error in Gradle 10.0.0.
+
+Using `version` does not have any effect in precompiled script plugins and can lead to confusion for users who expect it to change the version of the plugin being applied.
+Plugins used in precompiled script plugins are already available on the classpath and have their versions determined by the precompiled script plugin's build file.
+
+To fix this deprecation, remove the `version` call for the plugin declaration in the precompiled script plugin:
+.my-plugin.gradle.kts
+[source,kotlin]
+----
+plugins {
+    // Before:
+    id("org.gradle.test-retry") version "x.y.z"
+    // After:
+    id("org.gradle.test-retry")
+}
+----
 
 [[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier
@@ -130,7 +212,7 @@ The method on the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[W
 
 Use link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.DistributionType.html#values()[`Wrapper.DistributionType.values()`] to obtain the available distribution types instead.
 
-[[deprecate_unpublished_project_dependencies]]
+[[publishing_dependency_on_unpublished_project]]
 ==== Deprecation of publishing dependencies on unpublished projects
 
 When publishing a project, Gradle resolves project dependencies to the coordinates of the target project's publication.

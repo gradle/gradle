@@ -62,6 +62,7 @@ dependencies {
     implementation(projects.buildEvents)
     implementation(projects.buildProcessServices)
     implementation(projects.coreApi)
+    implementation(projects.daemonLogging)
     implementation(projects.fileOperations)
     implementation(projects.files)
     implementation(projects.hashing)

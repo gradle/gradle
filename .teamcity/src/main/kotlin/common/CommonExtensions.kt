@@ -32,6 +32,7 @@ import jetbrains.buildServer.configs.kotlin.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.Dependencies
 import jetbrains.buildServer.configs.kotlin.FailureAction
 import jetbrains.buildServer.configs.kotlin.Project
+import jetbrains.buildServer.configs.kotlin.PublishMode
 import jetbrains.buildServer.configs.kotlin.RelativeId
 import jetbrains.buildServer.configs.kotlin.Requirements
 import jetbrains.buildServer.configs.kotlin.buildSteps.GradleBuildStep
@@ -128,6 +129,11 @@ fun BuildType.addEc2PostBuild(os: Os = Os.LINUX) {
     }
 }
 
+fun BuildTypeSettings.setArtifactRules(rules: String) {
+    artifactRules = rules
+    publishArtifacts = PublishMode.ALWAYS
+}
+
 fun BuildType.applyDefaultSettings(
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
@@ -151,7 +157,7 @@ fun BuildType.applyDefaultSettings(
         build/reports/problems/problems-report.html
         """.trimIndent()
 
-    artifactRules = artifactRuleOverride ?: defaultArtifactRules
+    setArtifactRules(artifactRuleOverride ?: defaultArtifactRules)
     paramsForBuildToolBuild(buildJvm, os, arch)
     params {
         // The promotion job doesn't have a branch, so %teamcity.build.branch% doesn't work.
@@ -432,7 +438,7 @@ fun String.toCamelCase() = lowercase().replace(Regex("_[a-z]")) { it.value[1].up
  *
  * @param historyDays days number of days to store build history .
  * @param artifactsDays number of days to store artifacts. In the stored history, artifacts older than this number will be cleaned up.
- * @param artifactPatterns patterns for artifacts clean-up. If not specified, all artifacts will be removed.
+ * @param artifactsPatterns patterns for artifacts clean-up. If not specified, all artifacts will be removed.
  */
 fun Project.cleanupRule(
     historyDays: Int,

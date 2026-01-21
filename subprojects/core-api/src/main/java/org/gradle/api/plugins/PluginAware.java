@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;
@@ -46,6 +47,7 @@ public interface PluginAware {
      * @see #apply
      * @see PluginManager#hasPlugin(String)
      */
+    @HiddenInDefinition
     PluginContainer getPlugins();
 
     /**
@@ -58,6 +60,7 @@ public interface PluginAware {
      * @param closure the closure to configure an {@link ObjectConfigurationAction} with before "executing" it
      * @see #apply(java.util.Map)
      */
+    @HiddenInDefinition
     void apply(@DelegatesTo(ObjectConfigurationAction.class) Closure closure);
 
     /**
@@ -70,6 +73,7 @@ public interface PluginAware {
      * @param action the action to configure an {@link ObjectConfigurationAction} with before "executing" it
      * @see #apply(java.util.Map)
      */
+    @HiddenInDefinition
     void apply(Action<? super ObjectConfigurationAction> action);
 
     /**
@@ -88,6 +92,7 @@ public interface PluginAware {
      *
      * @param options the options to use to configure and {@link ObjectConfigurationAction} before "executing" it
      */
+    @HiddenInDefinition
     void apply(Map<String, ?> options);
 
     /**
@@ -96,6 +101,7 @@ public interface PluginAware {
      * @return the plugin manager
      * @since 2.3
      */
+    @HiddenInDefinition
     PluginManager getPluginManager();
 
 }

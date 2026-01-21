@@ -16,14 +16,13 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
-import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.BuildSession.class)
 public interface ComponentSelectionDescriptorFactory {
 
-    ComponentSelectionDescriptor newDescriptor(ComponentSelectionCause cause, String reason);
+    ComponentSelectionDescriptorInternal newDescriptor(ComponentSelectionCause cause, String reason);
 
-    ComponentSelectionDescriptor newDescriptor(ComponentSelectionCause cause);
+    ComponentSelectionDescriptorInternal newDescriptor(ComponentSelectionCause cause);
 }

@@ -22,7 +22,6 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-[Ujwal Suresh Vanjare](https://github.com/usv240).
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -42,49 +41,6 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
-### Daemon logging improvements
-
-Daemon logs older than 14 days are now automatically cleaned up when the daemon shuts down, eliminating the need for manual cleanup.
-
-## Plugin development
-
-### Stricter validation for published plugins
-
-For plugin builds that apply any of the `com.gradle.plugin-publish`, `ivy-publish`, or `maven-publish` plugins, Gradle now automatically enables stricter validation of plugin code.
-
-In order not to break your builds, this does not apply to local plugins (in `buildSrc` or included builds containing build logic).
-However, we encourage you to always enable stricter validation:
-
-```kotlin
-tasks.validatePlugins {
-    enableStricterValidation = true
-}
-```
-
-## Tooling integration improvements
-
-This release adds a few enhancements to the built-in Tooling API models:
-- Clients can now access the exact output of `gradle --version` without starting a daemon, via the new [`BuildEnvironment.getVersionInfo()`](javadoc/org/gradle/tooling/model/build/BuildEnvironment.html#getVersionInfo()) property.
-- A new [`Help`](javadoc/org/gradle/tooling/model/build/Help.html) model exposes the output of the `gradle --help` command-line build invocation.
-
-For example:
-
-```java
-import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.model.build.BuildEnvironment;
-import org.gradle.tooling.model.build.Help;
-
-import java.io.File;
-
-void main() {
-    var projectDir = new File("/path/to/project");
-    try (var conn = GradleConnector.newConnector().forProjectDirectory(projectDir).connect()) { 
-        System.out.println("--version:\n + " + conn.getModel(BuildEnvironment.class).getVersionInfo());
-        System.out.println("--help:\n" + conn.getModel(Help.class).getRenderedText());
-    }
-}
-```
 <!--
 
 ================== TEMPLATE ==============================

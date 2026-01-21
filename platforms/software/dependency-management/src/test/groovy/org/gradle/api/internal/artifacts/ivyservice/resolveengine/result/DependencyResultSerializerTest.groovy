@@ -52,10 +52,8 @@ class DependencyResultSerializerTest extends Specification {
         def requested = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("org", "foo"), new DefaultMutableVersionConstraint("1.0"))
         def successful = Mock(DependencyGraphEdge) {
             getRequested() >> requested
-            getFailure() >> null
-            getSelected() >> 12L
-            getSelectedVariant() >> 123L
-            getReason() >> ComponentSelectionReasons.requested()
+            getTargetComponentId() >> 12L
+            getTargetVariantId() >> 123L
         }
 
         when:
@@ -68,8 +66,9 @@ class DependencyResultSerializerTest extends Specification {
         then:
         out.requested == requested
         out.failure == null
-        out.selected == 12L
-        out.selectedVariant == 123L
+        out.reason == null
+        out.targetComponentId == 12L
+        out.targetVariantId == 123L
     }
 
     def "serializes failed dependency result"() {
@@ -95,8 +94,6 @@ class DependencyResultSerializerTest extends Specification {
         then:
         out.requested == requested
         out.failure.cause.message == "Boo!"
-        out.selected == null
-        out.selectedVariant == null
         out.reason.conflictResolution
     }
 }

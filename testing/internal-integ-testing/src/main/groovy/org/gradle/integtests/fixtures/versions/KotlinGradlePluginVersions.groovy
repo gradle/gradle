@@ -29,13 +29,7 @@ import static org.junit.Assume.assumeTrue
  */
 class KotlinGradlePluginVersions {
 
-    static final List<String> LANGUAGE_VERSIONS = [
-        "1.4",
-        "1.5",
-        "1.6",
-        "1.7",
-        "1.8",
-        "1.9",
+    private static final List<String> LANGUAGE_VERSIONS = [
         "2.0",
         "2.1",
         "2.2",
@@ -115,6 +109,7 @@ class KotlinGradlePluginVersions {
     static final VersionNumber KOTLIN_2_1_21 = VersionNumber.parse('2.1.21')
     static final VersionNumber KOTLIN_2_2_0 = VersionNumber.parse('2.2.0')
     static final VersionNumber KOTLIN_2_3_0 = VersionNumber.parse('2.3.0')
+    static final VersionNumber KOTLIN_2_3_20 = VersionNumber.parse('2.3.20')
 
     static void assumeCurrentJavaVersionIsSupportedBy(String kotlinVersion) {
         assumeCurrentJavaVersionIsSupportedBy(VersionNumber.parse(kotlinVersion))

@@ -16,8 +16,6 @@
 
 package org.gradle.internal.buildoption;
 
-import org.gradle.internal.event.ListenerManager;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -27,9 +25,9 @@ public class DefaultFeatureFlags implements FeatureFlags {
     private final FeatureFlagListener broadcaster;
     private final Map<String, String> startParameterSystemProperties;
 
-    public DefaultFeatureFlags(ListenerManager listenerManager, Map<String, String> startParameterSystemProperties) {
+    public DefaultFeatureFlags(FeatureFlagListener listener, Map<String, String> startParameterSystemProperties) {
         this.startParameterSystemProperties = startParameterSystemProperties;
-        this.broadcaster = listenerManager.getBroadcaster(FeatureFlagListener.class);
+        this.broadcaster = listener;
     }
 
     @Override

@@ -71,7 +71,7 @@ class JavaProjectTypePlugin : Plugin<Project> {
                 val mainClasses = model.classes.named("main")
                 registerJar(mainClasses, model)
             }
-            .withDefinitionImplementationType(DefaultJavaProjectType::class.java)
+            .withUnsafeDefinitionImplementationType(DefaultJavaProjectType::class.java)
         }
     }
 

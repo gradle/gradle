@@ -137,8 +137,8 @@ gradleDocumentation {
         val jvmVersion = jvmCompile.compilations.named("main").flatMap { it.targetJvmVersion }
         javaApi = jvmVersion.map { v -> uri("https://docs.oracle.com/en/java/javase/$v/docs/api/") }
         javaPackageListLoc = jvmVersion.map { v -> project.layout.projectDirectory.dir("src/docs/javaPackageList/$v/") }
-        groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${libs.groovyVersion}/html/gapi")
-        groovyPackageListSrc = "org.apache.groovy:groovy-all:${libs.groovyVersion}:groovydoc"
+        groovyApi = libs.versions.groovy.map { v -> project.uri("https://docs.groovy-lang.org/docs/groovy-$v/html/gapi") }
+        groovyPackageListSrc = libs.versions.groovy.map { v -> "org.apache.groovy:groovy-all:$v:groovydoc" }
     }
 }
 
@@ -730,6 +730,8 @@ tasks.named<Test>("docsTest") {
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_26)) {
             // PMD doesn't support Java 26
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-code-quality-code-quality*")
+            // There is a bug in either AGP or the JDK which causes JdkImageTransform to fail with Java 26
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-dependency-management-declaring-configurations-kmp*")
         }
 
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {

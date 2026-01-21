@@ -18,11 +18,11 @@ package org.gradle.api.internal.tasks.testing.report.generic;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Resources;
 import com.google.common.net.UrlEscapers;
-import org.gradle.api.internal.tasks.testing.DefaultTestFileAttachmentDataEvent;
-import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
 import org.gradle.api.internal.tasks.testing.results.serializable.OutputEntry;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResult;
 import org.gradle.api.internal.tasks.testing.results.serializable.TestOutputReader;
+import org.gradle.api.tasks.testing.TestFileAttachmentDataEvent;
+import org.gradle.api.tasks.testing.TestKeyValueDataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.reporting.ReportRenderer;
@@ -169,10 +169,10 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                     perRootInfoTabsRenderer.add("error output", new PerRootTabRenderer.ForOutput(rootIndex, perRootInfoIndex, outputReader, TestOutputEvent.Destination.StdErr));
                 }
                 // TODO: This should be handled differently so that the renders know what to expect vs the GenericPageRenderer doing something special
-                if (Iterables.any(info.getMetadatas(), event -> event instanceof DefaultTestKeyValueDataEvent)) {
+                if (Iterables.any(info.getMetadatas(), event -> event instanceof TestKeyValueDataEvent)) {
                     perRootInfoTabsRenderer.add("data", new PerRootTabRenderer.ForKeyValues(rootIndex, perRootInfoIndex));
                 }
-                if (Iterables.any(info.getMetadatas(), event -> event instanceof DefaultTestFileAttachmentDataEvent)) {
+                if (Iterables.any(info.getMetadatas(), event -> event instanceof TestFileAttachmentDataEvent)) {
                     perRootInfoTabsRenderer.add("attachments", new PerRootTabRenderer.ForFileAttachments(rootIndex, perRootInfoIndex));
                 }
 
@@ -189,7 +189,21 @@ final class GenericPageRenderer extends TabbedPageRenderer<TestTreeModel> {
                     directlyBelowRootTabsRenderer.add("run " + (i + 1), perRootInfoTabsRenderers.get(i));
                 }
             }
-            rootTabsRenderer.add(rootDisplayNames.get(rootIndex), new ReportRenderer<TestTreeModel, SimpleHtmlWriter>() {
+            String rootState = "successGroup";
+            for (PerRootInfo info : infos) {
+                if (info.getFailedLeafCount() > 0) {
+                    // Failures are the most serious state
+                    rootState = "failureGroup";
+                    break;
+                }
+                if (info.getSkippedLeafCount() == info.getTotalLeafCount()) {
+                    // If everything is skipped, show that
+                    rootState = "skippedGroup";
+                    break;
+                }
+            }
+
+            rootTabsRenderer.add(rootDisplayNames.get(rootIndex), rootState, new ReportRenderer<TestTreeModel, SimpleHtmlWriter>() {
                 @Override
                 public void render(TestTreeModel model, SimpleHtmlWriter output) throws IOException {
                     String displayName = SerializableTestResult.getCombinedDisplayName(infos.get(0).getResults());

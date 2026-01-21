@@ -118,7 +118,7 @@ If the inputs are the same, the outputs will be too, resulting in faster, more e
 Build caching is disabled by default:
 
 ====
-include::sample[dir="snippets/bestPractices/useBuildCache-avoid/kotlin",files="gradle.properties[]"]
+include::sample[dir="snippets/bestPractices/useBuildCache-avoid/common",files="gradle.properties[]"]
 ====
 
 ==== Do This Instead
@@ -126,7 +126,7 @@ include::sample[dir="snippets/bestPractices/useBuildCache-avoid/kotlin",files="g
 To enable the Build Cache, add the following to your `gradle.properties` file:
 
 ====
-include::sample[dir="snippets/bestPractices/useBuildCache-do/kotlin",files="gradle.properties[]"]
+include::sample[dir="snippets/bestPractices/useBuildCache-do/common",files="gradle.properties[]"]
 ====
 
 When you build your project for the first time, Gradle populates the cache with the outputs of tasks like compilation.
@@ -182,7 +182,7 @@ Enabling it by default could lead to unexpected build failures, so Gradle uses a
 Configuration Caching is not enabled by default:
 
 ====
-include::sample[dir="snippets/bestPractices/useConfigurationCache-avoid/kotlin",files="gradle.properties[]"]
+include::sample[dir="snippets/bestPractices/useConfigurationCache-avoid/common",files="gradle.properties[]"]
 ====
 
 ==== Do This Instead
@@ -190,7 +190,7 @@ include::sample[dir="snippets/bestPractices/useConfigurationCache-avoid/kotlin",
 To enable the Configuration Cache, add the following to your `gradle.properties` file:
 
 ====
-include::sample[dir="snippets/bestPractices/useConfigurationCache-do/kotlin",files="gradle.properties[]"]
+include::sample[dir="snippets/bestPractices/useConfigurationCache-do/common",files="gradle.properties[]"]
 ====
 
 When you build your project for the first time, Gradle stores the outcome of the configuration phase, including the task graph, in the Configuration Cache.

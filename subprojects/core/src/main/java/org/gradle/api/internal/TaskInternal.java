@@ -47,11 +47,25 @@ public interface TaskInternal extends Task, Configurable<Task> {
     @Internal
     List<InputChangesAwareTaskAction> getTaskActions();
 
+    /**
+     * Sets the task actions for this task. Used by the configuration cache when restoring the task.
+     *
+     * @param taskActions the actions to restore
+     */
+    void restoreTaskActions(List<InputChangesAwareTaskAction> taskActions);
+
     @Internal
     boolean hasTaskActions();
 
     @Internal
     Spec<? super TaskInternal> getOnlyIf();
+
+    /**
+     * Sets the only-if condition for this task without any decoration. Used by the configuration cache when restoring the task.
+     *
+     * @param onlyIf the spec to restore
+     */
+    void restoreOnlyIf(Spec<? super TaskInternal> onlyIf);
 
     /**
      * Returns the combined reasons to not track state in a single String.

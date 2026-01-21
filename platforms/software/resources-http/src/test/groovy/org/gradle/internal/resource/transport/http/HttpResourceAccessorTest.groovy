@@ -16,8 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.apache.http.StatusLine
-import org.apache.http.client.methods.CloseableHttpResponse
+import com.google.common.collect.ImmutableMap
 import org.gradle.internal.resource.ExternalResourceName
 import spock.lang.Specification
 
@@ -27,22 +26,37 @@ class HttpResourceAccessorTest extends Specification {
 
     def "should call close() on CloseableHttpResource when getMetaData is called"() {
         def response = mockHttpResponse()
-        def http = Mock(HttpClientHelper) {
-            performHead(uri.toString(), _) >> new HttpClientResponse("GET", uri, response)
+        def client = Mock(HttpClient) {
+            performHead(_, _) >> response
         }
 
         when:
-        new HttpResourceAccessor(http).getMetaData(name, false)
+        new HttpResourceAccessor(client).getMetaData(name, false)
 
         then:
         1 * response.close()
     }
 
-    private CloseableHttpResponse mockHttpResponse() {
-        def response = Mock(CloseableHttpResponse)
-        def statusLine = Mock(StatusLine)
-        statusLine.getStatusCode() >> 200
-        response.getStatusLine() >> statusLine
-        response
+    def "request with revalidate adds Cache-Control header"() {
+        def client = Mock(HttpClient)
+
+        when:
+        new HttpResourceAccessor(client).getMetaData(name, true)
+
+        then:
+        1 * client.performHead(_, ImmutableMap.of("Cache-Control", "max-age=0")) >> mockHttpResponse()
+
+        when:
+        new HttpResourceAccessor(client).openResource(name, true)
+
+        then:
+        1 * client.performGet(_, ImmutableMap.of("Cache-Control", "max-age=0")) >> mockHttpResponse()
     }
+
+    private HttpClient.Response mockHttpResponse() {
+        Mock(HttpClient.Response) {
+            getStatusCode() >> 200
+        }
+    }
+
 }
