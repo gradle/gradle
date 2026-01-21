@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Contains logic for compiling java source files. May execute within a separate worker process."
+
 dependencies {
     api(projects.baseServices)
     api(projects.classloaders)
@@ -12,13 +14,35 @@ dependencies {
     api(projects.platformBase)
     api(projects.problemsApi)
     api(projects.stdlibJavaExtensions)
-    api("com.google.guava:guava")
-    api("javax.inject:javax.inject")
-    api("org.jspecify:jspecify")
-    api("org.slf4j:slf4j-api")
+    api(libs.guava)
+    api(libs.inject)
+    api(libs.jspecify)
+    api(libs.slf4jApi)
 
     implementation(projects.concurrent)
     implementation(projects.core)
     implementation(projects.loggingApi)
     implementation(projects.problemsRendering)
+
+    testImplementation(testFixtures(projects.core))
+}
+
+jvmCompile {
+    compilations {
+        named("main") {
+            usesJdkInternals = true
+        }
+    }
+}
+
+tasks.javadoc {
+    options {
+        this as StandardJavadocDocletOptions
+        // This project accesses JDK internals, which we need to open up so that javadoc can access them
+        addMultilineStringsOption("-add-exports").value = listOf(
+            "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+            "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+            "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED"
+        )
+    }
 }

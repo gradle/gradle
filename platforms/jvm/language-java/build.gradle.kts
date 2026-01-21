@@ -4,28 +4,19 @@ plugins {
 
 description = "Source for JavaCompile and JavaExec tasks, it also contains logic for incremental Java compilation"
 
-jvmCompile {
-    compilations {
-        named("main") {
-            usesJdkInternals = true
-        }
-    }
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.buildEvents)
     api(projects.buildOperations)
     api(projects.buildProcessServices)
-    api(projects.classloaders)
     api(projects.core)
     api(projects.coreApi)
     api(projects.daemonServerWorker)
     api(projects.dependencyManagement)
-    api(projects.fileCollections)
     api(projects.fileOperations)
     api(projects.files)
     api(projects.hashing)
+    api(projects.javaCompilerWorker)
     api(projects.jvmServices)
     api(projects.languageJvm)
     api(projects.modelCore)
@@ -47,22 +38,22 @@ dependencies {
 
     api(libs.asm)
     api(libs.fastutil)
-    api(libs.guava)
     api(libs.jspecify)
     api(libs.inject)
+    api(libs.slf4jApi)
 
-    implementation(projects.concurrent)
-    implementation(projects.serviceLookup)
-    implementation(projects.time)
+    implementation(projects.classloaders)
+    implementation(projects.fileCollections)
     implementation(projects.fileTemp)
     implementation(projects.loggingApi)
-    implementation(projects.problemsRendering)
+    implementation(projects.serviceLookup)
+    implementation(projects.time)
     implementation(projects.toolingApi)
 
-    api(libs.slf4jApi)
     implementation(libs.commonsLang)
     implementation(libs.ant)
     implementation(libs.commonsCompress)
+    implementation(libs.guava)
 
     runtimeOnly(projects.javaCompilerPlugin)
 
@@ -105,12 +96,6 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(projects.distributionsBasics)
 }
 
-tasks.withType<Test>().configureEach {
-    if (!javaVersion.isJava9Compatible) {
-        classpath += javaLauncher.get().metadata.installationPath.files("lib/tools.jar")
-    }
-}
-
 strictCompile {
     ignoreDeprecations() // this project currently uses many deprecated part from 'platform-jvm'
 }
@@ -120,17 +105,6 @@ packageCycles {
     excludePatterns.add("org/gradle/api/tasks/**")
 }
 
-tasks.javadoc {
-    options {
-        this as StandardJavadocDocletOptions
-        // This project accesses JDK internals, which we need to open up so that javadoc can access them
-        addMultilineStringsOption("-add-exports").value = listOf(
-            "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
-            "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-            "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED"
-        )
-    }
-}
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

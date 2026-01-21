@@ -13,6 +13,7 @@ dependencies {
     api(projects.daemonServerWorker)
     api(projects.fileOperations)
     api(projects.files)
+    api(projects.javaCompilerWorker)
     api(projects.jvmServices)
     api(projects.languageJava)
     api(projects.languageJvm)
