@@ -17,18 +17,16 @@
 package org.gradle.internal.execution.workspace;
 
 import java.io.File;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public interface ImmutableWorkspaceProvider {
-    ImmutableWorkspace getWorkspace(String path);
+    ImmutableWorkspace getWorkspace(String workId);
 
     interface ImmutableWorkspace {
         /**
          * Immutable workspace outputs location.
          *
-         * For {@link LockingImmutableWorkspace} this will normally be $GRADLE_USER_HOME/caches/transforms/[gradle-version]/[hash]/workspace/
-         *     and for {@link AtomicMoveImmutableWorkspace} this will normally be $GRADLE_USER_HOME/caches/transforms/[gradle-version]/[hash]/
+         * This will normally be $GRADLE_USER_HOME/caches/[gradle-version]/[cache-name]/[hash]/
          */
         File getImmutableLocation();
 
@@ -40,13 +38,9 @@ public interface ImmutableWorkspaceProvider {
         /**
          * Gets a result from the workspace if it's already running or computes it otherwise.
          *
-         * This method makes sure only one thread is executing the given action for Workspace at a time.
-         *
-         * <p>
-         * If a result from another thread already exists then {@code concurrentResultMapper} is called, otherwise {@code action} is executed.
-         * </p>
+         * This method makes sure only one thread is executing the given action for a workspace at a time.
          */
-        <T> T getIfRunningOrCompute(Function<T, T> concurrentResultMapper, Supplier<T> action);
+        <T> ConcurrentResult<T> getOrCompute(Supplier<T> action);
 
         /**
          * Returns true if the workspace has been soft deleted.
@@ -54,37 +48,34 @@ public interface ImmutableWorkspaceProvider {
         boolean isSoftDeleted();
 
         /**
-         * Remove soft deletion marker, which means entry won't be deleted anymore.
+         * Remove a soft deletion marker, which means entry won't be deleted anymore.
          */
         void ensureUnSoftDeleted();
     }
 
-    /**
-     * A workspace that relies on locking to ensure that only one process can access it at a time.
-     * Used on Windows where atomic moves cause issues with file locking.
-     */
-    interface LockingImmutableWorkspace extends ImmutableWorkspace {
+    class ConcurrentResult<T> {
 
-        /**
-         * Executes the given action under the global scoped lock.
-         */
-        <T> T withWorkspaceLock(Supplier<T> supplier);
-    }
+        private final T value;
+        private final boolean isProducedByCurrentThread;
 
-    /**
-     * A workspace that relies on atomic moves of immutable workspace directory.
-     * Used on Unix-like systems where atomic moves are supported.
-     */
-    interface AtomicMoveImmutableWorkspace extends ImmutableWorkspace {
+        private ConcurrentResult(T value, boolean isProducedByCurrentThread) {
+            this.value = value;
+            this.isProducedByCurrentThread = isProducedByCurrentThread;
+        }
 
-        /**
-         * Provides a temporary workspace and executes the given action in it.
-         */
-        <T> T withTemporaryWorkspace(TemporaryWorkspaceAction<T> action);
+        public T get() {
+            return value;
+        }
+        public boolean isProducedByCurrentThread() {
+            return isProducedByCurrentThread;
+        }
 
-        @FunctionalInterface
-        interface TemporaryWorkspaceAction<T> {
-            T executeInTemporaryWorkspace(File temporaryWorkspaceLocation);
+        public static <T> ConcurrentResult<T> producedByCurrentThread(T value) {
+            return new ConcurrentResult<>(value, true);
+        }
+
+        public static <T> ConcurrentResult<T> producedByOtherThread(T value) {
+            return new ConcurrentResult<>(value, false);
         }
     }
 }

@@ -36,11 +36,11 @@ import org.gradle.internal.snapshot.TestSnapshotFixture
 import org.gradle.internal.vfs.FileSystemAccess
 
 import java.time.Duration
-import java.util.function.Function
 import java.util.function.Supplier
 
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE
+import static org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ConcurrentResult
 import static org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace
 
 class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> implements TestSnapshotFixture {
@@ -49,8 +49,8 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
     def workspace = Stub(ImmutableWorkspace) {
         immutableLocation >> immutableWorkspace
 
-        getIfRunningOrCompute(_ as Function, _ as Supplier) >> {
-            args -> args[1].get()
+        getOrCompute(_ as Supplier) >> {
+            args -> ConcurrentResult.producedByCurrentThread(args[0].get())
         }
         withFileLock(_ as Supplier) >>
             { Supplier action ->

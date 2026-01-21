@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSortedMap;
@@ -30,6 +29,7 @@ import org.gradle.internal.execution.history.ImmutableWorkspaceMetadata;
 import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ConcurrentResult;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.HashCode;
@@ -106,44 +106,51 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         String uniqueId = context.getIdentity().getUniqueId();
 
         ImmutableWorkspace workspace = workspaceProvider.getWorkspace(uniqueId);
-        // Gets a workspace result or compute it,
-        // but only computes it once across all threads that try to compute it at the same time
-        return workspace.getIfRunningOrCompute(concurrentResultMapper(work, workspace), () -> {
-            // If a workspace already exists, just return the result
-            WorkspaceLoad initialLoad = loadImmutableWorkspaceIfExists(work, workspace);
-            if (initialLoad.isSuccess()) {
-                return initialLoad.getResult();
-            }
+        // Loads a workspace result or creates it,
+        // but only execute loadOrCreateWorkspace() once across all threads that try to run it at the same time
+        ConcurrentResult<WorkspaceResult> result = workspace.getOrCompute(() -> loadOrCreateWorkspace(work, workspace, context));
 
-            // If the workspace doesn't exist or is soft-deleted or broken, execute the work with file lock
-            return workspace.withFileLock(() -> {
-                // We need to invalidate snapshots in case another process populated the workspace just before us
-                Runnable invalidateSnapshots = () -> fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
-                // First, try to load it again if another process populated it just before us (double-checked locking)
-                WorkspaceLoad load = loadImmutableWorkspaceIfComplete(work, workspace, invalidateSnapshots);
-
-                WorkspaceResult result = load.isSuccess()
-                    ? load.getResult()
-                    : executeInWorkspace(work, context, workspace);
-
-                if (initialLoad.isSoftDeleted()) {
-                    workspace.ensureUnSoftDeleted();
-                }
-                return result;
-            });
-        });
+        // If a result is produced by the current thread, return it, otherwise map it as up-to-date
+        return result.isProducedByCurrentThread()
+            ? result.get()
+            : mapConcurrentResultToUpToDate(result.get(), work, workspace);
     }
 
-    private static Function<WorkspaceResult, WorkspaceResult> concurrentResultMapper(UnitOfWork work, ImmutableWorkspace workspace) {
-        return result -> {
-            if (result.getExecution().isSuccessful()) {
-                @SuppressWarnings("OptionalGetWithoutIsPresent")
-                ExecutionOutputState executionOutputState = result.getAfterExecutionOutputState().get();
-                return getUpToDate(work, workspace.getImmutableLocation(), executionOutputState.getOutputFilesProducedByWork(), executionOutputState.getOriginMetadata());
-            } else {
-                return new WorkspaceResult(result, null);
+    private static WorkspaceResult mapConcurrentResultToUpToDate(WorkspaceResult result, UnitOfWork work, ImmutableWorkspace workspace) {
+        if (result.getExecution().isSuccessful()) {
+            @SuppressWarnings("OptionalGetWithoutIsPresent")
+            ExecutionOutputState executionOutputState = result.getAfterExecutionOutputState().get();
+            return getUpToDate(work, workspace.getImmutableLocation(), executionOutputState.getOutputFilesProducedByWork(), executionOutputState.getOriginMetadata());
+        } else {
+            return new WorkspaceResult(result, null);
+        }
+    }
+
+    private WorkspaceResult loadOrCreateWorkspace(UnitOfWork work, ImmutableWorkspace workspace, C context) {
+        // First try to load a workspace and if it's already there and complete return the result
+        WorkspaceLoad initialLoad = loadImmutableWorkspaceIfExists(work, workspace);
+        if (initialLoad.isSuccess()) {
+            return initialLoad.getResult();
+        }
+
+        // If the workspace doesn't exist or is soft-deleted or broken, execute the work with a file lock
+        return workspace.withFileLock(() -> {
+            // We need to invalidate snapshots in case another process populated the workspace just before us
+            Runnable invalidateSnapshots = () -> fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
+            // First, try to load it again if another process populated it just before us (double-checked locking)
+            WorkspaceLoad load = loadImmutableWorkspaceIfComplete(work, workspace, invalidateSnapshots);
+
+            WorkspaceResult result = load.isSuccess()
+                ? load.getResult()
+                : executeInWorkspace(work, context, workspace);
+
+            // Only un soft-delete if soft-deleted at initial load,
+            // if an entry was soft-deleted while acquiring lock, we leave it to the next read to handle it
+            if (initialLoad.isSoftDeleted()) {
+                workspace.ensureUnSoftDeleted();
             }
-        };
+            return result;
+        });
     }
 
     private WorkspaceLoad loadImmutableWorkspaceIfExists(UnitOfWork work, ImmutableWorkspace workspace) {

@@ -17,6 +17,8 @@
 package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy
+import org.gradle.cache.FineGrainedPersistentCache
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
 import org.gradle.internal.execution.Execution
@@ -25,17 +27,15 @@ import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState
-import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
 import org.gradle.internal.execution.workspace.impl.CacheBasedImmutableWorkspaceProvider
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.file.FileType
+import org.gradle.internal.file.impl.SingleDepthFileAccessTracker
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
 
 import java.time.Duration
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
@@ -60,8 +60,14 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
     def softDeleter = Stub(FineGrainedCacheEntrySoftDeleter)
     // Don't mock cache since any await() call in withFile {} blocks other mocks
     def cache = new TestInMemoryCacheFactory().openFineGrained(workspacesRoot, "", null)
-
-    def immutableWorkspaceProvider = new StubImmutableWorkspaceProvider()
+    def cleanupStrategy = Stub(FineGrainedMarkAndSweepCacheCleanupStrategy) {
+        getSoftDeleter(_ as FineGrainedPersistentCache) >> softDeleter
+    }
+    def immutableWorkspaceProvider = new CacheBasedImmutableWorkspaceProvider(
+        Stub(SingleDepthFileAccessTracker),
+        cache,
+        cleanupStrategy
+    )
     def work = Stub(ImmutableUnitOfWork) {
         getWorkspaceProvider() >> immutableWorkspaceProvider
     }
@@ -141,19 +147,6 @@ class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityC
         @Override
         CachingResult execute(UnitOfWork work, WorkspaceContext context) {
             return expectCall.apply(work, context)
-        }
-    }
-
-    private class StubImmutableWorkspaceProvider implements ImmutableWorkspaceProvider {
-        final Map<String, CompletableFuture<?>> results = new ConcurrentHashMap<>()
-
-        StubImmutableWorkspaceProvider() {
-        }
-
-        @Override
-        ImmutableWorkspace getWorkspace(String path) {
-            def workspace = new File(workspacesRoot, path)
-            return new CacheBasedImmutableWorkspaceProvider.CachedBasedImmutableWorkspace(path, workspace, cache, softDeleter, results)
         }
     }
 }

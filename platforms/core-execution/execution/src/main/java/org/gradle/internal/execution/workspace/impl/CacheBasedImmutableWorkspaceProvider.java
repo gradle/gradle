@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.workspace.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.FineGrainedCacheBuilder;
 import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory;
@@ -25,6 +26,7 @@ import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import java.io.Closeable;
@@ -32,32 +34,83 @@ import java.io.File;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceProvider, Closeable {
 
-    private final SingleDepthFileAccessTracker fileAccessTracker;
+    private final FileAccessTracker fileAccessTracker;
     private final FineGrainedPersistentCache cache;
     private final FineGrainedCacheEntrySoftDeleter softDeleter;
-    private final ConcurrentMap<String, CompletableFuture<?>> workspaceResults;
+    private final Map<String, CompletableFuture<?>> workspaceResults;
 
-    public static CacheBasedImmutableWorkspaceProvider createWorkspaceProvider(
-        FineGrainedCacheBuilder cacheBuilder,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        CacheConfigurationsInternal cacheConfigurations,
-        FineGrainedCacheCleanupStrategyFactory cacheCleanupStrategyFactory
+    @VisibleForTesting
+    public CacheBasedImmutableWorkspaceProvider(
+        SingleDepthFileAccessTracker fileAccessTracker,
+        FineGrainedPersistentCache cache,
+        FineGrainedMarkAndSweepCacheCleanupStrategy cleanupStrategy
     ) {
-        return new CacheBasedImmutableWorkspaceProvider(
-            cacheBuilder,
-            fileAccessTimeJournal,
-            cacheConfigurations,
-            cacheCleanupStrategyFactory
-        );
+        this.softDeleter = cleanupStrategy.getSoftDeleter(cache);
+        this.cache = cache;
+        this.fileAccessTracker = fileAccessTracker;
+        this.workspaceResults = new ConcurrentHashMap<>();
     }
 
-    private CacheBasedImmutableWorkspaceProvider(
+    @Override
+    public ImmutableWorkspace getWorkspace(String path) {
+        File workspace = new File(cache.getBaseDir(), path);
+        fileAccessTracker.markAccessed(workspace);
+        return new ImmutableWorkspace() {
+            @Override
+            public File getImmutableLocation() {
+                return workspace;
+            }
+
+            @Override
+            public <T> T withFileLock(Supplier<T> action) {
+                return cache.withFileLock(path, action);
+            }
+
+            @Override
+            public <T> ConcurrentResult<T> getOrCompute(Supplier<T> action) {
+                CompletableFuture<T> thisOperationFuture = new CompletableFuture<>();
+                CompletableFuture<T> runningOperationFuture = Cast.uncheckedCast(workspaceResults.putIfAbsent(path, thisOperationFuture));
+
+                if (runningOperationFuture != null) {
+                    // If it's already running, wait for it to finish
+                    return ConcurrentResult.producedByOtherThread(runningOperationFuture.join());
+                }
+
+                try {
+                    // Else run the action, pass a result to any thread that is waiting, and return
+                    T result = action.get();
+                    thisOperationFuture.complete(result);
+                    return ConcurrentResult.producedByCurrentThread(result);
+                } catch (Exception e) {
+                    thisOperationFuture.completeExceptionally(e);
+                    throw e;
+                } finally {
+                    workspaceResults.remove(path);
+                }
+            }
+
+            @Override
+            public boolean isSoftDeleted() {
+                return softDeleter.isSoftDeleted(path);
+            }
+
+            @Override
+            public void ensureUnSoftDeleted() {
+                softDeleter.removeSoftDeleteMarker(path);
+            }
+        };
+    }
+
+    @Override
+    public void close() {
+        cache.close();
+    }
+
+    public static CacheBasedImmutableWorkspaceProvider createWorkspaceProvider(
         FineGrainedCacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         CacheConfigurationsInternal cacheConfigurations,
@@ -70,86 +123,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
         FineGrainedPersistentCache cache = cacheBuilder
             .withCleanupStrategy(markAndSweepCleanupStrategy)
             .open();
-        this.softDeleter = markAndSweepCleanupStrategy.getSoftDeleter(cache);
-        this.cache = cache;
-        this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, cache.getBaseDir(), 1);
-        this.workspaceResults = new ConcurrentHashMap<>();
-    }
-
-    @Override
-    public ImmutableWorkspace getWorkspace(String path) {
-        File workspace = new File(cache.getBaseDir(), path);
-        fileAccessTracker.markAccessed(workspace);
-        return new CachedBasedImmutableWorkspace(path, workspace, cache, softDeleter, workspaceResults);
-    }
-
-    @Override
-    public void close() {
-        cache.close();
-    }
-
-    public static class CachedBasedImmutableWorkspace implements ImmutableWorkspace {
-        private final String entryKey;
-        private final File workspace;
-        private final FineGrainedPersistentCache cache;
-        private final FineGrainedCacheEntrySoftDeleter softDeleter;
-        private final Map<String, CompletableFuture<?>> workspaceResults;
-
-        public CachedBasedImmutableWorkspace(
-            String entryKey,
-            File workspace,
-            FineGrainedPersistentCache cache,
-            FineGrainedCacheEntrySoftDeleter softDeleter,
-            ConcurrentMap<String, CompletableFuture<?>> workspaceResults
-        ) {
-            this.entryKey = entryKey;
-            this.workspace = workspace;
-            this.cache = cache;
-            this.softDeleter = softDeleter;
-            this.workspaceResults = workspaceResults;
-        }
-
-        @Override
-        public File getImmutableLocation() {
-            return workspace;
-        }
-
-        @Override
-        public <T> T withFileLock(Supplier<T> action) {
-            return cache.withFileLock(entryKey, action);
-        }
-
-        @Override
-        public <T> T getIfRunningOrCompute(Function<T, T> concurrentResultMapper, Supplier<T> action) {
-            CompletableFuture<T> thisOperationFuture = new CompletableFuture<>();
-            CompletableFuture<T> runningOperationFuture = Cast.uncheckedCast(workspaceResults.putIfAbsent(entryKey, thisOperationFuture));
-
-            if (runningOperationFuture != null) {
-                // If it's already running, wait for it to finish and map the result
-                return concurrentResultMapper.apply(runningOperationFuture.join());
-            }
-
-            try {
-                // Else run the action and pass a result to any thread that is waiting
-                T result = action.get();
-                thisOperationFuture.complete(result);
-                return result;
-            } catch (Exception e) {
-                thisOperationFuture.completeExceptionally(e);
-                throw e;
-            } finally {
-                workspaceResults.remove(entryKey);
-            }
-        }
-
-        @Override
-        public boolean isSoftDeleted() {
-            return softDeleter.isSoftDeleted(entryKey);
-        }
-
-        @Override
-        public void ensureUnSoftDeleted() {
-            softDeleter.removeSoftDeleteMarker(entryKey);
-        }
+        SingleDepthFileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, cache.getBaseDir(), 1);
+        return new CacheBasedImmutableWorkspaceProvider(fileAccessTracker, cache, markAndSweepCleanupStrategy);
     }
 }
