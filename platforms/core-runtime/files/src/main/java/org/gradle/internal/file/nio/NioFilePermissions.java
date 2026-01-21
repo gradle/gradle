@@ -24,7 +24,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 
-@SuppressWarnings("Since15")
 public class NioFilePermissions {
     public static FilePermissionHandler createFilePermissionHandler() {
         if (FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
