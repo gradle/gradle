@@ -637,6 +637,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "groovy-compiler-worker",
+    "path": "platforms/jvm/groovy-compiler-worker",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "groovy-loader",
     "path": "platforms/core-runtime/groovy-loader",
     "unitTests": false,

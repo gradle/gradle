@@ -13,6 +13,7 @@ dependencies {
     api(projects.daemonServerWorker)
     api(projects.fileOperations)
     api(projects.files)
+    api(projects.groovyCompilerWorker)
     api(projects.javaCompilerWorker)
     api(projects.jvmServices)
     api(projects.languageJava)
@@ -30,10 +31,8 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.classloaders)
-    implementation(projects.concurrent)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
-    implementation(projects.groovyLoader)
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.serviceLookup)
@@ -70,16 +69,11 @@ dependencies {
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }
 
-tasks.withType<Test>().configureEach {
-    if (!javaVersion.isJava9Compatible) {
-        classpath += javaLauncher.get().metadata.installationPath.files("lib/tools.jar")
-    }
-}
-
 packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/compile/**")
     excludePatterns.add("org/gradle/api/tasks/javadoc/**")
 }
+
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
