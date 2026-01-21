@@ -3737,6 +3737,7 @@ Class <org.gradle.tooling.internal.consumer.versioning.VersionDetails$R35Version
 Class <org.gradle.tooling.internal.consumer.versioning.VersionDetails$R44VersionDetails> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (VersionDetails.java:0)
 Class <org.gradle.tooling.internal.consumer.versioning.VersionDetails$R48VersionDetails> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (VersionDetails.java:0)
 Class <org.gradle.tooling.internal.consumer.versioning.VersionDetails$R51VersionDetails> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (VersionDetails.java:0)
+Class <org.gradle.tooling.internal.consumer.versioning.VersionDetails$R94VersionDetails> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (VersionDetails.java:0)
 Class <org.gradle.tooling.internal.consumer.versioning.VersionDetails> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (VersionDetails.java:0)
 Class <org.gradle.tooling.internal.gradle.DefaultBuildIdentifier> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DefaultBuildIdentifier.java:0)
 Class <org.gradle.tooling.internal.gradle.DefaultProjectIdentifier> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DefaultProjectIdentifier.java:0)

@@ -22,6 +22,7 @@ Include only their name, impactful features should be called out separately belo
 -->
 
 We would like to thank the following community members for their contributions to this release of Gradle:
+[Ujwal Suresh Vanjare](https://github.com/usv240)
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -72,7 +73,11 @@ For Wistia, contact Gradle's Video Team.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+## Tooling integration improvements
 
+Tooling API clients can now directly access Gradle help and version information the same way as the Gradle CLI.
+This allows IDEs and other tools to provide a more consistent user experience when interacting with Gradle.
+For example, In IntelliJ IDEA users will be able to run `--help` and `--version` via the `Execute Gradle task` toolbar action.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
