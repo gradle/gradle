@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import org.gradle.api.internal.tasks.compile.daemon.CompilerWorkerExecutor;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerParameters;
 
-public class ScalaCompilerParameters<T extends ScalaJavaJointCompileSpec> extends CompilerWorkerExecutor.CompilerParameters {
+public class ScalaCompilerParameters<T extends ScalaJavaJointCompileSpec> extends CompilerParameters {
 
     private final T compileSpec;
 

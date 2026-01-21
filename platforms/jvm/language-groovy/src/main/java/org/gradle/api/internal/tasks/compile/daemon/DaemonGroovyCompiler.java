@@ -80,7 +80,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
     }
 
     @Override
-    protected CompilerWorkerExecutor.CompilerParameters getCompilerParameters(GroovyJavaJointCompileSpec spec) {
+    protected CompilerParameters getCompilerParameters(GroovyJavaJointCompileSpec spec) {
         return new GroovyCompilerParameters(DaemonSideCompiler.class.getName(), new Object[]{classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles()}, spec);
     }
 

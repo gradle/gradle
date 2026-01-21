@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.internal.tasks.compile.daemon.CompilerWorkerExecutor;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerParameters;
 
-public class JavaCompilerParameters extends CompilerWorkerExecutor.CompilerParameters {
+public class JavaCompilerParameters extends CompilerParameters {
 
     private final JavaCompileSpec compileSpec;
 

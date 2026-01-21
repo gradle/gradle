@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.compile.daemon;
 
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 
-public class GroovyCompilerParameters extends CompilerWorkerExecutor.CompilerParameters {
+public class GroovyCompilerParameters extends CompilerParameters {
 
     private final GroovyJavaJointCompileSpec compileSpec;
 
