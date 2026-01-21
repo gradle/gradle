@@ -27,7 +27,6 @@ import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Set;
 
 public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainObjectCollectionInternal<T> {
     private final DomainObjectSet<T> delegate;
@@ -173,12 +172,6 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainO
     @Override
     public <S> S[] toArray(S[] a) {
         return delegate.toArray(a);
-    }
-
-    @Override
-    @Deprecated
-    public Set<T> findAll(Closure spec) {
-        return delegate.findAll(spec);
     }
 
     @Override
