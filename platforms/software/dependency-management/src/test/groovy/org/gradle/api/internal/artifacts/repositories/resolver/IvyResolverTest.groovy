@@ -193,15 +193,16 @@ class IvyResolverTest extends Specification {
         def descriptor = builder.create()
 
         new IvyResolver(
-            descriptor,
-            transport,
-            Stub(LocallyAvailableResourceFinder),
-            false,
-            Stub(FileStore),
-            supplier,
-            lister,
-            metadataSources,
-            metadataArtifactProvider, Mock(Instantiator),
-            TestUtil.checksumService)
+                descriptor,
+                transport,
+                Stub(LocallyAvailableResourceFinder),
+                false,
+                Stub(FileStore),
+                supplier,
+                lister,
+                metadataSources,
+                metadataArtifactProvider, Mock(Instantiator),
+                TestUtil.checksumService,
+                false)
     }
 }

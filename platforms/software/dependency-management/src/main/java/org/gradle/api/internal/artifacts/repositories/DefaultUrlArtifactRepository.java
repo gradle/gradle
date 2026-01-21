@@ -32,16 +32,16 @@ import javax.inject.Inject;
 import java.net.URI;
 import java.util.function.Supplier;
 
-public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
+public class DefaultUrlArtifactRepository {
 
     private Object url;
     private boolean allowInsecureProtocol;
-    private final String repositoryType;
     private final FileResolver fileResolver;
+    private final String repositoryType;
     private final Supplier<String> displayNameSupplier;
 
     DefaultUrlArtifactRepository(
-        final FileResolver fileResolver,
+        FileResolver fileResolver,
         final String repositoryType,
         final Supplier<String> displayNameSupplier
     ) {
@@ -50,27 +50,22 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
         this.displayNameSupplier = displayNameSupplier;
     }
 
-    @Override
     public URI getUrl() {
         return url == null ? null : fileResolver.resolveUri(url);
     }
 
-    @Override
     public void setUrl(URI url) {
         this.url = url;
     }
 
-    @Override
     public void setUrl(Object url) {
         this.url = url;
     }
 
-    @Override
     public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
         this.allowInsecureProtocol = allowInsecureProtocol;
     }
 
-    @Override
     public boolean isAllowInsecureProtocol() {
         return allowInsecureProtocol;
     }
