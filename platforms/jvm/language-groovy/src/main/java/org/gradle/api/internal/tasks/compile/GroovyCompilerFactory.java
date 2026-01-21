@@ -22,9 +22,7 @@ import org.gradle.api.internal.tasks.compile.daemon.CompilerWorkerExecutor;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.daemon.ProcessIsolatedCompilerWorkerExecutor;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -37,10 +35,6 @@ import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.List;
 
 @ServiceScope(Scope.Project.class)
 public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCompileSpec> {
@@ -94,26 +88,6 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
         return groovyOptions.isFork() ?
             new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory, projectCacheDir) :
             new ClassloaderIsolatedCompilerWorkerExecutor(inProcessWorkerFactory, actionExecutionSpecFactory, projectCacheDir);
-    }
-
-    public static class DaemonSideCompiler implements Compiler<GroovyJavaJointCompileSpec> {
-        private final ObjectFactory objectFactory;
-        private final List<File> javaCompilerPlugins;
-        private final InternalProblems problemsService;
-
-        @Inject
-        public DaemonSideCompiler(ObjectFactory objectFactory, List<File> javaCompilerPlugins, InternalProblems problemsService) {
-            this.objectFactory = objectFactory;
-            this.javaCompilerPlugins = javaCompilerPlugins;
-            this.problemsService = problemsService;
-        }
-
-        @Override
-        public WorkResult execute(GroovyJavaJointCompileSpec spec) {
-            Compiler<JavaCompileSpec> javaCompiler = new JdkJavaCompiler(new JavaHomeBasedJavaCompilerFactory(javaCompilerPlugins), problemsService);
-            Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler, objectFactory);
-            return groovyCompiler.execute(spec);
-        }
     }
 
 }
