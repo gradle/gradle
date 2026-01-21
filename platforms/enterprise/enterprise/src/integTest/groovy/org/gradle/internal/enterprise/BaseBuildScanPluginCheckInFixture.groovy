@@ -76,7 +76,7 @@ abstract class BaseBuildScanPluginCheckInFixture {
         """
             pluginManagement {
                 repositories {
-                    maven { url = '${mavenRepo.uri}' }
+                    maven { url = uri("${mavenRepo.uri}") }
                 }
             }
         """
@@ -84,7 +84,7 @@ abstract class BaseBuildScanPluginCheckInFixture {
 
     String plugins() {
         """
-            plugins { id "$id" version "$runtimeVersion" }
+            plugins { id("$id").version("$runtimeVersion") }
         """
     }
 
