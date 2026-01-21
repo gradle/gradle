@@ -117,7 +117,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        assertSingleLib(dslDir, 'jquery-3.2.1.js')
+        assertSingleLib(dslDir, 'jquery-4.0.0.js')
 
         where:
         dsl << ['groovy', 'kotlin']
@@ -132,7 +132,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
-        assertSingleLib(dslDir, 'jquery-3.2.1-min.js')
+        assertSingleLib(dslDir, 'jquery-4.0.0-min.js')
 
         where:
         dsl << ['groovy', 'kotlin']
