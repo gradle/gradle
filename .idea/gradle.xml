@@ -237,6 +237,7 @@
             <option value="$PROJECT_DIR$/platforms/jvm/java-compiler-worker" />
             <option value="$PROJECT_DIR$/platforms/jvm/java-platform" />
             <option value="$PROJECT_DIR$/platforms/jvm/javadoc" />
+            <option value="$PROJECT_DIR$/platforms/jvm/jvm-compiler-worker" />
             <option value="$PROJECT_DIR$/platforms/jvm/jvm-services" />
             <option value="$PROJECT_DIR$/platforms/jvm/language-groovy" />
             <option value="$PROJECT_DIR$/platforms/jvm/language-java" />

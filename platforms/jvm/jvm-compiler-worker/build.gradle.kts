@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implements common logic for compiling JVM languages in a separate worker process"
+
 dependencies {
     api(projects.baseCompilerWorker)
     api(projects.baseServices)
@@ -9,10 +11,13 @@ dependencies {
     api(projects.daemonServerWorker)
     api(projects.internalInstrumentationApi)
     api(projects.stdlibJavaExtensions)
-    api("javax.inject:javax.inject")
-    api("org.jspecify:jspecify")
+    api(libs.inject)
+    api(libs.jspecify)
 
     implementation(projects.classloaders)
-    implementation("com.google.guava:guava")
-    implementation("org.apache.commons:commons-lang3")
+    implementation(projects.logging)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }

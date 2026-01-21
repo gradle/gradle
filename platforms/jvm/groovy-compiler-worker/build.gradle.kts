@@ -10,7 +10,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.internalInstrumentationApi)
     api(projects.javaCompilerWorker)
-    api(projects.languageJvm)
+    api(projects.jvmCompilerWorker)
     api(projects.problemsApi)
     api(libs.inject)
     api(libs.jspecify)

@@ -19,6 +19,7 @@ dependencies {
     implementation(projects.core)
     implementation(projects.fileCollections)
     implementation(projects.groovyCompilerWorker)
+    implementation(projects.jvmCompilerWorker)
     implementation(projects.jvmServices)
     implementation(projects.languageGroovy)
     implementation(projects.languageJvm)

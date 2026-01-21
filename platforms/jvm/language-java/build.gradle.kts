@@ -18,6 +18,7 @@ dependencies {
     api(projects.files)
     api(projects.hashing)
     api(projects.javaCompilerWorker)
+    api(projects.jvmCompilerWorker)
     api(projects.jvmServices)
     api(projects.languageJvm)
     api(projects.modelCore)

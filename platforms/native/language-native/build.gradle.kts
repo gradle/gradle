@@ -5,6 +5,7 @@ plugins {
 description = "Plugins and domain objects for building different native languages"
 
 dependencies {
+    api(projects.baseCompilerWorker)
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.concurrent)

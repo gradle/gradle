@@ -12,7 +12,7 @@ dependencies {
     api(projects.hashing)
     api(projects.internalInstrumentationApi)
     api(projects.javaCompilerWorker)
-    api(projects.languageJvm)
+    api(projects.jvmCompilerWorker)
     api(projects.scopedPersistentCache)
     api(projects.stdlibJavaExtensions)
     api(libs.inject)

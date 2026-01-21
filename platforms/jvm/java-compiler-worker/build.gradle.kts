@@ -11,7 +11,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.daemonServerWorker)
     api(projects.fileCollections)
-    api(projects.languageJvm)
+    api(projects.jvmCompilerWorker)
     api(projects.problemsApi)
     api(projects.stdlibJavaExtensions)
     api(libs.guava)

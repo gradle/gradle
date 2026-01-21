@@ -7,6 +7,7 @@ JVM-specific dependencies blocks and JVM test suite interfaces."""
 
 dependencies {
     api(projects.baseCompilerWorker)
+    api(projects.jvmCompilerWorker)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
@@ -19,15 +20,12 @@ dependencies {
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jspecify)
 
-    implementation(projects.classloaders)
     implementation(projects.dependencyManagement)
     implementation(projects.logging)
     implementation(projects.platformBase)
     implementation(projects.testSuitesBase)
 
-    implementation(libs.commonsLang)
     implementation(libs.guava)
 
     testImplementation(projects.native)

@@ -14,6 +14,7 @@ dependencies {
     api(projects.daemonServerWorker)
     api(projects.fileOperations)
     api(projects.files)
+    api(projects.jvmCompilerWorker)
     api(projects.languageJvm)
     api(projects.loggingApi)
     api(projects.modelCore)

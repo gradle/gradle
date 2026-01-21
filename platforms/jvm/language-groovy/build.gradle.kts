@@ -17,6 +17,7 @@ dependencies {
     api(projects.groovyCompilerWorker)
     api(projects.javaCompilerWorker)
     api(projects.jvmServices)
+    api(projects.jvmCompilerWorker)
     api(projects.languageJava)
     api(projects.languageJvm)
     api(projects.platformBase)

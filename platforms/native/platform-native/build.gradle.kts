@@ -5,7 +5,7 @@ plugins {
 description = "Plugins, tasks and compiler infrastructure for compiling/linking code"
 
 dependencies {
-    api(projects.serviceProvider)
+    api(projects.baseCompilerWorker)
     api(projects.baseDiagnostics)
     api(projects.baseServices)
     api(projects.buildOperations)
@@ -17,9 +17,10 @@ dependencies {
     api(projects.logging)
     api(projects.modelCore)
     api(projects.native)
+    api(projects.platformBase)
+    api(projects.serviceProvider)
     api(projects.softwareDiagnostics)
     api(projects.stdlibJavaExtensions)
-    api(projects.platformBase)
     api(projects.workers)
 
     api(libs.jspecify)

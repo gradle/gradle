@@ -854,6 +854,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "jvm-compiler-worker",
+    "path": "platforms/jvm/jvm-compiler-worker",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "jvm-services",
     "path": "platforms/jvm/jvm-services",
     "unitTests": true,
