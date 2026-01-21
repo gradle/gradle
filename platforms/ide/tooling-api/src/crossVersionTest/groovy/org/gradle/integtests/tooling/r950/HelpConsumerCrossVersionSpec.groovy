@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r940
+package org.gradle.integtests.tooling.r950
 
-import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -25,17 +24,17 @@ import org.gradle.tooling.BuildController
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 
-@ToolingApiVersion(">=9.4.0")
-@TargetGradleVersion(">=9.4.0")
-class VersionConsumerCrossVersionSpec extends ToolingApiSpecification {
+@ToolingApiVersion(">=9.5.0")
+@TargetGradleVersion(">=9.4.0") // the required provider-side features were added in 9.4.0
+class HelpConsumerCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=4.0 <9.4.0")
-    def "version request is ignored for old Gradle version"() {
+    def "help request is ignored for old Gradle version"() {
         when:
         withConnection { connection ->
             connection.newBuild()
                 .forTasks("projects")
-                .withArguments("--version")
+                .withArguments("--help")
                 .run()
         }
 
@@ -45,7 +44,7 @@ class VersionConsumerCrossVersionSpec extends ToolingApiSpecification {
         result.assertTaskExecuted(":projects")
     }
 
-    def "prints version and ignores tasks when --version is present"() {
+    def "prints help and ignores tasks when --help is present"() {
         when:
         withConnection { connection ->
             connection.newBuild()
@@ -55,14 +54,14 @@ class VersionConsumerCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        assertVersionInfoRendered(result)
+        result.assertOutputContains('USAGE: gradle [option...] [task...]')
         result.assertNotOutput("BUILD") // no BUILD SUCCESSFUL or BUILD FAILED message at the end
 
         where:
-        arg << ['--version', '-v']
+        arg << ['--help', '-h', '-?']
     }
 
-    def "requesting version via #entryPoint is ignored"() {
+    def "requesting help via #entryPoint is ignored"() {
         setup:
         buildFile << """
             plugins { id 'java-library' }
@@ -86,9 +85,9 @@ class VersionConsumerCrossVersionSpec extends ToolingApiSpecification {
 
         where:
         entryPoint      | entryPointConfig
-        "test launcher" | { ProjectConnection conn -> conn.newTestLauncher().withJvmTestClasses("MyTest").withArguments('--version').run() }
-        "model builder" | { ProjectConnection conn -> conn.model(GradleProject) .withArguments('--version').get() }
-        "build action"  | { ProjectConnection conn -> conn.action(new GetGradleProjectAction()).withArguments('--version').run() }
+        "test launcher" | { ProjectConnection conn -> conn.newTestLauncher().withJvmTestClasses("MyTest").withArguments('--help').run() }
+        "model builder" | { ProjectConnection conn -> conn.model(GradleProject) .withArguments('--help').get() }
+        "build action"  | { ProjectConnection conn -> conn.action(new GetGradleProjectAction()).withArguments('--help').run() }
     }
 
     static class GetGradleProjectAction implements BuildAction<GradleProject> {
@@ -97,26 +96,33 @@ class VersionConsumerCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    def "prints version and runs tasks when --show-version is present"() {
+    def "help takes precedence over version flags"() {
         when:
         withConnection { connection ->
             connection.newBuild()
                 .forTasks("help")
-                .withArguments("--show-version")
+                .withArguments("--help", "--version")
                 .run()
         }
 
         then:
-        assertSuccessful()
-        assertVersionInfoRendered(result)
-
-        where:
-        arg << ['--show-version', '-V']
+        result.assertOutputContains('USAGE: gradle [option...] [task...]')
+        result.assertNotOutput("Build time:")  // Version output should not appear
+        result.assertNotOutput("BUILD") // no BUILD SUCCESSFUL or BUILD FAILED message at the end
     }
 
-    private static void assertVersionInfoRendered(ExecutionResult result) {
-        result.assertOutputContains('Gradle')
-        result.assertOutputContains('Build time:')
-        result.assertOutputContains('Revision:')
+    def "help takes precedence over show-version flag"() {
+        when:
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks("help")
+                .withArguments("--help", "--show-version")
+                .run()
+        }
+
+        then:
+        result.assertOutputContains('USAGE: gradle [option...] [task...]')
+        result.assertNotOutput("Build time:")  // Version output should not appear
+        result.assertNotOutput("BUILD") // no BUILD SUCCESSFUL or BUILD FAILED message at the end
     }
 }
