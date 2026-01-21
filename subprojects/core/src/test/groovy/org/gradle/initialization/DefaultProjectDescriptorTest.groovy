@@ -18,6 +18,8 @@ package org.gradle.initialization
 import org.gradle.api.Project
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.problems.ProblemReporter
+import org.gradle.api.problems.Problems
 import org.gradle.internal.scripts.DefaultScriptFileResolver
 import org.gradle.internal.scripts.ScriptFileResolver
 import org.gradle.test.fixtures.file.TestFile
@@ -98,12 +100,20 @@ class DefaultProjectDescriptorTest extends Specification {
         def descriptor = projectDescriptor()
 
         and:
+        def problems = problemsMock()
         def otherRegistry = new DefaultProjectDescriptorRegistry()
-        def parentDescriptor = new DefaultProjectDescriptor(null, "other", new File("other"), otherRegistry, fileResolver)
-        def otherDescriptor = new DefaultProjectDescriptor(parentDescriptor, testName.methodName, testDirectory, otherRegistry, fileResolver)
+        def parentDescriptor = new DefaultProjectDescriptor(null, "other", new File("other"), otherRegistry, fileResolver, problems)
+        def otherDescriptor = new DefaultProjectDescriptor(parentDescriptor, testName.methodName, testDirectory, otherRegistry, fileResolver, problems)
 
         expect:
         descriptor != otherDescriptor
+    }
+
+    private Problems problemsMock() {
+        def problemsMock = Mock(Problems)
+        def problemReporterMock = Mock(ProblemReporter)
+        problemsMock.getReporter() >> problemReporterMock
+        return problemsMock
     }
 
     def "build file name is resolved by given ScriptFileResolver"() {
@@ -124,8 +134,9 @@ class DefaultProjectDescriptorTest extends Specification {
     }
 
     private ProjectDescriptor projectDescriptor(ScriptFileResolver scriptFileResolver = null, String expectedBuildFileName = Project.DEFAULT_BUILD_FILE) {
-        def parentDescriptor = new DefaultProjectDescriptor(null, "somename", new File("somefile"), descriptorRegistry, fileResolver, scriptFileResolver)
-        def descriptor = new DefaultProjectDescriptor(parentDescriptor, testName.methodName, testDirectory, descriptorRegistry, fileResolver, scriptFileResolver)
+        def problemsMock = problemsMock()
+        def parentDescriptor = new DefaultProjectDescriptor(null, "somename", new File("somefile"), descriptorRegistry, fileResolver, scriptFileResolver, problemsMock)
+        def descriptor = new DefaultProjectDescriptor(parentDescriptor, testName.methodName, testDirectory, descriptorRegistry, fileResolver, scriptFileResolver, problemsMock)
         assertSame(parentDescriptor, descriptor.parent)
         assertThat(parentDescriptor.children.size(), is(1))
         assertTrue(parentDescriptor.children.contains(descriptor))
