@@ -41,7 +41,7 @@ public class ProjectPageRenderer extends ReportRenderer<ProjectNameAndPath, Html
         final String baseCssLink = requireClassResource("/org/gradle/reporting/base-style.css", builder);
         final String cssLink = requireReportResource("style.css", builder);
         final String jqueryLink = requireReportResource("jquery.min.js", builder);
-        final String jtreeLink = requireReportResource("jquery.jstree.js", builder);
+        final String jstreeLink = requireReportResource("jquery.jstree.js", builder);
         final String scriptLink = requireReportResource("script.js", builder);
         requireReportResource("tree.css", builder);
         requireReportResource("d.gif", builder);
@@ -56,7 +56,7 @@ public class ProjectPageRenderer extends ReportRenderer<ProjectNameAndPath, Html
                     link().rel("stylesheet").type("text/css").href(baseCssLink).end();
                     link().rel("stylesheet").type("text/css").href(cssLink).end();
                     script().src(jqueryLink).charset("utf-8").end();
-                    script().src(jtreeLink).charset("utf-8").end();
+                    script().src(jstreeLink).charset("utf-8").end();
                     script().src(namingScheme.transform(project)).charset("utf-8").end();
                     script().src(scriptLink).charset("utf-8").end();
                     title().text("Dependency reports").end();
