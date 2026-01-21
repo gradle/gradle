@@ -97,9 +97,9 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
             properties
         }
 
-        String addAsPropertiesScript(addTo = "project.ext", name = null) {
+        String addAsPropertiesScript(String name = null) {
             asProperties(name).collect { k, v ->
-                "${addTo}.setProperty('${escapeString(k)}', '${escapeString(v)}')"
+                "project.ext.setProperty('${escapeString(k)}', '${escapeString(v)}')"
             }.join(";")
         }
 

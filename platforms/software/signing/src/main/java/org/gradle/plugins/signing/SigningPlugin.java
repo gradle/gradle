@@ -19,6 +19,9 @@ package org.gradle.plugins.signing;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.BasePlugin;
+import org.gradle.plugins.signing.signatory.internal.pgp.PrivateKeyExtractor;
+
+import javax.inject.Inject;
 
 /**
  * Adds the ability to digitally sign files and artifacts.
@@ -38,6 +41,9 @@ public abstract class SigningPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(BasePlugin.class);
-        project.getExtensions().create("signing", SigningExtension.class, project);
+        project.getExtensions().create("signing", SigningExtension.class, project, getPrivateKeyExtractor());
     }
+
+    @Inject
+    protected abstract PrivateKeyExtractor getPrivateKeyExtractor();
 }

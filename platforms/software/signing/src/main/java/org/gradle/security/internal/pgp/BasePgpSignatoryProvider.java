@@ -16,6 +16,7 @@
 package org.gradle.security.internal.pgp;
 
 import org.gradle.api.Project;
+import org.gradle.plugins.signing.signatory.internal.pgp.PrivateKeyExtractor;
 import org.gradle.security.internal.BaseSignatoryProvider;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatory;
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryFactory;
@@ -29,9 +30,13 @@ import java.util.Map;
  */
 public class BasePgpSignatoryProvider implements BaseSignatoryProvider<PgpSignatory> {
 
-    private final PgpSignatoryFactory factory = new PgpSignatoryFactory();
+    private final PgpSignatoryFactory factory;
 
     private final Map<String, PgpSignatory> signatories = new LinkedHashMap<String, PgpSignatory>();
+
+    public BasePgpSignatoryProvider(PrivateKeyExtractor keyExtractor) {
+        this.factory = new PgpSignatoryFactory(keyExtractor);
+    }
 
     @Override
     public PgpSignatory getDefaultSignatory(Project project) {
