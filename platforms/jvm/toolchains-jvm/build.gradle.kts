@@ -22,6 +22,7 @@ plugins {
 description = "Adds support for using JVM toolchains in projects"
 
 dependencies {
+    api(projects.baseCompilerWorker)
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
     api(projects.baseServices)
@@ -35,7 +36,6 @@ dependencies {
     api(projects.jvmServices)
     api(projects.native)
     api(projects.persistentCache)
-    api(projects.platformBase)
     api(projects.processServices)
     api(projects.resources)
     api(projects.toolchainsJvmShared)

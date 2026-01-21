@@ -5,6 +5,7 @@ plugins {
 description = "Implements compilation of Scala source files. May execute within a separate worker process."
 
 dependencies {
+    api(projects.baseCompilerWorker)
     api(projects.baseServices)
     api(projects.classloaders)
     api(projects.coreApi)
@@ -12,7 +13,6 @@ dependencies {
     api(projects.internalInstrumentationApi)
     api(projects.javaCompilerWorker)
     api(projects.languageJvm)
-    api(projects.platformBase)
     api(projects.scopedPersistentCache)
     api(projects.stdlibJavaExtensions)
     api(libs.inject)

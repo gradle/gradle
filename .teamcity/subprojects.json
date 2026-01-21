@@ -28,6 +28,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "base-compiler-worker",
+    "path": "platforms/software/base-compiler-worker",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "base-diagnostics",
     "path": "platforms/core-configuration/base-diagnostics",
     "unitTests": true,

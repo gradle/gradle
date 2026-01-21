@@ -6,12 +6,12 @@ description = """Contains some base and shared classes for JVM language support,
 JVM-specific dependencies blocks and JVM test suite interfaces."""
 
 dependencies {
+    api(projects.baseCompilerWorker)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
     api(projects.daemonServerWorker)
     api(projects.files)
-    api(projects.platformBase)
     api(projects.platformJvm)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
@@ -24,6 +24,7 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.dependencyManagement)
     implementation(projects.logging)
+    implementation(projects.platformBase)
     implementation(projects.testSuitesBase)
 
     implementation(libs.commonsLang)

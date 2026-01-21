@@ -5,12 +5,12 @@ plugins {
 description = "Contains logic for compiling groovy source files. May execute within a separate worker process."
 
 dependencies {
+    api(projects.baseCompilerWorker)
     api(projects.baseServices)
     api(projects.coreApi)
     api(projects.internalInstrumentationApi)
     api(projects.javaCompilerWorker)
     api(projects.languageJvm)
-    api(projects.platformBase)
     api(projects.problemsApi)
     api(libs.inject)
     api(libs.jspecify)

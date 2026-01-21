@@ -5,13 +5,13 @@ plugins {
 description = "Contains logic for compiling java source files. May execute within a separate worker process."
 
 dependencies {
+    api(projects.baseCompilerWorker)
     api(projects.baseServices)
     api(projects.classloaders)
     api(projects.coreApi)
     api(projects.daemonServerWorker)
     api(projects.fileCollections)
     api(projects.languageJvm)
-    api(projects.platformBase)
     api(projects.problemsApi)
     api(projects.stdlibJavaExtensions)
     api(libs.guava)

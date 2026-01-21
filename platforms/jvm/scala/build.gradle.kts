@@ -5,6 +5,7 @@ plugins {
 description = "Plugins for building Scala code with Gradle."
 
 dependencies {
+    api(projects.baseCompilerWorker)
     api(projects.baseServices)
     api(projects.buildProcessServices)
     api(projects.classloaders)

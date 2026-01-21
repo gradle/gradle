@@ -5,6 +5,7 @@ plugins {
 description = "Source for JavaCompile and JavaExec tasks, it also contains logic for incremental Java compilation"
 
 dependencies {
+    api(projects.baseCompilerWorker)
     api(projects.baseServices)
     api(projects.buildEvents)
     api(projects.buildOperations)
@@ -21,7 +22,6 @@ dependencies {
     api(projects.languageJvm)
     api(projects.modelCore)
     api(projects.persistentCache)
-    api(projects.platformBase)
     api(projects.platformJvm)
     api(projects.problemsApi)
     api(projects.processServices)
@@ -46,6 +46,7 @@ dependencies {
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
     implementation(projects.loggingApi)
+    implementation(projects.platformBase)
     implementation(projects.serviceLookup)
     implementation(projects.time)
     implementation(projects.toolingApi)

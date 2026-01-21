@@ -5,13 +5,13 @@ plugins {
 description = """Contains the tooling for Javadoc documentation generation."""
 
 dependencies {
+    api(projects.baseCompilerWorker)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
     api(projects.files)
     api(projects.jvmServices)
     api(projects.modelCore)
-    api(projects.platformBase)
     api(projects.serviceProvider)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)

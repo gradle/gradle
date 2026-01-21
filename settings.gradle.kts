@@ -208,6 +208,7 @@ module("ide") {
 val software = platform("software") {
     uses(core)
     subproject("antlr")
+    subproject("base-compiler-worker")
     subproject("build-init")
     subproject("build-init-specs")
     subproject("build-init-specs-api")
