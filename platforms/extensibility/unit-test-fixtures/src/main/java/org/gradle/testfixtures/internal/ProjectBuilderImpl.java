@@ -113,7 +113,7 @@ public class ProjectBuilderImpl {
             projectDir,
             descriptorRegistry,
             parentProject.getServices().get(FileResolver.class),
-            parentProject.getServices().get(Problems.class)
+            parentProject.getServices().get(Problems.class).getReporter()
         );
 
         ProjectState projectState = parentProject.getServices().get(ProjectStateRegistry.class).registerProject(parentProject.getServices().get(BuildState.class), projectDescriptor);
@@ -199,13 +199,16 @@ public class ProjectBuilderImpl {
         gradlePropertiesController.loadGradleProperties(build.getBuildIdentifier(), build.getBuildRootDir(), false);
 
         ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
+        FileResolver fileResolver = buildServices.get(FileResolver.class);
+        Problems problems = buildServices.get(Problems.class);
+
         // Registers project as a side effect
         ProjectDescriptorInternal projectDescriptor = new DefaultProjectDescriptor(null,
             name,
             projectDir,
             projectDescriptorRegistry,
-            buildServices.get(FileResolver.class),
-            buildServices.get(Problems.class)
+            fileResolver,
+            problems.getReporter()
         );
 
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();

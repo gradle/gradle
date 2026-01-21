@@ -35,7 +35,7 @@ class ScriptResolutionResultReporterTest extends Specification {
             getName() >> "bob"
         }
         def result = new ScriptResolutionResult(directory, "script", selectedFile, [ignoredFile])
-        def problemReporter = Mock(ProblemReporter)
+        def problemReporter = Stub(ProblemReporter)
         def scriptResolutionReporter = new ScriptResolutionResultReporter(problemReporter)
 
         when:
@@ -69,7 +69,7 @@ class ScriptResolutionResultReporterTest extends Specification {
             getName() >> "charlie"
         }
         def result = new ScriptResolutionResult(directory, "script", selectedFile, [ignoredFile1, ignoredFile2])
-        def problemReporter = Mock(ProblemReporter)
+        def problemReporter = Stub(ProblemReporter)
         def scriptResolutionReporter = new ScriptResolutionResultReporter(problemReporter)
 
         when:

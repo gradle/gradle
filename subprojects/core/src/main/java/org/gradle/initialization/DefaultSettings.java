@@ -151,7 +151,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     public ProjectDescriptorInternal createProjectDescriptor(@Nullable ProjectDescriptorInternal parent, String name, File dir) {
-        return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver(), getScriptFileResolver(), getProblems());
+        return new DefaultProjectDescriptor(parent, name, dir, getProjectDescriptorRegistry(), getFileResolver(), getScriptFileResolver(), getProblems().getReporter());
     }
 
     @Override
