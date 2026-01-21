@@ -23,16 +23,19 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.file.TreeType;
 
 import java.io.File;
+import java.util.function.Consumer;
 
 public class BroadcastChangingOutputsStep<C extends WorkspaceContext> implements Step<C, Result>  {
     private final OutputChangeListener outputChangeListener;
 
     private final Step<? super C, ? extends Result> delegate;
+    private final Consumer<WorkspaceContext> invalidator;
 
     public BroadcastChangingOutputsStep(
         OutputChangeListener outputChangeListener,
-        Step<? super C, ? extends Result> delegate
+        Consumer<WorkspaceContext> invalidator, Step<? super C, ? extends Result> delegate
     ) {
+        this.invalidator = invalidator;
         this.outputChangeListener = outputChangeListener;
         this.delegate = delegate;
     }
@@ -57,10 +60,12 @@ public class BroadcastChangingOutputsStep<C extends WorkspaceContext> implements
             }
         });
         ImmutableList<String> outputsToBeChanged = builder.build();
+        invalidator.accept(context);
         outputChangeListener.invalidateCachesFor(outputsToBeChanged);
         try {
             return delegate.execute(work, context);
         } finally {
+            invalidator.accept(context);
             outputChangeListener.invalidateCachesFor(outputsToBeChanged);
         }
     }

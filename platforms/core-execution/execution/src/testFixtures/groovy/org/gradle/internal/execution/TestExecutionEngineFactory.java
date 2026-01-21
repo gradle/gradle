@@ -82,7 +82,7 @@ public class TestExecutionEngineFactory {
             new StoreExecutionStateStep<>(
             new ResolveInputChangesStep<>(
             new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER,
-            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new BroadcastChangingOutputsStep<>(outputChangeListener, context -> {},
             new PreCreateOutputParentsStep<>(
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep.Mutable(buildOperationRunner

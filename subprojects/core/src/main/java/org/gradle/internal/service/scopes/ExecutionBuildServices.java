@@ -176,7 +176,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new NeverUpToDateStep<>(
             new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
             new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER,
-            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new BroadcastChangingOutputsStep<>(outputChangeListener, context -> fileSystemAccess.invalidate(Collections.singleton(context.getWorkspace().getAbsolutePath())),
             new PreCreateOutputParentsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
             new CancelExecutionStep<>(cancellationToken,
@@ -199,7 +199,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
             new ResolveInputChangesStep<>(
             new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, new OverlappingOutputsFilter(),
-            new BroadcastChangingOutputsStep<>(outputChangeListener,
+            new BroadcastChangingOutputsStep<>(outputChangeListener, context -> {},
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
             new PreCreateOutputParentsStep<>(
             new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,

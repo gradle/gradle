@@ -29,7 +29,6 @@ import org.gradle.internal.execution.history.ImmutableWorkspaceMetadata;
 import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
-import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ConcurrentResult;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.HashCode;
@@ -108,22 +107,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         ImmutableWorkspace workspace = workspaceProvider.getWorkspace(uniqueId);
         // Loads a workspace result or creates it,
         // but only execute loadOrCreateWorkspace() once across all threads that try to run it at the same time
-        ConcurrentResult<WorkspaceResult> result = workspace.getOrCompute(() -> loadOrCreateWorkspace(work, workspace, context));
-
-        // If a result is produced by the current thread, return it, otherwise map it as up-to-date
-        return result.isProducedByCurrentThread()
-            ? result.get()
-            : mapConcurrentResultToUpToDate(result.get(), work, workspace);
-    }
-
-    private static WorkspaceResult mapConcurrentResultToUpToDate(WorkspaceResult result, UnitOfWork work, ImmutableWorkspace workspace) {
-        if (result.getExecution().isSuccessful()) {
-            @SuppressWarnings("OptionalGetWithoutIsPresent")
-            ExecutionOutputState executionOutputState = result.getAfterExecutionOutputState().get();
-            return getUpToDate(work, workspace.getImmutableLocation(), executionOutputState.getOutputFilesProducedByWork(), executionOutputState.getOriginMetadata());
-        } else {
-            return new WorkspaceResult(result, null);
-        }
+        return loadOrCreateWorkspace(work, workspace, context);
     }
 
     private WorkspaceResult loadOrCreateWorkspace(UnitOfWork work, ImmutableWorkspace workspace, C context) {
@@ -225,8 +209,6 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
         // Ensure an empty directory in case of stale files
         ensureEmptyDirectory(workspaceDir);
-        // Invalidate snapshots since we cleaned the directory
-        fileSystemAccess.invalidate(ImmutableList.of(workspaceDir.getAbsolutePath()));
         // Execute
         CachingResult delegateResult = delegate.execute(work, previousExecutionContext);
 

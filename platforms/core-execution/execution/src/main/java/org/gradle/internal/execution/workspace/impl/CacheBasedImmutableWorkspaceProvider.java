@@ -67,7 +67,7 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
 
             @Override
             public <T> T withFileLock(Supplier<T> action) {
-                return cache.withFileLock(path, action);
+                return cache.useCache(path, action);
             }
 
             @Override

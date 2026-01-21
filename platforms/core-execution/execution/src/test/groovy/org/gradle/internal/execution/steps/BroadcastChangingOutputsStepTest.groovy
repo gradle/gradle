@@ -25,7 +25,7 @@ class BroadcastChangingOutputsStepTest extends StepSpec<InputChangesContext> {
     def outputChangeListener = Mock(OutputChangeListener)
     def delegateResult = Stub(Result)
 
-    def step = new BroadcastChangingOutputsStep<>(outputChangeListener, delegate)
+    def step = new BroadcastChangingOutputsStep<>(outputChangeListener, (context) -> { }, delegate)
 
     def "notifies listener about specific outputs changing"() {
         def outputDir = file("output-dir")
