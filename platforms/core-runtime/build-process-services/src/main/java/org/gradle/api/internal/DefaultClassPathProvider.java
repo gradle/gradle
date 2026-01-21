@@ -33,7 +33,7 @@ public class DefaultClassPathProvider implements ClassPathProvider {
         }
         if (name.equals("GROOVY-COMPILER")) {
             ClassPath classpath = ClassPath.EMPTY;
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-language-groovy").getImplementationClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-groovy-compiler-worker").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("groovy").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("groovy-json").getImplementationClasspath());
             classpath = classpath.plus(moduleRegistry.getModule("groovy-xml").getImplementationClasspath());
@@ -43,7 +43,7 @@ public class DefaultClassPathProvider implements ClassPathProvider {
         }
         if (name.equals("SCALA-COMPILER")) {
             ClassPath classpath = ClassPath.EMPTY;
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-scala").getImplementationClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-scala-compiler-worker").getImplementationClasspath());
             classpath = addJavaCompilerModules(classpath);
             return classpath;
         }
@@ -77,9 +77,9 @@ public class DefaultClassPathProvider implements ClassPathProvider {
     }
 
     private ClassPath addJavaCompilerModules(ClassPath classpath) {
-        classpath = classpath.plus(moduleRegistry.getModule("gradle-language-java").getImplementationClasspath());
-        classpath = classpath.plus(moduleRegistry.getModule("gradle-language-jvm").getImplementationClasspath());
-        classpath = classpath.plus(moduleRegistry.getModule("gradle-platform-base").getImplementationClasspath());
+        classpath = classpath.plus(moduleRegistry.getModule("gradle-java-compiler-worker").getImplementationClasspath());
+        classpath = classpath.plus(moduleRegistry.getModule("gradle-jvm-compiler-worker").getImplementationClasspath());
+        classpath = classpath.plus(moduleRegistry.getModule("gradle-base-compiler-worker").getImplementationClasspath());
         classpath = classpath.plus(moduleRegistry.getModule("gradle-problems-api").getImplementationClasspath());
         classpath = classpath.plus(moduleRegistry.getModule("gradle-problems-rendering").getImplementationClasspath());
         return classpath;

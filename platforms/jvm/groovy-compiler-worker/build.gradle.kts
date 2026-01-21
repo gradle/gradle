@@ -18,7 +18,6 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.concurrent)
     implementation(projects.groovyLoader)
-    implementation(projects.languageJava)
     implementation(projects.stdlibJavaExtensions)
     implementation(libs.asm)
     implementation(libs.groovy)
