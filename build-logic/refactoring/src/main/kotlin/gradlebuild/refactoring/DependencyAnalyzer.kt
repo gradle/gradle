@@ -49,7 +49,7 @@ private data class ClassDependencies(val api: Set<String>, val impl: Set<String>
 }
 
 /**
- * Analyzes Java/Kotlin class files to determine their dependencies.
+ * Analyzes class files to determine their dependencies.
  *
  * This class uses the ASM library to parse bytecode and extract dependency information.
  * It performs a transitive dependency traversal starting from a given set of "split classes".
@@ -70,46 +70,7 @@ class DependencyAnalyzer {
         splitClasses: Set<String>
     ): AnalysisResult {
         // 1. Index all available classes
-        val classLocationMap = mutableMapOf<String, File>()
-
-        // Index compiled classes
-        for (dir in compiledClassesDirs) {
-             if (dir.isDirectory) {
-                dir.walk()
-                    .filter { it.isFile && it.extension == "class" }
-                    .forEach { file ->
-                        parseClassName(file)?.let { className ->
-                            classLocationMap[className] = dir
-                        }
-                    }
-             }
-        }
-
-        // Index classpath
-        for (path in compileClasspath) {
-            if (path.isDirectory) {
-                path.walk()
-                    .filter { it.isFile && it.extension == "class" }
-                    .forEach { file ->
-                        parseClassName(file)?.let { className ->
-                            classLocationMap.putIfAbsent(className, path)
-                        }
-                    }
-            } else if (path.isFile && path.name.endsWith(".jar", ignoreCase = true)) {
-                try {
-                    ZipFile(path).use { zip ->
-                        zip.entries().asSequence()
-                            .filter { !it.isDirectory && it.name.endsWith(".class") }
-                            .forEach { entry ->
-                                val className = entry.name.substringBeforeLast(".class").replace('/', '.')
-                                classLocationMap.putIfAbsent(className, path)
-                            }
-                    }
-                } catch (e: Exception) {
-                    // Ignore bad jars
-                }
-            }
-        }
+        val classLocationMap = indexClassLocations(compiledClassesDirs, compileClasspath)
 
         // 2. Transitive Traversal
         val visited = mutableSetOf<String>()
@@ -127,25 +88,26 @@ class DependencyAnalyzer {
         while (queue.isNotEmpty()) {
             val currentClass = queue.removeFirst()
 
-            if (!visited.add(currentClass)) continue
+            if (visited.add(currentClass)) {
+                val location = classLocationMap[currentClass]
+                if (location != null) {
+                    val isProjectClass = location in compiledClassesDirsSet
+                    if (isProjectClass) {
+                        projectClassesResult.add(currentClass)
 
-            val location = classLocationMap[currentClass] ?: continue
+                        // Get dependencies
+                        val dependencies = dependencyCache.getOrPut(currentClass) {
+                            parseDependencies(currentClass, location)
+                        }
 
-            val isProjectClass = location in compiledClassesDirsSet
-            if (isProjectClass) {
-                projectClassesResult.add(currentClass)
+                        apiExternalClasses.addAll(dependencies.api)
+                        implExternalClasses.addAll(dependencies.impl)
 
-                // Get dependencies
-                val dependencies = dependencyCache.getOrPut(currentClass) {
-                    parseDependencies(currentClass, location)
-                }
-
-                apiExternalClasses.addAll(dependencies.api)
-                implExternalClasses.addAll(dependencies.impl)
-
-                for (dep in dependencies.all) {
-                    if (!visited.contains(dep)) {
-                        queue.add(dep)
+                        for (dep in dependencies.all) {
+                            if (!visited.contains(dep)) {
+                                queue.add(dep)
+                            }
+                        }
                     }
                 }
             }
@@ -176,32 +138,67 @@ class DependencyAnalyzer {
         return AnalysisResult(projectClassesResult, apiRoots, implRoots)
     }
 
-    private fun parseClassName(file: File): String? {
-        return try {
-            file.inputStream().use {
-                val reader = ClassReader(it)
-                reader.className.replace('/', '.')
+    private fun indexClassLocations(
+        compiledClassesDirs: Iterable<File>,
+        compileClasspath: Set<File>
+    ): Map<String, File> {
+        val classLocationMap = mutableMapOf<String, File>()
+
+        // Index compiled classes
+        for (dir in compiledClassesDirs) {
+            if (dir.isDirectory) {
+                dir.walk()
+                    .filter { it.isFile && it.extension == "class" }
+                    .forEach { file ->
+                        parseClassName(file)?.let { className ->
+                            classLocationMap[className] = dir
+                        }
+                    }
             }
-        } catch (e: Exception) {
-            null
+        }
+
+        // Index classpath
+        for (path in compileClasspath) {
+            if (path.isDirectory) {
+                path.walk()
+                    .filter { it.isFile && it.extension == "class" }
+                    .forEach { file ->
+                        parseClassName(file)?.let { className ->
+                            classLocationMap.putIfAbsent(className, path)
+                        }
+                    }
+            } else if (path.isFile && path.name.endsWith(".jar", ignoreCase = true)) {
+                ZipFile(path).use { zip ->
+                    zip.entries().asSequence()
+                        .filter { !it.isDirectory && it.name.endsWith(".class") }
+                        .forEach { entry ->
+                            val className = entry.name.substringBeforeLast(".class").replace('/', '.')
+                            classLocationMap.putIfAbsent(className, path)
+                        }
+                }
+            }
+        }
+        return classLocationMap
+    }
+
+    private fun parseClassName(file: File): String? {
+        return file.inputStream().use {
+            val reader = ClassReader(it)
+            reader.className.replace('/', '.')
         }
     }
 
     private fun parseDependencies(className: String, location: File): ClassDependencies {
-        val bytes = try {
-            if (location.isDirectory) {
-                val relativePath = className.replace('.', '/') + ".class"
-                val classFile = File(location, relativePath)
-                if (classFile.exists()) classFile.readBytes() else return ClassDependencies(emptySet(), emptySet())
-            } else {
-                ZipFile(location).use { zip ->
-                    val entryName = className.replace('.', '/') + ".class"
-                    val entry = zip.getEntry(entryName) ?: return ClassDependencies(emptySet(), emptySet())
-                    zip.getInputStream(entry).readBytes()
-                }
+        val bytes = if (location.isDirectory) {
+            val relativePath = className.replace('.', '/') + ".class"
+            val classFile = File(location, relativePath)
+            if (classFile.exists()) classFile.readBytes() else return ClassDependencies(emptySet(), emptySet())
+        } else {
+            ZipFile(location).use { zip ->
+                val entryName = className.replace('.', '/') + ".class"
+                val entry = zip.getEntry(entryName) ?: return ClassDependencies(emptySet(), emptySet())
+                zip.getInputStream(entry).readBytes()
             }
-        } catch (e: Exception) {
-            return ClassDependencies(emptySet(), emptySet())
         }
 
         val reader = ClassReader(bytes)

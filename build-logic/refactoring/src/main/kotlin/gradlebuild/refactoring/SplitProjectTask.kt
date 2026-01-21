@@ -27,14 +27,17 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
+import java.io.PrintWriter
 import java.net.URI
 
 /**
@@ -93,6 +96,7 @@ abstract class SplitProjectTask : DefaultTask() {
      * The directories containing the compiled class files of the current project.
      */
     @get:InputFiles
+    @get:Classpath
     abstract val projectClassesDirs: ConfigurableFileCollection
 
     /**
@@ -100,6 +104,7 @@ abstract class SplitProjectTask : DefaultTask() {
      * This list must correspond 1-to-1 with [compileClasspathComponentIds].
      */
     @get:InputFiles
+    @get:Classpath
     abstract val compileClasspathFiles: ListProperty<File>
 
     /**
@@ -114,6 +119,7 @@ abstract class SplitProjectTask : DefaultTask() {
      * Used to find the .java source files corresponding to the classes to be moved.
      */
     @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val javaSourceDirectories: ConfigurableFileCollection
 
     /**
@@ -126,7 +132,7 @@ abstract class SplitProjectTask : DefaultTask() {
      * The test source directories of the current project being split.
      */
     @get:InputFiles
-    @get:Optional
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val testSourceDirectories: ConfigurableFileCollection
 
     @TaskAction
@@ -136,16 +142,54 @@ abstract class SplitProjectTask : DefaultTask() {
             throw GradleException("Target project directory already exists: ${targetDir.absolutePath}")
         }
 
-        val classesDirsSet = projectClassesDirs.files
-        val classpathFiles = compileClasspathFiles.get()
         val rootClassNames = rootClasses.get().split(",").map { it.trim() }.toSet()
+        val result = DependencyAnalyzer().analyze(
+            projectClassesDirs.files,
+            compileClasspathFiles.get().toSet(),
+            rootClassNames
+        )
 
-        val result = DependencyAnalyzer().analyze(classesDirsSet, classpathFiles.toSet(), rootClassNames)
+        val sourceFileMoves = mutableSetOf<Pair<File, String>>()
 
-        // For each discovered project class, find the corresponding source file
+        // Find all source files to move to the new project
+        discoverProjectSourceFiles(result, sourceFileMoves)
+
+        // Find all tests to move to the new project
+        discoverRelevantTests(result, sourceFileMoves)
+
+        // Move the source files to the new project
+        sourceFileMoves.forEach { (from, relativePath) ->
+            val to = File(targetDir, relativePath)
+            to.parentFile.mkdirs()
+            if (!from.renameTo(to)) {
+                throw GradleException("Failed to move ${from.absolutePath} to ${to.absolutePath}")
+            }
+        }
+
+        // Generate the project build file
+        File(targetDir, "build.gradle.kts").printWriter().use { out ->
+            out.generateBuildFile(result)
+        }
+
+        println("Successfully generated project ${toProject.get()} at ${targetDir.asClickableFileUrl()}")
+        println()
+        println("The following manual steps must still be performed:")
+        println("- Add 'subproject(\"${toProject.get()}\")' to ${rootProjectDirectory.file("settings.gradle.kts").get().asFile.asClickableFileUrl()}")
+        println("- Update the the current project to depend on `projects.${toProjectAccessorName(":${toProject.get()}")}`: ${currentProjectDirectory.file("build.gradle.kts").get().asFile.asClickableFileUrl()}")
+        println("- Run `./gradlew :generateSubprojectsInfo`")
+        println("- Run `./gradlew projectHealth --continue` and resolve any reported dependency declaration issues")
+        println("- Sync the build and commit the idea.xml file changes")
+    }
+
+    /**
+     * For each discovered project class, find the corresponding source file
+     */
+    private fun discoverProjectSourceFiles(
+        result: AnalysisResult,
+        sourceFileMoves: MutableSet<Pair<File, String>>
+    ) {
         val sourceDirs = javaSourceDirectories.files
         val missingSources = mutableListOf<String>()
-        val sourceFileMoves = mutableSetOf<Pair<File, File>>()
 
         result.projectClasses.forEach { className ->
             val relativePath = toRelativeJavaSourceFilePath(className)
@@ -154,8 +198,8 @@ abstract class SplitProjectTask : DefaultTask() {
             for (sourceDir in sourceDirs) {
                 val sourceFile = File(sourceDir, relativePath)
                 if (sourceFile.exists()) {
-                    val destFile = File(targetDir, "src/main/java/$relativePath")
-                    sourceFileMoves.add(sourceFile to destFile)
+                    val projectRelativePath = "src/main/java/$relativePath"
+                    sourceFileMoves.add(sourceFile to projectRelativePath)
                     found = true
                     break
                 }
@@ -169,8 +213,15 @@ abstract class SplitProjectTask : DefaultTask() {
         if (missingSources.isNotEmpty()) {
             throw GradleException("Could not find source files for the following classes:\n" + missingSources.joinToString("\n"))
         }
+    }
 
-        // Find and move test files
+    /**
+     * Use naming heuristics to find test files corresponding to the classes being moved.
+     */
+    private fun discoverRelevantTests(
+        result: AnalysisResult,
+        sourceFileMoves: MutableSet<Pair<File, String>>
+    ) {
         val testSuffixes = listOf("Test", "Spec", "IntegTest", "IntegSpec", "IntegrationTest", "IntegrationSpec")
         val testExtensions = listOf("java", "groovy")
         val testSourceDirs = testSourceDirectories.files
@@ -192,17 +243,50 @@ abstract class SplitProjectTask : DefaultTask() {
                         val sourceFile = File(sourceDir, relativePath)
                         if (sourceFile.exists()) {
                             val relativeSourceRoot = sourceDir.relativeTo(currentProjectDir).path
-                            val destFile = File(targetDir, "$relativeSourceRoot/$relativePath")
-                            sourceFileMoves.add(sourceFile to destFile)
+                            val relativePath = "$relativeSourceRoot/$relativePath"
+                            sourceFileMoves.add(sourceFile to relativePath)
                         }
                     }
                 }
             }
         }
+    }
 
-        // For each dependency artifact, find the corresponding ComponentIdentifier which produces that artifact
+    /**
+     * Generates a build file for the new project containing the dependencies of the
+     * classes being moved.
+     */
+    private fun PrintWriter.generateBuildFile(result: AnalysisResult) {
+        val (foundApiComponents, foundImplComponents) = resolveDependencyComponents(result)
+        val apiDeps = sortDependencies(foundApiComponents.map {
+            toBuildscriptDependencyDeclaration(it, "api")
+        })
+        val implDeps = sortDependencies(foundImplComponents.map {
+            toBuildscriptDependencyDeclaration(it, "implementation")
+        })
+
+        println("plugins {")
+        println("    id(\"gradlebuild.distribution.api-java\")")
+        println("}")
+        println()
+        println("dependencies {")
+        apiDeps.forEach { println("    $it") }
+        if (apiDeps.isNotEmpty() && implDeps.isNotEmpty()) {
+            println()
+        }
+        implDeps.forEach { println("    $it") }
+        println("}")
+    }
+
+    /**
+     * For each dependency artifact, find the corresponding ComponentIdentifier
+     * which produces that artifact
+     */
+    private fun resolveDependencyComponents(
+        result: AnalysisResult
+    ): Pair<MutableSet<ComponentIdentifier>, MutableSet<ComponentIdentifier>> {
         val componentIds = compileClasspathComponentIds.get()
-        val artifactFilesToComponentIds: Map<File, ComponentIdentifier> = classpathFiles.zip(componentIds).toMap()
+        val artifactFilesToComponentIds: Map<File, ComponentIdentifier> = compileClasspathFiles.get().zip(componentIds).toMap()
 
         val missingComponents = mutableListOf<String>()
         fun resolveComponents(dependencyFiles: Set<File>, dependencyComponentIds: MutableSet<ComponentIdentifier>) {
@@ -224,46 +308,7 @@ abstract class SplitProjectTask : DefaultTask() {
         if (missingComponents.isNotEmpty()) {
             throw GradleException("Could not find Component IDs for the following dependency files:\n" + missingComponents.joinToString("\n"))
         }
-
-        sourceFileMoves.forEach { (from, to) ->
-            to.parentFile.mkdirs()
-            if (!from.renameTo(to)) {
-                throw GradleException("Failed to move ${from.absolutePath} to ${to.absolutePath}")
-            }
-        }
-
-        val apiDeps = foundApiComponents.map { toBuildscriptDependencyDeclaration(it, "api") }
-        val implDeps = foundImplComponents.map { toBuildscriptDependencyDeclaration(it, "implementation") }
-
-        val buildFile = File(targetDir, "build.gradle.kts")
-        buildFile.printWriter().use { out ->
-            out.println("plugins {")
-            out.println("    id(\"gradlebuild.distribution.api-java\")")
-            out.println("}")
-            out.println()
-            out.println("dependencies {")
-
-            val sortedApiDeps = sortDependencies(apiDeps)
-            sortedApiDeps.forEach { out.println("    $it") }
-
-            if (sortedApiDeps.isNotEmpty() && implDeps.isNotEmpty()) {
-                out.println()
-            }
-
-            val sortedImplDeps = sortDependencies(implDeps)
-            sortedImplDeps.forEach { out.println("    $it") }
-            out.println("}")
-        }
-
-        println("Successfully generated project ${toProject.get()} at ${targetDir.asClickableFileUrl()}")
-        println()
-        println("The following manual steps required to complete the split:")
-        println("- Add 'subproject(\"${toProject.get()}\")' to ${rootProjectDirectory.file("settings.gradle.kts").get().asFile.asClickableFileUrl()}")
-        println("- Remove any unused dependencies from the original build.gradle.kts file")
-        println("- Update the original build.gradle.kts file to to depend on projects.${toProjectAccessorName(":${toProject.get()}")}")
-        println("- Manually declare any test dependencies in the new build.gradle.kts file")
-        println("- Run ./gradlew :generateSubprojectsInfo")
-        println("- Run ./gradlew :projectHealth")
+        return foundApiComponents to foundImplComponents
     }
 
     /**
@@ -298,8 +343,11 @@ abstract class SplitProjectTask : DefaultTask() {
         }
     }
 
-    private fun toProjectAccessorName(string: String): String =
-        string.removePrefix(":").split(":").joinToString(".") { part ->
+    /**
+     * Converts a project path to a typesafe project accessor name.
+     */
+    private fun toProjectAccessorName(projectPath: String): String =
+        projectPath.removePrefix(":").split(":").joinToString(".") { part ->
             part.split("-", "_").mapIndexed { index, s ->
                 if (index == 0) s else s.replaceFirstChar { it.uppercase() }
             }.joinToString("")
