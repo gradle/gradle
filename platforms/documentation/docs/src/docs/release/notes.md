@@ -73,7 +73,11 @@ For Wistia, contact Gradle's Video Team.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+## Tooling integration improvements
 
+Tooling API clients can now directly access Gradle help and version information the same way as the Gradle CLI.
+This allows IDEs and other tools to provide a more consistent user experience when interacting with Gradle.
+For example, In IntelliJ IDEA users will be able to run `--help` and `--version` via the `Execute Gradle task` toolbar action.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
