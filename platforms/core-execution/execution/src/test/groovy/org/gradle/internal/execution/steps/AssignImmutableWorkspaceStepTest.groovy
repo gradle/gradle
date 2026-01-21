@@ -49,15 +49,12 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
     def workspace = Stub(ImmutableWorkspace) {
         immutableLocation >> immutableWorkspace
 
-        getOrCompute(_ as Supplier) >> {
-            args -> ConcurrentResult.producedByCurrentThread(args[0].get())
-        }
         withFileLock(_ as Supplier) >>
             { Supplier action ->
                 cacheDir.file(".internal/locks/").mkdirs()
                 cacheDir.file(".internal/locks/${immutableWorkspace.name}.lock").createFile()
                 immutableWorkspace.mkdirs()
-                action.get()
+                ConcurrentResult.producedByCurrentThread(action.get())
             }
     }
     def deleter = Mock(Deleter)

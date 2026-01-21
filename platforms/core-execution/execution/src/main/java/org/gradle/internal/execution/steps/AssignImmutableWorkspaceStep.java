@@ -29,6 +29,7 @@ import org.gradle.internal.execution.history.ImmutableWorkspaceMetadata;
 import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore;
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider;
+import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ConcurrentResult;
 import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.HashCode;
@@ -103,21 +104,23 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
     public WorkspaceResult execute(UnitOfWork work, C context) {
         ImmutableWorkspaceProvider workspaceProvider = ((ImmutableUnitOfWork) work).getWorkspaceProvider();
         String uniqueId = context.getIdentity().getUniqueId();
-
         ImmutableWorkspace workspace = workspaceProvider.getWorkspace(uniqueId);
-        // Loads a workspace result or creates it,
-        // but only execute loadOrCreateWorkspace() once across all threads that try to run it at the same time
-        return loadOrCreateWorkspace(work, workspace, context);
-    }
 
-    private WorkspaceResult loadOrCreateWorkspace(UnitOfWork work, ImmutableWorkspace workspace, C context) {
-        // First try to load a workspace and if it's already there and complete return the result
+        // First try to load a workspace without lock and if it's already there and complete, return the result
         WorkspaceLoad initialLoad = loadImmutableWorkspaceIfExists(work, workspace);
         if (initialLoad.isSuccess()) {
             return initialLoad.getResult();
         }
 
         // If the workspace doesn't exist or is soft-deleted or broken, execute the work with a file lock
+        ConcurrentResult<WorkspaceResult> result = loadOrCreateWorkspaceWithFileLock(work, workspace, initialLoad, context);
+        // If a result is produced by the current thread, return it, otherwise map it as up-to-date
+        return result.isProducedByCurrentThread()
+            ? result.get()
+            : mapConcurrentResultToUpToDate(result.get(), work, workspace);
+    }
+
+    private ConcurrentResult<WorkspaceResult> loadOrCreateWorkspaceWithFileLock(UnitOfWork work, ImmutableWorkspace workspace, WorkspaceLoad initialLoad, C context) {
         return workspace.withFileLock(() -> {
             // We need to invalidate snapshots in case another process populated the workspace just before us
             Runnable invalidateSnapshots = () -> fileSystemAccess.invalidate(ImmutableList.of(workspace.getImmutableLocation().getAbsolutePath()));
@@ -135,6 +138,16 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
             }
             return result;
         });
+    }
+
+    private static WorkspaceResult mapConcurrentResultToUpToDate(WorkspaceResult result, UnitOfWork work, ImmutableWorkspace workspace) {
+        if (result.getExecution().isSuccessful()) {
+            @SuppressWarnings("OptionalGetWithoutIsPresent")
+            ExecutionOutputState executionOutputState = result.getAfterExecutionOutputState().get();
+            return getUpToDate(work, workspace.getImmutableLocation(), executionOutputState.getOutputFilesProducedByWork(), executionOutputState.getOriginMetadata());
+        } else {
+            return new WorkspaceResult(result, null);
+        }
     }
 
     private WorkspaceLoad loadImmutableWorkspaceIfExists(UnitOfWork work, ImmutableWorkspace workspace) {

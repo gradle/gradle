@@ -32,15 +32,10 @@ public interface ImmutableWorkspaceProvider {
 
         /**
          * Executes the given action with process file lock.
-         */
-        <T> T withFileLock(Supplier<T> action);
-
-        /**
-         * Gets a result from the workspace if it's already running or computes it otherwise.
          *
          * This method makes sure only one thread is executing the given action for a workspace at a time.
          */
-        <T> ConcurrentResult<T> getOrCompute(Supplier<T> action);
+        <T> ConcurrentResult<T> withFileLock(Supplier<T> action);
 
         /**
          * Returns true if the workspace has been soft deleted.

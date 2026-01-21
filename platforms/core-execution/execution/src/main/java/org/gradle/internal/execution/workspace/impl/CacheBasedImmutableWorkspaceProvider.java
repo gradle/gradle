@@ -66,12 +66,11 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
             }
 
             @Override
-            public <T> T withFileLock(Supplier<T> action) {
-                return cache.useCache(path, action);
+            public <T> ConcurrentResult<T> withFileLock(Supplier<T> action) {
+                return getOrCompute(() -> cache.withFileLock(path, action));
             }
 
-            @Override
-            public <T> ConcurrentResult<T> getOrCompute(Supplier<T> action) {
+            private <T> ConcurrentResult<T> getOrCompute(Supplier<T> action) {
                 CompletableFuture<T> thisOperationFuture = new CompletableFuture<>();
                 CompletableFuture<T> runningOperationFuture = Cast.uncheckedCast(workspaceResults.putIfAbsent(path, thisOperationFuture));
 
