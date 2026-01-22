@@ -86,7 +86,7 @@ fun pluginsBlockOf(scriptPlugin: PrecompiledScriptPlugin): Program.Plugins? =
     when (scriptPlugin.scriptType) {
         KotlinScriptType.PROJECT -> pluginsBlockOf(parse(scriptPlugin, target = ProgramTarget.Project))
         KotlinScriptType.SETTINGS -> pluginsBlockOf(parse(scriptPlugin, target = ProgramTarget.Settings))
-        else -> null
+        KotlinScriptType.INIT -> null
     }
 
 

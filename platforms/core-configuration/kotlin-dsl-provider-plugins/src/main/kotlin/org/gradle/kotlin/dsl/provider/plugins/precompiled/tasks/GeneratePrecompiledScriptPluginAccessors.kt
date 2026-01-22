@@ -163,13 +163,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
         generateProjectScriptPluginsAccessors()
 
-        validateSettingsScriptPluginsPlugins()
-        val settingsScriptPlugins = selectSettingsScriptPlugins()
-        if (settingsScriptPlugins.isNotEmpty()) {
-            asyncIOScopeFactory.newScope().useToRun {
-                generateTypeSafeAccessorsForSettings(settingsScriptPlugins)
-            }
-        }
+        generateSettingsScriptPluginsAccessors()
     }
 
     private fun generateProjectScriptPluginsAccessors() {
@@ -181,13 +175,11 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         }
     }
 
-    private fun validateSettingsScriptPluginsPlugins() {
+    private fun generateSettingsScriptPluginsAccessors() {
         val settingsScriptPlugins = selectSettingsScriptPlugins()
         if (settingsScriptPlugins.isNotEmpty()) {
             asyncIOScopeFactory.newScope().useToRun {
-                // Load and validate plugins of non-project script plugins without generating accessors
-                // We consume the sequence to force evaluation
-                scriptPluginPluginsFor(settingsScriptPlugins).forEach { _ -> }
+                generateTypeSafeAccessorsForSettings(settingsScriptPlugins)
             }
         }
     }
