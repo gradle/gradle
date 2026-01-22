@@ -194,7 +194,7 @@ class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification
 
         "buildSrc/build.gradle.kts"             | true
                 | [
-                    ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*",
+                    ".*Build file.*buildSrc/build\\.gradle\\.kts.*Script compilation error.*",
                     "A problem occurred configuring project ':buildSrc'.",
                 ]
                 | []
@@ -209,7 +209,8 @@ class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification
 
         "buildSrc-included/build.gradle.kts"    | true
                 | [
-                    "A problem occurred configuring project ':buildSrc-included'."
+                    ".*Build file.*buildSrc-included/build\\.gradle\\.kts.*Script compilation error.*",
+                    "A problem occurred configuring project ':buildSrc-included'.",
                 ]
                 | []
                 | ["buildSrc", "buildSrc-included"]
@@ -277,9 +278,6 @@ class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification
             arguments += "-Dorg.gradle.internal.resilient-model-building=true"
 
             conn.action()
-                    .projectsLoaded(new SetStartParameterAction(true)) {
-                        it.contains("successful") || it.contains("unsuccessful")
-                    }
                     .buildFinished(new GradleBuildAction()) {
                         modelHandler.onComplete(it)
                         model = it
@@ -288,31 +286,6 @@ class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification
                     .withArguments(*arguments)
                     .run()
             return model
-        }
-    }
-
-    static class SetStartParameterAction implements BuildAction<String>, Serializable {
-
-        private final boolean resilient
-
-        SetStartParameterAction(boolean resilient) {
-            this.resilient = resilient
-        }
-
-        @Override
-        String execute(BuildController controller) {
-            if (resilient) {
-                def gradleBuild = controller.fetch(GradleBuild).model
-                if (gradleBuild) {
-                    def result = controller.fetch(gradleBuild.rootProject, StartParametersModel)
-                    return result.failures.isEmpty() ? "successful" : "unsuccessful"
-                }
-                return "unsuccessful"
-            } else {
-                def gradleBuild = controller.getModel(GradleBuild)
-                def result = controller.getModel(gradleBuild.rootProject, StartParametersModel)
-                return result
-            }
         }
     }
 
