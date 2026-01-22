@@ -76,6 +76,7 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
     is Accessor.ForModelDefault -> fragmentsForModelDefault(accessor)
     is Accessor.ForProjectType -> fragmentsForProjectType(accessor)
     is Accessor.ForContainerElementFactory -> fragmentsForContainerElementFactory(accessor)
+    is Accessor.ForDeclarativeNestedModel -> fragmentsForDeclarativeNestedModel(accessor)
 }
 
 private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragments = accessor.run {
@@ -951,6 +952,57 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
         )
     )
 }
+
+private
+fun fragmentsForDeclarativeNestedModel(accessor: Accessor.ForDeclarativeNestedModel): Fragments {
+    val accessorSpec = accessor.spec
+    val className = internalNameForAccessorClassOf(accessorSpec)
+    val (accessibleReceiverType, name, extensionType) = accessorSpec
+    val propertyName = name.kotlinIdentifier
+    val receiverType = accessibleReceiverType.type.kmType
+    val receiverTypeName = accessibleReceiverType.internalName()
+    val (kotlinNestedModelType, _) = accessibleTypesFor(extensionType)
+    val deprecation = accessorSpec.type.deprecation()
+    val optInRequirement = accessorSpec.type.requiredOptIns()
+
+    return className to sequenceOf(
+        AccessorFragment(
+            source = nestedModelAccessor(accessorSpec),
+            signature = JvmMethodSignature(
+                propertyName,
+                "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
+            ),
+            bytecode = {
+                publicStaticMethod(signature) {
+                    maybeWithDeprecation(deprecation)
+                    maybeWithOptInRequirement(optInRequirement)
+                    ALOAD(0)
+                    LDC(propertyName)
+                    ALOAD(1)
+                    invokeRuntime("configureNestedModel", "(L${Any::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
+                    RETURN()
+                }
+            },
+            metadata = {
+                kmPackage.functions += newFunctionOf(
+                    functionAttributes = maybeFunctionHasAnnotations {
+                        publicFunctionAttributes()
+                        hasAnnotationsIfDeprecated(deprecation)
+                        hasAnnotationsIfRequiresOptIn(optInRequirement)
+                    },
+                    receiverType = receiverType,
+                    returnType = KotlinType.unit,
+                    name = propertyName,
+                    valueParameters = listOf(
+                        newValueParameterOf("configure", actionTypeOf(kotlinNestedModelType))
+                    ),
+                    signature = signature
+                )
+            }
+        )
+    )
+}
+
 
 private fun KmFunction.hasAnnotationsIfDeprecated(deprecation: Deprecated?) {
     if (deprecation != null) {

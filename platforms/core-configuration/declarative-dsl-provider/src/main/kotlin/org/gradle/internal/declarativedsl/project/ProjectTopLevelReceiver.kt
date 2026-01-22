@@ -17,8 +17,10 @@
 package org.gradle.internal.declarativedsl.project
 
 import org.gradle.api.file.ProjectLayout
+import org.gradle.declarative.dsl.model.annotations.ValueFactories
 
 
 interface ProjectTopLevelReceiver {
+    @get:ValueFactories
     val layout: ProjectLayout
 }
