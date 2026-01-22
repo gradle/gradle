@@ -17,12 +17,12 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
-import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 
 /**
  * <p>Used for providers &gt;= 2.6.</p>
@@ -34,7 +34,7 @@ public class TestExecutionConsumerConnection extends ShutdownAwareConsumerConnec
     }
 
     @Override
-    public void runTests(final TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {
+    public void doRunTests(final TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters) {
         final BuildCancellationTokenAdapter cancellationTokenAdapter = new BuildCancellationTokenAdapter(operationParameters.getCancellationToken());
         ((InternalTestExecutionConnection) getDelegate()).runTests(testExecutionRequest, cancellationTokenAdapter, operationParameters);
     }

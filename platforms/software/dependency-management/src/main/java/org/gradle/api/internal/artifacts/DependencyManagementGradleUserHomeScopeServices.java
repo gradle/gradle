@@ -27,8 +27,9 @@ import org.gradle.api.internal.artifacts.transform.ToPlannedTransformStepConvert
 import org.gradle.api.internal.artifacts.transform.TransformExecutionResult;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.Cache;
-import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanupStrategyFactory;
+import org.gradle.cache.FineGrainedCacheBuilder;
+import org.gradle.cache.FineGrainedCacheCleanupStrategyFactory;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -95,14 +96,13 @@ public class DependencyManagementGradleUserHomeScopeServices implements ServiceR
         CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         CacheConfigurationsInternal cacheConfigurations,
-        CacheCleanupStrategyFactory cacheCleanupStrategyFactory,
-        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
+        FineGrainedCacheCleanupStrategyFactory cacheCleanupStrategyFactory
     ) {
-        CacheBuilder cacheBuilder = cacheBuilderFactory
-            .createCacheBuilder(CacheLayout.TRANSFORMS.getName())
+        FineGrainedCacheBuilder cacheBuilder = cacheBuilderFactory
+            .createFineGrainedCacheBuilder(CacheLayout.TRANSFORMS.getName())
             .withDisplayName("Artifact transforms cache");
         CrossBuildInMemoryCache<Identity, DeferredResult<TransformExecutionResult.TransformWorkspaceResult>> identityCache = crossBuildInMemoryCacheFactory.newCacheRetainingDataFromPreviousBuild(result -> result.getResult().isSuccessful());
-        CacheBasedImmutableWorkspaceProvider workspaceProvider = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(cacheBuilder, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory, unscopedCacheBuilderFactory);
+        CacheBasedImmutableWorkspaceProvider workspaceProvider = CacheBasedImmutableWorkspaceProvider.createWorkspaceProvider(cacheBuilder, fileAccessTimeJournal, cacheConfigurations, cacheCleanupStrategyFactory);
         return new ImmutableTransformWorkspaceServices() {
             @Override
             public ImmutableWorkspaceProvider getWorkspaceProvider() {

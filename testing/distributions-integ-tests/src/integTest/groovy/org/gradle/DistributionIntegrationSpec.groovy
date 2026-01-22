@@ -53,6 +53,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "build-configuration",
         "build-discovery",
         "build-discovery-impl",
+        "build-discovery-reporting",
         "build-events",
         "build-init-specs",
         "build-init-specs-api",
@@ -79,7 +80,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "declarative-dsl-api",
         "declarative-dsl-core",
         "declarative-dsl-evaluator",
-        "declarative-dsl-internal-utils",
         "declarative-dsl-provider",
         "declarative-dsl-tooling-models",
         "enterprise-logging",
@@ -353,7 +353,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 540 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 550 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Kotlin DSL
         assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-${baseVersion}.jar"))

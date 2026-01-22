@@ -19,6 +19,7 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Builder
+import org.gradle.declarative.dsl.model.annotations.ValueFactories
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.FunctionSemantics
@@ -309,7 +310,7 @@ class GetterBasedConfiguringFunctionExtractor(private val propertyTypePredicate:
     override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
 
     private fun configuringFunctionsFromGetters(host: SchemaBuildingHost, kClass: KClass<*>): List<SchemaMemberFunction> {
-        val functions = host.classMembers(kClass).potentiallyDeclarativeMembers.filter { it.kind == MemberKind.FUNCTION }
+        val functions = host.classMembers(kClass).potentiallyDeclarativeMembers.filter { it.kind == MemberKind.FUNCTION && isNotValueFactoriesGetter(it) }
 
         val functionsByName = functions.groupBy { it.name }
         val gettersWithoutSetter = functionsByName
@@ -341,7 +342,7 @@ class GetterBasedConfiguringFunctionExtractor(private val propertyTypePredicate:
     private fun configuringFunctionsFromKotlinProperties(host: SchemaBuildingHost, kClass: KClass<*>): List<SchemaMemberFunction> {
         val properties =
             host.classMembers(kClass).potentiallyDeclarativeMembers
-                .filter { it.kind == MemberKind.READ_ONLY_PROPERTY && propertyTypePredicate(it.returnType) }
+                .filter { it.kind == MemberKind.READ_ONLY_PROPERTY && propertyTypePredicate(it.returnType) && isNotValueFactoriesGetter(it) }
 
         return properties.map { property ->
             host.inContextOfModelMember(property.kCallable) {
@@ -359,6 +360,8 @@ class GetterBasedConfiguringFunctionExtractor(private val propertyTypePredicate:
             }
         }
     }
+
+    private fun isNotValueFactoriesGetter(callable: SupportedCallable): Boolean = callable.kCallable.annotationsWithGetters.none { it is ValueFactories }
 
     private fun configuringFunction(
         host: SchemaBuildingHost,

@@ -29,6 +29,7 @@ public interface HasSources<Model extends HasInputSources, ModelSources extends 
     NamedDomainObjectContainer<ModelSources> getSources();
 
     interface Sources<Model extends HasInputSources> extends Named, HasResources, Definition<Model> {
+        @HiddenInDefinition
         SourceDirectorySet getSourceDirectories();
     }
 }

@@ -71,6 +71,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -147,9 +148,11 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  *   jvmArgs('-XX:MaxPermSize=256m')
  *
  *   // listen to events in the test execution lifecycle
- *   beforeTest { descriptor -&gt;
- *      logger.lifecycle("Running test: " + descriptor)
- *   }
+ *   addTestListener(new TestListener() {
+ *      void beforeTest(TestDescriptor descriptor) {
+ *          logger.lifecycle("Running test: " + descriptor)
+ *      }
+ *   })
  *
  *   // fail the 'test' task on the first test failure
  *   failFast = true
@@ -158,7 +161,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  *   dryRun = true
  *
  *   // listen to standard out and standard error of the test JVM(s)
- *   onOutput { descriptor, event -&gt;
+ *   addTestOutputListener { descriptor, event -&gt;
  *      logger.lifecycle("Test: " + descriptor + " produced standard out/err: " + event.message )
  *   }
  * }
@@ -1036,8 +1039,16 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         return testFramework.get();
     }
 
+    /**
+     * Do not call this method.
+     * @deprecated This will be removed in Gradle 10
+     */
+    @Deprecated
     public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
-        // TODO: Deprecate and remove this method
+        DeprecationLogger.deprecateMethod(Test.class, "testFramework(Closure)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_test_methods")
+            .nagUser();
         options(testFrameworkConfigure);
         return getTestFramework();
     }

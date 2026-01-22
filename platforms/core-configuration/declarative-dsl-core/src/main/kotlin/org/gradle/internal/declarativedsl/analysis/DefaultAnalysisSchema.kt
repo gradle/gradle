@@ -5,6 +5,10 @@ import kotlinx.serialization.Serializable
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.AssignmentAugmentation
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
+import org.gradle.declarative.dsl.schema.ConfigureAccessor.ProjectFeature.BindingTargetStrategy
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ContainerAccessorIdentifier
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ExtensionAccessorIdentifier
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ProjectFeatureIdentifier
 import org.gradle.declarative.dsl.schema.ContainerElementFactory
 import org.gradle.declarative.dsl.schema.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataClass
@@ -28,13 +32,13 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics.Builder
 import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement
 import org.gradle.declarative.dsl.schema.FunctionSemantics.Pure
 import org.gradle.declarative.dsl.schema.ConfigureFromGetterOrigin
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.CustomAccessorType
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaItemMetadata
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.declarative.dsl.schema.ProjectFeatureOrigin
 import org.gradle.declarative.dsl.schema.VarargParameter
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
-
 
 @Serializable
 @SerialName("analysisSchema")
@@ -304,8 +308,16 @@ object ConfigureAccessorInternal {
     data class DefaultProperty(override val dataProperty: DataProperty) : ConfigureAccessor.Property
 
     @Serializable
-    @SerialName("custom")
-    data class DefaultCustom(override val objectType: DataTypeRef, override val customAccessorIdentifier: String) : ConfigureAccessor.Custom
+    @SerialName("extension")
+    data class DefaultExtension(override val objectType: DataTypeRef, override val accessorIdentifier: ExtensionAccessorIdentifier) : ConfigureAccessor.Custom
+
+    @Serializable
+    @SerialName("container")
+    data class DefaultContainer(override val objectType: DataTypeRef, override val accessorIdentifier: ContainerAccessorIdentifier) : ConfigureAccessor.Custom
+
+    @Serializable
+    @SerialName("projectFeature")
+    data class DefaultProjectFeature(override val objectType: DataTypeRef, override val accessorIdentifier: ProjectFeatureIdentifier, override val bindingTargetStrategy: BindingTargetStrategy) : ConfigureAccessor.ProjectFeature
 
     @Serializable
     @SerialName("configuringLambdaArgument")
@@ -313,6 +325,106 @@ object ConfigureAccessorInternal {
 
     // TODO: configure all elements by addition key?
     // TODO: Do we want to support configuring external objects?
+}
+
+
+object BindingTargetStrategyInternal {
+    @Serializable
+    @SerialName("toDefinition")
+    data object ToDefinition : BindingTargetStrategy.ToDefinition {
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = ToDefinition
+    }
+
+    @Serializable
+    @SerialName("toBuildModel")
+    data object ToBuildModel : BindingTargetStrategy.ToBuildModel {
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = ToBuildModel
+    }
+}
+
+
+@Serializable
+@SerialName("settingsExtensionIdentifier")
+data class DefaultSettingsExtensionAccessorIdentifier(
+    override val name: String
+) : ExtensionAccessorIdentifier {
+    @SerialName("accessorType")
+    override val type = SettingsAccessorType
+
+    override fun toString(): String {
+        return "${type}:${name}"
+    }
+
+    @Serializable
+    data object SettingsAccessorType : CustomAccessorType.Extension {
+        override fun toString(): String {
+            return "settingsExtension"
+        }
+
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = SettingsAccessorType
+
+    }
+
+}
+
+
+@Serializable
+@SerialName("containerAccessorIdentifier")
+data class DefaultContainerAccessorIdentifier(
+    override val name: String,
+    override val elementTypeClassName: String
+) : ContainerAccessorIdentifier {
+    @SerialName("accessorType")
+    override val type = ContainerAccessorType
+
+    override fun toString(): String {
+        return "${type}:${elementTypeClassName}:${name}"
+    }
+
+    @Serializable
+    data object ContainerAccessorType : CustomAccessorType.Container {
+        override fun toString(): String {
+            return "container"
+        }
+
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = ContainerAccessorType
+    }
+
+}
+
+
+@Serializable
+@SerialName("projectFeatureAccessorIdentifier")
+data class DefaultProjectFeatureAccessorIdentifier(
+    override val name: String,
+    override val targetTypeClassName: String
+) : ProjectFeatureIdentifier {
+    @SerialName("accessorType")
+    override val type = ProjectFeatureAccessorType
+
+    override fun toString(): String {
+        return "${type}:${name}:${targetTypeClassName}"
+    }
+
+    @Serializable
+    data object ProjectFeatureAccessorType : CustomAccessorType.ProjectFeature {
+        override fun toString(): String {
+            return "projectFeature"
+        }
+
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = ProjectFeatureAccessorType
+    }
+
 }
 
 

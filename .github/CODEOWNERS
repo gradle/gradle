@@ -89,7 +89,6 @@ platforms/core-configuration/declarative-dsl-evaluator/             @gradle/bt-d
 platforms/core-configuration/declarative-dsl-provider/              @gradle/bt-declarative-gradle-project
 platforms/core-configuration/declarative-dsl-tooling-builders/      @gradle/bt-declarative-gradle-project
 platforms/core-configuration/declarative-dsl-tooling-models/        @gradle/bt-declarative-gradle-project
-platforms/core-configuration/declarative-dsl-internal-utils/        @gradle/bt-declarative-gradle-project
 
 # Core automation platform (core/runtime)
 platforms/core-runtime/                                     @gradle/bt-cortex

@@ -18,21 +18,17 @@ import com.google.gson.Gson
 import com.google.gson.Strictness
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
-import gradlebuild.basics.bundleGroovyMajor
 import gradlebuild.basics.repoRoot
-import gradlebuild.modules.extension.ExternalModulesExtension
-
-val libs = extensions.create<ExternalModulesExtension>("libs", bundleGroovyMajor)
 
 applyAutomaticUpgradeOfCapabilities()
 dependencies {
     components {
         // Gradle distribution - minify: remove unused transitive dependencies
-        applyRule<DependencyRemovalByNameRule>(libs.awsS3Core, setOf("jackson-dataformat-cbor"))
-        applyRule<DependencyRemovalByGroupRule>(libs.jgit, setOf("com.googlecode.javaewah"))
+        applyRule<DependencyRemovalByNameRule>("com.amazonaws:aws-java-sdk-core", setOf("jackson-dataformat-cbor"))
+        applyRule<DependencyRemovalByGroupRule>("org.eclipse.jgit:org.eclipse.jgit", setOf("com.googlecode.javaewah"))
 
         // We don't need the extra annotations provided by j2objc
-        applyRule<DependencyRemovalByNameRule>(libs.googleHttpClient, setOf("j2objc-annotations"))
+        applyRule<DependencyRemovalByNameRule>("com.google.http-client:google-http-client", setOf("j2objc-annotations"))
 
         // Read capabilities declared in capabilities.json
         readCapabilitiesFromJson()
@@ -45,18 +41,18 @@ dependencies {
         applyRule<DependencyRemovalByNameRule>("cglib:cglib", setOf("ant"))
 
         // We do not support running junit from Ant. Don't bundle ant-junit.
-        applyRule<DependencyRemovalByNameRule>(libs.groovyAnt, setOf("ant-junit"))
+        applyRule<DependencyRemovalByNameRule>("org.apache.groovy:groovy-ant", setOf("ant-junit"))
 
         // SLF4J Simple is an implementation of the SLF4J API, which is not needed in Gradle
-        applyRule<DependencyRemovalByNameRule>(libs.sshdCore, setOf("slf4j-simple"))
-        applyRule<DependencyRemovalByNameRule>(libs.sshdScp, setOf("slf4j-simple"))
-        applyRule<DependencyRemovalByNameRule>(libs.sshdSftp, setOf("slf4j-simple"))
-        applyRule<DependencyRemovalByNameRule>(libs.gradleProfiler, setOf("slf4j-simple"))
-        applyRule<DependencyRemovalByNameRule>(libs.samplesCheck, setOf("slf4j-simple"))
+        applyRule<DependencyRemovalByNameRule>("org.apache.sshd:sshd-core", setOf("slf4j-simple"))
+        applyRule<DependencyRemovalByNameRule>("org.apache.sshd:sshd-scp", setOf("slf4j-simple"))
+        applyRule<DependencyRemovalByNameRule>("org.apache.sshd:sshd-sftp", setOf("slf4j-simple"))
+        applyRule<DependencyRemovalByNameRule>("org.gradle.profiler:gradle-profiler", setOf("slf4j-simple"))
+        applyRule<DependencyRemovalByNameRule>("org.gradle.exemplar:samples-check", setOf("slf4j-simple"))
 
         // GCS transitively depends on commons-logging.
         // Ensure jcl-over-slf4j is pulled in when we use GCS so it can conflict.
-        applyRule<DependencyAdditionRule>(libs.gcs, libs.jclToSlf4j)
+        applyRule<DependencyAdditionRule>("com.google.apis:google-api-services-storage", "org.slf4j:jcl-over-slf4j")
 
         // asciidoctorj depends on a lot of stuff, which causes `Can't create process, argument list too long` on Windows
         applyRule<DependencyRemovalByNameRule>("org.gradle:sample-discovery", setOf("asciidoctorj", "asciidoctorj-api"))
@@ -73,8 +69,8 @@ dependencies {
         applyRule<DependencyRemovalByNameRule>("jcifs:jcifs", setOf("servlet-api"))
 
         // Bsh moved coordinates. Depend on the new coordinates.
-        applyRule<DependencyRemovalByGroupRule>(libs.testng, setOf("org.beanshell"))
-        applyRule<DependencyAdditionRule>(libs.testng, libs.bsh)
+        applyRule<DependencyRemovalByGroupRule>("org.testng:testng", setOf("org.beanshell"))
+        applyRule<DependencyAdditionRule>("org.testng:testng", "org.apache-extras.beanshell:bsh")
 
         // Test dependencies - minify: remove unused transitive dependencies
         applyRule<DependencyRemovalByNameRule>(

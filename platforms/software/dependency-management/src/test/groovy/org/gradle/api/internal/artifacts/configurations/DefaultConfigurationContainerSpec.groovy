@@ -78,7 +78,8 @@ class DefaultConfigurationContainerSpec extends Specification {
         CollectionCallbackActionDecorator.NOOP,
         TestUtil.problemsService(),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
-        new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry())
+        new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry()),
+        TestUtil.providerFactory()
     )
 
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(

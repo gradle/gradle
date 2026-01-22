@@ -41,6 +41,7 @@ import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -79,7 +80,6 @@ class EdgeState implements DependencyGraphEdge {
     private ExcludeSpec cachedEdgeExclusions;
     private ExcludeSpec cachedExclusions;
 
-    private @Nullable NodeState resolvedVariant;
     private boolean unattached;
 
     public EdgeState(
@@ -236,32 +236,25 @@ class EdgeState implements DependencyGraphEdge {
             return;
         }
         if (isConstraint) {
-            List<NodeState> nodes = targetComponent.getNodes();
-            for (NodeState node : nodes) {
-                if (node.isSelected() && !node.isRoot()) {
-                    targetNodes.add(node);
-                }
-            }
-            if (targetNodes.isEmpty()) {
-                // There is a chance we could not attach target configurations previously
-                List<EdgeState> unattachedEdges = targetComponent.getModule().getUnattachedEdges();
-                if (!unattachedEdges.isEmpty()) {
-                    for (EdgeState otherEdge : unattachedEdges) {
-                        if (!otherEdge.isConstraint()) {
-                            otherEdge.attachToTargetNodes();
-                            if (otherEdge.targetNodeSelectionFailure != null) {
-                                // Copy selection failure
-                                this.targetNodeSelectionFailure = otherEdge.targetNodeSelectionFailure;
-                                return;
-                            }
-                            break;
+            // We are a constraint and therefore may have deferred selection and attachment
+            // of some other module/edge. Make sure to attach that deferred edge now that we have
+            // performed selection.
+            List<EdgeState> unattachedEdges = targetComponent.getModule().getUnattachedEdges();
+            if (!unattachedEdges.isEmpty()) {
+                for (EdgeState otherEdge : new ArrayList<>(unattachedEdges)) {
+                    if (!otherEdge.isConstraint()) {
+                        otherEdge.attachToTargetNodes();
+                        if (otherEdge.targetNodeSelectionFailure != null) {
+                            // Copy selection failure
+                            this.targetNodeSelectionFailure = otherEdge.targetNodeSelectionFailure;
+                            return;
                         }
                     }
                 }
-                for (NodeState node : nodes) {
-                    if (node.isSelected() && !node.isRoot()) {
-                        targetNodes.add(node);
-                    }
+            }
+            for (NodeState node : targetComponent.getNodes()) {
+                if (node.isSelected() && !node.isRoot()) {
+                    targetNodes.add(node);
                 }
             }
             return;
@@ -433,62 +426,42 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public Long getSelected() {
-        return getSelectedComponent().getResultId();
+    public long getTargetComponentId() {
+        NodeState targetNode = getFirstTargetNode();
+        if (targetNode != null) {
+            return targetNode.getComponent().getResultId();
+        }
+        throw new IllegalStateException("No target component for edge " + this);
     }
 
     @Override
     public boolean isTargetVirtualPlatform() {
-        ComponentState selectedComponent = getSelectedComponent();
-        return selectedComponent != null && selectedComponent.getModule().isVirtualPlatform();
+        NodeState targetNode = getFirstTargetNode();
+        if (targetNode != null) {
+            return targetNode.getComponent().getModule().isVirtualPlatform();
+        }
+        return false;
     }
 
-    @Nullable
     @Override
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public Long getSelectedVariant() {
-        NodeState node = getSelectedNode();
-        if (node == null) {
-            return null;
-        } else {
-            assert node.getComponent() == getSelectedComponent();
-            return node.getNodeId();
+    public long getTargetVariantId() {
+        NodeState targetNode = getFirstTargetNode();
+        if (targetNode != null) {
+            return targetNode.getNodeId();
         }
+        throw new IllegalStateException("No target variant for edge " + this);
     }
 
     public Collection<NodeState> getTargetNodes() {
         return targetNodes;
     }
 
-    @Nullable
-    public NodeState getSelectedNode() {
-        if (resolvedVariant != null) {
-            return resolvedVariant;
-        }
-
-        List<NodeState> targetNodes = this.targetNodes;
+    public @Nullable NodeState getFirstTargetNode() {
         if (targetNodes.isEmpty()) {
-            // TODO: This code is not correct. At the end of graph traversal,
-            // all edges that are part of the graph should have target nodes.
-            // Going to the target component and grabbing all of its nodes
-            // is certainly not the right thing to do here.
-            ComponentState targetComponent = getTargetComponent();
-            if (targetComponent != null) {
-                targetNodes = targetComponent.getNodes();
-            }
+            return null;
         }
 
-        assert !targetNodes.isEmpty();
-
-        for (NodeState targetNode : targetNodes) {
-            // TODO: The target node should _always_ be selected. By definition, since we are an edge
-            // and the node is our target, the node is selected.
-            if (targetNode.isSelected()) {
-                resolvedVariant = targetNode;
-                return resolvedVariant;
-            }
-        }
-        return null;
+        return targetNodes.get(0);
     }
 
     @Override

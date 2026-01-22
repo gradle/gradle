@@ -22,10 +22,12 @@ import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
+import org.gradle.kotlin.dsl.accessors.NestedModelEntry
 import org.gradle.kotlin.dsl.accessors.ProjectFeatureEntry
 import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 
 typealias ContainerElementFactories = List<ContainerElementFactoryEntry<TypeOf<*>>>
+typealias NestedModels = List<NestedModelEntry<TypeOf<*>>>
 typealias ProjectTypeEntries = List<ProjectFeatureEntry<TypeOf<*>>>
 
 interface KotlinDslDclSchemaCache {
@@ -35,7 +37,13 @@ interface KotlinDslDclSchemaCache {
         produceIfAbsent: () -> ContainerElementFactories
     ): ContainerElementFactories
 
-    fun getOrPutContainerElementProjectTypes(
+    fun getOrPutNestedModels(
+        forInterpretationSequence: InterpretationSequence,
+        classLoaderScope: ClassLoaderScope,
+        produceIfAbsent: () -> NestedModels
+    ): NestedModels
+
+    fun getOrPutProjectTypes(
         forRegistry: ProjectFeatureDeclarations,
         produceIfAbsent: () -> ProjectTypeEntries
     ): ProjectTypeEntries
@@ -45,27 +53,35 @@ class CrossBuildInMemoryKotlinDslDclSchemaCache(
     crossBuildInMemoryCacheFactory: CrossBuildInMemoryCacheFactory
 ) : KotlinDslDclSchemaCache {
 
-    private val containerElementFactoriesCache: CrossBuildInMemoryCache<ContainerElementFactoriesKey, ContainerElementFactories> =
+    private val containerElementFactoriesCache: CrossBuildInMemoryCache<InterpretationSequenceKey, ContainerElementFactories> =
+        crossBuildInMemoryCacheFactory.newCache()
+
+    private val nestedModelsCache: CrossBuildInMemoryCache<InterpretationSequenceKey, NestedModels> =
         crossBuildInMemoryCacheFactory.newCache()
 
     private val projectTypeEntriesCache: CrossBuildInMemoryCache<ProjectFeatureDeclarations, ProjectTypeEntries> =
         crossBuildInMemoryCacheFactory.newCache()
 
-    private data class ContainerElementFactoriesKey(
+    private data class InterpretationSequenceKey(
         val interpretationSequence: InterpretationSequence,
         val classLoaderScope: ClassLoaderScope
     )
+
+    override fun getOrPutNestedModels(forInterpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope, produceIfAbsent: () -> NestedModels): NestedModels =
+        nestedModelsCache.get(InterpretationSequenceKey(forInterpretationSequence, classLoaderScope)) { _ ->
+            produceIfAbsent().ifEmpty { emptyList() }
+        }
 
     override fun getOrPutContainerElementFactories(
         forInterpretationSequence: InterpretationSequence,
         classLoaderScope: ClassLoaderScope,
         produceIfAbsent: () -> ContainerElementFactories
     ): ContainerElementFactories = containerElementFactoriesCache
-        .get(ContainerElementFactoriesKey(forInterpretationSequence, classLoaderScope)) { _ ->
+        .get(InterpretationSequenceKey(forInterpretationSequence, classLoaderScope)) { _ ->
             produceIfAbsent().ifEmpty { emptyList() } // avoid referencing lots of empty lists, store a reference to the singleton instead
         }
 
-    override fun getOrPutContainerElementProjectTypes(
+    override fun getOrPutProjectTypes(
         forRegistry: ProjectFeatureDeclarations,
         produceIfAbsent: () -> ProjectTypeEntries
     ): ProjectTypeEntries = projectTypeEntriesCache.get(forRegistry) { _ ->

@@ -46,7 +46,6 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
         def report = fixture.htmlReport(result.output)
 
         report.assertContents {
-            totalProblemsCount = 1
             withUniqueProblems(
                 "Project ':docs' cannot dynamically look up a property in the parent project ':'",
             )
@@ -91,9 +90,8 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
                 "Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'",
                 "Project ':' cannot access 'Project.extensions' functionality on subprojects via 'allprojects'",
             )
-            // TODO-RC if this ends up making this test too brittle, we should use a looser/range-based expectation
-            // This value needs to be increased whenever a new project is added to gradle/gradle
-            totalProblemsCount = 88192
+            // checking total problem count is too brittle, as that number changes whenever projects are added or removed
+            enforceTotalProblemCount = false
         }
         result.assertNoConfigurationCache()
     }

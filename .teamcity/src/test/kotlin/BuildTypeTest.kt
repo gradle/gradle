@@ -52,6 +52,7 @@ class BuildTypeTest {
                 "%linux.java17.openjdk.64bit%",
                 "%linux.java21.openjdk.64bit%",
                 "%linux.java25.openjdk.64bit%",
+                "%linux.java26.openjdk.64bit%",
             )
         val expectedInstallationPaths = linuxPaths.joinToString(",")
         val gradleStep = CompileAll(buildModel, buildModel.stages[0]).steps.getGradleStep(GRADLE_RUNNER_STEP_NAME)
@@ -101,6 +102,7 @@ class BuildTypeTest {
                 "%windows.java17.openjdk.64bit%",
                 "%windows.java21.openjdk.64bit%",
                 "%windows.java25.openjdk.64bit%",
+                "%windows.java26.openjdk.64bit%",
             )
         val expectedInstallationPaths = windowsPaths.joinToString(",")
         val gradleStep = functionalTest.steps.getGradleStep(GRADLE_RUNNER_STEP_NAME)

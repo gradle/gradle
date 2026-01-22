@@ -166,6 +166,7 @@ tasks {
         description = "Runs Android project Smoke tests"
         configureForSmokeTest(androidProject, includes = listOf(androidProjectTestPattern))
         maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
+        jvmArgs("-Xmx700m")
 
         dependsOn("androidHomeWarmup")
     }
