@@ -98,7 +98,7 @@ fun TypeVariableAssignments.applyTo(supportedType: SupportedTypeProjection): Sup
 fun TypeVariableAssignments.applyToType(supportedType: SupportedType): SupportedType =
     when (supportedType.classifier) {
         is KTypeParameter -> this[supportedType.classifier] ?: supportedType
-        else -> SupportedType(supportedType.classifier, supportedType.arguments.map { applyTo(it) })
+        else -> SupportedType(supportedType.classifier, supportedType.isMarkedNullable, supportedType.arguments.map { applyTo(it) })
     }
 
 private sealed class TypeVariableAssignmentsIfSupported {
@@ -261,7 +261,7 @@ internal fun collectDeclarativeSuperclassHierarchy(kClass: KClass<*>): Iterable<
         }
     }
 
-    val root = VisibleSuperclassInHierarchy(kClass, kClass.typeParameters.associateWith { SupportedType(it, emptyList()) })
+    val root = VisibleSuperclassInHierarchy(kClass, kClass.typeParameters.associateWith { SupportedType(it, isMarkedNullable = false, arguments = emptyList()) })
     visit(root, null)
 
     val visible = checkDefinitionVisibilityInHierarchy(root, reachedFrom)
@@ -373,14 +373,13 @@ fun KTypeProjection.asSupported(): SupportedTypeProjection? {
 }
 
 fun KType.asSupported(): SupportedType? = when {
-    isMarkedNullable -> null
     classifier == null -> null
     else -> {
         val args = arguments.mapNotNull { it.asSupported() }
         if (args.size != arguments.size) { // i.e., there is an unsupported argument
             null
         } else {
-            SupportedType(classifier!!, args)
+            SupportedType(classifier!!, isMarkedNullable, args)
         }
     }
 }
@@ -390,7 +389,7 @@ sealed class SupportedTypeProjection {
      * Represents a DCL-supported concrete type, or, when used as a type projection, an invariant type.
      */
     data class ProjectedType(val variance: KVariance, val type: SupportedType) : SupportedTypeProjection()
-    data class SupportedType(val classifier: KClassifier, val arguments: List<SupportedTypeProjection>) : SupportedTypeProjection()
+    data class SupportedType(val classifier: KClassifier, val isMarkedNullable: Boolean, val arguments: List<SupportedTypeProjection>) : SupportedTypeProjection()
     object StarProjection : SupportedTypeProjection()
 }
 
@@ -403,7 +402,7 @@ fun SupportedType.toKType(): KType =
                 is SupportedType -> KTypeProjection(variance = KVariance.INVARIANT, type = argType.toKType())
             }
         },
-        annotations = emptyList(), nullable = false
+        annotations = emptyList(), nullable = isMarkedNullable
     )
 
 data class SupportedKParameter(

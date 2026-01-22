@@ -100,7 +100,7 @@ class GenericReceiverTypesTest {
             )
         }.apply {
             assertEquals("""
-                Illegal usage of a type parameter
+                Using a type parameter as a configured type is not supported
                   in configured type 'T'
                   in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.SchemaConfiguringTypeArgument.sup((T) -> kotlin.Unit): T'
                   in class 'org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.SchemaConfiguringTypeArgument'

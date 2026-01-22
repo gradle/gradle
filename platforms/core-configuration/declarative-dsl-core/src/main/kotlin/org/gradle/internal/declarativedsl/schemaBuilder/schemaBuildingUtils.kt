@@ -29,12 +29,23 @@ val KCallable<*>.annotationsWithGetters: List<Annotation>
     get() = this.annotations + if (this is KProperty) this.getter.annotations else emptyList()
 
 
-fun KCallable<*>.returnTypeToRefOrError(host: SchemaBuildingHost) =
-    returnTypeToRefOrError(host) { this.returnType }
+fun KCallable<*>.returnTypeToRefOrError(host: SchemaBuildingHost): DataTypeRef {
+    checkReturnTypeIsNotNullable(returnType.isMarkedNullable, host)
+
+    return returnTypeToRefOrError(host) { this.returnType }
+}
+
+private fun KCallable<*>.checkReturnTypeIsNotNullable(isNullable: Boolean, host: SchemaBuildingHost) {
+    if (isNullable) {
+        host.schemaBuildingFailure("Illegal nullable return type '${returnType}'")
+    }
+}
 
 
 fun KCallable<*>.returnTypeToRefOrError(host: SchemaBuildingHost, typeMapping: (KCallable<*>) -> KType): DataTypeRef {
     val returnType = typeMapping(this)
+
+    checkReturnTypeIsNotNullable(returnType.isMarkedNullable, host)
 
     return host.withTag(returnValueType(returnType)) {
         host.modelTypeRef(returnType)
@@ -67,5 +78,5 @@ fun SupportedKParameter.parameterTypeToRefOrError(host: SchemaBuildingHost): Dat
     host.withTag(parameter(this)) {
         if (isVararg)
             host.varargTypeRef(type.toKType())
-        else host.modelTypeRef(type.toKType())
+        else host.typeRef(type.toKType())
     }
