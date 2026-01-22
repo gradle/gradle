@@ -26,6 +26,8 @@ public class WrapperConfiguration {
     private String zipPath = Install.DEFAULT_DISTRIBUTION_PATH;
     private int networkTimeout = Download.DEFAULT_NETWORK_TIMEOUT_MILLISECONDS;
     private boolean validateDistributionUrl = true;
+    private int retries = Install.MIN_RETRIES;
+    private int retryTimeoutMs = Install.MIN_RETRY_TIMEOUT_MS;
 
     public URI getDistribution() {
         return distribution;
@@ -49,6 +51,22 @@ public class WrapperConfiguration {
 
     public void setDistributionPath(String distributionPath) {
         this.distributionPath = distributionPath;
+    }
+
+    public void setRetries(int retries) {
+        this.retries = retries;
+    }
+
+    public int getRetries() {
+        return retries;
+    }
+
+    public void setRetryTimeout(int retryTimeoutMs) {
+        this.retryTimeoutMs = retryTimeoutMs;
+    }
+
+    public int getRetryTimeout() {
+        return retryTimeoutMs;
     }
 
     public String getDistributionSha256Sum() {
