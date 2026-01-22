@@ -31,8 +31,6 @@ import org.gradle.tooling.model.gradle.GradleBuild
 
 import java.util.regex.Pattern
 
-@ToolingApiVersion('>=9.3.0')
-@TargetGradleVersion('>=9.4.0')
 class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification {
 
     TestFile initScriptFile
@@ -84,6 +82,8 @@ class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification
             """.stripIndent()
     }
 
+    @ToolingApiVersion('>=9.3.0')
+    @TargetGradleVersion('>=9.4.0')
     def "broken convention plugin defined in buildSrc"() {
         given:
         settingsKotlinFile << """
@@ -123,6 +123,36 @@ class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification
         assertModel(model, true, [], ["buildSrc"])
     }
 
+    @ToolingApiVersion('>=8.0')
+    @TargetGradleVersion('>=8.0')
+    def "build included from buildSrc - nothing broken - NON RESILIENT"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+        """
+
+        def buildSrcSettingsFile = file("buildSrc/settings.gradle.kts")
+        buildSrcSettingsFile << """
+            includeBuild("../buildSrc-included")
+        """
+
+        def buildSrcIncluded = file("buildSrc-included")
+        buildSrcIncluded.file("settings.gradle.kts") << """
+            rootProject.name = "buildSrc-included"
+        """
+
+        when:
+        succeeds { model(it, false) }
+
+        then:
+        noExceptionThrown()
+        def model = modelCollector.model
+        assertFailures(model)
+        assertModel(model, true, [], ["buildSrc", "buildSrc-included"])
+    }
+
+    @ToolingApiVersion('>=9.3.0')
+    @TargetGradleVersion('>=9.4.0')
     def "build included from buildSrc - nothing broken"() {
         given:
         settingsKotlinFile << """
@@ -149,6 +179,8 @@ class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification
         assertModel(model, true, [], ["buildSrc", "buildSrc-included"])
     }
 
+    @ToolingApiVersion('>=9.3.0')
+    @TargetGradleVersion('>=9.4.0')
     def "build included from buildSrc - compilation failures (#brokenFile)"() {
         given:
         settingsKotlinFile << """
@@ -249,7 +281,11 @@ class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification
     }
 
     GradleBuildModel model(ProjectConnection conn) {
-        return GradleBuildAction.model(conn, initScriptFile, modelCollector)
+        return model(conn, true)
+    }
+
+    GradleBuildModel model(ProjectConnection conn, boolean resilient) {
+        return GradleBuildAction.model(conn, initScriptFile, modelCollector, resilient)
     }
 
     static class GradleBuildModel implements Serializable {
@@ -265,20 +301,31 @@ class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification
 
     static class GradleBuildAction implements BuildAction<GradleBuildModel>, Serializable {
 
-        @Override
-        GradleBuildModel execute(BuildController controller) {
-            def result = controller.fetch(GradleBuild.class)
-            return new GradleBuildModel(result.model, result.failures)
+        private final boolean resilient
+
+        GradleBuildAction(boolean resilient) {
+            this.resilient = resilient
         }
 
-        private static GradleBuildModel model(ProjectConnection conn, File initScript, IntermediateResultHandler<GradleBuildModel> modelHandler) {
+        @Override
+        GradleBuildModel execute(BuildController controller) {
+            if (resilient)  {
+                def result = controller.fetch(GradleBuild.class)
+                return new GradleBuildModel(result.model, result.failures)
+            } else {
+                def model = controller.getModel(GradleBuild.class)
+                return new GradleBuildModel(model, Collections.emptyList())
+            }
+        }
+
+        private static GradleBuildModel model(ProjectConnection conn, File initScript, IntermediateResultHandler<GradleBuildModel> modelHandler, boolean resilient) {
             def model = null
 
             Iterable<String> arguments = ["--init-script=${initScript.absolutePath}"]
             arguments += "-Dorg.gradle.internal.resilient-model-building=true"
 
             conn.action()
-                    .buildFinished(new GradleBuildAction()) {
+                    .buildFinished(new GradleBuildAction(resilient)) {
                         modelHandler.onComplete(it)
                         model = it
                     }.build()
