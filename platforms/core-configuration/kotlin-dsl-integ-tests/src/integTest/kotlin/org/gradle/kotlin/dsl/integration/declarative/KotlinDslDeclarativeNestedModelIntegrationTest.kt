@@ -64,27 +64,27 @@ class KotlinDslDeclarativeNestedModelIntegrationTest : AbstractDeclarativeKotlin
                                         println(nestedFoo.get() + ", " + moreNestedFoo.get())
                                     }
                                 }
-                            }.withUnsafeDefinition()
+                            }
                         }
                     }
 
                     override fun apply(project: Project) { }
                 }
 
-                abstract class MyExtension : ${Definition::class.java.simpleName}<Model> {
+                interface MyExtension : ${Definition::class.java.simpleName}<Model> {
                     @get:Nested
-                    abstract val myNested: MyNested
+                    val myNested: MyNested
                 }
 
-                abstract class MyNested {
-                    abstract val foo: Property<String>
+                interface MyNested {
+                    val foo: Property<String>
 
                     @get:Nested
-                    abstract val moreNested: MoreNested
+                    val moreNested: MoreNested
                 }
 
-                abstract class MoreNested {
-                    abstract val foo: Property<String>
+                interface MoreNested {
+                    val foo: Property<String>
                 }
 
                 interface Model : ${BuildModel::class.java.simpleName} { }
