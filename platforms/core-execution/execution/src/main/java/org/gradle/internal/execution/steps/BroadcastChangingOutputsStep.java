@@ -16,13 +16,10 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.execution.OutputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.file.TreeType;
 
-import java.io.File;
+import java.util.List;
 
 public class BroadcastChangingOutputsStep<C extends WorkspaceContext> implements Step<C, Result>  {
     private final OutputChangeListener outputChangeListener;
@@ -39,24 +36,7 @@ public class BroadcastChangingOutputsStep<C extends WorkspaceContext> implements
 
     @Override
     public Result execute(UnitOfWork work, C context) {
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
-        work.visitOutputs(context.getWorkspace(), new OutputVisitor() {
-            @Override
-            public void visitOutputProperty(String propertyName, TreeType type, OutputFileValueSupplier value) {
-                builder.add(value.getValue().getAbsolutePath());
-            }
-
-            @Override
-            public void visitLocalState(File localStateRoot) {
-                builder.add(localStateRoot.getAbsolutePath());
-            }
-
-            @Override
-            public void visitDestroyable(File destroyableRoot) {
-                builder.add(destroyableRoot.getAbsolutePath());
-            }
-        });
-        ImmutableList<String> outputsToBeChanged = builder.build();
+        List<String> outputsToBeChanged = work.getAllOutputLocationsForInvalidation(context.getWorkspace());
         outputChangeListener.invalidateCachesFor(outputsToBeChanged);
         try {
             return delegate.execute(work, context);

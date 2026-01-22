@@ -225,8 +225,6 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
 
         // Ensure an empty directory in case of stale files
         ensureEmptyDirectory(workspaceDir);
-        // Invalidate snapshots since we cleaned the directory
-        fileSystemAccess.invalidate(ImmutableList.of(workspaceDir.getAbsolutePath()));
         // Execute
         CachingResult delegateResult = delegate.execute(work, previousExecutionContext);
 

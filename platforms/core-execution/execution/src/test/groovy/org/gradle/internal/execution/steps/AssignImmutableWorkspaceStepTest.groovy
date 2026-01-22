@@ -73,6 +73,7 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
 
     def setup() {
         work.workspaceProvider >> workspaceProvider
+        work.getAllOutputLocationsForInvalidation(_ as File) >> { args -> [(args[0] as File).absolutePath] }
     }
 
     def "returns immutable workspace when already exists"() {
@@ -149,7 +150,7 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> tamperedWorkspaceSnapshot
         2 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> tamperedOutputs
         2 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.of(originalWorkspaceMetadata)
-        2 * fileSystemAccess.invalidate([immutableWorkspace.absolutePath.toString()])
+        1 * fileSystemAccess.invalidate([immutableWorkspace.absolutePath.toString()])
         1 * deleter.ensureEmptyDirectory(immutableWorkspace)
         1 * delegate.execute(work, _ as WorkspaceContext) >> { UnitOfWork work, WorkspaceContext context ->
             assert context.workspace == workspace.immutableLocation
@@ -185,7 +186,6 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         and:
         1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> existingWorkspaceSnapshot
         1 * deleter.ensureEmptyDirectory(immutableWorkspace)
-        1 * fileSystemAccess.invalidate([immutableWorkspace.absolutePath.toString()])
         1 * delegate.execute(work, _ as WorkspaceContext) >> { UnitOfWork work, WorkspaceContext context ->
             assert context.workspace == workspace.immutableLocation
             return delegateResult
