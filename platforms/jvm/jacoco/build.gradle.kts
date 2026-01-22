@@ -5,11 +5,11 @@ plugins {
 description = "Plugin and integration with JaCoCo code coverage"
 
 dependencies {
-    api(projects.antWorker)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
     api(projects.fileOperations)
+    api(projects.jacocoWorkers)
     api(projects.platformJvm)
     api(projects.reporting)
     api(projects.stdlibJavaExtensions)
@@ -19,7 +19,6 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.daemonServerWorker)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
     implementation(projects.platformBase)
@@ -61,6 +60,7 @@ packageCycles {
     excludePatterns.add("org/gradle/internal/jacoco/*")
     excludePatterns.add("org/gradle/testing/jacoco/plugins/*")
 }
+
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

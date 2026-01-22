@@ -252,6 +252,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "code-quality-workers",
+    "path": "platforms/jvm/code-quality-workers",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "collections",
     "path": "platforms/core-runtime/collections",
     "unitTests": true,
@@ -665,6 +672,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "groovydoc-worker",
+    "path": "platforms/jvm/groovydoc-worker",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "guava-serialization-codecs",
     "path": "platforms/core-configuration/guava-serialization-codecs",
     "unitTests": false,
@@ -823,6 +837,13 @@
     "path": "platforms/jvm/jacoco",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "jacoco-workers",
+    "path": "platforms/jvm/jacoco-workers",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
