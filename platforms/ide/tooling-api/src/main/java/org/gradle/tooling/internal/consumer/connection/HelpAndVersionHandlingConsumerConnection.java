@@ -38,7 +38,7 @@ public abstract class HelpAndVersionHandlingConsumerConnection extends AbstractC
 
     @Override
     public <T> T run(Class<T> type, ConsumerOperationParameters operationParameters) {
-        if (operationParameters.containsHelpOrVersionArgs() && type == Void.class && getVersionDetails().supportsHelpToolingModel()) {
+        if (operationParameters.containsHelpOrVersionArgs() && type == Void.class) {
             // For task execution, handle --help/--version and skip task execution
             return handleHelpOrVersion(type, operationParameters);
         }
@@ -103,8 +103,13 @@ public abstract class HelpAndVersionHandlingConsumerConnection extends AbstractC
 
     private void queryAndPrintHelp(ConsumerOperationParameters operationParameters, ConsumerOperationParameters modelParams){
         OutputStream standardOutput = operationParameters.getStandardOutput();
-        Help helpModel = getModelProducer().produceModel(Help.class, modelParams);
-        print(standardOutput, helpModel.getRenderedText());
+        if (getVersionDetails().supportsHelpToolingModel()) {
+            Help helpModel = getModelProducer().produceModel(Help.class, modelParams);
+            print(standardOutput, helpModel.getRenderedText());
+        } else {
+            String renderedText = HelpModelCompatibilityHelper.getRenderedText(getVersionDetails().getVersion());
+            print(standardOutput, renderedText);
+        }
     }
 
     private void queryAndPrintVersion(ConsumerOperationParameters operationParameters, ConsumerOperationParameters modelParams) {

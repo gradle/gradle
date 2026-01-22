@@ -32,11 +32,13 @@ class BuildControllerWithoutParameterSupportTest extends Specification {
     def controller = new BuildControllerWithoutParameterSupport(delegate, new ProtocolToModelAdapter(), modelMapping, new File("root dir"), version)
 
     def "delegates when no parameter is given"() {
+        setup:
         def model = new Object()
         def modelType = Object
         def buildResult = Stub(BuildResult) {
             getModel() >> model
         }
+        _ * version.getVersion() >> "4.1"
 
         when:
         def result = controller.getModel(null, modelType, null, null)
@@ -50,11 +52,10 @@ class BuildControllerWithoutParameterSupportTest extends Specification {
     }
 
     def "throws exception when parameter is given"() {
+        setup:
         def modelType = Object.class
         def parameterType = Object.class
         def parameterInitializer = Mock(Action)
-
-        given:
         _ * version.getVersion() >> "4.1"
 
         when:
