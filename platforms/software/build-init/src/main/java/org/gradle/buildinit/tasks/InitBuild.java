@@ -215,7 +215,7 @@ public abstract class InitBuild extends DefaultTask {
     /**
      * The directory of the generated project, defaults to the directory the project is generated in.
      *
-     * @since 9.4.0
+     * @since 9.5.0
      */
     @Internal("Task outcome is decided early and should not rely on comparing file trees")
     @Incubating
