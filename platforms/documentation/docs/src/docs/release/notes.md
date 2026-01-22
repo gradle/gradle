@@ -14,13 +14,6 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!--
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
-
- THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
--->
-
 We would like to thank the following community members for their contributions to this release of Gradle:
 [akankshaa-00](https://github.com/akankshaa-00),
 [Attila Kelemen](https://github.com/kelemen),
@@ -264,37 +257,6 @@ org.gradle.tooling.parallel=true
 Historically, this was only controlled by the `org.gradle.parallel` property, which is often used to get parallel task execution.
 However, previously it was not possible to enable or disable one without affecting the other.
 
-<!--
-
-================== TEMPLATE ==============================
-
-### FILL-IN-KEY-AREA improvements
-
-<<<FILL IN CONTEXT FOR KEY AREA>>>
-Example:
-> The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of
-> the configuration phase. Using the configuration cache, Gradle can skip the configuration phase entirely when
-> nothing that affects the build configuration has changed.
-
-#### FILL-IN-FEATURE
-> HIGHLIGHT the use case or existing problem the feature solves
-> EXPLAIN how the new release addresses that problem or use case
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details
-
-To embed videos, use the macros below.
-You can extract the URL from YouTube by clicking the "Share" button.
-For Wistia, contact Gradle's Video Team.
-@youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
-@wistia(Summary,a5izazvgit)@
-
-================== END TEMPLATE ==========================
-
-
-==========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
-
 ### Support for Java 26
 
 With this release, Gradle supports [Java 26](https://openjdk.org/projects/jdk/26/).
@@ -442,12 +404,6 @@ This provides the necessary context to pinpoint and fix the violation immediatel
 
 ![action-attribution-in-cc-report.png](release-notes-assets/action-attribution-in-cc-report.png)
 
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
-
--->
-
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
@@ -456,9 +412,6 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 The following are the features that have been promoted in this Gradle release.
 
 * [`getSettingsDirectory()`](javadoc/org/gradle/api/file/ProjectLayout.html#getSettingsDirectory()) in `ProjectLayout`
-<!--
-### Example promoted
--->
 
 ### Task graph is now stable
 
@@ -467,17 +420,9 @@ It's no longer marked as experimental.
 
 ## Fixed issues
 
-<!--
-This section will be populated automatically
--->
-
 ## Known issues
 
 Known issues are problems that were discovered post-release that are directly related to changes made in this release.
-
-<!--
-This section will be populated automatically
--->
 
 ## External contributions
 
