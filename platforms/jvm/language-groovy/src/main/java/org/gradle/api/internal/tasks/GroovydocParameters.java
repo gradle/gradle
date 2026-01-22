@@ -22,8 +22,10 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.plugins.internal.ant.AntWorkParameters;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
-import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.api.tasks.javadoc.GroovydocAccess;
+
+import java.io.Serializable;
+import java.util.List;
 
 public interface GroovydocParameters extends AntWorkParameters {
     ConfigurableFileCollection getSource();
@@ -44,7 +46,7 @@ public interface GroovydocParameters extends AntWorkParameters {
 
     Property<GroovydocAccess> getAccess();
 
-    SetProperty<Groovydoc.Link> getLinks();
+    SetProperty<Link> getLinks();
 
     Property<Boolean> getIncludeAuthor();
 
@@ -53,4 +55,27 @@ public interface GroovydocParameters extends AntWorkParameters {
     Property<Boolean> getIncludeMainForScripts();
 
     RegularFileProperty getTmpDir();
+
+    class Link implements Serializable {
+
+        private final List<String> packages;
+        private final String url;
+
+        public Link(
+            List<String> packages,
+            String url
+        ) {
+            this.packages = packages;
+            this.url = url;
+        }
+
+        public Iterable<String> getPackages() {
+            return packages;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+    }
+
 }

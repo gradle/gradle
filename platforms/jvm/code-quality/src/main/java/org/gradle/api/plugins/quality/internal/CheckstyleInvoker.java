@@ -30,7 +30,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.exceptions.MarkedVerificationException;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
-import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -150,7 +149,7 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
         if (isHtmlRequired) {
             String stylesheet = stylesheetString.isPresent()
                 ? stylesheetString.get()
-                : readText(Checkstyle.class.getClassLoader().getResourceAsStream("checkstyle-noframes-sorted.xsl"));
+                : readText(CheckstyleInvoker.class.getClassLoader().getResourceAsStream("checkstyle-noframes-sorted.xsl"));
             ant.invokeMethod("xslt", ImmutableMap.of("in", checkNotNull(xmlOutputLocation), "out", checkNotNull(htmlOutputLocation)), () -> {
                 ant.invokeMethod("param", ImmutableMap.of("name", "gradleVersion", "expression", GradleVersion.current().toString()));
                 ant.invokeMethod("style", () ->
