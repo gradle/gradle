@@ -18,6 +18,7 @@ package org.gradle.api.publish.internal.mapping;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalDependency;
@@ -127,19 +128,16 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
     }
 
     private Provider<DependencyResolvers> getDependencyMappingResolver(Configuration configuration) {
+        ArtifactCollection artifacts = configuration.getIncoming().getArtifacts();
         ResolutionResult resolutionResult = configuration.getIncoming().getResolutionResult();
-        return resolutionResult.getRootComponent().zip(resolutionResult.getRootVariant(), this::getVariantMappingResolvers);
+        return resolutionResult.getRootComponent().zip(resolutionResult.getRootVariant(), 
+            (rootComponent, rootVariant) -> getVariantMappingResolvers(rootComponent, rootVariant, artifacts));
     }
 
-    private DependencyResolvers getVariantMappingResolvers(ResolvedComponentResult rootComponent, ResolvedVariantResult rootVariant) {
+    private DependencyResolvers getVariantMappingResolvers(ResolvedComponentResult rootComponent, ResolvedVariantResult rootVariant, ArtifactCollection artifacts) {
         ResolutionBackedPublicationDependencyResolver resolver = new ResolutionBackedPublicationDependencyResolver(
-            projectDependencyResolver,
-            moduleIdentifierFactory,
-            rootComponent,
-            rootVariant,
-            attributeDesugaring
+            projectDependencyResolver, moduleIdentifierFactory, rootComponent, rootVariant, artifacts, attributeDesugaring
         );
-
         return new DependencyResolvers(resolver, resolver);
     }
 

@@ -18,6 +18,7 @@ package org.gradle.api.publish.internal.mapping;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -32,6 +33,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -50,6 +52,8 @@ import org.gradle.api.publish.internal.validation.VariantWarningCollector;
 import org.gradle.internal.component.local.model.ProjectComponentSelectorInternal;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
+
+import com.google.common.io.Files;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -83,21 +87,37 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
         ResolvedComponentResult rootComponent,
         ResolvedVariantResult rootVariant,
+        ArtifactCollection artifacts,
         AttributeDesugaring attributeDesugaring
     ) {
         this.projectDependencyResolver = projectDependencyResolver;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.attributeDesugaring = attributeDesugaring;
 
-        this.mappings = calculateMappings(rootComponent, rootVariant, projectDependencyResolver, moduleIdentifierFactory);
+        this.mappings = calculateMappings(rootComponent, rootVariant, artifacts, projectDependencyResolver, moduleIdentifierFactory);
     }
 
     private static ResolvedMappings calculateMappings(
         ResolvedComponentResult rootComponent,
         ResolvedVariantResult rootVariant,
+        ArtifactCollection artifacts,
         ProjectDependencyPublicationResolver projectDependencyResolver,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory
     ) {
+        // Build a map from variant to artifact extension
+        Map<ResolvedVariantResult, String> variantArtifactTypes = new HashMap<>();
+        for (ResolvedArtifactResult artifact : artifacts) {
+            ResolvedVariantResult variant = artifact.getVariant();
+            String fileName = artifact.getFile().getName();
+            String extension = Files.getFileExtension(fileName);
+            if (!variantArtifactTypes.containsKey(variant)) {
+                // Only store non-jar extensions, as jar is the Maven default
+                if (!extension.isEmpty() && !ArtifactTypeDefinition.JAR_TYPE.equals(extension)) {
+                    variantArtifactTypes.put(variant, extension);
+                }
+            }
+        }
+
         Set<ModuleDependencyKey> incompatibleModuleDeps = new HashSet<>();
         Set<ProjectDependencyKey> incompatibleProjectDeps = new HashSet<>();
 
@@ -113,7 +133,7 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
         visitFirstLevelEdges(rootComponent, rootVariant, edge -> {
 
             ComponentSelector requested = edge.getRequested();
-            CoordinatePair coordinates = getResolvedCoordinates(edge.getResolvedVariant(), projectDependencyResolver, moduleIdentifierFactory);
+            CoordinatePair coordinates = getResolvedCoordinates(edge.getResolvedVariant(), variantArtifactTypes, projectDependencyResolver, moduleIdentifierFactory);
             if (requested instanceof ModuleComponentSelector) {
                 ModuleComponentSelector requestedModule = (ModuleComponentSelector) requested;
 
@@ -195,13 +215,13 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
 
     private static CoordinatePair getResolvedCoordinates(
         ResolvedVariantResult variant,
+        Map<ResolvedVariantResult, String> variantArtifactTypes,
         ProjectDependencyPublicationResolver projectDependencyResolver,
         ImmutableModuleIdentifierFactory moduleIdentifierFactory
     ) {
         ComponentIdentifier componentId = variant.getOwner();
 
-        // Extract artifact type from variant attributes
-        String type = extractArtifactType(variant);
+        String type = variantArtifactTypes.get(variant);
 
         if (componentId instanceof ProjectComponentIdentifier) {
             return getProjectCoordinates(variant, (ProjectComponentIdentifierInternal) componentId, projectDependencyResolver, type);
@@ -210,14 +230,6 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
         } else {
             throw new UnsupportedOperationException("Unexpected component identifier type: " + componentId);
         }
-    }
-
-    @Nullable
-    private static String extractArtifactType(ResolvedVariantResult variant) {
-        AttributeContainer attributes = variant.getAttributes();
-        String type = attributes.getAttribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE);
-        // Only return non-jar types, as jar is the default
-        return (type != null && !ArtifactTypeDefinition.JAR_TYPE.equals(type)) ? type : null;
     }
 
     private static CoordinatePair getModuleCoordinates(
