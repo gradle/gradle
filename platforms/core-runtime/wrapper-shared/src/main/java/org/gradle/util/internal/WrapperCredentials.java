@@ -23,6 +23,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
 import java.util.Base64;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -92,7 +93,7 @@ public final class WrapperCredentials {
         Function<? super String, ? extends @Nullable String> propertyProvider
     ) {
         if (host != null) {
-            String hostEscaped = host.replace('.', '_');
+            String hostEscaped = host.replace('.', '_').toLowerCase(Locale.ROOT);
             String hostProperty = propertyProvider.apply("gradle." + hostEscaped + '.' + key);
             if (hostProperty != null) {
                 return hostProperty;
