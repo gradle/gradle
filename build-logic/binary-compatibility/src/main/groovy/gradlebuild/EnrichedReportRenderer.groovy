@@ -64,7 +64,7 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
                 }
 
                 function appendErrorCorrections(reason) {
-                    var result = JSON.parse('${currentApiChanges.replace('\n', '')}'); // JSON string from report uses double quotes, contain it within single quotes
+                    var result = ${currentApiChanges};
                     getAllErrorCorrections().forEach((correction) => {
                         correction.acceptation = reason;
                         result.acceptedApiChanges.push(correction);
