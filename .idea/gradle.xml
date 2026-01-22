@@ -228,6 +228,7 @@
             <option value="$PROJECT_DIR$/platforms/ide/problems-rendering" />
             <option value="$PROJECT_DIR$/platforms/ide/tooling-api" />
             <option value="$PROJECT_DIR$/platforms/ide/tooling-api-builders" />
+            <option value="$PROJECT_DIR$/platforms/jvm/ant-worker" />
             <option value="$PROJECT_DIR$/platforms/jvm/code-quality" />
             <option value="$PROJECT_DIR$/platforms/jvm/distributions-jvm" />
             <option value="$PROJECT_DIR$/platforms/jvm/ear" />

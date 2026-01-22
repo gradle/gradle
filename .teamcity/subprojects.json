@@ -1,5 +1,12 @@
 [
   {
+    "name": "ant-worker",
+    "path": "platforms/jvm/ant-worker",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "antlr",
     "path": "platforms/software/antlr",
     "unitTests": true,

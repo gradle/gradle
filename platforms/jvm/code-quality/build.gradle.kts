@@ -21,6 +21,7 @@ plugins {
 description = "Plugins and integration with code quality (Checkstyle, PMD, CodeNarc)"
 
 dependencies {
+    api(projects.antWorker)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)

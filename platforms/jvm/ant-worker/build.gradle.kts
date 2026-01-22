@@ -9,7 +9,7 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.daemonServerWorker)
-    api("javax.inject:javax.inject")
+    api(libs.inject)
 
-    implementation("org.slf4j:slf4j-api")
+    implementation(libs.slf4jApi)
 }

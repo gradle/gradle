@@ -5,13 +5,14 @@ plugins {
 description = "Plugin and integration with JaCoCo code coverage"
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
+    api(projects.antWorker)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
     api(projects.fileOperations)
     api(projects.platformJvm)
     api(projects.reporting)
+    api(projects.stdlibJavaExtensions)
     api(projects.workers)
 
     api(libs.groovy)

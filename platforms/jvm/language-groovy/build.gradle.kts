@@ -5,6 +5,7 @@ plugins {
 description = "Adds support for building Groovy projects"
 
 dependencies {
+    api(projects.antWorker)
     api(projects.baseCompilerWorker)
     api(projects.baseServices)
     api(projects.buildOption)

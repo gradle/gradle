@@ -239,6 +239,7 @@ val software = platform("software") {
 val jvm = platform("jvm") {
     uses(core)
     uses(software)
+    subproject("ant-worker")
     subproject("code-quality")
     subproject("distributions-jvm")
     subproject("ear")
