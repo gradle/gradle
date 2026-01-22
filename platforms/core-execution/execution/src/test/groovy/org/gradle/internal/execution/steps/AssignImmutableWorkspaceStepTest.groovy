@@ -40,19 +40,23 @@ import java.util.function.Supplier
 
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE
-import static org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep.LockingStrategy
-import static org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.LockingImmutableWorkspace
+import static org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ConcurrentResult
+import static org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.ImmutableWorkspace
 
-class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<IdentityContext> implements TestSnapshotFixture {
-    def workspaceBaseDir = temporaryFolder.file("hash123")
-    def immutableWorkspace = workspaceBaseDir.file("immutable-workspace")
-    def workspace = Stub(LockingImmutableWorkspace) {
+class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> implements TestSnapshotFixture {
+    def cacheDir = temporaryFolder.file("cache")
+    def immutableWorkspace = cacheDir.file("hash123")
+    def workspace = Stub(ImmutableWorkspace) {
         immutableLocation >> immutableWorkspace
-        withWorkspaceLock(_ as Supplier)
-            >>
+
+        getOrCompute(_ as Supplier) >> {
+            args -> ConcurrentResult.producedByCurrentThread(args[0].get())
+        }
+        withFileLock(_ as Supplier) >>
             { Supplier action ->
-                workspaceBaseDir.mkdirs()
-                workspaceBaseDir.file(workspaceBaseDir.name + ".lock").createFile()
+                cacheDir.file(".internal/locks/").mkdirs()
+                cacheDir.file(".internal/locks/${immutableWorkspace.name}.lock").createFile()
+                immutableWorkspace.mkdirs()
                 action.get()
             }
     }
@@ -61,10 +65,10 @@ class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<Identit
     def immutableWorkspaceMetadataStore = Mock(ImmutableWorkspaceMetadataStore)
     def outputSnapshotter = Mock(OutputSnapshotter)
     def workspaceProvider = Stub(ImmutableWorkspaceProvider) {
-        getLockingWorkspace(workId) >> workspace
+        getWorkspace(workId) >> workspace
     }
 
-    def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate, LockingStrategy.WORKSPACE_LOCK)
+    def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate)
     def work = Stub(ImmutableUnitOfWork)
 
     def setup() {
@@ -108,7 +112,7 @@ class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<Identit
         0 * _
     }
 
-    def "fails when immutable workspace has been tampered with"() {
+    def "execution runs and clears stale data when immutable workspace has been tampered with"() {
         def outputFile = immutableWorkspace.file("output.txt")
         outputFile.text = "output"
 
@@ -125,28 +129,39 @@ class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<Identit
         def tamperedOutputs = ImmutableSortedMap.<String, FileSystemLocationSnapshot> of(
             "output", tamperedWorkspaceSnapshot
         )
+        def delegateExecution = Stub(Execution) {
+            getOutcome() >> EXECUTED_NON_INCREMENTALLY
+        }
+        def delegateResult = Stub(CachingResult) {
+            duration >> Duration.ZERO
+            execution >> Try.successful(delegateExecution)
+            afterExecutionOutputState >> Optional.of(new DefaultExecutionOutputState(true, ImmutableSortedMap.of(), Stub(OriginMetadata), false))
+        }
 
         when:
-        step.execute(work, context)
+        def result = step.execute(work, context)
 
         then:
+        result.execution.get().outcome == EXECUTED_NON_INCREMENTALLY
+        result.afterExecutionOutputState.get().successful
+
+        and:
         1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> tamperedWorkspaceSnapshot
-        1 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> tamperedOutputs
-        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.of(originalWorkspaceMetadata)
-
-        then:
-        def ex = thrown IllegalStateException
-        ex.message.trim() == """
-            The contents of the immutable workspace '${immutableWorkspace.absolutePath}' have been modified. These workspace directories are not supposed to be modified once they are created. The modification might have been caused by an external process, or could be the result of disk corruption.
-            output:
-             - immutable-workspace (Directory, 81e73263e0f667c2cbec4e2af9fcc55f)
-               - output.txt (RegularFile, 29090000000000000000000000000000)
-            """.stripIndent().trim()
+        2 * outputSnapshotter.snapshotOutputs(work, immutableWorkspace) >> tamperedOutputs
+        2 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.of(originalWorkspaceMetadata)
+        2 * fileSystemAccess.invalidate([immutableWorkspace.absolutePath.toString()])
+        1 * deleter.ensureEmptyDirectory(immutableWorkspace)
+        1 * delegate.execute(work, _ as WorkspaceContext) >> { UnitOfWork work, WorkspaceContext context ->
+            assert context.workspace == workspace.immutableLocation
+            return delegateResult
+        }
+        1 * immutableWorkspaceMetadataStore.storeWorkspaceMetadata(immutableWorkspace, _ as ImmutableWorkspaceMetadata)
+        0 * _
     }
 
-    def "execution runs and clears stale data if previous execution failed and there is no metadata"() {
-        def outputFile = immutableWorkspace.file("output.txt").createFile()
-        def outputFileSnapshot = regularFile(outputFile.absolutePath)
+    def "execution runs and clears stale data if there is no metadata"() {
+        def outputFile = immutableWorkspace.file("output.txt")
+        outputFile.text = "output"
         def existingWorkspaceSnapshot = Stub(DirectorySnapshot) {
             type >> FileType.Directory
         }
@@ -165,15 +180,12 @@ class AssignImmutableWorkspaceStepWithWorkspaceLockTest extends StepSpec<Identit
         then:
         result.execution.get().outcome == EXECUTED_NON_INCREMENTALLY
         result.afterExecutionOutputState.get().successful
+        2 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.empty()
 
+        and:
         1 * fileSystemAccess.read(immutableWorkspace.absolutePath) >> existingWorkspaceSnapshot
-
-        then:
-        1 * deleter.deleteRecursively(immutableWorkspace)
-        1 * immutableWorkspaceMetadataStore.loadWorkspaceMetadata(immutableWorkspace) >> Optional.empty()
+        1 * deleter.ensureEmptyDirectory(immutableWorkspace)
         1 * fileSystemAccess.invalidate([immutableWorkspace.absolutePath.toString()])
-
-        then:
         1 * delegate.execute(work, _ as WorkspaceContext) >> { UnitOfWork work, WorkspaceContext context ->
             assert context.workspace == workspace.immutableLocation
             return delegateResult
