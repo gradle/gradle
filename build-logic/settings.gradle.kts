@@ -16,12 +16,14 @@
 
 pluginManagement {
     includeBuild("../build-logic-commons")
+    includeBuild("../build-logic-settings")
     repositories {
         gradlePluginPortal()
     }
 }
 
 plugins {
+    id("gradlebuild.version-catalogs")
     id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }
 
@@ -37,12 +39,6 @@ dependencyResolutionManagement {
         }
         mavenCentral()
         gradlePluginPortal()
-    }
-    versionCatalogs {
-        create("libs") {
-            // TODO: separate version catalog for build logic dependencies
-            from(files("../gradle/libs.versions.toml"))
-        }
     }
 }
 

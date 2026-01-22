@@ -1,0 +1,3 @@
+[libraries]
+errorProne = { module = "com.google.errorprone:error_prone_core", version.ref = "errorProne" }
+nullaway = { module = "com.uber.nullaway:nullaway", version = "0.12.10" }
