@@ -17,31 +17,65 @@ import gradlebuild.basics.BuildEnvironment
 import gradlebuild.docs.FindBrokenInternalLinks
 import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.performance.tasks.PerformanceTest
-import gradlebuild.testcleanup.extension.TestFilesCleanupBuildServiceRootExtension
+import gradlebuild.testcleanup.extension.TestFileCleanUpExtension
 import me.champeau.gradle.japicmp.JapicmpTask
+import org.gradle.api.tasks.testing.Test
+import org.gradle.kotlin.dsl.dir
+import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.withType
+import org.gradle.plugin.devel.tasks.ValidatePlugins
 
 if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
-    val globalExtension = rootProject.extensions.getByType<TestFilesCleanupBuildServiceRootExtension>()
-    project.gradle.taskGraph.whenReady {
-        val allTasks = this@whenReady.allTasks
-        val taskPathToReports = allTasks.associate { it.path to it.customReports() + it.attachedReportLocations() }.filter { it.value.isNotEmpty() }
-        globalExtension.taskPathToReports = taskPathToReports
+    val testFileCleanUpExtension = project.extensions.getByType<TestFileCleanUpExtension>()
+    testFileCleanUpExtension.testPathToBinaryResultsDirs = project.tasks.withType<Test>().associate { it.path to it.binaryResultsDirectory.get().asFile }
+
+    val taskPathToReports = mutableMapOf<String, MutableSet<File>>()
+
+    fun addReports(taskPath: String, reports: Iterable<File>) {
+        taskPathToReports.getOrPut(taskPath) { hashSetOf() }.addAll(reports)
     }
+
+    project.tasks.withType<ValidatePlugins>().forEach {
+        addReports(it.path, it.validatePluginsReports())
+    }
+
+    project.tasks.withType<FindBrokenInternalLinks>().forEach {
+        addReports(it.path, it.findBrokenInternalLinksReports())
+    }
+    project.tasks.withType<DistributionTest>().forEach {
+        addReports(it.path, it.distributionReports())
+    }
+    project.tasks.withType<JapicmpTask>().forEach {
+        addReports(it.path, it.japicmpReports())
+    }
+    project.tasks.withType<PerformanceTest>().forEach {
+        addReports(it.path, it.performanceTestReports())
+    }
+
+    project.tasks.withType<Test>().forEach {
+        addReports(it.path, it.traceJson())
+        addReports(it.path, it.genericHtmlReports())
+    }
+
+    testFileCleanUpExtension.taskPathToReports.putAll(taskPathToReports.mapValues { it.value.toSet() })
 }
 
-fun Task.customReports(): List<File> = when (this) {
-    is ValidatePlugins -> listOf(outputFile.get().asFile)
-    is FindBrokenInternalLinks -> listOf(reportFile.get().asFile)
-    is DistributionTest -> listOf(
-        gradleInstallationForTest.gradleUserHomeDir.dir("test-kit-daemon").get().asFile,
-        gradleInstallationForTest.gradleUserHomeDir.dir("kotlin-compiler-daemon").get().asFile,
-        gradleInstallationForTest.daemonRegistry.get().asFile
-    )
-    else -> emptyList()
-}
+fun ValidatePlugins.validatePluginsReports() = listOf(outputFile.get().asFile)
 
-fun Task.attachedReportLocations() = when (this) {
-    is JapicmpTask -> listOf(richReport.get().destinationDir.get().asFile.resolve(richReport.get().reportName.get()))
-    is PerformanceTest -> listOf(reportDir.parentFile)
-    else -> emptyList()
-}
+fun FindBrokenInternalLinks.findBrokenInternalLinksReports() = listOf(reportFile.get().asFile)
+
+fun DistributionTest.distributionReports() = listOf(
+    gradleInstallationForTest.gradleUserHomeDir.dir("test-kit-daemon").get().asFile,
+    gradleInstallationForTest.gradleUserHomeDir.dir("kotlin-compiler-daemon").get().asFile,
+    gradleInstallationForTest.daemonRegistry.get().asFile
+)
+
+fun JapicmpTask.japicmpReports() = listOf(richReport.get().destinationDir.get().asFile.resolve(richReport.get().reportName.get()))
+
+fun PerformanceTest.performanceTestReports() = listOf(reportDir.parentFile)
+
+// e.g. build/test-results/embeddedIntegTest/trace.json
+fun Test.traceJson() = listOf(project.layout.buildDirectory.file("test-results/$name/trace.json").get().asFile)
+
+fun Test.genericHtmlReports() = listOf(reports.html.outputLocation.get().asFile)
+

@@ -16,7 +16,9 @@
 
 package gradlebuild.testcleanup.extension
 
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import java.io.File
 
 
 /**
@@ -25,4 +27,14 @@ import org.gradle.api.provider.Property
  */
 interface TestFileCleanUpExtension {
     val reportOnly: Property<Boolean>
+
+    /**
+     * Key is the path of a task, value is the possible report dirs it generates.
+     */
+    val taskPathToReports: MapProperty<String, Set<File>>
+
+    /**
+     * Key is the path of the test, value is Test.binaryResultsDir
+     */
+    val testPathToBinaryResultsDirs: MapProperty<String, File>
 }
