@@ -1,11 +1,13 @@
 plugins {
-    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.implementation-java")
 }
+
+description = "Implements the work to generate scaladoc"
 
 dependencies {
     api(projects.coreApi)
     api(projects.daemonServerWorker)
-    api("javax.inject:javax.inject")
+    api(libs.inject)
 
     implementation(projects.baseServices)
 }

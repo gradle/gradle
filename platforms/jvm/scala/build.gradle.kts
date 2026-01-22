@@ -11,7 +11,6 @@ dependencies {
     api(projects.classloaders)
     api(projects.core)
     api(projects.coreApi)
-    api(projects.daemonServerWorker)
     api(projects.fileOperations)
     api(projects.files)
     api(projects.jvmCompilerWorker)
@@ -29,6 +28,7 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
+    implementation(projects.daemonServerWorker)
     implementation(projects.dependencyManagement)
     implementation(projects.fileCollections)
     implementation(projects.javaCompilerWorker)
@@ -38,6 +38,7 @@ dependencies {
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
     implementation(projects.reporting)
+    implementation(projects.scaladocWorker)
     implementation(projects.scopedPersistentCache)
     implementation(projects.serviceLookup)
     implementation(projects.workerMain)

@@ -1288,6 +1288,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "scaladoc-worker",
+    "path": "platforms/jvm/scaladoc-worker",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "scoped-persistent-cache",
     "path": "platforms/core-execution/scoped-persistent-cache",
     "unitTests": false,

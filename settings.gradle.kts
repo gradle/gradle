@@ -264,6 +264,7 @@ val jvm = platform("jvm") {
     subproject("plugins-jvm-test-suite")
     subproject("plugins-test-report-aggregation")
     subproject("scala")
+    subproject("scaladoc-worker")
     subproject("scala-compiler-worker")
     subproject("testing-jvm")
     subproject("testing-jvm-infrastructure")
