@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,7 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.implementation-kotlin")
-}
+@NullMarked
+package org.gradle.declarative.dsl.model.annotations.internal;
 
-description = "DCL-related utilities that are meant to be reused in the Gradle subprojects but not in DCL client applications"
-
-dependencies {
-    compileOnly(projects.projectFeaturesApi)
-
-    implementation(projects.coreApi)
-    implementation(projects.declarativeDslApi)
-
-    api(libs.kotlinStdlib)
-    implementation(libs.kotlinReflect)
-
-    testImplementation(projects.internalTesting)
-}
+import org.jspecify.annotations.NullMarked;

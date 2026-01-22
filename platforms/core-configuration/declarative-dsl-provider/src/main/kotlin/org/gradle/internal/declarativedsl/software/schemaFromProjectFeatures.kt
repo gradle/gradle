@@ -102,7 +102,14 @@ class ProjectFeatureComponent(
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
         FixedTypeDiscovery(
             null,
-            featureSchemaBindingIndex.run { (bindingToDefinition.values + bindingByModelType.values).flatten().map { it.definitionPublicType.kotlin } }
+            featureSchemaBindingIndex.run {
+                (bindingToDefinition.values + bindingByModelType.values).flatten().map {
+                    TypeDiscovery.DiscoveredClass(
+                        it.definitionPublicType.kotlin,
+                        listOf(TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("project feature definition"))
+                    )
+                }
+            }
         )
     )
 

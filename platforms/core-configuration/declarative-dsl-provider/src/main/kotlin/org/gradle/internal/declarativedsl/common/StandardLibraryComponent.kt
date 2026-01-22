@@ -47,6 +47,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.TopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Special
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelMember
 import org.gradle.internal.declarativedsl.schemaBuilder.parameterTypeToRefOrError
 import kotlin.reflect.KFunction
@@ -58,7 +59,7 @@ import kotlin.reflect.jvm.kotlinFunction
  * Ensures that they get proper runtime resolution.
  */
 object StandardLibraryComponent : AnalysisSchemaComponent, ObjectConversionComponent {
-    override fun typeDiscovery(): List<TypeDiscovery> = listOf(FixedTypeDiscovery(null, listOf(Pair::class)))
+    override fun typeDiscovery(): List<TypeDiscovery> = listOf(FixedTypeDiscovery(null, listOf(TypeDiscovery.DiscoveredClass(Pair::class, listOf(Special("standard library type"))))))
 
     override fun topLevelFunctionDiscovery(): List<TopLevelFunctionDiscovery> = listOf(
         object : TopLevelFunctionDiscovery {

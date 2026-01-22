@@ -55,12 +55,15 @@ import org.gradle.internal.declarativedsl.schemaBuilder.MemberKind
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingTags
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass
 import org.gradle.internal.declarativedsl.schemaBuilder.annotationsWithGetters
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelMember
 import org.gradle.internal.declarativedsl.schemaBuilder.toKType
 import org.gradle.internal.declarativedsl.schemaBuilder.withTag
-import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType
-import org.gradle.internal.declarativedsl.utils.DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType
+import org.gradle.internal.declarativedsl.ndoc.DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType
+import org.gradle.internal.declarativedsl.ndoc.DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType
+import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag
 import java.util.Locale
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -118,7 +121,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
                             val typeId = ndocTypeId(host, containerProperty.elementType)
                             preIndex.getOrRegisterSyntheticType(typeId) { containerProperty.generateSyntheticContainerType(host) }.ref
                         } else host.inContextOfModelMember(containerProperty.originDeclaration.callable) {
-                            host.modelTypeRef(containerType)
+                            host.modelTypeRef(containerType.toKType())
                         }
 
                         containerProperty.containerConfiguringFunction(host, kClass, containerTypeRef)
@@ -131,13 +134,14 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
 
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
         object : TypeDiscovery {
-            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
+            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<DiscoveredClass> =
                 containerProperties(typeDiscoveryServices.host, kClass).flatMap { property ->
                     listOfNotNull(
-                        property.elementType.classifier, // the element type
-                        property.containerType.classifier.takeIf { it != NamedDomainObjectContainer::class } // the container type, if it is a proper subtype of NDOC<T>
-                    )
-                }.filterIsInstance<KClass<*>>().map { TypeDiscovery.DiscoveredClass(it, false) }
+                        // discover the element type, only if the declared container type is not NDOC<T>; otherwise, it will be discovered from the signature
+                        (property.containerType.takeIf { it.classifier != NamedDomainObjectContainer::class })
+                            ?.let { DiscoveredClass.classesOf(it, DiscoveryTag.ContainerElement(property.originDeclaration.callable)) }
+                    ).flatten()
+                }
         }
     )
 
@@ -176,14 +180,14 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
     private inner class ContainerProperty(
         val ownerType: KClass<*>,
         val name: String,
-        val containerType: KType,
-        val elementType: KType,
+        val containerType: SupportedTypeProjection.SupportedType,
+        val elementType: SupportedTypeProjection.SupportedType,
         val originDeclaration: ContainerPropertyDeclaration
     ) {
         fun syntheticTypeName(host: SchemaBuildingHost) =
             DefaultFqName.parse(NamedDomainObjectContainer::class.qualifiedName!! + "\$of\$" + elementTypeName(host).replace(".", "_"))
 
-        private fun elementTypeName(host: SchemaBuildingHost) = dataTypeRefName(host, elementType)
+        private fun elementTypeName(host: SchemaBuildingHost) = dataTypeRefName(host, elementType.classifier as KClass<*>)
 
         private fun syntheticContainerTypeRef(host: SchemaBuildingHost) = DataTypeRefInternal.DefaultName(syntheticTypeName(host))
 
@@ -200,7 +204,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
             )
         )
 
-        fun accessorId(host: SchemaBuildingHost) = DefaultContainerAccessorIdentifier(name, dataTypeRefName(host, ownerType.starProjectedType))
+        fun accessorId(host: SchemaBuildingHost) = DefaultContainerAccessorIdentifier(name, dataTypeRefName(host, ownerType))
 
         fun generateSyntheticContainerType(host: SchemaBuildingHost): DataClass = DefaultDataClass(
             syntheticTypeName(host),
@@ -208,7 +212,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
             listOfNotNull((elementType.classifier as? KClass<*>)?.java?.name),
             emptySet(),
             emptyList(),
-            listOf(newElementFactoryFunction(host, syntheticContainerTypeRef(host), elementType, inContext = originDeclaration.callable)),
+            listOf(newElementFactoryFunction(host, syntheticContainerTypeRef(host), elementType.toKType(), inContext = originDeclaration.callable)),
             emptyList()
         )
     }
@@ -231,21 +235,21 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
         val propertiesFromMemberProperties = members.mapNotNull {
             if (it.kind != MemberKind.READ_ONLY_PROPERTY) return@mapNotNull null
 
-            val elementType = elementTypeFromNdocContainerType(it.returnType.toKType()) ?: return@mapNotNull null
-            ContainerProperty(kClass, it.name, it.returnType.toKType(), elementType, ContainerPropertyDeclaration.KotlinProperty(it.kCallable as KProperty<*>))
+            val elementType = elementTypeFromNdocContainerType(it.returnType) ?: return@mapNotNull null
+            ContainerProperty(kClass, it.name, it.returnType, elementType, ContainerPropertyDeclaration.KotlinProperty(it.kCallable as KProperty<*>))
         }
         val propertiesFromMemberFunctions = members.mapNotNull {
             if (it.kind != MemberKind.FUNCTION || it.parameters.isNotEmpty()) return@mapNotNull null
 
-            val elementType = elementTypeFromNdocContainerType(it.returnType.toKType()) ?: return@mapNotNull null
-            ContainerProperty(kClass, it.kCallable.propertyName(), it.returnType.toKType(), elementType, ContainerPropertyDeclaration.Getter(it.kCallable as KFunction<*>))
+            val elementType = elementTypeFromNdocContainerType(it.returnType) ?: return@mapNotNull null
+            ContainerProperty(kClass, it.kCallable.propertyName(), it.returnType, elementType, ContainerPropertyDeclaration.Getter(it.kCallable as KFunction<*>))
         }
 
         return (propertiesFromMemberProperties + propertiesFromMemberFunctions).distinctBy { it.name }
     }
 
-    private fun ndocTypeId(host: SchemaBuildingHost, elementType: KType): String {
-        val elementTypeName = dataTypeRefName(host, elementType)
+    private fun ndocTypeId(host: SchemaBuildingHost, elementType: SupportedTypeProjection.SupportedType): String {
+        val elementTypeName = dataTypeRefName(host, elementType.classifier as KClass<*>)
         return "\$ndocOf_$elementTypeName"
     }
 
@@ -284,5 +288,8 @@ private fun elementFactoryFunction(
 }
 
 
-private fun dataTypeRefName(host: SchemaBuildingHost, it: KType) = (host.modelTypeRef(it) as DataTypeRef.Name).fqName.toString()
+private fun dataTypeRefName(
+    host: SchemaBuildingHost,
+    it: KClass<*>
+) = (host.modelTypeRef(it.starProjectedType) as DataTypeRef.Name).fqName.toString()
 

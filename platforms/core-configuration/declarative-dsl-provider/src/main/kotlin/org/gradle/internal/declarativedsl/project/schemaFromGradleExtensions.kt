@@ -37,6 +37,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingContextElement
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Special
 import org.gradle.internal.declarativedsl.schemaBuilder.withTag
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -70,7 +71,7 @@ class ThirdPartyExtensionsComponent(
     private val extensions: List<ExtensionInfo>,
 ) : AnalysisSchemaComponent {
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
-        FixedTypeDiscovery(schemaTypeToExtend, extensions.map { it.type })
+        FixedTypeDiscovery(schemaTypeToExtend, extensions.map { TypeDiscovery.DiscoveredClass(it.type, listOf(Special("extension type"))) })
     )
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
