@@ -135,11 +135,11 @@ fun isGradlePropertyType(type: KClassifier): Boolean = type in handledPropertyTy
 private
 fun propertyValueType(type: SupportedTypeProjection.SupportedType): SupportedTypeProjection.SupportedType {
     if (type.classifier == ListProperty::class) {
-        return SupportedTypeProjection.SupportedType(List::class, type.arguments)
+        return SupportedTypeProjection.SupportedType(List::class, isMarkedNullable = false, type.arguments)
     }
 
     if (type.classifier == MapProperty::class) {
-        return SupportedTypeProjection.SupportedType(Map::class, type.arguments)
+        return SupportedTypeProjection.SupportedType(Map::class, isMarkedNullable = false, type.arguments)
     }
 
     fun searchClassHierarchyForPropertyType(type: SupportedTypeProjection.SupportedType): SupportedTypeProjection.SupportedType? {

@@ -91,6 +91,13 @@ data class DefaultDataProperty(
     override val isDirectAccessOnly: Boolean = false
 ) : DataProperty {
     data object DefaultPropertyMode {
+        fun of(canRead: Boolean, canWrite: Boolean): PropertyMode = when {
+            canRead && canWrite -> DefaultReadWrite
+            canRead -> DefaultReadOnly
+            canWrite -> DefaultWriteOnly
+            else -> error("unexpected property mode combination: canRead=false, canWrite=false")
+        }
+
         @Serializable
         data object DefaultReadWrite : PropertyMode.ReadWrite {
             @Suppress("unused")
