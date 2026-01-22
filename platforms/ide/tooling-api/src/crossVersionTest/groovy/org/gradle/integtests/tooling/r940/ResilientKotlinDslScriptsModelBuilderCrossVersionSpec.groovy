@@ -726,7 +726,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
     }
 
-    def "compilation failure in buildSrc (#brokenFile)"() {
+    def "return partial model when compilation failure in buildSrc (#brokenFile)"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"

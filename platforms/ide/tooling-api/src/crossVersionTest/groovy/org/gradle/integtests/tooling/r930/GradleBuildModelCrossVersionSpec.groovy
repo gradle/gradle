@@ -22,7 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.GradleBuild
-import spock.lang.Issue
+import org.gradle.util.internal.ToBeImplemented
 
 @TargetGradleVersion(">=9.3.0")
 @ToolingApiVersion(">=9.3.0")
@@ -154,8 +154,8 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
         resilient << [true, false]
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/24672")
-    def "builds included from buildSrc are covered"() {
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/24672")
+    def "builds included from buildSrc are returned in buildSrc model"() {
         given:
         singleProjectBuildInRootFolder("root") {
             settingsFile << """
@@ -186,7 +186,7 @@ class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
 
         and:
         buildSrcBuild.includedBuilds.size() == 1
-        buildSrcBuild.editableBuilds.size() == 0
+        buildSrcBuild.editableBuilds.size() == 0 // the above linked issue states that this collection should not be empty, as it is now
 
         where:
         resilient << [true, false]

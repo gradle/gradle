@@ -84,7 +84,7 @@ class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification
 
     @ToolingApiVersion('>=9.3.0')
     @TargetGradleVersion('>=9.4.0')
-    def "broken convention plugin defined in buildSrc"() {
+    def "returns buildSrc model even if broken convention plugin defined in buildSrc"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -125,7 +125,7 @@ class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification
 
     @ToolingApiVersion('>=8.0')
     @TargetGradleVersion('>=8.0')
-    def "build included from buildSrc - nothing broken - NON RESILIENT"() {
+    def "returns included builds nested within buildSrc composite build when nothing broken - NON RESILIENT"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -153,7 +153,7 @@ class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification
 
     @ToolingApiVersion('>=9.3.0')
     @TargetGradleVersion('>=9.4.0')
-    def "build included from buildSrc - nothing broken"() {
+    def "returns included builds nested within buildSrc composite build when nothing broken"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
@@ -181,7 +181,7 @@ class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification
 
     @ToolingApiVersion('>=9.3.0')
     @TargetGradleVersion('>=9.4.0')
-    def "build included from buildSrc - compilation failures (#brokenFile)"() {
+    def "returns included builds nested within buildSrc composite build partially when compilation failures in #brokenFile"() {
         given:
         settingsKotlinFile << """
             rootProject.name = "root"
