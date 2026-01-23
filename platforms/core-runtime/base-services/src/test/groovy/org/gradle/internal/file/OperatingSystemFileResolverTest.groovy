@@ -18,8 +18,8 @@ package org.gradle.internal.file
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule;
-import spock.lang.Specification;
+import org.junit.Rule
+import spock.lang.Specification
 
 class OperatingSystemFileResolverTest extends Specification {
 
@@ -94,25 +94,41 @@ class OperatingSystemFileResolverTest extends Specification {
         resolver.findExecutableInPath("unknown") == null
     }
 
-    def "UNIX does not transform script names"() {
-        def resolver = OperatingSystemFileResolver.of(OperatingSystem.UNIX)
+    def "#operatingSystemName does not transform script names #operatingSystem"() {
+        def resolver = OperatingSystemFileResolver.of(operatingSystem)
 
         expect:
         resolver.getScriptName("a.sh") == "a.sh"
         resolver.getScriptName("a") == "a"
+
+        where:
+        operatingSystemName | operatingSystem
+        "UNIX"              | OperatingSystem.UNIX
+        "MAC_OS"            | OperatingSystem.MAC_OS
+        "LINUX"             | OperatingSystem.LINUX
+        "SOLARIS"           | OperatingSystem.SOLARIS
+        "FREE_BSD"          | OperatingSystem.FREE_BSD
     }
 
-    def "UNIX does not transform executable names"() {
-        def resolver = OperatingSystemFileResolver.of(OperatingSystem.UNIX)
+    def "#operatingSystemName does not transform executable names"() {
+        def resolver = OperatingSystemFileResolver.of(operatingSystem)
 
         expect:
         resolver.getExecutableSuffix() == ""
         resolver.getExecutableName("a.sh") == "a.sh"
         resolver.getExecutableName("a") == "a"
+
+        where:
+        operatingSystemName | operatingSystem
+        "UNIX"              | OperatingSystem.UNIX
+        "MAC_OS"            | OperatingSystem.MAC_OS
+        "LINUX"             | OperatingSystem.LINUX
+        "SOLARIS"           | OperatingSystem.SOLARIS
+        "FREE_BSD"          | OperatingSystem.FREE_BSD
     }
 
-    def "UNIX transforms shared library names"() {
-        def resolver = OperatingSystemFileResolver.of(OperatingSystem.UNIX)
+    def "#operatingSystemName transforms shared library names"() {
+        def resolver = OperatingSystemFileResolver.of(operatingSystem)
 
         expect:
         resolver.getSharedLibrarySuffix() == ".so"
@@ -124,10 +140,17 @@ class OperatingSystemFileResolverTest extends Specification {
         resolver.getSharedLibraryName("path/liba.so") == "path/liba.so"
         resolver.getSharedLibraryName("path/a") == "path/liba.so"
         resolver.getLinkLibraryName("a") == "liba.so"
+
+        where:
+        operatingSystemName | operatingSystem
+        "UNIX"              | OperatingSystem.UNIX
+        "LINUX"             | OperatingSystem.LINUX
+        "SOLARIS"           | OperatingSystem.SOLARIS
+        "FREE_BSD"          | OperatingSystem.FREE_BSD
     }
 
-    def "UNIX transforms static library names"() {
-        def resolver = OperatingSystemFileResolver.of(OperatingSystem.UNIX)
+    def "#operatingSystemName transforms static library names"() {
+        def resolver = OperatingSystemFileResolver.of(operatingSystem)
 
         expect:
         resolver.getStaticLibrarySuffix() == ".a"
@@ -137,19 +160,35 @@ class OperatingSystemFileResolverTest extends Specification {
         resolver.getStaticLibraryName("lib1") == "liblib1.a"
         resolver.getStaticLibraryName("path/liba.a") == "path/liba.a"
         resolver.getStaticLibraryName("path/a") == "path/liba.a"
+
+        where:
+        operatingSystemName | operatingSystem
+        "UNIX"              | OperatingSystem.UNIX
+        "MAC_OS"            | OperatingSystem.MAC_OS
+        "LINUX"             | OperatingSystem.LINUX
+        "SOLARIS"           | OperatingSystem.SOLARIS
+        "FREE_BSD"          | OperatingSystem.FREE_BSD
     }
 
-    def "UNIX searches for executable in path"() {
+    def "#operatingSystemName searches for executable in path"() {
         given:
         def exe = tmpDir.createFile("bin/a")
         tmpDir.createFile("bin2/a")
-        def os = Spy(OperatingSystem.UNIX)
+        def os = Spy(operatingSystem)
         os.getPath() >> [tmpDir.file("bin"), tmpDir.file("bin2")]
         def resolver = OperatingSystemFileResolver.of(os)
 
         expect:
         resolver.findExecutableInPath("a") == exe
         resolver.findExecutableInPath("unknown") == null
+
+        where:
+        operatingSystemName | operatingSystem
+        "UNIX"              | OperatingSystem.UNIX
+        "MAC_OS"            | OperatingSystem.MAC_OS
+        "LINUX"             | OperatingSystem.LINUX
+        "SOLARIS"           | OperatingSystem.SOLARIS
+        "FREE_BSD"          | OperatingSystem.FREE_BSD
     }
 
     def "macOS transforms shared library names"() {
