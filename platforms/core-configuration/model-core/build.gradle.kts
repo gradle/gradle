@@ -5,14 +5,6 @@ plugins {
 
 description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
 
-jvmCompile {
-    compilations {
-        named("main") {
-            usesJdkInternals = true
-        }
-    }
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
@@ -74,6 +66,14 @@ dependencies {
     }
 
     jmhImplementation(platform(projects.distributionsDependencies))
+}
+
+jvmCompile {
+    compilations {
+        named("main") {
+            usesJdkInternals = true
+        }
+    }
 }
 
 strictCompile {

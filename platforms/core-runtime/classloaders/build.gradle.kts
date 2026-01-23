@@ -22,14 +22,6 @@ plugins {
 
 description = "Tools to handle classloaders"
 
-jvmCompile {
-    compilations {
-        named("main") {
-            usesFutureStdlib = true
-        }
-    }
-}
-
 dependencies {
     api(projects.hashing)
     api(projects.stdlibJavaExtensions)
@@ -44,6 +36,14 @@ dependencies {
     implementation(libs.guava)
 
     compileOnly(libs.errorProneAnnotations)
+}
+
+jvmCompile {
+    compilations {
+        named("main") {
+            usesFutureStdlib = true
+        }
+    }
 }
 
 errorprone {
