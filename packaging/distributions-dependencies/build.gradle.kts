@@ -44,19 +44,19 @@ dependencies {
         api(libs.commonsIo)
         api(libs.commonsLang)
         api(libs.commonsMath)
-        api(libs.eclipseSisuPlexus)     { because("transitive dependency of Maven modules to process POM metadata") }
+        api(libs.eclipseSisuPlexus)
         api(libs.errorProneAnnotations)
         api(libs.fastutil)
         api(libs.gradleFileEvents)
         api(libs.gradleProfiler)
         api(libs.develocityTestAnnotation)
         api(libs.gcs)
-        api(libs.googleApiClient)       { because("our GCS version requires 1.34.0") }
+        api(libs.googleApiClient)
         api(libs.guava)
         api(libs.googleHttpClientGson)
         api(libs.googleHttpClientApacheV2)
-        api(libs.googleHttpClient)      { because("our Google API Client version requires 1.42.2") }
-        api(libs.googleOauthClient)     { because("our Google API Client version requires 1.34.1") }
+        api(libs.googleHttpClient)
+        api(libs.googleOauthClient)
         api(libs.groovy)
         api(libs.groovyAnt)
         api(libs.groovyAstbuilder)
@@ -74,7 +74,7 @@ dependencies {
         api(libs.h2Database)
         api(libs.hamcrest)
         api(libs.hamcrestCore)
-        api(libs.hikariCP)              { because("5.x requires Java 11+") }
+        api(libs.hikariCP)
         api(libs.httpcore)
         api(libs.inject)
         api(libs.ivy)
@@ -99,7 +99,7 @@ dependencies {
         api(libs.jgitSsh)
         api(libs.jgitSshAgent)
         api(libs.joda)
-        api(libs.joptSimple)            { because("needed to create profiler in Gradle profiler API") }
+        api(libs.joptSimple)
         api(libs.jsch)
         api(libs.jsoup)
         api(libs.jsr305)
@@ -114,38 +114,38 @@ dependencies {
         api(libs.jzlib)
         api(libs.kryo)
         api(libs.log4jToSlf4j)
-        api(libs.maven3Artifact)        { because("transitive dependency of Maven modules to process POM metadata") }
-        api(libs.maven3Core)            { because("transitive dependency of Maven modules to process POM metadata") }
-        api(libs.maven3BuilderSupport)  { because("required to load/build poms and repository settings") }
-        api(libs.maven3Model)           { because("required to load/build poms and repository settings") }
-        api(libs.maven3RepositoryMetadata) { because("required to load/build poms and repository settings") }
-        api(libs.maven3Settings)        { because("required to load/build poms and repository settings") }
-        api(libs.maven3SettingsBuilder) { because("required to load/build poms and repository settings") }
+        api(libs.maven3Artifact)
+        api(libs.maven3Core)
+        api(libs.maven3BuilderSupport)
+        api(libs.maven3Model)
+        api(libs.maven3RepositoryMetadata)
+        api(libs.maven3Settings)
+        api(libs.maven3SettingsBuilder)
         api(libs.minlog)
         api(libs.nativePlatform)
         api(libs.objenesis)
-        api(libs.plexusCipher)          { because("transitive dependency of Maven modules to process POM metadata") }
-        api(libs.plexusInterpolation)   { because("transitive dependency of Maven modules to process POM metadata") }
-        api(libs.plexusClassworlds)     { because("transitive dependency of Maven modules to process POM metadata") }
-        api(libs.plexusSecDispatcher)   { because("transitive dependency of Maven modules to process POM metadata") }
-        api(libs.plexusUtils)           { because("transitive dependency of Maven modules to process POM metadata") }
+        api(libs.plexusCipher)
+        api(libs.plexusInterpolation)
+        api(libs.plexusClassworlds)
+        api(libs.plexusSecDispatcher)
+        api(libs.plexusUtils)
         api(libs.plist)
         api(libs.servletApi)
         api(libs.slf4jApi)
-        api(libs.slf4jSimple)           { because("We only need the logging API, we supply our own binding, which cause duplicate binding on class path error") }
+        api(libs.slf4jSimple)
         api(libs.snakeyaml)
-        api(libs.testng)                { because("later versions break test cross-version test filtering") }
+        api(libs.testng)
         api(libs.tomlj)
         api(libs.trove4j)
         api(libs.jna)
         api(libs.jnaPlatform)
         api(libs.xbeanReflect)
         api(libs.jnrConstants)
-        api(libs.xmlApis)               { because("2.0.x has a POM with relocation Gradle does not handle well") }
+        api(libs.xmlApis)
 
         // compile only
-        api(libs.maven3Compat)          { because("required for maven2gradle in init plugin") }
-        api(libs.maven3PluginApi)       { because("required for maven2gradle in init plugin") }
+        api(libs.maven3Compat)
+        api(libs.maven3PluginApi)
         api(libs.zinc)
 
         // test only
@@ -195,7 +195,7 @@ dependencies {
         api(libs.spock)
         api(libs.spockJUnit4)
         api(libs.sshdCore)
-        api(libs.sshdOsgi)              { because("It contains sshd-core and sshd-common classes") }
+        api(libs.sshdOsgi)
         api(libs.sshdScp)
         api(libs.sshdSftp)
         api(libs.testcontainers)

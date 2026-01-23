@@ -27,9 +27,9 @@ eclipseSisuPlexus = "0.3.5!!"
 equalsverifier = "2.1.6!!"
 fastutil = "8.5.2!!"
 gcs = "v1-rev20220705-1.32.1!!"
-googleApiClient = "1.34.0!!"
-googleHttpClient = "1.42.2!!" # Covers googleHttpClient, googleHttpClientGson, googleHttpClientApacheV2
-googleOauthClient = "1.34.1!!"
+googleApiClient = "1.34.0!!" # our GCS version requires 1.34.0
+googleHttpClient = "1.42.2!!" # Covers googleHttpClient, googleHttpClientGson, googleHttpClientApacheV2, our Google API Client version requires it
+googleOauthClient = "1.34.1!!" # our Google API Client version requires 1.34.1
 gradleFileEvents = "0.2.8!!"
 gradleIdeStarter = "0.8.2!!"
 gradleProfiler = "0.24.0-alpha-1!!"
@@ -39,7 +39,7 @@ guava = "33.4.6-jre"
 guice = "5.1.0!!"
 h2Database = "2.2.220!!"
 hamcrest = "3.0!!"
-hikariCP = "4.0.3!!"
+hikariCP = "4.0.3!!" # 5.x requires Java 11+
 httpcore = "4.4.14!!"
 httpmime = "4.5.10!!"
 inject = "1!!"
@@ -60,7 +60,7 @@ jgit = "7.2.1.202505142326-r!!"
 jna = "5.17.0!!"
 jnr = "0.10.4!!"
 joda = "2.14.0!!"
-joptSimple = "5.0.4!!"
+joptSimple = "5.0.4!!" # needed to create profiler in Gradle profiler API
 jsch = "0.2.16!!"
 jsoup = "1.15.3!!"
 jspecify = "1.0.0!!"
@@ -101,12 +101,12 @@ socksProxy = "4.1.2!!"
 spock = "2.3-groovy-4.0!!"
 sshd = "2.15.0!!"
 testcontainers = "1.20.4!!"
-testng = "6.3.1!!"
+testng = "6.3.1!!" # later versions break test cross-version test filtering
 tomlj = "1.0.0!!"
 trove4j = "1.0.20200330!!"
 xbeanReflect = "3.18!!"
 xerces = "2.12.0!!"
-xmlApis = "1.4.01!!"
+xmlApis = "1.4.01!!" # 2.0.x has a POM with relocation Gradle does not handle well
 xmlunit = "1.6!!"
 zinc = "1.12.0!!"
 
@@ -147,7 +147,7 @@ compileTesting = { group = "com.google.testing.compile", name = "compile-testing
 configurationCacheReport = { group = "org.gradle.buildtool.internal", name = "configuration-cache-report", version.ref = "configurationCacheReport" }
 develocityTestAnnotation = { group = "com.gradle", name = "develocity-testing-annotations", version.ref = "develocityTestAnnotation" }
 dockerJavaApi = { group = "com.github.docker-java", name = "docker-java-api", version.ref = "dockerJavaApi" }
-eclipseSisuPlexus = { group = "org.eclipse.sisu", name = "org.eclipse.sisu.plexus", version.ref = "eclipseSisuPlexus" }
+eclipseSisuPlexus = { group = "org.eclipse.sisu", name = "org.eclipse.sisu.plexus", version.ref = "eclipseSisuPlexus" } # transitive dependency of Maven modules to process POM metadata
 equalsverifier = { group = "nl.jqno.equalsverifier", name = "equalsverifier", version.ref = "equalsverifier" }
 errorProneAnnotations = { group = "com.google.errorprone", name = "error_prone_annotations", version.ref = "errorProne" }
 fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil" }
@@ -257,6 +257,7 @@ kotlinxSerializationJson = { group = "org.jetbrains.kotlinx", name = "kotlinx-se
 kryo = { group = "com.esotericsoftware.kryo", name = "kryo", version.ref = "kryo" }
 littleproxy = { group = "xyz.rogfam", name = "littleproxy", version.ref = "littleproxy" }
 log4jToSlf4j = { group = "org.slf4j", name = "log4j-over-slf4j", version.ref = "slf4j" }
+# below are transitive dependencies of Maven modules to process POM metadata, to load/build poms and repository settings, and required for maven2gradle in init plugin
 maven3Artifact = { group = "org.apache.maven", name = "maven-artifact", version.ref = "maven" }
 maven3BuilderSupport = { group = "org.apache.maven", name = "maven-builder-support", version.ref = "maven" }
 maven3Compat = { group = "org.apache.maven", name = "maven-compat", version.ref = "maven" }
@@ -294,14 +295,14 @@ samplesCheck = { group = "org.gradle.exemplar", name = "samples-check", version.
 samplesDiscovery = { group = "org.gradle.exemplar", name = "samples-discovery", version.ref = "samples" }
 servletApi = { group = "javax.servlet", name = "javax.servlet-api", version.ref = "servletApi" }
 slf4jApi = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
-slf4jSimple = { group = "org.slf4j", name = "slf4j-simple", version.rejectAll = true }
+slf4jSimple = { group = "org.slf4j", name = "slf4j-simple", version.rejectAll = true } # We only need the logging API, we supply our own binding, which cause duplicate binding on class path error
 snakeyaml = { group = "org.yaml", name = "snakeyaml", version.ref = "snakeyaml" }
 snappy = { group = "org.iq80.snappy", name = "snappy", version.ref = "snappy" }
 socksProxy = { group = "com.github.bbottema", name = "java-socks-proxy-server", version.ref = "socksProxy" }
 spock = { group = "org.spockframework", name = "spock-core", version.ref = "spock" }
 spockJUnit4 = { group = "org.spockframework", name = "spock-junit4", version.ref = "spock" }
 sshdCore = { group = "org.apache.sshd", name = "sshd-core", version.ref = "sshd" }
-sshdOsgi = { group = "org.apache.sshd", name = "sshd-osgi", version.ref = "sshd" }
+sshdOsgi = { group = "org.apache.sshd", name = "sshd-osgi", version.ref = "sshd" } # It contains sshd-core and sshd-common classes
 sshdScp = { group = "org.apache.sshd", name = "sshd-scp", version.ref = "sshd" }
 sshdSftp = { group = "org.apache.sshd", name = "sshd-sftp", version.ref = "sshd" }
 testcontainers = { group = "org.testcontainers", name = "testcontainers", version.ref = "testcontainers" }
