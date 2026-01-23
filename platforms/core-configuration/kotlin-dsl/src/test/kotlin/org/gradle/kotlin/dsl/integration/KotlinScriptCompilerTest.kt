@@ -111,6 +111,7 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
         ) { it }
     }
 
+    @OptIn(ExperimentalCompilerArgument::class)
     private
     fun btCompileKotlinScriptTo(
         outputDir: File,
@@ -119,6 +120,8 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
     ) {
         btCompileKotlinScriptToDirectory(
             outputDir,
+            KotlinCompilerOptions(),
+            "buildscript",
             file("script.kts").apply {
                 writeText(script)
             },
