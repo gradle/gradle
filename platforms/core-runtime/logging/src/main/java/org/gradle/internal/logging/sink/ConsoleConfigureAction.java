@@ -25,6 +25,7 @@ import org.gradle.internal.logging.console.Console;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
+import org.gradle.internal.nativeintegration.console.UnicodeProxyConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 
 import java.io.IOException;
@@ -32,6 +33,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
 
 public class ConsoleConfigureAction {
@@ -57,10 +59,22 @@ public class ConsoleConfigureAction {
         }
     }
 
+    public static ConsoleMetaData createProxyingConsoleMetaData(ConsoleMetaData metaData, ConsoleUnicodeSupport consoleUnicodeSupport) {
+        switch (consoleUnicodeSupport) {
+            case Auto:
+                return metaData;
+            case Disable:
+                return new UnicodeProxyConsoleMetaData.FixedUnicodeSupport(metaData, false);
+            case Enable:
+            default:
+                return new UnicodeProxyConsoleMetaData.FixedUnicodeSupport(metaData, true);
+        }
+    }
+
     private static ConsoleMetaData getConsoleMetaData(ConsoleUnicodeSupport consoleUnicodeSupport) {
         ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
         ConsoleMetaData metaData = consoleDetector.getConsole();
-        return UnicodeProxyConsoleMetaData.create(
+        return createProxyingConsoleMetaData(
             metaData != null ? metaData : FallbackConsoleMetaData.NOT_ATTACHED,
             consoleUnicodeSupport);
     }
@@ -126,7 +140,13 @@ public class ConsoleConfigureAction {
 
     private static Console consoleFor(OutputStream stream, Supplier<OutputStream> jansiFallback, ConsoleMetaData consoleMetaData, ColorMap colourMap) {
         boolean force = !consoleMetaData.isWrapStreams();
-        OutputStreamWriter writer = new OutputStreamWriter(force ? stream : jansiFallback.get(), Charset.defaultCharset());
+
+        // Use UTF-8 when terminal supports Unicode, otherwise use default charset
+        Charset charset = consoleMetaData.supportsUnicode()
+            ? StandardCharsets.UTF_8
+            : Charset.defaultCharset();
+
+        OutputStreamWriter writer = new OutputStreamWriter(force ? stream : jansiFallback.get(), charset);
         return new AnsiConsole(writer, writer, colourMap, consoleMetaData, force);
     }
 

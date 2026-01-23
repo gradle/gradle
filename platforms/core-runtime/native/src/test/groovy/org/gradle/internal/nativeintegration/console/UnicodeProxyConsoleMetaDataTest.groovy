@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.sink
+package org.gradle.internal.nativeintegration.console
 
 import org.gradle.api.logging.configuration.ConsoleUnicodeSupport
-import org.gradle.internal.nativeintegration.console.ConsoleMetaData
+import org.gradle.internal.logging.sink.ConsoleConfigureAction
 import spock.lang.Specification
 
 class UnicodeProxyConsoleMetaDataTest extends Specification {
@@ -25,7 +25,7 @@ class UnicodeProxyConsoleMetaDataTest extends Specification {
 
     def "create with Auto returns the original metadata"() {
         when:
-        def result = UnicodeProxyConsoleMetaData.create(delegate, ConsoleUnicodeSupport.Auto)
+        def result = ConsoleConfigureAction.createProxyingConsoleMetaData(delegate, ConsoleUnicodeSupport.Auto)
 
         then:
         result.is(delegate)
@@ -36,7 +36,7 @@ class UnicodeProxyConsoleMetaDataTest extends Specification {
         delegate.supportsUnicode() >> true
 
         when:
-        def result = UnicodeProxyConsoleMetaData.create(delegate, ConsoleUnicodeSupport.Disable)
+        def result = ConsoleConfigureAction.createProxyingConsoleMetaData(delegate, ConsoleUnicodeSupport.Disable)
 
         then:
         !result.supportsUnicode()
@@ -48,7 +48,7 @@ class UnicodeProxyConsoleMetaDataTest extends Specification {
         delegate.supportsUnicode() >> false
 
         when:
-        def result = UnicodeProxyConsoleMetaData.create(delegate, ConsoleUnicodeSupport.Enable)
+        def result = ConsoleConfigureAction.createProxyingConsoleMetaData(delegate, ConsoleUnicodeSupport.Enable)
 
         then:
         result.supportsUnicode()
@@ -58,7 +58,7 @@ class UnicodeProxyConsoleMetaDataTest extends Specification {
     def "proxy delegates isStdOutATerminal to wrapped metadata"() {
         given:
         delegate.isStdOutATerminal() >> expectedValue
-        def proxy = UnicodeProxyConsoleMetaData.create(delegate, ConsoleUnicodeSupport.Disable)
+        def proxy = ConsoleConfigureAction.createProxyingConsoleMetaData(delegate, ConsoleUnicodeSupport.Disable)
 
         when:
         def result = proxy.isStdOutATerminal()
@@ -73,7 +73,7 @@ class UnicodeProxyConsoleMetaDataTest extends Specification {
     def "proxy delegates isStdErrATerminal to wrapped metadata"() {
         given:
         delegate.isStdErrATerminal() >> expectedValue
-        def proxy = UnicodeProxyConsoleMetaData.create(delegate, ConsoleUnicodeSupport.Disable)
+        def proxy = ConsoleConfigureAction.createProxyingConsoleMetaData(delegate, ConsoleUnicodeSupport.Disable)
 
         when:
         def result = proxy.isStdErrATerminal()
@@ -88,7 +88,7 @@ class UnicodeProxyConsoleMetaDataTest extends Specification {
     def "proxy delegates getCols to wrapped metadata"() {
         given:
         delegate.getCols() >> expectedValue
-        def proxy = UnicodeProxyConsoleMetaData.create(delegate, ConsoleUnicodeSupport.Disable)
+        def proxy = ConsoleConfigureAction.createProxyingConsoleMetaData(delegate, ConsoleUnicodeSupport.Disable)
 
         when:
         def result = proxy.getCols()
@@ -103,7 +103,7 @@ class UnicodeProxyConsoleMetaDataTest extends Specification {
     def "proxy delegates getRows to wrapped metadata"() {
         given:
         delegate.getRows() >> expectedValue
-        def proxy = UnicodeProxyConsoleMetaData.create(delegate, ConsoleUnicodeSupport.Disable)
+        def proxy = ConsoleConfigureAction.createProxyingConsoleMetaData(delegate, ConsoleUnicodeSupport.Disable)
 
         when:
         def result = proxy.getRows()
@@ -118,7 +118,7 @@ class UnicodeProxyConsoleMetaDataTest extends Specification {
     def "proxy delegates isWrapStreams to wrapped metadata"() {
         given:
         delegate.isWrapStreams() >> expectedValue
-        def proxy = UnicodeProxyConsoleMetaData.create(delegate, ConsoleUnicodeSupport.Disable)
+        def proxy = ConsoleConfigureAction.createProxyingConsoleMetaData(delegate, ConsoleUnicodeSupport.Disable)
 
         when:
         def result = proxy.isWrapStreams()
@@ -133,7 +133,7 @@ class UnicodeProxyConsoleMetaDataTest extends Specification {
     def "proxy delegates supportsTaskbarProgress to wrapped metadata"() {
         given:
         delegate.supportsTaskbarProgress() >> expectedValue
-        def proxy = UnicodeProxyConsoleMetaData.create(delegate, ConsoleUnicodeSupport.Disable)
+        def proxy = ConsoleConfigureAction.createProxyingConsoleMetaData(delegate, ConsoleUnicodeSupport.Disable)
 
         when:
         def result = proxy.supportsTaskbarProgress()
@@ -148,7 +148,7 @@ class UnicodeProxyConsoleMetaDataTest extends Specification {
     def "disable proxy always returns false for supportsUnicode regardless of delegate value"() {
         given:
         delegate.supportsUnicode() >> delegateValue
-        def proxy = UnicodeProxyConsoleMetaData.create(delegate, ConsoleUnicodeSupport.Disable)
+        def proxy = ConsoleConfigureAction.createProxyingConsoleMetaData(delegate, ConsoleUnicodeSupport.Disable)
 
         when:
         def result = proxy.supportsUnicode()
@@ -163,7 +163,7 @@ class UnicodeProxyConsoleMetaDataTest extends Specification {
     def "enable proxy always returns true for supportsUnicode regardless of delegate value"() {
         given:
         delegate.supportsUnicode() >> delegateValue
-        def proxy = UnicodeProxyConsoleMetaData.create(delegate, ConsoleUnicodeSupport.Enable)
+        def proxy = ConsoleConfigureAction.createProxyingConsoleMetaData(delegate, ConsoleUnicodeSupport.Enable)
 
         when:
         def result = proxy.supportsUnicode()
@@ -185,7 +185,7 @@ class UnicodeProxyConsoleMetaDataTest extends Specification {
         delegate.supportsTaskbarProgress() >> false
         delegate.supportsUnicode() >> false
 
-        def proxy = UnicodeProxyConsoleMetaData.create(delegate, ConsoleUnicodeSupport.Enable)
+        def proxy = ConsoleConfigureAction.createProxyingConsoleMetaData(delegate, ConsoleUnicodeSupport.Enable)
 
         expect:
         proxy.isStdOutATerminal()
@@ -207,7 +207,7 @@ class UnicodeProxyConsoleMetaDataTest extends Specification {
         delegate.supportsTaskbarProgress() >> true
         delegate.supportsUnicode() >> true
 
-        def proxy = UnicodeProxyConsoleMetaData.create(delegate, ConsoleUnicodeSupport.Disable)
+        def proxy = ConsoleConfigureAction.createProxyingConsoleMetaData(delegate, ConsoleUnicodeSupport.Disable)
 
         expect:
         !proxy.isStdOutATerminal()
@@ -219,4 +219,3 @@ class UnicodeProxyConsoleMetaDataTest extends Specification {
         !proxy.supportsUnicode() // Should be false despite delegate returning true
     }
 }
-
