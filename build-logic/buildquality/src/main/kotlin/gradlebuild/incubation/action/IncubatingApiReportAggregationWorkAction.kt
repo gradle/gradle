@@ -57,6 +57,18 @@ abstract class IncubatingApiReportAggregationWorkAction : WorkAction<IncubatingA
     fun generateHtmlReport(data: Map<String, ProjectNameToProblems>) {
         val outputFile = parameters.htmlReportFile.get().asFile
         outputFile.parentFile.mkdirs()
+        
+        // Collect all problems from all categories and projects
+        val allProblems = mutableListOf<Problem>()
+        data.values.forEach { projectsWithProblems ->
+            projectsWithProblems.values.forEach { problems ->
+                allProblems.addAll(problems)
+            }
+        }
+        
+        // Sort all problems alphabetically by name
+        val sortedProblems = allProblems.sortedBy { it.name }
+        
         outputFile.printWriter(Charsets.UTF_8).use { writer ->
             writer.println(
                 """<html lang="en">
@@ -70,28 +82,56 @@ abstract class IncubatingApiReportAggregationWorkAction : WorkAction<IncubatingA
     </head>
     <body>
        <h1>Incubating APIs</h1>
-       <h2>Index</h2>
+       <p>Total incubating APIs: ${sortedProblems.size}</p>
        <ul>
     """
             )
 
-            data.toSortedMap().forEach { (category, _) ->
-                writer.println("<li><a href=\"#$category\">$category</a><br></li>")
-            }
-            writer.println("</ul>")
-            data.toSortedMap().forEach { (category, projectsWithProblems) ->
-                writer.println("<a name=\"$category\"></a>")
-                writer.println("<h2>$category</h2>")
-                projectsWithProblems.forEach { (project, problems) ->
-                    writer.println("<h3>In $project</h3>")
-                    writer.println("<ul>")
-                    problems.forEach {
-                        writer.println("   <li>${it.name.escape()}</li>")
-                    }
-                    writer.println("</ul>")
+            sortedProblems.forEach { problem ->
+                val javadocLink = toJavadocLink(problem.name)
+                if (javadocLink != null) {
+                    writer.println("   <li><a href=\"$javadocLink\">${problem.name.escape()}</a></li>")
+                } else {
+                    writer.println("   <li>${problem.name.escape()}</li>")
                 }
             }
-            writer.println("</body></html>")
+            
+            writer.println("""
+       </ul>
+    </body>
+</html>""")
+        }
+    }
+    
+    private
+    fun toJavadocLink(name: String): String? {
+        // Extract the fully qualified class name from the API name
+        // Examples:
+        // "org.gradle.api.SomeClass" -> "https://docs.gradle.org/current/javadoc/org/gradle/api/SomeClass.html"
+        // "org.gradle.api.SomeClass.someMethod()" -> "https://docs.gradle.org/current/javadoc/org/gradle/api/SomeClass.html#someMethod()"
+        
+        if (!name.startsWith("org.gradle.")) {
+            return null
+        }
+        
+        val methodIndex = name.indexOf('(')
+        val hasMethod = methodIndex != -1
+        
+        return if (hasMethod) {
+            // Extract class name and method signature
+            val beforeMethod = name.substring(0, methodIndex)
+            val lastDotBeforeMethod = beforeMethod.lastIndexOf('.')
+            if (lastDotBeforeMethod == -1) return null
+            
+            val className = beforeMethod.substring(0, lastDotBeforeMethod)
+            val methodSignature = name.substring(lastDotBeforeMethod + 1)
+            
+            val classPath = className.replace('.', '/')
+            "https://docs.gradle.org/current/javadoc/$classPath.html#$methodSignature"
+        } else {
+            // Just a class name
+            val classPath = name.replace('.', '/')
+            "https://docs.gradle.org/current/javadoc/$classPath.html"
         }
     }
 
