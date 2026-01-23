@@ -118,11 +118,14 @@ abstract class IncubatingApiReportAggregationWorkAction : WorkAction<IncubatingA
         // Remove Kotlin-specific suffixes that don't map to javadoc
         var cleanName = name
         val kotlinSuffixes = listOf(" with ", ", top-level in ")
-        for (suffix in kotlinSuffixes) {
+        // Find the earliest occurrence of any Kotlin suffix and truncate there
+        val earliestSuffixIndex = kotlinSuffixes.mapNotNull { suffix ->
             val index = cleanName.indexOf(suffix)
-            if (index != -1) {
-                cleanName = cleanName.substring(0, index)
-            }
+            if (index != -1) index else null
+        }.minOrNull()
+        
+        if (earliestSuffixIndex != null) {
+            cleanName = cleanName.substring(0, earliestSuffixIndex)
         }
         
         val methodIndex = cleanName.indexOf('(')
