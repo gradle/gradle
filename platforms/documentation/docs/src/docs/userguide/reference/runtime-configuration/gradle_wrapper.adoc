@@ -359,6 +359,10 @@ WARNING: Using `systemProp.gradle.wrapperUser` and `systemProp.gradle.wrapperPas
 
 To safeguard your credentials, prefix these system properties with your private server's hostname, replacing all dots (`.`) with underscores (`_`).
 
+NOTE: Hostnames are not case-sensitive thus Gradle converts the hostname in the property name into lowercase.
+ That is, if you wrote `MYCOMPANY.COM` in your wrapper configuration, then you have to use the string
+ `mycompany_com` in the system property key.
+
 For example, if your private server hostname is `your.private-server.com`, use the following system properties:
 
 [source,properties]
