@@ -24,12 +24,6 @@ Few projects should need to depend on this module directly. Most external intera
 various implementations of WorkerTestDefinitionProcessorFactory.
 """
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.time)

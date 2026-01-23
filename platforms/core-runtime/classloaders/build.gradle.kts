@@ -22,12 +22,6 @@ plugins {
 
 description = "Tools to handle classloaders"
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 jvmCompile {
     compilations {
         named("main") {

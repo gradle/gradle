@@ -5,12 +5,6 @@ plugins {
 
 description = "Base tools to work with files"
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 dependencies {
     api(projects.stdlibJavaExtensions)
 

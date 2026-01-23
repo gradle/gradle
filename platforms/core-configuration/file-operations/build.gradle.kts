@@ -20,12 +20,6 @@ plugins {
 
 description = "Operations on files, such as archiving, copying, deleting"
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 strictCompile {
     ignoreRawTypes() // some raw types remain, but must be cleaned up
 }

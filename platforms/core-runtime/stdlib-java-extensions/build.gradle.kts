@@ -7,12 +7,6 @@ plugins {
 
 description = "Extensions to the Java language that are used across the Gradle codebase"
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 

@@ -27,12 +27,6 @@ It's a stripped down version of the original code available
 at https://github.com/melix/jdoctor/
 """
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 jvmCompile {
     compilations {
         named("testFixtures") {

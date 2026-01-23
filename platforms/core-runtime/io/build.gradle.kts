@@ -21,12 +21,6 @@ plugins {
 
 description = "I/O utilities"
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 dependencies {
     api(libs.jspecify)
 

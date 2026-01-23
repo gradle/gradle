@@ -22,12 +22,6 @@ plugins {
 
 description = "Gradle optimized persistent collection implementations suitable for use in all environments, including workers."
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 dependencies {
     api(libs.jspecify)
     api(libs.jsr305)

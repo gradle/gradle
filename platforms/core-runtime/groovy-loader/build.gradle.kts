@@ -20,12 +20,6 @@ plugins {
 
 description = "Manages loading Groovy System in isolated contexts"
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 dependencies {
     implementation(projects.baseServices) {
         because("VersionNumber")

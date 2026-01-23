@@ -28,12 +28,6 @@ plugins {
 
 description = "Entry point of the Gradle wrapper command"
 
-gradleModule {
-    targetRuntimes {
-        usedInClient = true
-    }
-}
-
 dependencies {
     implementation(projects.cli)
     implementation(projects.wrapperShared)

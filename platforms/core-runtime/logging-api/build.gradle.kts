@@ -20,12 +20,6 @@ plugins {
 
 description = "Logging API"
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 dependencies {
     api(projects.stdlibJavaExtensions)
 

@@ -5,12 +5,6 @@ plugins {
 
 description = "Develocity plugin dependencies that also need to be exposed to workers"
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 dependencies {
     api(libs.jspecify)
 }

@@ -5,12 +5,6 @@ plugins {
 
 description = "This project contains various native operating system integration utilities"
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.files)

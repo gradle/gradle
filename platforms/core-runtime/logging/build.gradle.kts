@@ -5,12 +5,6 @@ plugins {
 
 description = "Logging infrastructure"
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serialization)

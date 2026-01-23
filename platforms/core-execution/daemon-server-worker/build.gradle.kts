@@ -21,12 +21,6 @@ plugins {
 description = "Worker RequestHandler that hosts long-running daemon server which can execute arbitrary WorkerAction requests. " +
     "These classes are loaded in a separate worker daemon process and should have a minimal dependency set."
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 dependencies {
 
     api(projects.classloaders)
