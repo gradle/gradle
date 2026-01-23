@@ -21,14 +21,6 @@ plugins {
 
 description = "Configuration Cache services supporting bean serialization"
 
-jvmCompile {
-    compilations {
-        named("main") {
-            usesJdkInternals = true
-        }
-    }
-}
-
 dependencies {
     api(projects.graphSerialization)
     api(projects.stdlibJavaExtensions)
@@ -53,4 +45,12 @@ dependencies {
 
     testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.persistentCache))
+}
+
+jvmCompile {
+    compilations {
+        named("main") {
+            usesJdkInternals = true
+        }
+    }
 }

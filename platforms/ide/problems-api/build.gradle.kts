@@ -27,15 +27,6 @@ It's a stripped down version of the original code available
 at https://github.com/melix/jdoctor/
 """
 
-jvmCompile {
-    compilations {
-        named("testFixtures") {
-            // The TAPI cross version tests depend on these test fixtures
-            targetJvmVersion = 8
-        }
-    }
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
@@ -60,6 +51,16 @@ dependencies {
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.internalDistributionTesting)
 }
+
+jvmCompile {
+    compilations {
+        named("testFixtures") {
+            // The TAPI cross version tests depend on these test fixtures
+            targetJvmVersion = 8
+        }
+    }
+}
+
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
