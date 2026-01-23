@@ -42,7 +42,7 @@ dependencies {
     testImplementation(projects.snapshots)
     testImplementation(projects.resourcesHttp)
 
-    testImplementation(libs.xmlunit)
+    testImplementation(testLibs.xmlunit)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.modelCore))

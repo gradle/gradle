@@ -44,7 +44,7 @@ dependencies {
     testImplementation(libs.kotlinReflect) {
         because("mockito-kotlin 1.6 requires kotlin-reflect in 1.0.7, we want to overrule that")
     }
-    testImplementation(libs.mockitoKotlin)
+    testImplementation(testLibs.mockitoKotlin)
 }
 
 // Note: these dependencies have strict versions, but Gradle currently supports the scenario when higher version of kotlin can be used

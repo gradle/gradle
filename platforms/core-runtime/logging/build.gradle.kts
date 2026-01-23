@@ -56,7 +56,7 @@ dependencies {
 
     integTestImplementation(projects.problems)
 
-    integTestImplementation(libs.ansiControlSequenceUtil)
+    integTestImplementation(testLibs.ansiControlSequenceUtil)
 
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.enterpriseWorkers)

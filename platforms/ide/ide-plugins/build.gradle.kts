@@ -67,7 +67,7 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
-    testImplementation(libs.xmlunit)
+    testImplementation(testLibs.xmlunit)
 
 
     integTestImplementation(projects.internalIntegTesting)

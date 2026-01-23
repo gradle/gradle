@@ -88,12 +88,12 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
 
     // do not attempt to find projects when the plugin is applied just to generate accessors
     if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "enterprise-plugin-performance" && project.name != "test" /* remove once wrapper is updated */) {
-        val libs = project.the<VersionCatalogsExtension>().named("libs")
+        val testLibs = project.the<VersionCatalogsExtension>().named("testLibs")
         dependencies {
             "${prefix}TestImplementation"(project)
-            "${prefix}TestImplementation"(libs.findLibrary("junitJupiter").get())
-            "${prefix}TestRuntimeOnly"(libs.findLibrary("junitPlatform").get())
-            "${prefix}TestRuntimeOnly"(libs.findLibrary("junit5Vintage").get())
+            "${prefix}TestImplementation"(testLibs.findLibrary("junitJupiter").get())
+            "${prefix}TestRuntimeOnly"(testLibs.findLibrary("junitPlatform").get())
+            "${prefix}TestRuntimeOnly"(testLibs.findLibrary("junit5Vintage").get())
             "${prefix}TestImplementation"(project(":internal-integ-testing"))
             "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributions-full"))
             // Add the agent JAR to the test runtime classpath so the InProcessGradleExecuter can find the module and spawn daemons.

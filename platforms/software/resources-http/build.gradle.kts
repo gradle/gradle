@@ -28,7 +28,7 @@ dependencies {
     implementation(libs.slf4jApi)
 
     testImplementation(projects.internalIntegTesting)
-    testImplementation(libs.jettyWebApp)
+    testImplementation(testLibs.jettyWebApp)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
 

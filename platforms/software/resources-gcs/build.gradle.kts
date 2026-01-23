@@ -35,7 +35,7 @@ dependencies {
     integTestImplementation(projects.modelCore)
 
     integTestImplementation(libs.commonsIo)
-    integTestImplementation(libs.jetty)
+    integTestImplementation(testLibs.jetty)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }

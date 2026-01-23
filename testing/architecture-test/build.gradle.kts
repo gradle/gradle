@@ -40,15 +40,15 @@ dependencies {
     testImplementation(libs.kotlinStdlib)
     testImplementation(libs.inject)
 
-    testImplementation(libs.archunitJunit5)
+    testImplementation(testLibs.archunitJunit5)
     testImplementation(libs.guava)
     testImplementation(libs.gson)
-    testImplementation(libs.junitJupiter)
-    testImplementation(libs.assertj)
+    testImplementation(testLibs.junitJupiter)
+    testImplementation(testLibs.assertj)
 
     testRuntimeOnly(projects.distributionsFull)
 
-    testRuntimeOnly(libs.junitPlatform)
+    testRuntimeOnly(testLibs.junitPlatform)
 }
 
 val acceptedApiChangesDirectory = layout.projectDirectory.dir("src/changes/accepted-changes")
