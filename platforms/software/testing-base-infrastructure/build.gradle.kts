@@ -4,12 +4,6 @@ plugins {
 
 description = """Generalized test infrastructure to support executing tests in test workers."""
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.concurrent)

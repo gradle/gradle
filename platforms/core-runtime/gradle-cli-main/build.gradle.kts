@@ -22,12 +22,6 @@ plugins {
 
 description = "Entry point of the `gradle` command. Bootstraps the implementation in :gradle-cli."
 
-gradleModule {
-    targetRuntimes {
-        usedInClient = true
-    }
-}
-
 tasks.jar {
     manifest {
         // Allow launcher to access JNI: https://openjdk.org/jeps/472
