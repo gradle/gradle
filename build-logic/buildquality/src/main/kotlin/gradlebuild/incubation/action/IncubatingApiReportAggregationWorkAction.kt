@@ -109,28 +109,39 @@ abstract class IncubatingApiReportAggregationWorkAction : WorkAction<IncubatingA
         // Examples:
         // "org.gradle.api.SomeClass" -> "https://docs.gradle.org/current/javadoc/org/gradle/api/SomeClass.html"
         // "org.gradle.api.SomeClass.someMethod()" -> "https://docs.gradle.org/current/javadoc/org/gradle/api/SomeClass.html#someMethod()"
+        // "org.gradle.kotlin.dsl.jvm(JvmToolchainManagement.() -> Unit), top-level in file.kt" -> No link (Kotlin-specific)
         
         if (!name.startsWith("org.gradle.")) {
             return null
         }
         
-        val methodIndex = name.indexOf('(')
+        // Remove Kotlin-specific suffixes that don't map to javadoc
+        var cleanName = name
+        val kotlinSuffixes = listOf(" with ", ", top-level in ")
+        for (suffix in kotlinSuffixes) {
+            val index = cleanName.indexOf(suffix)
+            if (index != -1) {
+                cleanName = cleanName.substring(0, index)
+            }
+        }
+        
+        val methodIndex = cleanName.indexOf('(')
         val hasMethod = methodIndex != -1
         
         return if (hasMethod) {
             // Extract class name and method signature
-            val beforeMethod = name.substring(0, methodIndex)
+            val beforeMethod = cleanName.substring(0, methodIndex)
             val lastDotBeforeMethod = beforeMethod.lastIndexOf('.')
             if (lastDotBeforeMethod == -1) return null
             
             val className = beforeMethod.substring(0, lastDotBeforeMethod)
-            val methodSignature = name.substring(lastDotBeforeMethod + 1)
+            val methodSignature = cleanName.substring(lastDotBeforeMethod + 1)
             
             val classPath = className.replace('.', '/')
             "https://docs.gradle.org/current/javadoc/$classPath.html#$methodSignature"
         } else {
             // Just a class name
-            val classPath = name.replace('.', '/')
+            val classPath = cleanName.replace('.', '/')
             "https://docs.gradle.org/current/javadoc/$classPath.html"
         }
     }
