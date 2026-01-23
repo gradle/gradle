@@ -282,15 +282,14 @@ class DefaultFunctionExtractor(
                     configuredType -> FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject
                     else -> error("cannot infer the return type of a configuring function $function; it must be Unit or the configured object type")
                 }
-                val accessor = ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(host.withTag(SchemaBuildingTags.parameter(lastParam)) { host.modelTypeRef(configuredType) })
+                val configuredTypeRef = host.withTag(SchemaBuildingTags.configuredType(function.returnType)) { host.typeRef(configuredType) }
+                val accessor = ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(configuredTypeRef)
 
                 // TODO: when "definitely existing" objects get properly implemented, ensure that functions configuring them do not accept parameters
                 FunctionSemanticsInternal.DefaultAccessAndConfigure(
                     accessor,
                     returnType,
-                    host.withTag(SchemaBuildingTags.configuredType(function.returnType)) {
-                        host.modelTypeRef(configuredType)
-                    },
+                    configuredTypeRef,
                     blockRequirement
                 )
             }
@@ -401,9 +400,13 @@ fun isValidNestedModelType(type: SupportedTypeProjection.SupportedType): Boolean
 
 private fun SchemaBuildingHost.checkConfiguredType(configuredType: KType) {
     withTag(SchemaBuildingTags.configuredType(configuredType)) {
+        if (configuredType.isMarkedNullable) {
+            schemaBuildingFailure("The receiver type of a configuring lambda cannot be nullable")
+        }
+
         when (val classifier = configuredType.classifier) {
             is KClass<*> -> containerTypeRef(classifier)
-            is KTypeParameter -> schemaBuildingFailure("Illegal usage of a type parameter")
+            is KTypeParameter -> schemaBuildingFailure("Using a type parameter as a configured type is not supported")
             else -> Unit
         }
     }

@@ -25,6 +25,7 @@ import java.util.Locale
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
+import kotlin.reflect.KType
 import kotlin.reflect.full.allSuperclasses
 
 
@@ -95,13 +96,20 @@ class DefaultPropertyExtractor : PropertyExtractor {
                 }
                 val setter = functionsByName["set$nameAfterGet"]?.find { fn -> fn.parameters.singleOrNull()?.type == getter.returnType }
 
-                val type = getter.returnTypeToRefOrError(host)
+                val canWrite = setter != null
+
+                val typeInfo = getter.propertyTypeOrError(host)
+
+                checkPropertyModeAndNullability(host, canWrite, typeInfo)
+
+                val canRead = !typeInfo.isNullable
+
                 val isDirectAccessOnly = getter.kCallable.annotations.any { it is AccessFromCurrentReceiverOnly }
                 CollectedPropertyInformation(
                     propertyName,
                     getter.returnType,
-                    type,
-                    if (setter != null) DefaultPropertyMode.DefaultReadWrite else DefaultPropertyMode.DefaultReadOnly,
+                    typeInfo.typeRef,
+                    DefaultPropertyMode.of(canRead, canWrite),
                     hasDefaultValue = true,
                     isHiddenInDefinition = false,
                     isDirectAccessOnly = isDirectAccessOnly,
@@ -123,16 +131,23 @@ class DefaultPropertyExtractor : PropertyExtractor {
 
     private
     fun kPropertyInformation(host: SchemaBuildingHost, property: SupportedCallable): CollectedPropertyInformation {
-        val isReadOnly = property.kind == MemberKind.READ_ONLY_PROPERTY
         val annotationsWithGetters = property.kCallable.annotationsWithGetters
         val isDirectAccessOnly = annotationsWithGetters.any { it is AccessFromCurrentReceiverOnly }
+
+        val canWrite = property.kind == MemberKind.MUTABLE_PROPERTY
+
+        val typeInfo = property.propertyTypeOrError(host)
+        checkPropertyModeAndNullability(host, canWrite, typeInfo)
+
+        val canRead = !typeInfo.isNullable
+
         return CollectedPropertyInformation(
             property.name,
             property.returnType,
-            property.returnTypeToRefOrError(host),
-            if (isReadOnly) DefaultPropertyMode.DefaultReadOnly else DefaultPropertyMode.DefaultReadWrite,
+            typeInfo.typeRef,
+            DefaultPropertyMode.of(canRead, canWrite),
             hasDefaultValue = run {
-                isReadOnly || annotationsWithGetters.none { it is HasDefaultValue && !it.value }
+                !canWrite || annotationsWithGetters.none { it is HasDefaultValue && !it.value }
             },
             isHiddenInDefinition = false,
             isDirectAccessOnly = isDirectAccessOnly,
@@ -142,4 +157,25 @@ class DefaultPropertyExtractor : PropertyExtractor {
 
     private val KClassifier.isValidPropertyType: Boolean // FIXME: Property API gets in the way, we don't want to import Provider-typed properties
         get() = this is KClass<*> && allSuperclasses.none { it.java.name == "org.gradle.api.provider.Provider" }
+
+    private fun checkPropertyModeAndNullability(host: SchemaBuildingHost, isWritable: Boolean, type: CollectedPropertyType) {
+        if (!isWritable && type.isNullable)
+            host.schemaBuildingFailure("Unsupported property declaration: nullable read-only property")
+    }
+}
+
+/**
+ * Provides the [typeRef] information of the imported property type.
+ *
+ * In addition, [isNullable] tells if the type of the property is originally declared as nullable.
+ * If it is, it cannot be used as readable property, for example, in grouped value factory calls (`foo.bar()`)
+ */
+data class CollectedPropertyType(val originalType: KType, val typeRef: DataTypeRef, val isNullable: Boolean)
+
+private fun SupportedCallable.propertyTypeOrError(host: SchemaBuildingHost) = returnType.toKType().let { kType ->
+    CollectedPropertyType(
+        kType,
+        host.withTag(SchemaBuildingTags.returnValueType(kType)) { host.typeRef(kType) },
+        returnType.isMarkedNullable
+    )
 }
