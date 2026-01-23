@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.toolchain.internal.gcc.metadata
 
 import org.gradle.api.Transformer
 import org.gradle.internal.logging.text.DiagnosticsVisitor
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
@@ -376,7 +376,7 @@ End of search list."""
             'C:\\cygwin\\usr\\local\\include'
         ]
         def binDir = tmpDir.createDir('bin')
-        def cygpath = binDir.createFile(PlatformBinaryResolver.forCurrentOs().getExecutableName('cygpath'))
+        def cygpath = binDir.createFile(OperatingSystemFileResolver.current().getExecutableName('cygpath'))
 
         expect:
         runsCompiler(gccCygwin64, gccVerboseOutput('7.3', includes))

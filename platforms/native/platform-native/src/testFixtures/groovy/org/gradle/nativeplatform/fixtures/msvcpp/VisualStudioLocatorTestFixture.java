@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.fixtures.msvcpp;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.internal.file.TestFiles;
-import org.gradle.internal.platform.PlatformBinaryResolver;
+import org.gradle.internal.file.OperatingSystemFileResolver;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.DefaultVisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.version.CommandLineToolVersionLocator;
@@ -40,11 +40,11 @@ public class VisualStudioLocatorTestFixture {
         VisualStudioVersionLocator commandLineLocator = new CommandLineToolVersionLocator(TestFiles.execActionFactory(), visualCppMetadataProvider, getVswhereLocator());
         VisualStudioVersionLocator windowsRegistryLocator = new WindowsRegistryVersionLocator(NativeServicesTestFixture.getInstance().get(WindowsRegistry.class));
         VisualStudioMetaDataProvider versionDeterminer = new VisualStudioVersionDeterminer(commandLineLocator, windowsRegistryLocator, visualCppMetadataProvider);
-        VisualStudioVersionLocator systemPathLocator = new SystemPathVersionLocator(PlatformBinaryResolver.forCurrentOs(), versionDeterminer);
+        VisualStudioVersionLocator systemPathLocator = new SystemPathVersionLocator(OperatingSystemFileResolver.current(), versionDeterminer);
         return new DefaultVisualStudioLocator(commandLineLocator, windowsRegistryLocator, systemPathLocator, versionDeterminer, NativeServicesTestFixture.getInstance().get(SystemInfo.class));
     }
 
     public static VswhereVersionLocator getVswhereLocator() {
-        return new DefaultVswhereVersionLocator(NativeServicesTestFixture.getInstance().get(WindowsRegistry.class), PlatformBinaryResolver.forCurrentOs());
+        return new DefaultVswhereVersionLocator(NativeServicesTestFixture.getInstance().get(WindowsRegistry.class), OperatingSystemFileResolver.current());
     }
 }

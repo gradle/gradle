@@ -20,7 +20,7 @@ import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.platform.PlatformBinaryResolver;
+import org.gradle.internal.file.OperatingSystemFileResolver;
 import org.gradle.platform.base.internal.toolchain.ComponentFound;
 import org.gradle.platform.base.internal.toolchain.ComponentNotFound;
 import org.gradle.platform.base.internal.toolchain.SearchResult;
@@ -71,12 +71,12 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
 
     private final Map<File, WindowsSdkInstall> foundSdks = new HashMap<File, WindowsSdkInstall>();
     private final WindowsRegistry windowsRegistry;
-    private final PlatformBinaryResolver binaryResolver;
+    private final OperatingSystemFileResolver fileResolver;
     private WindowsSdkInstall pathSdk;
     private boolean initialised;
 
-    public LegacyWindowsSdkLocator(PlatformBinaryResolver binaryResolver, WindowsRegistry windowsRegistry) {
-        this.binaryResolver = binaryResolver;
+    public LegacyWindowsSdkLocator(OperatingSystemFileResolver fileResolver, WindowsRegistry windowsRegistry) {
+        this.fileResolver = fileResolver;
         this.windowsRegistry = windowsRegistry;
     }
 
@@ -169,7 +169,7 @@ public class LegacyWindowsSdkLocator implements WindowsSdkLocator {
     }
 
     private void locateSdkInPath() {
-        File resourceCompiler = binaryResolver.findExecutableInPath(RESOURCE_FILENAME);
+        File resourceCompiler = fileResolver.findExecutableInPath(RESOURCE_FILENAME);
         if (resourceCompiler == null) {
             LOGGER.debug("Could not find Windows resource compiler in system path.");
             return;

@@ -17,8 +17,10 @@
 package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.file.OperatingSystemFileResolver;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
@@ -32,10 +34,12 @@ import static org.gradle.internal.FileUtils.withExtension;
 
 public class UnavailablePlatformToolProvider implements PlatformToolProvider, CommandLineToolSearchResult {
     private final ToolSearchResult failure;
-    private final OperatingSystemInternal targetOperatingSystem;
+    private final OperatingSystem operatingSystem;
+    private final OperatingSystemFileResolver fileResolver;
 
     public UnavailablePlatformToolProvider(OperatingSystemInternal targetOperatingSystem, ToolSearchResult failure) {
-        this.targetOperatingSystem = targetOperatingSystem;
+        this.operatingSystem = targetOperatingSystem.getInternalOs();
+        this.fileResolver = OperatingSystemFileResolver.of(operatingSystem);
         this.failure = failure;
     }
 
@@ -73,18 +77,18 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider, Co
 
     @Override
     public String getExecutableName(String executablePath) {
-        return targetOperatingSystem.getBinaryResolver().getExecutableName(executablePath);
+        return fileResolver.getExecutableName(executablePath);
     }
 
     @Override
     public String getSharedLibraryName(String libraryPath) {
-        return targetOperatingSystem.getBinaryResolver().getSharedLibraryName(libraryPath);
+        return fileResolver.getSharedLibraryName(libraryPath);
     }
 
     @Override
     public boolean producesImportLibrary() {
         // Doesn't really make sense
-        return targetOperatingSystem.isWindows();
+        return operatingSystem.isWindows();
     }
 
     @Override
@@ -94,12 +98,12 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider, Co
 
     @Override
     public String getSharedLibraryLinkFileName(String libraryPath) {
-        return targetOperatingSystem.getBinaryResolver().getSharedLibraryName(libraryPath);
+        return fileResolver.getSharedLibraryName(libraryPath);
     }
 
     @Override
     public String getStaticLibraryName(String libraryPath) {
-        return targetOperatingSystem.getBinaryResolver().getStaticLibraryName(libraryPath);
+        return fileResolver.getStaticLibraryName(libraryPath);
     }
 
     @Override

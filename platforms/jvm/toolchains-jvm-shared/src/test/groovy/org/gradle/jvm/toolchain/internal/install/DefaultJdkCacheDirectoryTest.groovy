@@ -29,7 +29,7 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.jvm.inspection.JvmVendor
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.JvmImplementation
@@ -146,13 +146,13 @@ class DefaultJdkCacheDirectoryTest extends Specification {
             outStream.putArchiveEntry(new TarArchiveEntry("folder/"))
             outStream.closeArchiveEntry()
 
-            outStream.putArchiveEntry(new TarArchiveEntry("bin/" + PlatformBinaryResolver.forCurrentOs().getExecutableName("javac")))
+            outStream.putArchiveEntry(new TarArchiveEntry("bin/" + OperatingSystemFileResolver.current().getExecutableName("javac")))
             outStream.closeArchiveEntry()
 
-            outStream.putArchiveEntry(new TarArchiveEntry("bin/" + PlatformBinaryResolver.forCurrentOs().getExecutableName("javadoc")))
+            outStream.putArchiveEntry(new TarArchiveEntry("bin/" + OperatingSystemFileResolver.current().getExecutableName("javadoc")))
             outStream.closeArchiveEntry()
 
-            outStream.putArchiveEntry(new TarArchiveEntry("bin/" + PlatformBinaryResolver.forCurrentOs().getExecutableName("jar")))
+            outStream.putArchiveEntry(new TarArchiveEntry("bin/" + OperatingSystemFileResolver.current().getExecutableName("jar")))
             outStream.closeArchiveEntry()
         }
         def jdkCacheDirectory = new DefaultJdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector(), tmpFileProvider())
@@ -177,11 +177,11 @@ class DefaultJdkCacheDirectoryTest extends Specification {
 
             outStream.putNextEntry(new ZipEntry("folder/"))
 
-            outStream.putNextEntry(new ZipEntry("bin/" + PlatformBinaryResolver.forCurrentOs().getExecutableName("javac")))
+            outStream.putNextEntry(new ZipEntry("bin/" + OperatingSystemFileResolver.current().getExecutableName("javac")))
 
-            outStream.putNextEntry(new ZipEntry("bin/" + PlatformBinaryResolver.forCurrentOs().getExecutableName("javadoc")))
+            outStream.putNextEntry(new ZipEntry("bin/" + OperatingSystemFileResolver.current().getExecutableName("javadoc")))
 
-            outStream.putNextEntry(new ZipEntry("bin/" + PlatformBinaryResolver.forCurrentOs().getExecutableName("jar")))
+            outStream.putNextEntry(new ZipEntry("bin/" + OperatingSystemFileResolver.current().getExecutableName("jar")))
         }
         def jdkCacheDirectory = new DefaultJdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector(), tmpFileProvider())
 
@@ -213,10 +213,10 @@ class DefaultJdkCacheDirectoryTest extends Specification {
             outStream.putArchiveEntry(new TarArchiveEntry("folder/"))
             outStream.closeArchiveEntry()
 
-            outStream.putArchiveEntry(new TarArchiveEntry("Contents/Home/bin/" + PlatformBinaryResolver.forCurrentOs().getExecutableName("javac")))
+            outStream.putArchiveEntry(new TarArchiveEntry("Contents/Home/bin/" + OperatingSystemFileResolver.current().getExecutableName("javac")))
             outStream.closeArchiveEntry()
 
-            outStream.putArchiveEntry(new TarArchiveEntry("Contents/Home/bin/" + PlatformBinaryResolver.forCurrentOs().getExecutableName("javadoc")))
+            outStream.putArchiveEntry(new TarArchiveEntry("Contents/Home/bin/" + OperatingSystemFileResolver.current().getExecutableName("javadoc")))
             outStream.closeArchiveEntry()
         }
         def jdkCacheDirectory = new DefaultJdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector(), tmpFileProvider())

@@ -24,7 +24,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
-import org.gradle.internal.platform.PlatformBinaryResolver;
+import org.gradle.internal.file.OperatingSystemFileResolver;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
@@ -117,6 +117,6 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     }
 
     private String getBinaryPath(String java) {
-        return "bin/" + PlatformBinaryResolver.forCurrentOs().getExecutableName(java);
+        return "bin/" + OperatingSystemFileResolver.current().getExecutableName(java);
     }
 }

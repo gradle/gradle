@@ -20,7 +20,7 @@ package org.gradle.internal.jvm.inspection
 import org.gradle.api.logging.Logger
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.internal.progress.RecordingProgressLoggerFactory
 import org.gradle.jvm.toolchain.internal.DefaultToolchainConfiguration
 import org.gradle.jvm.toolchain.internal.InstallationLocation
@@ -110,7 +110,7 @@ class DefaultJavaInstallationRegistryTest extends Specification {
         def jdkHome = temporaryFolder.createDir("jdk")
         def macOsJdkHome = jdkHome.createDir("Contents/Home")
         def binDir = macOsJdkHome.createDir("bin")
-        binDir.createFile(PlatformBinaryResolver.forOs(OperatingSystem.MAC_OS).getExecutableName("java"))
+        binDir.createFile(OperatingSystemFileResolver.of(OperatingSystem.MAC_OS).getExecutableName("java"))
 
         when:
         def registry = createRegistry([jdkHome], OperatingSystem.MAC_OS)
@@ -140,11 +140,11 @@ class DefaultJavaInstallationRegistryTest extends Specification {
         given:
         def jdkHome = temporaryFolder.createDir("jdk")
         def binDir = jdkHome.createDir("bin")
-        binDir.createFile(PlatformBinaryResolver.forOs(OperatingSystem.LINUX).getExecutableName("java"))
+        binDir.createFile(OperatingSystemFileResolver.of(OperatingSystem.LINUX).getExecutableName("java"))
 
         // Make it look like a macOS installation
         def macOsJdkHomeBinDir = jdkHome.createDir("Contents/Home/bin")
-        macOsJdkHomeBinDir.createFile(PlatformBinaryResolver.forOs(OperatingSystem.LINUX).getExecutableName("java"))
+        macOsJdkHomeBinDir.createFile(OperatingSystemFileResolver.of(OperatingSystem.LINUX).getExecutableName("java"))
 
         when:
         def registry = createRegistry([jdkHome], OperatingSystem.LINUX)
@@ -257,7 +257,7 @@ class DefaultJavaInstallationRegistryTest extends Specification {
     private TestFile createJdkInstallation(String version) {
         def jdkHome = temporaryFolder.createDir("jdk-$version")
         def binDir = jdkHome.createDir("bin")
-        binDir.createFile(PlatformBinaryResolver.forCurrentOs().getExecutableName("java"))
+        binDir.createFile(OperatingSystemFileResolver.current().getExecutableName("java"))
         return jdkHome
     }
 
@@ -265,10 +265,10 @@ class DefaultJavaInstallationRegistryTest extends Specification {
         def jdkHome = temporaryFolder.createDir("jdk-$version")
         def jreHome = jdkHome.file("jre").createDir()
         def binDir = jreHome.createDir("bin")
-        binDir.createFile(PlatformBinaryResolver.forCurrentOs().getExecutableName("java"))
+        binDir.createFile(OperatingSystemFileResolver.current().getExecutableName("java"))
 
         def jdkHomeBinDir = jdkHome.createDir("bin")
-        jdkHomeBinDir.createFile(PlatformBinaryResolver.forCurrentOs().getExecutableName("java"))
+        jdkHomeBinDir.createFile(OperatingSystemFileResolver.current().getExecutableName("java"))
         return jdkHome
     }
 

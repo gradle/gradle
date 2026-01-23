@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.test.xctest.plugins
 
 
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.language.swift.plugins.SwiftApplicationPlugin
 import org.gradle.language.swift.plugins.SwiftLibraryPlugin
 import org.gradle.language.swift.tasks.SwiftCompile
@@ -147,13 +147,13 @@ class XCTestConventionPluginTest extends Specification {
 
         def link = project.tasks.linkTest
         link instanceof LinkMachOBundle
-        link.linkedFile.get().asFile == projectDir.file("build/exe/test/" + PlatformBinaryResolver.forCurrentOs().getExecutableName("TestAppTest"))
+        link.linkedFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystemFileResolver.current().getExecutableName("TestAppTest"))
         link.debuggable
 
         def install = project.tasks.installTest
         install instanceof InstallXCTestBundle
         install.installDirectory.get().asFile == project.file("build/install/test")
-        install.runScriptFile.get().asFile.name == PlatformBinaryResolver.forCurrentOs().getScriptName("TestAppTest")
+        install.runScriptFile.get().asFile.name == OperatingSystemFileResolver.current().getScriptName("TestAppTest")
 
         def test = project.tasks.xcTest
         test instanceof XCTest
@@ -179,13 +179,13 @@ class XCTestConventionPluginTest extends Specification {
 
         def link = project.tasks.linkTest
         link instanceof LinkExecutable
-        link.linkedFile.get().asFile == projectDir.file("build/exe/test/" + PlatformBinaryResolver.forCurrentOs().getExecutableName("TestAppTest"))
+        link.linkedFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystemFileResolver.current().getExecutableName("TestAppTest"))
         link.debuggable
 
         def install = project.tasks.installTest
         install instanceof InstallExecutable
         install.installDirectory.get().asFile == project.file("build/install/test")
-        install.runScriptFile.get().asFile.name == PlatformBinaryResolver.forCurrentOs().getScriptName("TestAppTest")
+        install.runScriptFile.get().asFile.name == OperatingSystemFileResolver.current().getScriptName("TestAppTest")
 
         def test = project.tasks.xcTest
         test instanceof XCTest
@@ -203,11 +203,11 @@ class XCTestConventionPluginTest extends Specification {
         compileSwift.objectFileDir.get().asFile == projectDir.file("output/obj/test")
 
         def link = project.tasks.linkTest
-        link.linkedFile.get().asFile == projectDir.file("output/exe/test/" + PlatformBinaryResolver.forCurrentOs().getExecutableName("TestAppTest"))
+        link.linkedFile.get().asFile == projectDir.file("output/exe/test/" + OperatingSystemFileResolver.current().getExecutableName("TestAppTest"))
 
         def install = project.tasks.installTest
         install.installDirectory.get().asFile == project.file("output/install/test")
-        install.runScriptFile.get().asFile.name == PlatformBinaryResolver.forCurrentOs().getScriptName("TestAppTest")
+        install.runScriptFile.get().asFile.name == OperatingSystemFileResolver.current().getScriptName("TestAppTest")
 
         def test = project.tasks.xcTest
         test.workingDirectory.get().asFile == projectDir.file("output/install/test")

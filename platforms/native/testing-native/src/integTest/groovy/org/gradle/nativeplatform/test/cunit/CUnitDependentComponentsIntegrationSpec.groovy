@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.test.cunit
 
 
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -88,7 +88,7 @@ class CUnitDependentComponentsIntegrationSpec extends AbstractInstalledToolChain
     }
 
     private def getCunitLibName() {
-        return PlatformBinaryResolver.forCurrentOs().getStaticLibraryName("cunit")
+        return OperatingSystemFileResolver.current().getStaticLibraryName("cunit")
     }
 
     def "buildDependentsHello assemble and check all hello binaries"() {

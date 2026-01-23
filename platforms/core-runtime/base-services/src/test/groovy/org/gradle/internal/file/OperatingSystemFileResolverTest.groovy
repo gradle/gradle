@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.platform;
+package org.gradle.internal.file
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule;
 import spock.lang.Specification;
 
-class PlatformBinaryResolverTest extends Specification {
+class OperatingSystemFileResolverTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "windows transforms script names"() {
-        def resolver = PlatformBinaryResolver.forOs(OperatingSystem.WINDOWS)
+        def resolver = OperatingSystemFileResolver.of(OperatingSystem.WINDOWS)
 
         expect:
         resolver.getScriptName("a.bat") == "a.bat"
@@ -39,7 +39,7 @@ class PlatformBinaryResolverTest extends Specification {
     }
 
     def "windows transforms executable names"() {
-        def resolver = PlatformBinaryResolver.forOs(OperatingSystem.WINDOWS)
+        def resolver = OperatingSystemFileResolver.of(OperatingSystem.WINDOWS)
 
         expect:
         resolver.getExecutableSuffix() == ".exe"
@@ -52,7 +52,7 @@ class PlatformBinaryResolverTest extends Specification {
     }
 
     def "windows transforms shared library names"() {
-        def resolver = PlatformBinaryResolver.forOs(OperatingSystem.WINDOWS)
+        def resolver = OperatingSystemFileResolver.of(OperatingSystem.WINDOWS)
 
         expect:
         resolver.getSharedLibrarySuffix() == ".dll"
@@ -68,7 +68,7 @@ class PlatformBinaryResolverTest extends Specification {
     }
 
     def "windows transforms static library names"() {
-        def resolver = PlatformBinaryResolver.forOs(OperatingSystem.WINDOWS)
+        def resolver = OperatingSystemFileResolver.of(OperatingSystem.WINDOWS)
 
         expect:
         resolver.getStaticLibrarySuffix() == ".lib"
@@ -86,7 +86,7 @@ class PlatformBinaryResolverTest extends Specification {
         tmpDir.createFile("bin2/a.exe")
         def os = Spy(OperatingSystem.WINDOWS)
         os.getPath() >> [tmpDir.file("bin"), tmpDir.file("bin2")]
-        def resolver = PlatformBinaryResolver.forOs(os)
+        def resolver = OperatingSystemFileResolver.of(os)
 
         expect:
         resolver.findExecutableInPath("a.exe") == exe
@@ -95,7 +95,7 @@ class PlatformBinaryResolverTest extends Specification {
     }
 
     def "UNIX does not transform script names"() {
-        def resolver = PlatformBinaryResolver.forOs(OperatingSystem.UNIX)
+        def resolver = OperatingSystemFileResolver.of(OperatingSystem.UNIX)
 
         expect:
         resolver.getScriptName("a.sh") == "a.sh"
@@ -103,7 +103,7 @@ class PlatformBinaryResolverTest extends Specification {
     }
 
     def "UNIX does not transform executable names"() {
-        def resolver = PlatformBinaryResolver.forOs(OperatingSystem.UNIX)
+        def resolver = OperatingSystemFileResolver.of(OperatingSystem.UNIX)
 
         expect:
         resolver.getExecutableSuffix() == ""
@@ -112,7 +112,7 @@ class PlatformBinaryResolverTest extends Specification {
     }
 
     def "UNIX transforms shared library names"() {
-        def resolver = PlatformBinaryResolver.forOs(OperatingSystem.UNIX)
+        def resolver = OperatingSystemFileResolver.of(OperatingSystem.UNIX)
 
         expect:
         resolver.getSharedLibrarySuffix() == ".so"
@@ -127,7 +127,7 @@ class PlatformBinaryResolverTest extends Specification {
     }
 
     def "UNIX transforms static library names"() {
-        def resolver = PlatformBinaryResolver.forOs(OperatingSystem.UNIX)
+        def resolver = OperatingSystemFileResolver.of(OperatingSystem.UNIX)
 
         expect:
         resolver.getStaticLibrarySuffix() == ".a"
@@ -145,7 +145,7 @@ class PlatformBinaryResolverTest extends Specification {
         tmpDir.createFile("bin2/a")
         def os = Spy(OperatingSystem.UNIX)
         os.getPath() >> [tmpDir.file("bin"), tmpDir.file("bin2")]
-        def resolver = PlatformBinaryResolver.forOs(os)
+        def resolver = OperatingSystemFileResolver.of(os)
 
         expect:
         resolver.findExecutableInPath("a") == exe
@@ -153,7 +153,7 @@ class PlatformBinaryResolverTest extends Specification {
     }
 
     def "macOS transforms shared library names"() {
-        def resolver = PlatformBinaryResolver.forOs(OperatingSystem.MAC_OS)
+        def resolver = OperatingSystemFileResolver.of(OperatingSystem.MAC_OS)
 
         expect:
         resolver.getSharedLibrarySuffix() == ".dylib"

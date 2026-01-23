@@ -19,7 +19,7 @@ import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -86,7 +86,7 @@ model {
     }
 
     private def getCunitLibName() {
-        return PlatformBinaryResolver.forCurrentOs().getStaticLibraryName("cunit")
+        return OperatingSystemFileResolver.current().getStaticLibraryName("cunit")
     }
 
     def "can build and run cunit test suite"() {

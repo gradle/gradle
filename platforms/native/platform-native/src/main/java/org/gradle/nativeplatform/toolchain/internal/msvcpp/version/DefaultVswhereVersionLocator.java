@@ -18,13 +18,13 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
-import org.gradle.internal.platform.PlatformBinaryResolver;
+import org.gradle.internal.file.OperatingSystemFileResolver;
 
 import java.io.File;
 
 public class DefaultVswhereVersionLocator implements VswhereVersionLocator {
     private final WindowsRegistry windowsRegistry;
-    private final PlatformBinaryResolver binaryResolver;
+    private final OperatingSystemFileResolver fileResolver;
 
     private static final String[] PROGRAM_FILES_KEYS = {
         "ProgramFilesDir",
@@ -35,9 +35,9 @@ public class DefaultVswhereVersionLocator implements VswhereVersionLocator {
     private static final String VISUAL_STUDIO_INSTALLER = "Microsoft Visual Studio/Installer";
     private static final String VSWHERE_EXE = "vswhere.exe";
 
-    public DefaultVswhereVersionLocator(WindowsRegistry windowsRegistry, PlatformBinaryResolver binaryResolver) {
+    public DefaultVswhereVersionLocator(WindowsRegistry windowsRegistry, OperatingSystemFileResolver fileResolver) {
         this.windowsRegistry = windowsRegistry;
-        this.binaryResolver = binaryResolver;
+        this.fileResolver = fileResolver;
     }
 
     @Override
@@ -57,6 +57,6 @@ public class DefaultVswhereVersionLocator implements VswhereVersionLocator {
             }
         }
 
-        return binaryResolver.findExecutableInPath(VSWHERE_EXE);
+        return fileResolver.findExecutableInPath(VSWHERE_EXE);
     }
 }

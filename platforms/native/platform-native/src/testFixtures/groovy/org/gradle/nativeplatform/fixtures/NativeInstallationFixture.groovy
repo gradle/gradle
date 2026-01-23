@@ -17,19 +17,19 @@
 package org.gradle.nativeplatform.fixtures
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.test.fixtures.file.ExecOutput
 import org.gradle.test.fixtures.file.TestFile
 
 class NativeInstallationFixture {
     private final TestFile installDir
     private final OperatingSystem os
-    private final PlatformBinaryResolver binaryResolver
+    private final OperatingSystemFileResolver fileResolver
 
     NativeInstallationFixture(TestFile installDir, OperatingSystem os) {
         this.installDir = installDir
         this.os = os
-        this.binaryResolver = PlatformBinaryResolver.forOs(os);
+        this.fileResolver = OperatingSystemFileResolver.of(os);
     }
 
     ExecOutput exec(Object... args) {
@@ -52,7 +52,7 @@ class NativeInstallationFixture {
 
         def libDir = installDir.file("lib")
         libDir.assertIsDir()
-        libDir.file(binaryResolver.getExecutableName(script.name)).assertIsFile()
+        libDir.file(fileResolver.getExecutableName(script.name)).assertIsFile()
         this
     }
 
@@ -62,7 +62,7 @@ class NativeInstallationFixture {
     }
 
     NativeInstallationFixture assertIncludesLibraries(String... names) {
-        def expected = names.collect { PlatformBinaryResolver.forOs(os).getSharedLibraryName(it) } as Set
+        def expected = names.collect { OperatingSystemFileResolver.of(os).getSharedLibraryName(it) } as Set
         assert libraryFiles.collect { it.name } as Set == expected as Set
         this
     }

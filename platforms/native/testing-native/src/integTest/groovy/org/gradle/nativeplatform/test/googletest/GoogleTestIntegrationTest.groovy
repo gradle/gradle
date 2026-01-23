@@ -17,7 +17,7 @@ package org.gradle.nativeplatform.test.googletest
 
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -107,7 +107,7 @@ model {
     }
 
     private def getGoogleTestLib() {
-        return PlatformBinaryResolver.forCurrentOs().getStaticLibraryName("gtest")
+        return OperatingSystemFileResolver.current().getStaticLibraryName("gtest")
     }
 
     def "can build and run googleTest test suite"() {

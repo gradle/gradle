@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
@@ -167,7 +167,7 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         where:
         forkOption   | configure                                        | appendPath
         "java home"  | { "options.forkOptions.javaHome = file('$it')" } | ''
-        "executable" | { "options.forkOptions.executable = '$it'" }     | PlatformBinaryResolver.forCurrentOs().getExecutableName('/bin/javac')
+        "executable" | { "options.forkOptions.executable = '$it'" }     | OperatingSystemFileResolver.current().getExecutableName('/bin/javac')
     }
 
     @Requires(IntegTestPreconditions.Java11HomeAvailable)

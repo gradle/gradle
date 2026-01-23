@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.platform;
+package org.gradle.internal.file;
 
 import org.gradle.internal.os.OperatingSystem;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
 import static org.gradle.internal.FileUtils.withExtension;
 
-public class PlatformBinaryResolver {
+@NullMarked
+public class OperatingSystemFileResolver {
 
-    private static final PlatformBinaryResolver CURRENT_OS_INSTANCE = new PlatformBinaryResolver(OperatingSystem.current());
+    private static final OperatingSystemFileResolver CURRENT_OS = new OperatingSystemFileResolver(OperatingSystem.current());
 
     private final OperatingSystem os;
 
-    private PlatformBinaryResolver(OperatingSystem os) {
+    private OperatingSystemFileResolver(OperatingSystem os) {
         this.os = os;
     }
 
@@ -133,14 +135,14 @@ public class PlatformBinaryResolver {
         }
     }
 
-    public static PlatformBinaryResolver forOs(OperatingSystem os) {
+    public static OperatingSystemFileResolver of(OperatingSystem os) {
         if (os == OperatingSystem.current()) {
-            return forCurrentOs();
+            return current();
         }
-        return new PlatformBinaryResolver(os);
+        return new OperatingSystemFileResolver(os);
     }
 
-    public static PlatformBinaryResolver forCurrentOs() {
-        return CURRENT_OS_INSTANCE;
+    public static OperatingSystemFileResolver current() {
+        return CURRENT_OS;
     }
 }

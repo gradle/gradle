@@ -19,7 +19,7 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp
 import net.rubygrapefruit.platform.MissingRegistryEntryException
 import net.rubygrapefruit.platform.WindowsRegistry
 import org.gradle.internal.logging.text.DiagnosticsVisitor
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
@@ -28,17 +28,17 @@ import spock.lang.Specification
 class LegacyWindowsSdkLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final WindowsRegistry windowsRegistry = Stub(WindowsRegistry)
-    final PlatformBinaryResolver platformBinaryResolver = Stub(PlatformBinaryResolver) {
+    final OperatingSystemFileResolver fileResolver = Stub(OperatingSystemFileResolver) {
         getExecutableName(_ as String) >> { String exeName -> exeName }
     }
-    final WindowsSdkLocator windowsSdkLocator = new LegacyWindowsSdkLocator(platformBinaryResolver, windowsRegistry)
+    final WindowsSdkLocator windowsSdkLocator = new LegacyWindowsSdkLocator(fileResolver, windowsRegistry)
 
     def "uses highest version SDK found in registry"() {
         def dir1 = sdkDir("sdk1")
         def dir2 = sdkDir("sdk2")
 
         given:
-        platformBinaryResolver.findExecutableInPath(_) >> null
+        fileResolver.findExecutableInPath(_) >> null
         windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows/) >> ["v1", "v2"]
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> dir1.absolutePath
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.0"
@@ -63,7 +63,7 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         def dir3 = kitDir("sdk3")
 
         given:
-        platformBinaryResolver.findExecutableInPath(_) >> null
+        fileResolver.findExecutableInPath(_) >> null
         windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\SDKs\Windows/) >> ["v1"]
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> dir1.absolutePath
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.1"
@@ -85,7 +85,7 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         def dir = sdkDir("sdk1")
 
         given:
-        platformBinaryResolver.findExecutableInPath(_) >> null
+        fileResolver.findExecutableInPath(_) >> null
         windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\SDKs\Windows/) >> { throw new MissingRegistryEntryException("missing") }
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot") >> { throw new MissingRegistryEntryException("missing") }
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Windows Kits\Installed Roots/, "KitsRoot81") >> dir.absolutePath
@@ -104,7 +104,7 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         def sdkDir = sdkDir("sdk")
 
         given:
-        platformBinaryResolver.findExecutableInPath("rc.exe") >> sdkDir.file("bin/rc.exe")
+        fileResolver.findExecutableInPath("rc.exe") >> sdkDir.file("bin/rc.exe")
 
         when:
         def result = windowsSdkLocator.locateComponent(null)
@@ -120,7 +120,7 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         def visitor = Mock(DiagnosticsVisitor)
 
         given:
-        platformBinaryResolver.findExecutableInPath(_) >> null
+        fileResolver.findExecutableInPath(_) >> null
 
         when:
         def result = windowsSdkLocator.locateComponent(null)
@@ -142,7 +142,7 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         def ignoredDir = sdkDir("ignored")
 
         given:
-        platformBinaryResolver.findExecutableInPath(_) >> null
+        fileResolver.findExecutableInPath(_) >> null
         windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows/) >> ["v1"]
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> ignoredDir.absolutePath
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.0"
@@ -174,7 +174,7 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         def visitor = Mock(DiagnosticsVisitor)
 
         given:
-        platformBinaryResolver.findExecutableInPath(_) >> null
+        fileResolver.findExecutableInPath(_) >> null
         windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows/) >> ["v1"]
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "InstallationFolder") >> ignoredDir.absolutePath
         windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows\v1/, "ProductVersion") >> "7.0"
@@ -199,7 +199,7 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         def sdkDir = sdkDir("sdk1")
 
         given:
-        platformBinaryResolver.findExecutableInPath("rc.exe") >> sdkDir.file("bin/rc.exe")
+        fileResolver.findExecutableInPath("rc.exe") >> sdkDir.file("bin/rc.exe")
 
         and:
         windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows/) >> ["v1"]
@@ -221,7 +221,7 @@ class LegacyWindowsSdkLocatorTest extends Specification {
         def sdkDir = sdkDir("sdk1")
 
         given:
-        platformBinaryResolver.findExecutableInPath(_) >> null
+        fileResolver.findExecutableInPath(_) >> null
 
         and:
         windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, /SOFTWARE\Microsoft\Microsoft SDKs\Windows/) >> ["v1"]

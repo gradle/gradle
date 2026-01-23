@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.jvm.Jvm
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.internal.JavaToolchain
@@ -63,8 +63,8 @@ class DefaultGroovyJavaJointCompileSpecFactoryTest extends Specification {
         // Make sure other Java home is valid from Jvm.forHome point of view and compiler executable exists
         def otherJavaHome = tmpDir.createDir("other-java-home")
         otherJavaHome.createDir("bin")
-        otherJavaHome.file(PlatformBinaryResolver.forCurrentOs().getExecutableName("bin/java")).touch()
-        otherJavaHome.file(PlatformBinaryResolver.forCurrentOs().getExecutableName("bin/javac")).touch()
+        otherJavaHome.file(OperatingSystemFileResolver.current().getExecutableName("bin/java")).touch()
+        otherJavaHome.file(OperatingSystemFileResolver.current().getExecutableName("bin/javac")).touch()
 
         def version = currentVM == 'current' ? Jvm.current().javaVersion.majorVersion : currentVM
         def javaHome = currentVM == 'current' ? Jvm.current().javaHome : otherJavaHome.absoluteFile

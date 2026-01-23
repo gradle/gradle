@@ -22,7 +22,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.platform.PlatformBinaryResolver;
+import org.gradle.internal.file.OperatingSystemFileResolver;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
 
 import java.io.BufferedInputStream;
@@ -41,16 +41,16 @@ public class ToolSearchPath {
     private final List<File> pathEntries = new ArrayList<File>();
 
     private final OperatingSystem operatingSystem;
-    private final PlatformBinaryResolver binaryResolver;
+    private final OperatingSystemFileResolver fileResolver;
 
     public ToolSearchPath(OperatingSystem operatingSystem) {
-        this(operatingSystem, PlatformBinaryResolver.forOs(operatingSystem));
+        this(operatingSystem, OperatingSystemFileResolver.of(operatingSystem));
     }
 
     @VisibleForTesting
-    ToolSearchPath(OperatingSystem operatingSystem, PlatformBinaryResolver binaryResolver) {
+    ToolSearchPath(OperatingSystem operatingSystem, OperatingSystemFileResolver fileResolver) {
         this.operatingSystem = operatingSystem;
-        this.binaryResolver = binaryResolver;
+        this.fileResolver = fileResolver;
     }
 
     public List<File> getPath() {
@@ -81,7 +81,7 @@ public class ToolSearchPath {
 
     private File findExecutable(String name) {
         List<File> path = pathEntries.isEmpty() ? operatingSystem.getPath() : pathEntries;
-        String exeName = binaryResolver.getExecutableName(name);
+        String exeName = fileResolver.getExecutableName(name);
         try {
             if (name.contains(File.separator)) {
                 return maybeResolveFile(new File(name), new File(exeName));

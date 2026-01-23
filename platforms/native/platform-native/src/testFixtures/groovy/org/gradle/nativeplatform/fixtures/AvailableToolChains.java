@@ -26,7 +26,7 @@ import org.gradle.integtests.fixtures.VersionedTool;
 import org.gradle.integtests.fixtures.executer.GradleExecuter;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.platform.PlatformBinaryResolver;
+import org.gradle.internal.file.OperatingSystemFileResolver;
 import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioLocatorTestFixture;
 import org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion;
@@ -397,7 +397,7 @@ public class AvailableToolChains {
         public abstract String getInstanceDisplayName();
 
         public ExecutableFixture executable(Object path) {
-            return new ExecutableFixture(new TestFile(PlatformBinaryResolver.forCurrentOs().getExecutableName(path.toString())), this);
+            return new ExecutableFixture(new TestFile(OperatingSystemFileResolver.current().getExecutableName(path.toString())), this);
         }
 
         public LinkerOptionsFixture linkerOptionsFor(Object path) {
@@ -409,15 +409,15 @@ public class AvailableToolChains {
         }
 
         public SharedLibraryFixture sharedLibrary(Object path) {
-            return new SharedLibraryFixture(new TestFile(PlatformBinaryResolver.forCurrentOs().getSharedLibraryName(path.toString())), this);
+            return new SharedLibraryFixture(new TestFile(OperatingSystemFileResolver.current().getSharedLibraryName(path.toString())), this);
         }
 
         public StaticLibraryFixture staticLibrary(Object path) {
-            return new StaticLibraryFixture(new TestFile(PlatformBinaryResolver.forCurrentOs().getStaticLibraryName(path.toString())), this);
+            return new StaticLibraryFixture(new TestFile(OperatingSystemFileResolver.current().getStaticLibraryName(path.toString())), this);
         }
 
         public NativeBinaryFixture resourceOnlyLibrary(Object path) {
-            return new NativeBinaryFixture(new TestFile(PlatformBinaryResolver.forCurrentOs().getSharedLibraryName(path.toString())), this);
+            return new NativeBinaryFixture(new TestFile(OperatingSystemFileResolver.current().getSharedLibraryName(path.toString())), this);
         }
 
         /**
@@ -510,7 +510,7 @@ public class AvailableToolChains {
 
         protected File find(String tool) {
             if (getPathEntries().isEmpty()) {
-                return PlatformBinaryResolver.forCurrentOs().findExecutableInPath(tool);
+                return OperatingSystemFileResolver.current().findExecutableInPath(tool);
             }
             return new File(getPathEntries().get(0), tool);
         }

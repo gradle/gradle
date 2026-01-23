@@ -16,7 +16,7 @@
 
 package org.gradle.api.reporting.components
 
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 
@@ -37,9 +37,9 @@ class NativeComponentReportOutputFormatter extends ComponentReportOutputFormatte
             original
             .replace("Tool chain 'clang' (Clang)", toolChain.instanceDisplayName)
             .replace("platform 'current'", "platform '${NativePlatformsTestFixture.defaultPlatformName}'")
-            .replaceAll('(?m)(build/libs/.+/)lib(\\w+).dylib$') { it[1] + PlatformBinaryResolver.forCurrentOs().getSharedLibraryName(it[2]) }
-            .replaceAll('(?m)(build/libs/.+/)lib(\\w+).a$') { it[1] + PlatformBinaryResolver.forCurrentOs().getStaticLibraryName(it[2]) }
-            .replaceAll('(?m)(build/exe/.+/)(\\w+)$') { it[1] + PlatformBinaryResolver.forCurrentOs().getExecutableName(it[2]) }
+            .replaceAll('(?m)(build/libs/.+/)lib(\\w+).dylib$') { it[1] + OperatingSystemFileResolver.current().getSharedLibraryName(it[2]) }
+            .replaceAll('(?m)(build/libs/.+/)lib(\\w+).a$') { it[1] + OperatingSystemFileResolver.current().getStaticLibraryName(it[2]) }
+            .replaceAll('(?m)(build/exe/.+/)(\\w+)$') { it[1] + OperatingSystemFileResolver.current().getExecutableName(it[2]) }
         )
     }
 }

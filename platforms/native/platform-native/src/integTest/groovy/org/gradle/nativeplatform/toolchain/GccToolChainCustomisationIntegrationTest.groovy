@@ -17,7 +17,7 @@
 package org.gradle.nativeplatform.toolchain
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
@@ -255,7 +255,7 @@ model {
     }
 
     def wrapperTool(TestFile binDir, String wrapperName, File executable, String... additionalArgs) {
-        def script = binDir.file(PlatformBinaryResolver.forCurrentOs().getExecutableName(wrapperName))
+        def script = binDir.file(OperatingSystemFileResolver.current().getExecutableName(wrapperName))
         if (OperatingSystem.current().windows) {
             script.text = "${executable} ${additionalArgs.join(' ')} %*"
         } else {

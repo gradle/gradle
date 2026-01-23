@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.test.cpp.plugins
 
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.language.cpp.plugins.CppApplicationPlugin
 import org.gradle.language.cpp.plugins.CppLibraryPlugin
 import org.gradle.language.cpp.tasks.CppCompile
@@ -118,13 +118,13 @@ class CppUnitTestPluginTest extends Specification {
 
         def link = project.tasks.linkTest
         link instanceof LinkExecutable
-        link.linkedFile.get().asFile == projectDir.file("build/exe/test/" + PlatformBinaryResolver.forCurrentOs().getExecutableName("someAppTest"))
+        link.linkedFile.get().asFile == projectDir.file("build/exe/test/" + OperatingSystemFileResolver.current().getExecutableName("someAppTest"))
         link.debuggable
 
         def install = project.tasks.installTest
         install instanceof InstallExecutable
         install.installDirectory.get().asFile == project.file("build/install/test")
-        install.runScriptFile.get().asFile.name == PlatformBinaryResolver.forCurrentOs().getScriptName("someAppTest")
+        install.runScriptFile.get().asFile.name == OperatingSystemFileResolver.current().getScriptName("someAppTest")
     }
 
     def "output locations reflects changes to buildDir"() {
@@ -139,10 +139,10 @@ class CppUnitTestPluginTest extends Specification {
         compileCpp.objectFileDir.get().asFile == projectDir.file("output/obj/test")
 
         def link = project.tasks.linkTest
-        link.linkedFile.get().asFile == projectDir.file("output/exe/test/" + PlatformBinaryResolver.forCurrentOs().getExecutableName("someAppTest"))
+        link.linkedFile.get().asFile == projectDir.file("output/exe/test/" + OperatingSystemFileResolver.current().getExecutableName("someAppTest"))
 
         def install = project.tasks.installTest
         install.installDirectory.get().asFile == project.file("output/install/test")
-        install.runScriptFile.get().asFile.name == PlatformBinaryResolver.forCurrentOs().getScriptName("someAppTest")
+        install.runScriptFile.get().asFile.name == OperatingSystemFileResolver.current().getScriptName("someAppTest")
     }
 }

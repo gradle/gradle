@@ -17,7 +17,7 @@
 package org.gradle.language.swift.plugins
 
 import org.gradle.api.ProjectConfigurationException
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.language.swift.SwiftLibrary
 import org.gradle.language.swift.SwiftSharedLibrary
 import org.gradle.language.swift.SwiftStaticLibrary
@@ -134,7 +134,7 @@ class SwiftLibraryPluginTest extends Specification {
 
         def linkDebug = project.tasks.linkDebug
         linkDebug instanceof LinkSharedLibrary
-        linkDebug.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/" + PlatformBinaryResolver.forCurrentOs().getSharedLibraryName("TestLib"))
+        linkDebug.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystemFileResolver.current().getSharedLibraryName("TestLib"))
         linkDebug.debuggable
 
         def compileRelease = project.tasks.compileReleaseSwift
@@ -147,7 +147,7 @@ class SwiftLibraryPluginTest extends Specification {
 
         def linkRelease = project.tasks.linkRelease
         linkRelease instanceof LinkSharedLibrary
-        linkRelease.linkedFile.get().asFile == projectDir.file("build/lib/main/release/" + PlatformBinaryResolver.forCurrentOs().getSharedLibraryName("TestLib"))
+        linkRelease.linkedFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystemFileResolver.current().getSharedLibraryName("TestLib"))
         linkRelease.debuggable
     }
 
@@ -171,7 +171,7 @@ class SwiftLibraryPluginTest extends Specification {
 
         def linkDebug = project.tasks.linkDebugShared
         linkDebug instanceof LinkSharedLibrary
-        linkDebug.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/shared/" + PlatformBinaryResolver.forCurrentOs().getSharedLibraryName("TestLib"))
+        linkDebug.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/shared/" + OperatingSystemFileResolver.current().getSharedLibraryName("TestLib"))
         linkDebug.debuggable
 
         def compileRelease = project.tasks.compileReleaseSharedSwift
@@ -184,7 +184,7 @@ class SwiftLibraryPluginTest extends Specification {
 
         def linkRelease = project.tasks.linkReleaseShared
         linkRelease instanceof LinkSharedLibrary
-        linkRelease.linkedFile.get().asFile == projectDir.file("build/lib/main/release/shared/" + PlatformBinaryResolver.forCurrentOs().getSharedLibraryName("TestLib"))
+        linkRelease.linkedFile.get().asFile == projectDir.file("build/lib/main/release/shared/" + OperatingSystemFileResolver.current().getSharedLibraryName("TestLib"))
         linkRelease.debuggable
 
         and:
@@ -198,7 +198,7 @@ class SwiftLibraryPluginTest extends Specification {
 
         def createDebugStatic = project.tasks.createDebugStatic
         createDebugStatic instanceof CreateStaticLibrary
-        createDebugStatic.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/static/" + PlatformBinaryResolver.forCurrentOs().getStaticLibraryName("TestLib"))
+        createDebugStatic.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/static/" + OperatingSystemFileResolver.current().getStaticLibraryName("TestLib"))
 
         def compileReleaseStatic = project.tasks.compileReleaseStaticSwift
         compileReleaseStatic instanceof SwiftCompile
@@ -210,7 +210,7 @@ class SwiftLibraryPluginTest extends Specification {
 
         def createReleaseStatic = project.tasks.createReleaseStatic
         createReleaseStatic instanceof CreateStaticLibrary
-        createReleaseStatic.binaryFile.get().asFile == projectDir.file("build/lib/main/release/static/" + PlatformBinaryResolver.forCurrentOs().getStaticLibraryName("TestLib"))
+        createReleaseStatic.binaryFile.get().asFile == projectDir.file("build/lib/main/release/static/" + OperatingSystemFileResolver.current().getStaticLibraryName("TestLib"))
     }
 
     def "adds compile and link tasks for static linkage only"() {
@@ -237,7 +237,7 @@ class SwiftLibraryPluginTest extends Specification {
 
         def createDebug = project.tasks.createDebug
         createDebug instanceof CreateStaticLibrary
-        createDebug.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + PlatformBinaryResolver.forCurrentOs().getStaticLibraryName("TestLib"))
+        createDebug.binaryFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystemFileResolver.current().getStaticLibraryName("TestLib"))
 
         def compileRelease = project.tasks.compileReleaseSwift
         compileRelease instanceof SwiftCompile
@@ -249,7 +249,7 @@ class SwiftLibraryPluginTest extends Specification {
 
         def createRelease = project.tasks.createRelease
         createRelease instanceof CreateStaticLibrary
-        createRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/" + PlatformBinaryResolver.forCurrentOs().getStaticLibraryName("TestLib"))
+        createRelease.binaryFile.get().asFile == projectDir.file("build/lib/main/release/" + OperatingSystemFileResolver.current().getStaticLibraryName("TestLib"))
     }
 
     def "cannot change the library linkages after binaries have been calculated"() {
@@ -281,7 +281,7 @@ class SwiftLibraryPluginTest extends Specification {
         compileSwift.moduleFile.get().asFile == projectDir.file("build/modules/main/debug/Lib.swiftmodule")
 
         def link = project.tasks.linkDebug
-        link.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/" + PlatformBinaryResolver.forCurrentOs().getSharedLibraryName("Lib"))
+        link.linkedFile.get().asFile == projectDir.file("build/lib/main/debug/" + OperatingSystemFileResolver.current().getSharedLibraryName("Lib"))
     }
 
     def "output locations reflects changes to buildDir"() {
@@ -298,6 +298,6 @@ class SwiftLibraryPluginTest extends Specification {
         compileSwift.moduleFile.get().asFile == projectDir.file("output/modules/main/debug/TestLib.swiftmodule")
 
         def link = project.tasks.linkDebug
-        link.linkedFile.get().asFile == projectDir.file("output/lib/main/debug/" + PlatformBinaryResolver.forCurrentOs().getSharedLibraryName("TestLib"))
+        link.linkedFile.get().asFile == projectDir.file("output/lib/main/debug/" + OperatingSystemFileResolver.current().getSharedLibraryName("TestLib"))
     }
 }

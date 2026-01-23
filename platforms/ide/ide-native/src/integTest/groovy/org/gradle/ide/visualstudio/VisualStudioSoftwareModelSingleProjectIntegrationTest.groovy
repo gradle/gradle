@@ -18,7 +18,7 @@ package org.gradle.ide.visualstudio
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.MSBuildExecutor
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.internal.platform.PlatformBinaryResolver
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithDiamondDependencyHelloWorldApp
@@ -133,7 +133,7 @@ model {
             assert it.macros == "TEST;foo=bar"
             assert it.includePath == filePath("src/main/headers")
             assert it.buildCommand.endsWith("gradle\" :installMain${it.name.capitalize()}Executable")
-            assert it.outputFile == PlatformBinaryResolver.forCurrentOs().getExecutableName("build/install/main/${it.outputDir}/lib/main")
+            assert it.outputFile == OperatingSystemFileResolver.current().getExecutableName("build/install/main/${it.outputDir}/lib/main")
         }
 
         and:
@@ -296,7 +296,7 @@ model {
         dllProjectFile.projectConfigurations.values().each {
             assert it.includePath == filePath("src/main/headers")
             assert it.buildCommand.endsWith("gradle\" :main${it.name.capitalize()}SharedLibrary")
-            assert it.outputFile == PlatformBinaryResolver.forCurrentOs().getSharedLibraryName("build/libs/main/shared/${it.outputDir}/main")
+            assert it.outputFile == OperatingSystemFileResolver.current().getSharedLibraryName("build/libs/main/shared/${it.outputDir}/main")
         }
 
         and:
@@ -306,7 +306,7 @@ model {
         libProjectFile.projectConfigurations.values().each {
             assert it.includePath == filePath("src/main/headers")
             assert it.buildCommand.endsWith("gradle\" :main${it.name.capitalize()}StaticLibrary")
-            assert it.outputFile == PlatformBinaryResolver.forCurrentOs().getStaticLibraryName("build/libs/main/static/${it.outputDir}/main")
+            assert it.outputFile == OperatingSystemFileResolver.current().getStaticLibraryName("build/libs/main/static/${it.outputDir}/main")
         }
 
         and:

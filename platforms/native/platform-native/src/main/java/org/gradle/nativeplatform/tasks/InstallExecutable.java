@@ -40,7 +40,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.platform.PlatformBinaryResolver;
+import org.gradle.internal.file.OperatingSystemFileResolver;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.Gcc;
@@ -185,7 +185,7 @@ public abstract class InstallExecutable extends DefaultTask {
     public Provider<RegularFile> getRunScriptFile() {
         return installDirectory.file(executable.getLocationOnly().map(executableFile -> {
             OperatingSystem os = OperatingSystem.forName(targetPlatform.get().getOperatingSystem().getName());
-            return PlatformBinaryResolver.forOs(os).getScriptName(executableFile.getAsFile().getName());
+            return OperatingSystemFileResolver.of(os).getScriptName(executableFile.getAsFile().getName());
         }));
     }
 

@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp
 
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.platform.PlatformBinaryResolver
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
@@ -29,7 +28,9 @@ import org.gradle.util.internal.VersionNumber
 import spock.lang.Specification
 
 class VisualCppPlatformToolProviderTest extends Specification {
-    def operatingSystem = Mock(OperatingSystemInternal)
+    def operatingSystem = Mock(OperatingSystemInternal) {
+        getInternalOs() >> OperatingSystem.WINDOWS
+    }
     def visualCpp = Mock(VisualCpp)
     def windowsSdk = Mock(WindowsSdk)
     def ucrt = Mock(SystemLibraries)
@@ -37,10 +38,6 @@ class VisualCppPlatformToolProviderTest extends Specification {
     def toolProvider = new VisualCppPlatformToolProvider(Mock(BuildOperationExecutor), operatingSystem, [:], visualStudioInstall, visualCpp, windowsSdk, ucrt, Mock(ExecActionFactory), Mock(CompilerOutputFileNamingSchemeFactory), Mock(WorkerLeaseService))
 
     def "windows shared link file names end with lib"() {
-        given:
-        operatingSystem.internalOs >> OperatingSystem.WINDOWS
-        operatingSystem.binaryResolver >> PlatformBinaryResolver.forOs(OperatingSystem.WINDOWS)
-
         expect:
         def actual = toolProvider.getSharedLibraryLinkFileName("sharedLibrary")
         actual == "sharedLibrary.lib"
