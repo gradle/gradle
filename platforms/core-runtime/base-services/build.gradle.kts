@@ -8,14 +8,6 @@ plugins {
 
 description = "A set of generic services and utilities."
 
-jvmCompile {
-    compilations {
-        named("main") {
-            usesFutureStdlib = true
-        }
-    }
-}
-
 dependencies {
     api(projects.buildOperations)
     api(projects.classloaders)
@@ -52,6 +44,14 @@ dependencies {
     jmh(platform(projects.distributionsDependencies))
     jmh(libs.bouncycastleProvider)
     jmh(libs.guava)
+}
+
+jvmCompile {
+    compilations {
+        named("main") {
+            usesFutureStdlib = true
+        }
+    }
 }
 
 packageCycles {

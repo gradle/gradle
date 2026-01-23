@@ -20,14 +20,6 @@ plugins {
 
 description = "Configuration Cache serialization codecs for :core (and family) types"
 
-jvmCompile {
-    compilations {
-        named("main") {
-            usesFutureStdlib = true
-        }
-    }
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.core)
@@ -71,4 +63,12 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.guava)
+}
+
+jvmCompile {
+    compilations {
+        named("main") {
+            usesFutureStdlib = true
+        }
+    }
 }

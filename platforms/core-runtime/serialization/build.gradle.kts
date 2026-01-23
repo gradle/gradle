@@ -21,14 +21,6 @@ plugins {
 
 description = "Tools to serialize data"
 
-jvmCompile {
-    compilations {
-        named("main") {
-            usesFutureStdlib = true
-        }
-    }
-}
-
 dependencies {
     api(projects.classloaders)
     api(projects.hashing)
@@ -46,4 +38,12 @@ dependencies {
     implementation(libs.slf4jApi)
 
     compileOnly(libs.errorProneAnnotations)
+}
+
+jvmCompile {
+    compilations {
+        named("main") {
+            usesFutureStdlib = true
+        }
+    }
 }
