@@ -159,8 +159,8 @@ Gradle now captures this metadata and integrates it directly into both the [HTML
 
 When a test publishes data, the HTML report now features two additional tabs alongside the standard `stdout` and `stderr`:
 
-- *Data*: Displays custom key–value entries.
-- *Attachments*: Provides links to any published file attachments.
+- **Data**: Displays custom key–value entries.
+- **Attachments**: Provides links to any published file attachments.
 
 To ensure compatibility with CI/CD pipelines, this data is represented in the XML output as follows:
 
@@ -214,7 +214,7 @@ If set to `none`, the report is still generated in the background, but the link 
 
 The [PMD plugin](userguide/pmd_plugin.html), which performs quality checks on your Java source files, has expanded its reporting capabilities.
 
-In addition to standard XML and HTML, the plugin now supports generating reports in **CSV**, **Code Climate**, and **SARIF** formats. 
+In addition to standard XML and HTML, the plugin now supports generating reports in CSV, Code Climate, and SARIF formats. 
 This allows for easier ingestion of PMD results by static analysis platforms and CI/CD security dashboards.
 
 These formats are not enabled by default. 
@@ -261,7 +261,6 @@ gradlePlugin {
         }
     }
 }
-
 ```
 
 This change makes your build scripts cleaner and less repetitive, especially in projects that define multiple plugins. 
@@ -398,7 +397,6 @@ You can enable it manually in your build script:
 tasks.validatePlugins {
     enableStricterValidation = true
 }
-
 ```
 
 ### User interface and tooling integration
@@ -453,13 +451,13 @@ This meant that if you wanted to enable parallel task execution, you were forced
 The new property decouples these two behaviors.
 This is particularly relevant for the IDE Sync scenarios, where IDEs can take advantage of the parallelism to improve performance (independently of your task execution strategy):
 
-```properties
+```text
 # gradle.properties
 
-# Controls parallelism for Tooling API clients (e.g., IDE Sync)
+// Controls parallelism for Tooling API clients (e.g., IDE Sync)
 org.gradle.tooling.parallel=true
 
-# Controls parallelism for task execution (e.g., build/test)
+// Controls parallelism for task execution (e.g., build/test)
 org.gradle.parallel=false
 ```
 
