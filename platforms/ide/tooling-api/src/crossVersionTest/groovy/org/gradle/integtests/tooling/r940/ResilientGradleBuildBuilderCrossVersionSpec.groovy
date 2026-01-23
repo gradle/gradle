@@ -31,7 +31,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 
 import java.util.regex.Pattern
 
-class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification {
+class ResilientGradleBuildBuilderCrossVersionSpec extends ToolingApiSpecification {
 
     TestFile initScriptFile
     KotlinModelCollector modelCollector
@@ -322,7 +322,7 @@ class ResilientGradleBuildBulderCrossVersionSpec extends ToolingApiSpecification
             def model = null
 
             Iterable<String> arguments = ["--init-script=${initScript.absolutePath}"]
-            arguments += "-Dorg.gradle.internal.resilient-model-building=true"
+            arguments += "-Dorg.gradle.internal.resilient-model-building=$resilient"
 
             conn.action()
                     .buildFinished(new GradleBuildAction(resilient)) {

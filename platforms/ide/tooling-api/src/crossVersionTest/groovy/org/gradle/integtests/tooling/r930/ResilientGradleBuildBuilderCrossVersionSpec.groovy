@@ -30,7 +30,7 @@ import java.util.function.Consumer
 
 @ToolingApiVersion('>=9.3.0')
 @TargetGradleVersion('>=9.3.0')
-class ResilientGradleBuildSyncCrossVersionSpec extends ToolingApiSpecification {
+class ResilientGradleBuildBuilderCrossVersionSpec extends ToolingApiSpecification {
     static final String RESILIENT_MODEL_TRUE = "-Dorg.gradle.internal.resilient-model-building=true"
     static final String BROKEN_SETTINGS_CONTENT = "broken settings file content!!!"
     static final String BROKEN_BUILD_CONTENT = "broken build file content!!!"
