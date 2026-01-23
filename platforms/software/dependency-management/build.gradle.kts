@@ -93,9 +93,9 @@ dependencies {
 
     integTestImplementation(projects.buildOption)
     integTestImplementation(libs.jansi)
-    integTestImplementation(libs.ansiControlSequenceUtil)
+    integTestImplementation(testLibs.ansiControlSequenceUtil)
     integTestImplementation(libs.groovyJson)
-    integTestImplementation(libs.socksProxy) {
+    integTestImplementation(testLibs.socksProxy) {
         because("SOCKS proxy not part of internal-integ-testing api, since it has limited usefulness, so must be explicitly depended upon")
     }
     integTestImplementation(testFixtures(projects.core))
@@ -109,7 +109,7 @@ dependencies {
         because("Test fixtures export the CacheAccess class")
     }
 
-    testFixturesApi(libs.jetty)
+    testFixturesApi(testLibs.jetty)
     testFixturesImplementation(projects.core)
     testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.resourcesHttp))
@@ -123,13 +123,13 @@ dependencies {
         because("Groovy compiler reflects on private field on TextUtil")
     }
     testFixturesImplementation(libs.bouncycastlePgp)
-    testFixturesApi(libs.testcontainersSpock) {
+    testFixturesApi(testLibs.testcontainersSpock) {
         because("API because of Groovy compiler bug leaking internals")
     }
     testFixturesImplementation(projects.jvmServices) {
         because("Groovy compiler bug leaks internals")
     }
-    testFixturesImplementation(libs.jettyWebApp) {
+    testFixturesImplementation(testLibs.jettyWebApp) {
         because("Groovy compiler bug leaks internals")
     }
 
@@ -143,7 +143,7 @@ dependencies {
         because("Need access to java platforms")
     }
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
-    crossVersionTestImplementation(libs.jettyWebApp)
+    crossVersionTestImplementation(testLibs.jettyWebApp)
 }
 
 packageCycles {

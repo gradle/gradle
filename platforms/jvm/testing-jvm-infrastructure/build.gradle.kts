@@ -61,7 +61,7 @@ dependencies {
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.time))
 
-    testImplementation(libs.assertj) {
+    testImplementation(testLibs.assertj) {
         because("We test assertion errors coming from AssertJ")
     }
     testImplementation("org.opentest4j:opentest4j") {
@@ -71,21 +71,21 @@ dependencies {
         }
         because("We test assertion errors coming from OpenTest4J")
     }
-    testImplementation(libs.junit) {
+    testImplementation(testLibs.junit) {
         because("To provide an implementation during testing")
     }
-    testImplementation(libs.junitPlatform) {
+    testImplementation(testLibs.junitPlatform) {
         because("Platform types are used in tests")
     }
     testImplementation(libs.testng) {
         because("To provide an implementation during testing")
     }
-    testRuntimeOnly(libs.guice) {
+    testRuntimeOnly(testLibs.guice) {
         because("Used by TestNG")
     }
 
     testFixturesImplementation(projects.testingBase)
-    testFixturesImplementation(libs.junit)
+    testFixturesImplementation(testLibs.junit)
     testFixturesImplementation(libs.testng)
 
 }

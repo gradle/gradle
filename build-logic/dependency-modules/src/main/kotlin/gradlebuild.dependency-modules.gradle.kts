@@ -22,6 +22,9 @@ import gradlebuild.basics.repoRoot
 
 applyAutomaticUpgradeOfCapabilities()
 dependencies {
+    configurations.all {
+        exclude("org.slf4j", "slf4j-simple")
+    }
     components {
         // Gradle distribution - minify: remove unused transitive dependencies
         applyRule<DependencyRemovalByNameRule>("com.amazonaws:aws-java-sdk-core", setOf("jackson-dataformat-cbor"))
@@ -43,13 +46,6 @@ dependencies {
         // We do not support running junit from Ant. Don't bundle ant-junit.
         applyRule<DependencyRemovalByNameRule>("org.apache.groovy:groovy-ant", setOf("ant-junit"))
 
-        // SLF4J Simple is an implementation of the SLF4J API, which is not needed in Gradle
-        applyRule<DependencyRemovalByNameRule>("org.apache.sshd:sshd-core", setOf("slf4j-simple"))
-        applyRule<DependencyRemovalByNameRule>("org.apache.sshd:sshd-scp", setOf("slf4j-simple"))
-        applyRule<DependencyRemovalByNameRule>("org.apache.sshd:sshd-sftp", setOf("slf4j-simple"))
-        applyRule<DependencyRemovalByNameRule>("org.gradle.profiler:gradle-profiler", setOf("slf4j-simple"))
-        applyRule<DependencyRemovalByNameRule>("org.gradle.exemplar:samples-check", setOf("slf4j-simple"))
-
         // GCS transitively depends on commons-logging.
         // Ensure jcl-over-slf4j is pulled in when we use GCS so it can conflict.
         applyRule<DependencyAdditionRule>("com.google.apis:google-api-services-storage", "org.slf4j:jcl-over-slf4j")
@@ -67,10 +63,6 @@ dependencies {
 
         // We only need a few utility classes of this module
         applyRule<DependencyRemovalByNameRule>("jcifs:jcifs", setOf("servlet-api"))
-
-        // Bsh moved coordinates. Depend on the new coordinates.
-        applyRule<DependencyRemovalByGroupRule>("org.testng:testng", setOf("org.beanshell"))
-        applyRule<DependencyAdditionRule>("org.testng:testng", "org.apache-extras.beanshell:bsh")
 
         // Test dependencies - minify: remove unused transitive dependencies
         applyRule<DependencyRemovalByNameRule>(

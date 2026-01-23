@@ -1,0 +1,110 @@
+# some versions are in shared-versions.properties
+[versions]
+aircompressor = "0.27!!"
+ansiControl = "0.3!!"
+archunit = "1.4.1!!"
+assertj = "3.23.1!!"
+awaitility = "3.1.6!!"
+bytebuddy = "1.17.5!!"
+cglib = "3.2.6!!"
+commonsMath = "3.6.1!!"
+compileTesting = "0.21.0!!"
+develocityTestAnnotation = "2.0.1!!"
+dockerJavaApi = "3.4.0!!"
+equalsverifier = "2.1.6!!"
+gradleIdeStarter = "0.8.2!!"
+gradleProfiler = "0.24.0-alpha-1!!"
+guice = "5.1.0!!"
+hamcrest = "3.0!!"
+hikariCP = "4.0.3!!" # 5.x requires Java 11+
+httpmime = "4.5.10!!"
+jetty = "9.4.36.v20210114!!"
+joptSimple = "5.0.4!!" # needed to create profiler in Gradle profiler API
+jtar = "2.3!!"
+junit5ForTests = "5.12.2!!"
+junitForTests = "4.13.2!!"
+junitPlatformForTests = "1.12.2!!"
+littleproxy = "2.0.5!!"
+mockitoCore = "5.17.0!!"
+mockitoKotlin = "4.1.0!!"
+mockwebserver = "4.12.0!!"
+mySqlConnector = "9.2.0!!"
+netty = "4.1.63.Final"
+objenesis = "2.6!!"
+opentest4j = "1.3.0!!"
+samples = "1.0.3!!"
+selenium = "2.42.2!!"
+servletApi = "3.1.0!!"
+snappy = "0.5!!"
+socksProxy = "4.1.2!!"
+spock = "2.3-groovy-4.0!!"
+testcontainers = "1.20.4!!"
+xerces = "2.12.0!!"
+xmlunit = "1.6!!"
+
+[libraries]
+aircompressor = { group = "io.airlift", name = "aircompressor", version.ref = "aircompressor" }
+ansiControlSequenceUtil = { group = "net.rubygrapefruit", name = "ansi-control-sequence-util", version.ref = "ansiControl" }
+archunit = { group = "com.tngtech.archunit", name = "archunit", version.ref = "archunit" }
+archunitJunit5 = { group = "com.tngtech.archunit", name = "archunit-junit5", version.ref = "archunit" }
+archunitJunit5Api = { group = "com.tngtech.archunit", name = "archunit-junit5-api", version.ref = "archunit" }
+assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
+awaitility = { group = "org.awaitility", name = "awaitility-kotlin", version.ref = "awaitility" }
+bytebuddy = { group = "net.bytebuddy", name = "byte-buddy", version.ref = "bytebuddy" }
+cglib = { group = "cglib", name = "cglib", version.ref = "cglib" }
+commonsMath = { group = "org.apache.commons", name = "commons-math3", version.ref = "commonsMath" }
+compileTesting = { group = "com.google.testing.compile", name = "compile-testing", version.ref = "compileTesting" }
+develocityTestAnnotation = { group = "com.gradle", name = "develocity-testing-annotations", version.ref = "develocityTestAnnotation" }
+dockerJavaApi = { group = "com.github.docker-java", name = "docker-java-api", version.ref = "dockerJavaApi" }
+equalsverifier = { group = "nl.jqno.equalsverifier", name = "equalsverifier", version.ref = "equalsverifier" }
+gradleIdeStarter = { group = "org.gradle.buildtool.internal", name = "gradle-ide-starter", version.ref = "gradleIdeStarter" }
+gradleIdeStarterScenarios = { group = "org.gradle.buildtool.internal", name = "gradle-ide-starter-scenarios", version.ref = "gradleIdeStarter" }
+gradleProfiler = { group = "org.gradle.profiler", name = "gradle-profiler", version.ref = "gradleProfiler" }
+groovyTest = { group = "org.apache.groovy", name = "groovy-test", version.ref = "groovy" }
+guice = { group = "com.google.inject", name = "guice", version.ref = "guice" }
+hamcrest = { group = "org.hamcrest", name = "hamcrest", version.ref = "hamcrest" }
+hikariCP = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikariCP" }
+httpmime = { group = "org.apache.httpcomponents", name = "httpmime", version.ref = "httpmime" }
+jacksonKotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }
+jetty = { group = "org.eclipse.jetty", name = "jetty-http", version.ref = "jetty" }
+jettySecurity = { group = "org.eclipse.jetty", name = "jetty-security", version.ref = "jetty" }
+jettyServer = { group = "org.eclipse.jetty", name = "jetty-server", version.ref = "jetty" }
+jettyServlet = { group = "org.eclipse.jetty", name = "jetty-servlet", version.ref = "jetty" }
+jettyUtil = { group = "org.eclipse.jetty", name = "jetty-util", version.ref = "jetty" }
+jettyWebApp = { group = "org.eclipse.jetty", name = "jetty-webapp", version.ref = "jetty" }
+joptSimple = { group = "net.sf.jopt-simple", name = "jopt-simple", version.ref = "joptSimple" }
+jtar = { group = "org.kamranzafar", name = "jtar", version.ref = "jtar" }
+junit = { group = "junit", name = "junit", version.ref = "junitForTests" }
+junit5JupiterApi = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit5ForTests" }
+junit5Vintage = { group = "org.junit.vintage", name = "junit-vintage-engine", version.ref = "junit5ForTests" }
+junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junit5ForTests" }
+junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit5ForTests" }
+junitPlatform = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junitPlatformForTests" }
+junitPlatformEngine = { group = "org.junit.platform", name = "junit-platform-engine", version.ref = "junitPlatformForTests" }
+kotlinxCoroutinesDebug = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-debug", version.ref = "kotlinCoroutines" }
+littleproxy = { group = "xyz.rogfam", name = "littleproxy", version.ref = "littleproxy" }
+mavenResolverConnectorBasic = { group = "org.apache.maven.resolver", name = "maven-resolver-connector-basic", version.ref = "mavenResolver" }
+mavenResolverImpl = { group = "org.apache.maven.resolver", name = "maven-resolver-impl", version.ref = "mavenResolver" }
+mavenResolverProvider = { group = "org.apache.maven", name = "maven-resolver-provider", version.ref = "maven" }
+mavenResolverSupplier = { group = "org.apache.maven.resolver", name = "maven-resolver-supplier", version.ref = "mavenResolver" }
+mavenResolverTransportFile = { group = "org.apache.maven.resolver", name = "maven-resolver-transport-file", version.ref = "mavenResolver" }
+mavenResolverTransportHttp = { group = "org.apache.maven.resolver", name = "maven-resolver-transport-http", version.ref = "mavenResolver" }
+mockitoCore = { group = "org.mockito", name = "mockito-core", version.ref = "mockitoCore" }
+mockitoKotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
+mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "mockwebserver" }
+mySqlConnector = { group = "com.mysql", name = "mysql-connector-j", version.ref = "mySqlConnector" }
+netty = { group = "io.netty", name = "netty-all", version.ref = "netty" }
+objenesis = { group = "org.objenesis", name = "objenesis", version.ref = "objenesis" }
+opentest4j = { group = "org.opentest4j", name = "opentest4j", version.ref = "opentest4j" }
+samplesCheck = { group = "org.gradle.exemplar", name = "samples-check", version.ref = "samples" }
+samplesDiscovery = { group = "org.gradle.exemplar", name = "samples-discovery", version.ref = "samples" }
+selenium = { group = "org.seleniumhq.selenium", name = "selenium-htmlunit-driver", version.ref = "selenium" }
+servletApi = { group = "javax.servlet", name = "javax.servlet-api", version.ref = "servletApi" }
+snappy = { group = "org.iq80.snappy", name = "snappy", version.ref = "snappy" }
+socksProxy = { group = "com.github.bbottema", name = "java-socks-proxy-server", version.ref = "socksProxy" }
+spock = { group = "org.spockframework", name = "spock-core", version.ref = "spock" }
+spockJUnit4 = { group = "org.spockframework", name = "spock-junit4", version.ref = "spock" }
+testcontainers = { group = "org.testcontainers", name = "testcontainers", version.ref = "testcontainers" }
+testcontainersSpock = { group = "org.testcontainers", name = "spock", version.ref = "testcontainers" }
+xerces = { group = "xerces", name = "xercesImpl", version.ref = "xerces" }
+xmlunit = { group = "xmlunit", name = "xmlunit", version.ref = "xmlunit" }
