@@ -36,6 +36,7 @@ import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException;
+import org.gradle.platform.BuildPlatform;
 import org.gradle.platform.internal.CurrentBuildPlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,9 +47,11 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class DefaultJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
@@ -61,7 +64,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     private final DefaultJdkCacheDirectory cacheDirProvider;
     private final Provider<Boolean> downloadEnabled;
     private final BuildOperationRunner buildOperationRunner;
-    private final CurrentBuildPlatform currentBuildPlatform;
+    private final Supplier<BuildPlatform> buildPlatform;
 
     @Inject
     public DefaultJavaToolchainProvisioningService(
@@ -73,12 +76,28 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         BuildOperationRunner executor,
         CurrentBuildPlatform currentBuildPlatform
     ) {
-        this.toolchainResolverRegistry = (JavaToolchainResolverRegistryInternal) toolchainResolverRegistry;
+        this((JavaToolchainResolverRegistryInternal) toolchainResolverRegistry,
+            downloader,
+            (DefaultJdkCacheDirectory)cacheDirProvider,
+            providerFactory.provider(toolchainConfiguration::isDownloadEnabled),
+            executor,
+            currentBuildPlatform::toBuildPlatform);
+    }
+
+    DefaultJavaToolchainProvisioningService(
+        JavaToolchainResolverRegistryInternal toolchainResolverRegistry,
+        SecureFileDownloader downloader,
+        DefaultJdkCacheDirectory cacheDirProvider,
+        Provider<Boolean> downloadEnabled,
+        BuildOperationRunner executor,
+        Supplier<BuildPlatform> buildPlatform
+    ) {
+        this.toolchainResolverRegistry = toolchainResolverRegistry;
         this.downloader = downloader;
-        this.cacheDirProvider = (DefaultJdkCacheDirectory)cacheDirProvider;
-        this.downloadEnabled = providerFactory.provider(toolchainConfiguration::isDownloadEnabled);
+        this.cacheDirProvider = cacheDirProvider;
+        this.downloadEnabled = downloadEnabled;
         this.buildOperationRunner = executor;
-        this.currentBuildPlatform = currentBuildPlatform;
+        this.buildPlatform = buildPlatform;
     }
 
     @Override
@@ -93,6 +112,13 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
     @Override
     public File tryInstall(JavaToolchainSpec spec) {
+        return tryInstall(spec, buildPlatform.get());
+    }
+
+    @Override
+    public File tryInstall(JavaToolchainSpec spec, BuildPlatform buildPlatform) {
+        Objects.requireNonNull(spec, "spec must not be null");
+        Objects.requireNonNull(buildPlatform, "buildPlatform must not be null");
         if (!isAutoDownloadEnabled()) {
             throw new ToolchainProvisioningException(spec, "Toolchain auto-provisioning is not enabled.",
                 ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION);
@@ -113,7 +139,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             JavaToolchainResolver resolver = repository.getResolver();
             Optional<JavaToolchainDownload> download;
             try {
-                download = resolver.resolve(new DefaultJavaToolchainRequest(spec, currentBuildPlatform.toBuildPlatform()));
+                download = resolver.resolve(new DefaultJavaToolchainRequest(spec, buildPlatform));
             } catch (Exception e) {
                 downloadFailureTracker.addResolveFailure(repository.getRepositoryName(), e);
                 continue;
