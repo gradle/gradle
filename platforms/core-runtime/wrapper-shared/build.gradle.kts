@@ -4,12 +4,6 @@ plugins {
 
 description = "Utility code shared between the wrapper and the Gradle distribution"
 
-gradleModule {
-    targetRuntimes {
-        usedInClient = true
-    }
-}
-
 dependencies {
     compileOnly(libs.jspecify)
 

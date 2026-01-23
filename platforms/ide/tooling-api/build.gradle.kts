@@ -6,12 +6,6 @@ plugins {
 
 description = "Gradle Tooling API - the programmatic API to invoke Gradle"
 
-gradleModule {
-    targetRuntimes {
-        usedInClient = true
-    }
-}
-
 jvmCompile {
     compilations {
         named("main") {
@@ -24,7 +18,7 @@ jvmCompile {
         }
         named("crossVersionTest") {
             // The TAPI tests must be able to run the TAPI client, which is still JVM 8 compatible
-            targetJvmVersion = 8
+            targetJvmVersion = compilations.named("main").flatMap { it.targetJvmVersion }
         }
     }
 }

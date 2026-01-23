@@ -21,12 +21,6 @@ plugins {
 
 description = "Tools to work with managed executors"
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 dependencies {
     api(projects.stdlibJavaExtensions)
 

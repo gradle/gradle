@@ -4,12 +4,6 @@ plugins {
 
 description = "Internal API for composing service registries"
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)

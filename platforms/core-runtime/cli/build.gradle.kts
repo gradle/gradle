@@ -8,12 +8,6 @@ dependencies {
     compileOnly(libs.jspecify)
 }
 
-gradleModule {
-    targetRuntimes {
-        usedInClient = true
-    }
-}
-
 errorprone {
     nullawayEnabled = true
 }

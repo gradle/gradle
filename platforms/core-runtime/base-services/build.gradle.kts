@@ -8,12 +8,6 @@ plugins {
 
 description = "A set of generic services and utilities."
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 jvmCompile {
     compilations {
         named("main") {
