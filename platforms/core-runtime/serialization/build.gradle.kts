@@ -21,12 +21,6 @@ plugins {
 
 description = "Tools to serialize data"
 
-gradleModule {
-    targetRuntimes {
-        usedInWorkers = true
-    }
-}
-
 jvmCompile {
     compilations {
         named("main") {
