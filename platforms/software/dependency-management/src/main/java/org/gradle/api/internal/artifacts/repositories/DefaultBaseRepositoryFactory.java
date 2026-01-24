@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -157,6 +158,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     public MavenArtifactRepository createMavenCentralRepository() {
         MavenArtifactRepository mavenRepository = createMavenRepository(new NamedMavenRepositoryDescriber(RepositoryHandler.MAVEN_CENTRAL_URL));
         mavenRepository.setUrl(RepositoryHandler.MAVEN_CENTRAL_URL);
+        mavenRepository.mavenContent(MavenRepositoryContentDescriptor::releasesOnly);
         return mavenRepository;
     }
 
