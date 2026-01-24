@@ -29,8 +29,6 @@ import static org.gradle.internal.SafeFileLocationUtils.toSafeFileName
 
 class SafeFileLocationUtilsTest extends Specification {
 
-    private static final String TRUNCATED_PREFIX = '__'
-
     def "toSafeFileName preserves Unicode and replaces problematic characters"() {
         expect:
         toSafeFileName(input, false) == output
@@ -130,7 +128,7 @@ class SafeFileLocationUtilsTest extends Specification {
 
     def "toSafeFileName hashes overly long paths"() {
         expect:
-        toSafeFileName(input, false) == TRUNCATED_PREFIX + output
+        toSafeFileName(input, false) ==  output
         where:
         input                       | output
         'A' * 256                   | 'A' * MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES + '-RH50HNS6NT02C'
@@ -157,7 +155,7 @@ class SafeFileLocationUtilsTest extends Specification {
         // The truncation should remove the multi-byte character to avoid invalid UTF-8
         // resulting in a string of 119 bytes, not 120 bytes
         toSafeFileName(stringWithUnicodeThatSitsOnByteLimit, false).getBytes(StandardCharsets.UTF_8).length == 119
-        toSafeFileName(stringWithUnicodeThatSitsOnByteLimit, false) == TRUNCATED_PREFIX + 'A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - 1) + '-R2C8IVGQO8MJ4'
+        toSafeFileName(stringWithUnicodeThatSitsOnByteLimit, false) == 'A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - 1) + '-A11DLKHCAFOQO'
     }
 
     def "toSafeFileName handles null input"() {

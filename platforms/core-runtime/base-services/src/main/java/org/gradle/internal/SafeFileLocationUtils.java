@@ -47,16 +47,6 @@ public final class SafeFileLocationUtils {
     private static final BaseEncoding BASE_ENCODING = BaseEncoding.base32Hex().omitPadding();
 
     /**
-     * A short, distinctive prefix to indicate that a file name has been truncated.
-     *
-     * <p>
-     * Uses underscores as they are likely valid characters on all filesystems,
-     * and visually distinctive.
-     * </p>
-     */
-    private static final byte[] TRUNCATED_PREFIX_BYTES = "__".getBytes(StandardCharsets.UTF_8);
-
-    /**
      * The maximum file name length in bytes for most filesystems (e.g. ext4, NTFS).
      *
      * <p>
@@ -74,7 +64,7 @@ public final class SafeFileLocationUtils {
      * </p>
      */
     @VisibleForTesting
-    static final int MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES = MAX_FILE_NAME_LENGTH_IN_BYTES - TRUNCATED_PREFIX_BYTES.length - 1 - (HASHER.bits() + 4) / 5;
+    static final int MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES = MAX_FILE_NAME_LENGTH_IN_BYTES - 1 - (HASHER.bits() + 4) / 5;
 
     /**
      * The character used to replace illegal characters in file names.
@@ -280,8 +270,7 @@ public final class SafeFileLocationUtils {
         } else {
             safeLength = getSafeLength(rawName, MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES);
         }
-        // Copy truncated prefix
-        result.put(TRUNCATED_PREFIX_BYTES);
+
         // Copy safe length of original name
         result.put(rawName, 0, safeLength);
         // Copy hyphen
