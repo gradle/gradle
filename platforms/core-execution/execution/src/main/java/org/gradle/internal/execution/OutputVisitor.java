@@ -17,20 +17,36 @@
 package org.gradle.internal.execution;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.Destroys;
+import org.gradle.api.tasks.LocalState;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.internal.file.TreeType;
 
 import java.io.File;
 import java.util.function.Supplier;
 
 public interface OutputVisitor {
+
+    /**
+     * Visits the output property for work, for example for task output properties are annotated with {@link OutputDirectory} or {@link OutputFile} and similar.
+     */
     default void visitOutputProperty(
         String propertyName,
         TreeType type,
         OutputFileValueSupplier value
     ) {}
 
+    /**
+     * Visits the local state location, for example for task local state properties are annotated with {@link LocalState}.
+     * Other work types don't have local state.
+     */
     default void visitLocalState(File localStateRoot) {}
 
+    /**
+     * Visits the destroyable for work, for example for task destroyable properties are annotated with {@link Destroys}.
+     * Other work types don't have destroyable.
+     */
     default void visitDestroyable(File destroyableRoot) {}
 
     abstract class OutputFileValueSupplier implements InputVisitor.FileValueSupplier {

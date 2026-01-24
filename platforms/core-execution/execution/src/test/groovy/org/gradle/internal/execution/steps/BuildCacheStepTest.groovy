@@ -75,6 +75,7 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
 
         then:
         _ * work.allowedToLoadFromCache >> true
+        1 * fileSystemAccess.invalidate(_)
         1 * buildCacheController.load(cacheKey, _) >> Optional.of(loadMetadata)
 
         then:
@@ -108,6 +109,7 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
 
         then:
         _ * work.allowedToLoadFromCache >> true
+        1 * fileSystemAccess.invalidate(_)
         1 * buildCacheController.load(cacheKey, _) >> Optional.empty()
 
         then:
@@ -137,6 +139,7 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
 
         then:
         _ * work.allowedToLoadFromCache >> true
+        1 * fileSystemAccess.invalidate(_)
         1 * buildCacheController.load(cacheKey, _) >> { BuildCacheKey key, CacheableEntity entity ->
             loadedOutputFile << "output"
             loadedOutputDir.mkdirs()
@@ -162,6 +165,7 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
 
         then:
         _ * work.allowedToLoadFromCache >> true
+        1 * fileSystemAccess.invalidate(_)
         1 * buildCacheController.load(cacheKey, _) >> Optional.empty()
 
         then:
@@ -186,6 +190,7 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
 
         then:
         _ * work.allowedToLoadFromCache >> true
+        1 * fileSystemAccess.invalidate(_)
         1 * buildCacheController.load(cacheKey, _) >> Optional.empty()
 
         then:

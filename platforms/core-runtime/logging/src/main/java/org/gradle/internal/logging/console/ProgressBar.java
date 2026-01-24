@@ -37,8 +37,8 @@ import static java.lang.Math.min;
 public class ProgressBar {
     public static final int PROGRESS_BAR_WIDTH = 13;
     // Unicode progress bar style (Linux/macOS) - avoids ligature-triggering sequences
-    public static final String UNICODE_PROGRESS_BAR_PREFIX = "|";
-    public static final String UNICODE_PROGRESS_BAR_SUFFIX = "|";
+    public static final String UNICODE_PROGRESS_BAR_PREFIX = "│";
+    public static final String UNICODE_PROGRESS_BAR_SUFFIX = "│";
     // ASCII progress bar style (fallback/compatibility) - simple hash-based progress for non-Unicode terminals
     public static final String ASCII_PROGRESS_BAR_PREFIX = "[";
     public static final char ASCII_PROGRESS_BAR_COMPLETE_CHAR = '#';
@@ -54,7 +54,7 @@ public class ProgressBar {
     // conservative heuristics (UTF-8 locale, modern terminal detection) to avoid enabling
     // Unicode mode when fonts are unlikely to support these characters.
     private static final char[] UNICODE_BLOCKS = {
-        ' ', // Empty
+        '·', // Empty
         '▏', // ▏ 1/8 block  '\u258F',
         '▎', // ▎ 2/8 block  '\u258E',
         '▍', // ▍ 3/8 block  '\u258D',

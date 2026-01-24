@@ -41,7 +41,7 @@ class ProgressBarTest extends Specification {
             supportsUnicode() >> true
         }
         progressBar = new ProgressBar(Stub(ConsoleMetaData), PREFIX, PROGRESS_BAR_WIDTH, SUFFIX, COMPLETE_CHAR as char, INCOMPLETE_CHAR as char, BUILD_PHASE, 0, 10)
-        unicodeProgressBar = new ProgressBar(unicodeConsoleMetaData, '|', PROGRESS_BAR_WIDTH, '|', ' ' as char, ' ' as char, BUILD_PHASE, 0, 10)
+        unicodeProgressBar = new ProgressBar(unicodeConsoleMetaData, '│', PROGRESS_BAR_WIDTH, '│', ' ' as char, ' ' as char, BUILD_PHASE, 0, 10)
 
         // Create a console metadata that supports taskbar progress
         taskbarConsoleMetaData = Stub(ConsoleMetaData) {
@@ -140,7 +140,7 @@ class ProgressBarTest extends Specification {
 
     def "formats unicode progress bar"() {
         expect:
-        unicodeProgress == "|          | 0% EXECUTING"
+        unicodeProgress == "│··········│ 0% EXECUTING"
     }
 
     def "fills unicode progress with block characters"() {
@@ -149,14 +149,14 @@ class ProgressBarTest extends Specification {
 
         then:
         // 1/10 = 10% should show one full block (█)
-        unicodeProgress == "|\u2588         | 10% EXECUTING"
+        unicodeProgress == "│\u2588·········│ 10% EXECUTING"
 
         when:
         unicodeProgressBar.update(false)
 
         then:
         // 2/10 = 20% should show two full blocks
-        unicodeProgress == "|\u2588\u2588        | 20% EXECUTING"
+        unicodeProgress == "│\u2588\u2588········│ 20% EXECUTING"
 
         when:
         8.times {
@@ -165,12 +165,12 @@ class ProgressBarTest extends Specification {
 
         then:
         // 10/10 = 100% should show all blocks filled
-        unicodeProgress == "|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 100% EXECUTING"
+        unicodeProgress == "│\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588│ 100% EXECUTING"
     }
 
     def "unicode progress shows finer granularity"() {
         given:
-        def fineGrainedProgressBar = new ProgressBar(unicodeConsoleMetaData, '|', 10, '|', ' ' as char, ' ' as char, BUILD_PHASE, 0, 80)
+        def fineGrainedProgressBar = new ProgressBar(unicodeConsoleMetaData, '│', 10, '│', ' ' as char, ' ' as char, BUILD_PHASE, 0, 80)
 
         when:
         fineGrainedProgressBar.update(false) // 1/80 = 1.25%
@@ -178,7 +178,7 @@ class ProgressBarTest extends Specification {
         then:
         // Should show a partial block character instead of empty
         def result = fineGrainedProgressBar.formatProgress(false, 0).collect { it.text }.join("")
-        result == "|▏         | 1% EXECUTING"
+        result == "│▏·········│ 1% EXECUTING"
     }
 
     def "unicode progress formats successful progress green"() {
