@@ -86,7 +86,7 @@ class SingleUseDaemonIntegrationTest extends AbstractIntegrationSpec implements 
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "forks build with default daemon JVM args when java home from gradle properties does not match current process"() {
-        def javaHome = AvailableJavaHomes.differentJdk.javaHome.canonicalFile
+        def javaHome = AvailableJavaHomes.differentVersion.javaHome.canonicalFile
 
         file('gradle.properties').writeProperties("org.gradle.java.home": javaHome.path)
 
@@ -122,13 +122,13 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "does not fork build when java home from gradle properties matches current process"() {
-        def differentJdk = AvailableJavaHomes.differentJdk
-        file('gradle.properties').mergeProperties("org.gradle.java.home": differentJdk.javaHome.canonicalPath)
+        def differentVersionJdk = AvailableJavaHomes.differentVersion
+        file('gradle.properties').mergeProperties("org.gradle.java.home": differentVersionJdk.javaHome.canonicalPath)
 
         file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath"
 
         when:
-        executer.withJvm(differentJdk)
+        executer.withJvm(differentVersionJdk)
         succeeds()
 
         then:

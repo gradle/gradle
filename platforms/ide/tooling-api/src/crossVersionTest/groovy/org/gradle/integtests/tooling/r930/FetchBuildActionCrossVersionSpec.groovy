@@ -164,7 +164,35 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
     }
 
-    def "'#method' method returns the same failed result as other fetch methods"() {
+    def "'#method' returns the same result as other fetch methods in the presence of project build script failures"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        setupInitScriptWithCustomModelBuilder()
+        buildFileKts << """
+            broken !!!
+        """
+
+        when:
+        def result = succeeds {
+            action(new FetchCustomModelAction())
+                .withArguments("--init-script=${file('init.gradle').absolutePath}")
+                .run()
+        }
+
+        then:
+        result.modelValue == null
+        result.failureMessages.size() == 1
+        result.failureMessages[0].contains("A problem occurred configuring root project 'root'.")
+
+        where:
+        method                                                       | buildAction
+        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()
+        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()
+        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()
+        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
+    }
+
+    def "'#method' method returns the same failed result as other fetch methods with settings failure"() {
         given:
         setupInitScriptWithCustomModelBuilder()
 

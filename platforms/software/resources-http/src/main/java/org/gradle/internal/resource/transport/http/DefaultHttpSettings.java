@@ -34,8 +34,20 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 
 public class DefaultHttpSettings implements HttpSettings {
+
     private static final int DEFAULT_MAX_REDIRECTS = 10;
-    private static final int DEFAULT_MAX_CONNECTIONS = 20;
+
+    /**
+     * The maximum number of connections we will make to a single server.
+     */
+    public static final int DEFAULT_MAX_PER_ROUTE = 20;
+
+    /**
+     * The maximum number of connections we will make to any number of servers.
+     * This is greater than {@link #DEFAULT_MAX_PER_ROUTE}, so a single repository
+     * does not saturate all available connections we can make.
+     */
+    private static final int DEFAULT_MAX_CONNECTIONS = DEFAULT_MAX_PER_ROUTE * 4;
 
     private final Collection<Authentication> authenticationSettings;
     private final SslContextFactory sslContextFactory;
@@ -154,7 +166,7 @@ public class DefaultHttpSettings implements HttpSettings {
         private HttpRedirectVerifier redirectVerifier;
         private int maxRedirects = DEFAULT_MAX_REDIRECTS;
         private int maxConnTotal = DEFAULT_MAX_CONNECTIONS;
-        private int maxConnPerRoute = DEFAULT_MAX_CONNECTIONS;
+        private int maxConnPerRoute = DEFAULT_MAX_PER_ROUTE;
         private RedirectMethodHandlingStrategy redirectMethodHandlingStrategy = RedirectMethodHandlingStrategy.ALWAYS_FOLLOW_AND_PRESERVE;
 
         public Builder withAuthenticationSettings(Collection<Authentication> authenticationSettings) {

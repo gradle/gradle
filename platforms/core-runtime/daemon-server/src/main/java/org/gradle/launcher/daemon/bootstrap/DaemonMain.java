@@ -39,7 +39,6 @@ import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
-import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonLogFile;
 import org.gradle.launcher.daemon.server.DaemonProcessState;
@@ -47,7 +46,6 @@ import org.gradle.launcher.daemon.server.DaemonStopState;
 import org.gradle.launcher.daemon.server.MasterExpirationStrategy;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
-import org.gradle.util.internal.DefaultGradleVersion;
 
 import java.io.ByteArrayInputStream;
 import java.io.EOFException;
@@ -55,11 +53,8 @@ import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static java.nio.file.Files.newOutputStream;
-import static org.gradle.launcher.daemon.server.DaemonLogFile.DAEMON_LOG_PREFIX;
-import static org.gradle.launcher.daemon.server.DaemonLogFile.DAEMON_LOG_SUFFIX;
 
 /**
  * The entry point for a daemon process.
@@ -99,7 +94,6 @@ public class DaemonMain extends EntryPoint {
         DaemonProcessState daemonProcessState = new DaemonProcessState(parameters, loggingRegistry, loggingManager);
         ServiceRegistry daemonServices = daemonProcessState.getServices();
         File daemonLog = daemonServices.get(DaemonLogFile.class).getFile();
-        File daemonBaseDir = daemonServices.get(DaemonDir.class).getBaseDir();
 
         // Any logging prior to this point will not end up in the daemon log file.
         initialiseLogging(loggingManager, daemonLog);
@@ -124,8 +118,6 @@ public class DaemonMain extends EntryPoint {
             daemonProcessState.stopped(stopState);
         } finally {
             CompositeStoppable.stoppable(daemon, daemonProcessState).stop();
-            //TODO This should actually be used in `GradleUserHomeCleanupService`, but this is in core and core can't use the classes to get the proper daemon log dir name.
-            cleanupOldLogFiles(daemonBaseDir);
         }
     }
 
@@ -149,45 +141,6 @@ public class DaemonMain extends EntryPoint {
         System.out.println("USAGE: <gradle version>");
         System.out.println("Following arguments are required: <gradle-version>");
         System.exit(1);
-    }
-
-    private static final long FOURTEEN_DAYS_MILLIS = TimeUnit.DAYS.toMillis(14);
-
-    /**
-     * Removes all log files in the given folder that haven't been modified for at least 2 weeks
-     *
-     * @param daemonBaseDir The currently used log file
-     */
-    public static void cleanupOldLogFiles(File daemonBaseDir) {
-        try {
-            File[] daemonLogDirectories = daemonBaseDir.listFiles(file ->
-                file.isDirectory() && DefaultGradleVersion.VERSION_PATTERN.matcher(file.getName()).matches());
-            if (daemonLogDirectories == null) {
-                LOGGER.warn("Could not list daemon log directories for cleanup in: {}", daemonBaseDir.getAbsolutePath());
-                return;
-            }
-            long maxAge = System.currentTimeMillis() - FOURTEEN_DAYS_MILLIS;
-            for (File daemonLogDirectory : daemonLogDirectories) {
-                File[] logFiles = daemonLogDirectory.listFiles(f -> f.isFile() && f.getName().endsWith(DAEMON_LOG_SUFFIX) && f.getName().startsWith(DAEMON_LOG_PREFIX));
-                if (logFiles == null) {
-                    LOGGER.warn("Could not list log files for cleanup in: {}", daemonLogDirectory.getAbsolutePath());
-                    return;
-                }
-                for (File logFile : logFiles) {
-                    if (logFile.equals(daemonBaseDir) // Should never happen, but just to be safe
-                        || logFile.lastModified() >= maxAge) {
-                        continue;
-                    }
-
-                    if (!logFile.delete()) {
-                        LOGGER.warn("Could not delete old log file: {}", logFile.getAbsolutePath());
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("Error cleaning up old log files", e);
-        }
-
     }
 
     protected void daemonStarted(Long pid, String uid, Address address, File daemonLog) {

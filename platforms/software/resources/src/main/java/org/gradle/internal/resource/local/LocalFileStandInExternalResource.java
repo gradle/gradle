@@ -52,15 +52,6 @@ import java.util.List;
  * A file backed {@link ExternalResource} implementation.
  */
 public class LocalFileStandInExternalResource extends AbstractExternalResource implements LocallyAvailableExternalResource, LocalBinaryResource {
-    private static final FileResourceListener NO_OP_LISTENER = new FileResourceListener() {
-        @Override
-        public void fileObserved(File file) {
-        }
-
-        @Override
-        public void directoryChildrenObserved(File file) {
-        }
-    };
     private final File localFile;
     private final FileSystem fileSystem;
     private final FileResourceListener listener;
@@ -72,7 +63,7 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
     }
 
     public LocalFileStandInExternalResource(File localFile, FileSystem fileSystem) {
-        this(localFile, fileSystem, NO_OP_LISTENER);
+        this(localFile, fileSystem, FileResourceListener.NO_OP);
     }
 
     @Override

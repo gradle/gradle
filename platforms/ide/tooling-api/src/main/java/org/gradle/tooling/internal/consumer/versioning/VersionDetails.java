@@ -26,6 +26,9 @@ public abstract class VersionDetails implements Serializable {
     }
 
     public static VersionDetails from(GradleVersion version) {
+        if (version.getBaseVersion().compareTo(GradleVersion.version("9.4")) >= 0) {
+            return new R94VersionDetails(version.getVersion());
+        }
         if (version.getBaseVersion().compareTo(GradleVersion.version("5.1")) >= 0) {
             return new R51VersionDetails(version.getVersion());
         }
@@ -81,6 +84,10 @@ public abstract class VersionDetails implements Serializable {
     }
 
     public boolean supportsPluginClasspathInjection() {
+        return false;
+    }
+
+    public boolean supportsHelpToolingModel() {
         return false;
     }
 
@@ -158,6 +165,17 @@ public abstract class VersionDetails implements Serializable {
 
         @Override
         public boolean honorsContractOnCancel() {
+            return true;
+        }
+    }
+
+    private static class R94VersionDetails extends R51VersionDetails {
+        R94VersionDetails(String version) {
+            super(version);
+        }
+
+        @Override
+        public boolean supportsHelpToolingModel() {
             return true;
         }
     }

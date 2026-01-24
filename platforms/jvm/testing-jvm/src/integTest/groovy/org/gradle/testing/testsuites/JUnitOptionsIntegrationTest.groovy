@@ -20,6 +20,19 @@ package org.gradle.testing.testsuites
 import org.gradle.test.fixtures.file.TestFile
 
 class JUnitOptionsIntegrationTest extends AbstractTestFrameworkOptionsIntegrationTest {
+    def "testFramework method is deprecated"() {
+        buildFile << """
+            test {
+                testFramework {
+                    println("configuring testing framework")
+                }
+            }
+        """
+        expect:
+        executer.expectDocumentedDeprecationWarning("The Test.testFramework(Closure) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_test_methods")
+        succeeds("help")
+        outputContains("configuring testing framework")
+    }
     def "options for test framework are respected for JUnit in built-in test suite"() {
         buildFile << """
             testing {

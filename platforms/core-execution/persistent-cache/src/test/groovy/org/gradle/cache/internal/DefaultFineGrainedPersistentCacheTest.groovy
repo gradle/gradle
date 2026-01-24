@@ -22,6 +22,7 @@ import org.gradle.cache.CleanupFrequency
 import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.FineGrainedCacheCleanupStrategy
+import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -35,7 +36,6 @@ import java.util.function.Supplier
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.FineGrainedPersistentCache.LOCKS_DIR_RELATIVE_PATH
-import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode
 
 class DefaultFineGrainedPersistentCacheTest extends Specification {
 
@@ -108,10 +108,11 @@ class DefaultFineGrainedPersistentCacheTest extends Specification {
         !reserved.contains(cacheDir.file(LOCKS_DIR_RELATIVE_PATH))
     }
 
-    def "useCache acquires per-key exclusive lock and releases it"() {
+    def "useCache(Supplier) acquires per-key exclusive lock and releases it"() {
         given:
         def key = "entryKey"
         def expectedLockFile = cacheDir.file("${LOCKS_DIR_RELATIVE_PATH}/${key}.lock")
+        def lockOptions = DefaultLockOptions.mode(Exclusive).ensureAcquiredLockRepresentsStateOnFileSystem()
 
         when:
         cache.open()
@@ -122,11 +123,63 @@ class DefaultFineGrainedPersistentCacheTest extends Specification {
 
         then:
         result == 42
-        1 * lockManager.lock(expectedLockFile, mode(Exclusive), "<display>", "") >> {
-            // Simulate a valid first-access lock
-            1 * lock.isFirstLockAccess() >> true
-            return lock
-        }
+        1 * lockManager.lock(expectedLockFile, lockOptions, "<display>", "acquireLock") >> lock
+        1 * lock.close()
+        0 * _
+    }
+
+    def "useCache(Runnable) acquires per-key exclusive lock and releases it"() {
+        given:
+        def key = "entryKey"
+        def expectedLockFile = cacheDir.file("${LOCKS_DIR_RELATIVE_PATH}/${key}.lock")
+        def lockOptions = DefaultLockOptions.mode(Exclusive).ensureAcquiredLockRepresentsStateOnFileSystem()
+
+        when:
+        cache.open()
+        cache.useCache(key) {
+        } as Runnable
+        cache.close()
+
+        then:
+        1 * lockManager.lock(expectedLockFile, lockOptions, "<display>", "acquireLock") >> lock
+        1 * lock.close()
+        0 * _
+    }
+
+    def "withFileLock(Supplier) acquires per-key exclusive lock and releases it"() {
+        given:
+        def key = "entryKey"
+        def expectedLockFile = cacheDir.file("${LOCKS_DIR_RELATIVE_PATH}/${key}.lock")
+        def lockOptions = DefaultLockOptions.mode(Exclusive).ensureAcquiredLockRepresentsStateOnFileSystem()
+
+        when:
+        cache.open()
+        def result = cache.withFileLock(key, {
+            return 42
+        } as Supplier<Integer>)
+        cache.close()
+
+        then:
+        result == 42
+        1 * lockManager.lock(expectedLockFile, lockOptions, "<display>", "acquireLock") >> lock
+        1 * lock.close()
+        0 * _
+    }
+
+    def "withFileLock(Runnable) acquires per-key exclusive lock and releases it"() {
+        given:
+        def key = "entryKey"
+        def expectedLockFile = cacheDir.file("${LOCKS_DIR_RELATIVE_PATH}/${key}.lock")
+        def lockOptions = DefaultLockOptions.mode(Exclusive).ensureAcquiredLockRepresentsStateOnFileSystem()
+
+        when:
+        cache.open()
+        cache.withFileLock(key) {
+        } as Runnable
+        cache.close()
+
+        then:
+        1 * lockManager.lock(expectedLockFile, lockOptions, "<display>", "acquireLock") >> lock
         1 * lock.close()
         0 * _
     }
@@ -163,10 +216,12 @@ class DefaultFineGrainedPersistentCacheTest extends Specification {
 
         when:
         markCacheForCleanup(gcFile)
+        def modificationTimeBefore = gcFile.lastModified()
         cache.open()
         cache.close()
 
         then:
+        gcFile.lastModified() == modificationTimeBefore
         1 * cleanupAction.clean(cache, _) >> { throw new RuntimeException("Boom") }
         noExceptionThrown()
     }
@@ -188,15 +243,52 @@ class DefaultFineGrainedPersistentCacheTest extends Specification {
         gcFile.assertDoesNotExist()
     }
 
-    def "rejects invalid keys"() {
+    def "useCache method rejects invalid key that #description"() {
         when:
-        cache.useCache(key) { }
+        cache.useCache(key) {}
 
         then:
-        thrown(IllegalArgumentException)
+        def e = thrown(IllegalArgumentException)
+        e.message == expectedMessage
+
+        when:
+        cache.useCache(key, {
+            return 42
+        } as Supplier)
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == expectedMessage
 
         where:
-        key << ["bad/key", "bad\\key", ".hidden"]
+        key        | description                       | expectedMessage
+        "bad/key"  | "contains Unix file separator"    | "Cache key path must not contain file separator: 'bad/key'"
+        "bad\\key" | "contains Windows file separator" | "Cache key path must not contain file separator: 'bad\\key'"
+        ".hidden"  | "starts with dot"                 | "Cache key must not start with '.' character: '.hidden'"
+    }
+
+    def "withFileLock method rejects invalid key that #description"() {
+        when:
+        cache.withFileLock(key) {}
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == expectedMessage
+
+        when:
+        cache.withFileLock(key, {
+            return 42
+        } as Supplier)
+
+        then:
+        e = thrown(IllegalArgumentException)
+        e.message == expectedMessage
+
+        where:
+        key        | description                       | expectedMessage
+        "bad/key"  | "contains Unix file separator"    | "Cache key path must not contain file separator: 'bad/key'"
+        "bad\\key" | "contains Windows file separator" | "Cache key path must not contain file separator: 'bad\\key'"
+        ".hidden"  | "starts with dot"                 | "Cache key must not start with '.' character: '.hidden'"
     }
 
     private static void markCacheForCleanup(TestFile gcFile) {

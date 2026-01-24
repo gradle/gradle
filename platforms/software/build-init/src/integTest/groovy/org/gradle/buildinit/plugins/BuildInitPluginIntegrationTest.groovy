@@ -388,6 +388,8 @@ dependencies {
                                   UPGRADE
                                   WARN
 
+     --into     Set the directory where the project is generated.
+
      --java-version     Provides java version to use in the project.
 
      --overwrite     Allow existing files in the build directory to be overwritten?
@@ -525,6 +527,14 @@ Description""") // include the next header to make sure all options are listed
         targetDir.file("gradlew").assertIsFile()
         targetDir.file("settings.gradle.kts").assertIsFile()
         targetDir.file("build.gradle.kts").assertIsFile()
+    }
+
+    def "can specify a different project directory"() {
+        when:
+        succeeds "init", "--into=./other-dir"
+
+        then:
+        targetDir.file("other-dir/settings.gradle.kts").isFile()
     }
 
     private static pomValuesUsed(ScriptDslFixture dslFixture) {

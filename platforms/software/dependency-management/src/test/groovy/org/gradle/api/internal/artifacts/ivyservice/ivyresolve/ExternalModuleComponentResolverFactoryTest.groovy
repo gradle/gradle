@@ -44,7 +44,6 @@ import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
-import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
@@ -92,12 +91,12 @@ class ExternalModuleComponentResolverFactoryTest extends Specification {
             cacheProvider,
             startParameterResolutionOverride,
             dependencyVerificationOverride,
+            Mock(ChangingValueDependencyResolutionListener),
             Mock(BuildCommencedTimeProvider),
             Mock(VersionComparator),
             Mock(ImmutableModuleIdentifierFactory),
             Mock(RepositoryDisabler),
             new VersionParser(),
-            Mock(ListenerManager),
             resolveStateFactory,
             Stub(CalculatedValueContainerFactory),
             AttributeTestUtil.attributesFactory(),

@@ -21,11 +21,8 @@ import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyModifier;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Nested;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
-
-import javax.inject.Inject;
 
 
 /**
@@ -60,15 +57,6 @@ public interface PlatformDependencyModifiers {
     @Incubating
     abstract class PlatformDependencyModifier extends DependencyModifier {
         /**
-         * Injected service to create named objects.
-         *
-         * @return injected service
-         * @implSpec Do not implement this method. Gradle generates the implementation automatically.
-         */
-        @Inject
-        protected abstract ObjectFactory getObjectFactory();
-
-        /**
          * {@inheritDoc}
          *
          * Selects the platform variant of the given dependency.
@@ -76,7 +64,7 @@ public interface PlatformDependencyModifiers {
         @Override
         protected void modifyImplementation(ModuleDependency dependency) {
             dependency.endorseStrictVersions();
-            dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.REGULAR_PLATFORM)));
+            dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, attributeContainer.named(Category.class, Category.REGULAR_PLATFORM)));
         }
     }
 
@@ -102,15 +90,6 @@ public interface PlatformDependencyModifiers {
     @Incubating
     abstract class EnforcedPlatformDependencyModifier extends DependencyModifier {
         /**
-         * Injected service to create named objects.
-         *
-         * @return injected service
-         * @implSpec Do not implement this method. Gradle generates the implementation automatically.
-         */
-        @Inject
-        protected abstract ObjectFactory getObjectFactory();
-
-        /**
          * {@inheritDoc}
          *
          * Selects the enforced platform variant of the given dependency.
@@ -121,7 +100,7 @@ public interface PlatformDependencyModifiers {
                 String version = dependency.getVersion();
                 ((ExternalDependency) dependency).version(constraint -> constraint.strictly(version));
             }
-            dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.ENFORCED_PLATFORM)));
+            dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, attributeContainer.named(Category.class, Category.ENFORCED_PLATFORM)));
         }
     }
 }

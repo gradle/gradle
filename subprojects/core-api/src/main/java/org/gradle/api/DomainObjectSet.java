@@ -54,5 +54,6 @@ public interface DomainObjectSet<T> extends DomainObjectCollection<T>, Set<T> {
      * {@inheritDoc}
      */
     @Override
+    @Deprecated
     Set<T> findAll(Closure spec);
 }

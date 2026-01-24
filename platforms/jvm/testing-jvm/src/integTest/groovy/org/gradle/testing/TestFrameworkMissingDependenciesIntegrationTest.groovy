@@ -73,7 +73,7 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
         fails('test')
 
         then: "Test framework startup failure is reported"
-        assertTestWorkerStartedAndTestFrameworkFailedToStart(":test", 2)
+        assertTestWorkerStartedAndTestFrameworkFailedToStart("Failed to load JUnit 4.  Please ensure that the JUnit 4 library is available on the test's runtime classpath.", ":test", 2)
 
         and: "Resolutions are provided"
         assertSuggestsInspectTaskConfiguration()
@@ -111,7 +111,7 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
         fails('test')
 
         then: "Test framework startup failure is reported"
-        assertTestWorkerStartedAndTestFrameworkFailedToStart()
+        assertTestWorkerStartedAndTestFrameworkFailedToStart("Failed to load JUnit 4.  Please ensure that the JUnit 4 library is available on the test's runtime classpath.")
 
         and: "Resolutions are provided"
         assertSuggestsInspectTaskConfiguration()
@@ -151,7 +151,7 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
         fails('test')
 
         then: "Test framework startup failure is reported"
-        assertTestWorkerStartedAndTestFrameworkFailedToStart()
+        assertTestWorkerStartedAndTestFrameworkFailedToStart("Failed to load JUnit Platform.  Please ensure that all JUnit Platform dependencies are available on the test's runtime classpath, including the JUnit Platform launcher.")
 
         and: "Resolutions are provided"
         assertSuggestsInspectTaskConfiguration()
@@ -189,7 +189,7 @@ class TestFrameworkMissingDependenciesIntegrationTest extends AbstractIntegratio
         fails('test')
 
         then: "Test framework startup failure is reported"
-        assertTestWorkerStartedAndTestFrameworkFailedToStart()
+        assertTestWorkerStartedAndTestFrameworkFailedToStart("Failed to load TestNG.  Please ensure that the TestNG library is available on the test's runtime classpath.")
 
         and: "Resolutions are provided"
         assertSuggestsInspectTaskConfiguration()

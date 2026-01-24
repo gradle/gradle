@@ -53,6 +53,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "build-configuration",
         "build-discovery",
         "build-discovery-impl",
+        "build-discovery-reporting",
         "build-events",
         "build-init-specs",
         "build-init-specs-api",
@@ -71,6 +72,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "core-api",
         "core-flow-services-api",
         "core-kotlin-extensions",
+        "daemon-logging",
         "daemon-main",
         "daemon-protocol",
         "daemon-server",
@@ -78,7 +80,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "declarative-dsl-api",
         "declarative-dsl-core",
         "declarative-dsl-evaluator",
-        "declarative-dsl-internal-utils",
         "declarative-dsl-provider",
         "declarative-dsl-tooling-models",
         "enterprise-logging",
@@ -216,12 +217,30 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         dupesWithCount.isEmpty()
     }
 
-    def "all files under lib directory are jars"() {
+    def "all files under lib directory are jars and properties files"() {
+        given:
+        def entries = libZipEntries
+
         when:
-        def nonJarLibEntries = libZipEntries.findAll { !it.name.endsWith(".jar") }
+        def unexpectedEntries = entries.findAll { !it.name.endsWith(".jar") && !it.name.endsWith(".properties") }
+        def jarNames = entries.collect { it.name }.findAll { it.endsWith(".jar") }
+        def propertiesNames = entries.collect { it.name }.findAll { it.endsWith(".properties") }
+
+        and:
+        def jarsWithoutProperties = new HashSet<>(jarNames)
+        for (String propertiesFile : propertiesNames) {
+            String moduleName = propertiesFile - ".properties"
+            String jarName = jarNames.findAll { it.startsWith(moduleName) }.min { it.size() }
+            if (jarName != null) {
+                // Some properties files don't have a corresponding jar, like those representing
+                // platforms/BOMs, or those representing parent components of KMP multi-platform components.
+                jarsWithoutProperties.remove(jarName)
+            }
+        }
 
         then:
-        nonJarLibEntries.isEmpty()
+        unexpectedEntries.isEmpty()
+        jarsWithoutProperties.isEmpty()
     }
 
     def "no additional jars are added to the distribution"() {
@@ -314,6 +333,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
                 && !it.name.startsWith("gradle-api-metadata")
                 && !it.name.startsWith("gradle-kotlin-dsl")
                 && !it.name.startsWith("gradle-fileevents")
+                && it.name.endsWith(".jar")
         }
 
         def prefixedCoreLibNames = coreLibsModules.collect { "gradle-$it" }
@@ -333,7 +353,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 540 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 550 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Kotlin DSL
         assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-${baseVersion}.jar"))

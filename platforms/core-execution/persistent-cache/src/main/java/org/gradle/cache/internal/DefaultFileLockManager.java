@@ -56,7 +56,6 @@ import java.util.function.Consumer;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
@@ -126,11 +125,41 @@ public class DefaultFileLockManager implements FileLockManager {
         }
         try {
             int port = fileLockContentionHandler.reservePort();
-            return new DefaultFileLock(canonicalTarget, options, targetDisplayName, operationDisplayName, port, whenContended);
+            return acquireFileLock(canonicalTarget, options, targetDisplayName, operationDisplayName, port, whenContended);
         } catch (Throwable t) {
             lockedFiles.remove(canonicalTarget);
             throw throwAsUncheckedException(t);
         }
+    }
+
+    private DefaultFileLock acquireFileLock(
+        File canonicalTarget,
+        LockOptions options,
+        String targetDisplayName,
+        String operationDisplayName,
+        int port,
+        @Nullable Consumer<FileLockReleasedSignal> whenContended
+    ) throws Throwable {
+        if (options.isEnsureAcquiredLockRepresentsStateOnFileSystem()) {
+            DefaultFileLock fileLock = null;
+            while (fileLock == null) {
+                fileLock = new DefaultFileLock(canonicalTarget, options, targetDisplayName, operationDisplayName, port, whenContended);
+                // Verify the lock file hasn't been changed/deleted/recreated between opening a file handle and acquiring the lock.
+                if (!lockRepresentsStateOnFileSystem(fileLock)) {
+                    fileLock.close();
+                    fileLock = null;
+                }
+            }
+            return fileLock;
+        } else {
+            return new DefaultFileLock(canonicalTarget, options, targetDisplayName, operationDisplayName, port, whenContended);
+        }
+    }
+
+    private boolean lockRepresentsStateOnFileSystem(DefaultFileLock fileLock) {
+        // Skip for first lock access to optimize the first use case. We assume that if we hold the lock,
+        // and we are the first to access it, then no other Gradle process was able to delete/recreate the lock file.
+        return fileLock.isFirstLockAccess() || fileLock.lockRepresentsStateOnFileSystem();
     }
 
     static File determineLockTargetFile(File target) {
@@ -313,14 +342,13 @@ public class DefaultFileLockManager implements FileLockManager {
             return mode;
         }
 
-        @Override
-        public boolean isValid() {
-            if (isUseCrossVersionImplementation) {
-                throw new UnsupportedOperationException("FileLock.isValid() is not supported for cross-version FileLocks.");
+        private boolean lockRepresentsStateOnFileSystem() {
+            if (isUseCrossVersionImplementation || mode == LockMode.Shared) {
+                throw new UnsupportedOperationException("DefaultFileLock.lockRepresentsStateOnFileSystem() is not supported for shared or cross-version file locks.");
             }
 
             if (OperatingSystem.current().isWindows()) {
-                // On Windows if we hold the lock it means lock is valid,
+                // On Windows, if we hold the lock it means lock was not updated on the file system,
                 // since OS won't allow to modify the state region or delete the file due to lock
                 return lock != null;
             }
@@ -328,35 +356,17 @@ public class DefaultFileLockManager implements FileLockManager {
             if (lock == null || !lockFile.exists()) {
                 return false;
             }
-            Long lockIdFromFileAccess = readLockIdFromFileAccess();
-            Long lockIdFromFile = readLockIdFromLockFile();
-            // If the lock id cannot be read from lock file access,
-            // something is wrong with lock file access, assume lock is not valid
-            return lockIdFromFileAccess != null && lockIdFromFileAccess.equals(lockIdFromFile);
-        }
 
-        @Override
-        public boolean isFirstLockAccess() {
-            return isFirstLockAccess.get();
-        }
-
-        @Nullable
-        private Long readLockIdFromFileAccess() {
-            try {
-                return lockFileAccess.readLockId();
-            } catch (IOException e) {
-                return null;
-            }
-        }
-
-        @Nullable
-        private Long readLockIdFromLockFile() {
-            checkArgument(!OperatingSystem.current().isWindows(), "Can't re-read a lock id with a new file handle on Windows, while holding a lock on state region.");
+            // Compare the state directly from the file with the in-memory representation we have
             try (RandomAccessFile randomAccessFile = new RandomAccessFile(lockFile, "r")) {
-                return lockStateAccess.readLockId(randomAccessFile);
+                return !lockStateAccess.readState(randomAccessFile).hasBeenUpdatedSince(lockState);
             } catch (IOException e) {
-                return null;
+                return false;
             }
+        }
+
+        private boolean isFirstLockAccess() {
+            return isFirstLockAccess.get();
         }
 
         /**

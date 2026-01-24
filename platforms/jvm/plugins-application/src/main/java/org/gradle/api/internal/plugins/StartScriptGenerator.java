@@ -38,6 +38,7 @@ import java.util.Set;
 public class StartScriptGenerator {
 
     private String applicationName;
+    private String gitRef;
     private String optsEnvironmentVar;
     private String exitEnvironmentVar;
     private AppEntryPoint entryPoint;
@@ -53,6 +54,10 @@ public class StartScriptGenerator {
 
     public void setApplicationName(String applicationName) {
         this.applicationName = applicationName;
+    }
+
+    public void setGitRef(String gitRef) {
+        this.gitRef = gitRef;
     }
 
     public void setOptsEnvironmentVar(String optsEnvironmentVar) {
@@ -124,7 +129,7 @@ public class StartScriptGenerator {
     }
 
     private JavaAppStartScriptGenerationDetails createStartScriptGenerationDetails() {
-        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, optsEnvironmentVar, exitEnvironmentVar, entryPoint, CollectionUtils.toStringList(defaultJvmOpts), CollectionUtils.toStringList(classpath), CollectionUtils.toStringList(modulePath), scriptRelPath, appNameSystemProperty);
+        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, gitRef, optsEnvironmentVar, exitEnvironmentVar, entryPoint, CollectionUtils.toStringList(defaultJvmOpts), CollectionUtils.toStringList(classpath), CollectionUtils.toStringList(modulePath), scriptRelPath, appNameSystemProperty);
     }
 
     public void generateUnixScript(final File unixScript) {

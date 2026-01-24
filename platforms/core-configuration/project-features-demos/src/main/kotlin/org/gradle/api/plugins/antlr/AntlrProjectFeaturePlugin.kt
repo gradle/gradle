@@ -49,13 +49,13 @@ class AntlrProjectFeaturePlugin : Plugin<Project> {
             ) { definition, buildModel, target ->
                 val parentModel = getBuildModel(target)
 
-                definition.grammarSources = createAntlrSourceDirectorySet(definition.name, project.objects)
+                definition.grammarSources = createAntlrSourceDirectorySet(parentModel.name, project.objects)
                 val outputDirectory = projectLayout.buildDirectory.dir("/generated-src/antlr/" + definition.grammarSources.getName())
 
                 // Add the generated antlr sources to the java sources
                 parentModel.inputSources.srcDir(outputDirectory)
 
-                project.tasks.register("generate" + StringUtils.capitalize(definition.name) + "AntlrSources", AntlrTask::class.java) { antlrTask ->
+                project.tasks.register("generate" + StringUtils.capitalize(parentModel.name) + "AntlrSources", AntlrTask::class.java) { antlrTask ->
                     antlrTask.group = LifecycleBasePlugin.BUILD_GROUP
                     antlrTask.description = "Generates sources from the " + definition.grammarSources.name + " Antlr grammars."
                     antlrTask.source = definition.grammarSources

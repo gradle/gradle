@@ -256,6 +256,7 @@ class DefaultCacheConfigurationsTest extends Specification {
         cacheConfigurations.releasedWrappers.entryRetention.set(twoDaysRetention)
         cacheConfigurations.snapshotWrappers.entryRetention.set(twoDaysRetention)
         cacheConfigurations.buildCache.entryRetention.set(twoDaysRetention)
+        cacheConfigurations.daemonLogs.entryRetention.set(twoDaysRetention)
         cacheConfigurations.markingStrategy.set(MarkingStrategy.NONE)
 
         then:
@@ -264,6 +265,7 @@ class DefaultCacheConfigurationsTest extends Specification {
         mutableCacheConfigurations.releasedWrappers.entryRetention.get() == twoDaysRetention
         mutableCacheConfigurations.snapshotWrappers.entryRetention.get() == twoDaysRetention
         mutableCacheConfigurations.buildCache.entryRetention.get() == twoDaysRetention
+        mutableCacheConfigurations.daemonLogs.entryRetention.get() == twoDaysRetention
         mutableCacheConfigurations.markingStrategy.get() == MarkingStrategy.NONE
     }
 

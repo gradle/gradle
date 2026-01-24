@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JdkRepository
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
@@ -33,6 +34,7 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
 
 @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/5022")
 class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
 
     def "toolchain selection that requires downloading fails when it is disabled"() {

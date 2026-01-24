@@ -24,10 +24,10 @@ dependencies {
     api(projects.buildDiscovery)
     api(projects.stdlibJavaExtensions)
 
+    implementation(projects.baseServices)
+
     api(libs.inject)
     api(libs.jspecify)
-
-    implementation(projects.baseServices)
 }
 
 errorprone {

@@ -16,6 +16,7 @@
 
 package org.gradle.cache;
 
+import org.gradle.cache.internal.FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.Closeable;
@@ -24,8 +25,10 @@ import java.util.function.Supplier;
 /**
  * A persistent cache that locks fine-grained: it has one lock per key instead of one lock for the whole cache.
  *
+ * <p>
  * Cache will always use {@link FileLockManager.LockMode#OnDemandEagerRelease} lock mode for key locks.
  * Cache doesn't support cross-version mode.
+ * </p>
  *
  * <p>
  * Key format: the cache key is a logical identifier, not a filesystem path. Keys must not contain
@@ -40,9 +43,34 @@ import java.util.function.Supplier;
  * remove orphaned lock files without requiring additional API calls.
  * Directory {@code ".internal"} can be used to store any internal metadata required by the cache implementation.
  * </p>
+ *
+ * <p>
+ * Example disk layout of this cache:
+ * <pre>
+ * │{@code <base-dir>/}
+ * ├── {@code <key-1>/}         # entry content created by the caller (directory or file)
+ * ├── {@code <key-2>}          # another entry (keys are logical, can map to a file or dir, but without extensions)
+ * └── .internal/               # reserved for cache metadata
+ *     ├── locks/               # per-key lock files
+ *     │   ├── {@code <key-1>.lock}
+ *     │   └── {@code <key-2>.lock}
+ *     ├── gc.properties        # Example cleanup heartbeat/metadata file for the cache
+ *     └── gc/                  # per-key cleanup metadata as created by {@link FineGrainedMarkAndSweepLeastRecentlyUsedCacheCleanup}
+ *         ├── {@code <key-1>/}
+ *         │   ├── soft.deleted
+ *         │   └── gc.properties
+ *         └── {@code <key-2>/}
+ *             ├── soft.deleted
+ *             └── gc.properties
+ * </pre>
  */
 @NullMarked
 public interface FineGrainedPersistentCache extends Closeable, CleanableStore, HasCleanupAction {
+
+    /**
+     * A path to internal directory, relative to {@link #getBaseDir()}, where all metadata should be stored.
+     */
+    String INTERNAL_DIR_PATH = ".internal";
 
     /**
      * A path to locks directory, relative to {@link #getBaseDir()}, where all key lock files must be stored.
@@ -57,18 +85,27 @@ public interface FineGrainedPersistentCache extends Closeable, CleanableStore, H
     /**
      * Performs some work against the cache for {@code <base-dir>/<key>} path.
      *
-     * Acquires exclusive locks on the {@code <base-dir>/<key>} path, so that the given action is the only action to execute across all processes (including this one).
+     * Acquires exclusive locks on the {@code <base-dir>/<key>} path, so that the given action is the only action to execute across all threads and processes.
      * Releases the locks and all resources at the end of the action.
      */
     <T> T useCache(String key, Supplier<? extends T> action);
 
     /**
-     * Performs some work against the cache for {@code <base-dir>/<key>} path.
-     *
-     * Acquires exclusive locks on the {@code <base-dir>/<key>} path, so that the given action is the only action to execute across all processes (including this one).
-     * Releases the locks and all resources at the end of the action.
+     * The same as {@link #useCache(String, Supplier)} for actions that don't return any result.
      */
     void useCache(String key, Runnable action);
+
+    /**
+     * Performs some work against the cache for {@code <base-dir>/<key>} path in the same way as {@link #useCache(String, Supplier)} but without a thread lock.
+     *
+     * This should be used only if thread locking is handled by the caller already. Otherwise prefer {@link #useCache(String, Supplier)}.
+     */
+    <T> T withFileLock(String key, Supplier<? extends T> action);
+
+    /**
+     * The same as {@link #withFileLock(String, Supplier)} for actions that don't return any result.
+     */
+    void withFileLock(String key, Runnable action);
 
     /**
      * Closes this cache, blocking until all operations are complete.

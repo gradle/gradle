@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.software.internal;
 
-import org.gradle.api.Named;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -87,7 +86,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
     }
 
     private <T extends Definition<V>, V extends BuildModel> T instantiateBoundFeatureObjectsAndApply(Object parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
-        T definition = instantiateDefinitionObject(parentDefinition, projectFeature);
+        T definition = instantiateDefinitionObject(projectFeature);
         V buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(objectFactory, projectFeature);
         ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, projectFeatureDeclarations, objectFactory);
 
@@ -99,19 +98,8 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         return definition;
     }
 
-    private <T extends Definition<V>, V extends BuildModel> T instantiateDefinitionObject(Object target, ProjectFeatureImplementation<T, V> projectFeature) {
-        Class<? extends T> dslType = projectFeature.getDefinitionImplementationType();
-
-        if (Named.class.isAssignableFrom(dslType)) {
-            if (target instanceof Named) {
-                return objectFactory.newInstance(projectFeature.getDefinitionPublicType(), ((Named) target).getName());
-            } else {
-                throw new IllegalArgumentException("Cannot infer a name for definition " + dslType.getSimpleName() +
-                    " because the parent definition of type " + target.getClass().getSimpleName() + " does not implement Named.");
-            }
-        } else {
-            return objectFactory.newInstance(dslType);
-        }
+    private <T extends Definition<V>, V extends BuildModel> T instantiateDefinitionObject(ProjectFeatureImplementation<T, V> projectFeature) {
+        return objectFactory.newInstance(projectFeature.getDefinitionImplementationType());
     }
 
     private static class ClassLoaderContextFromScope implements ModelDefaultsApplicator.ClassLoaderContext {

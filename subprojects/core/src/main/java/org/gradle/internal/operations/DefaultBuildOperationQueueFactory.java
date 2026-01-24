@@ -16,11 +16,11 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.jspecify.annotations.Nullable;
 
 public class DefaultBuildOperationQueueFactory implements BuildOperationQueueFactory {
+
     private final WorkerLeaseService workerLeaseService;
 
     public DefaultBuildOperationQueueFactory(WorkerLeaseService workerLeaseService) {
@@ -29,13 +29,14 @@ public class DefaultBuildOperationQueueFactory implements BuildOperationQueueFac
 
     @Override
     public <T extends BuildOperation> BuildOperationQueue<T> create(
-        ManagedExecutor executor,
+        BuildOperationExecutionContext context,
         boolean allowAccessToProjectState,
         BuildOperationQueue.QueueWorker<T> worker,
-        @Nullable BuildOperationState parent
+        @Nullable BuildOperationRef parent
     ) {
         // Assert that the current thread is a worker
         workerLeaseService.getCurrentWorkerLease();
-        return new DefaultBuildOperationQueue<>(allowAccessToProjectState, workerLeaseService, executor, worker, parent);
+        return new DefaultBuildOperationQueue<>(allowAccessToProjectState, workerLeaseService, context, worker, parent);
     }
+
 }

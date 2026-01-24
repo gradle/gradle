@@ -19,6 +19,7 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Builder
+import org.gradle.declarative.dsl.model.annotations.ValueFactories
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.FunctionSemantics
@@ -281,15 +282,14 @@ class DefaultFunctionExtractor(
                     configuredType -> FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject
                     else -> error("cannot infer the return type of a configuring function $function; it must be Unit or the configured object type")
                 }
-                val accessor = ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(host.withTag(SchemaBuildingTags.parameter(lastParam)) { host.modelTypeRef(configuredType) })
+                val configuredTypeRef = host.withTag(SchemaBuildingTags.configuredType(function.returnType)) { host.typeRef(configuredType) }
+                val accessor = ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(configuredTypeRef)
 
                 // TODO: when "definitely existing" objects get properly implemented, ensure that functions configuring them do not accept parameters
                 FunctionSemanticsInternal.DefaultAccessAndConfigure(
                     accessor,
                     returnType,
-                    host.withTag(SchemaBuildingTags.configuredType(function.returnType)) {
-                        host.modelTypeRef(configuredType)
-                    },
+                    configuredTypeRef,
                     blockRequirement
                 )
             }
@@ -309,7 +309,7 @@ class GetterBasedConfiguringFunctionExtractor(private val propertyTypePredicate:
     override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
 
     private fun configuringFunctionsFromGetters(host: SchemaBuildingHost, kClass: KClass<*>): List<SchemaMemberFunction> {
-        val functions = host.classMembers(kClass).potentiallyDeclarativeMembers.filter { it.kind == MemberKind.FUNCTION }
+        val functions = host.classMembers(kClass).potentiallyDeclarativeMembers.filter { it.kind == MemberKind.FUNCTION && isNotValueFactoriesGetter(it) }
 
         val functionsByName = functions.groupBy { it.name }
         val gettersWithoutSetter = functionsByName
@@ -341,7 +341,7 @@ class GetterBasedConfiguringFunctionExtractor(private val propertyTypePredicate:
     private fun configuringFunctionsFromKotlinProperties(host: SchemaBuildingHost, kClass: KClass<*>): List<SchemaMemberFunction> {
         val properties =
             host.classMembers(kClass).potentiallyDeclarativeMembers
-                .filter { it.kind == MemberKind.READ_ONLY_PROPERTY && propertyTypePredicate(it.returnType) }
+                .filter { it.kind == MemberKind.READ_ONLY_PROPERTY && propertyTypePredicate(it.returnType) && isNotValueFactoriesGetter(it) }
 
         return properties.map { property ->
             host.inContextOfModelMember(property.kCallable) {
@@ -359,6 +359,8 @@ class GetterBasedConfiguringFunctionExtractor(private val propertyTypePredicate:
             }
         }
     }
+
+    private fun isNotValueFactoriesGetter(callable: SupportedCallable): Boolean = callable.kCallable.annotationsWithGetters.none { it is ValueFactories }
 
     private fun configuringFunction(
         host: SchemaBuildingHost,
@@ -398,9 +400,13 @@ fun isValidNestedModelType(type: SupportedTypeProjection.SupportedType): Boolean
 
 private fun SchemaBuildingHost.checkConfiguredType(configuredType: KType) {
     withTag(SchemaBuildingTags.configuredType(configuredType)) {
+        if (configuredType.isMarkedNullable) {
+            schemaBuildingFailure("The receiver type of a configuring lambda cannot be nullable")
+        }
+
         when (val classifier = configuredType.classifier) {
             is KClass<*> -> containerTypeRef(classifier)
-            is KTypeParameter -> schemaBuildingFailure("Illegal usage of a type parameter")
+            is KTypeParameter -> schemaBuildingFailure("Using a type parameter as a configured type is not supported")
             else -> Unit
         }
     }

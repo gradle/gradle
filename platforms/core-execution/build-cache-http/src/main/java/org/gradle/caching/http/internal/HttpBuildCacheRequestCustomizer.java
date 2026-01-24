@@ -16,12 +16,20 @@
 
 package org.gradle.caching.http.internal;
 
-import org.apache.http.HttpRequest;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.function.BiConsumer;
+
+/**
+ * Modifies HTTP requests.
+ */
 @ServiceScope(Scope.Build.class)
-@FunctionalInterface
 public interface HttpBuildCacheRequestCustomizer {
-    void customize(HttpRequest request);
+
+    /**
+     * Visit all headers to be added to customized HTTP requests.
+     */
+    void visitHeaders(BiConsumer<String, String> headerConsumer);
+
 }

@@ -280,6 +280,46 @@ class ConfigurationCacheProblemsFixtureTest extends Specification {
         expectedFailure3.message.startsWith("Expected problem message at #1 to be a string starting with \"Some problem 3\", but was: Some problem 2.")
     }
 
+    def "assertHtmlReportHasProblems allows ignoring non-unique problems"() {
+        generateReportFile(
+            ["Some problem 1", "Some problem 2", "Some problem 2"]
+        )
+
+        expect:
+        report().assertContents {
+            withUniqueProblems(
+                "Some problem 1",
+                "Some problem 2"
+            )
+            totalProblemsCount = 3
+            problemsWithStackTraceCount = 0
+        }
+
+        and:
+        report().assertContents {
+            withUniqueProblems(
+                "Some problem 1",
+                "Some problem 2"
+            )
+            enforceTotalProblemCount = false
+            problemsWithStackTraceCount = 0
+        }
+
+        // failing to expect the right totalProblemCount and not ignoring duplicates fails as expected
+        when:
+        report().assertContents {
+            withUniqueProblems(
+                "Some problem 1",
+                "Some problem 2"
+            )
+            problemsWithStackTraceCount = 0
+        }
+
+        then:
+        def expectedFailure = thrown(AssertionError)
+        expectedFailure.message== "HTML report JS model has wrong number of total problem(s)${NEWLINE}Expected: <2>${NEWLINE}     but: was <3>"
+    }
+
     def "assertHtmlReportHasProblems validates traces in unique problems"() {
         when:
         generateReportFile(2)

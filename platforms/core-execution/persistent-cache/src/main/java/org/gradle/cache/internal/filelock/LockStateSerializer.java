@@ -46,6 +46,4 @@ public interface LockStateSerializer {
      * reads the state data
      */
     LockState read(DataInput lockFileAccess) throws IOException;
-
-    long readLockId(DataInput dataInput) throws IOException;
 }

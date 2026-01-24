@@ -26,6 +26,7 @@ import org.gradle.cache.FineGrainedCacheCleanupStrategy;
 import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.internal.filelock.DefaultLockOptions;
+import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,16 +38,17 @@ import java.util.function.Supplier;
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 
 /**
- * An implementation of {@link FineGrainedPersistentCache}.
+ * <p>An implementation of {@link FineGrainedPersistentCache}.</p>
  *
  * It uses exclusive locks for cache entries that are immediately released when action finished.
  * This implementation is suitable for work that writes cache entry only once and reads frequently.
  */
+@NullMarked
 public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentCache {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFineGrainedPersistentCache.class);
 
-    private static final LockOptions EXCLUSIVE_LOCKING_MODE = DefaultLockOptions.mode(Exclusive);
+    private static final LockOptions EXCLUSIVE_LOCKING_WITH_LOCK_FILE_SYSTEM_CHECK = DefaultLockOptions.mode(Exclusive).ensureAcquiredLockRepresentsStateOnFileSystem();
 
     private final ProducerGuard<String> guard;
     private final File locksDir;
@@ -67,7 +69,7 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         this.displayName = displayName;
         this.fileLockManager = fileLockManager;
         this.guard = ProducerGuard.adaptive();
-        this.internalDir = new File(baseDir, ".internal");
+        this.internalDir = new File(baseDir, INTERNAL_DIR_PATH);
         this.locksDir = new File(baseDir, LOCKS_DIR_RELATIVE_PATH);
         File gcFile = new File(internalDir, "gc.properties");
         this.cleanupExecutor = new DefaultCacheCleanupExecutor(this, gcFile, cleanupStrategy.getCleanupStrategy());
@@ -117,20 +119,25 @@ public class DefaultFineGrainedPersistentCache implements FineGrainedPersistentC
         });
     }
 
-    private FileLock acquireLock(String key) {
-        FileLock lock = null;
-        while (lock == null) {
-            File lockFile = getLockFile(key);
-            lock = fileLockManager.lock(lockFile, EXCLUSIVE_LOCKING_MODE, displayName, "");
-            // Verify the lock file hasn't been recreated between opening file handle and acquiring the lock.
-            // Skip for new initializations to optimize the first use case. We assume that if we hold the lock,
-            // and we are the first to access it, then no other process was able to delete/recreate the lock file.
-            if (!lock.isFirstLockAccess() && !lock.isValid()) {
-                lock.close();
-                lock = null;
-            }
+    @Override
+    public <T> T withFileLock(String key, Supplier<? extends T> action) {
+        validateKey(key);
+        try (@SuppressWarnings("unused") FileLock lock = acquireLock(key)) {
+            return action.get();
         }
-        return lock;
+    }
+
+    @Override
+    public void withFileLock(String key, Runnable action) {
+        withFileLock(key, () -> {
+            action.run();
+            return null;
+        });
+    }
+
+    private FileLock acquireLock(String key) {
+        File lockFile = getLockFile(key);
+        return fileLockManager.lock(lockFile, EXCLUSIVE_LOCKING_WITH_LOCK_FILE_SYSTEM_CHECK, displayName, "acquireLock");
     }
 
     private File getLockFile(String key) {

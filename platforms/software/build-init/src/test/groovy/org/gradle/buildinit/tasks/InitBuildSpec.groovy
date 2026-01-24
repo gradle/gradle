@@ -66,6 +66,7 @@ class InitBuildSpec extends Specification {
         init.useDefaults.convention(false)
         init.comments.convention(true)
         init.allowFileOverwrite.convention(false)
+        init.projectDirectory.convention(init.layout.projectDirectory)
     }
 
     def "creates project with all defaults"() {
@@ -172,6 +173,21 @@ class InitBuildSpec extends Specification {
 
         then:
         projectName == "newProjectName"
+    }
+
+    def "should use project directory name for project name if not explicitly provided"() {
+        given:
+        defaultGenerator.supportsProjectName() >> true
+        init.projectDirectory.set(init.layout.projectDirectory.dir("other-dir"))
+        def userQuestions = Mock(UserQuestions)
+        // answer with default value
+        userQuestions.askQuestion("Project name", _) >> { it[1] }
+
+        when:
+        def projectName = init.getEffectiveProjectName(userQuestions, defaultGenerator)
+
+        then:
+        projectName == "other-dir"
     }
 
 

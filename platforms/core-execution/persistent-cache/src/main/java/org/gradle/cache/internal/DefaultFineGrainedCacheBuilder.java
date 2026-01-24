@@ -21,10 +21,12 @@ import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FineGrainedCacheBuilder;
 import org.gradle.cache.FineGrainedCacheCleanupStrategy;
 import org.gradle.cache.FineGrainedPersistentCache;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
+@NullMarked
 public class DefaultFineGrainedCacheBuilder implements FineGrainedCacheBuilder {
 
     private final CacheFactory factory;

@@ -49,14 +49,9 @@ public class DefaultLockStateSerializer implements LockStateSerializer {
 
     @Override
     public LockState read(DataInput dataInput) throws IOException {
-        long creationNumber = readLockId(dataInput);
+        long creationNumber = dataInput.readLong();
         long sequenceNumber = dataInput.readLong();
         return new SequenceNumberLockState(creationNumber, sequenceNumber, sequenceNumber);
-    }
-
-    @Override
-    public long readLockId(DataInput dataInput) throws IOException {
-        return dataInput.readLong();
     }
 
     private static class SequenceNumberLockState implements LockState {
