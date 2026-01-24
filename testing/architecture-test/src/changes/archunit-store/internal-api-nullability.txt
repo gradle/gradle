@@ -3458,7 +3458,6 @@ Class <org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider$C
 Class <org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (WorkerProcessClassPathProvider.java:0)
 Class <org.gradle.process.internal.worker.messaging.WorkerConfig> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (WorkerConfig.java:0)
 Class <org.gradle.process.internal.worker.messaging.WorkerConfigSerializer> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (WorkerConfigSerializer.java:0)
-Class <org.gradle.reporting.CodePanelRenderer> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (CodePanelRenderer.java:0)
 Class <org.gradle.reporting.HtmlPageBuilder> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (HtmlPageBuilder.java:0)
 Class <org.gradle.reporting.HtmlReportBuilder> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (HtmlReportBuilder.java:0)
 Class <org.gradle.reporting.HtmlReportRenderer$DefaultHtmlReportContext$DefaultHtmlPageBuilder> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (HtmlReportRenderer.java:0)
