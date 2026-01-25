@@ -16,21 +16,57 @@
 
 package org.gradle.wrapper;
 
+import org.gradle.internal.os.OperatingSystem;
+
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class GradleUserHomeLookup {
-    public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";
+    public static final File DEFAULT_GRADLE_USER_HOME = new File(System.getProperty("user.home") + "/.gradle");
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
     public static final String GRADLE_USER_HOME_ENV_KEY = "GRADLE_USER_HOME";
 
     public static File gradleUserHome() {
-        String gradleUserHome;
-        if ((gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY)) != null) {
-            return new File(gradleUserHome);
+        String gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY);
+        if (gradleUserHome == null) {
+            gradleUserHome = System.getenv(GRADLE_USER_HOME_ENV_KEY);
         }
-        if ((gradleUserHome = System.getenv(GRADLE_USER_HOME_ENV_KEY)) != null) {
-            return new File(gradleUserHome);
+        if (gradleUserHome == null) {
+            File osDataDirectory = osDataDirectory();
+            if (osDataDirectory != null) {
+                File osDataCandidate = new File(osDataDirectory, "Gradle");
+                if (osDataCandidate.isDirectory() || !DEFAULT_GRADLE_USER_HOME.exists()) {
+                    gradleUserHome = osDataCandidate.getAbsolutePath();
+                }
+            }
         }
-        return new File(DEFAULT_GRADLE_USER_HOME);
+        if (gradleUserHome == null) {
+            gradleUserHome = DEFAULT_GRADLE_USER_HOME.getAbsolutePath();
+        }
+        return new File(gradleUserHome);
+    }
+
+    public static @Nullable File osDataDirectory() {
+        OperatingSystem os = OperatingSystem.current();
+        File home = new File(System.getProperty("user.home"));
+        if (os.isMacOsX()) {
+            return new File(home, "Library/Application Support");
+        } else if (os.isWindows()) {
+            String localAppData = System.getenv("LOCALAPPDATA");
+            if (localAppData != null && !localAppData.isEmpty()) {
+                return new File(localAppData);
+            } else {
+                return new File(home, "AppData/Local");
+            }
+        } else if (os.isUnix()) {
+            // Linux, FreeBSD
+            String dataHome = System.getenv("XDG_DATA_HOME");
+            if (dataHome != null && !dataHome.isEmpty()) {
+                return new File(dataHome);
+            } else {
+                return new File(home, ".local/share");
+            }
+        }
+        return null;
     }
 }

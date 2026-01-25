@@ -36,7 +36,8 @@ class GradleUserHomeLookupTest extends Specification {
     @Issue('https://github.com/gradle/gradle-private/issues/2876')
     def "returns default Gradle user home if environment variable or system property isn't defined"() {
         expect:
-        GradleUserHomeLookup.gradleUserHome() == new File(GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME)
+        GradleUserHomeLookup.gradleUserHome() == GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME
+        || GradleUserHomeLookup.gradleUserHome().absolutePath.startsWith(GradleUserHomeLookup.osDataDirectory().absolutePath)
     }
 
     def "returns Gradle user home set by system property"() {
