@@ -16,6 +16,8 @@
 
 package org.gradle.api.reflect;
 
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+
 /**
  * Allows a scriptable object, such as a project extension, to declare its preferred public type.
  *
@@ -23,6 +25,7 @@ package org.gradle.api.reflect;
  *
  * @since 3.5
  */
+@HiddenInDefinition
 public interface HasPublicType {
 
     /**

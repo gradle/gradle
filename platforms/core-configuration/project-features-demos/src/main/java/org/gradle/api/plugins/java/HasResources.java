@@ -17,7 +17,9 @@
 package org.gradle.api.plugins.java;
 
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 
 public interface HasResources {
+    @HiddenInDefinition
     SourceDirectorySet getResources();
 }

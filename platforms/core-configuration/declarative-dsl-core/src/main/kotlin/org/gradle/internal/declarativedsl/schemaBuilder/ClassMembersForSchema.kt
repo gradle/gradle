@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition
+import org.gradle.declarative.dsl.model.annotations.internal.DeclarativeWithHiddenMembers
 import org.gradle.internal.declarativedsl.schemaBuilder.MaybeDeclarativeClassInHierarchy.SuperclassWithMapping
 import org.gradle.internal.declarativedsl.schemaBuilder.MaybeDeclarativeClassInHierarchy.VisibleSuperclassInHierarchy
 import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection.SupportedType
@@ -54,6 +55,10 @@ internal fun collectMembersForSchema(host: SchemaBuildingHost, kClass: KClass<*>
         val unsupported: MutableMap<KClass<*>, MutableList<ClassMembersForSchema.NonDeclarativeMember>> = mutableMapOf()
 
         supertypesWithMapping.forEach { supertype ->
+            if (!isValidMemberHolderType(supertype.superClass)) {
+                return@forEach
+            }
+
             host.inContextOfModelClass(supertype.superClass) {
                 when (supertype) {
                     is SuperclassWithMapping -> {
@@ -74,6 +79,13 @@ internal fun collectMembersForSchema(host: SchemaBuildingHost, kClass: KClass<*>
     }
 }
 
+private fun isValidMemberHolderType(kClass: KClass<*>): Boolean = when {
+    kClass.qualifiedName?.startsWith("kotlin.") == true -> false
+    kClass.java.name.startsWith("java.") -> false
+    kClass.java.name.startsWith("org.gradle") && kClass.annotations.any { it is DeclarativeWithHiddenMembers } -> false
+    else -> true
+}
+
 private typealias TypeVariableAssignments = Map<KTypeParameter, SupportedType>
 
 fun TypeVariableAssignments.applyTo(supportedType: SupportedTypeProjection): SupportedTypeProjection =
@@ -86,7 +98,7 @@ fun TypeVariableAssignments.applyTo(supportedType: SupportedTypeProjection): Sup
 fun TypeVariableAssignments.applyToType(supportedType: SupportedType): SupportedType =
     when (supportedType.classifier) {
         is KTypeParameter -> this[supportedType.classifier] ?: supportedType
-        else -> SupportedType(supportedType.classifier, supportedType.arguments.map { applyTo(it) })
+        else -> SupportedType(supportedType.classifier, supportedType.isMarkedNullable, supportedType.arguments.map { applyTo(it) })
     }
 
 private sealed class TypeVariableAssignmentsIfSupported {
@@ -249,7 +261,7 @@ internal fun collectDeclarativeSuperclassHierarchy(kClass: KClass<*>): Iterable<
         }
     }
 
-    val root = VisibleSuperclassInHierarchy(kClass, kClass.typeParameters.associateWith { SupportedType(it, emptyList()) })
+    val root = VisibleSuperclassInHierarchy(kClass, kClass.typeParameters.associateWith { SupportedType(it, isMarkedNullable = false, arguments = emptyList()) })
     visit(root, null)
 
     val visible = checkDefinitionVisibilityInHierarchy(root, reachedFrom)
@@ -328,10 +340,7 @@ private fun checkDefinitionVisibilityInHierarchy(
 }
 
 private fun isVisibleDeclarativeDefinitionClass(kClass: KClass<*>): Boolean = when {
-    kClass == Any::class -> false
-    kClass == Iterable::class -> false
     kClass.annotations.any { it is HiddenInDefinition } -> false
-    kClass.java.name.startsWith("java.") || kClass.java.name.startsWith("kotlin.") -> false
     else -> true
 }
 
@@ -364,14 +373,13 @@ fun KTypeProjection.asSupported(): SupportedTypeProjection? {
 }
 
 fun KType.asSupported(): SupportedType? = when {
-    isMarkedNullable -> null
     classifier == null -> null
     else -> {
         val args = arguments.mapNotNull { it.asSupported() }
         if (args.size != arguments.size) { // i.e., there is an unsupported argument
             null
         } else {
-            SupportedType(classifier!!, args)
+            SupportedType(classifier!!, isMarkedNullable, args)
         }
     }
 }
@@ -381,7 +389,7 @@ sealed class SupportedTypeProjection {
      * Represents a DCL-supported concrete type, or, when used as a type projection, an invariant type.
      */
     data class ProjectedType(val variance: KVariance, val type: SupportedType) : SupportedTypeProjection()
-    data class SupportedType(val classifier: KClassifier, val arguments: List<SupportedTypeProjection>) : SupportedTypeProjection()
+    data class SupportedType(val classifier: KClassifier, val isMarkedNullable: Boolean, val arguments: List<SupportedTypeProjection>) : SupportedTypeProjection()
     object StarProjection : SupportedTypeProjection()
 }
 
@@ -394,7 +402,7 @@ fun SupportedType.toKType(): KType =
                 is SupportedType -> KTypeProjection(variance = KVariance.INVARIANT, type = argType.toKType())
             }
         },
-        annotations = emptyList(), nullable = false
+        annotations = emptyList(), nullable = isMarkedNullable
     )
 
 data class SupportedKParameter(

@@ -385,13 +385,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "declarative-dsl-internal-utils",
-    "path": "platforms/core-configuration/declarative-dsl-internal-utils",
-    "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "declarative-dsl-provider",
     "path": "platforms/core-configuration/declarative-dsl-provider",
     "unitTests": true,
