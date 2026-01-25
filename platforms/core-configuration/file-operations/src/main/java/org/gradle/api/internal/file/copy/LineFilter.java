@@ -16,18 +16,17 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Transformer;
-import org.gradle.internal.SystemProperties;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 
 public class LineFilter extends Reader {
-    private static enum State {
+    private enum State {
         NORMAL,
         SKIP_LINE,
         EOF
-    };
+    }
 
     private final Transformer<String, String> transformer;
     private String transformedLine;
@@ -51,6 +50,7 @@ public class LineFilter extends Reader {
     private void readTransformedLine() throws IOException {
         StringBuilder line = new StringBuilder();
         boolean eol = false;
+        boolean crlfSeparator = false;
         int ch;
         while (!eol && (ch = bufferedIn.read()) >= 0) {
             if (ch == '\n') {
@@ -60,6 +60,8 @@ public class LineFilter extends Reader {
                 bufferedIn.mark(1);
                 if (bufferedIn.read() != '\n') {
                     bufferedIn.reset();
+                } else {
+                    crlfSeparator = true;
                 }
             } else {
                 line.append((char) ch);
@@ -77,7 +79,11 @@ public class LineFilter extends Reader {
         StringBuilder builder = new StringBuilder();
         builder.append(result);
         if (eol) {
-            builder.append(SystemProperties.getInstance().getLineSeparator());
+            if (crlfSeparator) {
+                builder.append("\r\n");
+            } else {
+                builder.append('\n');
+            }
         }
         state = State.NORMAL;
         transformedLine = builder.toString();
