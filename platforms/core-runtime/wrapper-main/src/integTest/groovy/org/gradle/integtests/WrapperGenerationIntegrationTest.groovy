@@ -172,6 +172,22 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("networkTimeout=7000")
     }
 
+    def "generated wrapper scripts for given retries from command-line"() {
+        when:
+        run "wrapper", "--retries", "5"
+
+        then:
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("retries=5")
+    }
+
+    def "generated wrapper scripts for given retry timeout from command-line"() {
+        when:
+        run "wrapper", "--retry-timeout-ms", "5000"
+
+        then:
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("retryTimeoutMs=5000")
+    }
+
     def "wrapper JAR does not contain version in manifest"() {
         when:
         run "wrapper"

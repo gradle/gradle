@@ -50,7 +50,7 @@ public class Install {
 
     public static final int MIN_RETRIES = 0;
     public static final int MAX_RETRIES = 10;
-    public static final int MIN_RETRY_TIMEOUT_MS = 3000;
+    public static final int MIN_RETRY_TIMEOUT_MS = 2000;
     public static final int MAX_RETRY_TIMEOUT_MS = 60000;
 
     private final Logger logger;

@@ -14,7 +14,7 @@
 
 [[gradle_wrapper]]
 = Gradle Wrapper
-:keywords: wrapper, distributionUrl, gradle-version, systemProp.gradle.wrapperUser, systemProp.gradle.wrapperPassword, gradle-wrapper.jar, gradle-wrapper.properties, gradlew, gradlew.bat, gradle-version, distribution-type, gradle-distribution-url, gradle-distribution-sha256-sum, network-timeout, no-validate-url, validate-url,
+:keywords: wrapper, distributionUrl, gradle-version, systemProp.gradle.wrapperUser, systemProp.gradle.wrapperPassword, gradle-wrapper.jar, gradle-wrapper.properties, gradlew, gradlew.bat, gradle-version, distribution-type, gradle-distribution-url, gradle-distribution-sha256-sum, network-timeout, no-validate-url, validate-url, retries, retry-timeout-ms
 
 The **recommended way to execute any Gradle build** is with the help of the Gradle Wrapper (referred to as "Wrapper").
 
@@ -133,6 +133,12 @@ Disables the validation of the configured distribution URL.
 
 `--validate-url`::
 Enables the validation of the configured distribution URL. Enabled by default.
+
+`--retries`::
+The number of retries to attempt when downloading the Gradle distribution. The default value is `0`.
+
+`--retry-timeout-ms`::
+The timeout in milliseconds to wait between download retries. The default value is `2000`.
 
 If the distribution URL is configured with `--gradle-version` or `--gradle-distribution-url`, the URL is validated by sending a HEAD request in the case of the `https` scheme or by checking the existence of the file in the case of the `file` scheme.
 

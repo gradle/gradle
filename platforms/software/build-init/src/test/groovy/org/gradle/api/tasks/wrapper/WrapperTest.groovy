@@ -159,6 +159,22 @@ class WrapperTest extends AbstractTaskTest {
         5000 == wrapper.getNetworkTimeout().get()
     }
 
+    def "uses defined retries"() {
+        given:
+        wrapper.setRetries(5)
+
+        expect:
+        5 == wrapper.getRetries().get()
+    }
+
+    def "uses defined retry timeout"() {
+        given:
+        wrapper.setRetryTimeoutMs(5000)
+
+        expect:
+        5000 == wrapper.getRetryTimeoutMs().get()
+    }
+
     def "uses defined validateDistributionUrl value"() {
         when:
         wrapper.setValidateDistributionUrl(false)

@@ -416,7 +416,9 @@ public abstract class InitBuild extends DefaultTask {
             unixScript, WrapperGenerator.getBatchScript(unixScript),
             distributionUrl,
             true,
-            WrapperDefaults.NETWORK_TIMEOUT
+            WrapperDefaults.NETWORK_TIMEOUT,
+            WrapperDefaults.RETRIES,
+            WrapperDefaults.RETRY_TIMEOUT_MS
         );
     }
 

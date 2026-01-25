@@ -105,6 +105,8 @@ public abstract class Wrapper extends DefaultTask {
     private String archivePath = WrapperDefaults.ARCHIVE_PATH;
     private PathBase archiveBase = WrapperDefaults.ARCHIVE_BASE;
     private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
+    private final Property<Integer> retries = getProject().getObjects().property(Integer.class);
+    private final Property<Integer> retryTimeoutMs = getProject().getObjects().property(Integer.class);
     private boolean distributionUrlConfigured = false;
     private final boolean isOffline = getProject().getGradle().getStartParameter().isOffline();
 
@@ -135,7 +137,9 @@ public abstract class Wrapper extends DefaultTask {
             unixScript, getBatchScript(),
             getDistributionUrl(),
             getValidateDistributionUrl().get(),
-            networkTimeout.getOrNull()
+            networkTimeout.getOrNull(),
+            retries.getOrNull(),
+            retryTimeoutMs.getOrNull()
         );
     }
 
@@ -497,6 +501,36 @@ public abstract class Wrapper extends DefaultTask {
     @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations.")
     public Property<Integer> getNetworkTimeout() {
         return networkTimeout;
+    }
+
+    /**
+     * The number of retries to attempt when downloading the Gradle distribution.
+     *
+     * If a download fails, the wrapper will attempt to download it again up to the specified number of times.
+     *
+     * @return The number of retries property.
+     */
+    @Input
+    @Incubating
+    @Optional
+    @Option(option = "retries", description = "The number of download retries.")
+    public Property<Integer> getRetries() {
+        return retries;
+    }
+
+    /**
+     * The timeout in milliseconds to wait between download retries.
+     *
+     * After a failed download attempt, the wrapper will wait for this amount of time before attempting the next retry.
+     *
+     * @return The retry timeout property in milliseconds.
+     */
+    @Input
+    @Incubating
+    @Optional
+    @Option(option = "retry-timeout-ms", description = "The timeout in milliseconds between retries.")
+    public Property<Integer> getRetryTimeoutMs() {
+        return retryTimeoutMs;
     }
 
     /**
