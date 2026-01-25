@@ -35,9 +35,94 @@ class GradleUserHomeLookupTest extends Specification {
     @Requires(UnitTestPreconditions.NotEC2Agent)
     @Issue('https://github.com/gradle/gradle-private/issues/2876')
     def "returns default Gradle user home if environment variable or system property isn't defined"() {
+        given:
+        def originalGUH = GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME
+        def mockGUH = GroovyMock(File, constructorArgs: [originalGUH.absolutePath])
+        mockGUH.exists() >> true
+        mockGUH.getAbsolutePath() >> originalGUH.absolutePath
+        GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME = mockGUH
+
+        def originalOSCandidate = new File(GradleUserHomeLookup.osDataDirectory(), "Gradle")
+        def mockOSCandidate = GroovyMock(File, constructorArgs: [originalOSCandidate.absolutePath])
+        mockOSCandidate.isDirectory() >> false
+        mockOSCandidate.getAbsolutePath() >> originalOSCandidate.absolutePath
+        GradleUserHomeLookup.osDataCandidate = mockOSCandidate
+
         expect:
-        GradleUserHomeLookup.gradleUserHome() == GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME
-        || GradleUserHomeLookup.gradleUserHome().absolutePath.startsWith(GradleUserHomeLookup.osDataDirectory().absolutePath)
+        GradleUserHomeLookup.gradleUserHome() == originalGUH
+
+        cleanup:
+        GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME = originalGUH
+        GradleUserHomeLookup.osDataCandidate = originalOSCandidate
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/2805')
+    def "returns OS-specific user home if ~/.gradle does not exist"() {
+        given:
+        def originalGUH = GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME
+        def mockGUH = GroovyMock(File, constructorArgs: [originalGUH.absolutePath])
+        mockGUH.exists() >> false
+        mockGUH.getAbsolutePath() >> originalGUH.absolutePath
+        GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME = mockGUH
+
+        def originalOSCandidate = new File(GradleUserHomeLookup.osDataDirectory(), "Gradle")
+        def mockOSCandidate = GroovyMock(File, constructorArgs: [originalOSCandidate.absolutePath])
+        mockOSCandidate.isDirectory() >> true
+        mockOSCandidate.getAbsolutePath() >> originalOSCandidate.absolutePath
+        GradleUserHomeLookup.osDataCandidate = mockOSCandidate
+
+        expect:
+        GradleUserHomeLookup.gradleUserHome() == originalOSCandidate
+
+        cleanup:
+        GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME = originalGUH
+        GradleUserHomeLookup.osDataCandidate = originalOSCandidate
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/2805')
+    def "if the OS-specific gradle home and ~/.gradle exist, pick the OS-specific home"() {
+        given:
+        def originalGUH = GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME
+        def mockGUH = GroovyMock(File, constructorArgs: [originalGUH.absolutePath])
+        mockGUH.exists() >> true
+        mockGUH.getAbsolutePath() >> originalGUH.absolutePath
+        GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME = mockGUH
+
+        def originalOSCandidate = new File(GradleUserHomeLookup.osDataDirectory(), "Gradle")
+        def mockOSCandidate = GroovyMock(File, constructorArgs: [originalOSCandidate.absolutePath])
+        mockOSCandidate.isDirectory() >> true
+        mockOSCandidate.getAbsolutePath() >> originalOSCandidate.absolutePath
+        GradleUserHomeLookup.osDataCandidate = mockOSCandidate
+
+        expect:
+        GradleUserHomeLookup.gradleUserHome() == originalOSCandidate
+
+        cleanup:
+        GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME = originalGUH
+        GradleUserHomeLookup.osDataCandidate = originalOSCandidate
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/2805')
+    def "if neither the OS-specific gradle home nor ~/.gradle exist, pick the OS-specific home"() {
+        given:
+        def originalGUH = GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME
+        def mockGUH = GroovyMock(File, constructorArgs: [originalGUH.absolutePath])
+        mockGUH.exists() >> false
+        mockGUH.getAbsolutePath() >> originalGUH.absolutePath
+        GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME = mockGUH
+
+        def originalOSCandidate = new File(GradleUserHomeLookup.osDataDirectory(), "Gradle")
+        def mockOSCandidate = GroovyMock(File, constructorArgs: [originalOSCandidate.absolutePath])
+        mockOSCandidate.isDirectory() >> false
+        mockOSCandidate.getAbsolutePath() >> originalOSCandidate.absolutePath
+        GradleUserHomeLookup.osDataCandidate = mockOSCandidate
+
+        expect:
+        GradleUserHomeLookup.gradleUserHome() == originalOSCandidate
+
+        cleanup:
+        GradleUserHomeLookup.DEFAULT_GRADLE_USER_HOME = originalGUH
+        GradleUserHomeLookup.osDataCandidate = originalOSCandidate
     }
 
     def "returns Gradle user home set by system property"() {

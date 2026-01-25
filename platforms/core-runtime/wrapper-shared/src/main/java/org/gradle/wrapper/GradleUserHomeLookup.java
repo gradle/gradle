@@ -18,23 +18,27 @@ package org.gradle.wrapper;
 
 import org.gradle.internal.os.OperatingSystem;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class GradleUserHomeLookup {
-    public static final File DEFAULT_GRADLE_USER_HOME = new File(System.getProperty("user.home") + "/.gradle");
+    public static File DEFAULT_GRADLE_USER_HOME = new File(System.getProperty("user.home") + "/.gradle");
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
     public static final String GRADLE_USER_HOME_ENV_KEY = "GRADLE_USER_HOME";
 
+    private static File osDataCandidate;
     public static File gradleUserHome() {
         String gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY);
         if (gradleUserHome == null) {
             gradleUserHome = System.getenv(GRADLE_USER_HOME_ENV_KEY);
         }
         if (gradleUserHome == null) {
-            File osDataDirectory = osDataDirectory();
-            if (osDataDirectory != null) {
-                File osDataCandidate = new File(osDataDirectory, "Gradle");
+            if (osDataCandidate == null) {
+                File osDataDirectory = osDataDirectory();
+                if (osDataDirectory != null) {
+                    osDataCandidate = new File(osDataDirectory, "Gradle");
+                }
+            }
+            if (osDataCandidate != null) {
                 if (osDataCandidate.isDirectory() || !DEFAULT_GRADLE_USER_HOME.exists()) {
                     gradleUserHome = osDataCandidate.getAbsolutePath();
                 }
@@ -46,7 +50,7 @@ public class GradleUserHomeLookup {
         return new File(gradleUserHome);
     }
 
-    public static @Nullable File osDataDirectory() {
+    public static File osDataDirectory() {
         OperatingSystem os = OperatingSystem.current();
         File home = new File(System.getProperty("user.home"));
         if (os.isMacOsX()) {
