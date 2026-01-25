@@ -153,11 +153,18 @@ public class Install {
                     retryTimeoutMs,
                     lastExceptionMessage));
 
-                Thread.sleep(retryTimeoutMs);
+                waitFor(retryTimeoutMs);
             }
         } while (failed);
     }
 
+    private static void waitFor(int timeoutMs) {
+        try {
+            Thread.sleep(timeoutMs);
+        } catch (InterruptedException ex) {
+            // empty
+        }
+    }
 
     private String fetchDistributionSha256Sum(WrapperConfiguration configuration, File localZipFile) {
         URI distribution = configuration.getDistribution();
