@@ -70,7 +70,7 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
         and:
         // 255 is the filesystem limit on many systems, so we limit to that.
         def htmlReportName = buildSafeFileName("", "-39OAC63KMJT6O") + "/index.html"
-        def xmlReportName = buildSafeFileName("TEST-", "-VDVVE6CE3E5C8.xml")
+        def xmlReportName = buildSafeFileName("TEST-", "-5KFS1VR5035J6.xml")
         // These do an `any` check to give a better error message on failure
         file("build/reports/tests/test/").assertContainsDescendants(htmlReportName)
         file("build/test-results/test/").assertContainsDescendants(xmlReportName)

@@ -128,7 +128,7 @@ public class Binary2JUnitXmlReportGenerator {
 
     private static String getReportFileName(String className, int index) {
         String suffix = index > 0 ? "-" + index : "";
-        return SafeFileLocationUtils.toSafeFileName(REPORT_FILE_PREFIX + className + suffix + REPORT_FILE_EXTENSION, false);
+        return SafeFileLocationUtils.toSafeFileName(REPORT_FILE_PREFIX, className + suffix + REPORT_FILE_EXTENSION, false);
     }
 
     private static class JUnitXmlReportFileGenerator implements RunnableBuildOperation {
