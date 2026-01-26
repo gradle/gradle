@@ -1,0 +1,22 @@
+// tag::accessing-project-inside-task-setup[]
+abstract class MyTask extends DefaultTask {
+
+    @OutputFile
+    abstract RegularFileProperty getMyOutput()
+
+    @TaskAction
+    void doAction() {
+        def outputFile = myOutput.get().asFile
+        def outputText = "Current version is: ${project.version}" // <1>
+        println(outputText)
+        outputFile.write(outputText)
+    }
+}
+
+// end::accessing-project-inside-task-setup[]
+
+// tag::avoid-this[]
+tasks.register("avoidThis", MyTask) {
+    myOutput = new File(layout.buildDirectory.get().asFile, "output-avoid.txt")  // <2>
+}
+// end::avoid-this[]

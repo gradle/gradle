@@ -555,3 +555,57 @@ Now when running `consumer` task, then `greeterB`, the `consumer` task remains `
 
 === Tags
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`
+
+[[dont_access_project_instance_inside_task]]
+== Don't access a Project instance inside a task
+
+Do not access a Project instance inside a task constructor, task action, or task property.
+
+=== Explanation
+
+Accessing any Project objects is not compatible with the Configuration Cache and should be avoided.
+Alternatives exist for most valid use cases that involve data or operations from the Project object:
+
+- specifying the inputs you were using Project instance for as an explicit task input,
+- using injected services, such as `ObjectFactory`, `ProviderFactory`, and others,
+- or accessing similar functionality exposed through the Task object (e.g. `Task.logger` instead of `Project.logger`).
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/dontAccessProject-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/dontAccessProject-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Set the task's outputDirectory to the project's buildDirectory by default*: The task's initializer accesses the Project instance to read the directory location.
+<2> *Write the project version to a file*: Inside the task's action, again the Project instance is accessed, this time to read the `version` property.
+
+There are to main problems with this setup:
+
+- Accessing the Project instance from during task execution will cause Configuration Cache failures
+- Furthermore, because these values are not marked as formal inputs for the task, this will cause up-to-date checks to produce incorrect results when the value changes.
+
+==== Do This Instead
+
+To avoid issues, avoid using accessing the Project instance directly during task construction or execution.
+
+Instead, tasks should declare all injected services and task inputs explicitly.
+
+====
+include::sample[dir="snippets/bestPractices/dontAccessProject-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/dontAccessProject-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Explicitly declare the version as an input property*: That way, Gradle can track the version string provided to the task for up-to-date checks.
+<2> *Set the task's outputDirectory to the project's buildDirectory by default*: Use the `ProjectLayout` service that was injected through the task constructor to avoid accessing Project directly.
+<3> *Assign the value of Project.version to the task input*: It's allowed to read the project version during the configuration phase, and here it's assigned to the formal input of the task.
+<4> *Assign a location for the output of the task*: Similarly, we can use the Project's layout property during configuration to customize the output location.
+
+Now, when running the task, there are no "hidden inputs" that Gradle cannot track, meaning that up-to-date checks will be able to distinguish when a task needs to run again.
+
+There is also no direct access to the Project object after the task has been configured, which means the Configuration Cache is able to work properly.
+
+=== Tags
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`
