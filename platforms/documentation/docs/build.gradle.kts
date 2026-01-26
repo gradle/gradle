@@ -1,5 +1,4 @@
 import gradlebuild.basics.configurationCacheEnabledForDocsTests
-import gradlebuild.basics.googleApisJs
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runBrokenForConfigurationCacheDocsTests
 import gradlebuild.basics.util.getSingleFileProvider
@@ -36,10 +35,6 @@ androidHomeWarmup {
             SdkVersion(compileSdk = 28, buildTools = "35.0.0", agpVersion = "8.9.0"),
         ),
     )
-}
-
-repositories {
-    googleApisJs()
 }
 
 configurations {
@@ -80,8 +75,6 @@ dependencies {
     userGuideTask("net.sf.xslthl:xslthl:2.0.1")
 
     userGuideStyleSheets("net.sf.docbook:docbook-xsl:1.75.2:resources@zip")
-
-    jquery("jquery:jquery.min:3.5.1@js")
 
     testImplementation(project(":base-services"))
     testImplementation(project(":core"))

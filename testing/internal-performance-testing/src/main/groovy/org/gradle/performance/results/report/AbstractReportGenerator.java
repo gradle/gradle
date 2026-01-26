@@ -90,7 +90,7 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
                 renderScenarioPage(projectName, outputDirectory, testResults);
             });
 
-        copyResource("jquery.min-3.5.1.js", outputDirectory);
+        copyResource("jquery.min-3.7.1.js", outputDirectory);
         copyResource("flot-0.8.1-min.js", outputDirectory);
         copyResource("flot.selection.min.js", outputDirectory);
         copyResource("style.css", outputDirectory);

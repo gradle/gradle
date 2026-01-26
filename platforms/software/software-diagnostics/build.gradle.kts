@@ -1,3 +1,5 @@
+import gradlebuild.basics.googleApisJs
+
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.instrumented-java-project")
@@ -6,6 +8,12 @@ plugins {
 description = """Reports related to the dependency management functionality used
 in the Gradle builds of software projects.  Any reports or reporting tasks related to or dependent upon
 dependency management types should be included here."""
+
+val implementationResources: Configuration by configurations.creating
+
+repositories {
+    googleApisJs()
+}
 
 dependencies {
     api(projects.baseDiagnostics)
@@ -37,6 +45,8 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.jatl)
 
+    implementationResources("jquery:jquery.min:3.7.1@js")
+
     testFixturesApi(testFixtures(projects.platformNative))
     testFixturesApi(testFixtures(projects.logging))
     testFixturesImplementation(projects.baseServices)
@@ -65,6 +75,22 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/api/reporting/dependencies/internal/*")
     excludePatterns.add("org/gradle/api/plugins/internal/*")
+}
+
+val reportResources = tasks.register<Copy>("reportResources") {
+    from(implementationResources)
+    into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/api/tasks/diagnostics/htmldependencyreport"))
+    rename { oldName ->
+        oldName.split("-").first() + ".js"
+    }
+}
+
+tasks.processResources.configure {
+    dependsOn(reportResources)
+}
+
+sourceSets.main {
+    output.dir(layout.buildDirectory.file("generated-resources/report-resources"))
 }
 
 tasks.isolatedProjectsIntegTest {

@@ -922,9 +922,9 @@
             <pgp value="B41089A2DA79B0FA5810252872385FF0AF338D52"/>
          </artifact>
       </component>
-      <component group="jquery" name="jquery.min" version="3.5.1">
-         <artifact name="jquery.min-3.5.1.js">
-            <sha256 value="f7f6a5894f1d19ddad6fa392b2ece2c5e578cbf7da4ea805b6885eb6985b6e3d" origin="Verified" reason="Artifact is not signed"/>
+      <component group="jquery" name="jquery.min" version="3.7.1">
+         <artifact name="jquery.min-3.7.1.js">
+            <sha256 value="fc9a93dd241f6b045cbff0481cf4e1901becd0e12fb45166a8f17f95823f0b1a" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="junit" name="junit" version="4.12">
