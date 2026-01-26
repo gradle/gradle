@@ -28,8 +28,6 @@ import org.gradle.internal.serialize.graph.decodeBean
 import org.gradle.internal.serialize.graph.decodePreservingSharedIdentity
 import org.gradle.internal.serialize.graph.encodeBean
 import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
-import org.gradle.internal.serialize.graph.readFile
-import org.gradle.internal.serialize.graph.writeFile
 
 
 class PathToFileResolverCodec(
