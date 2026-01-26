@@ -202,7 +202,7 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends ToolingApiSpecificatio
         fails { model(it) }
 
         then:
-        def e = thrown(BuildException)
+         def e = thrown(BuildException)
         e.cause.message.contains("Script compilation error")
         def model = modelCollector.model
         assertFailures(model, *expectedFailures)
@@ -219,14 +219,14 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends ToolingApiSpecificatio
 
         "buildSrc/settings.gradle.kts"          | true
                 | [
-                    ".*Settings file.*buildSrc/settings\\.gradle\\.kts.*Script compilation error.*"
+                    ".*Settings file.*buildSrc\\" + File.separatorChar + "settings\\.gradle\\.kts.*Script compilation error.*"
                 ]
                 | []
                 | ["buildSrc"]
 
         "buildSrc/build.gradle.kts"             | true
                 | [
-                    ".*Build file.*buildSrc/build\\.gradle\\.kts.*Script compilation error.*",
+                    ".*Build file.*buildSrc\\" + File.separatorChar + "build\\.gradle\\.kts.*Script compilation error.*",
                     "A problem occurred configuring project ':buildSrc'.",
                 ]
                 | []
@@ -234,14 +234,14 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends ToolingApiSpecificatio
 
         "buildSrc-included/settings.gradle.kts" | true
                 | [
-                    ".*Settings file.*buildSrc-included/settings\\.gradle\\.kts.*Script compilation error.*"
+                    ".*Settings file.*buildSrc-included\\" + File.separatorChar + "settings\\.gradle\\.kts.*Script compilation error.*"
                 ]
                 | ["UNKNOWN"]
                 | ["buildSrc", "UNKNOWN"]
 
         "buildSrc-included/build.gradle.kts"    | true
                 | [
-                    ".*Build file.*buildSrc-included/build\\.gradle\\.kts.*Script compilation error.*",
+                    ".*Build file.*buildSrc-included\\" + File.separatorChar + "build\\.gradle\\.kts.*Script compilation error.*",
                     "A problem occurred configuring project ':buildSrc-included'.",
                 ]
                 | []
