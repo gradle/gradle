@@ -94,6 +94,7 @@ class TestTest extends AbstractConventionTaskTest {
         test.getReports().getHtml().outputLocation.getOrNull() == null
         test.getIncludes().isEmpty()
         test.getExcludes().isEmpty()
+        test.getFailOnNoMatchingTests()
         !test.getIgnoreFailures()
         !test.getFailFast()
     }
