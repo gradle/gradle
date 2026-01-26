@@ -171,6 +171,46 @@ plugins {
 
 === Potential breaking changes
 
+==== Referential equality is not guaranteed for `Project` instances
+
+Instances of `Project` type representing the same logical Gradle project do not provide any guarantee of being equal by reference (`==` in Java, `===` in Kotlin).
+However, historically it was possible to observe that such `Project` instances were exactly the same.
+
+In Gradle 9.3.0, `Project` instances (for the same logical project) **can be different** with respect to the referential equality,
+even if obtained within the same context, e.g., in the same build script.
+This change is necessary to facilitate future performance improvements of Gradle.
+The `Project.equals()` equality behavior remains unchanged.
+
+Avoid referential equality in Kotlin:
+
+.build.gradle.kts
+[source,kotlin]
+----
+// DON'T do this
+project.rootProject === project.parent
+----
+
+Avoid referential equality in Groovy:
+
+.build.gradle
+[source,groovy]
+----
+// DON'T do this
+project.rootProject.is(project.parent)
+----
+
+Avoid referential equality in Java:
+
+MyPlugin.java
+[source,java]
+----
+// DON'T do this
+project.getRootProject() == project.getParent();
+----
+
+In general, it is better to check project equality via `Project.getPath()` or `Project.getBuildTreePath()` for composite-build support.
+The paths are also better suited to be keys in data structures, like maps.
+
 ==== TestNG output may change when using versions before 6.9.13.3
 
 As part of the `AbstractTestTask` refactoring, Gradle’s integration with TestNG has been updated.
