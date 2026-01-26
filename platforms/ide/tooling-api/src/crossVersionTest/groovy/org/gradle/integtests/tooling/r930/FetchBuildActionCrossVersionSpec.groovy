@@ -62,16 +62,22 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
+
+        if(targetVersion < GradleVersion.version("8.9") && expectedCause == "Unexpected input") {
+            expectedCause = "Could not compile settings file"
+        }
+
         result.modelValue == null
         result.causes.size() == 1
-        result.causes[0].contains(cause)
+        result.causes[0].contains(expectedCause)
 
         where:
-        description          | error                                                        | cause                     | dsl
-        "script compilation" | "broken !!!"                                                 | "Unexpected input"        | GROOVY
-        "runtime exception"  | """throw RuntimeException("broken settings script")"""       | "broken settings script"  | GROOVY
-        "script compilation" | "broken !!!"                                                 | "broken !!!"              | KOTLIN
-        "runtime exception"  | """throw RuntimeException("broken settings script")"""       | "broken settings script"  | KOTLIN
+        description          | error                                                  | expectedCause               | dsl
+        "script compilation" | "broken !!!"                                           | "Unexpected input"          | GROOVY
+        "runtime exception"  | """throw RuntimeException("broken settings script")""" | "broken settings script"    | GROOVY
+        "script compilation" | "broken !!!"                                           | "broken !!!"                | KOTLIN
+        "runtime exception"  | """throw RuntimeException("broken settings script")""" | "broken settings script"    | KOTLIN
+
     }
 
     def "can request unknown model"() {
@@ -136,6 +142,12 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
+
+        if(targetVersion < GradleVersion.version("8.9") && cause == "Could not compile build file ") {
+            cause = "Could not open cp_proj generic class cache for"
+        }
+
+
         result.modelValue == null
         result.failureMessages == ["A problem occurred configuring root project 'root'."]
         result.causes.size() == 1
@@ -238,7 +250,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
                 : "Could not open cp_settings generic class cache for settings file"
             result.failureMessages[0].contains("Script compilation error:")
         } else {
-            expectedFailure = "Script compilation error:"
+            expectedFailure = "Script compilation error"
         }
         result.failureMessages[0].contains(expectedFailure)
 
