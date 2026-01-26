@@ -1,0 +1,27 @@
+import javax.inject.Inject
+
+// tag::do-this[]
+abstract class VersionTask extends DefaultTask {
+    @Input
+    abstract Property<String> getVersion() // <1>
+
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDirectory()
+
+    @Inject VersionTask(ProjectLayout projectLayout) {
+        outputDirectory.convention(projectLayout.buildDirectory) // <2>
+    }
+
+    @TaskAction
+    void run() {
+        def outFileName = "build_version.txt"
+        outputDirectory.file(outFileName).get().asFile.text = version.get()
+    }
+}
+
+tasks.register("generateVersionFile", VersionTask) {
+    version = project.version // <3>
+    outputDirectory = project.layout.buildDirectory.dir("build-info") // <4>
+}
+
+// end::do-this[]
