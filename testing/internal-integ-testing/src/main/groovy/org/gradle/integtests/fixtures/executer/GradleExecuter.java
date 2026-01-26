@@ -468,6 +468,11 @@ public interface GradleExecuter extends Stoppable {
     GradleDistribution getDistribution();
 
     /**
+     * Get the build context that this executer was created with.
+     */
+    IntegrationTestBuildContext getBuildContext();
+
+    /**
      * Copies the settings from this executer to the given executer.
      *
      * @param executer The executer to copy to

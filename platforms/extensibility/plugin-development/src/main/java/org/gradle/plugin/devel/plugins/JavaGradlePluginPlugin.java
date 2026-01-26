@@ -42,6 +42,7 @@ import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.Copy;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
@@ -52,6 +53,8 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.buildoption.InternalFlag;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
@@ -449,11 +452,19 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
             Set<SourceSet> testSourceSets = extension.getTestSourceSets();
             project.getNormalization().getRuntimeClasspath().ignore(PluginUnderTestMetadata.METADATA_FILE_NAME);
 
+            GradleInstallation gradleInstallation = ((ProjectInternal) project).getServices().get(CurrentGradleInstallation.class).getInstallation();
             project.getTasks().withType(Test.class).configureEach(test -> {
                 test.getInputs()
                     .files(pluginClasspathTask.get().getPluginClasspath())
                     .withPropertyName("pluginClasspath")
                     .withNormalizer(ClasspathNormalizer.class);
+
+                if (gradleInstallation != null) {
+                    test.getInputs()
+                        .dir(gradleInstallation.getGradleHome())
+                        .withPathSensitivity(PathSensitivity.RELATIVE)
+                        .withPropertyName("gradleHome");
+                }
 
                 test.getJvmArgumentProviders().add(new AddOpensCommandLineArgumentProvider(test));
             });
