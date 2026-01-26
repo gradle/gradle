@@ -27,6 +27,7 @@ dependencies {
 
     implementation(libs.guava)
     implementation(projects.baseServices)
+    implementation(projects.logging)
 
     integTestImplementation(projects.internalTesting)
     integTestImplementation(testFixtures(projects.logging))

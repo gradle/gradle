@@ -523,7 +523,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
 
         void appendDetails() {
-            renderStyledError(failure.withoutProblems(), details);
+            renderStyledError(failure, details);
         }
 
         void renderStackTrace() {
