@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package gradlebuild.docs
 
 import javax.xml.parsers.DocumentBuilder
@@ -26,6 +27,13 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 
+/**
+ * XInclude-aware DOM utility for the docs build.
+ *
+ * Loads an XML file with JAXP DOM using a `DocumentBuilderFactory` configured to be
+ * `namespace-aware` and `XInclude-aware`, so `<xi:include/>` directives are resolved
+ * during parsing (useful for DocBook/Asciidoc pipelines that assemble content from fragments).
+ */
 class XIncludeAwareXmlProvider {
 
     Document root
