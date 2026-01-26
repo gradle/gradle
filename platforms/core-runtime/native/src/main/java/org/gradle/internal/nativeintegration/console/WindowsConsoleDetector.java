@@ -28,7 +28,16 @@ public class WindowsConsoleDetector implements ConsoleDetector {
         // Use Jansi's detection mechanism
         try {
             new WindowsAnsiProcessor(new PrintStream(new ByteArrayOutputStream()), true);
-            return FallbackConsoleMetaData.ATTACHED;
+            boolean disableUnicodeSupportDetection = !NativePlatformConsoleDetector.isWindowsWithUnicodeCodePage();
+            return new UnicodeProxyConsoleMetaData(FallbackConsoleMetaData.ATTACHED) {
+                @Override
+                public boolean supportsUnicode() {
+                    if (disableUnicodeSupportDetection) {
+                        return false;
+                    }
+                    return metaData.supportsUnicode();
+                }
+            };
         } catch (IOException ignore) {
             // Not attached to a console
             return null;
