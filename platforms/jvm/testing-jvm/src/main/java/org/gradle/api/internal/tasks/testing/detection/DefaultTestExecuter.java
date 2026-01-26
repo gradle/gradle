@@ -110,7 +110,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             testFrameworkDetector.setTestClasspath(classpath.getApplicationClasspath());
         }
 
-        TestDetector detector = new DefaultTestScanner(testClassFiles, testDefinitionDirs, testFramework.getDetector(), processor);
+        TestDetector detector = new DefaultTestScanner(testClassFiles, testDefinitionDirs, testExecutionSpec.getTestClassesDirs(), classpath.getApplicationClasspath(), testFramework.getDetector(), processor);
 
         // What is this?
         // In some versions of the Gradle retry plugin, it would retry any test that had any kind of failure associated with it.
