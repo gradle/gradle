@@ -17,8 +17,10 @@
 package org.gradle.internal.cc.impl.fingerprint
 
 import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.runWriteOperation
+import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.withPropertyTrace
 import java.io.Closeable
 import java.util.ArrayDeque
@@ -26,7 +28,8 @@ import java.util.Queue
 
 
 internal class ScopedFingerprintWriter<T>(
-    private val writeContext: CloseableWriteContext
+    private val writeContext: CloseableWriteContext,
+    private val releaseProjectLocks: Boolean = false
 ) : Closeable {
     private class PendingWrite<out T>(val value: T, val trace: PropertyTrace?)
 
@@ -48,6 +51,23 @@ internal class ScopedFingerprintWriter<T>(
     }
 
     fun write(value: T, trace: PropertyTrace? = null) {
+        if (releaseProjectLocks) {
+            // When writing build-scoped fingerprints from a project context during parallel serialization,
+            // we need to release project locks to avoid lock ordering issues where multiple projects
+            // try to acquire the build-scoped writer lock while holding their project locks.
+            val projectLeaseRegistry = writeContext.isolate.owner.serviceOf<ProjectLeaseRegistry>()
+            val projectLocks = projectLeaseRegistry.currentProjectLocks
+            if (projectLocks.isNotEmpty()) {
+                projectLeaseRegistry.withoutLocks(projectLocks) {
+                    doWriteWithLock(value, trace)
+                }
+                return
+            }
+        }
+        doWriteWithLock(value, trace)
+    }
+
+    private fun doWriteWithLock(value: T, trace: PropertyTrace?) {
         synchronized(writeContext) {
             if (isWriting) {
                 // This re-entrance can only happen on the same thread that does the enclosing write because of the synchronized block.

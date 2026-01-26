@@ -114,4 +114,49 @@ class ConfigurationCacheMultiProjectIntegrationTest extends AbstractConfiguratio
         result.assertTasksScheduled(':ok', ':a:ok', ':b:ok')
         configurationCache.assertStateLoaded()
     }
+
+    def "can store configuration cache with multiple projects using ValueSources in parallel"() {
+        given:
+        settingsFile << """
+            include 'a', 'b'
+        """
+
+        // Create a ValueSource that will write to build-scoped fingerprints
+        buildFile """
+            import org.gradle.api.provider.ValueSource
+            import org.gradle.api.provider.ValueSourceParameters
+
+            abstract class EnvVarValueSource implements ValueSource<String, ValueSourceParameters.None> {
+                @Override
+                String obtain() {
+                    return System.getenv("TEST_VAR") ?: "default"
+                }
+            }
+
+            allprojects {
+                task myTask {
+                    def envValue = providers.of(EnvVarValueSource) {}
+                    doLast {
+                        println "Task \${path} with value: \${envValue.get()}"
+                    }
+                }
+            }
+        """
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun 'myTask', '--parallel'
+
+        then:
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(':myTask', ':a:myTask', ':b:myTask')
+
+        when:
+        configurationCacheRun 'myTask', '--parallel'
+
+        then:
+        configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(':myTask', ':a:myTask', ':b:myTask')
+    }
 }
