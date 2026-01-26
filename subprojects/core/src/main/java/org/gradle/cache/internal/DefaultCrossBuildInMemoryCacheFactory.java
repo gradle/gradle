@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -251,40 +252,65 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
     }
 
     /**
-     * Retains strong references to the keys and values via the key's ClassLoader. This allows the ClassLoader to be collected.
+     * Uses ClassValue for efficient class-to-value mapping that allows ClassLoaders to be garbage collected.
+     * ClassValue is specifically designed for this use case and provides better memory management
+     * compared to ConcurrentHashMap-based implementations.
      */
     private static class DefaultClassMap<V> extends AbstractCrossBuildInMemoryCache<Class<?>, V> {
-        // Currently retains strong references to types that are not loaded using a VisitableURLClassLoader
-        // This is fine for JVM types, but a problem when a custom ClassLoader is used (which should probably be deprecated instead of supported)
-        private final Map<Class<?>, V> leakyValues = new ConcurrentHashMap<>();
+        // ClassValue that stores the value directly for each class
+        // This allows proper garbage collection of classes and their classloaders
+        // We use AtomicReference to allow null values and support thread-safe updates
+        private final ClassValue<AtomicReference<V>> classValueCache = new ClassValue<AtomicReference<V>>() {
+            @Override
+            protected AtomicReference<V> computeValue(Class<?> type) {
+                return new AtomicReference<>();
+            }
+        };
+
+        // Fallback for classes loaded by the bootstrap classloader (null classloader)
+        // These are typically JVM classes that are never unloaded
+        private final Map<Class<?>, V> bootstrapClassLoaderValues = new ConcurrentHashMap<>();
 
         @Override
         protected void retainValuesFromCurrentSession(Stream<V> values) {
-            // Ignore
+            // Values are retained through ClassValue, no additional retention needed
         }
 
         @Override
         protected void discardRetainedValues() {
-            throw new UnsupportedOperationException();
+            // ClassValue handles lifecycle, but we can clear the bootstrap classloader cache
+            bootstrapClassLoaderValues.clear();
         }
 
         @Override
         protected void retainValue(Class<?> key, V v) {
-            getCacheScope(key).put(key, v);
+            ClassLoader classLoader = key.getClassLoader();
+            if (classLoader == null) {
+                // Bootstrap classloader - these classes are never unloaded
+                bootstrapClassLoaderValues.put(key, v);
+            } else if (classLoader instanceof VisitableURLClassLoader) {
+                // Use the classloader's user data to store the cache, allowing it to be GC'd with the classloader
+                ((VisitableURLClassLoader) classLoader).getUserData(this, ConcurrentHashMap::new).put(key, v);
+            } else {
+                // For other classloaders, use ClassValue which allows proper GC
+                classValueCache.get(key).set(v);
+            }
         }
 
         @Nullable
         @Override
         protected V maybeGetRetainedValue(Class<?> key) {
-            return getCacheScope(key).get(key);
-        }
-
-        private Map<Class<?>, V> getCacheScope(Class<?> type) {
-            ClassLoader classLoader = type.getClassLoader();
-            if (classLoader instanceof VisitableURLClassLoader) {
-                return ((VisitableURLClassLoader) classLoader).getUserData(this, ConcurrentHashMap::new);
+            ClassLoader classLoader = key.getClassLoader();
+            if (classLoader == null) {
+                // Bootstrap classloader - these classes are never unloaded
+                return bootstrapClassLoaderValues.get(key);
+            } else if (classLoader instanceof VisitableURLClassLoader) {
+                // Use the classloader's user data to retrieve the cache
+                return ((VisitableURLClassLoader) classLoader).<Map<Class<?>, V>>getUserData(this, ConcurrentHashMap::new).get(key);
+            } else {
+                // For other classloaders, use ClassValue which allows proper GC
+                return classValueCache.get(key).get();
             }
-            return leakyValues;
         }
     }
 
