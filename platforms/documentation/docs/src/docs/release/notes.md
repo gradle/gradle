@@ -10,7 +10,17 @@
 <meta name="twitter:description" content="We are excited to announce Gradle @version@.">
 <meta name="twitter:image" content="https://gradle.org/images/releases/gradle-default.png">
 
-We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
+Gradle @version@ has been released ([@releaseDate@](https://gradle.org/releases/)).
+
+This patch release includes bug fixes and improvements.
+
+The following issues were resolved:
+
+* TODO
+
+We recommend upgrading to Gradle @version@.
+
+---
 
 This release brings [test reporting improvements](#test-reporting-improvements), including a more detailed HTML test report for nested, parameterized, and suite-based tests, better aggregate reporting, and a new streaming API in TestKit for efficiently reading build output.
 
