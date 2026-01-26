@@ -17,9 +17,10 @@
 package org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants;
 
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
+import org.gradle.internal.collect.PersistentSet;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -40,11 +41,11 @@ public class ConstantToDependentsMappingMerger {
             .filter(constantOrigin -> !changedClasses.contains(constantOrigin))
             .forEach(constantOrigin -> {
                 DependentsSet dependents = oldMapping.getConstantDependentsForClass(constantOrigin);
-                Set<String> accessibleDependents = new HashSet<>(dependents.getAccessibleDependentClasses());
-                accessibleDependents.removeIf(changedClasses::contains);
+                PersistentSet<@NonNull String> accessibleDependents = dependents.getAccessibleDependentClasses();
+                accessibleDependents = accessibleDependents.filter(clazz -> !changedClasses.contains(clazz));
                 builder.addAccessibleDependents(constantOrigin, accessibleDependents);
-                Set<String> privateDependents = new HashSet<>(dependents.getPrivateDependentClasses());
-                privateDependents.removeIf(changedClasses::contains);
+                PersistentSet<@NonNull String> privateDependents = dependents.getPrivateDependentClasses();
+                privateDependents = privateDependents.filter(clazz -> !changedClasses.contains(clazz));
                 builder.addPrivateDependents(constantOrigin, privateDependents);
             });
         newMapping.getConstantDependents().keySet()

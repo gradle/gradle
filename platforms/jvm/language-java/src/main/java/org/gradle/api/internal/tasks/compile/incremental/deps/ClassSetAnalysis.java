@@ -22,6 +22,8 @@ import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApi
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.GeneratedResource;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
+import org.gradle.internal.collect.PersistentSet;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -75,7 +77,7 @@ public class ClassSetAnalysis {
         if (affectedClasses.isDependencyToAll()) {
             return Collections.emptyMap();
         }
-        Set<String> dependentClasses = affectedClasses.getAllDependentClasses();
+        PersistentSet<@NonNull String> dependentClasses = affectedClasses.getAllDependentClasses();
         Map<String, IntSet> result = new HashMap<>(dependentClasses.size());
         for (String affectedClass : dependentClasses) {
             IntSet difference = new IntOpenHashSet(other.getConstants(affectedClass));
@@ -83,6 +85,20 @@ public class ClassSetAnalysis {
             result.put(affectedClass, difference);
         }
         return result;
+    }
+
+    /**
+     * See {@link #findTransitiveDependents(Iterable, int, Map)}.
+     */
+    public DependentsSet findTransitiveDependents(Collection<@NonNull String> classes, Map<String, IntSet> changedConstantsByClass) {
+        return findTransitiveDependents(classes, classes.size(), changedConstantsByClass);
+    }
+
+    /**
+     * See {@link #findTransitiveDependents(Iterable, int, Map)}.
+     */
+    public DependentsSet findTransitiveDependents(PersistentSet<@NonNull String> classes, Map<String, IntSet> changedConstantsByClass) {
+        return findTransitiveDependents(classes, classes.size(), changedConstantsByClass);
     }
 
     /**
@@ -95,8 +111,8 @@ public class ClassSetAnalysis {
      * Starts at this class and capture all classes that reference this class and all classes and resources that were generated from this class.
      * Then does the same analysis for all classes that expose this class on their ABI recursively until no more new classes are discovered.
      */
-    public DependentsSet findTransitiveDependents(Collection<String> classes, Map<String, IntSet> changedConstantsByClass) {
-        if (classes.isEmpty()) {
+    private DependentsSet findTransitiveDependents(Iterable<@NonNull String> classes, int classesSize, Map<String, IntSet> changedConstantsByClass) {
+        if (classesSize == 0) {
             return DependentsSet.empty();
         }
         String fullRebuildCause = annotationProcessingData.getFullRebuildCause();
@@ -110,11 +126,12 @@ public class ClassSetAnalysis {
                 }
             }
         }
-        Set<String> privateDependents = new HashSet<>();
-        Set<String> accessibleDependents = new HashSet<>();
-        Set<GeneratedResource> dependentResources = new HashSet<>(annotationProcessingData.getGeneratedResourcesDependingOnAllOthers());
+        PersistentSet<@NonNull String> privateDependents = PersistentSet.of();
+        PersistentSet<@NonNull String> accessibleDependents = PersistentSet.of();
+        PersistentSet<@NonNull GeneratedResource> dependentResources = PersistentSet.copyOf(annotationProcessingData.getGeneratedResourcesDependingOnAllOthers());
         Set<String> visited = new HashSet<>();
-        Deque<String> remaining = new ArrayDeque<>(classes);
+        Deque<String> remaining = new ArrayDeque<>(classesSize);
+        classes.forEach(remaining::add);
         remaining.addAll(annotationProcessingData.getGeneratedTypesDependingOnAllOthers());
 
         while (!remaining.isEmpty()) {
@@ -122,18 +139,18 @@ public class ClassSetAnalysis {
             if (!visited.add(current)) {
                 continue;
             }
-            accessibleDependents.add(current);
+            accessibleDependents = accessibleDependents.plus(current);
             DependentsSet dependents = findDirectDependents(current);
             if (dependents.isDependencyToAll()) {
                 return dependents;
             }
-            dependentResources.addAll(dependents.getDependentResources());
-            privateDependents.addAll(dependents.getPrivateDependentClasses());
-            remaining.addAll(dependents.getAccessibleDependentClasses());
+            dependentResources = dependentResources.union(dependents.getDependentResources());
+            privateDependents = privateDependents.union(dependents.getPrivateDependentClasses());
+            dependents.getAccessibleDependentClasses().forEach(remaining::add);
         }
 
-        privateDependents.removeAll(classes);
-        accessibleDependents.removeAll(classes);
+        privateDependents = privateDependents.minusAll(classes);
+        accessibleDependents = accessibleDependents.minusAll(classes);
         return DependentsSet.dependents(privateDependents, accessibleDependents, dependentResources);
     }
 
@@ -152,7 +169,7 @@ public class ClassSetAnalysis {
     public DependentsSet getAnnotationProcessingDependentsSet(String className) {
         Set<String> generatedClasses = annotationProcessingData.getGeneratedTypesByOrigin().getOrDefault(className, Collections.emptySet());
         Set<GeneratedResource> generatedResources = annotationProcessingData.getGeneratedResourcesByOrigin().getOrDefault(className, Collections.emptySet());
-        return DependentsSet.dependents(Collections.emptySet(), generatedClasses, generatedResources);
+        return DependentsSet.dependents(PersistentSet.of(), PersistentSet.copyOf(generatedClasses), PersistentSet.copyOf(generatedResources));
     }
 
     /**

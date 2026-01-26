@@ -18,9 +18,9 @@ package org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants;
 
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
+import org.gradle.internal.collect.PersistentSet;
 
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,12 +35,12 @@ public class ConstantToDependentsMappingBuilder implements Serializable {
     private final Map<String, Set<String>> privateDependents = new HashMap<>();
     private final Map<String, Set<String>> accessibleDependents = new HashMap<>();
 
-    public ConstantToDependentsMappingBuilder addAccessibleDependents(String constantOrigin, Collection<String> dependents) {
+    public ConstantToDependentsMappingBuilder addAccessibleDependents(String constantOrigin, Iterable<String> dependents) {
         dependents.forEach(dependent -> addAccessibleDependent(constantOrigin, dependent));
         return this;
     }
 
-    public ConstantToDependentsMappingBuilder addPrivateDependents(String constantOrigin, Collection<String> dependents) {
+    public ConstantToDependentsMappingBuilder addPrivateDependents(String constantOrigin, Iterable<String> dependents) {
         dependents.forEach(dependent -> addPrivateDependent(constantOrigin, dependent));
         return this;
     }
@@ -67,7 +67,7 @@ public class ConstantToDependentsMappingBuilder implements Serializable {
         for (String constantOrigin : Iterables.concat(privateDependents.keySet(), accessibleDependents.keySet())) {
             Set<String> privateDependents = this.privateDependents.getOrDefault(constantOrigin, Collections.emptySet());
             Set<String> accessibleDependents = this.accessibleDependents.getOrDefault(constantOrigin, Collections.emptySet());
-            constantDependents.put(constantOrigin, DependentsSet.dependentClasses(privateDependents, accessibleDependents));
+            constantDependents.put(constantOrigin, DependentsSet.dependentClasses(PersistentSet.copyOf(privateDependents), PersistentSet.copyOf(accessibleDependents)));
         }
         return new ConstantToDependentsMapping(constantDependents);
     }

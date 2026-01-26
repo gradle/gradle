@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -28,12 +27,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.CompilerApiData;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentSetSerializer;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
+import org.gradle.internal.collect.PersistentSet;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.HierarchicalNameSerializer;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -164,10 +165,10 @@ public class ClassSetAnalysisData {
                     if (dependentsSet.isDependencyToAll()) {
                         dependents.put(usedClass, dependentsSet);
                     } else {
-                        Set<String> usedAccessibleClasses = new HashSet<>(dependentsSet.getAccessibleDependentClasses());
-                        usedAccessibleClasses.retainAll(usedClasses);
+                        PersistentSet<@NonNull String> usedAccessibleClasses = dependentsSet.getAccessibleDependentClasses();
+                        usedAccessibleClasses = usedAccessibleClasses.filter(usedClasses::contains);
                         if (!usedAccessibleClasses.isEmpty()) {
-                            dependents.put(usedClass, DependentsSet.dependentClasses(Collections.emptySet(), usedAccessibleClasses));
+                            dependents.put(usedClass, DependentsSet.dependentClasses(PersistentSet.of(), usedAccessibleClasses));
                         }
                     }
                 }
@@ -213,14 +214,14 @@ public class ClassSetAnalysisData {
             return DependentsSet.dependencyToAll(other.fullRebuildCause);
         }
 
-        ImmutableSet.Builder<String> changed = ImmutableSet.builder();
+        PersistentSet<@NonNull String> changed = PersistentSet.of();
         for (String added : Sets.difference(classHashes.keySet(), other.classHashes.keySet())) {
             DependentsSet dependents = getDependents(added);
             if (dependents.isDependencyToAll()) {
                 return dependents;
             }
             if (added.endsWith(PACKAGE_INFO)) {
-                changed.add(added);
+                changed = changed.plus(added);
             }
         }
         for (Map.Entry<String, HashCode> removedOrChanged : Sets.difference(other.classHashes.entrySet(), classHashes.entrySet())) {
@@ -228,9 +229,9 @@ public class ClassSetAnalysisData {
             if (dependents.isDependencyToAll()) {
                 return dependents;
             }
-            changed.add(removedOrChanged.getKey());
+            changed = changed.plus(removedOrChanged.getKey());
         }
-        return DependentsSet.dependentClasses(ImmutableSet.of(), changed.build());
+        return DependentsSet.dependentClasses(PersistentSet.of(), changed);
     }
 
     /**
@@ -252,14 +253,14 @@ public class ClassSetAnalysisData {
     }
 
     private DependentsSet getDependentsOfPackage(String packageName) {
-        Set<String> typesInPackage = new HashSet<>();
+        PersistentSet<@NonNull String> typesInPackage = PersistentSet.of();
         for (String type : classHashes.keySet()) {
             int i = type.lastIndexOf(".");
             if ((i < 0 && packageName == null) || (i > 0 && type.substring(0, i).equals(packageName))) {
-                typesInPackage.add(type);
+                typesInPackage = typesInPackage.plus(type);
             }
         }
-        return DependentsSet.dependentClasses(Collections.emptySet(), typesInPackage);
+        return DependentsSet.dependentClasses(PersistentSet.of(), typesInPackage);
     }
 
     /**
