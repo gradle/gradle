@@ -326,8 +326,8 @@ public final class SafeFileLocationUtils {
      * @return the index of the first dot indicating the start of extension(s), or {@code -1} if none found
      */
     private static int findStartOfExtension(byte[] rawName, int lengthOfPrefix) {
-        // We look for the first dot that is within (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - 1) from the end
-        // This ensures that the extension can fit even after adding the hyphen and hash
+        // We look for the first dot that is within (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - lengthOfPrefix - 1) from the end
+        // This ensures that the extension can fit even after adding the hyphen, hash, and prefix
         // Also start at minimum 1 to avoid treating a leading dot as an extension
         int start = Math.max(1, rawName.length - (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - lengthOfPrefix - 1));
         // Search only until the second last character to avoid treating a trailing dot as an extension
