@@ -25,7 +25,6 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.tooling.model.kotlin.dsl.EditorPosition
 import org.gradle.tooling.model.kotlin.dsl.EditorReport
 import org.gradle.tooling.model.kotlin.dsl.EditorReportSeverity
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -172,7 +171,7 @@ object KotlinDslScriptsModelBuilder : AbstractKotlinDslScriptsModelBuilder() {
 
     override fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): KotlinDslScriptsModel {
         val scriptModels = parameter.scriptFiles.associateWith { scriptFile ->
-            buildScriptModel(rootProject, scriptFile, parameter)
+            buildScriptModel(rootProject, scriptFile)
         }
         return StandardKotlinDslScriptsModel.from(scriptModels)
     }
@@ -181,10 +180,9 @@ object KotlinDslScriptsModelBuilder : AbstractKotlinDslScriptsModelBuilder() {
     fun buildScriptModel(
         rootProject: Project,
         scriptFile: File,
-        parameter: KotlinDslScriptsParameter
     ): StandardKotlinDslScriptModel {
 
-        val scriptModelParameter = KotlinBuildScriptModelParameter(scriptFile, parameter.correlationId)
+        val scriptModelParameter = KotlinBuildScriptModelParameter(scriptFile)
         val scriptModel = KotlinBuildScriptModelBuilder.kotlinBuildScriptModelFor(rootProject, scriptModelParameter)
         return StandardKotlinDslScriptModel(
             scriptModel.classPath,
@@ -207,15 +205,7 @@ data class CommonKotlinDslScriptModel(
 
 private
 fun Project.parameterFromRequest(): KotlinDslScriptsParameter =
-    KotlinDslScriptsParameter(
-        resolveCorrelationIdParameter(),
-        resolveScriptsParameter()
-    )
-
-
-internal
-fun Project.resolveCorrelationIdParameter(): String? =
-    findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String
+    KotlinDslScriptsParameter(resolveScriptsParameter())
 
 
 private
@@ -277,10 +267,7 @@ fun Project.discoverPrecompiledScriptPluginScripts() =
 
 
 internal
-data class KotlinDslScriptsParameter(
-    val correlationId: String?,
-    val scriptFiles: List<File>
-)
+data class KotlinDslScriptsParameter(val scriptFiles: List<File>)
 
 
 internal
