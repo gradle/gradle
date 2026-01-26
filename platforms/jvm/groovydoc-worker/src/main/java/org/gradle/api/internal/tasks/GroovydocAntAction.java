@@ -22,7 +22,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 import org.gradle.api.plugins.internal.ant.AntWorkAction;
-import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.util.internal.VersionNumber;
 import org.jspecify.annotations.Nullable;
 
@@ -76,7 +75,7 @@ public abstract class GroovydocAntAction extends AntWorkAction<GroovydocParamete
                 ant.invokeMethod("groovydoc", new Object[]{args, new Closure<Object>(this, this) {
                     @SuppressWarnings("unused") // Magic Groovy method
                     public Object doCall(Object ignore) {
-                        for (Groovydoc.Link link : parameters.getLinks().get()) {
+                        for (GroovydocParameters.Link link : parameters.getLinks().get()) {
                             ant.invokeMethod("link", new Object[]{
                                 ImmutableMap.of(
                                     "packages", Joiner.on(",").join(link.getPackages()),

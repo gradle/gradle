@@ -1,5 +1,12 @@
 [
   {
+    "name": "ant-worker",
+    "path": "platforms/jvm/ant-worker",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "antlr",
     "path": "platforms/software/antlr",
     "unitTests": true,
@@ -23,6 +30,13 @@
   {
     "name": "base-asm",
     "path": "platforms/core-runtime/base-asm",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "base-compiler-worker",
+    "path": "platforms/software/base-compiler-worker",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -235,6 +249,13 @@
     "path": "platforms/jvm/code-quality",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "code-quality-workers",
+    "path": "platforms/jvm/code-quality-workers",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -637,8 +658,22 @@
     "crossVersionTests": false
   },
   {
+    "name": "groovy-compiler-worker",
+    "path": "platforms/jvm/groovy-compiler-worker",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "groovy-loader",
     "path": "platforms/core-runtime/groovy-loader",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "groovydoc-worker",
+    "path": "platforms/jvm/groovydoc-worker",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -805,6 +840,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "jacoco-workers",
+    "path": "platforms/jvm/jacoco-workers",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "java-api-extractor",
     "path": "platforms/core-configuration/java-api-extractor",
     "unitTests": true,
@@ -819,6 +861,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "java-compiler-worker",
+    "path": "platforms/jvm/java-compiler-worker",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "java-platform",
     "path": "platforms/jvm/java-platform",
     "unitTests": false,
@@ -828,6 +877,13 @@
   {
     "name": "javadoc",
     "path": "platforms/jvm/javadoc",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "jvm-compiler-worker",
+    "path": "platforms/jvm/jvm-compiler-worker",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -1250,6 +1306,20 @@
     "path": "platforms/jvm/scala",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "scala-compiler-worker",
+    "path": "platforms/jvm/scala-compiler-worker",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "scaladoc-worker",
+    "path": "platforms/jvm/scaladoc-worker",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

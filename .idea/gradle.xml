@@ -228,13 +228,20 @@
             <option value="$PROJECT_DIR$/platforms/ide/problems-rendering" />
             <option value="$PROJECT_DIR$/platforms/ide/tooling-api" />
             <option value="$PROJECT_DIR$/platforms/ide/tooling-api-builders" />
+            <option value="$PROJECT_DIR$/platforms/jvm/ant-worker" />
             <option value="$PROJECT_DIR$/platforms/jvm/code-quality" />
+            <option value="$PROJECT_DIR$/platforms/jvm/code-quality-workers" />
             <option value="$PROJECT_DIR$/platforms/jvm/distributions-jvm" />
             <option value="$PROJECT_DIR$/platforms/jvm/ear" />
+            <option value="$PROJECT_DIR$/platforms/jvm/groovy-compiler-worker" />
+            <option value="$PROJECT_DIR$/platforms/jvm/groovydoc-worker" />
             <option value="$PROJECT_DIR$/platforms/jvm/jacoco" />
+            <option value="$PROJECT_DIR$/platforms/jvm/jacoco-workers" />
             <option value="$PROJECT_DIR$/platforms/jvm/java-compiler-plugin" />
+            <option value="$PROJECT_DIR$/platforms/jvm/java-compiler-worker" />
             <option value="$PROJECT_DIR$/platforms/jvm/java-platform" />
             <option value="$PROJECT_DIR$/platforms/jvm/javadoc" />
+            <option value="$PROJECT_DIR$/platforms/jvm/jvm-compiler-worker" />
             <option value="$PROJECT_DIR$/platforms/jvm/jvm-services" />
             <option value="$PROJECT_DIR$/platforms/jvm/language-groovy" />
             <option value="$PROJECT_DIR$/platforms/jvm/language-java" />
@@ -250,6 +257,8 @@
             <option value="$PROJECT_DIR$/platforms/jvm/plugins-jvm-test-suite" />
             <option value="$PROJECT_DIR$/platforms/jvm/plugins-test-report-aggregation" />
             <option value="$PROJECT_DIR$/platforms/jvm/scala" />
+            <option value="$PROJECT_DIR$/platforms/jvm/scala-compiler-worker" />
+            <option value="$PROJECT_DIR$/platforms/jvm/scaladoc-worker" />
             <option value="$PROJECT_DIR$/platforms/jvm/testing-jvm" />
             <option value="$PROJECT_DIR$/platforms/jvm/testing-jvm-infrastructure" />
             <option value="$PROJECT_DIR$/platforms/jvm/toolchains-jvm" />
@@ -261,6 +270,7 @@
             <option value="$PROJECT_DIR$/platforms/native/testing-native" />
             <option value="$PROJECT_DIR$/platforms/native/tooling-native" />
             <option value="$PROJECT_DIR$/platforms/software/antlr" />
+            <option value="$PROJECT_DIR$/platforms/software/base-compiler-worker" />
             <option value="$PROJECT_DIR$/platforms/software/build-init" />
             <option value="$PROJECT_DIR$/platforms/software/build-init-specs" />
             <option value="$PROJECT_DIR$/platforms/software/build-init-specs-api" />
