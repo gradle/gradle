@@ -360,22 +360,22 @@ WARNING: Using `systemProp.gradle.wrapperUser` and `systemProp.gradle.wrapperPas
 To safeguard your credentials, prefix these system properties with your private server's hostname, replacing all dots (`.`) with underscores (`_`).
 
 NOTE: Hostnames are not case-sensitive thus Gradle converts the hostname in the property name into lowercase.
- That is, if you wrote `MYCOMPANY.COM` in your wrapper configuration, then you have to use the string
- `mycompany_com` in the system property key.
+ That is, if you wrote `EXAMPLE.COM` in your wrapper configuration, then you have to use the string
+ `example_com` in the system property key.
 
-For example, if your private server hostname is `your.private-server.com`, use the following system properties:
+For example, if your private server hostname is `your.example.com`, use the following system properties:
 
 [source,properties]
 ----
-systemProp.gradle.your_private-server_com.wrapperUser=username
-systemProp.gradle.your_private-server_com.wrapperPassword=password
+systemProp.gradle.your_example_com.wrapperUser=username
+systemProp.gradle.your_example_com.wrapperPassword=password
 ----
 
 To authenticate with a static HTTP Bearer Token, add the following line to your Gradle properties file:
 
 [source,properties]
 ----
-systemProp.gradle.your_private-server_com.wrapperToken=some-api-token
+systemProp.gradle.your_example_com.wrapperToken=some-api-token
 ----
 
 NOTE: If a `wrapperToken` is specified, it will take precedence over `wrapperUser` and `wrapperPassword` system properties (and also over user & password values embedded in the URL).
