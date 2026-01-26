@@ -408,6 +408,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         executer.distribution.gradleHomeDir.copyTo(distributionCopyDir)
         def distributionCopy = new DefaultGradleDistribution(executer.distribution.version, distributionCopyDir, null)
         def customExecuter = new GradleContextualExecuter(distributionCopy, executer.testDirectoryProvider, executer.buildContext)
+        customExecuter.requireIsolatedDaemons() // So different executions with different distributions don't try to share a daemon
 
         when:
         def result = customExecuter.withTasks("test").run()
@@ -422,7 +423,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         result.assertTaskSkipped(":test")
 
         when:
-        distributionCopyDir.file("foo.txt").touch()
+        distributionCopyDir.file(fileName).text = content
         result = customExecuter.withTasks("test").run()
 
         then:
@@ -433,6 +434,12 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
 
         then:
         result.assertTaskSkipped(":test")
+
+        where:
+        fileName            | content
+        "foo.txt"           | ""
+        "foo.txt"           | "foo"
+        "gradle.properties" | "prop=value"
     }
 
     def buildFile() {
