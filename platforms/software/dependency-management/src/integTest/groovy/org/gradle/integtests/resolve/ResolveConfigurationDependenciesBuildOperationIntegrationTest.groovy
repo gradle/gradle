@@ -412,7 +412,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         a.pom.expectGet()
         b.pom.expectGet()
-        leaf1.pom.expectGet()
         leaf2.pom.expectGet()
 
         then:

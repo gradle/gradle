@@ -1169,7 +1169,6 @@ parentFirst
             root(":", ":test:") {
                 module("org:a:1.0") {
                     edge("org:leaf:[2,6]", "org:leaf:5") {
-                        byReason("didn't match versions 10, 9, 8, 7")
                         byReason("didn't match versions 10, 9, 8, 7, 6")
                     }
                 }

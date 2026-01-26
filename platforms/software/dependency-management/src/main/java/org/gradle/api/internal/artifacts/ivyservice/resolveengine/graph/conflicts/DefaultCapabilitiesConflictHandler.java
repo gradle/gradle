@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ResolveState;
 import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -138,13 +139,9 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
             // For a conflict we want at least 2 nodes, and at least one of them should not be rejected
             // TODO: Seems odd to filter for rejected nodes here
-            if (candidatesForConflict.size() > 1 && !candidatesForConflict.stream().allMatch(n -> n.getComponent().isRejected())) {
+            if (candidatesForConflict.size() > 1 && !candidatesForConflict.stream().allMatch(NodeState::isRejectedForCapabilityConflict)) {
                 if (tracker.createOrUpdateConflict(candidatesForConflict)) {
                     conflicts.add(tracker.capabilityId);
-                }
-
-                for (NodeState candidateNode : candidatesForConflict) {
-                    candidateNode.getComponent().getModule().clearSelection();
                 }
                 return true;
             }
@@ -223,7 +220,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
          * @return {@code true} if the conflict is valid
          */
         private boolean isValidConflict() {
-            return !nodes.isEmpty() && nodes.stream().anyMatch(node -> !node.getComponent().isRejected());
+            return !nodes.isEmpty() && nodes.stream().anyMatch(node -> !node.isRejectedForCapabilityConflict());
         }
 
         private static Map<NodeState, Set<NodeState>> buildDependentRelationships(Set<NodeState> nodes) {
@@ -261,7 +258,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
          * If non-null, the capability tracked by this tracker has a pending conflict
          * that must be resolved.
          */
-        private CapabilityConflict pendingConflict;
+        private @Nullable CapabilityConflict pendingConflict;
 
         private ConflictedNodesTracker(CapabilityInternal capability) {
             this.group = capability.getGroup();
@@ -288,6 +285,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                     selectedNodes.add(node);
                 } else {
                     didFilter = true;
+                    node.onFilteredFromConflict();
                 }
             }
 
@@ -300,8 +298,15 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             return currentConflict;
         }
 
-        private boolean removeIf(Predicate<? super NodeState> pre) {
-            return currentConflictedNodes.removeIf(pre);
+        private void removeIf(Predicate<? super NodeState> pre) {
+            Iterator<NodeState> it = currentConflictedNodes.iterator();
+            while (it.hasNext()) {
+                NodeState next = it.next();
+                if  (pre.test(next)) {
+                    it.remove();
+                    next.onFilteredFromConflict();
+                }
+            }
         }
 
         private boolean add(NodeState node) {
@@ -333,6 +338,17 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
          */
         private boolean createOrUpdateConflict(Set<NodeState> candidatesForConflict) {
             boolean newConflict = pendingConflict == null;
+            if (newConflict) {
+                for (NodeState node : candidatesForConflict) {
+                    node.markInCapabilityConflict();
+                }
+            } else {
+                for (NodeState node : candidatesForConflict) {
+                    if (!pendingConflict.nodes.contains(node)) {
+                        node.markInCapabilityConflict();
+                    }
+                }
+            }
             this.pendingConflict = new CapabilityConflict(group, name, candidatesForConflict, previousConflictedNodes.contains(candidatesForConflict));
             return newConflict;
         }
