@@ -16,10 +16,12 @@
 
 package org.gradle.api.tasks.javadoc;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.GroovydocAntAction;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
@@ -36,6 +38,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.workers.WorkerExecutor;
 import org.jspecify.annotations.Nullable;
 
@@ -84,6 +87,8 @@ public abstract class Groovydoc extends SourceTask {
 
     private Set<Link> links = new LinkedHashSet<Link>();
 
+    private Property<JavaLanguageVersion> javaVersion = getPropertyFactory().property(JavaLanguageVersion.class);
+
     @Inject
     protected abstract WorkerExecutor getWorkerExecutor();
 
@@ -115,6 +120,9 @@ public abstract class Groovydoc extends SourceTask {
             parameters.getDocTitle().convention(getDocTitle());
             parameters.getHeader().convention(getHeader());
             parameters.getFooter().convention(getFooter());
+            if (getJavaVersion() != null) {
+                parameters.getJavaVersion().convention("JAVA_" + getJavaVersion().toString());
+            }
             parameters.getOverview().convention(getPathToOverview());
             parameters.getAccess().convention(getAccess());
             parameters.getLinks().convention(getLinks());
@@ -333,6 +341,33 @@ public abstract class Groovydoc extends SourceTask {
     }
 
     /**
+     * Returns the Java version used when creating Groovydoc for Java source files. Set to {@code null} when there is no specific Java version.
+     *
+     * @since 9.3.0
+     */
+    @Nullable
+    @Optional
+    @Input
+    @Incubating
+    public Property<JavaLanguageVersion> getJavaVersion() {
+        return javaVersion;
+    }
+
+    /**
+     * Sets Java version (optional).
+     *
+     * @since 9.3.0
+     *
+     * @param javaVersion the Java version to use when processing Java source files
+     */
+    @Incubating
+    public void setJavaVersion(@Nullable JavaLanguageVersion javaVersion) {
+        if (javaVersion != null) {
+            getJavaVersion().set(javaVersion);
+        }
+    }
+
+    /**
      * Returns a HTML text to be used for overview documentation. Set to {@code null} when there is no overview text.
      */
     @Nullable
@@ -493,4 +528,7 @@ public abstract class Groovydoc extends SourceTask {
 
     @Inject
     protected abstract Deleter getDeleter();
+
+    @Inject
+    protected abstract PropertyFactory getPropertyFactory();
 }
