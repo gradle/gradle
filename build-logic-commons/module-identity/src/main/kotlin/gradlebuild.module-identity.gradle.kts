@@ -38,12 +38,18 @@ plugins {
 val gradleModule = extensions.create<GradleModuleExtension>(GradleModuleExtension.NAME).apply {
     published = false
 
-    targetRuntimes {
+    requiredRuntimes {
+        client = false
+        daemon = false
+        worker = false
+    }
+
+    computedRuntimes {
         // By default, assume a library targets only the daemon
         // TODO: Eventually, all projects should explicitly declare their target platform(s)
-        usedInWorkers = false
-        usedInClient = false
-        usedInDaemon = true
+        client = false
+        daemon = true
+        worker = false
     }
 
     // TODO: Most of these properties are the same across projects. We should
