@@ -354,13 +354,15 @@ trait ProjectTypeFixture {
                     static class Binding implements ${ProjectTypeBinding.class.simpleName} {
                         public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
                             builder.bindProjectType("${name}", ${definition.publicTypeClassName}.class, (context, definition, model) -> {
+                                Services services = context.getObjectFactory().newInstance(Services.class);
+
                                 System.out.println("Binding " + ${definition.publicTypeClassName}.class.getSimpleName());
                                 ${conventions == null ? "" : conventions}
-                                String projectName = context.getProject().getName();
+                                String projectName = services.getProject().getName();
 
                                 ${definition.buildModelMapping}
 
-                                context.getProject().getTasks().register("print${definition.publicTypeClassName}Configuration", DefaultTask.class, task -> {
+                                services.getProject().getTasks().register("print${definition.publicTypeClassName}Configuration", DefaultTask.class, task -> {
                                     task.doLast("print restricted extension content", t -> {
                                         ${definition.displayDefinitionPropertyValues()}
                                         ${definition.displayModelPropertyValues()}
@@ -370,6 +372,8 @@ trait ProjectTypeFixture {
                             ${maybeDeclareDefinitionImplementationType()}
                             ${maybeDeclareBindingModifiers()};
                         }
+
+                        ${servicesInterfaceWithProjectGetter}
                     }
 
                     @Override
@@ -386,6 +390,15 @@ trait ProjectTypeFixture {
 
         String maybeDeclareBindingModifiers() {
             return bindingModifiers.isEmpty() ? "" : bindingModifiers.collect { ".${it}" }.join("")
+        }
+
+        String getServicesInterfaceWithProjectGetter() {
+            return """
+                interface Services {
+                    @Inject
+                    Project getProject();
+                }
+            """
         }
     }
 
@@ -416,12 +429,13 @@ trait ProjectTypeFixture {
                     static class Binding implements ${ProjectTypeBinding.class.name} {
                         public void bind(${ProjectTypeBindingBuilder.class.name} builder) {
                             builder.bindProjectType("testProjectType", ${definition.publicTypeClassName}.class, (context, definition, model) -> {
+                                Services services = context.getObjectFactory().newInstance(Services.class);
                                 System.out.println("Binding " + ${definition.publicTypeClassName}.class.getSimpleName());
                                 definition.getId().convention("<no id>");
                                 definition.getFoo().getBar().convention("bar");
                                 model.getId().set(definition.getId());
-                                String projectName = context.getProject().getName();
-                                context.getProject().getTasks().register("printTestProjectTypeDefinitionConfiguration", DefaultTask.class, task -> {
+                                String projectName = services.getProject().getName();
+                                services.getProject().getTasks().register("printTestProjectTypeDefinitionConfiguration", DefaultTask.class, task -> {
                                     task.doLast("print restricted extension content", t -> {
                                         ${definition.displayDefinitionPropertyValues()}
                                         ${definition.displayModelPropertyValues()}
@@ -429,12 +443,13 @@ trait ProjectTypeFixture {
                                 });
                             });
                             builder.bindProjectType("anotherProjectType", ${anotherProjectTypeDefinition.publicTypeClassName}.class, (context, definition, model) -> {
+                                Services services = context.getObjectFactory().newInstance(Services.class);
                                 System.out.println("Binding " + ${anotherProjectTypeDefinition.publicTypeClassName}.class.getSimpleName());
                                 definition.getFoo().convention("foo");
                                 definition.getBar().getBaz().convention("baz");
                                 model.getId().set(definition.getId());
-                                String projectName = context.getProject().getName();
-                                context.getProject().getTasks().register("printAnotherProjectTypeDefinitionConfiguration", DefaultTask.class, task -> {
+                                String projectName = services.getProject().getName();
+                                services.getProject().getTasks().register("printAnotherProjectTypeDefinitionConfiguration", DefaultTask.class, task -> {
                                     task.doLast("print restricted extension content", t -> {
                                         ${anotherProjectTypeDefinition.displayDefinitionPropertyValues()}
                                         ${anotherProjectTypeDefinition.displayModelPropertyValues()}
@@ -442,6 +457,8 @@ trait ProjectTypeFixture {
                                 });
                             });
                         }
+
+                        ${servicesInterfaceWithProjectGetter}
                     }
 
                     @Override

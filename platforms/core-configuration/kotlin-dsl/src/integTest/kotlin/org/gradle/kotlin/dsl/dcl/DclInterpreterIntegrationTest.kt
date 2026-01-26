@@ -143,13 +143,19 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                     class Binding : ${ProjectTypeBinding::class.simpleName} {
                         override fun bind(builder: ProjectTypeBindingBuilder) {
                             builder.bindProjectType("myProjectType") { definition: MyExtension, model ->
-                                project.tasks.register("printNames") {
+                                val services = objectFactory.newInstance(Services::class.java)
+                                services.project.tasks.register("printNames") {
                                     val names = definition.myElements.names
                                     doFirst {
                                         println(names)
                                     }
                                 }
                             }
+                        }
+
+                        interface Services {
+                            @get:Inject
+                            val project: Project
                         }
                     }
                     class FeatureBinding : ${ProjectFeatureBinding::class.simpleName} {

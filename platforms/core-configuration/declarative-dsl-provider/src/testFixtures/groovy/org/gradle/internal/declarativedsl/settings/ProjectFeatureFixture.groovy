@@ -415,14 +415,15 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                                 ${definition.publicTypeClassName}.class,
                                 ${bindingTypeClassName}.class,
                                 (context, definition, model, parent) -> {
-                                    String projectName = context.getProject().getName();
+                                    Services services = context.getObjectFactory().newInstance(Services.class);
+                                    String projectName = services.getProject().getName();
                                     System.out.println("Binding ${definition.publicTypeClassName}");
                                     System.out.println("${name} model class: " + model.getClass().getSimpleName());
                                     System.out.println("${name} parent model class: " + context.getBuildModel(parent).getClass().getSimpleName());
 
                                     ${definition.buildModelMapping}
 
-                                    context.getProject().getTasks().register("print${definition.publicTypeClassName}Configuration", task -> {
+                                    services.getProject().getTasks().register("print${definition.publicTypeClassName}Configuration", task -> {
                                         task.doLast(t -> {
                                             ${definition.displayDefinitionPropertyValues()}
                                             ${definition.displayModelPropertyValues()}
@@ -434,6 +435,8 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                             ${maybeDeclareBuildModelImplementationType()}
                             ${maybeDeclareBindingModifiers()};
                         }
+
+                        ${servicesInterfaceWithCommonServices}
                     }
 
                     @Override
@@ -454,6 +457,15 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
         String maybeDeclareBindingModifiers() {
             return bindingModifiers.isEmpty() ? "" : bindingModifiers.collect { ".${it}" }.join("")
+        }
+
+        String getServicesInterfaceWithCommonServices() {
+            return """
+                interface Services {
+                    @javax.inject.Inject
+                    Project getProject();
+                }
+            """
         }
     }
 
@@ -511,10 +523,11 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                     class Binding : ${ProjectFeatureBinding.class.simpleName} {
                         override fun bind(builder: ${ProjectFeatureBindingBuilder.class.simpleName}) {
                             builder.bindProjectFeatureToDefinition("${name}", ${definition.publicTypeClassName}::class, ${bindingTypeClassName}::class) { definition, model, parent  ->
+                                val services = objectFactory.newInstance(Services::class.java)
                                 println("Binding ${definition.publicTypeClassName}")
                                 ${definition.buildModelMapping.replaceAll(';', '')}
-                                val projectName = project.name
-                                getProject().getTasks().register("print${definition.publicTypeClassName}Configuration") { task: Task ->
+                                val projectName = services.project.name
+                                services.project.tasks.register("print${definition.publicTypeClassName}Configuration") { task: Task ->
                                     task.doLast { _: Task ->
                                         ${definition.displayDefinitionPropertyValues().replaceAll(';', '')}
                                         ${definition.displayModelPropertyValues().replaceAll(';', '')}
@@ -522,6 +535,8 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                                 }
                             }
                         }
+
+                        ${servicesInterfaceWithCommonServices}
                     }
 
                     override fun apply(project: Project) {
@@ -529,6 +544,16 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 }
             """
             return content
+        }
+
+        @Override
+        String getServicesInterfaceWithCommonServices() {
+            return """
+                interface Services {
+                    @get:javax.inject.Inject
+                    val project: Project
+                }
+            """
         }
     }
 
@@ -560,12 +585,13 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                                 ${bindingTypeClassName},
                                 ${definition.buildModelFullPublicClassName}
                             >("${name}") { definition, model, parent  ->
+                                val services = objectFactory.newInstance(Services::class.java)
                                 println("Binding ${definition.publicTypeClassName}")
                                 println("${name} model class: " + model::class.java.getSimpleName())
                                 println("${name} parent model class: " + getBuildModel(parent)::class.java.getSimpleName())
                                 ${definition.buildModelMapping.replaceAll(';', '')}
-                                val projectName = project.name
-                                getProject().getTasks().register("print${definition.publicTypeClassName}Configuration") { task: Task ->
+                                val projectName = services.project.name
+                                services.project.tasks.register("print${definition.publicTypeClassName}Configuration") { task: Task ->
                                     task.doLast { _: Task ->
                                         ${definition.displayDefinitionPropertyValues().replaceAll(';', '')}
                                         ${definition.displayModelPropertyValues().replaceAll(';', '')}
@@ -573,6 +599,8 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                                 }
                             }
                         }
+
+                        ${servicesInterfaceWithCommonServices}
                     }
 
                     override fun apply(project: Project) {
@@ -805,7 +833,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         @Override
         String getBuildModelMapping() {
             return super.getBuildModelMapping() + """
-                model.getText().set(context.getProject().provider(() -> definition.getText().get() + " " + context.getBuildModel(parent).getBarProcessed().get()));
+                model.getText().set(services.getProject().provider(() -> definition.getText().get() + " " + context.getBuildModel(parent).getBarProcessed().get()));
             """
         }
     }
@@ -891,6 +919,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${Definition.class.name};
                 import ${BuildModel.class.name};
                 import org.gradle.api.provider.Property;
+                import org.gradle.api.file.DirectoryProperty;
                 import org.gradle.api.model.ObjectFactory;
                 import org.gradle.api.Action;
                 import org.gradle.api.tasks.Nested;
@@ -917,6 +946,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
                     public interface FeatureModel extends BuildModel {
                         Property<String> getText();
+                        DirectoryProperty getDir();
                     }
                 }
             """
