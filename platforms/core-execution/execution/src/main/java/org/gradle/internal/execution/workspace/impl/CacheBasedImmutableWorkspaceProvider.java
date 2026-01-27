@@ -78,7 +78,9 @@ public class CacheBasedImmutableWorkspaceProvider implements ImmutableWorkspaceP
 
                 if (runningOperationFuture != null) {
                     // If it's already running, wait for it to finish
-                    T result = workerLeaseService.blocking(runningOperationFuture::join);
+                    T result = workerLeaseService.whileDisallowingProjectLockChanges(() ->
+                        workerLeaseService.blocking(runningOperationFuture::join)
+                    );
                     return ConcurrentResult.producedByOtherThread(result);
                 }
 
