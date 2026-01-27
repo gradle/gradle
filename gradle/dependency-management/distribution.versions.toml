@@ -12,7 +12,6 @@ commonsCompress = "1.26.1!!"
 commonsHttpclient = "4.5.14!!"
 commonsIo = "2.15.1!!"
 commonsLang = "3.20.0!!"
-eclipseSisuPlexus = "0.3.5!!"
 fastutil = "8.5.2!!"
 gcs = "v1-rev20220705-1.32.1!!"
 googleApiClient = "1.34.0!!" # our GCS version requires 1.34.0
@@ -39,9 +38,6 @@ jsch = "0.2.16!!"
 jsoup = "1.15.3!!"
 jspecify = "1.0.0!!"
 jsr305 = "3.0.2!!"
-junit = "4.13.2!!" # compileOnly
-junit5 = "5.12.2!!" # compileOnly
-junitPlatform = "1.12.2!!" # compileOnly
 kotlin = "2.3.0!!"
 kotlinxSerialization = "1.9.0!!"
 kryo = "2.24.0!!"
@@ -49,7 +45,6 @@ minlog = "1.2!!"
 nativePlatform = "0.22-milestone-29!!"
 objenesis = "2.6!!" # transitive dependency of kryo
 plexusCipher = "2.0!!"
-plexusClassworlds = "2.7.0!!"
 plexusInterpolation = "1.26!!"
 plexusSecDispatcher = "2.0!!"
 plexusUtils = "3.5.1!!"
@@ -57,9 +52,7 @@ plist = "1.27!!"
 slf4j = "2.0.17!!"
 snakeyaml = "2.0!!"
 sshd = "2.15.0!!"
-testng = "6.3.1!!" # later versions break test cross-version test filtering
 tomlj = "1.0.0!!"
-zinc = "1.12.0!!"
 
 [libraries]
 ant = { group = "org.apache.ant", name = "ant", version.ref = "ant" }
@@ -79,7 +72,6 @@ commonsCompress = { group = "org.apache.commons", name = "commons-compress", ver
 commonsHttpclient = { group = "org.apache.httpcomponents", name = "httpclient", version.ref = "commonsHttpclient" }
 commonsIo = { group = "commons-io", name = "commons-io", version.ref = "commonsIo" }
 commonsLang = { group = "org.apache.commons", name = "commons-lang3", version.ref = "commonsLang" }
-eclipseSisuPlexus = { group = "org.eclipse.sisu", name = "org.eclipse.sisu.plexus", version.ref = "eclipseSisuPlexus" } # transitive dependency of Maven modules to process POM metadata
 errorProneAnnotations = { group = "com.google.errorprone", name = "error_prone_annotations", version.ref = "errorProne" }
 fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil" }
 gcs = { group = "com.google.apis", name = "google-api-services-storage", version.ref = "gcs" }
@@ -128,10 +120,6 @@ jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 jspecify = { group = "org.jspecify", name = "jspecify", version.ref = "jspecify" }
 jsr305 = { group = "com.google.code.findbugs", name = "jsr305", version.ref = "jsr305" }
 julToSlf4j = { group = "org.slf4j", name = "jul-to-slf4j", version.ref = "slf4j" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junit5" }
-junitPlatform = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junitPlatform" }
-junitPlatformEngine = { group = "org.junit.platform", name = "junit-platform-engine", version.ref = "junitPlatform" }
 kotlinAssignment = { group = "org.jetbrains.kotlin", name = "kotlin-assignment", version.ref = "kotlin" }
 kotlinAssignmentCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "kotlin-assignment-compiler-plugin-embeddable", version.ref = "kotlin" }
 kotlinBuildToolsImpl = { group = "org.jetbrains.kotlin", name = "kotlin-build-tools-impl", version.ref = "kotlin" }
@@ -155,21 +143,14 @@ kotlinxSerializationCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-se
 kotlinxSerializationJson = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kryo = { group = "com.esotericsoftware.kryo", name = "kryo", version.ref = "kryo" }
 log4jToSlf4j = { group = "org.slf4j", name = "log4j-over-slf4j", version.ref = "slf4j" }
-# below maven* are transitive dependencies of Maven modules to process POM metadata, to load/build poms and repository settings, and required for maven2gradle in init plugin
-maven3Artifact = { group = "org.apache.maven", name = "maven-artifact", version.ref = "maven" }
-maven3Compat = { group = "org.apache.maven", name = "maven-compat", version.ref = "maven" }
-maven3Core = { group = "org.apache.maven", name = "maven-core", version.ref = "maven" }
 maven3Model = { group = "org.apache.maven", name = "maven-model", version.ref = "maven" }
-maven3PluginApi = { group = "org.apache.maven", name = "maven-plugin-api", version.ref = "maven" }
 maven3RepositoryMetadata = { group = "org.apache.maven", name = "maven-repository-metadata", version.ref = "maven" }
 maven3Settings = { group = "org.apache.maven", name = "maven-settings", version.ref = "maven" }
 maven3SettingsBuilder = { group = "org.apache.maven", name = "maven-settings-builder", version.ref = "maven" }
-mavenResolverApi = { group = "org.apache.maven.resolver", name = "maven-resolver-api", version.ref = "mavenResolver" }
 minlog = { group = "com.esotericsoftware.minlog", name = "minlog", version.ref = "minlog" }
 nativePlatform = { group = "net.rubygrapefruit", name = "native-platform", version.ref = "nativePlatform" }
 objenesis = { group = "org.objenesis", name = "objenesis", version.ref = "objenesis" }
 plexusCipher = { group = "org.sonatype.plexus", name = "plexus-cipher", version.ref = "plexusCipher" }
-plexusClassworlds = { group = "org.codehaus.plexus", name = "plexus-classworlds", version.ref = "plexusClassworlds" }
 plexusInterpolation = { group = "org.codehaus.plexus", name = "plexus-interpolation", version.ref = "plexusInterpolation" }
 plexusSecDispatcher = { group = "org.codehaus.plexus", name = "plexus-sec-dispatcher", version.ref = "plexusSecDispatcher" }
 plexusUtils = { group = "org.codehaus.plexus", name = "plexus-utils", version.ref = "plexusUtils" }
@@ -180,6 +161,4 @@ sshdCore = { group = "org.apache.sshd", name = "sshd-core", version.ref = "sshd"
 sshdOsgi = { group = "org.apache.sshd", name = "sshd-osgi", version.ref = "sshd" } # It contains sshd-core and sshd-common classes
 sshdScp = { group = "org.apache.sshd", name = "sshd-scp", version.ref = "sshd" }
 sshdSftp = { group = "org.apache.sshd", name = "sshd-sftp", version.ref = "sshd" }
-testng = { group = "org.testng", name = "testng", version.ref = "testng" }
 tomlj = { group = "org.tomlj", name = "tomlj", version.ref = "tomlj" }
-zinc = { group = "org.scala-sbt", name = "zinc_2.13", version.ref = "zinc" }

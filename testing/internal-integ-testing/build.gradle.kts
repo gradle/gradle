@@ -70,7 +70,7 @@ dependencies {
     api(testLibs.junit) {
         because("Part of the public API, used by spock AST transformer")
     }
-    api(libs.mavenResolverApi) {
+    api(providedLibs.mavenResolverApi) {
         because("For ApiMavenResolver. API we interact with to resolve Maven graphs & artifacts")
     }
     api(testLibs.samplesCheck) {
@@ -136,6 +136,9 @@ dependencies {
     implementation(testLibs.littleproxy)
     implementation(testLibs.mavenResolverSupplier) {
         because("For ApiMavenResolver. Wires together implementation for maven-resolver-api")
+    }
+    implementation(testLibs.mavenResolverProvider) {
+        because("For ApiMavenResolver. Provides MavenRepositorySystemUtils")
     }
     implementation(libs.nativePlatform)
     implementation(testLibs.netty)

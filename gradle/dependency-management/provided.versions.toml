@@ -1,0 +1,28 @@
+# some versions are in shared-versions.properties
+[versions]
+bsh = "2.0b6!!" # transitive dependency of testng, upgraded to avoid having vulnerabile version
+eclipseSisuPlexus = "0.3.5!!"
+jcommander = "1.78!!" # transitive dependency of testng, upgraded to avoid having vulnerabile version
+junit = "4.13.2!!"
+junit5 = "5.12.2!!"
+junitPlatform = "1.12.2!!"
+plexusClassworlds = "2.7.0!!"
+testng = "6.3.1!!" # later versions break test cross-version test filtering
+zinc = "1.12.0!!"
+
+[libraries]
+bsh = { group = "org.apache-extras.beanshell", name = "bsh", version.ref = "bsh" }
+eclipseSisuPlexus = { group = "org.eclipse.sisu", name = "org.eclipse.sisu.plexus", version.ref = "eclipseSisuPlexus" } # transitive dependency of Maven modules to process POM metadata
+jcommander = { group = "com.beust", name = "jcommander", version.ref = "jcommander" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junit5" }
+junitPlatform = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junitPlatform" }
+junitPlatformEngine = { group = "org.junit.platform", name = "junit-platform-engine", version.ref = "junitPlatform" }
+maven3Artifact = { group = "org.apache.maven", name = "maven-artifact", version.ref = "maven" }
+maven3Compat = { group = "org.apache.maven", name = "maven-compat", version.ref = "maven" }
+maven3Core = { group = "org.apache.maven", name = "maven-core", version.ref = "maven" }
+maven3PluginApi = { group = "org.apache.maven", name = "maven-plugin-api", version.ref = "maven" }
+mavenResolverApi = { group = "org.apache.maven.resolver", name = "maven-resolver-api", version.ref = "mavenResolver" }
+plexusClassworlds = { group = "org.codehaus.plexus", name = "plexus-classworlds", version.ref = "plexusClassworlds" }
+testng = { group = "org.testng", name = "testng", version.ref = "testng" }
+zinc = { group = "org.scala-sbt", name = "zinc_2.13", version.ref = "zinc" }

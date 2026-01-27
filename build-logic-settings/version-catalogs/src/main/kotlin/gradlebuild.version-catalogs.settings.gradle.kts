@@ -27,6 +27,9 @@ dependencyResolutionManagement {
         create("libs") {
             from(files(basePath.file("distribution.versions.toml")))
         }
+        create("providedLibs") {
+            from(files(basePath.file("provided.versions.toml")))
+        }
         create("testLibs") {
             from(files(basePath.file("test.versions.toml")))
         }
