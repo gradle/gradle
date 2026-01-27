@@ -223,11 +223,9 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         // There is no previous execution in the immutable case
         PreviousExecutionContext previousExecutionContext = new PreviousExecutionContext(workspaceContext, null);
 
-        // Ensure an empty directory in case of stale files
+        // Ensure an empty directory in case of stale files and execute
+        // Snapshot invalidation is handled later by BuildCacheStep and BroadcastChangingOutputsStep
         ensureEmptyDirectory(workspaceDir);
-        // Invalidate snapshots since we cleaned the directory
-        fileSystemAccess.invalidate(ImmutableList.of(workspaceDir.getAbsolutePath()));
-        // Execute
         CachingResult delegateResult = delegate.execute(work, previousExecutionContext);
 
         if (delegateResult.getExecution().isSuccessful()) {

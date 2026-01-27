@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.utils
+package org.gradle.internal.declarativedsl.ndoc
 
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
+import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection.SupportedType
+import org.gradle.internal.declarativedsl.schemaBuilder.asSupported
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.lang.reflect.TypeVariable
@@ -38,6 +40,9 @@ object DclContainerMemberExtractionUtils {
     fun elementTypeFromNdocContainerType(containerType: KType): KType? =
         KotlinTypeUtils.asCandidateType(containerType)?.let { elementTypeFromNdocContainerType(it, KotlinTypeUtils) }
             .takeIf { it?.classifier is KClass<*> }
+
+    fun elementTypeFromNdocContainerType(containerType: SupportedType): SupportedType? =
+        SupportedTypeUtils.asCandidateType(containerType)?.let { elementTypeFromNdocContainerType(it, SupportedTypeUtils) }
 
     private fun <TRaw, TArg> elementTypeFromNdocContainerType(
         containerType: CandidateContainerType<TRaw, TArg>,
@@ -204,5 +209,44 @@ private object KotlinTypeUtils : TypeUtils<KClass<*>, KType?> {
             null -> null
             is KClass<*> -> KotlinCandidateContainerType(classifier, type.arguments.map { if (it.variance == KVariance.INVARIANT) it.type else null })
             else -> null
+        }
+}
+
+private object SupportedTypeUtils : TypeUtils<KClass<*>, SupportedType> {
+    override fun isNdocSubclass(type: KClass<*>): Boolean =
+        type.isSubclassOf(NamedDomainObjectContainer::class)
+
+    override fun isExactlyNdocType(type: KClass<*>): Boolean =
+        type == NamedDomainObjectContainer::class
+
+    override fun asCandidateType(type: SupportedType): SupportedCandidateContainerType? {
+        return SupportedCandidateContainerType(
+            type.classifier as? KClass<*> ?: return null,
+            type.arguments.map { it as? SupportedType ?: return null }
+        )
+    }
+}
+
+private class SupportedCandidateContainerType(
+    override val rawClass: KClass<*>,
+    override val typeArgs: List<SupportedType>
+) : CandidateContainerType<KClass<*>, SupportedType> {
+    override fun candidateSupertypes(): Sequence<SupportedCandidateContainerType> =
+        rawClass.supertypes.asSequence().mapNotNull supertypeCandidate@{ supertype ->
+            val rawType = supertype.classifier as? KClass<*>
+                ?: return@supertypeCandidate null
+            val typeArgs = supertype.arguments.map { typeArg ->
+                val type = typeArg.type
+                    // projected types cannot be element types; keep them as nulls if they are unrelated
+                    // but discard them (automatically because they are nulls) if they end up as the resulting element type
+                    .takeIf { typeArg.variance == KVariance.INVARIANT }
+                val classifier = type?.classifier
+                if (classifier is KTypeParameter) {
+                    val index = rawClass.typeParameters.indexOf(classifier).takeIf { it != -1 }
+                        ?: return@supertypeCandidate null
+                    typeArgs.getOrNull(index) ?: return@supertypeCandidate null
+                } else type?.asSupported() ?: return@supertypeCandidate null
+            }
+            SupportedCandidateContainerType(rawType, typeArgs)
         }
 }

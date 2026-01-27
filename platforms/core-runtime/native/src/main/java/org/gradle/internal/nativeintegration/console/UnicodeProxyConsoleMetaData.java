@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.sink;
+package org.gradle.internal.nativeintegration.console;
 
-import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
-import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-abstract class UnicodeProxyConsoleMetaData implements ConsoleMetaData {
+public abstract class UnicodeProxyConsoleMetaData implements ConsoleMetaData {
 
-    private final ConsoleMetaData metaData;
+    protected final ConsoleMetaData metaData;
 
     public UnicodeProxyConsoleMetaData(ConsoleMetaData metaData) {
         this.metaData = metaData;
@@ -54,22 +52,10 @@ abstract class UnicodeProxyConsoleMetaData implements ConsoleMetaData {
         return metaData.isWrapStreams();
     }
 
-    public static ConsoleMetaData create(ConsoleMetaData metaData, ConsoleUnicodeSupport consoleUnicodeSupport) {
-        switch (consoleUnicodeSupport) {
-            case Auto:
-                return metaData;
-            case Disable:
-                return new FixedUnicodeSupport(metaData, false);
-            case Enable:
-            default:
-                return new FixedUnicodeSupport(metaData, true);
-        }
-    }
-
-    private static final class FixedUnicodeSupport extends UnicodeProxyConsoleMetaData {
+    public static final class FixedUnicodeSupport extends UnicodeProxyConsoleMetaData {
         private final boolean supportsUnicode;
 
-        FixedUnicodeSupport(ConsoleMetaData metaData, boolean supportsUnicode) {
+        public FixedUnicodeSupport(ConsoleMetaData metaData, boolean supportsUnicode) {
             super(metaData);
             this.supportsUnicode = supportsUnicode;
         }

@@ -45,6 +45,12 @@ import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingContextElement.TagContextElement
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingTags.varargType
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.ContainerElement
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.PropertyType
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Special
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Supertype
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.UsedInMember
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -64,9 +70,27 @@ interface SchemaBuildingHost {
     fun classMembers(kClass: KClass<*>): ClassMembersForSchema
     fun declarativeSupertypesHierarchy(kClass: KClass<*>): Iterable<MaybeDeclarativeClassInHierarchy>
 
+    /**
+     * Convert a [kClass] to a type that can be used as a DCL container (a block receiver).
+     */
     fun containerTypeRef(kClass: KClass<*>): DataTypeRef
+
+    /**
+     * Convert a [kType] to a type that can be used as a DCL model value type reference.
+     * Validates that the type is not nullable.
+     */
     fun modelTypeRef(kType: KType): DataTypeRef
+
+    /**
+     * Convert a [varargType] (element type) of a vararg function parameter to a DCL vararg (array) type reference.
+     */
     fun varargTypeRef(varargType: KType): DataTypeRef
+
+    /**
+     * Convert a [kType] to a DCL type reference without usage validation.
+     * The caller must validate the [kType] before using this function or using the returned type reference in the schema.
+     */
+    fun typeRef(kType: KType): DataTypeRef
 
     fun enterSchemaBuildingContext(contextElement: SchemaBuildingContextElement)
     fun leaveSchemaBuildingContext(contextElement: SchemaBuildingContextElement)
@@ -171,8 +195,13 @@ class DataSchemaBuilder(
             return modelTypeRef(kClass.starProjectedType)
         }
 
-        override fun modelTypeRef(kType: KType): DataTypeRef =
-            typeRef(kType)
+        override fun modelTypeRef(kType: KType): DataTypeRef {
+            if (kType.isMarkedNullable) {
+                schemaBuildingFailure("Unsupported usage of a nullable type")
+            }
+
+            return typeRef(kType)
+        }
 
         override fun varargTypeRef(varargType: KType): DataTypeRef {
             val varargTypeSignature = typeSignatures.getOrPut(DefaultVarargSignature.name) { DefaultVarargSignature }
@@ -199,7 +228,7 @@ class DataSchemaBuilder(
             }
         }
 
-        private fun typeRef(kType: KType): DataTypeRef {
+        override fun typeRef(kType: KType): DataTypeRef {
             check(currentContextStack.isNotEmpty()) { "Cannot reference a type $kType outside of a context" }
 
             return when (val kClassifier = kType.classifier) {
@@ -246,7 +275,7 @@ class DataSchemaBuilder(
                         if (it.variance != KVariance.INVARIANT) {
                             schemaBuildingFailure("Illegal '${it.variance}' variance")
                         }
-                        val argumentTypeRef = this.typeRef(
+                        val argumentTypeRef = modelTypeRef(
                             it.type ?: schemaBuildingFailure("Type argument has no proper type")
                         )
                         TypeArgumentInternal.DefaultConcreteTypeArgument(argumentTypeRef)
@@ -438,7 +467,7 @@ class DataSchemaBuilder(
         val properties = mutableMapOf<KClass<*>, MutableMap<String, DataProperty>>()
 
         private
-        val propertyOriginalTypes = mutableMapOf<KClass<*>, MutableMap<String, KType>>()
+        val propertyOriginalTypes = mutableMapOf<KClass<*>, MutableMap<String, SupportedTypeProjection.SupportedType>>()
 
         private
         val claimedFunctions = mutableMapOf<KClass<*>, MutableSet<KCallable<*>>>()
@@ -453,7 +482,7 @@ class DataSchemaBuilder(
             propertyOriginalTypes.getOrPut(kClass) { mutableMapOf() }
         }
 
-        fun addProperty(kClass: KClass<*>, property: DataProperty, originalType: KType) {
+        fun addProperty(kClass: KClass<*>, property: DataProperty, originalType: SupportedTypeProjection.SupportedType) {
             properties.getOrPut(kClass) { mutableMapOf() }[property.name] = property
             propertyOriginalTypes.getOrPut(kClass) { mutableMapOf() }[property.name] = originalType
         }
@@ -476,7 +505,6 @@ class DataSchemaBuilder(
         fun getClaimedFunctions(kClass: KClass<*>): Set<KCallable<*>> = claimedFunctions[kClass].orEmpty()
 
         fun getProperty(kClass: KClass<*>, name: String) = properties[kClass]?.get(name)
-        fun getPropertyType(kClass: KClass<*>, name: String) = propertyOriginalTypes[kClass]?.get(name)
     }
 
     @Suppress("NestedBlockDepth")
@@ -489,19 +517,25 @@ class DataSchemaBuilder(
                 get() = host
         }
 
+        val allTypeDiscoveries: MutableSet<TypeDiscovery.DiscoveredClass> = mutableSetOf()
+
         val allTypesToVisit = buildSet {
             fun visit(type: KClass<*>) {
                 if (add(type)) {
-                    typeDiscovery.getClassesToVisitFrom(typeDiscoveryServices, type)
-                        .forEach {
-                            if (!it.isHidden) {
-                                visit(it.kClass)
-                            }
+                    val discoveriesToVisitNext = typeDiscovery.getClassesToVisitFrom(typeDiscoveryServices, type)
+                    allTypeDiscoveries.addAll(discoveriesToVisitNext)
+
+                    discoveriesToVisitNext.forEach {
+                        if (!it.isHidden) {
+                            visit(it.kClass)
                         }
+                    }
                 }
             }
             types.forEach(::visit)
         }
+
+        checkDiscoveredTypeForIllegalHiddenTypeUsages(host, allTypeDiscoveries)
 
         return PreIndex().apply {
             allTypesToVisit.forEach { type ->
@@ -519,6 +553,48 @@ class DataSchemaBuilder(
                 }
             }
         }
+    }
+
+    private fun checkDiscoveredTypeForIllegalHiddenTypeUsages(
+        host: SchemaBuildingHost,
+        allDiscoveries: MutableSet<TypeDiscovery.DiscoveredClass>
+    ) {
+        allDiscoveries.groupBy { it.kClass }.forEach { (kClass, discoveries) ->
+            if (!isIgnoredInVisibilityChecks(kClass) && discoveries.any { it.isHidden } && discoveries.any { !it.isHidden }) {
+                host.schemaBuildingFailure(
+                    "Type '${kClass.qualifiedName}' is a hidden type and cannot be directly used." +
+                            "\n  Appears as hidden:\n" +
+                            discoveries.filter { it.isHidden }
+                                .flatMap { it.discoveryTags }
+                                .joinToString("\n") { "    - ${discoveryTagDescription(it, kClass)}" } +
+                            "\n  Illegal usages:\n" +
+                            discoveries.filterNot { it.isHidden }
+                                .flatMap { it.discoveryTags }
+                                .filter { it !is Supertype || it.ofType != kClass } // Filter out the self appearance in the type hierarchy
+                                .joinToString("\n") { "    - ${discoveryTagDescription(it, kClass)}" }
+                )
+            }
+        }
+    }
+
+    /**
+     * Some types are widely used and do not make sense to hide; however, a model might accidentally hide them in a type hierarchy.
+     * Avoid reporting their usages in other types as errors.
+     */
+    private fun isIgnoredInVisibilityChecks(kClass: KClass<*>) = when (kClass) {
+        Iterable::class, Collection::class, List::class, Map::class, Set::class,
+        Any::class, Unit::class,
+        String::class, Int::class, Boolean::class, Long::class, Double::class -> true
+        else -> false
+    }
+
+    private fun discoveryTagDescription(tag: DiscoveryTag, inTypeHierarchyOf: KClass<*>): String = when (tag) {
+        is ContainerElement -> "as the element of a container '${tag.containerMember}'"
+        is PropertyType -> "as the property type of '${tag.kClass.qualifiedName}.${tag.propertyName}'"
+        is Supertype -> if (tag.ofType == inTypeHierarchyOf && tag.isHidden) "type '${inTypeHierarchyOf.qualifiedName}' is annotated as hidden" else
+            "in the supertypes of '${tag.ofType.qualifiedName}'"
+        is UsedInMember -> "referenced from member '${tag.member}'"
+        is Special -> tag.description
     }
 
     @Suppress("UNCHECKED_CAST")

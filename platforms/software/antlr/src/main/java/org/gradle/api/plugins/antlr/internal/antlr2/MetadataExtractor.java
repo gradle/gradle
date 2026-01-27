@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
@@ -28,8 +29,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.Files.newBufferedReader;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
 /**
@@ -63,9 +62,11 @@ public class MetadataExtractor {
     }
 
     @Nullable
+    @SuppressWarnings("DefaultCharset")
     private static String getPackageName(File grammarFile) {
         try {
-            return getPackageName(newBufferedReader(grammarFile.toPath(), UTF_8));
+            // Note: source files can have non-UTF8 encoding. FileReader uses default Charset and also handles invalid characters.
+            return getPackageName(new FileReader(grammarFile));
         } catch (IOException e) {
             throw new UncheckedIOException("Cannot read antlr grammar file", e);
         }
