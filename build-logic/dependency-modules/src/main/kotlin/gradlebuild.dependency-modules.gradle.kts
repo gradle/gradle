@@ -115,7 +115,7 @@ abstract class CapabilityRule @Inject constructor(
     override fun execute(context: ComponentMetadataContext) {
         context.details.allVariants {
             withCapabilities {
-                addCapability("org.gradle.internal.capability", name, version)
+                addCapability("org.gradle.internal.capability", name, "${version}.original.${context.details.id.version}")
             }
         }
     }
@@ -160,7 +160,7 @@ class CapabilitySpec {
     fun ComponentMetadataHandler.declareCapabilityPreference(module: String) {
         withModule<CapabilityRule>(module) {
             params(name)
-            params("${providedBy.size + 1}")
+            params("${providedBy.size}")
         }
     }
 
