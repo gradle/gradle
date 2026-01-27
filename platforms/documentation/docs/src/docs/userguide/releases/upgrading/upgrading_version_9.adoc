@@ -96,7 +96,7 @@ If your build relies on a custom configuration for the `compilationClasspath` of
 
 ==== System property priority for Wrapper execution has changed
 
-The priority of <<build_environment.html#sec:gradle_system_properties,system properties>> passed to the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> now correctly follows the documented order of precedence.
+The priority of <<build_environment.adoc#sec:gradle_system_properties,system properties>> passed to the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> now correctly follows the documented order of precedence.
 In previous versions, properties defined in `gradle.properties` files could unexpectedly override those passed via the command line.
 
 If a property is defined in multiple locations, Gradle now strictly honors the following hierarchy (from highest to lowest):
