@@ -305,6 +305,7 @@ testing {
     subproject("distributions-integ-tests")
     subproject("integ-test")
     subproject("internal-architecture-testing")
+    subproject("internal-distribution-testing")
     subproject("internal-integ-testing")
     subproject("internal-performance-testing")
     subproject("internal-testing")

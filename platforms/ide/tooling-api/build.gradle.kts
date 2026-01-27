@@ -64,13 +64,13 @@ dependencies {
 
     runtimeOnly(projects.coreApi)
 
-    testImplementation(projects.internalIntegTesting)
+    testImplementation(projects.internalDistributionTesting)
 
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.baseServicesGroovy)
     testFixturesImplementation(projects.core)
     testFixturesImplementation(projects.coreApi)
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.internalDistributionTesting)
     testFixturesImplementation(projects.internalTesting)
     testFixturesImplementation(projects.logging)
     testFixturesImplementation(projects.modelCore)
