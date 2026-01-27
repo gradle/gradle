@@ -38,8 +38,6 @@ image::plugin-portal-registration-page.png[]
 
 Provide the credentials as Gradle properties (`gradle.publish.key` and `gradle.publish.secret`), usually in <<build_environment.adoc#sec:gradle_configuration_properties,`$HOME/.gradle/gradle.properties`>>, or supply them via environment variables (`GRADLE_PUBLISH_KEY` and `GRADLE_PUBLISH_SECRET`), which is convenient for CI/CD.
 
-If you are concerned about placing your credentials in gradle.properties, check out the link:https://plugins.gradle.org/plugin/de.qaware.seu.as.code.credentials[Seauc Credentials plugin].
-
 [[plugin-publishing-plugin]]
 == Adding the {publishplugin}
 
