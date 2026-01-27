@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec
@@ -55,7 +56,7 @@ class VariantResolvingArtifactSetTest extends Specification {
 
     def "returns empty set when component id does not match spec"() {
         when:
-        def artifactSet = new VariantResolvingArtifactSet(component, variant, ImmutableAttributes.EMPTY, [], noExcludes(), [] as Set)
+        def artifactSet = new VariantResolvingArtifactSet(component, variant, ImmutableAttributes.EMPTY, ImmutableList.of(), noExcludes(), [] as Set)
         def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { false }, selectFromAll, false, ResolutionStrategy.SortOrder.DEFAULT)
         def selected = artifactSet.select(services, spec)
 
@@ -72,12 +73,12 @@ class VariantResolvingArtifactSetTest extends Specification {
         def subvariant2 = Mock(VariantResolveMetadata)
 
         variant.prepareForArtifactResolution() >> Mock(VariantArtifactResolveState) {
-            getArtifactVariants() >> ([subvariant1, subvariant2] as Set)
+            getArtifactVariants() >> ImmutableList.of(subvariant1, subvariant2)
         }
 
         when:
         def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { true }, false, false, ResolutionStrategy.SortOrder.DEFAULT)
-        def artifactSet = new VariantResolvingArtifactSet(component, variant, ImmutableAttributes.EMPTY, [], noExcludes(), [] as Set)
+        def artifactSet = new VariantResolvingArtifactSet(component, variant, ImmutableAttributes.EMPTY, ImmutableList.of(), noExcludes(), [] as Set)
         services.getArtifactVariantSelector() >> new ArtifactVariantSelector() {
             @Override
             ResolvedArtifactSet select(ResolvedVariantSet candidates, ImmutableAttributes requestAttributes, boolean allowNoMatchingVariants) {
@@ -100,11 +101,11 @@ class VariantResolvingArtifactSetTest extends Specification {
         def subvariant2 = Mock(VariantResolveMetadata)
 
         variant.prepareForArtifactResolution() >> Mock(VariantArtifactResolveState) {
-            getArtifactVariants() >> ([subvariant1, subvariant2] as Set)
+            getArtifactVariants() >> ImmutableList.of(subvariant1, subvariant2)
         }
 
         def artifacts = Stub(ResolvedArtifactSet)
-        def artifactSet = new VariantResolvingArtifactSet(component, variant, ImmutableAttributes.EMPTY, [], noExcludes(), [] as Set)
+        def artifactSet = new VariantResolvingArtifactSet(component, variant, ImmutableAttributes.EMPTY, ImmutableList.of(), noExcludes(), [] as Set)
 
         when:
         def spec = new ArtifactSelectionSpec(ImmutableAttributes.EMPTY, { true }, selectFromAll, false, ResolutionStrategy.SortOrder.DEFAULT)

@@ -33,7 +33,6 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * A configuration representing an additional variant of a published component added by a component metadata rule.
@@ -127,8 +126,8 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     }
 
     @Override
-    public Set<? extends VariantResolveMetadata> getArtifactVariants() {
-        return ImmutableSet.of(new DefaultVariantMetadata(name, null, asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
+    public ImmutableList<? extends VariantResolveMetadata> getArtifactVariants() {
+        return ImmutableList.of(new DefaultVariantMetadata(name, null, asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
     }
 
     @Override

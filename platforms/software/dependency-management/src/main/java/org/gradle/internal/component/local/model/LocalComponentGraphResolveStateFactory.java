@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultRootComponentIdentifier;
@@ -35,7 +36,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
 
 @ServiceScope(Scope.BuildTree.class)
@@ -75,7 +75,7 @@ public class LocalComponentGraphResolveStateFactory {
     public LocalVariantGraphResolveState realizedVariantStateFor(
         LocalVariantGraphResolveMetadata metadata,
         DefaultLocalVariantGraphResolveState.VariantDependencyMetadata dependencyMetadata,
-        Set<LocalVariantMetadata> variants
+        ImmutableList<LocalVariantMetadata> variants
     ) {
         CalculatedValue<DefaultLocalVariantGraphResolveState.VariantDependencyMetadata> calculatedDependencies =
             calculatedValueContainerFactory.create(Describables.of(metadata, "dependencies"), context -> dependencyMetadata);

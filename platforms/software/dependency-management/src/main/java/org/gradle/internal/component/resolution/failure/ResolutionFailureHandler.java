@@ -19,6 +19,7 @@ package org.gradle.internal.component.resolution.failure;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState;
@@ -58,7 +59,6 @@ import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailu
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleArtifactFailure;
 import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariantsFailure;
 import org.gradle.internal.component.resolution.failure.type.NoVariantsWithMatchingCapabilitiesFailure;
-import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -235,6 +235,14 @@ public class ResolutionFailureHandler {
         return describeFailure(failure);
     }
 
+    public AbstractResolutionFailureException noAvailableArtifactFailure(
+        ComponentIdentifier componentIdentifier,
+        ImmutableAttributes requestedAttributes
+    ) {
+        NoCompatibleArtifactFailure failure = new NoCompatibleArtifactFailure(componentIdentifier, componentIdentifier.getDisplayName(), requestedAttributes, ImmutableList.of());
+        return describeFailure(failure);
+    }
+
     public AbstractResolutionFailureException ambiguousArtifactsFailure(
         AttributeMatcher matcher,
         ResolvedVariantSet targetVariantSet,
@@ -244,15 +252,6 @@ public class ResolutionFailureHandler {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessResolvedVariants(matchingVariants);
         AmbiguousArtifactsFailure failure = new AmbiguousArtifactsFailure(targetVariantSet.getComponentIdentifier(), targetVariantSet.asDescribable().getDisplayName(), requestedAttributes, assessedCandidates);
-        return describeFailure(failure);
-    }
-
-    public AbstractResolutionFailureException unknownArtifactVariantSelectionFailure(
-        ResolvedVariantSet targetVariantSet,
-        ImmutableAttributes requestAttributes,
-        Exception cause
-    ) {
-        UnknownArtifactSelectionFailure failure = new UnknownArtifactSelectionFailure(targetVariantSet.getComponentIdentifier(), targetVariantSet.asDescribable().getDisplayName(), requestAttributes, cause);
         return describeFailure(failure);
     }
 

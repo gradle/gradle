@@ -73,14 +73,14 @@ class DefaultResolvedDependencySpec extends Specification {
         DefaultResolvedDependency parent2 = newDependency("p2", newId("someGroup", "someChild", "someVersion"))
         parent2.addChild(resolvedDependency)
 
-        resolvedDependency.addParentSpecificArtifacts(parent1, TestArtifactSet.create(ImmutableAttributes.EMPTY, Collections.singleton(artifact2)))
-        resolvedDependency.addParentSpecificArtifacts(parent2, TestArtifactSet.create(ImmutableAttributes.EMPTY, Arrays.asList(artifact1, artifact2)))
+        resolvedDependency.addModuleArtifacts(TestArtifactSet.create(ImmutableAttributes.EMPTY, Collections.singleton(artifact2)))
+        resolvedDependency.addModuleArtifacts(TestArtifactSet.create(ImmutableAttributes.EMPTY, Arrays.asList(artifact1, artifact2)))
 
         then:
         resolvedDependency.allModuleArtifacts == [artifact1, artifact2] as Set
     }
 
-    def getParentArtifacts() {
+    def getModuleArtifactsMultipleParents() {
         when:
         DefaultResolvedDependency resolvedDependency = createResolvedDependency()
 
@@ -91,11 +91,12 @@ class DefaultResolvedDependencySpec extends Specification {
         DefaultResolvedDependency parentResolvedDependency2 = createAndAddParent("parent2", resolvedDependency, parent2SpecificArtifacts)
 
         then:
-        resolvedDependency.getParentArtifacts(parentResolvedDependency1) == parent1SpecificArtifacts
-        resolvedDependency.getParentArtifacts(parentResolvedDependency2) == parent2SpecificArtifacts
+        resolvedDependency.getModuleArtifacts() == concat(parent1SpecificArtifacts, parent2SpecificArtifacts) as Set
+        resolvedDependency.getParentArtifacts(parentResolvedDependency1) == resolvedDependency.getModuleArtifacts()
+        resolvedDependency.getParentArtifacts(parentResolvedDependency2) == resolvedDependency.getModuleArtifacts()
     }
 
-    def getArtifacts() {
+    def getModuleArtifacts() {
         when:
         DefaultResolvedDependency resolvedDependency = createResolvedDependency()
 
@@ -103,7 +104,8 @@ class DefaultResolvedDependencySpec extends Specification {
         def parentResolvedDependency1 = createAndAddParent("parent1", resolvedDependency, parent1SpecificArtifacts)
 
         then:
-        resolvedDependency.getArtifacts(parentResolvedDependency1) == parent1SpecificArtifacts
+        resolvedDependency.getModuleArtifacts() == parent1SpecificArtifacts
+        resolvedDependency.getArtifacts(parentResolvedDependency1) == resolvedDependency.getModuleArtifacts()
     }
 
     def getArtifactsWithParentWithoutParentArtifacts() {
@@ -111,7 +113,7 @@ class DefaultResolvedDependencySpec extends Specification {
         DefaultResolvedDependency resolvedDependency = createResolvedDependency()
 
         DefaultResolvedDependency parent = newDependency("someConfiguration", newId("someGroup", "parent", "someVersion"))
-        resolvedDependency.getParents().add(parent)
+        parent.addChild(resolvedDependency)
 
         then:
         resolvedDependency.getArtifacts(parent).empty
@@ -122,7 +124,7 @@ class DefaultResolvedDependencySpec extends Specification {
         DefaultResolvedDependency resolvedDependency = createResolvedDependency()
 
         DefaultResolvedDependency parent = newDependency("someConfiguration", newId("someGroup", "parent", "someVersion"))
-        resolvedDependency.getParents().add(parent)
+        parent.addChild(resolvedDependency)
 
         then:
         resolvedDependency.getParentArtifacts(parent).empty
@@ -157,7 +159,8 @@ class DefaultResolvedDependencySpec extends Specification {
         Set<ResolvedArtifact> parent1SpecificArtifacts = newHashSet(createArtifact("parent1Specific"))
         DefaultResolvedDependency parentResolvedDependency1 = createAndAddParent("parent1", resolvedDependency, parent1SpecificArtifacts)
 
-        createAndAddParent("parent2", resolvedDependency, newHashSet(createArtifact("parent2Specific")))
+        Set<ResolvedArtifact> parent2SpecificArtifacts = newHashSet(createArtifact("parent2Specific"))
+        createAndAddParent("parent2", resolvedDependency, newHashSet(parent2SpecificArtifacts))
 
         DefaultResolvedDependency child = newDependency("someChildConfiguration", newId("someGroup", "someChild", "someVersion"))
         resolvedDependency.addChild(child)
@@ -169,8 +172,9 @@ class DefaultResolvedDependencySpec extends Specification {
         createAndAddParent("childParent2", child, childParent2SpecificArtifacts)
 
         then:
-        def expectedArtifacts = concat(parent1SpecificArtifacts, childParent1SpecificArtifacts, childParent2SpecificArtifacts) as Set
-        resolvedDependency.getAllArtifacts(parentResolvedDependency1) == expectedArtifacts
+        def expectedArtifacts = concat(parent1SpecificArtifacts, parent2SpecificArtifacts, childParent1SpecificArtifacts, childParent2SpecificArtifacts) as Set
+        resolvedDependency.allModuleArtifacts == expectedArtifacts
+        resolvedDependency.getAllArtifacts(parentResolvedDependency1) == resolvedDependency.allModuleArtifacts
     }
 
     def equalsAndHashCode() {
@@ -199,7 +203,7 @@ class DefaultResolvedDependencySpec extends Specification {
         dependency.module.id.version == "version"
     }
 
-    def "artifacts are ordered by name then classifier then extension then type"() {
+    def "artifacts are ordered by name then classifier then extension then type when added individually"() {
         ResolvedArtifact artifact1 = artifact("a", null, "jar", "jar")
         ResolvedArtifact artifact2 = artifact("b", null, "jar", "jar")
         ResolvedArtifact artifact3 = artifact("b", "a-classifier", "jar", "jar")
@@ -237,7 +241,7 @@ class DefaultResolvedDependencySpec extends Specification {
         dependency.moduleArtifacts == [artifact1, artifact2] as Set
     }
 
-    def "parent specific artifacts are ordered by name then classifier then extension then type"() {
+    def "artifacts are ordered by name then classifier then extension then type when added as a single artifact set"() {
         ResolvedArtifact artifact1 = artifact("a", null, "jar", "jar")
         ResolvedArtifact artifact2 = artifact("b", null, "jar", "jar")
         ResolvedArtifact artifact3 = artifact("b", "a-classifier", "jar", "jar")
@@ -245,16 +249,14 @@ class DefaultResolvedDependencySpec extends Specification {
         ResolvedArtifact artifact5 = artifact("b", "b-classifier", "a-type", "b-ext")
         ResolvedArtifact artifact6 = artifact("b", "b-classifier", "b-type", "b-ext")
         ResolvedArtifact artifact7 = artifact("c", "a-classifier", "jar", "jar")
-        DefaultResolvedDependency parent = Mock()
 
         given:
         def dependency = newDependency("config", newId("group", "module", "version"))
 
-        dependency.parents.add(parent)
-        dependency.addParentSpecificArtifacts(parent, TestArtifactSet.create(ImmutableAttributes.EMPTY, [artifact6, artifact1, artifact7, artifact5, artifact2, artifact3, artifact4]))
+        dependency.addModuleArtifacts(TestArtifactSet.create(ImmutableAttributes.EMPTY, [artifact6, artifact1, artifact7, artifact5, artifact2, artifact3, artifact4]))
 
         expect:
-        dependency.getParentArtifacts(parent) as List == [artifact1, artifact2, artifact3, artifact4, artifact5, artifact6, artifact7]
+        dependency.getModuleArtifacts() as List == [artifact1, artifact2, artifact3, artifact4, artifact5, artifact6, artifact7]
     }
 
     def artifact(String name, String classifier, String type, String extension) {
@@ -267,7 +269,7 @@ class DefaultResolvedDependencySpec extends Specification {
     }
 
     def add(DefaultResolvedDependency dependency, ResolvedArtifact artifact) {
-        dependency.addParentSpecificArtifacts(Stub(DefaultResolvedDependency), TestArtifactSet.create(ImmutableAttributes.EMPTY, [artifact]))
+        dependency.addModuleArtifacts(TestArtifactSet.create(ImmutableAttributes.EMPTY, [artifact]))
     }
 
     private DefaultResolvedDependency createResolvedDependency() {
@@ -276,8 +278,8 @@ class DefaultResolvedDependencySpec extends Specification {
 
     private DefaultResolvedDependency createAndAddParent(String parentName, DefaultResolvedDependency resolvedDependency, Set<ResolvedArtifact> parentSpecificArtifacts) {
         DefaultResolvedDependency parent = newDependency("someConfiguration", newId("someGroup", parentName, "someVersion"))
-        resolvedDependency.getParents().add(parent)
-        resolvedDependency.addParentSpecificArtifacts(parent, TestArtifactSet.create(ImmutableAttributes.EMPTY, parentSpecificArtifacts))
+        parent.addChild(resolvedDependency)
+        resolvedDependency.addModuleArtifacts(TestArtifactSet.create(ImmutableAttributes.EMPTY, parentSpecificArtifacts))
         return parent
     }
 
