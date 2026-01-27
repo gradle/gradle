@@ -496,3 +496,102 @@ Though it may seem repetitive to exclude the same transitive dependencies from m
 === Tags
 
 `<<tags_reference.adoc#tag:dependencies,#dependencies>>`
+
+[[use_attributes_on_configurations]]
+== Always Declare Attributes on Consumable and Resolvable Configurations
+
+When creating custom configurations that are meant to be consumed or resolved, always declare at least one <<variant_attributes.adoc#variant-attributes,attribute>> on them.
+
+=== Explanation
+
+Gradle uses <<variant_model.adoc#understanding-variant-selection,variant-aware dependency resolution>> to select the correct artifacts when resolving dependencies.
+Attributes are the primary mechanism for matching resolvable configurations to consumable configurations (variants).
+
+Even if there is only a single consumable configuration in a producer project, if that configuration lacks attributes, resolving it using variant-aware dependency resolution is not possible and will result in the following error:
+
+[source,text]
+----
+Unable to find a matching variant of project :producer:
+  - No variants exist.
+----
+
+Gradle is able to resolve configurations without using attributes, by selecting configurations by name directly.
+This is now only recommended when using Ivy repositories, and <<upgrading_version_8.adoc#selecting_variant_by_configuration_name,was deprecated for Maven repositories>> in Gradle 8.10 and removed in Gradle 9.0.0.
+This mechanism can still be used for local project dependencies, but should be avoided.
+The name of a configuration should be considered an implementation detail that shouldn't leave the bounds of a project, and should not be relied upon for dependency resolution.
+
+When adding attributes to a configuration, common attributes to use include:
+
+* `Category.CATEGORY_ATTRIBUTE` - Indicates the category of the component (e.g., `LIBRARY`, `DOCUMENTATION`)
+
+And for JVM projects, also:
+
+* `Usage.USAGE_ATTRIBUTE` - Indicates how the dependency is used (e.g., `JAVA_RUNTIME`, `JAVA_API`)
+* `LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE` - Indicates the type of library elements (e.g., `JAR`, `CLASSES`)
+
+It is a best practice to always declare sensible attributes on both consumable and resolvable configurations to ensure reliable dependency resolution.
+While attributes are not yet *required* on resolvable configurations when using variant-aware dependency resolution, omitting them leads to fragile builds that are prone to breakage as the build evolves.
+
+=== Example
+
+==== Don't Do This
+
+Avoid creating consumable and resolvable configurations without attributes:
+
+In `producer/build.gradle.kts`:
+
+====
+include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-avoid/kotlin",files="producer/build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-avoid/groovy",files="producer/build.gradle[tags=avoid-this]"]
+====
+====
+include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-avoid/kotlin",files="consumer/build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-avoid/groovy",files="consumer/build.gradle[tags=avoid-this]"]
+====
+
+<1> *No attributes declared on the configuration in the producer build*: This consumable configuration lacks attributes to describe what it provides.
+<2> *No attributes declared on the configuration in the consumer build*: This resolvable configuration lacks attributes to describe what it needs.
+
+This approach works only because we explicitly name the configuration in the dependency declaration (`configuration = "customElements"`).
+Resolving configurations by name should be avoided.
+
+==== Do This Instead
+
+Always declare attributes on consumable and resolvable configurations:
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidConfigurationsWithoutAttributes-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/avoidConfigurationsWithoutAttributes-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-do/kotlin",files="producer/build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-do/groovy",files="producer/build.gradle[tags=do-this]"]
+====
+====
+include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-do/kotlin",files="consumer/build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes-do/groovy",files="consumer/build.gradle[tags=do-this]"]
+====
+
+<1> *New Attribute type defined in producer*: The consumable configuration defines a new `custom` attrbute that contains project-specific variant identification information.  The new Attribute is also added to the Gradle Attribute schema to ensure type-safety.
+<2> *Attributes declared in producer*: The consumable configuration adds `Category` = `LIBRARY`, and `custom` attribute = `my-custom-value`.  These attributes will be used to identify this variant during resolution.
+<3> *The project dependency does not use configuration name*: It is no longer necessary to specify the configuration name in the dependency declaration, as variant-aware dependency resolution will be used to select the correct variant.
+<1> *New Attribute type defined in consumer*: The consumable configuration defines the same new `custom` attrbute that contains project-specific variant identification information.
+<2> *Attributes declared in consumer*: The resolvable configuration is identified as `Category` = `LIBRARY`, and `custom` attribute = `my-custom-value`.
+
+By declaring compatible attributes on both the consumable and resolvable configurations, Gradle can properly match the variants, ignoring implementation details like configuration name, and will resolve the dependency reliably.
+
+=== References
+
+- <<variant_model.adoc#understanding-variant-selection,Understanding Variant Selection>>
+- <<variant_attributes.adoc#variant-attributes,Variant Attributes>>
+- <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,Resolvable and Consumable Configurations>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:dependencies,#dependencies>>`
