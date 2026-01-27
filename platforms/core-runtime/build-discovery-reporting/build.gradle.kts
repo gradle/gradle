@@ -24,7 +24,6 @@ dependencies {
     api(projects.buildDiscovery)
     api(projects.problemsApi)
 
-    api(libs.inject)
     compileOnly(libs.jspecify)
 
     implementation(projects.baseServices)
