@@ -21,6 +21,7 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.execution.ExecutionEngine
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
@@ -54,13 +55,15 @@ object BuildScopeServices : ServiceRegistrationProvider {
         executionEngine: ExecutionEngine,
         inputFingerprinter: InputFingerprinter,
         workspaceProvider: KotlinDslWorkspaceProvider,
-        asyncIO: AsyncIOScopeFactory
+        asyncIO: AsyncIOScopeFactory,
+        buildOperationRunner: BuildOperationRunner
     ) = ProjectAccessorsClassPathGenerator(
         fileCollectionFactory,
         projectSchemaProvider,
         executionEngine,
         inputFingerprinter,
         workspaceProvider,
-        asyncIO
+        asyncIO,
+        buildOperationRunner
     )
 }

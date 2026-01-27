@@ -30,6 +30,11 @@ import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.operations.CallableBuildOperation
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
@@ -68,7 +73,7 @@ import java.lang.reflect.InvocationTargetException
  * @see ResidualProgramCompiler
  */
 internal
-class Interpreter(val host: Host) {
+class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner) {
 
     interface Host {
 
@@ -450,7 +455,15 @@ class Interpreter(val host: Host) {
                 programId
             )
 
-            eval(specializedProgram, scriptHost)
+            buildOperationRunner.run(object : RunnableBuildOperation {
+                override fun run(context: BuildOperationContext) {
+                    eval(specializedProgram, scriptHost)
+                }
+
+                override fun description(): BuildOperationDescriptor.Builder {
+                    return BuildOperationDescriptor.displayName("Evaluate Kotlin script ${scriptHost.scriptSource.displayName}")
+                }
+            })
         }
 
         override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath =
@@ -464,7 +477,25 @@ class Interpreter(val host: Host) {
             programTarget: ProgramTarget,
             accessorsClassPath: ClassPath
         ): CompiledScript {
+            return buildOperationRunner.call(object : CallableBuildOperation<CompiledScript> {
+                override fun call(context: BuildOperationContext): CompiledScript {
+                    return doCompileSecondStageOf(scriptHost, accessorsClassPath, programId, program, programKind, programTarget)
+                }
 
+                override fun description(): BuildOperationDescriptor.Builder {
+                    return BuildOperationDescriptor.displayName("Compile Kotlin script ${scriptHost.scriptSource.displayName}")
+                }
+            })
+        }
+
+        private fun doCompileSecondStageOf(
+            scriptHost: KotlinScriptHost<*>,
+            accessorsClassPath: ClassPath,
+            programId: ProgramId,
+            program: ExecutableProgram.StagedProgram,
+            programKind: ProgramKind,
+            programTarget: ProgramTarget
+        ): CompiledScript {
             val originalScriptPath = scriptHost.fileName
             val targetScope = scriptHost.targetScope
             val scriptSource = scriptHost.scriptSource
