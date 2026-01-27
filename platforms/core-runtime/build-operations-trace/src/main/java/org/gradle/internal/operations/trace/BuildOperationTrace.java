@@ -79,9 +79,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
@@ -715,7 +717,10 @@ public class BuildOperationTrace implements Stoppable {
         private final AtomicReference<@Nullable Throwable> failure = new AtomicReference<>();
 
         public AsyncExecutor() {
-            this.executor = Executors.newSingleThreadExecutor();
+            // Use a LTQ instead of the default LinkedBlockingQueue so threads submitting work do
+            // not need to acquire a lock, preventing contention on the event-producing threads.
+            BlockingQueue<Runnable> queue = new LinkedTransferQueue<>();
+            this.executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, queue);
         }
 
         @SuppressWarnings("FutureReturnValueIgnored")
