@@ -31,11 +31,19 @@ import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Console;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Describables;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
+import org.gradle.api.Incubating;
 
 /**
  * New Checkstyle task implementation that uses Gradle lazy properties.
@@ -54,8 +62,6 @@ public abstract class Checkstyle2 extends AbstractCodeQualityTask implements Rep
         getMaxWarningsProperty().convention(Integer.MAX_VALUE);
         getMaxErrorsProperty().convention(0);
     }
-
-    // Properties (lazy)
 
     /**
      * The class path containing the Checkstyle library to be used.
@@ -78,6 +84,7 @@ public abstract class Checkstyle2 extends AbstractCodeQualityTask implements Rep
     /**
      * Resolved configuration file derived from {@link #getConfigProperty()}.
      */
+    @Internal
     public Provider<RegularFile> getConfigFile() {
         return getProject().getLayout().file(getConfigProperty().map(TextResource::asFile));
     }
@@ -85,11 +92,15 @@ public abstract class Checkstyle2 extends AbstractCodeQualityTask implements Rep
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
      */
+    @Optional
+    @Input
     public abstract MapProperty<String, Object> getConfigPropertiesProperty();
 
     /**
      * Path to other Checkstyle configuration files. Exposed as variable {@code config_loc} in Checkstyle configs.
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
     public abstract DirectoryProperty getConfigDirectory();
 
     /**
@@ -104,21 +115,26 @@ public abstract class Checkstyle2 extends AbstractCodeQualityTask implements Rep
     /**
      * The maximum number of errors tolerated before failing the task.
      */
+    @Input
     public abstract Property<Integer> getMaxErrorsProperty();
 
     /**
      * The maximum number of warnings tolerated before failing the task.
      */
+    @Input
     public abstract Property<Integer> getMaxWarningsProperty();
 
     /**
      * Whether to show violations on the console.
      */
+    @Console
     public abstract Property<Boolean> getShowViolationsProperty();
 
     /**
      * Whether to enable external DTD loading for Checkstyle.
      */
+    @Incubating
+    @Input
     public abstract Property<Boolean> getEnableExternalDtdLoadProperty();
 
     // Reports configuration bridge
