@@ -39,4 +39,9 @@ class JUnitVintageSuitesIntegrationTest extends AbstractJUnit4SuitesIntegrationT
             testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
         """
     }
+
+    @Override
+    boolean isVintage() {
+        return true
+    }
 }
