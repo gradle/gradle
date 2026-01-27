@@ -25,6 +25,7 @@ import org.gradle.api.internal.plugins.ProjectFeatureBinding
 import org.gradle.api.internal.plugins.features.dsl.bindProjectFeatureToDefinition
 import org.gradle.api.plugins.java.HasJavaSources
 import org.gradle.api.plugins.quality.Checkstyle
+import org.gradle.api.internal.registration.TaskRegistrar
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import javax.inject.Inject
 
@@ -48,7 +49,7 @@ class CheckstyleProjectFeaturePlugin : Plugin<Project> {
                 HasJavaSources.JavaSources::class
             ) { definition, buildModel, target ->
                 val services = objectFactory.newInstance(Services::class.java)
-                val checkstyleTask = services.project.tasks.register("check" + StringUtils.capitalize(target.name) + "Checkstyle", Checkstyle::class.java) { task ->
+                val checkstyleTask = services.taskRegistrar.register("check" + StringUtils.capitalize(target.name) + "Checkstyle", Checkstyle::class.java) { task ->
                     task.group = LifecycleBasePlugin.VERIFICATION_GROUP
                     task.description = "Runs Checkstyle on the ${target.name} source set."
                     task.source(getBuildModel(target).inputSources)
@@ -61,7 +62,7 @@ class CheckstyleProjectFeaturePlugin : Plugin<Project> {
 
         interface Services {
             @get:Inject
-            val project: Project
+            val taskRegistrar: TaskRegistrar
         }
     }
 

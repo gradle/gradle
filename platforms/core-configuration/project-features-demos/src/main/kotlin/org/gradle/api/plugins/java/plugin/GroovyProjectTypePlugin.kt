@@ -26,6 +26,7 @@ import org.gradle.api.internal.plugins.features.dsl.bindProjectType
 import org.gradle.api.plugins.internal.java.DefaultGroovyProjectType
 import org.gradle.api.plugins.java.GroovyClasses
 import org.gradle.api.plugins.java.GroovyProjectType
+import org.gradle.api.internal.registration.TaskRegistrar
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import javax.inject.Inject
@@ -50,7 +51,7 @@ class GroovyProjectTypePlugin : Plugin<Project> {
                 definition.sources.register("test")
 
                 definition.sources.all { source ->
-                    val compileTask = services.project.tasks.register(
+                    val compileTask = services.taskRegistrar.register(
                         "compile" + capitalize(source.name) + "Groovy",
                         GroovyCompile::class.java
                     ) { task ->
@@ -59,7 +60,7 @@ class GroovyProjectTypePlugin : Plugin<Project> {
                         task.source(source.sourceDirectories.asFileTree)
                     }
 
-                    val processResourcesTask = registerResourcesProcessing(source, services.project.tasks)
+                    val processResourcesTask = registerResourcesProcessing(source, services.taskRegistrar)
 
                     model.classes.add(registerBuildModel(source, GroovyClasses.DefaultGroovyClasses::class.java).apply {
                         name = source.name
@@ -69,14 +70,14 @@ class GroovyProjectTypePlugin : Plugin<Project> {
                     })
                 }
 
-                registerJar(model.classes.named("main"), model, services.project.tasks)
+                registerJar(model.classes.named("main"), model, services.taskRegistrar)
             }
             .withUnsafeDefinitionImplementationType(DefaultGroovyProjectType::class.java)
         }
 
         interface Services {
             @get:Inject
-            val project: Project
+            val taskRegistrar: TaskRegistrar
         }
     }
 

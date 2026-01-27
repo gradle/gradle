@@ -20,13 +20,26 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.model.ObjectFactoryFactory;
 import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.Definition;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.ProjectFeatureApplicationContext;
+import org.gradle.api.internal.registration.DefaultTaskRegistrar;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.registration.TaskRegistrar;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.service.ServiceLookup;
+import org.gradle.internal.service.ServiceLookupException;
+import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.plugin.software.internal.ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext;
+import org.jspecify.annotations.Nullable;
+
+import javax.inject.Inject;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 
 /**
  * Applies project features to a target object by registering the software model as an extension of the target object (unless
@@ -39,14 +52,20 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
     private final ModelDefaultsApplicator modelDefaultsApplicator;
     private final PluginManagerInternal pluginManager;
     private final ClassLoaderScope classLoaderScope;
-    private final ObjectFactory objectFactory;
+    private final ObjectFactory projectObjectFactory;
+    private final ObjectFactoryFactory objectFactoryFactory;
+    private final TaskContainer taskContainer;
+    private final ServiceLookup allServices;
 
-    public DefaultProjectFeatureApplicator(ProjectFeatureDeclarations projectFeatureDeclarations, ModelDefaultsApplicator modelDefaultsApplicator, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope, ObjectFactory objectFactory) {
+    public DefaultProjectFeatureApplicator(ProjectFeatureDeclarations projectFeatureDeclarations, ModelDefaultsApplicator modelDefaultsApplicator, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope, ObjectFactory projectObjectFactory, ObjectFactoryFactory objectFactoryFactory, TaskContainer taskContainer, ServiceLookup allServices) {
         this.projectFeatureDeclarations = projectFeatureDeclarations;
         this.modelDefaultsApplicator = modelDefaultsApplicator;
         this.pluginManager = pluginManager;
         this.classLoaderScope = classLoaderScope;
-        this.objectFactory = objectFactory;
+        this.projectObjectFactory = projectObjectFactory;
+        this.objectFactoryFactory = objectFactoryFactory;
+        this.taskContainer = taskContainer;
+        this.allServices = allServices;
     }
 
     @Override
@@ -87,11 +106,14 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
 
     private <T extends Definition<V>, V extends BuildModel> T instantiateBoundFeatureObjectsAndApply(Object parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
         T definition = instantiateDefinitionObject(projectFeature);
-        V buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(objectFactory, projectFeature);
-        ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, projectFeatureDeclarations, objectFactory);
+        V buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(projectObjectFactory, projectFeature);
+        ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, projectFeatureDeclarations, projectObjectFactory);
+
+        TaskRegistrar taskRegistrar = new DefaultTaskRegistrar(taskContainer);
+        ObjectFactory featureObjectFactory = objectFactoryFactory.createObjectFactory(new UnsafeServicesForApplyAction(allServices, taskRegistrar));
 
         ProjectFeatureApplicationContext applyActionContext =
-            objectFactory.newInstance(ProjectFeatureApplicationContextInternal.class);
+            projectObjectFactory.newInstance(DefaultProjectFeatureApplicationContextInternal.class, featureObjectFactory);
 
         projectFeature.getBindingTransform().transform(applyActionContext, definition, buildModelInstance, Cast.uncheckedCast(parentDefinition));
 
@@ -99,7 +121,26 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
     }
 
     private <T extends Definition<V>, V extends BuildModel> T instantiateDefinitionObject(ProjectFeatureImplementation<T, V> projectFeature) {
-        return objectFactory.newInstance(projectFeature.getDefinitionImplementationType());
+        return projectObjectFactory.newInstance(projectFeature.getDefinitionImplementationType());
+    }
+
+    /**
+     * The internal implementation of the context passed to project feature apply actions, exposing an object factory
+     * appropriate for the configured safety of the apply action.
+     */
+    abstract static class DefaultProjectFeatureApplicationContextInternal implements ProjectFeatureApplicationContextInternal {
+        private final ObjectFactory objectFactory;
+
+        @Inject
+        @SuppressWarnings("Unused")
+        public DefaultProjectFeatureApplicationContextInternal(ObjectFactory objectFactory) {
+            this.objectFactory = objectFactory;
+        }
+
+        @Override
+        public ObjectFactory getObjectFactory() {
+            return objectFactory;
+        }
     }
 
     private static class ClassLoaderContextFromScope implements ModelDefaultsApplicator.ClassLoaderContext {
@@ -117,6 +158,53 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         @Override
         public ClassLoader getParentClassLoader() {
             return scope.getParent().getLocalClassLoader();
+        }
+    }
+
+    /**
+     * A limited service lookup for use during feature apply actions, exposing both safe and unsafe services.
+     */
+    private static class UnsafeServicesForApplyAction implements ServiceLookup {
+        private final ServiceLookup allServices;
+        private final TaskRegistrar taskRegistrar;
+
+        public UnsafeServicesForApplyAction(ServiceLookup allServices, TaskRegistrar taskRegistrar) {
+            this.allServices = allServices;
+            this.taskRegistrar = taskRegistrar;
+        }
+
+        @Override
+        public @Nullable Object find(Type serviceType) throws ServiceLookupException {
+            if (serviceType instanceof Class) {
+                Class<?> serviceClass = Cast.uncheckedNonnullCast(serviceType);
+                if (serviceClass.isAssignableFrom(TaskRegistrar.class)) {
+                    return taskRegistrar;
+                }
+                return allServices.find(serviceType);
+            }
+            return null;
+        }
+
+        @Override
+        public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
+            Object result = find(serviceType);
+            if (result == null) {
+                return notFound(serviceType);
+            }
+            return result;
+        }
+
+        @Override
+        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
+            return notFound(serviceType);
+        }
+
+        private Object notFound(Type serviceType) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("Services of type ");
+            formatter.appendType(serviceType);
+            formatter.append(" are not available for injection into project feature apply actions.");
+            throw new UnknownServiceException(serviceType, formatter.toString());
         }
     }
 }

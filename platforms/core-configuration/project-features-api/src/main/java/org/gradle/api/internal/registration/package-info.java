@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-plugins {
-    id("gradlebuild.distribution.api-java")
-}
-
-description = "Public API classes used by project features"
-
-dependencies {
-    api(projects.baseServices)
-    api(projects.coreApi)
-    api(projects.stdlibJavaExtensions)
-}
+@org.jspecify.annotations.NullMarked
+package org.gradle.api.internal.registration;

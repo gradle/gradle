@@ -20,6 +20,7 @@ import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
 import org.gradle.api.internal.plugins.ProjectFeatureBinding
+import org.gradle.api.internal.registration.TaskRegistrar
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.api.internal.plugins.BindsProjectFeature
@@ -404,6 +405,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${ProjectFeatureBindingBuilder.class.name};
                 import static ${ProjectFeatureBindingBuilder.class.name}.bindingToTargetDefinition;
                 import ${ProjectFeatureBinding.class.name};
+                import ${TaskRegistrar.class.name};
 
                 @${BindsProjectFeature.class.simpleName}(${projectFeaturePluginClassName}.Binding.class)
                 public class ${projectFeaturePluginClassName} implements Plugin<Project> {
@@ -423,7 +425,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
                                     ${definition.buildModelMapping}
 
-                                    services.getProject().getTasks().register("print${definition.publicTypeClassName}Configuration", task -> {
+                                    services.getTaskRegistrar().register("print${definition.publicTypeClassName}Configuration", task -> {
                                         task.doLast(t -> {
                                             ${definition.displayDefinitionPropertyValues()}
                                             ${definition.displayModelPropertyValues()}
@@ -464,6 +466,9 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 interface Services {
                     @javax.inject.Inject
                     Project getProject();
+
+                    @javax.inject.Inject
+                    TaskRegistrar getTaskRegistrar();
                 }
             """
         }
@@ -514,6 +519,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${BindsProjectFeature.class.name}
                 import ${ProjectFeatureBindingBuilder.class.name}
                 import ${ProjectFeatureBinding.class.name}
+                import ${TaskRegistrar.class.name}
                 import org.gradle.api.internal.plugins.features.dsl.bindProjectFeatureToDefinition
                 import org.gradle.test.${bindingTypeClassName}
 
@@ -527,7 +533,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                                 println("Binding ${definition.publicTypeClassName}")
                                 ${definition.buildModelMapping.replaceAll(';', '')}
                                 val projectName = services.project.name
-                                services.project.tasks.register("print${definition.publicTypeClassName}Configuration") { task: Task ->
+                                services.taskRegistrar.register("print${definition.publicTypeClassName}Configuration") { task: Task ->
                                     task.doLast { _: Task ->
                                         ${definition.displayDefinitionPropertyValues().replaceAll(';', '')}
                                         ${definition.displayModelPropertyValues().replaceAll(';', '')}
@@ -552,6 +558,9 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 interface Services {
                     @get:javax.inject.Inject
                     val project: Project
+
+                    @get:javax.inject.Inject
+                    val taskRegistrar: TaskRegistrar
                 }
             """
         }
@@ -573,6 +582,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${BindsProjectFeature.class.name}
                 import ${ProjectFeatureBindingBuilder.class.name}
                 import ${ProjectFeatureBinding.class.name}
+                import ${TaskRegistrar.class.name}
                 import org.gradle.api.internal.plugins.features.dsl.bindProjectFeature
 
                 @${BindsProjectFeature.class.simpleName}(${projectFeaturePluginClassName}.Binding::class)
@@ -591,7 +601,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                                 println("${name} parent model class: " + getBuildModel(parent)::class.java.getSimpleName())
                                 ${definition.buildModelMapping.replaceAll(';', '')}
                                 val projectName = services.project.name
-                                services.project.tasks.register("print${definition.publicTypeClassName}Configuration") { task: Task ->
+                                services.taskRegistrar.register("print${definition.publicTypeClassName}Configuration") { task: Task ->
                                     task.doLast { _: Task ->
                                         ${definition.displayDefinitionPropertyValues().replaceAll(';', '')}
                                         ${definition.displayModelPropertyValues().replaceAll(';', '')}
@@ -653,6 +663,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${ProjectFeatureBindingBuilder.class.name};
                 import static ${ProjectFeatureBindingBuilder.class.name}.bindingToTargetDefinition;
                 import ${ProjectFeatureBinding.class.name};
+                import ${TaskRegistrar.class.name};
 
                 @${BindsProjectFeature.class.simpleName}(${projectFeaturePluginClassName}.Binding.class)
                 public class ${projectFeaturePluginClassName} implements Plugin<Project> {

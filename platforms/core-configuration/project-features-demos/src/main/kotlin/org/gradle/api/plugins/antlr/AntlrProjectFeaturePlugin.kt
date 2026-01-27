@@ -27,6 +27,7 @@ import org.gradle.api.internal.plugins.features.dsl.bindProjectFeatureToBuildMod
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.antlr.internal.DefaultAntlrSourceDirectorySet
 import org.gradle.api.plugins.java.JavaClasses
+import org.gradle.api.internal.registration.TaskRegistrar
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import javax.inject.Inject
 
@@ -58,7 +59,7 @@ class AntlrProjectFeaturePlugin : Plugin<Project> {
                 // Add the generated antlr sources to the java sources
                 parentModel.inputSources.srcDir(outputDirectory)
 
-                services.project.tasks.register("generate" + StringUtils.capitalize(parentModel.name) + "AntlrSources", AntlrTask::class.java) { antlrTask ->
+                services.taskRegistrar.register("generate" + StringUtils.capitalize(parentModel.name) + "AntlrSources", AntlrTask::class.java) { antlrTask ->
                     antlrTask.group = LifecycleBasePlugin.BUILD_GROUP
                     antlrTask.description = "Generates sources from the " + definition.grammarSources.name + " Antlr grammars."
                     antlrTask.source = definition.grammarSources
@@ -80,7 +81,7 @@ class AntlrProjectFeaturePlugin : Plugin<Project> {
 
         interface Services {
             @get:Inject
-            val project: Project
+            val taskRegistrar: TaskRegistrar
 
             @get:Inject
             val projectLayout: ProjectLayout

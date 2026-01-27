@@ -18,8 +18,6 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.model.ObjectFactory;
 
-import javax.inject.Inject;
-
 /**
  * Represents the context in which a project feature is applied and the services
  * available in that context.
@@ -29,7 +27,6 @@ public interface ProjectFeatureApplicationContext {
     /**
      * The ObjectFactory for the Project object the project feature is applied to.
      */
-    @Inject
     ObjectFactory getObjectFactory();
 
     /**

@@ -26,6 +26,7 @@ import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
 import org.gradle.api.internal.plugins.ProjectFeatureBinding
 import org.gradle.api.internal.plugins.features.dsl.bindProjectFeatureToDefinition
 import org.gradle.api.plugins.java.HasJavaSources.JavaSources
+import org.gradle.api.internal.registration.TaskRegistrar
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFiles
@@ -54,7 +55,7 @@ class InstrumentClassesProjectFeaturePlugin : Plugin<Project> {
                 JavaSources::class
             ) { definition, buildModel, target ->
                 val services = objectFactory.newInstance(Services::class.java)
-                val instrumentClassesTask = services.project.tasks.register("instrument" + StringUtils.capitalize(target.name) + "Classes", InstrumentClasses::class.java) { task ->
+                val instrumentClassesTask = services.taskRegistrar.register("instrument" + StringUtils.capitalize(target.name) + "Classes", InstrumentClasses::class.java) { task ->
                     task.group = LifecycleBasePlugin.BUILD_GROUP
                     task.description = "Instruments the ${target.name} classes."
                     task.bytecodeDir.set(getBuildModel(target).byteCodeDir)
@@ -67,7 +68,7 @@ class InstrumentClassesProjectFeaturePlugin : Plugin<Project> {
 
         interface Services {
             @get:Inject
-            val project: Project
+            val taskRegistrar: TaskRegistrar
         }
     }
 

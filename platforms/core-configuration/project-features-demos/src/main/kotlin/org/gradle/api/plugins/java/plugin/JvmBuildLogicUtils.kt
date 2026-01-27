@@ -23,8 +23,8 @@ import org.gradle.api.plugins.java.HasCompiledBytecode
 import org.gradle.api.plugins.java.HasJarFile
 import org.gradle.api.plugins.java.HasProcessedResources
 import org.gradle.api.plugins.java.HasResources
+import org.gradle.api.internal.registration.TaskRegistrar
 import org.gradle.api.tasks.Copy
-import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.jvm.tasks.Jar
 import org.gradle.language.base.plugins.LifecycleBasePlugin
@@ -34,7 +34,7 @@ import kotlin.jvm.java
 internal fun <T> ProjectFeatureApplicationContext.registerJar(
     mainClasses: NamedDomainObjectProvider<T>,
     model: HasJarFile,
-    tasks: TaskContainer
+    tasks: TaskRegistrar
 ) where T: HasProcessedResources, T : HasCompiledBytecode {
     val jarTask = tasks.register("jar", Jar::class.java) { task ->
         task.from(mainClasses.map { it.byteCodeDir })
@@ -44,7 +44,7 @@ internal fun <T> ProjectFeatureApplicationContext.registerJar(
     model.jarFile.set(jarTask.map { it.archiveFile.get() })
 }
 
-internal fun <T> ProjectFeatureApplicationContext.registerResourcesProcessing(source: T, tasks: TaskContainer): TaskProvider<Copy> where T : Named, T : HasResources {
+internal fun <T> ProjectFeatureApplicationContext.registerResourcesProcessing(source: T, tasks: TaskRegistrar): TaskProvider<Copy> where T : Named, T : HasResources {
     val processResourcesTask = tasks.register("process" + capitalize(source.name) + "Resources", Copy::class.java) { task ->
         task.group = LifecycleBasePlugin.BUILD_GROUP
         task.description = "Processes the ${source.name} resources."

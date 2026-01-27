@@ -24,12 +24,14 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
+import org.gradle.api.internal.model.ObjectFactoryFactory;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildIncluder;
@@ -41,6 +43,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.plugin.management.PluginManagementSpec;
 import org.gradle.plugin.management.internal.DefaultPluginHandler;
@@ -193,14 +196,20 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             ProjectFeatureDeclarations projectFeatureDeclarations,
             ModelDefaultsApplicator modelDefaultsApplicator,
             PluginManagerInternal pluginManager,
-            ProjectInternal project
+            ProjectInternal project,
+            ObjectFactoryFactory objectFactoryFactory,
+            TaskContainer taskContainer,
+            ServiceRegistry services
         ) {
             return new DefaultProjectFeatureApplicator(
                 projectFeatureDeclarations,
                 modelDefaultsApplicator,
                 pluginManager,
                 project.getClassLoaderScope(),
-                project.getObjects()
+                project.getObjects(),
+                objectFactoryFactory,
+                taskContainer,
+                services
             );
         }
 
