@@ -80,7 +80,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "declarative-dsl-api",
         "declarative-dsl-core",
         "declarative-dsl-evaluator",
-        "declarative-dsl-internal-utils",
         "declarative-dsl-provider",
         "declarative-dsl-tooling-models",
         "enterprise-logging",
@@ -173,7 +172,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        79
+        89
     }
 
     /**
@@ -354,7 +353,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 540 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 550 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Kotlin DSL
         assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-${baseVersion}.jar"))

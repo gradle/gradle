@@ -38,6 +38,12 @@ dependencyResolutionManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+    versionCatalogs {
+        create("libs") {
+            // TODO: separate version catalog for build logic dependencies
+            from(files("../gradle/libs.versions.toml"))
+        }
+    }
 }
 
 apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")

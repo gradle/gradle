@@ -17,6 +17,8 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
+import org.gradle.cache.FineGrainedCacheCleanupStrategy;
+import org.gradle.cache.FineGrainedPersistentCache;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
@@ -53,6 +55,12 @@ public class TestInMemoryCacheFactory implements CacheFactory {
             initializer.accept(cache);
         }
         return cache;
+    }
+
+    @Override
+    public FineGrainedPersistentCache openFineGrained(File cacheDir, String displayName, FineGrainedCacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
+        GFileUtils.mkdirs(cacheDir);
+        return new InMemoryFineGrainedCache(cacheDir, displayName, cacheCleanupStrategy != null ? cacheCleanupStrategy.getCleanupStrategy() : CacheCleanupStrategy.NO_CLEANUP);
     }
 
     public PersistentCache open(File cacheDir, String displayName) {
@@ -170,6 +178,105 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         @Override
         public String toString() {
             return getDisplayName();
+        }
+    }
+
+    private static class InMemoryFineGrainedCache implements FineGrainedPersistentCache {
+
+        private final File cacheDir;
+        private final String displayName;
+        private final CacheCleanupStrategy cleanupStrategy;
+        private boolean closed;
+
+        public InMemoryFineGrainedCache(File cacheDir, String displayName, CacheCleanupStrategy cleanupStrategy) {
+            this.cacheDir = cacheDir;
+            this.displayName = displayName;
+            this.cleanupStrategy = cleanupStrategy;
+        }
+
+        @Override
+        public FineGrainedPersistentCache open() {
+            return this;
+        }
+
+        @Override
+        public <T> T useCache(String key, Supplier<? extends T> action) {
+            assertNotClosed();
+            validateKey(key);
+            synchronized (this) {
+                return action.get();
+            }
+        }
+
+        @Override
+        public void useCache(String key, Runnable action) {
+            useCache(key, () -> {
+                action.run();
+                return null;
+            });
+        }
+
+        @Override
+        public <T> T withFileLock(String key, Supplier<? extends T> action) {
+            assertNotClosed();
+            validateKey(key);
+            return action.get();
+        }
+
+        @Override
+        public void withFileLock(String key, Runnable action) {
+            withFileLock(key, () -> {
+                action.run();
+                return null;
+            });
+        }
+
+        private void assertNotClosed() {
+            if (closed) {
+                throw new IllegalStateException("cache is closed");
+            }
+        }
+
+        @Override
+        public void close() {
+            cleanup();
+            closed = true;
+        }
+
+        @Override
+        public File getBaseDir() {
+            return cacheDir;
+        }
+
+        @Override
+        public Collection<File> getReservedCacheFiles() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "InMemoryFineGrainedCache '" + displayName + "' " + cacheDir;
+        }
+
+        @Override
+        public void cleanup() {
+            synchronized (this) {
+                cleanupStrategy.clean(this, Instant.now());
+            }
+        }
+
+        @Override
+        public String toString() {
+            return getDisplayName();
+        }
+
+        private static void validateKey(String key) {
+            if (key.contains("/") || key.contains("\\")) {
+                throw new IllegalArgumentException(String.format("Cache key path must not contain file separator: '%s'", key));
+            }
+            if (key.startsWith(".")) {
+                throw new IllegalArgumentException(String.format("Cache key must not start with '.' character: '%s'", key));
+            }
         }
     }
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.nativeintegration.console;
 
+import org.gradle.util.internal.VersionNumber;
+
 import java.util.Locale;
 
 public interface ConsoleMetaData {
@@ -109,6 +111,8 @@ public interface ConsoleMetaData {
         return false;
     }
 
+    boolean TASK_BAR_PROGRESS_SUPPORTED = evaluateTaskBarProgressSupport();
+
     /**
      * <p>Returns true if the terminal supports OSC 9;4 taskbar progress sequences.</p>
      *
@@ -120,13 +124,35 @@ public interface ConsoleMetaData {
      * @return true if OSC 9;4 sequences are supported, false otherwise
      */
     default boolean supportsTaskbarProgress() {
+        return TASK_BAR_PROGRESS_SUPPORTED;
+    }
+
+    static boolean evaluateTaskBarProgressSupport() {
         // ConEmu explicitly supports OSC 9;4 sequences
         if (System.getenv("ConEmuPID") != null) {
             return true;
         }
 
-        // Ghostty supports OSC 9;4 sequences
+        // Ghostty and kitty support OSC 9;4 sequences
         String term = System.getenv("TERM");
-        return term != null && term.toLowerCase(Locale.ROOT).contains("ghostty");
+        if (term != null) {
+            String termLowerCase = term.toLowerCase(Locale.ROOT);
+            if (termLowerCase.contains("ghostty") ||
+                termLowerCase.contains("kitty")) {
+                return true;
+            }
+        }
+
+        // iTerm2 supports OSC progress bar starting from version 3.6.6
+        String termProgram = System.getenv("TERM_PROGRAM");
+        if ("iTerm.app".equals(termProgram)) {
+            String version = System.getenv("TERM_PROGRAM_VERSION");
+            if (version != null) {
+                VersionNumber versionNumber = VersionNumber.parse(version);
+                return versionNumber.compareTo(VersionNumber.parse("3.6.6")) >= 0;
+            }
+        }
+
+        return false;
     }
 }

@@ -69,6 +69,7 @@ import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -394,7 +395,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * Adds a closure to be notified when output from the test received. A {@link TestDescriptor} and {@link TestOutputEvent} instance are
      * passed to the closure as a parameter.
      *
-     * <pre class='autoTested'>
+     * <pre class='autoTestedWithDeprecations'>
      * apply plugin: 'java'
      *
      * test {
@@ -407,8 +408,14 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * </pre>
      *
      * @param closure The closure to call.
+     * @deprecated Replace with {@link #addTestOutputListener(TestOutputListener)} and a {@link TestOutputListener}.
      */
+    @Deprecated
     public void onOutput(Closure closure) {
+        DeprecationLogger.deprecateMethod(AbstractTestTask.class, "onOutput(Closure)").replaceWith("addTestOutputListener(TestOutputListener)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_test_methods")
+            .nagUser();
         addDispatchAsTestOutputListener("onOutput", closure);
     }
 
@@ -418,8 +425,14 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * <p>This method is also called before any test suites are executed. The provided descriptor will have a null parent suite.</p>
      *
      * @param closure The closure to call.
+     * @deprecated Replace with {@link #addTestListener(TestListener)} and a {@link TestListener}.
      */
+    @Deprecated
     public void beforeSuite(Closure closure) {
+        DeprecationLogger.deprecateMethod(AbstractTestTask.class, "beforeSuite(Closure)").replaceWith("addTestListener(TestListener)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_test_methods")
+            .nagUser();
         addDispatchAsTestListener("beforeSuite", closure);
     }
 
@@ -430,8 +443,14 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * <p>This method is also called after all test suites are executed. The provided descriptor will have a null parent suite.</p>
      *
      * @param closure The closure to call.
+     * @deprecated Replace with {@link #addTestListener(TestListener)} and a {@link TestListener}.
      */
+    @Deprecated
     public void afterSuite(Closure closure) {
+        DeprecationLogger.deprecateMethod(AbstractTestTask.class, "afterSuite(Closure)").replaceWith("addTestListener(TestListener)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_test_methods")
+            .nagUser();
         addDispatchAsTestListener("afterSuite", closure);
     }
 
@@ -439,8 +458,14 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * Adds a closure to be notified before a test is executed. A {@link TestDescriptor} instance is passed to the closure as a parameter.
      *
      * @param closure The closure to call.
+     * @deprecated Replace with {@link #addTestListener(TestListener)} and a {@link TestListener}.
      */
+    @Deprecated
     public void beforeTest(Closure closure) {
+        DeprecationLogger.deprecateMethod(AbstractTestTask.class, "beforeTest(Closure)").replaceWith("addTestListener(TestListener)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_test_methods")
+            .nagUser();
         addDispatchAsTestListener("beforeTest", closure);
     }
 
@@ -448,8 +473,14 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * Adds a closure to be notified after a test has executed. A {@link TestDescriptor} and {@link TestResult} instance are passed to the closure as a parameter.
      *
      * @param closure The closure to call.
+     * @deprecated Replace with {@link #addTestListener(TestListener)} and a {@link TestListener}.
      */
+    @Deprecated
     public void afterTest(Closure closure) {
+        DeprecationLogger.deprecateMethod(AbstractTestTask.class, "afterTest(Closure)").replaceWith("addTestListener(TestListener)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_test_methods")
+            .nagUser();
         addDispatchAsTestListener("afterTest", closure);
     }
 

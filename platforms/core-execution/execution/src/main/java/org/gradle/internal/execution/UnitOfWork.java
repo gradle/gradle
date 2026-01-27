@@ -16,18 +16,21 @@
 
 package org.gradle.internal.execution;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Describable;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.OverlappingOutputs;
+import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -149,6 +152,44 @@ public interface UnitOfWork extends Describable {
      */
     default Optional<String> getBuildOperationWorkType() {
         return Optional.empty();
+    }
+
+    /**
+     * Returns all touched output locations that should be invalidated before work.
+     */
+    default List<String> getAllOutputLocationsForInvalidation(File workspace) {
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        visitOutputs(workspace, new OutputVisitor() {
+            @Override
+            public void visitOutputProperty(String propertyName, TreeType type, OutputFileValueSupplier value) {
+                builder.add(value.getValue().getAbsolutePath());
+            }
+
+            @Override
+            public void visitLocalState(File localStateRoot) {
+                builder.add(localStateRoot.getAbsolutePath());
+            }
+
+            @Override
+            public void visitDestroyable(File destroyableRoot) {
+                builder.add(destroyableRoot.getAbsolutePath());
+            }
+        });
+        return builder.build();
+    }
+
+    /**
+     * Returns all cached output locations that should be invalidated before cache load.
+     */
+    default List<String> getCachedOutputLocationsForInvalidation(File workspace) {
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        visitOutputs(workspace, new OutputVisitor() {
+            @Override
+            public void visitOutputProperty(String propertyName, TreeType type, OutputFileValueSupplier value) {
+                builder.add(value.getValue().getAbsolutePath());
+            }
+        });
+        return builder.build();
     }
 
     CachingDisabledReason NOT_WORTH_CACHING = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Not worth caching.");

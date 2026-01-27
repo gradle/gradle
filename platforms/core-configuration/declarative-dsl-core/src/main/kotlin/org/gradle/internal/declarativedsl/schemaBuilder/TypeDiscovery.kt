@@ -16,6 +16,8 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass
+import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 
 
@@ -25,7 +27,51 @@ interface TypeDiscovery {
         val propertyExtractor: PropertyExtractor
     }
 
-    data class DiscoveredClass(val kClass: KClass<*>, val isHidden: Boolean)
+    data class DiscoveredClass(
+        val kClass: KClass<*>,
+        val discoveryTags: Iterable<DiscoveryTag>
+    ) {
+        val isHidden: Boolean
+            get() = discoveryTags.all { it.isHidden }
+
+        sealed interface DiscoveryTag {
+            val isHidden: Boolean
+
+            data class Supertype(val ofType: KClass<*>, override val isHidden: Boolean) : DiscoveryTag
+            data class ContainerElement(val containerMember: KCallable<*>) : DiscoveryTag {
+                override val isHidden = false
+            }
+
+            data class UsedInMember(val member: KCallable<*>) : DiscoveryTag {
+                override val isHidden = false
+            }
+
+            data class PropertyType(val kClass: KClass<*>, val propertyName: String) : DiscoveryTag {
+                override val isHidden = false
+            }
+
+            data class Special(val description: String) : DiscoveryTag {
+                override val isHidden = false
+            }
+        }
+
+        companion object {
+            fun classesOf(kType: SupportedTypeProjection.SupportedType, vararg discoveryTags: DiscoveryTag): Iterable<DiscoveredClass> =
+                buildSet {
+                    fun visitType(type: SupportedTypeProjection.SupportedType) { // safe to recurse without the visited set: the types are deconstructed to smaller types
+                        (type.classifier as? KClass<*>)?.let(::add)
+                        type.arguments.forEach {
+                            when (it) {
+                                SupportedTypeProjection.StarProjection -> Unit
+                                is SupportedTypeProjection.ProjectedType -> visitType(it.type)
+                                is SupportedTypeProjection.SupportedType -> visitType(it)
+                            }
+                        }
+                    }
+                    visitType(kType)
+                }.map { DiscoveredClass(it, discoveryTags.toList()) }
+        }
+    }
 
     fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscoveryServices, kClass: KClass<*>): Iterable<DiscoveredClass>
 
@@ -38,13 +84,14 @@ interface TypeDiscovery {
 
 
 class CompositeTypeDiscovery(internal val implementations: Iterable<TypeDiscovery>) : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<DiscoveredClass> =
         implementations.flatMap { it.getClassesToVisitFrom(typeDiscoveryServices, kClass) }
-            .groupBy { it.kClass }.entries.map { (kClass, discovered) -> TypeDiscovery.DiscoveredClass(kClass, discovered.all { it.isHidden }) }
+            .groupBy({ it.kClass })
+            .entries.map { (kClass, discovered) -> DiscoveredClass(kClass, discovered.flatMap(DiscoveredClass::discoveryTags)) }
 }
 
 class FilteringTypeDiscovery(private val delegate: TypeDiscovery, val typeFilter: (KClass<*>) -> Boolean) : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<DiscoveredClass> =
         if (typeFilter(kClass)) delegate.getClassesToVisitFrom(typeDiscoveryServices, kClass).filter { typeFilter(it.kClass) } else emptyList()
 }
 

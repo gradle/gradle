@@ -94,7 +94,7 @@ dependencies {
     testImplementation(projects.io)
     testImplementation(testFixtures(projects.core))
     testImplementation(libs.mockitoKotlin)
-    testImplementation(libs.kotlinCoroutinesDebug)
+    testImplementation(libs.kotlinxCoroutinesDebug)
 
     integTestImplementation(projects.cli)
     integTestImplementation(projects.ide)

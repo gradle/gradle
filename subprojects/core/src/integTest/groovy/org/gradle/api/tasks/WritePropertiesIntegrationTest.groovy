@@ -176,6 +176,54 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
         loadProperties(file('output.properties'))['provided'] == '42'
     }
 
+    def "provided value overrides existing value and vice versa"() {
+        given:
+        buildFile << """
+            task props(type: WriteProperties) {
+                property "provided", "47"
+                property "provided", provider { "42" }
+                property "literal", provider { "99" }
+                property "literal", "100"
+                destinationFile = file("output.properties")
+            }
+        """
+        when:
+        runProps()
+        then:
+        def props = loadProperties(file('output.properties'))
+        props['provided'] == '42'
+        props['literal'] == '100'
+    }
+
+    def "setProperties overrides all properties"() {
+        given:
+        buildFile << """
+            task props(type: WriteProperties) {
+               property "provided", provider { "42" }
+               property "old-provided", provider { "foo" }
+               property "literal", "pew"
+               property "old-literal", "bar"
+               setProperties([
+                  provided: provider { "99" },
+                  literal: "pewpew",
+                  newProp: "newValue",
+                  newProvided: provider { "newProvidedValue" }
+               ])
+               destinationFile = file("output.properties")
+            }
+        """
+        when:
+        runProps()
+        then:
+        def props = loadProperties(file('output.properties'))
+        props['provided'] == '99'
+        props['old-provided'] == null
+        props['literal'] == 'pewpew'
+        props['old-literal'] == null
+        props['newProp'] == 'newValue'
+        props['newProvided'] == 'newProvidedValue'
+    }
+
     private static String normalize(String text) {
         return text.stripIndent().trim() + '\n'
     }

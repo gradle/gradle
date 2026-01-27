@@ -15,12 +15,14 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.declarative.dsl.model.annotations.internal.DeclarativeWithHiddenMembers;
 import org.jspecify.annotations.Nullable;
 
 /**
  * A {@code Dependency} represents a dependency on the artifacts from a particular source. A source can be an Ivy
  * module, a Maven POM, another Gradle project, a collection of Files, etc... A source can have zero or more artifacts.
  */
+@DeclarativeWithHiddenMembers
 public interface Dependency {
     String DEFAULT_CONFIGURATION = "default";
     String ARCHIVES_CONFIGURATION = "archives";

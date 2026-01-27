@@ -1,98 +1,58 @@
 {
     "acceptedApiChanges": [
-        {
-            "type": "org.gradle.api.initialization.dsl.ScriptHandler",
-            "member": "Method org.gradle.api.initialization.dsl.ScriptHandler.dependencyLocking(org.gradle.api.Action)",
-            "acceptation": "faulty since detection",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.initialization.dsl.ScriptHandler",
-            "member": "Method org.gradle.api.initialization.dsl.ScriptHandler.repositories(org.gradle.api.Action)",
-            "acceptation": "de-incubating API",
-            "changes": [
-                "Method added to interface"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Constructor org.gradle.api.tasks.compile.CompileOptions()",
-            "acceptation": "Migrate task to dependency injection",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getForkOptions()",
-            "acceptation": "Migrate task to dependency injection",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getGeneratedSourceOutputDirectory()",
-            "acceptation": "Migrate task to dependency injection",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getHeaderOutputDirectory()",
-            "acceptation": "Migrate task to dependency injection",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getJavaModuleMainClass()",
-            "acceptation": "Migrate task to dependency injection",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getJavaModuleVersion()",
-            "acceptation": "Migrate task to dependency injection",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.compile.CompileOptions",
-            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getRelease()",
-            "acceptation": "Migrate task to dependency injection",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
-            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getSoftwareTypeRegistry()",
-            "acceptation": "Internal and unpublished API",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.dependencyLocking(org.gradle.api.Action)",
-            "acceptation": "faulty since detection",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.ScriptHandlerScope",
-            "member": "Method org.gradle.kotlin.dsl.ScriptHandlerScope.repositories(org.gradle.api.Action)",
-            "acceptation": "faulty since detection",
-            "changes": [
-                "Method added to public class"
-            ]
-        }
+      {
+        "type": "org.gradle.api.tasks.compile.CompileOptions",
+        "member": "Constructor org.gradle.api.tasks.compile.CompileOptions()",
+        "acceptation": "Migrate task to dependency injection",
+        "changes": []
+      },
+      {
+        "type": "org.gradle.api.tasks.compile.CompileOptions",
+        "member": "Method org.gradle.api.tasks.compile.CompileOptions.getForkOptions()",
+        "acceptation": "Migrate task to dependency injection",
+        "changes": [
+          "Method is now abstract"
+        ]
+      },
+      {
+        "type": "org.gradle.api.tasks.compile.CompileOptions",
+        "member": "Method org.gradle.api.tasks.compile.CompileOptions.getGeneratedSourceOutputDirectory()",
+        "acceptation": "Migrate task to dependency injection",
+        "changes": [
+          "Method is now abstract"
+        ]
+      },
+      {
+        "type": "org.gradle.api.tasks.compile.CompileOptions",
+        "member": "Method org.gradle.api.tasks.compile.CompileOptions.getHeaderOutputDirectory()",
+        "acceptation": "Migrate task to dependency injection",
+        "changes": [
+          "Method is now abstract"
+        ]
+      },
+      {
+        "type": "org.gradle.api.tasks.compile.CompileOptions",
+        "member": "Method org.gradle.api.tasks.compile.CompileOptions.getJavaModuleMainClass()",
+        "acceptation": "Migrate task to dependency injection",
+        "changes": [
+          "Method is now abstract"
+        ]
+      },
+      {
+        "type": "org.gradle.api.tasks.compile.CompileOptions",
+        "member": "Method org.gradle.api.tasks.compile.CompileOptions.getJavaModuleVersion()",
+        "acceptation": "Migrate task to dependency injection",
+        "changes": [
+          "Method is now abstract"
+        ]
+      },
+      {
+        "type": "org.gradle.api.tasks.compile.CompileOptions",
+        "member": "Method org.gradle.api.tasks.compile.CompileOptions.getRelease()",
+        "acceptation": "Migrate task to dependency injection",
+        "changes": [
+          "Method is now abstract"
+        ]
+      }
     ]
 }

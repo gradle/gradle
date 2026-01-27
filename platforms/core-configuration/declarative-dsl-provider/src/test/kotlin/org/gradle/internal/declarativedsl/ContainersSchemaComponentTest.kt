@@ -35,6 +35,12 @@ import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConver
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
+import org.gradle.internal.declarativedsl.ndoc.ContainersSchemaComponent
+import org.gradle.internal.declarativedsl.schemaBuilder.CompositeTypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.DeclarativeDslSchemaBuildingException
+import org.gradle.internal.declarativedsl.schemaBuilder.basicTypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaUtils.findType
 import org.gradle.internal.declarativedsl.schemaUtils.hasFunctionNamed
 import org.gradle.internal.declarativedsl.schemaUtils.singleFunctionNamed
@@ -44,6 +50,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 
@@ -78,6 +85,29 @@ class ContainersSchemaComponentTest {
         val configuredType = SchemaTypeRefContext(schema.analysisSchema).resolveRef(configuredTypeRef) as DataClass
         assertTrue(configuredType.hasFunctionNamed("one"))
         assertFalse(configuredType.hasFunctionNamed("two"))
+    }
+
+    @Test
+    fun `detects illegal hidden type usages in container elements`() {
+        assertThrows<DeclarativeDslSchemaBuildingException> {
+            schemaFromTypes(
+                UsesHiddenContainerElement::class,
+                typeDiscovery = CompositeTypeDiscovery(
+                    listOf(basicTypeDiscovery(kotlinFunctionAsConfigureLambda)) + ContainersSchemaComponent().typeDiscovery()
+                )
+            )
+        }.run {
+            assertEquals(
+                """
+                |Type 'org.gradle.internal.declarativedsl.Hidden' is a hidden type and cannot be directly used.
+                |  Appears as hidden:
+                |    - type 'org.gradle.internal.declarativedsl.Hidden' is annotated as hidden
+                |  Illegal usages:
+                |    - referenced from member 'val org.gradle.internal.declarativedsl.UsesHiddenContainerElement.container: org.gradle.api.NamedDomainObjectContainer<org.gradle.internal.declarativedsl.Hidden>'
+                """.trimMargin(),
+                message
+            )
+        }
     }
 
     @Test
@@ -211,4 +241,11 @@ private fun <T : Any> container(type: Class<T>): NamedDomainObjectContainer<T> =
     CollectionCallbackActionDecorator.NOOP
 ) {
     override fun doCreate(name: String): T = instantiator.newInstance(type, name)
+}
+
+@HiddenInDefinition
+private class Hidden
+
+private interface UsesHiddenContainerElement {
+    val container: NamedDomainObjectContainer<Hidden>
 }

@@ -28,6 +28,7 @@ dependencies {
     implementation(projects.buildProcessServices)
     implementation(projects.classloaders)
     implementation(projects.ear)
+    implementation(projects.javaCompilerWorker)
     implementation(projects.languageJava)
     implementation(projects.launcher)
     implementation(projects.loggingApi)

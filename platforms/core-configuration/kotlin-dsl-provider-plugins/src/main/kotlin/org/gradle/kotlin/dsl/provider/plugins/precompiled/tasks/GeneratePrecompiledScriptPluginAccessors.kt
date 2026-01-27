@@ -159,10 +159,28 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
         recreateTaskDirectories()
 
+        generateProjectScriptPluginsAccessors()
+
+        // In the future, accessors could also be generated here, but for now we just validate the plugins.
+        validateNonProjectScriptPluginsPlugins()
+    }
+
+    private fun generateProjectScriptPluginsAccessors() {
         val projectScriptPlugins = selectProjectScriptPlugins()
         if (projectScriptPlugins.isNotEmpty()) {
             asyncIOScopeFactory.newScope().useToRun {
                 generateTypeSafeAccessorsFor(projectScriptPlugins)
+            }
+        }
+    }
+
+    private fun validateNonProjectScriptPluginsPlugins() {
+        val nonProjectScriptPlugins = selectNonProjectScriptPlugins()
+        if (nonProjectScriptPlugins.isNotEmpty()) {
+            asyncIOScopeFactory.newScope().useToRun {
+                // Load and validate plugins of non-project script plugins without generating accessors
+                // We consume the sequence to force evaluation
+                scriptPluginPluginsFor(nonProjectScriptPlugins).forEach { _ -> }
             }
         }
     }
@@ -214,10 +232,10 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         scriptPluginsById[scriptPlugin.id]?.appliedPlugins ?: emptyList()
 
     private
-    fun scriptPluginPluginsFor(projectScriptPlugins: List<PrecompiledScriptPlugin>) = sequence {
+    fun scriptPluginPluginsFor(scriptPlugins: List<PrecompiledScriptPlugin>) = sequence {
         val loader = createPluginsClassLoader()
         try {
-            for (plugin in projectScriptPlugins) {
+            for (plugin in scriptPlugins) {
                 yield(loader.scriptPluginPluginsFor(plugin))
             }
         } finally {
@@ -268,14 +286,23 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun validationErrorFor(plugin: PrecompiledScriptPlugin, pluginRequest: PluginRequestInternal): String? {
         if (pluginRequest.version != null) {
-            return buildString {
-                append("Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. ")
-                if (pluginRequest.id.id == "org.gradle.kotlin.kotlin-dsl") {
-                    append("If you have been using the `kotlin-dsl` helper function, then simply replace it by 'id(\"org.gradle.kotlin.kotlin-dsl\")'. ")
-                } else {
-                    append("Please remove the version from the offending request. ")
+            if (plugin.scriptType == KotlinScriptType.PROJECT) {
+                return buildString {
+                    append("Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. ")
+                    if (pluginRequest.id.id == "org.gradle.kotlin.kotlin-dsl") {
+                        append("If you have been using the `kotlin-dsl` helper function, then simply replace it by 'id(\"org.gradle.kotlin.kotlin-dsl\")'. ")
+                    } else {
+                        append("Please remove the version from the offending request. ")
+                    }
+                    append("Make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $projectDesc.")
                 }
-                append("Make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $projectDesc.")
+            } else {
+                DeprecationLogger.deprecateIndirectUsage("Using 'version' in precompiled settings script plugins")
+                    .withAdvice("Remove 'version' from the plugin request for '${pluginRequest.id}' in '${projectRelativePathOf(plugin)}'.")
+                    .withContext("The version of the plugin is determined by the dependency in the precompiled script plugin's build file.")
+                    .willBecomeAnErrorInGradle10()
+                    .withUpgradeGuideSection(9, "deprecate_version_in_precompiled_settings_script_plugins")
+                    .nagUser()
             }
         }
         if (!pluginRequest.isApply) {
@@ -319,6 +346,9 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     private
     fun selectProjectScriptPlugins() = plugins.get().filter { it.scriptType == KotlinScriptType.PROJECT }
+
+    private
+    fun selectNonProjectScriptPlugins() = plugins.get().filter { it.scriptType != KotlinScriptType.PROJECT }
 
     private
     fun createPluginsClassLoader(): ClassLoader =

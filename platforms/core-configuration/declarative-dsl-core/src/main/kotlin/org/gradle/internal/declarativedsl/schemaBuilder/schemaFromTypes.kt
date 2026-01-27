@@ -24,22 +24,25 @@ import kotlin.reflect.KClass
 @Suppress("LongParameterList")
 fun schemaFromTypes(
     topLevelReceiver: KClass<*>,
-    types: Iterable<KClass<*>>,
+    types: Iterable<KClass<*>> = listOf(topLevelReceiver),
     externalFunctionDiscovery: TopLevelFunctionDiscovery = CompositeTopLevelFunctionDiscovery(listOf()),
     externalObjects: Map<FqName, KClass<*>> = emptyMap(),
     defaultImports: List<FqName> = emptyList(),
     configureLambdas: ConfigureLambdaHandler = kotlinFunctionAsConfigureLambda,
     propertyExtractor: PropertyExtractor = DefaultPropertyExtractor(),
-    functionExtractor: FunctionExtractor =
-        CompositeFunctionExtractor(
-            listOf(
-                GetterBasedConfiguringFunctionExtractor(::isValidNestedModelType),
-                DefaultFunctionExtractor(configureLambdas)
-            )
-        ),
+    functionExtractor: FunctionExtractor = basicFunctionExtractor(configureLambdas),
     augmentationsProvider: AugmentationsProvider = CompositeAugmentationsProvider(emptyList()),
-    typeDiscovery: TypeDiscovery = TypeDiscovery.none
+    typeDiscovery: TypeDiscovery = basicTypeDiscovery(configureLambdas)
 ): AnalysisSchema =
     DataSchemaBuilder(typeDiscovery, propertyExtractor, functionExtractor, augmentationsProvider).schemaFromTypes(
         topLevelReceiver, types, externalFunctionDiscovery.discoverTopLevelFunctions(), externalObjects, defaultImports,
     )
+
+fun basicFunctionExtractor(configureLambdas: ConfigureLambdaHandler): CompositeFunctionExtractor = CompositeFunctionExtractor(
+    listOf(
+        GetterBasedConfiguringFunctionExtractor(::isValidNestedModelType),
+        DefaultFunctionExtractor(configureLambdas)
+    )
+)
+
+fun basicTypeDiscovery(configureLambdas: ConfigureLambdaHandler) = CompositeTypeDiscovery(listOf(FunctionLambdaTypeDiscovery(configureLambdas), FunctionReturnTypeDiscovery(), SupertypeDiscovery()))

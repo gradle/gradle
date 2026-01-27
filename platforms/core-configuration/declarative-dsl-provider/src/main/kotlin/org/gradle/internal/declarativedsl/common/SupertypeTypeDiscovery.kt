@@ -16,32 +16,37 @@
 
 package org.gradle.internal.declarativedsl.common
 
+import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
-import org.gradle.internal.declarativedsl.schemaBuilder.MaybeDeclarativeClassInHierarchy
-import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
+import org.gradle.internal.declarativedsl.schemaBuilder.SupertypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
-import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
 
 
-/**
- * Discovers all supertypes of a type that might be potentially declarative.
- * So, for `A : B` and `B : C`, if `A` is included in the schema, this component will also discover `B` and `C`.
- * This does not include the [Any] type.
- */
 internal
 class SupertypeTypeDiscovery : AnalysisSchemaComponent {
-    override fun typeDiscovery(): List<TypeDiscovery> = listOf(
-        object : TypeDiscovery {
-            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
-                withAllPotentiallyDeclarativeSupertypes(typeDiscoveryServices.host, kClass)
-        }
-    )
+    /**
+     * Collect the supertypes using [SupertypeDiscovery].
+     * Exclude the build model types to avoid bringing the build models into the schema (as they are likely to have non-declarative members)
+     * if they only appear in the supertype (as in Foo : Definition<FooBuildModel>).
+     *
+     * TODO: This is not a precise solution, as it will reject BuildModel subtypes discovered in the type hierarchy even if they are not used as type arguments to Definition<T>, e.g. in
+     *
+     * ```kotlin
+     * class SomeModel : BuildModel
+     * class Foo : Definition<FooModel>, UnrelatedUsage<SomeModel> // excludes SomeModel as well
+     * ```
+     *
+     * Properly detecting only types used as arguments to Definition<T> is more complex, especially in cases like:
+     *
+     * ```kotlin
+     * open class Foo<T> : Definition<T>
+     * class Bar : Foo<BarBuildModel>()
+     * ```
+     *
+     * ```kotlin
+     * open class Foo<T> : Definition<ParameterizedModel<T>>
+     * ```
+     */
+    override fun typeDiscovery(): List<TypeDiscovery> = listOf(SupertypeDiscovery { it.isSubclassOf(BuildModel::class) })
 }
-
-
-internal
-fun withAllPotentiallyDeclarativeSupertypes(host: SchemaBuildingHost, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
-    host.declarativeSupertypesHierarchy(kClass)
-        // Include visible as well as hidden types, as we might still need explicitly exposed members of the hidden types. Just exclude incompatible types.
-        .filter { it !is MaybeDeclarativeClassInHierarchy.NonDeclarativeSuperclassInHierarchy }
-        .map { TypeDiscovery.DiscoveredClass(it.superClass, it is MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy) }

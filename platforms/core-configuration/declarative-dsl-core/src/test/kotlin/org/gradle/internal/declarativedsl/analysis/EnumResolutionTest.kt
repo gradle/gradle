@@ -112,7 +112,7 @@ class EnumResolutionTest {
     }
 
     class Box<T>(@get:HiddenInDefinition val t: T)
-    class MyList<T>(val items: List<T>)
+    class MyList<T>(@get:HiddenInDefinition val items: List<T>)
 
     enum class Enum {
         FOO, BAR, BAZ

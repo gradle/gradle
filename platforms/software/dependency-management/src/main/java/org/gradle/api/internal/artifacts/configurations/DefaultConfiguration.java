@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserCodeException;
@@ -82,6 +83,7 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -114,6 +116,7 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -127,6 +130,8 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -145,15 +150,15 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final DefaultDependencyConstraintSet dependencyConstraints;
     private final DefaultDomainObjectSet<Dependency> ownDependencies;
     private final DefaultDomainObjectSet<DependencyConstraint> ownDependencyConstraints;
-    private @Nullable CompositeDomainObjectSet<Dependency> inheritedDependencies;
-    private @Nullable CompositeDomainObjectSet<DependencyConstraint> inheritedDependencyConstraints;
+    private @Nullable InheritedCollection<Dependency> inheritedDependencies;
+    private @Nullable InheritedCollection<DependencyConstraint> inheritedDependencyConstraints;
     private @Nullable DefaultDependencySet allDependencies;
     private @Nullable DefaultDependencyConstraintSet allDependencyConstraints;
     private ImmutableActionSet<DependencySet> defaultDependencyActions = ImmutableActionSet.empty();
     private ImmutableActionSet<DependencySet> withDependencyActions = ImmutableActionSet.empty();
     private final DefaultPublishArtifactSet artifacts;
     private final DefaultDomainObjectSet<PublishArtifact> ownArtifacts;
-    private @Nullable CompositeDomainObjectSet<PublishArtifact> inheritedArtifacts;
+    private @Nullable InheritedCollection<PublishArtifact> inheritedArtifacts;
     private @Nullable DefaultPublishArtifactSet allArtifacts;
     private final ConfigurationResolvableDependencies resolvableDependencies;
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
@@ -167,7 +172,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private boolean visible = true;
     private boolean transitive = true;
-    private Set<Configuration> extendsFrom = new LinkedHashSet<>();
+    private ExtendedConfigurations extendsFrom;
+    private final Consumer<Configuration> validateExtendedConfiguration;
     private @Nullable String description;
     private final Set<Object> excludeRules = new LinkedHashSet<>();
     private @Nullable Set<ExcludeRule> parsedExcludeRules;
@@ -276,10 +282,47 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.roleAtCreation = roleAtCreation;
 
         this.configurationServices = configurationServices;
+
+        this.validateExtendedConfiguration = extended -> {
+            ConfigurationInternal other = Objects.requireNonNull(Cast.uncheckedCast(extended));
+            if (!domainObjectContext.equals(other.getDomainObjectContext())) {
+                throw new InvalidUserDataException(String.format(
+                    "%s in %s cannot extend %s from %s. Configurations can only extend from configurations in the same context.",
+                    displayName.getCapitalizedDisplayName(),
+                    DefaultConfiguration.this.domainObjectContext.getDisplayName(),
+                    other.getDisplayName(),
+                    other.getDomainObjectContext().getDisplayName()
+                ));
+            }
+            if (other.getHierarchy().contains(DefaultConfiguration.this)) {
+                throw new InvalidUserDataException(String.format(
+                    "Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", DefaultConfiguration.this,
+                    other, other.getHierarchy()));
+            }
+        };
+        this.extendsFrom = new ExtendedConfigurations(validateExtendedConfiguration, configurationServices.getProviderFactory());
     }
 
     private static Action<String> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
         return arg -> mutationValidator.validateMutation(type);
+    }
+
+    private void initializeInheritedArtifacts() {
+        if (inheritedArtifacts == null) {
+            inheritedArtifacts = new InheritedCollection<>(configurationServices, PublishArtifact.class, ownArtifacts, extendsFrom, Configuration::getAllArtifacts);
+        }
+    }
+
+    private void initializeInheritedDependencies() {
+        if (inheritedDependencies == null) {
+            inheritedDependencies = new InheritedCollection<>(configurationServices, Dependency.class, ownDependencies, extendsFrom, Configuration::getAllDependencies);
+        }
+    }
+
+    private void initializeInheritedDependencyConstraints() {
+        if (inheritedDependencyConstraints == null) {
+            inheritedDependencyConstraints = new InheritedCollection<>(configurationServices, DependencyConstraint.class, ownDependencyConstraints, extendsFrom, Configuration::getAllDependencyConstraints);
+        }
     }
 
     @Override
@@ -325,28 +368,32 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public Set<Configuration> getExtendsFrom() {
-        return Collections.unmodifiableSet(extendsFrom);
+        Set<Configuration> set = new LinkedHashSet<>();
+        extendsFrom.visitConfigurations(configuration -> set.add(configuration.get()));
+        return Collections.unmodifiableSet(set);
+    }
+
+    private void updateInheritedCollections() {
+        maybeUpdateCollection(inheritedDependencies);
+        maybeUpdateCollection(inheritedArtifacts);
+        maybeUpdateCollection(inheritedDependencyConstraints);
+    }
+
+    private void maybeUpdateCollection(@Nullable InheritedCollection<?> collection) {
+        if (collection != null) {
+            collection.updateExtendedConfigurations(this.extendsFrom);
+        }
     }
 
     @Override
     public Configuration setExtendsFrom(Iterable<Configuration> extendsFrom) {
         validateMutation(MutationType.HIERARCHY);
         assertNotDetachedExtensionDoingExtending(extendsFrom);
-        for (Configuration configuration : this.extendsFrom) {
-            if (inheritedArtifacts != null) {
-                inheritedArtifacts.removeCollection(configuration.getAllArtifacts());
-            }
-            if (inheritedDependencies != null) {
-                inheritedDependencies.removeCollection(configuration.getAllDependencies());
-            }
-            if (inheritedDependencyConstraints != null) {
-                inheritedDependencyConstraints.removeCollection(configuration.getAllDependencyConstraints());
-            }
-        }
-        this.extendsFrom = new LinkedHashSet<>();
+        this.extendsFrom = new ExtendedConfigurations(validateExtendedConfiguration, configurationServices.getProviderFactory());
         for (Configuration configuration : extendsFrom) {
             extendsFrom(configuration);
         }
+        updateInheritedCollections();
         return this;
     }
 
@@ -355,33 +402,18 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         validateMutation(MutationType.HIERARCHY);
         assertNotDetachedExtensionDoingExtending(Arrays.asList(extendsFrom));
         for (Configuration extended : extendsFrom) {
-            ConfigurationInternal other = Objects.requireNonNull(Cast.uncheckedCast(extended));
-            if (!domainObjectContext.equals(other.getDomainObjectContext())) {
-                throw new InvalidUserDataException(String.format(
-                    "%s in %s cannot extend %s from %s. Configurations can only extend from configurations in the same context.",
-                    displayName.getCapitalizedDisplayName(),
-                    this.domainObjectContext.getDisplayName(),
-                    other.getDisplayName(),
-                    other.getDomainObjectContext().getDisplayName()
-                ));
-            }
-            if (other.getHierarchy().contains(this)) {
-                throw new InvalidUserDataException(String.format(
-                    "Cyclic extendsFrom from %s and %s is not allowed. See existing hierarchy: %s", this,
-                    other, other.getHierarchy()));
-            }
-            if (this.extendsFrom.add(other)) {
-                if (inheritedArtifacts != null) {
-                    inheritedArtifacts.addCollection(other.getAllArtifacts());
-                }
-                if (inheritedDependencies != null) {
-                    inheritedDependencies.addCollection(other.getAllDependencies());
-                }
-                if (inheritedDependencyConstraints != null) {
-                    inheritedDependencyConstraints.addCollection(other.getAllDependencyConstraints());
-                }
-            }
+            this.extendsFrom.add(extended);
         }
+        updateInheritedCollections();
+        return this;
+    }
+
+    @Override
+    public Configuration extendsFrom(Provider<? extends Configuration> superConfig) {
+        validateMutation(MutationType.HIERARCHY);
+        assertNotDetachedExtensionDoingExtending(superConfig);
+        this.extendsFrom.add(superConfig);
+        updateInheritedCollections();
         return this;
     }
 
@@ -424,7 +456,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             // The result is an ordered set - so seeing the same value a second time pushes further down
             result.remove(superConfig);
             result.add(superConfig);
-            collectSuperConfigs(superConfig, result);
+            if (superConfig != this) {  // don't recurse if there's a cycle
+                collectSuperConfigs(superConfig, result);
+            }
         }
     }
 
@@ -827,11 +861,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (allDependencies != null) {
             return;
         }
-        inheritedDependencies = configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(Dependency.class, ownDependencies);
-        for (Configuration configuration : this.extendsFrom) {
-            inheritedDependencies.addCollection(configuration.getAllDependencies());
-        }
-        allDependencies = new DefaultDependencySet(Describables.of(displayName, "all dependencies"), this, inheritedDependencies);
+
+        initializeInheritedDependencies();
+        allDependencies = new DefaultDependencySet(Describables.of(displayName, "all dependencies"), this, inheritedDependencies.getAllInherited());
     }
 
     @Override
@@ -851,11 +883,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (allDependencyConstraints != null) {
             return;
         }
-        inheritedDependencyConstraints = configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(DependencyConstraint.class, ownDependencyConstraints);
-        for (Configuration configuration : this.extendsFrom) {
-            inheritedDependencyConstraints.addCollection(configuration.getAllDependencyConstraints());
-        }
-        allDependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "all dependency constraints"), this, inheritedDependencyConstraints);
+
+        initializeInheritedDependencyConstraints();
+        allDependencyConstraints = new DefaultDependencyConstraintSet(Describables.of(displayName, "all dependency constraints"), this, inheritedDependencyConstraints.getAllInherited());
     }
 
     @Override
@@ -878,27 +908,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         if (isObserved() && extendsFrom.isEmpty()) {
             // No further mutation is allowed and there's no parent: the artifact set corresponds to this configuration own artifacts
             this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, configurationServices.getFileCollectionFactory(), taskDependencyFactory);
-            return;
-        }
-
-        if (!isObserved()) {
-            // If the configuration can still be mutated, we need to create a composite
-            inheritedArtifacts = configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(PublishArtifact.class, ownArtifacts);
-        }
-        for (Configuration configuration : this.extendsFrom) {
-            PublishArtifactSet allArtifacts = configuration.getAllArtifacts();
-            if (inheritedArtifacts != null || !allArtifacts.isEmpty()) {
-                if (inheritedArtifacts == null) {
-                    // This configuration cannot be mutated, but some parent configurations provide artifacts
-                    inheritedArtifacts = configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(PublishArtifact.class, ownArtifacts);
-                }
-                inheritedArtifacts.addCollection(allArtifacts);
-            }
-        }
-        if (inheritedArtifacts != null) {
-            this.allArtifacts = new DefaultPublishArtifactSet(displayName, inheritedArtifacts, configurationServices.getFileCollectionFactory(), taskDependencyFactory);
         } else {
-            this.allArtifacts = new DefaultPublishArtifactSet(displayName, ownArtifacts, configurationServices.getFileCollectionFactory(), taskDependencyFactory);
+            // Otherwise, the configuration can still be mutated, so we need to create a composite in case extendsFrom are added
+            initializeInheritedArtifacts();
+            this.allArtifacts = new DefaultPublishArtifactSet(displayName, inheritedArtifacts.getAllInherited(), configurationServices.getFileCollectionFactory(), taskDependencyFactory);
         }
     }
 
@@ -910,11 +923,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     @Override
     public Set<ExcludeRule> getAllExcludeRules() {
-        Set<ExcludeRule> result = new LinkedHashSet<>();
-        result.addAll(getExcludeRules());
-        for (Configuration config : extendsFrom) {
-            result.addAll(((ConfigurationInternal) config).getAllExcludeRules());
-        }
+        Set<ExcludeRule> result = new LinkedHashSet<>(getExcludeRules());
+        extendsFrom.visitConfigurations(configuration -> result.addAll(((ConfigurationInternal)configuration.get()).getAllExcludeRules()));
         return result;
     }
 
@@ -1624,17 +1634,27 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private void assertNotDetachedExtensionDoingExtending(Iterable<Configuration> extendsFrom) {
         if (isDetachedConfiguration()) {
-            String summarizedExtensionTargets = StreamSupport.stream(extendsFrom.spliterator(), false)
-                .map(ConfigurationInternal.class::cast)
-                .map(ConfigurationInternal::getDisplayName)
-                .collect(Collectors.joining(", "));
-            GradleException ex = new GradleException(getDisplayName() + " cannot extend " + summarizedExtensionTargets);
-            ProblemId id = ProblemId.create("extend-detached-not-allowed", "Extending a detachedConfiguration is not allowed", GradleCoreProblemGroup.configurationUsage());
-            throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
-                spec.contextualLabel(ex.getMessage());
-                spec.severity(Severity.ERROR);
-            });
+            throwDetachedConfigurationWithExtendsFromError(extendsFrom);
         }
+    }
+
+    private void assertNotDetachedExtensionDoingExtending(Provider<? extends Configuration> extendsFrom) {
+        if (isDetachedConfiguration()) {
+            throwDetachedConfigurationWithExtendsFromError(Collections.singletonList(extendsFrom.get()));
+        }
+    }
+
+    private void throwDetachedConfigurationWithExtendsFromError(Iterable<Configuration> extendsFrom) {
+        String summarizedExtensionTargets = StreamSupport.stream(extendsFrom.spliterator(), false)
+            .map(ConfigurationInternal.class::cast)
+            .map(ConfigurationInternal::getDisplayName)
+            .collect(Collectors.joining(", "));
+        GradleException ex = new GradleException(getDisplayName() + " cannot extend " + summarizedExtensionTargets);
+        ProblemId id = ProblemId.create("extend-detached-not-allowed", "Extending a detachedConfiguration is not allowed", GradleCoreProblemGroup.configurationUsage());
+        throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
+            spec.contextualLabel(ex.getMessage());
+            spec.severity(Severity.ERROR);
+        });
     }
 
     public static class ConfigurationResolvableDependencies implements ResolvableDependencies {
@@ -1850,4 +1870,50 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return Collections.singletonList(resolution);
         }
     }
+
+    /**
+     * This class encapsulates the logic for maintaining a collection that is derived off of extended configurations.
+     * Specifically, it handles updating the derived collection when the set of extended configurations changes.
+     */
+    private static class InheritedCollection<T> {
+        private final Function<Configuration, DomainObjectCollection<T>> configurationToCollection;
+        private final CompositeDomainObjectSet<T> all;
+        private final List<Provider<DomainObjectCollection<? extends T>>> inheritedCollections = new ArrayList<>();
+
+        public InheritedCollection(
+            ConfigurationServicesBundle configurationServices,
+            Class<T> type,
+            DomainObjectCollection<T> own,
+            ExtendedConfigurations extendsFrom,
+            Function<Configuration, DomainObjectCollection<T>> configurationToCollection
+        ) {
+            this.configurationToCollection = configurationToCollection;
+            this.all = configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(type, own);
+
+            updateExtendedConfigurations(extendsFrom);
+        }
+
+        /**
+         * Called when the extended configurations have changed, to update the derived collection.
+         */
+        public void updateExtendedConfigurations(ExtendedConfigurations extendsFrom) {
+            if (!inheritedCollections.isEmpty()) {
+                inheritedCollections.forEach(all::removeCollectionProvider);
+                inheritedCollections.clear();
+            }
+            extendsFrom.visitConfigurations(configuration -> {
+                Provider<DomainObjectCollection<? extends T>> providedCollection = configuration.mapToCollection(configurationToCollection);
+                // The composite set contains more than just the inherited collections (for instance, it also contains the collection from
+                // this configuration, and it's also technically possible to add additional, non-inherited collections to the composite),
+                // so we keep track of the inherited collections separately
+                inheritedCollections.add(providedCollection);
+                all.addCollectionProvider(providedCollection);
+            });
+        }
+
+        public DomainObjectSet<T> getAllInherited() {
+            return all;
+        }
+    }
+
 }

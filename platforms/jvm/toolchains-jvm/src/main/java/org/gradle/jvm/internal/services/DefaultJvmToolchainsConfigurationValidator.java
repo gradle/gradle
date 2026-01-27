@@ -50,7 +50,7 @@ public class DefaultJvmToolchainsConfigurationValidator implements JvmToolchains
      */
     @Override
     public void validatePropertyConfiguration(String propertyName) {
-        Map<String, String> projectProperties = startParameter.getProjectProperties();
+        Map<String, String> projectProperties = startParameter.getProjectPropertiesUntracked();
         if (projectProperties.containsKey(propertyName)) {
             String projectProperty = projectProperties.get(propertyName);
             Properties systemProperties = System.getProperties();
