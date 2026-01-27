@@ -44,16 +44,16 @@ dependencies {
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
-    compileOnly(libs.junit) {
+    compileOnly(providedLibs.junit) {
         because("The actual version is provided by the user on the testRuntimeClasspath")
     }
-    compileOnly(libs.testng) {
+    compileOnly(providedLibs.testng) {
         because("The actual version is provided by the user on the testRuntimeClasspath")
     }
-    compileOnly(libs.junitPlatform) {
+    compileOnly(providedLibs.junitPlatform) {
         because("The actual version is provided by the user on the testRuntimeClasspath")
     }
-    compileOnly(libs.junitPlatformEngine) {
+    compileOnly(providedLibs.junitPlatformEngine) {
         because("The actual version is provided by the user on the testRuntimeClasspath")
     }
 
@@ -71,13 +71,13 @@ dependencies {
         }
         because("We test assertion errors coming from OpenTest4J")
     }
-    testImplementation(testLibs.junit) {
+    testImplementation(providedLibs.junit) {
         because("To provide an implementation during testing")
     }
-    testImplementation(testLibs.junitPlatform) {
+    testImplementation(providedLibs.junitPlatform) {
         because("Platform types are used in tests")
     }
-    testImplementation(libs.testng) {
+    testImplementation(providedLibs.testng) {
         because("To provide an implementation during testing")
     }
     testRuntimeOnly(testLibs.guice) {
@@ -86,6 +86,6 @@ dependencies {
 
     testFixturesImplementation(projects.testingBase)
     testFixturesImplementation(testLibs.junit)
-    testFixturesImplementation(libs.testng)
+    testFixturesImplementation(providedLibs.testng)
 
 }

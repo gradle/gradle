@@ -64,6 +64,10 @@ dependencies {
         // We only need a few utility classes of this module
         applyRule<DependencyRemovalByNameRule>("jcifs:jcifs", setOf("servlet-api"))
 
+        // Bsh moved coordinates. Depend on the new coordinates.
+        applyRule<DependencyRemovalByGroupRule>("org.testng:testng", setOf("org.beanshell"))
+        applyRule<DependencyAdditionRule>("org.testng:testng", "org.apache-extras.beanshell:bsh")
+
         // Test dependencies - minify: remove unused transitive dependencies
         applyRule<DependencyRemovalByNameRule>(
             "xyz.rogfam:littleproxy",

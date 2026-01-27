@@ -17,12 +17,16 @@ description = "Provides a platform dependency to align all distribution versions
 javaPlatform.allowDependencies()
 
 dependencies {
-    api(platform(libs.junitBom))
+    api(platform(providedLibs.junitBom))
 
     constraints {
         val distributionDependencies = versionCatalogs.named("libs")
         distributionDependencies.libraryAliases.forEach { alias ->
             api(distributionDependencies.findLibrary(alias).get())
+        }
+        val providedDependencies = versionCatalogs.named("providedLibs")
+        providedDependencies.libraryAliases.forEach { alias ->
+            api(providedDependencies.findLibrary(alias).get())
         }
     }
 }
