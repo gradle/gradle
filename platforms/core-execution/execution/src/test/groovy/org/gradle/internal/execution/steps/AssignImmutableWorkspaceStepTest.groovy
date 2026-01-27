@@ -34,6 +34,8 @@ import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.TestSnapshotFixture
 import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.internal.work.WorkerLeaseService
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
 
 import java.time.Duration
 import java.util.function.Supplier
@@ -49,8 +51,8 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
     def workspace = Stub(ImmutableWorkspace) {
         immutableLocation >> immutableWorkspace
 
-        getOrCompute(_ as Supplier) >> {
-            args -> ConcurrentResult.producedByCurrentThread(args[0].get())
+        getOrCompute(_ as WorkerLeaseService, _ as Supplier) >> {
+            args -> ConcurrentResult.producedByCurrentThread(args[1].get())
         }
         withFileLock(_ as Supplier) >>
             { Supplier action ->
@@ -68,7 +70,8 @@ class AssignImmutableWorkspaceStepTest extends StepSpec<IdentityContext> impleme
         getWorkspace(workId) >> workspace
     }
 
-    def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate)
+    def workerLeaseService = new TestWorkerLeaseService()
+    def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, workerLeaseService, delegate)
     def work = Stub(ImmutableUnitOfWork)
 
     def setup() {
