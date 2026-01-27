@@ -53,9 +53,9 @@ import java.util.Map;
  */
 @CacheableTask
 public abstract class Checkstyle extends AbstractCodeQualityTask implements Reporting<CheckstyleReports> {
-    private final Checkstyle2 delegate;
+    private final org.gradle.api.plugins.quality.v2.Checkstyle delegate;
 
-    public Checkstyle(Checkstyle2 delegate) {
+    public Checkstyle(org.gradle.api.plugins.quality.v2.Checkstyle delegate) {
         this.delegate = delegate;
     }
 
@@ -283,8 +283,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Input
     @ToBeReplacedByLazyProperty
     public int getMaxErrors() {
-        Integer v = delegate.getMaxErrorsProperty().getOrNull();
-        return v == null ? 0 : v;
+        return delegate.getMaxErrorsProperty().getOrElse(0);
     }
 
     /**
@@ -307,8 +306,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Input
     @ToBeReplacedByLazyProperty
     public int getMaxWarnings() {
-        Integer v = delegate.getMaxWarningsProperty().getOrNull();
-        return v == null ? Integer.MAX_VALUE : v;
+        return delegate.getMaxWarningsProperty().getOrElse(Integer.MAX_VALUE);
     }
 
     /**
@@ -329,8 +327,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Console
     @ToBeReplacedByLazyProperty
     public boolean isShowViolations() {
-        Boolean v = delegate.getShowViolationsProperty().getOrNull();
-        return v == null ? true : v;
+        return delegate.getShowViolationsProperty().getOrElse(true);
     }
 
     /**

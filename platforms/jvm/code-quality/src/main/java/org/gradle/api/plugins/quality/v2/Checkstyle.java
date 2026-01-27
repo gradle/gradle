@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.quality;
+package org.gradle.api.plugins.quality.v2;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
@@ -21,6 +21,8 @@ import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.plugins.quality.AbstractCodeQualityTask;
+import org.gradle.api.plugins.quality.CheckstyleReports;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
@@ -47,14 +49,14 @@ import org.gradle.api.Incubating;
 
 /**
  * New Checkstyle task implementation that uses Gradle lazy properties.
- * All execution logic resides here. Legacy {@link Checkstyle} delegates to this implementation.
+ * All execution logic resides here. Legacy {@link org.gradle.api.plugins.quality.Checkstyle} delegates to this implementation.
  */
 @CacheableTask
-public abstract class Checkstyle2 extends AbstractCodeQualityTask implements Reporting<CheckstyleReports> {
+public abstract class Checkstyle extends AbstractCodeQualityTask implements Reporting<CheckstyleReports> {
 
     private final CheckstyleReports reports;
 
-    public Checkstyle2() {
+    public Checkstyle() {
         super();
         this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
         getEnableExternalDtdLoadProperty().convention(false);
