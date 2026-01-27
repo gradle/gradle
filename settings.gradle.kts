@@ -207,7 +207,6 @@ module("ide") {
 // Software Platform
 val software = platform("software") {
     uses(core)
-    subproject("antlr")
     subproject("base-compiler-worker")
     subproject("build-init")
     subproject("build-init-specs")
@@ -239,6 +238,7 @@ val software = platform("software") {
 val jvm = platform("jvm") {
     uses(core)
     uses(software)
+    subproject("antlr")
     subproject("ant-worker")
     subproject("code-quality")
     subproject("code-quality-workers")

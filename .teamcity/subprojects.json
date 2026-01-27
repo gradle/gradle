@@ -8,7 +8,7 @@
   },
   {
     "name": "antlr",
-    "path": "platforms/software/antlr",
+    "path": "platforms/jvm/antlr",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
