@@ -30,10 +30,6 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
 
     abstract String getTestFrameworkJUnit3Dependencies()
 
-    boolean isVintage() {
-        return false
-    }
-
     @Override
     String getTestFrameworkSuiteImports() {
         return """
@@ -327,11 +323,10 @@ abstract class AbstractJUnit4SuitesIntegrationTest extends AbstractJUnitSuitesIn
 
         then:
         GenericTestExecutionResult result = resultsFor()
-        def testNodeName = isVintage() ? 'org.gradle.JUnit3Test$1' : 'JUnit 3 style test'
         result.assertTestPathsExecuted(
-            ':org.gradle.JUnit4Suite:JUnit 3 style test suite:' + testNodeName
+            ':org.gradle.JUnit4Suite:JUnit 3 style test suite:JUnit 3 style test'
         )
-        result.testPath(':org.gradle.JUnit4Suite:JUnit 3 style test suite:' + testNodeName).onlyRoot()
+        result.testPath(':org.gradle.JUnit4Suite:JUnit 3 style test suite:JUnit 3 style test').onlyRoot()
             .assertDisplayName(equalTo("JUnit 3 style test"))
             .assertStdout(containsString("In JUnit 3 style test"))
     }
