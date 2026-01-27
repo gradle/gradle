@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.newBufferedReader;
 import static org.gradle.internal.classpath.FileUtils.optionsAllowReading;
 import static org.gradle.internal.classpath.FileUtils.tryReportDirectoryContentObserved;
@@ -136,7 +135,7 @@ public class NioFileInterceptors {
         @CallerClassName String consumer
     ) throws IOException {
         tryReportFileOpened(path, consumer);
-        return newBufferedReader(path, UTF_8);
+        return newBufferedReader(path);
     }
 
     @InterceptCalls
