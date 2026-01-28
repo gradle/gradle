@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.os.OperatingSystem;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -29,8 +30,9 @@ import static org.gradle.internal.FileUtils.canonicalize;
  * Mutable build layout parameters
  */
 public class BuildLayoutParameters {
-    public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
     private static final File DEFAULT_GRADLE_USER_HOME = new File(SystemProperties.getInstance().getUserHome() + "/.gradle");
+    public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
+    private static final String GRADLE_USER_HOME_ENV_KEY = "GRADLE_USER_HOME";
 
     private @Nullable File gradleInstallationHomeDir;
     private File gradleUserHomeDir;
@@ -61,12 +63,45 @@ public class BuildLayoutParameters {
     static private File findGradleUserHomeDir() {
         String gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY);
         if (gradleUserHome == null) {
-            gradleUserHome = System.getenv("GRADLE_USER_HOME");
-            if (gradleUserHome == null) {
-                gradleUserHome = DEFAULT_GRADLE_USER_HOME.getAbsolutePath();
+            gradleUserHome = System.getenv(GRADLE_USER_HOME_ENV_KEY);
+        }
+        if (gradleUserHome == null) {
+            File osDataDirectory = osDataDirectory();
+            if (osDataDirectory != null) {
+                File osDataCandidate = new File(osDataDirectory, "Gradle");
+                if (osDataCandidate.isDirectory() || !DEFAULT_GRADLE_USER_HOME.exists()) {
+                    gradleUserHome = osDataCandidate.getAbsolutePath();
+                }
             }
         }
+        if (gradleUserHome == null) {
+            gradleUserHome = DEFAULT_GRADLE_USER_HOME.getAbsolutePath();
+        }
         return canonicalize(new File(gradleUserHome));
+    }
+
+    static private @Nullable File osDataDirectory() {
+        OperatingSystem os = OperatingSystem.current();
+        File home = new File(System.getProperty("user.home"));
+        if (os.isMacOsX()) {
+            return new File(home, "Library/Application Support");
+        } else if (os.isWindows()) {
+            String localAppData = System.getenv("LOCALAPPDATA");
+            if (localAppData != null && !localAppData.isEmpty()) {
+                return new File(localAppData);
+            } else {
+                return new File(home, "AppData/Local");
+            }
+        } else if (os.isUnix()) {
+            // Linux, FreeBSD
+            String dataHome = System.getenv("XDG_DATA_HOME");
+            if (dataHome != null && !dataHome.isEmpty()) {
+                return new File(dataHome);
+            } else {
+                return new File(home, ".local/share");
+            }
+        }
+        return null;
     }
 
     @Nullable

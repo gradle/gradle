@@ -177,7 +177,7 @@ gradle-project  // <1>
 [[gradle_user_home]]
 == Gradle User Home Directory
 
-By default, the *Gradle User Home* (`~/.gradle` or `C:\Users\<USERNAME>\.gradle`) stores global configuration properties, initialization scripts, caches, and log files.
+By default, the *Gradle User Home* (`~/.gradle`, `C:\Users\<USERNAME>\.gradle`, `$XDG_DATA_HOME/Gradle` or `%LOCALAPPDATA%\Gradle`) stores global configuration properties, initialization scripts, caches, and log files.
 
 It can be set with the environment variable `GRADLE_USER_HOME`.
 Note that this directory is often abbreviated as `GUH`.
