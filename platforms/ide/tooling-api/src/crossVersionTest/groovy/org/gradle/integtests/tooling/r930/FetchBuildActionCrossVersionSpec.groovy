@@ -63,7 +63,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
 
-        if(targetVersion < GradleVersion.version("8.9") && expectedCause == "Unexpected input") {
+        if (targetVersion < GradleVersion.version("8.7") && expectedCause == "Unexpected input") {
             expectedCause = "Could not compile settings file"
         }
 
@@ -143,7 +143,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         then:
 
-        if(targetVersion < GradleVersion.version("8.9") && cause == "Could not compile build file ") {
+        if (targetVersion < GradleVersion.version("8.7") && cause == "Could not compile build file ") {
             cause = "Could not open cp_proj generic class cache for"
         }
 
