@@ -36,6 +36,22 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.5.0]]
+== Upgrading from 9.4.0 and earlier
+
+=== Deprecations
+
+[[attributeless-configurations]]
+Resolving variants without attributes has been deprecated.
+
+All consumable or resolvable configurations should add at least one <<variant_attributes.adoc#variant-attributes, attribute>> to be identifiable.
+This applies even to configurations that are resolved by name and do not use variant-aware dependency resolution.
+
+When a configuration without attributes is resolved, Gradle will emit a deprecation warning.
+
+[[findAll_removal]]
+==== Deprecation of `DomainObjectCollection.findAll(Closure)`
+
 [[changes_9.4.0]]
 == Upgrading from 9.3.0 and earlier
 
@@ -785,4 +801,3 @@ Instead, you should specify these settings as <<build_environment.adoc#sec:gradl
 ----
 -Dorg.gradle.java.installations.auto-detect=false
 ----
-
