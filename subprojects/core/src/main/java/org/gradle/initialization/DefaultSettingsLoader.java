@@ -81,7 +81,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
         StartParameterInternal startParameter = gradle.getStartParameter();
         BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
         if (buildLayout.getSettingsFileResolution() != null) {
-            ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(problems);
+            ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(problems.getReporter());
             reporter.reportResolutionProblemsOf(buildLayout.getSettingsFileResolution());
         }
 
@@ -172,7 +172,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
     ) {
         ScriptResolutionResult resolutionResult = buildLayout.getSettingsFileResolution();
         if (resolutionResult != null) {
-            new ScriptResolutionResultReporter(problems).reportResolutionProblemsOf(resolutionResult);
+            new ScriptResolutionResultReporter(problems.getReporter()).reportResolutionProblemsOf(resolutionResult);
         }
 
         SettingsState state = settingsProcessor.process(gradle, buildLayout, classLoaderScope, startParameter);
