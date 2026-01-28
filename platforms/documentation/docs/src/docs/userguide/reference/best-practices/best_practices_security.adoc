@@ -103,3 +103,51 @@ jobs:
 === Tags
 
 `<<tags_reference.adoc#tag:wrapper,#wrapper>>`
+
+[[run_gradle_on_external_projects]]
+== Do not Run `./gradlew` on External Projects
+
+When working with an external project, you should exercise caution before running `./gradlew`.
+
+=== Explanation
+
+The `gradlew` (Gradle Wrapper) script is an executable file provided by the project's authors.
+It automatically downloads and runs a specific version of Gradle and can execute arbitrary code defined in the project's build scripts (`build.gradle`, `settings.gradle`, etc.).
+Running it without inspection is similar to running any other untrusted script or executable from the internet.
+
+An unreviewed wrapper or build script could potentially access or modify files on your system, install malicious software, or compromise your environment (e.g., stealing environment variables like `GITHUB_TOKEN` or `AWS_SECRET_KEY`).
+
+==== Do this
+
+===== 1. Review the Source Code
+
+* **Inspect Build Files:** Look at `build.gradle(.kts)`, `settings.gradle(.kts)`, and `gradle.properties` for suspicious dependencies, custom `exec` tasks, or obfuscated code.
+
+===== 2. Verify the Gradle Wrapper Files
+
+* **Audit the Wrapper Scripts:** Check the `gradlew` and `gradlew.bat` files themselves for injected shell commands that shouldn't be there.
+* **Check the URL:** Open `gradle/wrapper/gradle-wrapper.properties` and ensure the `distributionUrl` points strictly to the official site: `https://services.gradle.org/`.
+* **Checksum Verification:** Use <<validate_wrapper_checksum,checksum validation>> to ensure `gradle-wrapper.jar` hasn't been tampered with.
+
+===== 3. Work in an Isolated Environment
+
+You can optionally run the project in a **Docker container** or a **Virtual Machine (VM)**.
+This ensures that even if a malicious script runs, it cannot access your files.
+
+===== 4. Start with a Safe Task
+
+Instead of running `./gradlew build` (which executes the full lifecycle including tests), start with informational tasks:
+
+[source,bash]
+----
+$ ./gradlew help
+$ ./gradlew tasks
+----
+
+=== References
+
+- <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper Reference>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:wrapper,#wrapper>>`
