@@ -19,6 +19,7 @@ package org.gradle.performance.experiment.declarativedsl
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
+import org.junit.Assume
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -29,10 +30,17 @@ import static org.gradle.performance.results.OperatingSystem.WINDOWS
     @Scenario(type = PER_COMMIT, operatingSystems = [LINUX, MAC_OS, WINDOWS], testProjects = ["largeEmptyMultiProjectDeclarativeDsl"])
 )
 class DeclarativeDslConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
+
+    public static final String MINIMUM_BASE_VERSION = '9.4'
+
     def "configure"() {
+        Assume.assumeTrue(
+            "No baseline version >= minimum base version is available yet",
+            false
+        )
         given:
         runner.tasksToRun = ['help']
-        runner.minimumBaseVersion = '9.4'
+        runner.minimumBaseVersion = MINIMUM_BASE_VERSION
 
         when:
         def result = runner.run()

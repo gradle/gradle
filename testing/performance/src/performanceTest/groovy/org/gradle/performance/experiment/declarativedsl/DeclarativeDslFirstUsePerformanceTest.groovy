@@ -22,6 +22,7 @@ import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.mutator.RetryingClearGradleUserHomeMutator
 import org.gradle.profiler.mutations.AbstractScheduledMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
+import org.junit.Assume
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -41,6 +42,10 @@ class DeclarativeDslFirstUsePerformanceTest extends AbstractCrossVersionPerforma
     private static final String MINIMUM_BASE_VERSION = "9.4"
 
     def "first use"() {
+        Assume.assumeTrue(
+            "No baseline version >= minimum base version is available yet",
+            false
+        )
         given:
         runner.tasksToRun = ['tasks']
         runner.warmUpRuns = WARMUP_RUNS
@@ -62,6 +67,10 @@ class DeclarativeDslFirstUsePerformanceTest extends AbstractCrossVersionPerforma
     }
 
     def "clean checkout"() {
+        Assume.assumeTrue(
+            "No baseline version >= minimum base version is available yet",
+            false
+        )
         given:
         runner.tasksToRun = ['tasks']
         runner.warmUpRuns = WARMUP_RUNS
@@ -80,6 +89,10 @@ class DeclarativeDslFirstUsePerformanceTest extends AbstractCrossVersionPerforma
     }
 
     def "cold daemon"() {
+        Assume.assumeTrue(
+            "No baseline version >= minimum base version is available yet",
+            false
+        )
         given:
         runner.tasksToRun = ['tasks']
         runner.warmUpRuns = WARMUP_RUNS
