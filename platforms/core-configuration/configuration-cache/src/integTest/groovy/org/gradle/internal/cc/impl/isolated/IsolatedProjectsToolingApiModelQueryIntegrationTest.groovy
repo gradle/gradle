@@ -193,6 +193,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         then:
         notExecuted("help")
         fixture.assertModelStored {
+            runsTasks = true
             projectsConfigured(":buildSrc", ":")
             modelsCreated(":")
         }
