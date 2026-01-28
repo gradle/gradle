@@ -301,6 +301,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
+    public IntegrationTestBuildContext getBuildContext() {
+        return buildContext;
+    }
+
+    @Override
     public void beforeExecute(Action<? super GradleExecuter> action) {
         beforeExecute.add(action);
     }

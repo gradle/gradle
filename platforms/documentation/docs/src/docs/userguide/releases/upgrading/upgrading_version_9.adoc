@@ -386,6 +386,20 @@ dependencies {
 }
 ----
 
+[[deprecate_moduleversionselector_to_modulecomponentselector]]
+==== Deprecation of `ModuleVersionSelector` to `ModuleComponentSelector` conversion
+The conversion of `ModuleVersionSelector` to `ModuleComponentSelector` (used in
+link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#force(java.lang.Object...)[`ResolutionStrategy.force(...)`],
+link:{javadocPath}/org/gradle/api/artifacts/DependencyResolveDetails.html#useTarget(java.lang.Object)[`DependencyResolveDetails.useTarget(Object)`], and
+link:{javadocPath}/org/gradle/plugin/management/PluginResolveDetails.html#useModule(java.lang.Object)[`PluginResolveDetails.useModule(Object)`]
+) has been deprecated and will be removed in Gradle 10.0.0.
+
+Typically, `ModuleVersionSelector` instances are `DependencyContstraint` objects.
+
+Note that this deprecation does not apply to `ExternalDependency` objects, despite them implementing `ModuleVersionSelector`.
+
+To fix this deprecation, pass one of the supported notations (for example, a String in the `group:name:version` format).
+
 [[changes_9.2.0]]
 == Upgrading from 9.1.0 and earlier
 
