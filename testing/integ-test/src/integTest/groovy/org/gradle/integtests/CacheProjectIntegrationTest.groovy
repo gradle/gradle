@@ -187,7 +187,7 @@ task 'hello$i' {
     File file = file('$TEST_FILE')
     outputs.file file
     def compileFiles = provider {
-        configurations.compile.resolve()
+        configurations.compile.getFiles()
     }
     doLast {
         compileFiles.get()
@@ -215,7 +215,7 @@ task newTask {
     File file = file('$TEST_FILE')
     outputs.file file
     def otherFiles = provider {
-        configurations.other.resolve()
+        configurations.other.getFiles()
     }
     doLast {
         otherFiles.get()

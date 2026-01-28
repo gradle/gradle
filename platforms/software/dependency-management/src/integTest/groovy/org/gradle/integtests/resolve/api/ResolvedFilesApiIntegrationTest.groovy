@@ -119,7 +119,10 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
 
         when:
-        run 'show'
+        if (expression == "configurations.compile.resolve()") {
+            executer.expectDocumentedDeprecationWarning("The Configuration.resolve method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the getIncoming().getFiles() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_configuration_resolve")
+        }
+        succeeds("show")
 
         then:
         outputContains("files: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar")
@@ -200,8 +203,13 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             ${freeAndPaidFlavoredJars('b')}
         """
 
-        expect:
+        when:
+        if (expression == "configurations.compile.resolve()") {
+            2.times { executer.expectDocumentedDeprecationWarning("The Configuration.resolve method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the getIncoming().getFiles() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_configuration_resolve") }
+        }
         succeeds("show")
+
+        then:
         output.contains("files: [a-free.jar, b-paid.jar]")
         if (FILE_COLLECTION_EXPRESSION_LIST.contains(expression)) {
             result.assertTasksScheduled(':a:freeJar', ':b:paidJar', ':show')
@@ -270,8 +278,13 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             ${freeAndPaidFlavoredJars('b')}
         """
 
-        expect:
+        when:
+        if (expression == "configurations.compile.resolve()") {
+            2.times { executer.expectDocumentedDeprecationWarning("The Configuration.resolve method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the getIncoming().getFiles() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_configuration_resolve") }
+        }
         succeeds("show")
+
+        then:
         output.contains("files: [a-free.jar, b-paid.jar]")
         if (FILE_COLLECTION_EXPRESSION_LIST.contains(expression)) {
             result.assertTasksScheduled(':a:freeJar', ':b:paidJar', ':show')
@@ -326,8 +339,13 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             ${freeAndPaidFlavoredJars('b')}
         """
 
-        expect:
+        when:
+        if (expression == "configurations.compile.resolve()") {
+            executer.expectDocumentedDeprecationWarning("The Configuration.resolve method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the getIncoming().getFiles() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_configuration_resolve")
+        }
         fails("show")
+
+        then:
         failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
   - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
@@ -396,8 +414,13 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             ${freeAndPaidFlavoredJars('b')}
         """
 
-        expect:
+        when:
+        if (expression == "configurations.compile.resolve()") {
+            executer.expectDocumentedDeprecationWarning("The Configuration.resolve method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the getIncoming().getFiles() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_configuration_resolve")
+        }
         fails("show")
+
+        then:
         failure.assertHasCause("""No variants of project :a match the consumer attributes:
   - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
       - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'free' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'
@@ -451,7 +474,10 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         m.pom.expectGetBroken()
 
         when:
-        fails 'show'
+        if (expression == "configurations.compile.resolve()") {
+            executer.expectDocumentedDeprecationWarning("The Configuration.resolve method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the getIncoming().getFiles() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_configuration_resolve")
+        }
+        fails("show")
 
         then:
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
@@ -494,7 +520,10 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         m2.artifact.expectGet()
 
         when:
-        fails 'show'
+        if (expression == "configurations.compile.resolve()") {
+            executer.expectDocumentedDeprecationWarning("The Configuration.resolve method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the getIncoming().getFiles() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_configuration_resolve")
+        }
+        fails("show")
 
         then:
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
@@ -521,8 +550,11 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             }
         """
 
-        when:\
-        fails 'show'
+        when:
+        if (expression == "configurations.compile.resolve()") {
+            executer.expectDocumentedDeprecationWarning("The Configuration.resolve method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the getIncoming().getFiles() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_configuration_resolve")
+        }
+        fails("show")
 
         then:
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
@@ -576,7 +608,10 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         m2.artifact.expectGetBroken()
 
         when:
-        fails 'show'
+        if (expression == "configurations.compile.resolve()") {
+            executer.expectDocumentedDeprecationWarning("The Configuration.resolve method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the getIncoming().getFiles() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_configuration_resolve")
+        }
+        fails("show")
 
         then:
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")

@@ -28,6 +28,6 @@ abstract class BadClasspathPrinter : DefaultTask() {
 }
 
 tasks.register("badClasspathPrinter", BadClasspathPrinter::class) {
-    classpath = configurations.named("runtimeClasspath").get().resolve() // <4>
+    classpath = configurations.named("runtimeClasspath").get().files // <4>
 }
 // end::avoid-this[]
