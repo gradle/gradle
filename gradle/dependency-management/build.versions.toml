@@ -1,5 +1,13 @@
 # some versions are in shared-versions.properties
+[versions]
+develocity = "4.3.1" # TODO: fix `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>`
+
 [libraries]
 errorProne = { module = "com.google.errorprone:error_prone_core", version.ref = "errorProne" }
 nullaway = { module = "com.uber.nullaway:nullaway", version = "0.12.10" }
 configurationCacheReport = { group = "org.gradle.buildtool.internal", name = "configuration-cache-report", version = "1.31" }
+gradleGuides = { group = "org.gradle.guides", name = "gradle-guides-plugin", version = "0.24.0" }
+develocity = { module = "com.gradle.develocity:com.gradle.develocity.gradle.plugin", version.ref = "develocity" }
+develocityConventions = { module = "io.github.gradle.develocity-conventions-plugin:io.github.gradle.develocity-conventions-plugin.gradle.plugin", version = "0.12.1" }
+foojayConventions = { module = "org.gradle.toolchains.foojay-resolver-convention:org.gradle.toolchains.foojay-resolver-convention.gradle.plugin", version = "1.0.0" }
+

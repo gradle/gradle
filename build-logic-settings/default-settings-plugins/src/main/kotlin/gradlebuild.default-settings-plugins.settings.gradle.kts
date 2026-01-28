@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,44 +16,22 @@
 
 dependencyResolutionManagement {
     repositories {
-        mavenCentral()
-        gradlePluginPortal()
-    }
-    versionCatalogs {
-        create("buildLibs") {
-            from(files("../gradle/dependency-management/build.versions.toml"))
-            version("errorProne", "stub")
-        }
-    }
-}
-
-pluginManagement {
-    repositories {
         maven {
             url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
             content {
                 val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
-                // GE plugin marker artifact
+                // DV plugin marker artifact
                 includeVersionByRegex("com.gradle.develocity", "com.gradle.develocity.gradle.plugin", rcAndMilestonesPattern)
-                // GE plugin jar
+                // DV plugin jar
                 includeVersionByRegex("com.gradle", "develocity-gradle-plugin", rcAndMilestonesPattern)
             }
         }
-
-        gradlePluginPortal()
     }
 }
 
 plugins {
-    //FIXME: find a way to avoid hardcoding the version here
-    id("com.gradle.develocity").version("4.3.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
-    id("io.github.gradle.develocity-conventions-plugin").version("0.12.1")
-    id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
+    id("com.gradle.develocity")
+    id("io.github.gradle.develocity-conventions-plugin")
+    id("org.gradle.toolchains.foojay-resolver-convention")
 }
 
-include("build-environment")
-include("configuration-cache-compatibility")
-include("default-settings-plugins")
-include("version-catalogs")
-
-rootProject.name = "build-logic-settings"

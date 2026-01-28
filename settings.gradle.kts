@@ -6,16 +6,6 @@ import java.io.Serializable
 
 pluginManagement {
     repositories {
-        maven {
-            url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
-            content {
-                val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
-                // GE plugin marker artifact
-                includeVersionByRegex("com.gradle.develocity", "com.gradle.develocity.gradle.plugin", rcAndMilestonesPattern)
-                // GE plugin jar
-                includeVersionByRegex("com.gradle", "develocity-gradle-plugin", rcAndMilestonesPattern)
-            }
-        }
         gradlePluginPortal()
     }
     includeBuild("build-logic-settings")
@@ -31,9 +21,7 @@ plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.configuration-cache-compatibility")
     id("gradlebuild.version-catalogs")
-    id("com.gradle.develocity").version("4.3.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
-    id("io.github.gradle.develocity-conventions-plugin").version("0.12.1")
-    id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
+    id("gradlebuild.default-settings-plugins")
 }
 
 includeBuild("build-logic-commons")

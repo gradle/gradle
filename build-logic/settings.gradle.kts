@@ -24,19 +24,11 @@ pluginManagement {
 
 plugins {
     id("gradlebuild.version-catalogs")
-    id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
+    id("gradlebuild.default-settings-plugins")
 }
 
 dependencyResolutionManagement {
     repositories {
-        maven {
-            name = "Develocity release candidates"
-            url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
-            content {
-                val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
-                includeVersionByRegex("com.gradle", "develocity-gradle-plugin", rcAndMilestonesPattern)
-            }
-        }
         mavenCentral()
         gradlePluginPortal()
     }
