@@ -175,7 +175,7 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
             output.println(".");
         }
         if (hasNonSelectable) {
-            output.println("(n) Variant not selectable via attributes. Variants without attributes cannot be used for variant-aware dependency resolution.");
+            output.println("(n) " + StringUtils.capitalize(spec.getReportedTypeAlias()) + " not selectable via attributes. " + StringUtils.capitalize(spec.getReportedTypeAlias()) + "s without attributes cannot be used for variant-aware dependency resolution.");
         }
         if (recursiveExtensionsPrinted) {
             output.println("(t) Configuration extended transitively.");
