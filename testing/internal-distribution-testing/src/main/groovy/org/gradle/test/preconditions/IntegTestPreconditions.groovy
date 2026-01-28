@@ -19,7 +19,6 @@ package org.gradle.test.preconditions
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.KillProcessAvailability
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.precondition.TestPrecondition
 
@@ -28,7 +27,7 @@ class IntegTestPreconditions {
     static final class IsLongLivingProcess implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.isLongLivingProcess()
+            return IntegrationTestBuildContext.isLongLivingProcess()
         }
     }
 
@@ -56,28 +55,28 @@ class IntegTestPreconditions {
     static final class IsDaemonOrNoDaemonExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.isDaemon() || GradleContextualExecuter.isNoDaemon()
+            return IntegrationTestBuildContext.isDaemon() || IntegrationTestBuildContext.isNoDaemon()
         }
     }
 
     static final class IsDaemonExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.isDaemon()
+            return IntegrationTestBuildContext.isDaemon()
         }
     }
 
     static final class NotDaemonExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return !GradleContextualExecuter.isDaemon()
+            return !IntegrationTestBuildContext.isDaemon()
         }
     }
 
     static final class IsNoDaemonExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.isNoDaemon()
+            return IntegrationTestBuildContext.isNoDaemon()
         }
     }
 
@@ -91,14 +90,14 @@ class IntegTestPreconditions {
     static final class IsParallelExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.isParallel()
+            return IntegrationTestBuildContext.isParallel()
         }
     }
 
     static final class NotParallelExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return !GradleContextualExecuter.isParallel()
+            return !IntegrationTestBuildContext.isParallel()
         }
     }
 
@@ -112,28 +111,28 @@ class IntegTestPreconditions {
     static final class IsConfigCached implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.isConfigCache()
+            return IntegrationTestBuildContext.isConfigCache()
         }
     }
 
     static final class NotConfigCached implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.isNotConfigCache()
+            return IntegrationTestBuildContext.isNotConfigCache()
         }
     }
 
     static final class IsolatedProjects implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.isIsolatedProjects()
+            return IntegrationTestBuildContext.isIsolatedProjects()
         }
     }
 
     static final class NotIsolatedProjects implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.isNotIsolatedProjects()
+            return IntegrationTestBuildContext.isNotIsolatedProjects()
         }
     }
 

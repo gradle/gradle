@@ -777,6 +777,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "internal-distribution-testing",
+    "path": "testing/internal-distribution-testing",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "internal-instrumentation-api",
     "path": "platforms/core-runtime/internal-instrumentation-api",
     "unitTests": true,

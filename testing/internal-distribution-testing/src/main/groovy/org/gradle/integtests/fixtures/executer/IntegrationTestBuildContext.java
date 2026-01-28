@@ -27,12 +27,52 @@ import java.io.File;
  * Provides values that are set during the build, or defaulted when not running in a build context (e.g. IDE).
  */
 public class IntegrationTestBuildContext {
+
+    private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
+
     // Collect this early, as the process' current directory can change during embedded test execution
     public static final TestFile TEST_DIR = new TestFile(new File(".").toURI());
     public static final IntegrationTestBuildContext INSTANCE = new IntegrationTestBuildContext();
 
+    public static Executer getSystemPropertyExecuter() {
+        return Executer.valueOf(System.getProperty(EXECUTER_SYS_PROP, "forking"));
+    }
+
     public static boolean isEmbedded() {
-        return System.getProperty("org.gradle.integtest.executer", "").equals("embedded");
+        return getSystemPropertyExecuter() == Executer.embedded;
+    }
+
+    public static boolean isNoDaemon() {
+        return getSystemPropertyExecuter() == Executer.noDaemon;
+    }
+
+    public static boolean isDaemon() {
+        return !(isNoDaemon() || isEmbedded());
+    }
+
+    public static boolean isLongLivingProcess() {
+        return !isNoDaemon();
+    }
+
+    public static boolean isParallel() {
+        return getSystemPropertyExecuter().executeParallel;
+    }
+
+    public static boolean isNotConfigCache() {
+        return !isConfigCache();
+    }
+
+    public static boolean isConfigCache() {
+        Executer executer = getSystemPropertyExecuter();
+        return executer == Executer.configCache || executer == Executer.isolatedProjects;
+    }
+
+    public static boolean isNotIsolatedProjects() {
+        return !isIsolatedProjects();
+    }
+
+    public static boolean isIsolatedProjects() {
+        return getSystemPropertyExecuter() == Executer.isolatedProjects;
     }
 
     @Nullable
@@ -143,6 +183,27 @@ public class IntegrationTestBuildContext {
         return file.isAbsolute()
             ? new TestFile(file)
             : new TestFile(TEST_DIR.file(path).getAbsoluteFile());
+    }
+
+    public enum Executer {
+        embedded(false),
+        forking(true),
+        noDaemon(true),
+        parallel(true, true),
+        configCache(true),
+        isolatedProjects(true);
+
+        final public boolean forks;
+        final public boolean executeParallel;
+
+        Executer(boolean forks) {
+            this(forks, false);
+        }
+
+        Executer(boolean forks, boolean parallel) {
+            this.forks = forks;
+            this.executeParallel = parallel;
+        }
     }
 
 }

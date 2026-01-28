@@ -18,7 +18,6 @@ package org.gradle.test.fixtures.server.http
 
 import groovy.transform.CompileStatic
 import org.eclipse.jetty.http.HttpVersion
-import org.eclipse.jetty.server.Connector
 import org.eclipse.jetty.server.Handler
 import org.eclipse.jetty.server.HttpConfiguration
 import org.eclipse.jetty.server.HttpConnectionFactory
@@ -219,19 +218,3 @@ trait HttpServerFixture {
     }
 }
 
-@CompileStatic
-class SslPreHandler implements HttpConfiguration.Customizer {
-
-    private final List<Consumer<Request>> consumers = []
-
-    void registerCustomizer(Consumer<Request> consumer) {
-        consumers << consumer
-    }
-
-    @Override
-    void customize(Connector connector, HttpConfiguration channelConfig, Request request) {
-        consumers.each {
-            it.accept(request)
-        }
-    }
-}

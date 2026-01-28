@@ -27,7 +27,7 @@ dependencies {
 
     api(projects.baseServices)
     api(projects.coreApi)
-    api(projects.internalIntegTesting)
+    api(projects.internalDistributionTesting)
     api(projects.internalTesting)
     api(projects.stdlibJavaExtensions)
     api(projects.persistentCache)
@@ -51,6 +51,7 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.concurrent)
     implementation(projects.core)
+    implementation(projects.internalIntegTesting)
     implementation(projects.projectFeaturesApi)
 
     implementation(libs.commonsIo)

@@ -30,73 +30,45 @@ import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFA
  */
 public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
-    private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
-
-    private Executer executerType;
-
-    private enum Executer {
-        embedded(false),
-        forking(true),
-        noDaemon(true),
-        parallel(true, true),
-        configCache(true),
-        isolatedProjects(true);
-
-        final public boolean forks;
-        final public boolean executeParallel;
-
-        Executer(boolean forks) {
-            this(forks, false);
-        }
-
-        Executer(boolean forks, boolean parallel) {
-            this.forks = forks;
-            this.executeParallel = parallel;
-        }
-    }
-
-    private static Executer getSystemPropertyExecuter() {
-        return Executer.valueOf(System.getProperty(EXECUTER_SYS_PROP, Executer.forking.toString()));
-    }
+    private final IntegrationTestBuildContext.Executer executerType;
 
     public static boolean isNoDaemon() {
-        return getSystemPropertyExecuter() == Executer.noDaemon;
+        return IntegrationTestBuildContext.isNoDaemon();
     }
 
     public static boolean isDaemon() {
-        return !(isNoDaemon() || IntegrationTestBuildContext.isEmbedded());
+        return IntegrationTestBuildContext.isDaemon();
     }
 
     public static boolean isLongLivingProcess() {
-        return !isNoDaemon();
+        return IntegrationTestBuildContext.isLongLivingProcess();
     }
 
     public static boolean isParallel() {
-        return getSystemPropertyExecuter().executeParallel;
+        return IntegrationTestBuildContext.isParallel();
     }
 
     public static boolean isNotConfigCache() {
-        return !isConfigCache();
+        return IntegrationTestBuildContext.isNotConfigCache();
     }
 
     public static boolean isConfigCache() {
-        Executer executer = getSystemPropertyExecuter();
-        return executer == Executer.configCache || executer == Executer.isolatedProjects;
+        return IntegrationTestBuildContext.isConfigCache();
     }
 
     public static boolean isNotIsolatedProjects() {
-        return !isIsolatedProjects();
+        return IntegrationTestBuildContext.isNotIsolatedProjects();
     }
 
     public static boolean isIsolatedProjects() {
-        return getSystemPropertyExecuter() == Executer.isolatedProjects;
+        return IntegrationTestBuildContext.isIsolatedProjects();
     }
 
     private GradleExecuter gradleExecuter;
 
     public GradleContextualExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider, IntegrationTestBuildContext buildContext) {
         super(distribution, testDirectoryProvider, buildContext);
-        this.executerType = getSystemPropertyExecuter();
+        this.executerType = IntegrationTestBuildContext.getSystemPropertyExecuter();
     }
 
     @Override
@@ -128,7 +100,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         copyTo(gradleExecuter);
     }
 
-    private GradleExecuter createExecuter(Executer executerType) {
+    private GradleExecuter createExecuter(IntegrationTestBuildContext.Executer executerType) {
         switch (executerType) {
             case embedded:
                 return new InProcessGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
@@ -179,7 +151,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     @Override
     public GradleExecuter withDefaultCharacterEncoding(String defaultCharacterEncoding) {
-        if (executerType == Executer.embedded && !Charset.forName(defaultCharacterEncoding).equals(Charset.defaultCharset())) {
+        if (executerType == IntegrationTestBuildContext.Executer.embedded && !Charset.forName(defaultCharacterEncoding).equals(Charset.defaultCharset())) {
             // need to fork to apply the new default character encoding
             requireDaemon().requireIsolatedDaemons();
         }
@@ -188,7 +160,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     @Override
     public GradleExecuter withDefaultLocale(Locale defaultLocale) {
-        if (executerType == Executer.embedded && !defaultLocale.equals(Locale.getDefault())) {
+        if (executerType == IntegrationTestBuildContext.Executer.embedded && !defaultLocale.equals(Locale.getDefault())) {
             // need to fork to apply the new default locale
             requireDaemon().requireIsolatedDaemons();
         }

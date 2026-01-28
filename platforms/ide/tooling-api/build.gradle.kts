@@ -64,13 +64,13 @@ dependencies {
 
     runtimeOnly(projects.coreApi)
 
-    testImplementation(projects.internalIntegTesting)
+    testImplementation(projects.internalDistributionTesting)
 
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.baseServicesGroovy)
     testFixturesImplementation(projects.core)
     testFixturesImplementation(projects.coreApi)
-    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.internalDistributionTesting)
     testFixturesImplementation(projects.internalTesting)
     testFixturesImplementation(projects.logging)
     testFixturesImplementation(projects.modelCore)
@@ -100,10 +100,7 @@ dependencies {
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
-    testImplementation(testFixtures(projects.dependencyManagement))
-    testImplementation(testFixtures(projects.ide))
     testImplementation(testFixtures(projects.time))
-    testImplementation(testFixtures(projects.workers))
 
     integTestNormalizedDistribution(projects.distributionsFull) {
         because("Used by ToolingApiRemoteIntegrationTest")
