@@ -278,7 +278,6 @@ Secondary Variants (*)
     Artifacts
         - $builtMainClassesPath (artifactType = java-classes-directory)
 
-
 --------------------------------------------------
 Variant mainSourceElements (i)
 --------------------------------------------------
@@ -415,7 +414,6 @@ Secondary Variants (*)
         - org.gradle.usage               = java-api
     Artifacts
         - $builtMainClassesPath (artifactType = java-classes-directory)
-
 
 --------------------------------------------------
 Variant javadocElements
@@ -582,7 +580,6 @@ Secondary Variants (*)
         - org.gradle.usage               = java-api
     Artifacts
         - $builtMainClassesPath (artifactType = java-classes-directory)
-
 
 --------------------------------------------------
 Variant javadocElements
@@ -1248,7 +1245,6 @@ Secondary Variants (*)
         - org.gradle.usage               = java-api
     Artifacts
         - $builtMainClassesPath (artifactType = java-classes-directory)
-
 
 --------------------------------------------------
 Variant mainSourceElements (i)
