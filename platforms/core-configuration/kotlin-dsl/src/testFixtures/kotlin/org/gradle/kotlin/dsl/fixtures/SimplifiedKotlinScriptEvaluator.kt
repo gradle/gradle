@@ -30,6 +30,7 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
@@ -104,7 +105,7 @@ class SimplifiedKotlinScriptEvaluator(
 ) : AutoCloseable {
 
     fun eval(script: String, target: Any, topLevelScript: Boolean = false) {
-        Interpreter(InterpreterHost()).eval(
+        Interpreter(InterpreterHost(), TestBuildOperationRunner()).eval(
             target,
             scriptSourceFor(script),
             Hashing.md5().hashString(script),

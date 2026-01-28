@@ -30,6 +30,10 @@ import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
@@ -68,7 +72,7 @@ import java.lang.reflect.InvocationTargetException
  * @see ResidualProgramCompiler
  */
 internal
-class Interpreter(val host: Host) {
+class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner) {
 
     interface Host {
 
@@ -519,11 +523,19 @@ class Interpreter(val host: Host) {
         }
 
         fun eval(compiledScript: CompiledScript, scriptHost: KotlinScriptHost<*>) {
-            val program = load(compiledScript, scriptHost)
-            withContextClassLoader(program.classLoader) {
-                host.onScriptClassLoaded(scriptHost.scriptSource, program)
-                instantiate(program).execute(this, scriptHost)
-            }
+            buildOperationRunner.run(object : RunnableBuildOperation {
+                override fun run(context: BuildOperationContext) {
+                    val program = load(compiledScript, scriptHost)
+                    withContextClassLoader(program.classLoader) {
+                        host.onScriptClassLoaded(scriptHost.scriptSource, program)
+                        instantiate(program).execute(this@ProgramHost, scriptHost)
+                    }
+                }
+
+                override fun description(): BuildOperationDescriptor.Builder {
+                    return BuildOperationDescriptor.displayName("Evaluate ${scriptHost.scriptSource.shortDisplayName.displayName}")
+                }
+            })
         }
 
         private

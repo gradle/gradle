@@ -62,7 +62,7 @@ public class ExecuteWorkBuildOperationFiringStep<C extends IdentityContext, R ex
                     return result;
                 },
                 BuildOperationDescriptor
-                    .displayName("Execute unit of work")
+                    .displayName("Execute unit of work: " + workType)
                     .details(new ExecuteWorkDetails(workType, context.getIdentity().getUniqueId()))))
             .orElseGet(() -> delegate.execute(work, context));
     }
