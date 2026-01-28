@@ -5,7 +5,7 @@ ant.properties['buildDir'] = buildDir
 ant.property(name: 'buildDir', location: buildDir)
 // end::set-property[]
 
-ant.importBuild 'build.xml'
+ant.importBuild '../common/build.xml'
 
 // tag::get-property[]
 println ant.antProp

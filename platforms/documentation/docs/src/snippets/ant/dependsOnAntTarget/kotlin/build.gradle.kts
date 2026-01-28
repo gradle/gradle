@@ -1,4 +1,4 @@
-ant.importBuild("build.xml")
+ant.importBuild("../common/build.xml")
 
 tasks.register("intro") {
     dependsOn("hello")

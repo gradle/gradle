@@ -1,7 +1,7 @@
 tasks.register('list') {
     doLast {
         def path = ant.path {
-            fileset(dir: 'libs', includes: '*.jar')
+            fileset(dir: '../common/libs', includes: '*.jar')
         }
         path.list().each {
             println it
