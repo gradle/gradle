@@ -504,7 +504,7 @@ When creating custom configurations that are meant to be consumed or resolved, a
 
 === Explanation
 
-Gradle uses <<variant_model.adoc#understanding-variant-selection,variant-aware dependency resolution>> to select the correct artifacts when resolving dependencies.
+Gradle uses <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variant-aware dependency resolution>> to select the correct artifacts when resolving dependencies.
 Attributes are the primary mechanism for matching resolvable configurations to consumable configurations (variants).
 
 Even if there is only a single consumable configuration in a producer project, if that configuration lacks attributes, resolving it using variant-aware dependency resolution is not possible and will result in the following error:
@@ -588,9 +588,9 @@ By declaring compatible attributes on both the consumable and resolvable configu
 
 === References
 
-- <<variant_model.adoc#understanding-variant-selection,Understanding Variant Selection>>
+- <<variant_aware_resolution.adoc#sec:understanding-variant-selection,Understanding Variant Selection>>
 - <<variant_attributes.adoc#variant-attributes,Variant Attributes>>
-- <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,Resolvable and Consumable Configurations>>
+- <<declaring_configurations.adoc#sec:resolvable-consumable-configs,Resolvable and Consumable Configurations>>
 
 === Tags
 
