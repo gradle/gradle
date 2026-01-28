@@ -807,3 +807,30 @@ This structure uses an extension type to hold values, allowing properties to be 
 === Tags
 
 <<tags_reference.adoc#tag:properties,`#properties`>>
+
+[[consider_use_of_incubating_apis_carefully]]
+== Consider use of `@Incubating` APIs carefully
+
+Use Incubating APIs deliberately and with awareness of trade-offs. New or unstable Incubating features can require updates even on minor Gradle upgrades, while some features are close to Stable and already widely adopted by the users. Weigh the benefits against ongoing maintenance effort.
+
+=== Explanation
+
+Compared to a lot of other ecosystems Gradle is very strict with Incubating features. As long as there are outstanding issues related to the feature it will not be promoted to Stable state. Incubating state means that breaking changes affecting the feature can happen in non-major releases, however, the closer the feature is to being Stable the more careful changes will be. There is a number of features that are already widely adopted and recommended as a best practice even though they are still Incubating like https://github.com/gradle/gradle/issues/32443[`dependencyResolutionManagement.repositories`].
+
+When considering using an Incubating feature, the best approach is to check it's maturity and stability:
+
+1. Check which Gradle version introduced it
+2. Check GitHub issue related to the feature and check how many linked issues are there and whether they can affect you
+
+If the feature is new or still has many linked issues consider it's use carefully. It may introduce an additional maintenance cost for your build setup, as you may need to update your build scripts even on minor version updates.
+
+NOTE: Remember that the goal of Incubating features is to put them early in the hands of the users to get early feedback and guide the evolution. If you are using such features provide feedback about them and file bug issues, if you encounter any.
+
+=== References
+
+- <<feature_lifecycle.adoc#sec:incubating_state, The Feature Lifecycle>>
+- <<best_practices_dependencies.adoc#sec:set_up_repositories_in_settings, Best Practice - Set up your Dependency Repositories in the Settings file>>
+
+=== Tags
+
+<<tags_reference.adoc#tag:upgrades,`#upgrades`>>
