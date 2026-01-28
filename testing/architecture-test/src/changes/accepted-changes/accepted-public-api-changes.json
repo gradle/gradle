@@ -1,3 +1,58 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+      {
+        "type": "org.gradle.api.tasks.compile.CompileOptions",
+        "member": "Constructor org.gradle.api.tasks.compile.CompileOptions()",
+        "acceptation": "Migrate task to dependency injection",
+        "changes": []
+      },
+      {
+        "type": "org.gradle.api.tasks.compile.CompileOptions",
+        "member": "Method org.gradle.api.tasks.compile.CompileOptions.getForkOptions()",
+        "acceptation": "Migrate task to dependency injection",
+        "changes": [
+          "Method is now abstract"
+        ]
+      },
+      {
+        "type": "org.gradle.api.tasks.compile.CompileOptions",
+        "member": "Method org.gradle.api.tasks.compile.CompileOptions.getGeneratedSourceOutputDirectory()",
+        "acceptation": "Migrate task to dependency injection",
+        "changes": [
+          "Method is now abstract"
+        ]
+      },
+      {
+        "type": "org.gradle.api.tasks.compile.CompileOptions",
+        "member": "Method org.gradle.api.tasks.compile.CompileOptions.getHeaderOutputDirectory()",
+        "acceptation": "Migrate task to dependency injection",
+        "changes": [
+          "Method is now abstract"
+        ]
+      },
+      {
+        "type": "org.gradle.api.tasks.compile.CompileOptions",
+        "member": "Method org.gradle.api.tasks.compile.CompileOptions.getJavaModuleMainClass()",
+        "acceptation": "Migrate task to dependency injection",
+        "changes": [
+          "Method is now abstract"
+        ]
+      },
+      {
+        "type": "org.gradle.api.tasks.compile.CompileOptions",
+        "member": "Method org.gradle.api.tasks.compile.CompileOptions.getJavaModuleVersion()",
+        "acceptation": "Migrate task to dependency injection",
+        "changes": [
+          "Method is now abstract"
+        ]
+      },
+      {
+        "type": "org.gradle.api.tasks.compile.CompileOptions",
+        "member": "Method org.gradle.api.tasks.compile.CompileOptions.getRelease()",
+        "acceptation": "Migrate task to dependency injection",
+        "changes": [
+          "Method is now abstract"
+        ]
+      }
+    ]
 }

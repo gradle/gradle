@@ -281,11 +281,12 @@ public class JavaCompilerArgumentsBuilder {
         args.add("-classpath");
         args.add(Joiner.on(File.pathSeparatorChar).join(classpath));
 
+        if (moduleVersion != null) {
+            args.add("--module-version");
+            args.add(moduleVersion);
+        }
+
         if (!modulePath.isEmpty()) {
-            if (moduleVersion != null) {
-                args.add("--module-version");
-                args.add(moduleVersion);
-            }
             args.add("--module-path");
             args.add(Joiner.on(File.pathSeparatorChar).join(modulePath));
         }
