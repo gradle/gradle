@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r950
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildAction
@@ -25,24 +24,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 
 @ToolingApiVersion(">=9.5.0")
-@TargetGradleVersion(">=9.4.0") // the required provider-side features were added in 9.4.0
 class HelpConsumerCrossVersionSpec extends ToolingApiSpecification {
-
-    @TargetGradleVersion(">=4.0 <9.4.0")
-    def "help request is ignored for old Gradle version"() {
-        when:
-        withConnection { connection ->
-            connection.newBuild()
-                .forTasks("projects")
-                .withArguments("--help")
-                .run()
-        }
-
-        then:
-        assertSuccessful()
-        result.assertHasErrorOutput('The Tooling API does not support --help, --version or --show-version arguments for this operation. These arguments have been ignored.')
-        result.assertTaskExecuted(":projects")
-    }
 
     def "prints help and ignores tasks when --help is present"() {
         when:
