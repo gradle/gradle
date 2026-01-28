@@ -16,7 +16,7 @@ configurations {
 }
 
 dependencies {
-    js 'jquery:jquery:3.2.1:min@js'
+    js 'jquery:jquery:4.0.0:min@js'
 }
 // end::artifact-only-dependency-declaration[]
 
