@@ -94,4 +94,12 @@ trait InspectsConfigurationReport {
     void doesNotHaveNonSelectableVariantsLegend() {
         outputDoesNotContain("(n) Variant not selectable via attributes. Variants without attributes cannot be used for variant-aware dependency resolution.")
     }
+
+    void hasNonSelectableConfigurationsLegend() {
+        outputContains("(n) Configuration not selectable via attributes. Configurations without attributes cannot be used for variant-aware dependency resolution.")
+    }
+
+    void doesNotHaveNonSelectableConfigurationsLegend() {
+        outputDoesNotContain("(n) Configuration not selectable via attributes. Configurations without attributes cannot be used for variant-aware dependency resolution.")
+    }
 }
