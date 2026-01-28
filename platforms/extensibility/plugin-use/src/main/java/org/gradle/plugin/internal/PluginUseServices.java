@@ -17,6 +17,7 @@
 package org.gradle.plugin.internal;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -199,6 +200,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             ProjectInternal project,
             ObjectFactoryFactory objectFactoryFactory,
             TaskContainer taskContainer,
+            ProjectLayout projectLayout,
             ServiceRegistry services
         ) {
             return new DefaultProjectFeatureApplicator(
@@ -209,6 +211,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
                 project.getObjects(),
                 objectFactoryFactory,
                 taskContainer,
+                projectLayout,
                 services
             );
         }

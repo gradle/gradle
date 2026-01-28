@@ -19,7 +19,7 @@ package org.gradle.api.plugins.antlr
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.file.ProjectLayout
+import org.gradle.api.internal.file.ProjectFeatureLayout
 import org.gradle.api.internal.plugins.BindsProjectFeature
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
 import org.gradle.api.internal.plugins.ProjectFeatureBinding
@@ -54,7 +54,7 @@ class AntlrProjectFeaturePlugin : Plugin<Project> {
                 val parentModel = getBuildModel(target)
 
                 definition.grammarSources = createAntlrSourceDirectorySet(parentModel.name, objectFactory)
-                val outputDirectory = services.projectLayout.buildDirectory.dir("/generated-src/antlr/" + definition.grammarSources.getName())
+                val outputDirectory = services.projectLayout.contextBuildDirectory.map { buildDir -> buildDir.dir("/generated-src/antlr/" + definition.grammarSources.getName()) }
 
                 // Add the generated antlr sources to the java sources
                 parentModel.inputSources.srcDir(outputDirectory)
@@ -84,7 +84,7 @@ class AntlrProjectFeaturePlugin : Plugin<Project> {
             val taskRegistrar: TaskRegistrar
 
             @get:Inject
-            val projectLayout: ProjectLayout
+            val projectLayout: ProjectFeatureLayout
         }
     }
 

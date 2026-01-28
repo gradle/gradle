@@ -16,6 +16,7 @@
 
 package org.gradle.internal.declarativedsl.settings
 
+import org.gradle.api.internal.file.ProjectFeatureLayout
 import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
@@ -405,7 +406,6 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${ProjectFeatureBindingBuilder.class.name};
                 import static ${ProjectFeatureBindingBuilder.class.name}.bindingToTargetDefinition;
                 import ${ProjectFeatureBinding.class.name};
-                import ${TaskRegistrar.class.name};
 
                 @${BindsProjectFeature.class.simpleName}(${projectFeaturePluginClassName}.Binding.class)
                 public class ${projectFeaturePluginClassName} implements Plugin<Project> {
@@ -468,7 +468,10 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                     Project getProject();
 
                     @javax.inject.Inject
-                    TaskRegistrar getTaskRegistrar();
+                    ${TaskRegistrar.class.name} getTaskRegistrar();
+
+                    @javax.inject.Inject
+                    ${ProjectFeatureLayout.class.name} getProjectFeatureLayout();
                 }
             """
         }
@@ -519,7 +522,6 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${BindsProjectFeature.class.name}
                 import ${ProjectFeatureBindingBuilder.class.name}
                 import ${ProjectFeatureBinding.class.name}
-                import ${TaskRegistrar.class.name}
                 import org.gradle.api.internal.plugins.features.dsl.bindProjectFeatureToDefinition
                 import org.gradle.test.${bindingTypeClassName}
 
@@ -531,7 +533,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                             builder.bindProjectFeatureToDefinition("${name}", ${definition.publicTypeClassName}::class, ${bindingTypeClassName}::class) { definition, model, parent  ->
                                 val services = objectFactory.newInstance(Services::class.java)
                                 println("Binding ${definition.publicTypeClassName}")
-                                ${definition.buildModelMapping.replaceAll(';', '')}
+                                ${convertToKotlin(definition.buildModelMapping)}
                                 val projectName = services.project.name
                                 services.taskRegistrar.register("print${definition.publicTypeClassName}Configuration") { task: Task ->
                                     task.doLast { _: Task ->
@@ -552,6 +554,12 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
             return content
         }
 
+        String convertToKotlin(String content) {
+            return content.replaceAll(';', '')
+                .replaceAll("getProjectFeatureLayout\\Q()\\E", 'projectFeatureLayout')
+
+        }
+
         @Override
         String getServicesInterfaceWithCommonServices() {
             return """
@@ -560,7 +568,10 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                     val project: Project
 
                     @get:javax.inject.Inject
-                    val taskRegistrar: TaskRegistrar
+                    val taskRegistrar: ${TaskRegistrar.class.name}
+
+                    @get:javax.inject.Inject
+                    val projectFeatureLayout: ${ProjectFeatureLayout.class.name}
                 }
             """
         }
@@ -582,7 +593,6 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${BindsProjectFeature.class.name}
                 import ${ProjectFeatureBindingBuilder.class.name}
                 import ${ProjectFeatureBinding.class.name}
-                import ${TaskRegistrar.class.name}
                 import org.gradle.api.internal.plugins.features.dsl.bindProjectFeature
 
                 @${BindsProjectFeature.class.simpleName}(${projectFeaturePluginClassName}.Binding::class)
@@ -599,7 +609,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                                 println("Binding ${definition.publicTypeClassName}")
                                 println("${name} model class: " + model::class.java.getSimpleName())
                                 println("${name} parent model class: " + getBuildModel(parent)::class.java.getSimpleName())
-                                ${definition.buildModelMapping.replaceAll(';', '')}
+                                ${convertToKotlin(definition.buildModelMapping)}
                                 val projectName = services.project.name
                                 services.taskRegistrar.register("print${definition.publicTypeClassName}Configuration") { task: Task ->
                                     task.doLast { _: Task ->
@@ -759,6 +769,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${Definition.class.name};
                 import ${BuildModel.class.name};
                 import org.gradle.api.provider.Property;
+                import org.gradle.api.file.DirectoryProperty;
                 import ${HiddenInDefinition.class.name};
                 import org.gradle.api.Action;
                 import org.gradle.api.tasks.Nested;
@@ -780,6 +791,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
                     interface ${buildModelPublicTypeClassName} extends BuildModel {
                         Property<String> getText();
+                        DirectoryProperty getDir();
                     }
 
                     interface Fizz {
@@ -793,6 +805,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         String getBuildModelMapping() {
             return """
                 model.getText().set(definition.getText());
+                model.getDir().set(services.getProjectFeatureLayout().getProjectDirectory().dir(definition.getText()));
             """
         }
 
@@ -806,6 +819,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         String displayModelPropertyValues() {
             return """
                 ${displayProperty("model", "text", "model.getText().get()")}
+                ${displayProperty("model", "dir", "model.getDir().get().getAsFile().getAbsolutePath()")}
             """
         }
 
