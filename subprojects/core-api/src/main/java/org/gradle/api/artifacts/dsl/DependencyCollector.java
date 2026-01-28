@@ -36,6 +36,15 @@ import java.util.Set;
  * A {@code DependencyCollector} is used as part of a dependencies block in the DSL. A collector implements
  * a single dependency scope and exposes the declared dependencies on {@link #getDependencies()}.
  *
+ * <p>
+ * To use a {@code DependencyCollector} as a source of dependencies, wire it to the appropriate {@link org.gradle.api.artifacts.Configuration}
+ * with {@link org.gradle.api.artifacts.Configuration#fromDependencyCollector(DependencyCollector)}.
+ * Dependencies will be queried lazily.
+ * </p>
+ * <p>
+ *     Note: No mutations will be allowed after dependencies are read from a {@code DependencyCollector}.
+ * </p>
+ *
  * @apiNote
  * Gradle has specific extensions to make explicit calls to {@code add(...)} unnecessary from the DSL.
  * <ul>
@@ -52,6 +61,7 @@ import java.util.Set;
  * @since 8.6
  *
  * @see ManagedType Create an instance of this as a managed property (preferred).
+ *
  */
 @ManagedType
 @NonExtensible
