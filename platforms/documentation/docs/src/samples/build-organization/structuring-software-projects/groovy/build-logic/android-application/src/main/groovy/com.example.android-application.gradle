@@ -1,25 +1,24 @@
 plugins {
     id('com.android.application')
-    id('org.jetbrains.kotlin.android')
 }
 
 group = 'com.example.myproduct'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(8)
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
 android {
-    compileSdk = 28
+    compileSdk = 36
     defaultConfig {
         minSdk = 24
-        targetSdk = 28
+        targetSdk = 36
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
