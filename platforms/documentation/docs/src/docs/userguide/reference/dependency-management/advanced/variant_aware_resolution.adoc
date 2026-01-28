@@ -119,6 +119,9 @@ There are two _types_ of *attributes* Gradle uses to match the available *varian
 - *_Consumer_ attributes*: Define the desired characteristics of a *variant* requested by a resolvable configuration.
 - *_Producer_ attributes*: Each *variant* has a set of *attributes* that describe its purpose.
 
+NOTE: Variant-aware dependency resolution requires attributes be present on the producer side.
+On the consumer side, attributes are optional but recommended.
+
 [[sec:variant-aware-matching]]
 == Variant Attribute Matching
 
@@ -587,12 +590,14 @@ By default, `resolvableConfigurations` prints information about all purely resol
 These are configurations that are marked resolvable but *not* marked consumable.
 Though some resolvable configurations are also marked consumable, these are legacy configurations that should *not* have dependencies added in build scripts.
 
+NOTE: Variants without attributes are marked with `(n)` in the report and should *not* initiate variant-aware dependency resolution.
+
 This report offers:
 
 * An optional parameter:
 ** `--configuration <configurationName>` → Selects a single configuration to display.
 * Flags for including or excluding legacy and deprecated configurations:
-** `--all` → Includes information about legacy and deprecated configurations.
+** `--all` → Includes information about legacy and deprecated configurations, and configurations without attributes.
 ** `--no-all` → Excludes this information.
 * Flags for controlling transitive extensions in the extended configurations section:
 ** `--recursive` → Lists configurations that are extended _transitively_ rather than directly.
