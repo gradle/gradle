@@ -28,7 +28,9 @@ import org.gradle.util.internal.VersionNumber
 import spock.lang.Specification
 
 class VisualCppPlatformToolProviderTest extends Specification {
-    def operatingSystem = Mock(OperatingSystemInternal)
+    def operatingSystem = Mock(OperatingSystemInternal) {
+        getInternalOs() >> OperatingSystem.WINDOWS
+    }
     def visualCpp = Mock(VisualCpp)
     def windowsSdk = Mock(WindowsSdk)
     def ucrt = Mock(SystemLibraries)
@@ -36,9 +38,6 @@ class VisualCppPlatformToolProviderTest extends Specification {
     def toolProvider = new VisualCppPlatformToolProvider(Mock(BuildOperationExecutor), operatingSystem, [:], visualStudioInstall, visualCpp, windowsSdk, ucrt, Mock(ExecActionFactory), Mock(CompilerOutputFileNamingSchemeFactory), Mock(WorkerLeaseService))
 
     def "windows shared link file names end with lib"() {
-        given:
-        operatingSystem.internalOs >> OperatingSystem.WINDOWS
-
         expect:
         def actual = toolProvider.getSharedLibraryLinkFileName("sharedLibrary")
         actual == "sharedLibrary.lib"
