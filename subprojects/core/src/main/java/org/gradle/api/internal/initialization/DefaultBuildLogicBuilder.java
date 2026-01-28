@@ -67,7 +67,7 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
     public ClassPath resolveClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext) {
         return buildOperationRunner.call(new CallableBuildOperation<ClassPath>() {
             @Override
-            public ClassPath call(BuildOperationContext context) throws Exception {
+            public ClassPath call(BuildOperationContext context) {
                 return buildQueue.build(
                     currentBuild,
                     taskIdentifiersForBuildDependenciesOf(classpathConfiguration),

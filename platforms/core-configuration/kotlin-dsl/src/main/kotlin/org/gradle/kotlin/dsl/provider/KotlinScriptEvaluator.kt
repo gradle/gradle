@@ -416,6 +416,9 @@ class StandardKotlinScriptEvaluator(
         override fun getDisplayName(): String =
             "Kotlin DSL script compilation (${programId.templateId})"
 
+        override fun getBuildOperationWorkType(): Optional<String> {
+            return Optional.of("COMPILE_KOTLIN_SCRIPT")
+        }
 
         override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> {
             if (cachingDisabledByProperty) {
