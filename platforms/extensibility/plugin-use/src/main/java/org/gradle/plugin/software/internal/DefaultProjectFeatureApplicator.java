@@ -18,6 +18,7 @@ package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.file.DefaultProjectFeatureLayout;
@@ -28,6 +29,8 @@ import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.Definition;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.ProjectFeatureApplicationContext;
+import org.gradle.api.internal.registration.ConfigurationRegistrar;
+import org.gradle.api.internal.registration.DefaultConfigurationRegistrar;
 import org.gradle.api.internal.registration.DefaultTaskRegistrar;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.internal.registration.TaskRegistrar;
@@ -59,9 +62,21 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
     private final ObjectFactoryFactory objectFactoryFactory;
     private final TaskContainer taskContainer;
     private final ProjectLayout projectLayout;
+    private final ConfigurationContainer configurationContainer;
     private final ServiceLookup allServices;
 
-    public DefaultProjectFeatureApplicator(ProjectFeatureDeclarations projectFeatureDeclarations, ModelDefaultsApplicator modelDefaultsApplicator, PluginManagerInternal pluginManager, ClassLoaderScope classLoaderScope, ObjectFactory projectObjectFactory, ObjectFactoryFactory objectFactoryFactory, TaskContainer taskContainer, ProjectLayout projectLayout, ServiceLookup allServices) {
+    public DefaultProjectFeatureApplicator(
+        ProjectFeatureDeclarations projectFeatureDeclarations,
+        ModelDefaultsApplicator modelDefaultsApplicator,
+        PluginManagerInternal pluginManager,
+        ClassLoaderScope classLoaderScope,
+        ObjectFactory projectObjectFactory,
+        ObjectFactoryFactory objectFactoryFactory,
+        TaskContainer taskContainer,
+        ProjectLayout projectLayout,
+        ConfigurationContainer configurationContainer,
+        ServiceLookup allServices
+    ) {
         this.projectFeatureDeclarations = projectFeatureDeclarations;
         this.modelDefaultsApplicator = modelDefaultsApplicator;
         this.pluginManager = pluginManager;
@@ -70,6 +85,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         this.objectFactoryFactory = objectFactoryFactory;
         this.taskContainer = taskContainer;
         this.projectLayout = projectLayout;
+        this.configurationContainer = configurationContainer;
         this.allServices = allServices;
     }
 
@@ -117,9 +133,10 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         // Context-specific services for this feature binding
         TaskRegistrar taskRegistrar = new DefaultTaskRegistrar(taskContainer);
         ProjectFeatureLayout projectFeatureLayout = new DefaultProjectFeatureLayout(projectLayout);
+        ConfigurationRegistrar configurationRegistrar = new DefaultConfigurationRegistrar(configurationContainer);
 
         // Construct an object factory that provides these services during apply action execution
-        ObjectFactory featureObjectFactory = objectFactoryFactory.createObjectFactory(new UnsafeServicesForApplyAction(allServices, taskRegistrar, projectFeatureLayout));
+        ObjectFactory featureObjectFactory = objectFactoryFactory.createObjectFactory(new UnsafeServicesForApplyAction(allServices, taskRegistrar, projectFeatureLayout, configurationRegistrar));
 
         ProjectFeatureApplicationContext applyActionContext =
             projectObjectFactory.newInstance(DefaultProjectFeatureApplicationContextInternal.class, featureObjectFactory);
@@ -177,11 +194,13 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         private final ServiceLookup allServices;
         private final TaskRegistrar taskRegistrar;
         private final ProjectFeatureLayout projectFeatureLayout;
+        private final ConfigurationRegistrar configurationRegistrar;
 
-        public UnsafeServicesForApplyAction(ServiceLookup allServices, TaskRegistrar taskRegistrar, ProjectFeatureLayout projectFeatureLayout) {
+        public UnsafeServicesForApplyAction(ServiceLookup allServices, TaskRegistrar taskRegistrar, ProjectFeatureLayout projectFeatureLayout, ConfigurationRegistrar configurationRegistrar) {
             this.allServices = allServices;
             this.taskRegistrar = taskRegistrar;
             this.projectFeatureLayout = projectFeatureLayout;
+            this.configurationRegistrar = configurationRegistrar;
         }
 
         @Override
@@ -193,6 +212,9 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
                 }
                 if (serviceClass.isAssignableFrom(ProjectFeatureLayout.class)) {
                     return projectFeatureLayout;
+                }
+                if (serviceClass.isAssignableFrom(ConfigurationRegistrar.class)) {
+                    return configurationRegistrar;
                 }
                 return allServices.find(serviceType);
             }

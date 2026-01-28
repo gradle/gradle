@@ -27,6 +27,10 @@ import org.gradle.api.tasks.TaskProvider;
 /**
  * An interface for operations relating to registering new tasks in the build.
  *
+ * <p>An instance of this type can be injected into an object by annotating a public constructor or method with {@code javax.inject.Inject}.
+ *
+ * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
+ *
  * @since 9.5.0
  */
 @Incubating

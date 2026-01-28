@@ -25,6 +25,8 @@ import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.ProjectTypeBinding
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.api.internal.registration.ConfigurationRegistrar
+import org.gradle.api.internal.registration.TaskRegistrar
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -140,7 +142,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             Services services = context.getObjectFactory().newInstance(Services.class);
 
                             // no plugin application, must create configurations manually
-                            DependencyScopeConfiguration conf = services.getProject().getConfigurations().dependencyScope("conf").get();
+                            DependencyScopeConfiguration conf = services.getConfigurationRegistrar().dependencyScope("conf").get();
 
                             // Add the dependency scopes to the model
                             model.setApi(conf);
@@ -153,7 +155,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
                     interface Services {
                         @javax.inject.Inject
-                        Project getProject();
+                        ${ConfigurationRegistrar.class.name} getConfigurationRegistrar();
                     }
                 }
 
@@ -218,8 +220,8 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             Services services = context.getObjectFactory().newInstance(Services.class);
 
                             // no plugin application, must create configurations manually
-                            DependencyScopeConfiguration myConf = services.getProject().getConfigurations().dependencyScope("myConf").get();
-                            DependencyScopeConfiguration myOtherConf = services.getProject().getConfigurations().dependencyScope("myOtherConf").get();
+                            DependencyScopeConfiguration myConf = services.getConfigurationRegistrar().dependencyScope("myConf").get();
+                            DependencyScopeConfiguration myOtherConf = services.getConfigurationRegistrar().dependencyScope("myOtherConf").get();
 
                             // Add the dependency scopes to the model
                             model.setApi(myConf);
@@ -234,7 +236,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
                     interface Services {
                         @javax.inject.Inject
-                        Project getProject();
+                        ${ConfigurationRegistrar.class.name} getConfigurationRegistrar();
                     }
                 }
 
@@ -632,8 +634,8 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             Services services = context.getObjectFactory().newInstance(Services.class);
 
                             // no plugin application, must create configurations manually
-                            DependencyScopeConfiguration api = services.getProject().getConfigurations().dependencyScope("api").get();
-                            DependencyScopeConfiguration implementation = services.getProject().getConfigurations().dependencyScope("implementation").get();
+                            DependencyScopeConfiguration api = services.getConfigurationRegistrar().dependencyScope("api").get();
+                            DependencyScopeConfiguration implementation = services.getConfigurationRegistrar().dependencyScope("implementation").get();
 
                             // Add the dependency scopes to the model
                             model.setApi(api);
@@ -644,17 +646,17 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             model.getImplementation().fromDependencyCollector(definition.getDependencies().getImplementation());
 
                             // and create and wire a configuration that can resolve that one
-                            NamedDomainObjectProvider<ResolvableConfiguration> resolveApi = services.getProject().getConfigurations().resolvable("resolveApi");
+                            NamedDomainObjectProvider<ResolvableConfiguration> resolveApi = services.getConfigurationRegistrar().resolvable("resolveApi");
                             resolveApi.get().extendsFrom(api);
 
-                            services.getProject().getTasks().register("resolveApi", ResolveTask.class, task -> {
+                            services.getTaskRegistrar().register("resolveApi", ResolveTask.class, task -> {
                                 task.getResolvedFiles().from(resolveApi);
                             });
 
-                            NamedDomainObjectProvider<ResolvableConfiguration> resolveImplementation = services.getProject().getConfigurations().resolvable("resolveImplementation");
+                            NamedDomainObjectProvider<ResolvableConfiguration> resolveImplementation = services.getConfigurationRegistrar().resolvable("resolveImplementation");
                             resolveImplementation.get().extendsFrom(implementation);
 
-                            services.getProject().getTasks().register("resolveImplementation", ResolveTask.class, task -> {
+                            services.getTaskRegistrar().register("resolveImplementation", ResolveTask.class, task -> {
                                 task.getResolvedFiles().from(resolveImplementation);
                             });
                         })
@@ -663,7 +665,10 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
                     interface Services {
                         @javax.inject.Inject
-                        Project getProject();
+                        ${ConfigurationRegistrar.class.name} getConfigurationRegistrar();
+
+                        @javax.inject.Inject
+                        ${TaskRegistrar.class.name} getTaskRegistrar();
                     }
                 }
 
@@ -693,8 +698,8 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             val services = context.objectFactory.newInstance(Services::class.java)
 
                             // no plugin application, must create configurations manually
-                            val api: DependencyScopeConfiguration = services.project.getConfigurations().dependencyScope("api").get()
-                            val implementation: DependencyScopeConfiguration = services.project.getConfigurations().dependencyScope("implementation").get()
+                            val api: DependencyScopeConfiguration = services.configurationRegistrar.dependencyScope("api").get()
+                            val implementation: DependencyScopeConfiguration = services.configurationRegistrar.dependencyScope("implementation").get()
 
                             // Add the dependency scopes to the model
                             model.api = api
@@ -709,7 +714,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
                     interface Services {
                         @get:javax.inject.Inject
-                        val project: Project
+                        val configurationRegistrar: ${ConfigurationRegistrar.class.name}
                     }
                 }
 
