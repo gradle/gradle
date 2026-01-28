@@ -47,6 +47,7 @@
                   <project path="$PROJECT_DIR$/build-logic-settings" />
                   <project path="$PROJECT_DIR$/build-logic-settings/build-environment" />
                   <project path="$PROJECT_DIR$/build-logic-settings/configuration-cache-compatibility" />
+                  <project path="$PROJECT_DIR$/build-logic-settings/version-catalogs" />
                 </projects>
               </build>
             </builds>
@@ -67,6 +68,7 @@
             <option value="$PROJECT_DIR$/build-logic-settings" />
             <option value="$PROJECT_DIR$/build-logic-settings/build-environment" />
             <option value="$PROJECT_DIR$/build-logic-settings/configuration-cache-compatibility" />
+            <option value="$PROJECT_DIR$/build-logic-settings/version-catalogs" />
             <option value="$PROJECT_DIR$/build-logic/binary-compatibility" />
             <option value="$PROJECT_DIR$/build-logic/build-init-samples" />
             <option value="$PROJECT_DIR$/build-logic/build-update-utils" />

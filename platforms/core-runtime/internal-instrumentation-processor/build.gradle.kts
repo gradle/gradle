@@ -35,7 +35,7 @@ dependencies {
 
     testCompileOnly(libs.jetbrainsAnnotations)
 
-    testImplementation(libs.compileTesting)
+    testImplementation(testLibs.compileTesting)
     testImplementation(projects.core)
     testImplementation(testFixtures(projects.core))
     // TODO remove this

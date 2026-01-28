@@ -54,7 +54,7 @@ dependencies {
     // ========================================================================
     // Other, project-related dependencies
     // ========================================================================
-    testImplementation(libs.junit5JupiterApi) {
+    testImplementation(testLibs.junit5JupiterApi) {
         because("Assume API comes from here")
     }
 

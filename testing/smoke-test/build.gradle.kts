@@ -3,9 +3,9 @@ import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
+import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
-import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
 
 plugins {
     id("gradlebuild.internal.java")
@@ -48,8 +48,8 @@ dependencies {
     smokeTestImplementation(libs.groovyJson)
     smokeTestImplementation(libs.commonsHttpclient)
     smokeTestImplementation(libs.jgit)
-    smokeTestImplementation(libs.spock)
-    smokeTestImplementation(libs.junitPlatform)
+    smokeTestImplementation(testLibs.spock)
+    smokeTestImplementation(testLibs.junitPlatform)
     smokeTestImplementation(libs.jacksonDatabind)
 
     smokeTestImplementation(testFixtures(projects.buildProcessServices))

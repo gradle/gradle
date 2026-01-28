@@ -46,5 +46,5 @@ dependencies {
     testImplementation(projects.beanSerializationServices)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.beanSerializationServices))
-    testImplementation(libs.mockitoKotlin)
+    testImplementation(testLibs.mockitoKotlin)
 }

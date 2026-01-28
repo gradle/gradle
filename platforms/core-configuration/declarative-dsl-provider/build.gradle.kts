@@ -44,7 +44,7 @@ dependencies {
     implementation(libs.kotlinReflect)
     implementation(libs.jspecify)
 
-    testImplementation(libs.mockitoKotlin)
+    testImplementation(testLibs.mockitoKotlin)
     testImplementation(testFixtures(projects.declarativeDslCore))
     testImplementation(testFixtures(projects.declarativeDslEvaluator))
 

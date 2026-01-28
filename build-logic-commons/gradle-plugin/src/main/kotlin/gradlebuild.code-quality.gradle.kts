@@ -121,8 +121,9 @@ project.plugins.withType<JavaBasePlugin> {
                 extension.enabled.filter { it }.flatMap { dep }
             )
         }
+
         if (project.name != "gradle-kotlin-dsl-accessors") {
-            val buildDeps = project.versionCatalogs.named("libs")
+            val buildDeps = project.versionCatalogs.named("buildLibs")
             addErrorProneDependency(buildDeps.findLibrary("errorProne").get())
             addErrorProneDependency(buildDeps.findLibrary("nullaway").get())
         }

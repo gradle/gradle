@@ -44,8 +44,8 @@ dependencies {
     integTestImplementation(projects.logging)
     integTestImplementation(projects.coreApi)
     integTestImplementation(libs.commonsIo)
-    integTestImplementation(libs.littleproxy)
-    integTestImplementation(libs.jetty)
+    integTestImplementation(testLibs.littleproxy)
+    integTestImplementation(testLibs.jetty)
     integTestImplementation(testFixtures(projects.buildProcessServices))
 
     crossVersionTestImplementation(projects.logging)

@@ -51,7 +51,7 @@ dependencies {
     testFixturesApi(projects.hashing)
     testFixturesImplementation(libs.guava)
     testImplementation(testFixtures(projects.core))
-    testImplementation(libs.xerces)
+    testImplementation(testLibs.xerces)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 

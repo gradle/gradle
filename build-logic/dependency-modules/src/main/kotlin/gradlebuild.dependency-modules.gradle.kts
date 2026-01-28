@@ -22,6 +22,9 @@ import gradlebuild.basics.repoRoot
 
 applyAutomaticUpgradeOfCapabilities()
 dependencies {
+    configurations.all {
+        exclude("org.slf4j", "slf4j-simple")
+    }
     components {
         // Gradle distribution - minify: remove unused transitive dependencies
         applyRule<DependencyRemovalByNameRule>("com.amazonaws:aws-java-sdk-core", setOf("jackson-dataformat-cbor"))
@@ -42,13 +45,6 @@ dependencies {
 
         // We do not support running junit from Ant. Don't bundle ant-junit.
         applyRule<DependencyRemovalByNameRule>("org.apache.groovy:groovy-ant", setOf("ant-junit"))
-
-        // SLF4J Simple is an implementation of the SLF4J API, which is not needed in Gradle
-        applyRule<DependencyRemovalByNameRule>("org.apache.sshd:sshd-core", setOf("slf4j-simple"))
-        applyRule<DependencyRemovalByNameRule>("org.apache.sshd:sshd-scp", setOf("slf4j-simple"))
-        applyRule<DependencyRemovalByNameRule>("org.apache.sshd:sshd-sftp", setOf("slf4j-simple"))
-        applyRule<DependencyRemovalByNameRule>("org.gradle.profiler:gradle-profiler", setOf("slf4j-simple"))
-        applyRule<DependencyRemovalByNameRule>("org.gradle.exemplar:samples-check", setOf("slf4j-simple"))
 
         // GCS transitively depends on commons-logging.
         // Ensure jcl-over-slf4j is pulled in when we use GCS so it can conflict.
@@ -123,7 +119,7 @@ abstract class CapabilityRule @Inject constructor(
     override fun execute(context: ComponentMetadataContext) {
         context.details.allVariants {
             withCapabilities {
-                addCapability("org.gradle.internal.capability", name, version)
+                addCapability("org.gradle.internal.capability", name, "${version}.original.${context.details.id.version}")
             }
         }
     }
@@ -168,7 +164,7 @@ class CapabilitySpec {
     fun ComponentMetadataHandler.declareCapabilityPreference(module: String) {
         withModule<CapabilityRule>(module) {
             params(name)
-            params("${providedBy.size + 1}")
+            params("${providedBy.size}")
         }
     }
 

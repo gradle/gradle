@@ -102,11 +102,11 @@ tasks {
 }
 
 dependencies {
-    ideStarter(libs.gradleIdeStarter)
+    ideStarter(testLibs.gradleIdeStarter)
     smokeIdeTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("Tests starts an IDE with using current Gradle distribution")
     }
-    smokeIdeTestImplementation(libs.gradleIdeStarterScenarios)
+    smokeIdeTestImplementation(testLibs.gradleIdeStarterScenarios)
     smokeIdeTestImplementation(testFixtures(projects.core))
 }
 

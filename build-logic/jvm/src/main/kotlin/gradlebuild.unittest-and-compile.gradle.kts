@@ -158,24 +158,23 @@ fun configureCompileTask(options: CompileOptions) {
 fun addDependencies() {
     if (project.name == "gradle-kotlin-dsl-accessors") return
     val libs = project.versionCatalogs.named("libs")
-
-    fun getLibrary(name: String) = libs.findLibrary(name).get()
+    val testLibs = project.versionCatalogs.named("testLibs")
 
     dependencies {
-        testCompileOnly(getLibrary("junit"))
-        testRuntimeOnly(getLibrary("junit5Vintage"))
-        testImplementation(getLibrary("groovy"))
-        testImplementation(getLibrary("groovyAnt"))
-        testImplementation(getLibrary("groovyJson"))
-        testImplementation(getLibrary("groovyTest"))
-        testImplementation(getLibrary("groovyXml"))
-        testImplementation(getLibrary("spock"))
-        testImplementation(getLibrary("junit5Vintage"))
-        testImplementation(getLibrary("spockJUnit4"))
-        testImplementation(getLibrary("develocityTestAnnotation"))
-        testRuntimeOnly(getLibrary("bytebuddy"))
-        testRuntimeOnly(getLibrary("objenesis"))
-        testRuntimeOnly(getLibrary("junitPlatform"))
+        testCompileOnly(testLibs.findLibrary("junit").get())
+        testRuntimeOnly(testLibs.findLibrary("junit5Vintage").get())
+        testImplementation(libs.findLibrary("groovy").get())
+        testImplementation(libs.findLibrary("groovyAnt").get())
+        testImplementation(libs.findLibrary("groovyJson").get())
+        testImplementation(testLibs.findLibrary("groovyTest").get())
+        testImplementation(libs.findLibrary("groovyXml").get())
+        testImplementation(testLibs.findLibrary("spock").get())
+        testImplementation(testLibs.findLibrary("junit5Vintage").get())
+        testImplementation(testLibs.findLibrary("spockJUnit4").get())
+        testImplementation(testLibs.findLibrary("develocityTestAnnotation").get())
+        testRuntimeOnly(testLibs.findLibrary("bytebuddy").get())
+        testRuntimeOnly(testLibs.findLibrary("objenesis").get())
+        testRuntimeOnly(testLibs.findLibrary("junitPlatform").get())
 
         // use a separate configuration for the platform dependency that does not get published as part of 'apiElements' or 'runtimeElements'
         val platformImplementation by configurations.creating
