@@ -72,15 +72,15 @@ trait InspectsConfigurationReport {
     }
 
     void promptsForRerunToFindMoreConfigurations() {
-        outputContains("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable).")
+        outputContains("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable), and configurations without attributes.")
     }
 
     void promptsForRerunToFindMoreVariants() {
-        outputContains("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable).")
+        outputContains("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable), and variants without attributes.")
     }
 
     void doesNotPromptForRerunToFindMoreConfigurations() {
-        outputDoesNotContain("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable).")
+        outputDoesNotContain("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable), and configurations without attributes.")
     }
 
     void doesNotPromptForRerunToFindMoreVariants() {
