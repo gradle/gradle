@@ -109,7 +109,7 @@ My custom legacy configuration""")
         and:
         doesNotHaveLegacyLegend()
         doesNotHaveIncubatingLegend()
-        doesNotHaveNonSelectableConfigurationsLegend()
+        doesNotHaveConfigurationsLackingAttributesLegend()
         promptsForRerunToFindMoreConfigurations()
     }
 
@@ -437,7 +437,7 @@ Extended Configurations
 
         and:
         hasLegacyLegend()
-        hasNonSelectableConfigurationsLegend()
+        hasConfigurationsLackingAttributesLegend()
     }
 
     def "specifying a missing config with no configs produces empty report"() {
