@@ -38,6 +38,7 @@ interface PerformanceTestBucketProvider {
 typealias OperatingSystemToTestProjectPerformanceTestDurations = Map<Os, Map<String, List<PerformanceTestDuration>>>
 
 const val MAX_TEST_PROJECTS_PER_BUCKET = 10
+const val PERFORMANCE_TEST_SPLIT_DIRECTORY_NAME = "performance-test-splits"
 
 data class PerformanceTestSpec(
     val performanceTestType: PerformanceTestType,
@@ -393,33 +394,50 @@ private fun prepareScenariosStep(
     val csvLines = scenarios.map { "${it.className};${it.scenario}" }
     val action = "include"
     val fileNamePostfix = "$testProject-performance-scenarios.csv"
-    val performanceTestSplitDirectoryName = "performance-test-splits"
     val unixScript = """
-mkdir -p $performanceTestSplitDirectoryName
-rm -rf $performanceTestSplitDirectoryName/*-$fileNamePostfix
-cat > $performanceTestSplitDirectoryName/$action-$fileNamePostfix << EOL
+mkdir -p $PERFORMANCE_TEST_SPLIT_DIRECTORY_NAME
+rm -rf $PERFORMANCE_TEST_SPLIT_DIRECTORY_NAME/*-$fileNamePostfix
+cat > $PERFORMANCE_TEST_SPLIT_DIRECTORY_NAME/$action-$fileNamePostfix << EOL
 ${csvLines.joinToString("\n")}
 EOL
 
 echo "Performance tests to be ${action}d in this build"
-cat $performanceTestSplitDirectoryName/$action-$fileNamePostfix
+cat $PERFORMANCE_TEST_SPLIT_DIRECTORY_NAME/$action-$fileNamePostfix
 """
 
-    val linesWithEcho = csvLines.joinToString("\n") { """echo $it >> $performanceTestSplitDirectoryName\$action-$fileNamePostfix""" }
+    val linesWithEcho = csvLines.joinToString("\n") { """echo $it >> $PERFORMANCE_TEST_SPLIT_DIRECTORY_NAME\$action-$fileNamePostfix""" }
 
     val windowsScript = """
-mkdir $performanceTestSplitDirectoryName
-del /f /q $performanceTestSplitDirectoryName\include-$fileNamePostfix
-del /f /q $performanceTestSplitDirectoryName\exclude-$fileNamePostfix
+mkdir $PERFORMANCE_TEST_SPLIT_DIRECTORY_NAME
+del /f /q $PERFORMANCE_TEST_SPLIT_DIRECTORY_NAME\include-$fileNamePostfix
+del /f /q $PERFORMANCE_TEST_SPLIT_DIRECTORY_NAME\exclude-$fileNamePostfix
 $linesWithEcho
 
 echo Performance tests to be ${action}d in this build
-type $performanceTestSplitDirectoryName\$action-$fileNamePostfix
+type $PERFORMANCE_TEST_SPLIT_DIRECTORY_NAME\$action-$fileNamePostfix
 """
 
     return {
         script {
             name = "PREPARE_TEST_CLASSES"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            scriptContent = if (os == Os.WINDOWS) windowsScript else unixScript
+        }
+    }
+}
+
+fun cleanupPerformanceTestSplits(os: Os): BuildSteps.() -> Unit {
+    val unixScript = """
+rm -rf $PERFORMANCE_TEST_SPLIT_DIRECTORY_NAME
+"""
+
+    val windowsScript = """
+if exist $PERFORMANCE_TEST_SPLIT_DIRECTORY_NAME rmdir /s /q $PERFORMANCE_TEST_SPLIT_DIRECTORY_NAME
+"""
+
+    return {
+        script {
+            name = "CLEANUP_PERFORMANCE_TEST_SPLITS"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = if (os == Os.WINDOWS) windowsScript else unixScript
         }

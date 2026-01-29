@@ -69,6 +69,7 @@ class PerformanceTestBuildTypeTest {
                 "GRADLE_RUNNER",
                 "KILL_PROCESSES_STARTED_BY_GRADLE",
                 "CHECK_CLEAN_M2_ANDROID_USER_HOME",
+                "CLEANUP_PERFORMANCE_TEST_SPLITS",
             ),
             performanceTest.steps.items.map(BuildStep::name),
         )
@@ -147,6 +148,7 @@ class PerformanceTestBuildTypeTest {
                 "REMOVE_VIRTUAL_DISK_FOR_PERF_TEST",
                 "KILL_PROCESSES_STARTED_BY_GRADLE",
                 "CHECK_CLEAN_M2_ANDROID_USER_HOME",
+                "CLEANUP_PERFORMANCE_TEST_SPLITS",
             ),
             performanceTest.steps.items.map(BuildStep::name),
         )
