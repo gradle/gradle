@@ -23,6 +23,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.jvm.Jvm;
@@ -34,6 +35,7 @@ import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JvmToolchainMetadata;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.jvm.toolchain.JavaToolchainNotFoundMode;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.JvmInstallationMetadataMatcher;
@@ -139,10 +141,10 @@ public class JavaToolchainQueryService {
 
     public ProviderInternal<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter, Set<JavaInstallationCapability> requiredCapabilities) {
         JavaToolchainSpecInternal filterInternal = (JavaToolchainSpecInternal) Objects.requireNonNull(filter);
-        return new DefaultProvider<>(() -> resolveToolchain(filterInternal, requiredCapabilities));
+        return resolveToolchain(filterInternal, requiredCapabilities);
     }
 
-    private JavaToolchain resolveToolchain(JavaToolchainSpecInternal requestedSpec, Set<JavaInstallationCapability> requiredCapabilities) throws Exception {
+    private ProviderInternal<JavaToolchain> resolveToolchain(JavaToolchainSpecInternal requestedSpec, Set<JavaInstallationCapability> requiredCapabilities) {
         requestedSpec.finalizeProperties();
 
         if (!requestedSpec.isValid()) {
@@ -170,13 +172,23 @@ public class JavaToolchainQueryService {
         });
 
         if (resolutionResult instanceof Exception) {
-            throw (Exception) resolutionResult;
+            final Exception resolutionFailure = (Exception) resolutionResult;
+            final JavaToolchainNotFoundMode failureMode =
+                requestedSpec.getOnNoMatchFound()
+                    .getOrElse(JavaToolchainNotFoundMode.THROW_EXCEPTION);
+            if (failureMode.equals(JavaToolchainNotFoundMode.IGNORE)) {
+                return Providers.notDefined();
+            } else {
+                return new DefaultProvider<>(() -> {
+                    throw resolutionFailure;
+                });
+            }
         } else {
-            return (JavaToolchain) resolutionResult;
+            return new DefaultProvider<>(() -> (JavaToolchain) resolutionResult);
         }
     }
 
-    private Set<JavaInstallationCapability> transformCapabilities(JavaToolchainSpec actualSpec, Set<JavaInstallationCapability> requiredCapabilities) {
+    private static Set<JavaInstallationCapability> transformCapabilities(JavaToolchainSpec actualSpec, Set<JavaInstallationCapability> requiredCapabilities) {
         if (actualSpec.getNativeImageCapable().getOrElse(false)) {
             ImmutableSet.Builder<JavaInstallationCapability> capabilityBuilder = new ImmutableSet.Builder<>();
             capabilityBuilder.addAll(requiredCapabilities);
