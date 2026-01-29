@@ -35,6 +35,7 @@ dependencies {
     implementation(projects.fileOperations)
     implementation(projects.languageJava)
     implementation(projects.languageJvm)
+    implementation(projects.logging)
     implementation(projects.jvmCompilerWorker)
     implementation(projects.platformJvm)
     implementation(projects.pluginsDistribution)
