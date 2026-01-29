@@ -57,7 +57,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -79,13 +78,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedTransferQueue;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Stream;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -158,7 +152,7 @@ public class BuildOperationTrace implements Stoppable {
 
     private final boolean outputTree;
     private final @Nullable BuildOperationListener listener;
-    private final @Nullable TraceWriter writer;
+    private final @Nullable AsyncTraceWriter writer;
 
     private final BuildOperationListenerManager buildOperationListenerManager;
 
@@ -174,6 +168,8 @@ public class BuildOperationTrace implements Stoppable {
         }
 
         this.writer = new AsyncTraceWriter(new DefaultTraceWriter(basePath));
+        this.writer.start();
+
         Set<String> filter = getFilter(internalOptions);
         if (filter != null) {
             this.outputTree = false;
@@ -677,98 +673,72 @@ public class BuildOperationTrace implements Stoppable {
     private static class AsyncTraceWriter implements TraceWriter {
 
         private final TraceWriter delegate;
-        private final AsyncExecutor executor;
+        private final ConcurrentLinkedQueue<SerializedOperation> queue;
+        private final Thread worker;
+
+        private volatile @Nullable Throwable failure;
+        private volatile boolean outputTree;
+        private volatile boolean running = true;
 
         public AsyncTraceWriter(TraceWriter delegate) {
             this.delegate = delegate;
-            this.executor = new AsyncExecutor();
+            this.queue = new ConcurrentLinkedQueue<>();
+            this.worker = new Thread(this::workerLoop, "trace-writer-worker");
+            this.worker.setDaemon(true);
+        }
+
+        public void start() {
+            this.worker.start();
+        }
+
+        private void workerLoop() {
+            try {
+                while (running || !queue.isEmpty()) {
+                    SerializedOperation op;
+                    while ((op = queue.poll()) != null) {
+                        delegate.write(op);
+                    }
+                    if (running) {
+                        LockSupport.park();
+                    }
+                }
+                delegate.complete(outputTree);
+            } catch (Throwable e) {
+                this.failure = e;
+            }
         }
 
         @Override
         public void write(SerializedOperation operation) {
-            executor.execute(() -> delegate.write(operation));
+            checkForException();
+            queue.offer(operation);
+            LockSupport.unpark(worker);
         }
 
         @Override
         public void complete(boolean outputTree) {
+            this.outputTree = outputTree;
+            this.running = false;
+            LockSupport.unpark(worker);
+
             try {
-                executor.execute(() -> delegate.complete(outputTree));
-            } finally {
-                IoActions.closeQuietly(executor);
-            }
-        }
-
-    }
-
-    /**
-     * Executes submitted operations sequentially in a separate thread.
-     * <p>
-     * This executor takes special care to ensure that any exceptions thrown by
-     * submitted actions are rethrown on the calling thread, rather than being
-     * silently ignored.
-     * <p>
-     * The use case for this executor strongly overlaps with that of
-     * {@code org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory}.
-     * We should consider merging these implementations.
-     */
-    private static class AsyncExecutor implements Closeable {
-
-        private final ExecutorService executor;
-        private final AtomicReference<@Nullable Throwable> failure = new AtomicReference<>();
-
-        public AsyncExecutor() {
-            // Use a LTQ instead of the default LinkedBlockingQueue so threads submitting work do
-            // not need to acquire a lock, preventing contention on the event-producing threads.
-            BlockingQueue<Runnable> queue = new LinkedTransferQueue<>();
-            this.executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, queue);
-        }
-
-        @SuppressWarnings("FutureReturnValueIgnored")
-        private void execute(Runnable r) {
-            // Throw any exception that was caught in a previous operation
-            checkForException();
-
-            // Enqueue this operation
-            try {
-                executor.submit(() -> {
-                    try {
-                        r.run();
-                    } catch (Throwable e) {
-                        if (failure.compareAndSet(null, e)) {
-                            // This is the first failure. Cancel all other operations
-                            executor.shutdownNow();
-                        }
-                    }
-                });
-            } catch (RejectedExecutionException e) {
-                // Executor has been shut down. Rethrow the original failure if present
-                checkForException();
-
-                // Executor was shut down, but we didn't do it. Just rethrow the rejected exception.
-                throw e;
-            }
-        }
-
-        @Override
-        public void close() {
-            executor.shutdown();
-            try {
-                if (!executor.awaitTermination(1, TimeUnit.MINUTES)) {
+                worker.join(60000);
+                if (worker.isAlive()) {
                     throw new RuntimeException("Timed out waiting for trace writer to complete");
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw UncheckedException.throwAsUncheckedException(e);
+                throw new RuntimeException(e);
             }
             checkForException();
         }
 
         private void checkForException() {
-            Throwable failure = this.failure.get();
             if (failure != null) {
                 throw new RuntimeException("Failure when writing build operation trace", failure);
             }
         }
+
     }
 
 }
