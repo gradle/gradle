@@ -1,10 +1,6 @@
 # some versions are in shared-versions.properties
 [versions]
 ant = "1.10.15!!"
-# Don't forget to bump versions in
-# platforms/core-runtime/base-asm/src/main/java/org/gradle/model/internal/asm/AsmConstants.java
-# when upgrading ASM.
-asm = "9.9!!"
 awsS3 = "1.12.780!!"
 bouncycastle = "1.81!!"
 commonsCodec = "1.18.0!!"
@@ -27,7 +23,6 @@ jansi = "2.4.2!!" # If JANSI is updated run on a Windows terminal CMD.EXE to mak
 jatl = "0.2.3!!"
 javaParser = "3.27.1!!"
 javaPoet = "1.13.0!!"
-jaxb = "3.0.0!!"
 jcifs = "1.3.17!!"
 jetbrainsAnnotations = "24.0.1!!"
 jgit = "7.2.1.202505142326-r!!"

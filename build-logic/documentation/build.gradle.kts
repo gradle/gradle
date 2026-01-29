@@ -11,18 +11,18 @@ dependencies {
 
     implementation(projects.buildUpdateUtils)
 
-    implementation("com.github.javaparser:javaparser-core")
-    implementation("com.google.guava:guava")
-    implementation("com.uwyn:jhighlight") {
+    implementation(buildLibs.javaParserCore)
+    implementation(buildLibs.guava)
+    implementation(buildLibs.jhighlight) {
         exclude(module = "servlet-api")
     }
-    implementation("com.vladsch.flexmark:flexmark-all")
-    implementation("com.google.code.gson:gson")
-    implementation("org.apache.commons:commons-lang3")
-    implementation("org.asciidoctor:asciidoctor-gradle-jvm")
-    implementation("org.asciidoctor:asciidoctorj")
-    implementation("org.jetbrains.dokka:dokka-gradle-plugin")
-    implementation("org.jspecify:jspecify")
+    implementation(buildLibs.flexmark)
+    implementation(buildLibs.gson)
+    implementation(buildLibs.commonsLang3)
+    implementation(buildLibs.asciidoctor)
+    implementation(buildLibs.asciidoctorJvm)
+    implementation(buildLibs.dokkaPlugin)
+    implementation(buildLibs.jspecify)
 
     testImplementation(gradleTestKit())
 }

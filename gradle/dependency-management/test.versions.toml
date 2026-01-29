@@ -76,6 +76,7 @@ joptSimple = { group = "net.sf.jopt-simple", name = "jopt-simple", version.ref =
 jtar = { group = "org.kamranzafar", name = "jtar", version.ref = "jtar" }
 junit = { group = "junit", name = "junit", version.ref = "junitForTests" }
 junit5JupiterApi = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit5ForTests" }
+junit5JupiterEngine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit5ForTests" }
 junit5Vintage = { group = "org.junit.vintage", name = "junit-vintage-engine", version.ref = "junit5ForTests" }
 junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junit5ForTests" }
 junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit5ForTests" }
