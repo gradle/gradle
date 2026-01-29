@@ -16,7 +16,16 @@ This patch release includes bug fixes and improvements.
 
 The following issues were resolved:
 
-* TODO
+* [Cannot find testcases from Android Screenshot Test plugin since Gradle 9.3.0](https://github.com/gradle/gradle/issues/36320)
+* [Excluding dependencies from included builds doesn't work in Gradle 9.3.0](https://github.com/gradle/gradle/issues/36331)
+* [ExternalDependency and DependencyConstraint cannot be passed to DependencyResolveDetails#useTarget](https://github.com/gradle/gradle/issues/36359)
+* [Gradle 9.3.0 generate JUnit test result files with wrong name](https://github.com/gradle/gradle/issues/36379)
+* [Build cache cannot handle outputs with non-BMP characters in the filename](https://github.com/gradle/gradle/issues/36387)
+* [Emojis in test names should not break build caching](https://github.com/gradle/gradle/issues/36395)
+* [Non utf-8 c code is no longer buildable](https://github.com/gradle/gradle/issues/36399)
+* [Breaking change in 9.3.0 regarding cross-project dependency manipulation](https://github.com/gradle/gradle/issues/36428)
+* [JUnit3 tests cannot be run with Gradle 9.3.0](https://github.com/gradle/gradle/issues/36451)
+* [Test.setScanForTestClasses(false) causes all junit4 tests to be skipped](https://github.com/gradle/gradle/issues/36508)
 
 We recommend upgrading to Gradle @version@.
 
