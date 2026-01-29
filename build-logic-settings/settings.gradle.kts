@@ -22,9 +22,7 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("buildLibs") {
             from(files("../gradle/dependency-management/build.versions.toml"))
-            //TODO: load shared versions from a common location
-            version("errorProne", "stub")
-            version("asm", "stub")
+            version("errorProne", "stub") // not used in this project
         }
     }
 }

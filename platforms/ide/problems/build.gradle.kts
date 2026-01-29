@@ -33,7 +33,7 @@ val problemReportReportPath by configurations.creating {
 // You can have a faster feedback loop by running `configuration-cache-report` as an included build
 // See https://github.com/gradle/configuration-cache-report#development-with-gradlegradle-and-composite-build
 dependencies {
-    problemReportReportPath(buildLibs.configurationCacheReport)
+    problemReportReportPath(libs.configurationCacheReport)
 }
 
 tasks.processResources {

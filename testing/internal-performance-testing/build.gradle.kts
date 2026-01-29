@@ -22,8 +22,8 @@ repositories {
 }
 
 dependencies {
-    reports("jquery:jquery.min:3.7.1@js")
-    reports("flot:flot:0.8.1:min@js")
+    reports(variantOf(libs.jquery) { artifactType("js") })
+    reports(variantOf(testLibs.flot) { classifier("min"); artifactType("js") })
 
     api(projects.baseServices)
     api(projects.coreApi)

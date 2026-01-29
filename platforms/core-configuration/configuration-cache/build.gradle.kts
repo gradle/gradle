@@ -108,7 +108,7 @@ dependencies {
     integTestImplementation(libs.ant)
     integTestImplementation(libs.guava)
     integTestImplementation(libs.inject)
-    integTestImplementation("com.microsoft.playwright:playwright:1.20.1")
+    integTestImplementation(testLibs.playwright)
 
     integTestImplementation(testFixtures(projects.toolingApi))
     integTestImplementation(testFixtures(projects.dependencyManagement))
