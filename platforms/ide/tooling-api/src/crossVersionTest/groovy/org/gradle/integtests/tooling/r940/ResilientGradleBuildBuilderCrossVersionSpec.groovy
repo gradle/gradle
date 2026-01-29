@@ -123,8 +123,8 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends ToolingApiSpecificatio
         assertModel(model, true, [], ["buildSrc"])
     }
 
-    @ToolingApiVersion('>=8.0')
-    @TargetGradleVersion('>=8.0')
+    @ToolingApiVersion('>=8.8')
+    @TargetGradleVersion('>=8.8')
     def "returns included builds nested within buildSrc composite build when nothing broken - NON RESILIENT"() {
         given:
         settingsKotlinFile << """
