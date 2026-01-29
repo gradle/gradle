@@ -21,8 +21,8 @@ import org.gradle.internal.declarativedsl.demo.reflection.reflect
 import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
 
 
 class CustomLambdasTest {
@@ -111,11 +111,6 @@ val functionalLambdaHandler =
 
 private
 val schema = schemaFromTypes(
-    Outer::class, listOf(
-        Outer::class,
-        Inner::class,
-        Functional::class,
-        GenericFunctional::class
-    ),
+    Outer::class,
     configureLambdas = functionalLambdaHandler
 )

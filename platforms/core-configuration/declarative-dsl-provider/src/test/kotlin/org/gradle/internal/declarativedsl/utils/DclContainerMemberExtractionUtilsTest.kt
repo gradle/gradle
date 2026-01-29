@@ -21,8 +21,9 @@ import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
 import org.gradle.internal.declarativedsl.ndoc.DclContainerMemberExtractionUtils
 import org.gradle.internal.declarativedsl.ndoc.DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultSchemaBuildingHost
+import org.gradle.internal.declarativedsl.schemaBuilder.LossySchemaBuildingOperation
 import org.gradle.internal.declarativedsl.schemaBuilder.asSupported
-import org.gradle.internal.declarativedsl.schemaBuilder.schemaBuildingFailure
+import org.gradle.internal.declarativedsl.schemaBuilder.orError
 import org.gradle.internal.declarativedsl.schemaBuilder.toKType
 import org.junit.Assert
 import org.junit.Test
@@ -30,15 +31,16 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
+@OptIn(LossySchemaBuildingOperation::class)
 class DclContainerMemberExtractionUtilsTest {
 
     private val host = DefaultSchemaBuildingHost(Unit::class)
 
-    private fun elementFactoryFunctionNameFromElementType(type: KType) =
-        DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType(type.asSupported() ?: host.schemaBuildingFailure("unsupported element type"))
+    private fun elementFactoryFunctionNameFromElementType(type: KType): String =
+        DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType(type.asSupported(host).orError())
 
     private fun elementTypeFromNdocContainerType(type: KType): KType? =
-        elementTypeFromNdocContainerType(host, type.asSupported() ?: host.schemaBuildingFailure("unsupported element type"))?.toKType()
+        elementTypeFromNdocContainerType(host, type.asSupported(host).orError())?.toKType()
 
     @Test
     fun `the default element factory name is the decapitalized type name`() {

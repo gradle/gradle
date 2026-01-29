@@ -29,8 +29,10 @@ import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionCompo
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.LossySchemaBuildingOperation
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Special
+import org.gradle.internal.declarativedsl.schemaBuilder.orError
 import kotlin.reflect.typeOf
 
 
@@ -52,10 +54,10 @@ fun EvaluationSchemaBuilder.dependencyCollectors() {
  */
 private
 class DependencyCollectorsComponent : AnalysisSchemaComponent, ObjectConversionComponent {
-    private
-    val dependencyCollectorFunctionExtractorAndRuntimeResolver = DependencyCollectorFunctionExtractorAndRuntimeResolver(
-        gavDependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<String>()), false, DefaultUnknown) },
-        dependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<Dependency>()), false, DefaultUnknown) },
+    @OptIn(LossySchemaBuildingOperation::class) // referencing a predefined type is safe
+    private val dependencyCollectorFunctionExtractorAndRuntimeResolver = DependencyCollectorFunctionExtractorAndRuntimeResolver(
+        gavDependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<String>()).orError(), false, DefaultUnknown) },
+        dependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<Dependency>()).orError(), false, DefaultUnknown) },
     )
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(

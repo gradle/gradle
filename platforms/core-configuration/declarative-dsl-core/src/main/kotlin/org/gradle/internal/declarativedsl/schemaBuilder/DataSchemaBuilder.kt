@@ -33,7 +33,6 @@ import org.gradle.internal.declarativedsl.Workarounds
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
-import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.analysis.DefaultEnumClass
 import org.gradle.internal.declarativedsl.analysis.DefaultExternalObjectProviderKey
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
@@ -45,12 +44,8 @@ import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingContextElement.TagContextElement
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingTags.varargType
-import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag
-import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.ContainerElement
-import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.PropertyType
-import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Special
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Supertype
-import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.UsedInMember
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -67,37 +62,58 @@ import kotlin.reflect.typeOf
 interface SchemaBuildingHost {
     val topLevelReceiverClass: KClass<*>
 
+    val typeFailures: Iterable<SchemaResult.Failure>
+    fun recordTypeFailure(failure: SchemaResult.Failure)
+
+    fun recordClaimedMember(kClass: KClass<*>, member: SupportedCallable)
+    fun recordMemberWithFailure(kClass: KClass<*>, member: SupportedCallable, failure: SchemaResult.Failure)
+    fun membersWithFailures(kClass: KClass<*>): Map<SupportedCallable, Iterable<SchemaResult.Failure>>
+
+    fun isUnusedMember(kClass: KClass<*>, member: SupportedCallable): Boolean
+
     fun classMembers(kClass: KClass<*>): ClassMembersForSchema
     fun declarativeSupertypesHierarchy(kClass: KClass<*>): Iterable<MaybeDeclarativeClassInHierarchy>
 
     /**
-     * Convert a [kClass] to a type that can be used as a DCL container (a block receiver).
+     * Convert a [kClass] to a type that can be used as a DCL _container_ (a block receiver).
+     *
+     * This overload should be used for those special [KClass] appearances in the schema that are already guaranteed to be non-parameterized and non-nullable.
+     * For other cases, use the [containerTypeRef] overload that takes a [KType].
      */
-    fun containerTypeRef(kClass: KClass<*>): DataTypeRef
+    fun containerTypeRef(kClass: KClass<*>): SchemaResult<DataTypeRef>
+
+    /**
+     * Convert a [kType] to a type that can be used as a DCL _container_ (a block receiver).
+     * Validates that the type is a proper usage of a non-parameterized and non-nullable [KClass] (not a type parameter).
+     */
+    fun containerTypeRef(kType: KType): SchemaResult<DataTypeRef>
 
     /**
      * Convert a [kType] to a type that can be used as a DCL model value type reference.
      * Validates that the type is not nullable.
      */
-    fun modelTypeRef(kType: KType): DataTypeRef
+    fun modelTypeRef(kType: KType): SchemaResult<DataTypeRef>
 
     /**
      * Convert a [varargType] (element type) of a vararg function parameter to a DCL vararg (array) type reference.
      */
-    fun varargTypeRef(varargType: KType): DataTypeRef
+    fun varargTypeRef(varargType: KType): SchemaResult<DataTypeRef>
 
     /**
      * Convert a [kType] to a DCL type reference without usage validation.
      * The caller must validate the [kType] before using this function or using the returned type reference in the schema.
      */
-    fun typeRef(kType: KType): DataTypeRef
+    fun typeRef(kType: KType): SchemaResult<DataTypeRef>
 
     fun enterSchemaBuildingContext(contextElement: SchemaBuildingContextElement)
     fun leaveSchemaBuildingContext(contextElement: SchemaBuildingContextElement)
+
+    fun <T> inIsolatedContext(action: () -> T): T
+
     val context: List<SchemaBuildingContextElement>
 }
 
-fun <R> SchemaBuildingHost.inContextOfModelClass(kClass: KClass<*>, doBuildSchema: () -> R): R =
+inline fun <R> SchemaBuildingHost.inContextOfModelClass(kClass: KClass<*>, doBuildSchema: () -> R): R =
     inContextOf(SchemaBuildingContextElement.ModelClassContextElement(kClass), doBuildSchema)
 
 inline fun <R> SchemaBuildingHost.inContextOfModelMember(kCallable: KCallable<*>, doBuildSchema: () -> R): R =
@@ -136,6 +152,7 @@ object SchemaBuildingTags {
     fun externalObject(fqName: FqName) = TagContextElement("external object '${fqName.qualifiedName}'")
     fun namedDomainObjectContainer(name: String) = TagContextElement("nested named domain object container '$name'")
     fun elementTypeOfContainerSubtype(kClass: KClass<*>) = TagContextElement("element type of named domain object container subtype '$kClass'")
+    fun containerElementType(supportedType: SupportedTypeProjection.SupportedType) = TagContextElement("container element type '${supportedType.toKType()}'")
     fun typeArgument(argument: KTypeProjection) = TagContextElement("type argument '$argument'")
     fun configuredType(kType: KType) = TagContextElement("configured type '$kType'")
     fun configuredType(supportedType: SupportedTypeProjection.SupportedType) = TagContextElement("configured type '${supportedType.toKType()}'")
@@ -158,7 +175,6 @@ inline fun <R> SchemaBuildingHost.inContextOf(contextElement: SchemaBuildingCont
     }
 
 class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) : SchemaBuildingHost {
-    val dataClassToKClass = mutableMapOf<DataClass, KClass<*>>()
 
     val typeSignatures = mutableMapOf<FqName, ParameterizedTypeSignature>()
     val typeInstances = mutableMapOf<FqName, MutableMap<List<TypeArgument>, ParameterizedTypeInstance>>()
@@ -174,40 +190,83 @@ class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) :
     private val classMembersCache = mutableMapOf<KClass<*>, ClassMembersForSchema>()
     private val declarativeSupertypesCache = mutableMapOf<KClass<*>, Iterable<MaybeDeclarativeClassInHierarchy>>()
 
+    private val claimedMembers = mutableMapOf<KClass<*>, MutableSet<SupportedCallable>>()
+    private val failedMembers = mutableMapOf<KClass<*>, MutableMap<SupportedCallable, MutableList<SchemaResult.Failure>>>()
+
+    private val mutableTypeFailures = mutableListOf<SchemaResult.Failure>()
+
+    override val typeFailures: Iterable<SchemaResult.Failure> get() = mutableTypeFailures.toList()
+
+    override fun recordTypeFailure(failure: SchemaResult.Failure) {
+        mutableTypeFailures += failure
+    }
+
+    override fun recordClaimedMember(kClass: KClass<*>, member: SupportedCallable) {
+        claimedMembers.getOrPut(kClass) { mutableSetOf() }.add(member)
+    }
+
+    override fun recordMemberWithFailure(kClass: KClass<*>, member: SupportedCallable, failure: SchemaResult.Failure) {
+        failedMembers.getOrPut(kClass) { mutableMapOf() }.getOrPut(member) { mutableListOf() }.add(failure)
+    }
+
+    override fun membersWithFailures(kClass: KClass<*>): Map<SupportedCallable, Iterable<SchemaResult.Failure>> =
+        failedMembers[kClass] ?: emptyMap()
+
+    override fun isUnusedMember(kClass: KClass<*>, member: SupportedCallable): Boolean =
+        claimedMembers[kClass]?.contains(member) != true && failedMembers[kClass]?.contains(member) != true
+
     override fun classMembers(kClass: KClass<*>): ClassMembersForSchema =
-        classMembersCache.getOrPut(kClass) { collectMembersForSchema(this, kClass) }
+        classMembersCache.getOrPut(kClass) {
+            // This action might happen in the context of some other action, like in extracting functions. To ensure that the context stacks for the members are not affected
+            // by the outer context, use a new context for this action
+            inIsolatedContext {
+                collectMembersForSchema(this, kClass)
+            }
+        }
 
     override fun declarativeSupertypesHierarchy(kClass: KClass<*>) =
-        declarativeSupertypesCache.getOrPut(kClass) { collectDeclarativeSuperclassHierarchy(kClass) }
-
-    override fun containerTypeRef(kClass: KClass<*>): DataTypeRef {
-        if (kClass.typeParameters.isNotEmpty()) {
-            schemaBuildingFailure("Cannot use the parameterized class '$kClass' as a configurable type")
-        }
-        return modelTypeRef(kClass.starProjectedType)
-    }
-
-    override fun modelTypeRef(kType: KType): DataTypeRef {
-        if (kType.isMarkedNullable) {
-            schemaBuildingFailure("Unsupported usage of a nullable type")
+    // This action might happen in the context of some other action, like in extracting functions. To ensure that the context stacks for the members are not affected
+        // by the outer context, use a new context for this action
+        inIsolatedContext {
+            declarativeSupertypesCache.getOrPut(kClass) { collectDeclarativeSuperclassHierarchy(this, kClass) }
         }
 
-        return typeRef(kType)
+    override fun containerTypeRef(kClass: KClass<*>): SchemaResult<DataTypeRef> = containerTypeRef(kClass.starProjectedType)
+
+    override fun containerTypeRef(kType: KType): SchemaResult<DataTypeRef> {
+        when (kType.classifier) {
+            is KTypeParameter -> return schemaBuildingFailure(SchemaBuildingIssue.UnsupportedTypeParameterAsContainerType(kType))
+            else -> Unit
+        }
+
+        if (kType.arguments.isNotEmpty()) {
+            return schemaBuildingFailure(SchemaBuildingIssue.UnsupportedGenericContainerType(kType))
+        }
+        return modelTypeRef(kType)
     }
 
-    override fun varargTypeRef(varargType: KType): DataTypeRef {
+    override fun modelTypeRef(kType: KType): SchemaResult<DataTypeRef> = when {
+        kType.isMarkedNullable -> schemaBuildingFailure(SchemaBuildingIssue.UnsupportedNullableType(kType))
+        else -> typeRef(kType)
+    }
+
+    override fun varargTypeRef(varargType: KType): SchemaResult<DataTypeRef> {
         val varargTypeSignature = typeSignatures.getOrPut(DefaultVarargSignature.name) { DefaultVarargSignature }
 
         val elementTypeRef = withTag(varargType(varargType)) {
             when (varargType) {
-                typeOf<IntArray>() -> DataTypeInternal.DefaultIntDataType.ref
-                typeOf<LongArray>() -> DataTypeInternal.DefaultLongDataType.ref
-                typeOf<BooleanArray>() -> DataTypeInternal.DefaultBooleanDataType.ref
-                else -> modelTypeRef(varargType.arguments.singleOrNull()?.type ?: schemaBuildingFailure("unexpected vararg type"))
+                typeOf<IntArray>() -> schemaResult(DataTypeInternal.DefaultIntDataType.ref)
+                typeOf<LongArray>() -> schemaResult(DataTypeInternal.DefaultLongDataType.ref)
+                typeOf<BooleanArray>() -> schemaResult(DataTypeInternal.DefaultBooleanDataType.ref)
+                else -> varargType.arguments.singleOrNull()?.type?.let(::modelTypeRef)
+                    ?: schemaBuildingFailure(SchemaBuildingIssue.UnsupportedVarargType(varargType))
             }
         }
 
-        return registerTypeInstance(varargTypeSignature, listOf(TypeArgumentInternal.DefaultConcreteTypeArgument(elementTypeRef))).ref
+
+        return elementTypeRef.map { element ->
+            registerTypeInstance(varargTypeSignature, listOf(TypeArgumentInternal.DefaultConcreteTypeArgument(element))).ref
+        }
     }
 
     override fun enterSchemaBuildingContext(contextElement: SchemaBuildingContextElement) {
@@ -220,29 +279,39 @@ class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) :
         }
     }
 
-    override fun typeRef(kType: KType): DataTypeRef {
+    override fun <T> inIsolatedContext(action: () -> T): T {
+        val oldContext = currentContextStack.toList()
+        currentContextStack.clear()
+        try {
+            return action()
+        } finally {
+            currentContextStack.clear()
+            currentContextStack.addAll(oldContext)
+        }
+    }
+
+    override fun typeRef(kType: KType): SchemaResult<DataTypeRef> {
         check(currentContextStack.isNotEmpty()) { "Cannot reference a type $kType outside of a context" }
 
         return when (val kClassifier = kType.classifier) {
-            Unit::class -> DataTypeInternal.DefaultUnitType.ref
-            Int::class -> DataTypeInternal.DefaultIntDataType.ref
-            String::class -> DataTypeInternal.DefaultStringDataType.ref
-            Boolean::class -> DataTypeInternal.DefaultBooleanDataType.ref
-            Long::class -> DataTypeInternal.DefaultLongDataType.ref
-            is KClass<*> -> {
+            Unit::class -> schemaResult(DataTypeInternal.DefaultUnitType.ref)
+            Int::class -> schemaResult(DataTypeInternal.DefaultIntDataType.ref)
+            String::class -> schemaResult(DataTypeInternal.DefaultStringDataType.ref)
+            Boolean::class -> schemaResult(DataTypeInternal.DefaultBooleanDataType.ref)
+            Long::class -> schemaResult(DataTypeInternal.DefaultLongDataType.ref)
+            is KClass<*> ->
                 if (kType.arguments.isEmpty())
-                    DataTypeRefInternal.DefaultName(DefaultFqName.parse(checkNotNull(kClassifier.qualifiedName)))
+                    schemaResult(DataTypeRefInternal.DefaultName(DefaultFqName.parse(checkNotNull(kClassifier.qualifiedName))))
                 else {
                     instantiateGenericOpaqueType(kType)
                 }
-            }
 
             is KTypeParameter -> if (isAllowedTypeParameter(kClassifier))
-                typeVariableUsage(kClassifier).ref
+                schemaResult(typeVariableUsage(kClassifier).ref)
             else
-                schemaBuildingFailure("Type parameter '$kClassifier' cannot be used as a type")
+                schemaBuildingFailure(SchemaBuildingIssue.IllegalUsageOfTypeParameterBoundByClass(kType))
 
-            else -> error("can't convert an unexpected type $kType to data type reference")
+            else -> schemaBuildingError("can't convert an unexpected type $kType to data type reference")
         }
     }
 
@@ -253,24 +322,26 @@ class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) :
             }
         }
 
-    private fun instantiateGenericOpaqueType(kType: KType): DataTypeRef {
+    private fun instantiateGenericOpaqueType(kType: KType): SchemaResult<DataTypeRef> {
         require(kType.arguments.isNotEmpty())
         val kClass = kType.classifier as KClass<*>
 
         val fqn = DefaultFqName.parse(checkNotNull(kClass.qualifiedName))
 
-        val typeArguments = kType.arguments.map {
-            if (it == KTypeProjection.STAR)
+        val typeArguments = kType.arguments.map { arg ->
+            if (arg == KTypeProjection.STAR)
                 TypeArgumentInternal.DefaultStarProjection()
             else {
-                inContextOf(SchemaBuildingTags.typeArgument(it)) {
-                    if (it.variance != KVariance.INVARIANT) {
-                        schemaBuildingFailure("Illegal '${it.variance}' variance")
+                inContextOf(SchemaBuildingTags.typeArgument(arg)) {
+                    if (arg.variance != KVariance.INVARIANT) {
+                        return schemaBuildingFailure(SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage(kClass, arg.variance!!))
                     }
                     val argumentTypeRef = modelTypeRef(
-                        it.type ?: schemaBuildingFailure("Type argument has no proper type")
+                        arg.type ?: schemaBuildingError("Type argument has no proper type")
                     )
-                    TypeArgumentInternal.DefaultConcreteTypeArgument(argumentTypeRef)
+                    TypeArgumentInternal.DefaultConcreteTypeArgument(argumentTypeRef.orFailWith {
+                        return it
+                    })
                 }
             }
         }
@@ -280,7 +351,9 @@ class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) :
                 fqn,
                 kClass.typeParameters.map {
                     if (it.variance == KVariance.IN)
-                        schemaBuildingFailure("Type parameter '$it' of '$kType' has 'in' variance, which is not supported")
+                        return schemaBuildingFailure(
+                            SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage(kClass, it.variance)
+                        )
                     DataTypeInternal.DefaultParameterizedTypeSignature.TypeParameter(it.name, it.variance == KVariance.OUT)
                 },
                 kClass.java.name
@@ -289,7 +362,7 @@ class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) :
 
         val instance = registerTypeInstance(registeredTypeSignature, typeArguments)
 
-        return DataTypeRefInternal.DefaultNameWithArgs(instance.name, instance.typeArguments)
+        return schemaResult(DataTypeRefInternal.DefaultNameWithArgs(instance.name, instance.typeArguments))
     }
 
     private fun registerTypeInstance(
@@ -317,6 +390,7 @@ class DataSchemaBuilder(
         externalFunctions: List<KFunction<*>> = emptyList(),
         externalObjects: Map<FqName, KClass<*>> = emptyMap(),
         defaultImports: List<FqName> = emptyList(),
+        schemaBuildingFailureReporter: SchemaFailureReporter
     ): AnalysisSchema {
         val host = DefaultSchemaBuildingHost(topLevelReceiver)
         val preIndex = createPreIndex(host, types)
@@ -326,11 +400,17 @@ class DataSchemaBuilder(
         }
 
         val (infixExternalFunctions, regularExternalFunctions) = externalFunctions.partition { it.isInfix }
-        val extFunctions = regularExternalFunctions.mapNotNull { functionExtractor.topLevelFunction(host, it, preIndex) }.associateBy { it.fqName }
-        val infixFunctions = infixExternalFunctions.mapNotNull { functionExtractor.topLevelFunction(host, it, preIndex) }.associateBy { it.fqName }
+
+        @OptIn(LossySchemaBuildingOperation::class) // there are no user-defined top-level functions, we don't need error handling there
+        val extFunctions = regularExternalFunctions.mapNotNull { functionExtractor.topLevelFunction(host, it, preIndex)?.orError() }.associateBy { it.fqName }
+
+        @OptIn(LossySchemaBuildingOperation::class) // there are no user-defined top-level functions, we don't need error handling there
+        val infixFunctions = infixExternalFunctions.mapNotNull { functionExtractor.topLevelFunction(host, it, preIndex)?.orError() }.associateBy { it.fqName }
+
         val extObjects = externalObjects.map { (key, value) ->
             host.withTag(SchemaBuildingTags.externalObject(key)) {
-                key to DefaultExternalObjectProviderKey(host.containerTypeRef(value::class))
+                @OptIn(LossySchemaBuildingOperation::class) // there are no user-defined external objects, we don't need error handling there
+                key to DefaultExternalObjectProviderKey(host.containerTypeRef(value::class).orError())
             }
         }.toMap()
 
@@ -348,28 +428,55 @@ class DataSchemaBuilder(
             augmentationsProvider.augmentations(host)
         )
 
-        validateSchema(host, schema)
+        validateSchemaInvariants(host, schema)
+
+        val allFailures = collectSchemaBuildingFailures(host, preIndex, schema)
+        schemaBuildingFailureReporter.report(schema, allFailures)
 
         return schema
     }
 
-    private fun validateSchema(host: DefaultSchemaBuildingHost, schema: AnalysisSchema) {
-        val configurableTypes = collectReachableContainerTypes(schema)
-        checkGenericTypeUsage(host, configurableTypes)
-        checkAllTypesInScope(host, schema, configurableTypes)
-    }
+    private fun collectSchemaBuildingFailures(
+        host: SchemaBuildingHost,
+        preIndex: PreIndex,
+        schema: DefaultAnalysisSchema,
+    ): List<SchemaResult.Failure> = buildList {
+        addAll(host.typeFailures.distinct())
 
-    private fun checkGenericTypeUsage(host: DefaultSchemaBuildingHost, configurableTypes: Iterable<DataClass>) {
-        configurableTypes.forEach {
-            val kClass = host.dataClassToKClass[it]
-            if (kClass != null) {
-                host.inContextOfModelClass(kClass) {
-                    if (kClass.typeParameters.isNotEmpty()) {
-                        host.schemaBuildingFailure("Container types must not have any type parameters. Illegal type parameters: ${kClass.typeParameters.joinToString()}")
+        addAll(checkDiscoveredTypeForIllegalHiddenTypeUsages(host, preIndex.allDiscoveredTypes))
+
+        preIndex.types.forEach { type ->
+            if (schema.dataClassTypesByFqName[type.fqName] == null) {
+                // Then for some reason this type is not in the schema. For example, it is a parameterized supertype.
+                // The reason should be reported (or handled) by other means.
+                return@forEach
+            }
+
+            host.classMembers(type).run {
+                membersBySupertype.values.flatten().forEach { member ->
+                    if (member is ExtractionResult.Failure) {
+                        add(member.failure)
+                    }
+                }
+                declarativeMembers.forEach { potentiallyDeclarative ->
+                    if (host.isUnusedMember(type, potentiallyDeclarative)) {
+                        host.inContextOfModelClass(type) {
+                            host.inContextOfModelMember(potentiallyDeclarative.kCallable) {
+                                add(host.schemaBuildingFailure(SchemaBuildingIssue.UnrecognizedMember))
+                            }
+                        }
                     }
                 }
             }
+
+            host.membersWithFailures(type).forEach { (_, failures) ->
+                addAll(failures)
+            }
         }
+    }
+
+    private fun validateSchemaInvariants(host: SchemaBuildingHost, schema: AnalysisSchema) {
+        checkAllTypesInScope(host, schema, collectReachableContainerTypes(schema))
     }
 
     private fun checkAllTypesInScope(host: SchemaBuildingHost, schema: AnalysisSchema, configurableTypes: Set<DataClass>) {
@@ -377,7 +484,7 @@ class DataSchemaBuilder(
 
         fun checkTypeInScope(dataTypeRef: DataTypeRef) {
             if (typeRefContext.maybeResolveRef(dataTypeRef) == null) {
-                host.schemaBuildingFailure("Type '$dataTypeRef' is not in the schema")
+                host.schemaBuildingError("Type '$dataTypeRef' is not in the schema")
             }
         }
 
@@ -462,15 +569,11 @@ class DataSchemaBuilder(
     val KClass<*>.fqName
         get() = DefaultFqName.parse(qualifiedName!!)
 
-    class PreIndex {
+    class PreIndex(
+        val allDiscoveredTypes: Set<DiscoveredClass> = emptySet(),
+    ) {
         private
         val properties = mutableMapOf<KClass<*>, MutableMap<String, DataProperty>>()
-
-        private
-        val propertyOriginalTypes = mutableMapOf<KClass<*>, MutableMap<String, SupportedTypeProjection.SupportedType>>()
-
-        private
-        val claimedFunctions = mutableMapOf<KClass<*>, MutableSet<KCallable<*>>>()
 
         private val mutableSyntheticTypes = mutableMapOf<String, DataClass>()
 
@@ -479,17 +582,10 @@ class DataSchemaBuilder(
 
         fun addType(kClass: KClass<*>) {
             properties.getOrPut(kClass) { mutableMapOf() }
-            propertyOriginalTypes.getOrPut(kClass) { mutableMapOf() }
         }
 
-        fun addProperty(kClass: KClass<*>, property: DataProperty, originalType: SupportedTypeProjection.SupportedType) {
+        fun addProperty(kClass: KClass<*>, property: DataProperty) {
             properties.getOrPut(kClass) { mutableMapOf() }[property.name] = property
-            propertyOriginalTypes.getOrPut(kClass) { mutableMapOf() }[property.name] = originalType
-        }
-
-        // TODO replace with a generic schema member inclusion tracking mechanism
-        fun claimFunction(kClass: KClass<*>, kFunction: KCallable<*>) {
-            claimedFunctions.getOrPut(kClass) { mutableSetOf() }.add(kFunction)
         }
 
         val syntheticTypes: List<DataClass>
@@ -501,8 +597,6 @@ class DataSchemaBuilder(
         fun hasType(kClass: KClass<*>): Boolean = kClass in properties
 
         fun getAllProperties(kClass: KClass<*>): List<DataProperty> = properties[kClass]?.values.orEmpty().toList()
-
-        fun getClaimedFunctions(kClass: KClass<*>): Set<KCallable<*>> = claimedFunctions[kClass].orEmpty()
 
         fun getProperty(kClass: KClass<*>, name: String) = properties[kClass]?.get(name)
     }
@@ -517,17 +611,19 @@ class DataSchemaBuilder(
                 get() = host
         }
 
-        val allTypeDiscoveries: MutableSet<TypeDiscovery.DiscoveredClass> = mutableSetOf()
+        val allTypeDiscoveries: MutableSet<DiscoveredClass> = mutableSetOf()
 
         val allTypesToVisit = buildSet {
             fun visit(type: KClass<*>) {
                 if (add(type)) {
                     val discoveriesToVisitNext = typeDiscovery.getClassesToVisitFrom(typeDiscoveryServices, type)
-                    allTypeDiscoveries.addAll(discoveriesToVisitNext)
+                    allTypeDiscoveries.addAll(discoveriesToVisitNext.filterIsInstance<SchemaResult.Result<DiscoveredClass>>().map { it.result })
+
+                    discoveriesToVisitNext.filterIsInstance<SchemaResult.Failure>().forEach(host::recordTypeFailure)
 
                     discoveriesToVisitNext.forEach {
-                        if (!it.isHidden) {
-                            visit(it.kClass)
+                        if (it is SchemaResult.Result  && !it.result.isHidden) {
+                            visit(it.result.kClass)
                         }
                     }
                 }
@@ -535,20 +631,23 @@ class DataSchemaBuilder(
             types.forEach(::visit)
         }
 
-        checkDiscoveredTypeForIllegalHiddenTypeUsages(host, allTypeDiscoveries)
-
-        return PreIndex().apply {
+        return PreIndex(allTypeDiscoveries).apply {
             allTypesToVisit.forEach { type ->
                 host.inContextOfModelClass(type) {
                     addType(type)
                     val properties = propertyExtractor.extractProperties(host, type)
-                    properties.forEach {
-                        it.claimedFunctions.forEach { f -> claimFunction(type, f) }
-                        addProperty(
-                            type,
-                            DefaultDataProperty(it.name, it.returnType, it.propertyMode, it.hasDefaultValue, it.isHiddenInDefinition, it.isDirectAccessOnly),
-                            it.originalReturnType
-                        )
+                    properties.forEach { result ->
+                        when (result) {
+                            is ExtractionResult.Extracted -> {
+                                result.metadata.fromMembers.forEach { host.recordClaimedMember(type, it) }
+                                addProperty(type, result.result)
+                            }
+                            is ExtractionResult.Failure -> {
+                                result.metadata.fromMembers.forEach {
+                                    host.recordMemberWithFailure(type, it, result.failure)
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -557,25 +656,21 @@ class DataSchemaBuilder(
 
     private fun checkDiscoveredTypeForIllegalHiddenTypeUsages(
         host: SchemaBuildingHost,
-        allDiscoveries: MutableSet<TypeDiscovery.DiscoveredClass>
-    ) {
-        allDiscoveries.groupBy { it.kClass }.forEach { (kClass, discoveries) ->
+        allDiscoveries: Set<DiscoveredClass>
+    ): List<SchemaResult.Failure> =
+        allDiscoveries.groupBy { it.kClass }.entries.flatMap { (kClass, discoveries) ->
             if (!isIgnoredInVisibilityChecks(kClass) && discoveries.any { it.isHidden } && discoveries.any { !it.isHidden }) {
-                host.schemaBuildingFailure(
-                    "Type '${kClass.qualifiedName}' is a hidden type and cannot be directly used." +
-                            "\n  Appears as hidden:\n" +
-                            discoveries.filter { it.isHidden }
-                                .flatMap { it.discoveryTags }
-                                .joinToString("\n") { "    - ${discoveryTagDescription(it, kClass)}" } +
-                            "\n  Illegal usages:\n" +
-                            discoveries.filterNot { it.isHidden }
-                                .flatMap { it.discoveryTags }
-                                .filter { it !is Supertype || it.ofType != kClass } // Filter out the self appearance in the type hierarchy
-                                .joinToString("\n") { "    - ${discoveryTagDescription(it, kClass)}" }
-                )
-            }
+                val hiddenBecause = discoveries.filter { it.isHidden }
+                    .flatMap { it.discoveryTags }
+
+                val illegalUsages = discoveries.filterNot { it.isHidden }
+                    .flatMap { it.discoveryTags }
+                    .filter { it !is Supertype || it.ofType != kClass } // Filter out the self-appearance in the type hierarchy
+
+
+                listOf(host.schemaBuildingFailure(SchemaBuildingIssue.HiddenTypeUsedInDeclaration(kClass, hiddenBecause, illegalUsages)))
+            } else emptyList()
         }
-    }
 
     /**
      * Some types are widely used and do not make sense to hide; however, a model might accidentally hide them in a type hierarchy.
@@ -586,15 +681,6 @@ class DataSchemaBuilder(
         Any::class, Unit::class,
         String::class, Int::class, Boolean::class, Long::class, Double::class -> true
         else -> false
-    }
-
-    private fun discoveryTagDescription(tag: DiscoveryTag, inTypeHierarchyOf: KClass<*>): String = when (tag) {
-        is ContainerElement -> "as the element of a container '${tag.containerMember}'"
-        is PropertyType -> "as the property type of '${tag.kClass.qualifiedName}.${tag.propertyName}'"
-        is Supertype -> if (tag.ofType == inTypeHierarchyOf && tag.isHidden) "type '${inTypeHierarchyOf.qualifiedName}' is annotated as hidden" else
-            "in the supertypes of '${tag.ofType.qualifiedName}'"
-        is UsedInMember -> "referenced from member '${tag.member}'"
-        is Special -> tag.description
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -612,7 +698,21 @@ class DataSchemaBuilder(
 
             else -> {
                 val properties = preIndex.getAllProperties(kClass)
-                val functions = functionExtractor.memberFunctions(host, kClass, preIndex).toList()
+                val functions = buildList {
+                    val results = functionExtractor.memberFunctions(host, kClass, preIndex)
+                    results.forEach { functionResult ->
+                        when (functionResult) {
+                            is ExtractionResult.Extracted -> {
+                                add(functionResult.result)
+                                functionResult.metadata.fromMembers.forEach { host.recordClaimedMember(kClass, it) }
+                            }
+
+                            is ExtractionResult.Failure -> {
+                                functionResult.metadata.fromMembers.forEach { host.recordMemberWithFailure(kClass, it, functionResult.failure) }
+                            }
+                        }
+                    }
+                }
                 DefaultDataClass(kClass.fqName, kClass.java.name, listOf(), supertypesOf(kClass), properties, functions, emptyList())
             }
         }
@@ -623,6 +723,7 @@ class DataSchemaBuilder(
         return kClass.supertypes.any { it.isSubtypeOf(typeOf<Enum<*>>()) }
     }
 
+    // TODO: make sure this is based on the declarative type hierarchies and takes the visibility into account
     private
     fun supertypesOf(kClass: KClass<*>): Set<FqName> = buildSet {
         fun visit(supertype: KType) {
