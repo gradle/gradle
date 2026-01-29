@@ -21,6 +21,7 @@ import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
 import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
+import org.gradle.plugins.signing.signatory.internal.pgp.PrivateKeyExtractor;
 import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedInputStream;
@@ -40,9 +41,23 @@ import static org.gradle.internal.IoActions.uncheckedClose;
 public class PgpSignatoryFactory {
 
     private static final String[] PROPERTIES = new String[]{"keyId", "secretKeyRingFile", "password"};
+    private static final String DEFAULT_SIGNATORY_NAME = "default";
+
+    private final PrivateKeyExtractor keyLoader;
+
+    /**
+     * Used in tests and in clients that do not care for caching extracted primary keys.
+     */
+    public PgpSignatoryFactory() {
+        keyLoader = PrivateKeyExtractor.DEFAULT;
+    }
+
+    public PgpSignatoryFactory(PrivateKeyExtractor keyLoader) {
+        this.keyLoader = keyLoader;
+    }
 
     public PgpSignatory createSignatory(Project project, boolean required) {
-        return readProperties(project, null, "default", required);
+        return readProperties(project, null, DEFAULT_SIGNATORY_NAME, required);
     }
 
     public PgpSignatory createSignatory(Project project) {
@@ -70,11 +85,11 @@ public class PgpSignatoryFactory {
     }
 
     public PgpSignatory createSignatory(String name, PGPSecretKey secretKey, String password) {
-        return new PgpSignatory(name, secretKey, password);
-    }
-
-    protected PgpSignatory readProperties(Project project, String prefix, String name) {
-        return readProperties(project, prefix, name, false);
+        if (DEFAULT_SIGNATORY_NAME.equals(name)) {
+            return new PgpSignatory(name, secretKey, keyLoader.extractPrivateKey(secretKey, password));
+        } else {
+            return new PgpSignatory(name, secretKey, password);
+        }
     }
 
     protected PgpSignatory readProperties(Project project, String prefix, String name, boolean required) {
@@ -95,7 +110,7 @@ public class PgpSignatoryFactory {
         return createSignatory(name, keyId, keyRing, password);
     }
 
-    private Object getPropertySafely(Project project, String qualifiedProperty, boolean required) {
+    private static Object getPropertySafely(Project project, String qualifiedProperty, boolean required) {
         final boolean propertyFound = project.hasProperty(qualifiedProperty);
 
         if (!propertyFound && required) {
@@ -113,11 +128,11 @@ public class PgpSignatoryFactory {
         return null;
     }
 
-    protected Object getQualifiedPropertyName(final String propertyPrefix, final String name) {
+    protected static Object getQualifiedPropertyName(final String propertyPrefix, final String name) {
         return "signing." + (propertyPrefix != null ? propertyPrefix + "." : "") + name;
     }
 
-    public PGPSecretKey readSecretKey(final String keyId, final File file) {
+    public static PGPSecretKey readSecretKey(final String keyId, final File file) {
         InputStream inputStream = openSecretKeyFile(file);
         try {
             return readSecretKey(inputStream, keyId, "file: " + file.getAbsolutePath());
@@ -126,7 +141,7 @@ public class PgpSignatoryFactory {
         }
     }
 
-    private InputStream openSecretKeyFile(File file) {
+    private static InputStream openSecretKeyFile(File file) {
         try {
             return new BufferedInputStream(new FileInputStream(file));
         } catch (FileNotFoundException e) {
@@ -134,7 +149,7 @@ public class PgpSignatoryFactory {
         }
     }
 
-    protected PGPSecretKey readSecretKey(InputStream input, String keyId, String sourceDescription) {
+    protected static PGPSecretKey readSecretKey(InputStream input, String keyId, String sourceDescription) {
         PGPSecretKeyRingCollection keyRingCollection;
         try {
             keyRingCollection = new BcPGPSecretKeyRingCollection(input);
@@ -144,7 +159,7 @@ public class PgpSignatoryFactory {
         return readSecretKey(keyRingCollection, normalizeKeyId(keyId), sourceDescription);
     }
 
-    protected PGPSecretKey readSecretKey(PGPSecretKeyRingCollection keyRings, final PgpKeyId keyId, String sourceDescription) {
+    protected static PGPSecretKey readSecretKey(PGPSecretKeyRingCollection keyRings, final PgpKeyId keyId, String sourceDescription) {
         PGPSecretKey key = findSecretKey(keyRings, keyId);
         if (key == null) {
             throw new InvalidUserDataException("did not find secret key for id '" + keyId + "' in key source '" + sourceDescription + "'");
@@ -153,7 +168,7 @@ public class PgpSignatoryFactory {
     }
 
     @Nullable
-    private PGPSecretKey findSecretKey(PGPSecretKeyRingCollection keyRings, PgpKeyId keyId) {
+    private static PGPSecretKey findSecretKey(PGPSecretKeyRingCollection keyRings, PgpKeyId keyId) {
         Iterator<PGPSecretKeyRing> keyRingIterator = uncheckedCast(keyRings.getKeyRings());
         while (keyRingIterator.hasNext()) {
             PGPSecretKeyRing keyRing = keyRingIterator.next();
@@ -168,11 +183,11 @@ public class PgpSignatoryFactory {
         return null;
     }
 
-    private boolean hasId(PgpKeyId keyId, PGPSecretKey secretKey) {
+    private static boolean hasId(PgpKeyId keyId, PGPSecretKey secretKey) {
         return new PgpKeyId(secretKey.getKeyID()).equals(keyId);
     }
 
-    protected PgpKeyId normalizeKeyId(String keyId) {
+    protected static PgpKeyId normalizeKeyId(String keyId) {
         try {
             return new PgpKeyId(keyId);
         } catch (IllegalArgumentException e) {
