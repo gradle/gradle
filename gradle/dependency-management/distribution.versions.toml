@@ -1,156 +1,77 @@
+# some versions are in shared-versions.properties
 [versions]
-aircompressor = "0.27!!"
 ant = "1.10.15!!"
-archunit = "1.4.1!!"
 # Don't forget to bump versions in
 # platforms/core-runtime/base-asm/src/main/java/org/gradle/model/internal/asm/AsmConstants.java
 # when upgrading ASM.
 asm = "9.9!!"
-assertj = "3.23.1!!"
-awaitility = "3.1.6!!"
 awsS3 = "1.12.780!!"
 bouncycastle = "1.81!!"
-bsh = "2.0b6!!"
-bytebuddy = "1.17.5!!"
-cglib = "3.2.6!!"
 commonsCodec = "1.18.0!!"
 commonsCompress = "1.26.1!!"
 commonsHttpclient = "4.5.14!!"
 commonsIo = "2.15.1!!"
 commonsLang = "3.20.0!!"
-commonsMath = "3.6.1!!"
-compileTesting = "0.21.0!!"
-configurationCacheReport = "1.31!!"
-develocityTestAnnotation = "2.0.1!!"
-dockerJavaApi = "3.4.0!!"
-eclipseSisuPlexus = "0.3.5!!"
-equalsverifier = "2.1.6!!"
-errorProne = "2.42.0!!"
 fastutil = "8.5.2!!"
 gcs = "v1-rev20220705-1.32.1!!"
-googleApiClient = "1.34.0!!"
-googleHttpClient = "1.42.2!!" # Covers googleHttpClient, googleHttpClientGson, googleHttpClientApacheV2
-googleOauthClient = "1.34.1!!"
+googleApiClient = "1.34.0!!" # our GCS version requires 1.34.0
+googleHttpClient = "1.42.2!!" # Covers googleHttpClient, googleHttpClientGson, googleHttpClientApacheV2, our Google API Client version requires it
+googleOauthClient = "1.34.1!!" # our Google API Client version requires 1.34.1
 gradleFileEvents = "0.2.8!!"
-gradleIdeStarter = "0.8.2!!"
-gradleProfiler = "0.24.0-alpha-1!!"
-groovy = "4.0.29!!"
 gson = "2.13.1!!"
 guava = "33.4.6-jre"
-guice = "5.1.0!!"
-h2Database = "2.2.220!!"
-hamcrest = "3.0!!"
-hikariCP = "4.0.3!!"
 httpcore = "4.4.14!!"
-httpmime = "4.5.10!!"
 inject = "1!!"
 ivy = "2.5.3!!"
-jackson = "2.16.1!!"
-jakartaActivation = "2.0.1!!"
-jakartaXmlBind = "3.0.0!!" # Matches jaxb version variable
 jansi = "2.4.2!!" # If JANSI is updated run on a Windows terminal CMD.EXE to make sure the ansi control characters are not messing up the output
 jatl = "0.2.3!!"
 javaParser = "3.27.1!!"
 javaPoet = "1.13.0!!"
 jaxb = "3.0.0!!"
 jcifs = "1.3.17!!"
-jcommander = "1.78!!"
 jetbrainsAnnotations = "24.0.1!!"
-jetty = "9.4.36.v20210114!!"
 jgit = "7.2.1.202505142326-r!!"
 jna = "5.17.0!!"
 jnr = "0.10.4!!"
 joda = "2.14.0!!"
-joptSimple = "5.0.4!!"
 jsch = "0.2.16!!"
 jsoup = "1.15.3!!"
 jspecify = "1.0.0!!"
 jsr305 = "3.0.2!!"
-jtar = "2.3!!"
-junit = "4.13.2!!"
-junit5 = "5.12.2!!"
-junitPlatform = "1.12.2!!" # Covers junitPlatform and junitPlatformEngine
-jzlib = "1.1.3!!"
 kotlin = "2.3.0!!"
-kotlinCoroutines = "1.10.2!!"
 kotlinxSerialization = "1.9.0!!"
 kryo = "2.24.0!!"
-littleproxy = "2.0.5!!"
-maven = "3.9.5!!"
-mavenResolver = "1.9.16!!"
 minlog = "1.2!!"
-mockitoCore = "5.17.0!!"
-mockitoKotlin = "4.1.0!!"
-mockwebserver = "4.12.0!!"
-mySqlConnector = "9.2.0!!"
 nativePlatform = "0.22-milestone-29!!"
-netty = "4.1.63.Final"
-objenesis = "2.6!!"
-opentest4j = "1.3.0!!"
+objenesis = "2.6!!" # transitive dependency of kryo
 plexusCipher = "2.0!!"
-plexusClassworlds = "2.7.0!!"
 plexusInterpolation = "1.26!!"
 plexusSecDispatcher = "2.0!!"
 plexusUtils = "3.5.1!!"
 plist = "1.27!!"
-samples = "1.0.3!!" # samplesCheck, samplesDiscovery
-servletApi = "3.1.0!!"
 slf4j = "2.0.17!!"
 snakeyaml = "2.0!!"
-snappy = "0.5!!"
-socksProxy = "4.1.2!!"
-spock = "2.3-groovy-4.0!!"
 sshd = "2.15.0!!"
-testcontainers = "1.20.4!!"
-testng = "6.3.1!!"
 tomlj = "1.0.0!!"
-trove4j = "1.0.20200330!!"
-xbeanReflect = "3.18!!"
-xerces = "2.12.0!!"
-xmlApis = "1.4.01!!"
-xmlunit = "1.6!!"
-zinc = "1.12.0!!"
 
 [libraries]
-aircompressor = { group = "io.airlift", name = "aircompressor", version.ref = "aircompressor" }
-ansiControlSequenceUtil = { group = "net.rubygrapefruit", name = "ansi-control-sequence-util", version = "0.3" }
 ant = { group = "org.apache.ant", name = "ant", version.ref = "ant" }
 antLauncher = { group = "org.apache.ant", name = "ant-launcher", version.ref = "ant" }
-archunit = { group = "com.tngtech.archunit", name = "archunit", version.ref = "archunit" }
-archunitJunit5 = { group = "com.tngtech.archunit", name = "archunit-junit5", version.ref = "archunit" }
-archunitJunit5Api = { group = "com.tngtech.archunit", name = "archunit-junit5-api", version.ref = "archunit" }
 asm = { group = "org.ow2.asm", name = "asm", version.ref = "asm" }
-asmAnalysis = { group = "org.ow2.asm", name = "asm-analysis", version.ref = "asm" }
 asmCommons = { group = "org.ow2.asm", name = "asm-commons", version.ref = "asm" }
 asmTree = { group = "org.ow2.asm", name = "asm-tree", version.ref = "asm" }
 asmUtil = { group = "org.ow2.asm", name = "asm-util", version.ref = "asm" }
-assertj = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }
-awaitility = { group = "org.awaitility", name = "awaitility-kotlin", version.ref = "awaitility" }
 awsS3Core = { group = "com.amazonaws", name = "aws-java-sdk-core", version.ref = "awsS3" }
 awsS3Kms = { group = "com.amazonaws", name = "aws-java-sdk-kms", version.ref = "awsS3" }
 awsS3S3 = { group = "com.amazonaws", name = "aws-java-sdk-s3", version.ref = "awsS3" }
 awsS3Sts = { group = "com.amazonaws", name = "aws-java-sdk-sts", version.ref = "awsS3" }
 bouncycastlePgp = { group = "org.bouncycastle", name = "bcpg-jdk18on", version.ref = "bouncycastle" }
-bouncycastlePkix = { group = "org.bouncycastle", name = "bcpkix-jdk18on", version.ref = "bouncycastle" }
 bouncycastleProvider = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle" }
-bouncycastleUtil = { group = "org.bouncycastle", name = "bcutil-jdk18on", version.ref = "bouncycastle" }
-bsh = { group = "org.apache-extras.beanshell", name = "bsh", version.ref = "bsh" }
-bytebuddy = { group = "net.bytebuddy", name = "byte-buddy", version.ref = "bytebuddy" }
-bytebuddyAgent = { group = "net.bytebuddy", name = "byte-buddy-agent", version.ref = "bytebuddy" }
-cglib = { group = "cglib", name = "cglib", version.ref = "cglib" }
 commonsCodec = { group = "commons-codec", name = "commons-codec", version.ref = "commonsCodec" }
 commonsCompress = { group = "org.apache.commons", name = "commons-compress", version.ref = "commonsCompress" }
 commonsHttpclient = { group = "org.apache.httpcomponents", name = "httpclient", version.ref = "commonsHttpclient" }
 commonsIo = { group = "commons-io", name = "commons-io", version.ref = "commonsIo" }
 commonsLang = { group = "org.apache.commons", name = "commons-lang3", version.ref = "commonsLang" }
-commonsMath = { group = "org.apache.commons", name = "commons-math3", version.ref = "commonsMath" }
-compileTesting = { group = "com.google.testing.compile", name = "compile-testing", version.ref = "compileTesting" }
-configurationCacheReport = { group = "org.gradle.buildtool.internal", name = "configuration-cache-report", version.ref = "configurationCacheReport" }
-develocityTestAnnotation = { group = "com.gradle", name = "develocity-testing-annotations", version.ref = "develocityTestAnnotation" }
-dockerJavaApi = { group = "com.github.docker-java", name = "docker-java-api", version.ref = "dockerJavaApi" }
-eclipseSisuPlexus = { group = "org.eclipse.sisu", name = "org.eclipse.sisu.plexus", version.ref = "eclipseSisuPlexus" }
-equalsverifier = { group = "nl.jqno.equalsverifier", name = "equalsverifier", version.ref = "equalsverifier" }
-errorProne = { module = "com.google.errorprone:error_prone_core", version.ref = "errorProne" }
 errorProneAnnotations = { group = "com.google.errorprone", name = "error_prone_annotations", version.ref = "errorProne" }
 fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil" }
 gcs = { group = "com.google.apis", name = "google-api-services-storage", version.ref = "gcs" }
@@ -160,31 +81,19 @@ googleHttpClientApacheV2 = { group = "com.google.http-client", name = "google-ht
 googleHttpClientGson = { group = "com.google.http-client", name = "google-http-client-gson", version.ref = "googleHttpClient" }
 googleOauthClient = { group = "com.google.oauth-client", name = "google-oauth-client", version.ref = "googleOauthClient" }
 gradleFileEvents = { group = "org.gradle.fileevents", name = "gradle-fileevents", version.ref = "gradleFileEvents" }
-gradleIdeStarter = { group = "org.gradle.buildtool.internal", name = "gradle-ide-starter", version.ref = "gradleIdeStarter" }
-gradleIdeStarterScenarios = { group = "org.gradle.buildtool.internal", name = "gradle-ide-starter-scenarios", version.ref = "gradleIdeStarter" }
-gradleProfiler = { group = "org.gradle.profiler", name = "gradle-profiler", version.ref = "gradleProfiler" }
 groovy = { group = "org.apache.groovy", name = "groovy", version.ref = "groovy" } # Assuming Groovy 3 group
 groovyAnt = { group = "org.apache.groovy", name = "groovy-ant", version.ref = "groovy" }
 groovyAstbuilder = { group = "org.apache.groovy", name = "groovy-astbuilder", version.ref = "groovy" }
-groovyConsole = { group = "org.apache.groovy", name = "groovy-console", version.ref = "groovy" }
 groovyDateUtil = { group = "org.apache.groovy", name = "groovy-dateutil", version.ref = "groovy" }
 groovyDatetime = { group = "org.apache.groovy", name = "groovy-datetime", version.ref = "groovy" }
 groovyDoc = { group = "org.apache.groovy", name = "groovy-groovydoc", version.ref = "groovy" }
 groovyJson = { group = "org.apache.groovy", name = "groovy-json", version.ref = "groovy" }
 groovyNio = { group = "org.apache.groovy", name = "groovy-nio", version.ref = "groovy" }
-groovySql = { group = "org.apache.groovy", name = "groovy-sql", version.ref = "groovy" }
 groovyTemplates = { group = "org.apache.groovy", name = "groovy-templates", version.ref = "groovy" }
-groovyTest = { group = "org.apache.groovy", name = "groovy-test", version.ref = "groovy" }
 groovyXml = { group = "org.apache.groovy", name = "groovy-xml", version.ref = "groovy" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
-guice = { group = "com.google.inject", name = "guice", version.ref = "guice" }
-h2Database = { group = "com.h2database", name = "h2", version.ref = "h2Database" }
-hamcrest = { group = "org.hamcrest", name = "hamcrest", version.ref = "hamcrest" }
-hamcrestCore = { group = "org.hamcrest", name = "hamcrest-core", version.ref = "hamcrest" }
-hikariCP = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikariCP" }
 httpcore = { group = "org.apache.httpcomponents", name = "httpcore", version.ref = "httpcore" }
-httpmime = { group = "org.apache.httpcomponents", name = "httpmime", version.ref = "httpmime" }
 inject = { group = "javax.inject", name = "javax.inject", version.ref = "inject" }
 ivy = { group = "org.apache.ivy", name = "ivy", version.ref = "ivy" }
 jacksonAnnotations = { group = "com.fasterxml.jackson.core", name = "jackson-annotations", version.ref = "jackson" }
@@ -192,25 +101,13 @@ jacksonCore = { group = "com.fasterxml.jackson.core", name = "jackson-core", ver
 jacksonDatabind = { group = "com.fasterxml.jackson.core", name = "jackson-databind", version.ref = "jackson" }
 jacksonDatatypeJdk8 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jdk8", version.ref = "jackson" }
 jacksonDatatypeJsr310 = { group = "com.fasterxml.jackson.datatype", name = "jackson-datatype-jsr310", version.ref = "jackson" }
-jacksonKotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }
-jakartaActivation = { group = "com.sun.activation", name = "jakarta.activation", version.ref = "jakartaActivation" }
-jakartaXmlBind = { group = "jakarta.xml.bind", name = "jakarta.xml.bind-api", version.ref = "jakartaXmlBind" }
 jansi = { group = "org.fusesource.jansi", name = "jansi", version.ref = "jansi" }
 jatl = { group = "com.googlecode.jatl", name = "jatl", version.ref = "jatl" }
 javaParser = { group = "com.github.javaparser", name = "javaparser-core", version.ref = "javaParser" }
 javaPoet = { group = "com.squareup", name = "javapoet", version.ref = "javaPoet" }
-jaxbCore = { group = "com.sun.xml.bind", name = "jaxb-core", version.ref = "jaxb" }
-jaxbImpl = { group = "com.sun.xml.bind", name = "jaxb-impl", version.ref = "jaxb" }
 jcifs = { group = "jcifs", name = "jcifs", version.ref = "jcifs" }
 jclToSlf4j = { group = "org.slf4j", name = "jcl-over-slf4j", version.ref = "slf4j" }
-jcommander = { group = "com.beust", name = "jcommander", version.ref = "jcommander" }
 jetbrainsAnnotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrainsAnnotations" }
-jetty = { group = "org.eclipse.jetty", name = "jetty-http", version.ref = "jetty" }
-jettySecurity = { group = "org.eclipse.jetty", name = "jetty-security", version.ref = "jetty" }
-jettyServer = { group = "org.eclipse.jetty", name = "jetty-server", version.ref = "jetty" }
-jettyServlet = { group = "org.eclipse.jetty", name = "jetty-servlet", version.ref = "jetty" }
-jettyUtil = { group = "org.eclipse.jetty", name = "jetty-util", version.ref = "jetty" }
-jettyWebApp = { group = "org.eclipse.jetty", name = "jetty-webapp", version.ref = "jetty" }
 jgit = { group = "org.eclipse.jgit", name = "org.eclipse.jgit", version.ref = "jgit" }
 jgitSsh = { group = "org.eclipse.jgit", name = "org.eclipse.jgit.ssh.apache", version.ref = "jgit" }
 jgitSshAgent = { group = "org.eclipse.jgit", name = "org.eclipse.jgit.ssh.apache.agent", version.ref = "jgit" }
@@ -218,21 +115,11 @@ jna = { group = "net.java.dev.jna", name = "jna", version.ref = "jna" }
 jnaPlatform = { group = "net.java.dev.jna", name = "jna-platform", version.ref = "jna" }
 jnrConstants = { group = "com.github.jnr", name = "jnr-constants", version.ref = "jnr" }
 joda = { group = "joda-time", name = "joda-time", version.ref = "joda" }
-joptSimple = { group = "net.sf.jopt-simple", name = "jopt-simple", version.ref = "joptSimple" }
 jsch = { group = "com.github.mwiede", name = "jsch", version.ref = "jsch" }
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 jspecify = { group = "org.jspecify", name = "jspecify", version.ref = "jspecify" }
 jsr305 = { group = "com.google.code.findbugs", name = "jsr305", version.ref = "jsr305" }
-jtar = { group = "org.kamranzafar", name = "jtar", version.ref = "jtar" }
 julToSlf4j = { group = "org.slf4j", name = "jul-to-slf4j", version.ref = "slf4j" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-junit5JupiterApi = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit5" }
-junit5Vintage = { group = "org.junit.vintage", name = "junit-vintage-engine", version.ref = "junit5" }
-junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junit5" }
-junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit5" }
-junitPlatform = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junitPlatform" }
-junitPlatformEngine = { group = "org.junit.platform", name = "junit-platform-engine", version.ref = "junitPlatform" }
-jzlib = { group = "com.jcraft", name = "jzlib", version.ref = "jzlib" }
 kotlinAssignment = { group = "org.jetbrains.kotlin", name = "kotlin-assignment", version.ref = "kotlin" }
 kotlinAssignmentCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "kotlin-assignment-compiler-plugin-embeddable", version.ref = "kotlin" }
 kotlinBuildToolsImpl = { group = "org.jetbrains.kotlin", name = "kotlin-build-tools-impl", version.ref = "kotlin" }
@@ -251,69 +138,27 @@ kotlinScriptingCompilerImplEmbeddable = { group = "org.jetbrains.kotlin", name =
 kotlinScriptingJvm = { group = "org.jetbrains.kotlin", name = "kotlin-scripting-jvm", version.ref = "kotlin" }
 kotlinScriptingJvmHost = { group = "org.jetbrains.kotlin", name = "kotlin-scripting-jvm-host", version.ref = "kotlin" }
 kotlinStdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
-kotlinxCoroutines = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinCoroutines" }
 kotlinxCoroutinesJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-jvm", version.ref = "kotlinCoroutines" }
-kotlinxCoroutinesDebug = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-debug", version.ref = "kotlinCoroutines" }
 kotlinxSerializationCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
 kotlinxSerializationJson = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kryo = { group = "com.esotericsoftware.kryo", name = "kryo", version.ref = "kryo" }
-littleproxy = { group = "xyz.rogfam", name = "littleproxy", version.ref = "littleproxy" }
 log4jToSlf4j = { group = "org.slf4j", name = "log4j-over-slf4j", version.ref = "slf4j" }
-maven3Artifact = { group = "org.apache.maven", name = "maven-artifact", version.ref = "maven" }
-maven3BuilderSupport = { group = "org.apache.maven", name = "maven-builder-support", version.ref = "maven" }
-maven3Compat = { group = "org.apache.maven", name = "maven-compat", version.ref = "maven" }
-maven3Core = { group = "org.apache.maven", name = "maven-core", version.ref = "maven" }
 maven3Model = { group = "org.apache.maven", name = "maven-model", version.ref = "maven" }
-maven3PluginApi = { group = "org.apache.maven", name = "maven-plugin-api", version.ref = "maven" }
 maven3RepositoryMetadata = { group = "org.apache.maven", name = "maven-repository-metadata", version.ref = "maven" }
-maven3ResolverProvider = { group = "org.apache.maven", name = "maven-resolver-provider", version.ref = "maven" }
 maven3Settings = { group = "org.apache.maven", name = "maven-settings", version.ref = "maven" }
 maven3SettingsBuilder = { group = "org.apache.maven", name = "maven-settings-builder", version.ref = "maven" }
-mavenResolverApi = { group = "org.apache.maven.resolver", name = "maven-resolver-api", version.ref = "mavenResolver" }
-mavenResolverConnectorBasic = { group = "org.apache.maven.resolver", name = "maven-resolver-connector-basic", version.ref = "mavenResolver" }
-mavenResolverImpl = { group = "org.apache.maven.resolver", name = "maven-resolver-impl", version.ref = "mavenResolver" }
-mavenResolverSupplier = { group = "org.apache.maven.resolver", name = "maven-resolver-supplier", version.ref = "mavenResolver" }
-mavenResolverTransportFile = { group = "org.apache.maven.resolver", name = "maven-resolver-transport-file", version.ref = "mavenResolver" }
-mavenResolverTransportHttp = { group = "org.apache.maven.resolver", name = "maven-resolver-transport-http", version.ref = "mavenResolver" }
 minlog = { group = "com.esotericsoftware.minlog", name = "minlog", version.ref = "minlog" }
-mockitoCore = { group = "org.mockito", name = "mockito-core", version.ref = "mockitoCore" }
-mockitoKotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "mockwebserver" }
-mySqlConnector = { group = "com.mysql", name = "mysql-connector-j", version.ref = "mySqlConnector" }
 nativePlatform = { group = "net.rubygrapefruit", name = "native-platform", version.ref = "nativePlatform" }
-netty = { group = "io.netty", name = "netty-all", version.ref = "netty" }
-nullaway = { module = "com.uber.nullaway:nullaway", version = "0.12.10" }
 objenesis = { group = "org.objenesis", name = "objenesis", version.ref = "objenesis" }
-opentest4j = { group = "org.opentest4j", name = "opentest4j", version.ref = "opentest4j" }
 plexusCipher = { group = "org.sonatype.plexus", name = "plexus-cipher", version.ref = "plexusCipher" }
-plexusClassworlds = { group = "org.codehaus.plexus", name = "plexus-classworlds", version.ref = "plexusClassworlds" }
 plexusInterpolation = { group = "org.codehaus.plexus", name = "plexus-interpolation", version.ref = "plexusInterpolation" }
 plexusSecDispatcher = { group = "org.codehaus.plexus", name = "plexus-sec-dispatcher", version.ref = "plexusSecDispatcher" }
 plexusUtils = { group = "org.codehaus.plexus", name = "plexus-utils", version.ref = "plexusUtils" }
 plist = { group = "com.googlecode.plist", name = "dd-plist", version.ref = "plist" }
-pmavenCommon = { group = "org.sonatype.pmaven", name = "pmaven-common" } # No version constraint found
-pmavenGroovy = { group = "org.sonatype.pmaven", name = "pmaven-groovy" } # No version constraint found
-samplesCheck = { group = "org.gradle.exemplar", name = "samples-check", version.ref = "samples" }
-samplesDiscovery = { group = "org.gradle.exemplar", name = "samples-discovery", version.ref = "samples" }
-servletApi = { group = "javax.servlet", name = "javax.servlet-api", version.ref = "servletApi" }
 slf4jApi = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
-slf4jSimple = { group = "org.slf4j", name = "slf4j-simple", version.rejectAll = true }
 snakeyaml = { group = "org.yaml", name = "snakeyaml", version.ref = "snakeyaml" }
-snappy = { group = "org.iq80.snappy", name = "snappy", version.ref = "snappy" }
-socksProxy = { group = "com.github.bbottema", name = "java-socks-proxy-server", version.ref = "socksProxy" }
-spock = { group = "org.spockframework", name = "spock-core", version.ref = "spock" }
-spockJUnit4 = { group = "org.spockframework", name = "spock-junit4", version.ref = "spock" }
 sshdCore = { group = "org.apache.sshd", name = "sshd-core", version.ref = "sshd" }
-sshdOsgi = { group = "org.apache.sshd", name = "sshd-osgi", version.ref = "sshd" }
+sshdOsgi = { group = "org.apache.sshd", name = "sshd-osgi", version.ref = "sshd" } # It contains sshd-core and sshd-common classes
 sshdScp = { group = "org.apache.sshd", name = "sshd-scp", version.ref = "sshd" }
 sshdSftp = { group = "org.apache.sshd", name = "sshd-sftp", version.ref = "sshd" }
-testcontainers = { group = "org.testcontainers", name = "testcontainers", version.ref = "testcontainers" }
-testcontainersSpock = { group = "org.testcontainers", name = "spock", version.ref = "testcontainers" }
-testng = { group = "org.testng", name = "testng", version.ref = "testng" }
 tomlj = { group = "org.tomlj", name = "tomlj", version.ref = "tomlj" }
-trove4j = { group = "org.jetbrains.intellij.deps", name = "trove4j", version.ref = "trove4j" }
-xbeanReflect = { group = "org.apache.xbean", name = "xbean-reflect", version.ref = "xbeanReflect" }
-xerces = { group = "xerces", name = "xercesImpl", version.ref = "xerces" }
-xmlApis = { group = "xml-apis", name = "xml-apis", version.ref = "xmlApis" }
-xmlunit = { group = "xmlunit", name = "xmlunit", version.ref = "xmlunit" }
-zinc = { group = "org.scala-sbt", name = "zinc_2.13", version.ref = "zinc" }

@@ -23,7 +23,7 @@ dependencies {
     implementation(projects.time)
     implementation(libs.guava)
 
-    compileOnly(libs.zinc) {
+    compileOnly(providedLibs.zinc) {
         // Because not needed and was vulnerable
         exclude(module="log4j-core")
         exclude(module="log4j-api")

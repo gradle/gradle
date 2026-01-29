@@ -49,7 +49,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
-    compileOnly(libs.junit) {
+    compileOnly(providedLibs.junit) {
         because("The actual version is provided by the user on the testRuntimeClasspath")
     }
 

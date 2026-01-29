@@ -35,18 +35,18 @@ dependencies {
     api(projects.time)
     api(projects.toolingApi)
 
-    api(libs.gradleProfiler) {
+    api(testLibs.gradleProfiler) {
         because("Consumers need to instantiate BuildMutators")
     }
     api(libs.guava)
     api(libs.groovy)
     api(libs.jacksonAnnotations)
     api(libs.jatl)
-    api(libs.jettyServer)
-    api(libs.jettyWebApp)
+    api(testLibs.jettyServer)
+    api(testLibs.jettyWebApp)
     api(libs.jspecify)
-    api(libs.junit)
-    api(libs.spock)
+    api(testLibs.junit)
+    api(testLibs.spock)
 
     implementation(projects.classloaders)
     implementation(projects.concurrent)
@@ -55,18 +55,18 @@ dependencies {
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
-    implementation(libs.commonsMath)
+    implementation(testLibs.commonsMath)
     implementation(libs.groovyJson)
-    implementation(libs.hikariCP)
+    implementation(testLibs.hikariCP)
     implementation(libs.jacksonCore)
     implementation(libs.jacksonDatabind)
-    implementation(libs.jettyUtil)
-    implementation(libs.joptSimple)
+    implementation(testLibs.jettyUtil)
+    implementation(testLibs.joptSimple)
     implementation(libs.slf4jApi)
 
     runtimeOnly(libs.jclToSlf4j)
-    runtimeOnly(libs.jetty)
-    runtimeOnly(libs.mySqlConnector)
+    runtimeOnly(testLibs.jetty)
+    runtimeOnly(testLibs.mySqlConnector)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }

@@ -44,8 +44,8 @@ dependencies {
     testFixturesImplementation(testFixtures(projects.core))
 
     testFixturesImplementation(libs.slf4jApi)
-    testFixturesImplementation(libs.jetty)
-    testFixturesImplementation(libs.jettyWebApp)
+    testFixturesImplementation(testLibs.jetty)
+    testFixturesImplementation(testLibs.jettyWebApp)
 }
 
 strictCompile {

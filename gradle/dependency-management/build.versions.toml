@@ -1,0 +1,5 @@
+# some versions are in shared-versions.properties
+[libraries]
+errorProne = { module = "com.google.errorprone:error_prone_core", version.ref = "errorProne" }
+nullaway = { module = "com.uber.nullaway:nullaway", version = "0.12.10" }
+configurationCacheReport = { group = "org.gradle.buildtool.internal", name = "configuration-cache-report", version = "1.31" }

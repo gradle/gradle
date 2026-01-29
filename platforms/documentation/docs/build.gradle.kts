@@ -79,16 +79,16 @@ dependencies {
     testImplementation(project(":base-services"))
     testImplementation(project(":core"))
     testImplementation(libs.jsoup)
-    testImplementation("org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2")
+    testImplementation(testLibs.selenium)
     testImplementation(libs.commonsHttpclient)
-    testImplementation(libs.httpmime)
+    testImplementation(testLibs.httpmime)
 
     docsTestImplementation(platform(project(":distributions-dependencies")))
     docsTestImplementation(project(":internal-integ-testing"))
     docsTestImplementation(project(":base-services"))
     docsTestImplementation(project(":logging"))
-    docsTestImplementation(libs.junit)
-    docsTestRuntimeOnly(libs.junitPlatform)
+    docsTestImplementation(testLibs.junit)
+    docsTestRuntimeOnly(testLibs.junitPlatform)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
