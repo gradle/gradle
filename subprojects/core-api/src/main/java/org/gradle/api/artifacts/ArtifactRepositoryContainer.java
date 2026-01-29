@@ -47,6 +47,7 @@ import org.gradle.util.Configurable;
  * }
  * </pre>
  */
+@HiddenInDefinition
 public interface ArtifactRepositoryContainer extends NamedDomainObjectList<ArtifactRepository>, Configurable<ArtifactRepositoryContainer> {
     String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
     String DEFAULT_MAVEN_LOCAL_REPO_NAME = "MavenLocal";
@@ -59,7 +60,6 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      * @param repository The repository to add.
      */
     @Override
-    @HiddenInDefinition
     boolean add(ArtifactRepository repository);
 
     /**
@@ -67,7 +67,6 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      *
      * @param repository The repository to add.
      */
-    @HiddenInDefinition
     void addFirst(ArtifactRepository repository);
 
     /**
@@ -75,34 +74,29 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      *
      * @param repository The repository to add.
      */
-    @HiddenInDefinition
     void addLast(ArtifactRepository repository);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @HiddenInDefinition
     ArtifactRepository getByName(String name) throws UnknownRepositoryException;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @HiddenInDefinition
     ArtifactRepository getByName(String name, @DelegatesTo(ArtifactRepository.class) Closure configureClosure) throws UnknownRepositoryException;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @HiddenInDefinition
     ArtifactRepository getByName(String name, Action<? super ArtifactRepository> configureAction) throws UnknownRepositoryException;
 
     /**
      * {@inheritDoc}
      */
     @Override
-    @HiddenInDefinition
     ArtifactRepository getAt(String name) throws UnknownRepositoryException;
 }

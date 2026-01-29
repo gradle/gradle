@@ -9,6 +9,7 @@ group = "gradlebuild"
 
 description = "Provides a platform that constrains versions of external dependencies used by Gradle"
 
+// TODO: move it to build.libs.versions.toml
 // Here you should declare versions which should be shared by the different modules of buildSrc itself
 val javaParserVersion = "3.18.0"
 // Note: this currently still contains 3/4 logic as we will temporarily have Groovy 3 for the build itself until we move to a Gradle built with Groovy 4
@@ -27,7 +28,7 @@ dependencies {
     constraints {
         api("org.gradle.guides:gradle-guides-plugin:0.24.0")
         api("org.apache.ant:ant:1.10.15") // Bump the version brought in transitively by gradle-guides-plugin
-        api("com.gradle:develocity-gradle-plugin:4.3.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+        api("com.gradle:develocity-gradle-plugin:4.3.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
         api("com.gradle.publish:plugin-publish-plugin:1.3.1")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.3")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.4.6")

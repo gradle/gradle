@@ -37,7 +37,6 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.classloaders)
     implementation(projects.concurrent)
-    implementation(projects.fileCollections)
     implementation(projects.fileTemp)
     implementation(projects.functional)
     implementation(projects.loggingApi)
@@ -50,7 +49,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
-    compileOnly(libs.junit) {
+    compileOnly(providedLibs.junit) {
         because("The actual version is provided by the user on the testRuntimeClasspath")
     }
 

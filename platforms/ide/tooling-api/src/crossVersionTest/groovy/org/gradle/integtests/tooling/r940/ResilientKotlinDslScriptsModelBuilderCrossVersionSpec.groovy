@@ -726,6 +726,67 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
             Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
     }
 
+    def "return partial model when compilation failure in buildSrc (#brokenFile)"() {
+        given:
+        settingsKotlinFile << """
+            rootProject.name = "root"
+        """
+
+        def buildSrcSettingsFile = file("buildSrc/settings.gradle.kts")
+        buildSrcSettingsFile << """
+            includeBuild("../buildSrc-included")
+        """
+
+        def buildSrcIncluded = file("buildSrc-included")
+        buildSrcIncluded.file("settings.gradle.kts") << """
+            rootProject.name = "buildSrc-included"
+        """
+
+        when:
+        file(brokenFile) << """ broken !!! """
+        fails {
+            resilientModel(it, ROOT_PROJECT_FIRST)
+        }
+
+        then:
+        def e = thrown(BuildException)
+        e.cause.message.contains("Script compilation error")
+        def model = modelCollector.model
+        assertHasScriptModelForFiles(model, *scriptModels)
+        assertHasErrorsInScriptModels(model, *failures)
+
+        where:
+        brokenFile                              | scriptModels                                                                                                                           | failures
+        "buildSrc/settings.gradle.kts"
+                | ["settings.gradle.kts"]
+                | [
+                    Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"),
+                    Pair.of("buildSrc", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"),
+                ]
+
+        "buildSrc/build.gradle.kts"
+                | ["settings.gradle.kts", "buildSrc/settings.gradle.kts", "buildSrc/build.gradle.kts", "buildSrc-included/settings.gradle.kts"]
+                | [
+                    Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
+                    Pair.of("buildSrc", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
+                ]
+
+        "buildSrc-included/settings.gradle.kts"
+                | ["settings.gradle.kts"]
+                | [
+                    Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"),
+                    Pair.of("buildSrc", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"),
+                    Pair.of("buildSrc-included", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*")
+                ]
+
+        "buildSrc-included/build.gradle.kts"
+                | ["settings.gradle.kts", "buildSrc/settings.gradle.kts", "buildSrc-included/settings.gradle.kts", "buildSrc-included/build.gradle.kts"]
+                | [
+                    Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
+                    Pair.of("buildSrc-included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")
+                ]
+    }
+
     void assertHasScriptModelForFiles(KotlinModel model, String... expectedFiles) {
         def scriptModels = model.scriptModels
         def scriptModelsFiles = scriptModels.keySet()
@@ -891,7 +952,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends ToolingApiSp
 
     static class SetStartParameterAction implements BuildAction<String>, Serializable {
 
-        private final boolean resilient;
+        private final boolean resilient
 
         SetStartParameterAction(boolean resilient) {
             this.resilient = resilient

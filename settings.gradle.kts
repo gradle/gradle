@@ -30,7 +30,8 @@ buildscript {
 plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.configuration-cache-compatibility")
-    id("com.gradle.develocity").version("4.3.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+    id("gradlebuild.version-catalogs")
+    id("com.gradle.develocity").version("4.3.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
     id("io.github.gradle.develocity-conventions-plugin").version("0.12.1")
     id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }
@@ -133,7 +134,6 @@ val core = platform("core") {
         subproject("declarative-dsl-provider")
         subproject("declarative-dsl-tooling-models")
         subproject("declarative-dsl-tooling-builders")
-        subproject("declarative-dsl-internal-utils")
         subproject("dependency-management-serialization-codecs")
         subproject("encryption-services")
         subproject("file-collections")
@@ -208,7 +208,7 @@ module("ide") {
 // Software Platform
 val software = platform("software") {
     uses(core)
-    subproject("antlr")
+    subproject("base-compiler-worker")
     subproject("build-init")
     subproject("build-init-specs")
     subproject("build-init-specs-api")
@@ -239,19 +239,25 @@ val software = platform("software") {
 val jvm = platform("jvm") {
     uses(core)
     uses(software)
+    subproject("antlr")
+    subproject("ant-worker")
     subproject("code-quality")
+    subproject("code-quality-workers")
     subproject("distributions-jvm")
     subproject("ear")
+    subproject("groovy-compiler-worker")
+    subproject("groovydoc-worker")
     subproject("jacoco")
+    subproject("jacoco-workers")
+    subproject("java-compiler-plugin")
+    subproject("java-compiler-worker")
+    subproject("java-platform")
     subproject("javadoc")
+    subproject("jvm-compiler-worker")
     subproject("jvm-services")
     subproject("language-groovy")
     subproject("language-java")
     subproject("language-jvm")
-    subproject("toolchains-jvm")
-    subproject("toolchains-jvm-shared")
-    subproject("java-compiler-plugin")
-    subproject("java-platform")
     subproject("normalization-java")
     subproject("platform-jvm")
     subproject("plugins-application")
@@ -263,8 +269,12 @@ val jvm = platform("jvm") {
     subproject("plugins-jvm-test-suite")
     subproject("plugins-test-report-aggregation")
     subproject("scala")
+    subproject("scaladoc-worker")
+    subproject("scala-compiler-worker")
     subproject("testing-jvm")
     subproject("testing-jvm-infrastructure")
+    subproject("toolchains-jvm")
+    subproject("toolchains-jvm-shared")
     subproject("war")
 }
 

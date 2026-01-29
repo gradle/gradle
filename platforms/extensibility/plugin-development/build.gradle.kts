@@ -67,7 +67,7 @@ dependencies {
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.toolingApi))
 
-    integTestImplementation(libs.groovyTest)
+    integTestImplementation(testLibs.groovyTest)
     integTestImplementation(libs.jetbrainsAnnotations)
 
     integTestLocalRepository(projects.toolingApi) {

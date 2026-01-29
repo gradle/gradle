@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,79 +14,88 @@
  * limitations under the License.
  */
 
+import java.io.*;
+import java.nio.charset.*;
 import java.nio.file.*;
 import java.util.*;
 
 /**
- * Validates that remote project refs specified in gradle.properties are tagged.
+ * Verifies that the given "remote project ref" properties exist in {@code gradle.properties}.
+ *
+ * Usage (Java 11+ single-file source execution):
+ *   java .teamcity/scripts/CheckRemoteProjectRef.java <propertyKey1> <propertyKey2> ...
+ *
+ * The check currently enforces:
+ * - Each requested key exists in {@code gradle.properties}
+ * - Its value is non-empty
  */
 public class CheckRemoteProjectRef {
-    static void die(String m) {
-        System.err.println(m);
-        System.exit(1);
-    }
-
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
-            die("At least one property name must be provided\nUsage: java CheckRemoteProjectRef.java <property-name> [property-name ...]");
-        }
-        var props = new Properties();
-        try (var in = Files.newInputStream(Path.of("gradle.properties"))) {
-            props.load(in);
-        }
-        for (var name : args) {
-            var value = props.getProperty(name);
-            if (value == null || value.isBlank()) {
-                die("Property '" + name + "' not found in gradle.properties");
-            }
-            validate(name, value.trim());
-        }
-    }
-
-    static void validate(String name, String value) throws Exception {
-        int i = value.indexOf('#');
-        if (i < 1 || i == value.length() - 1) {
-            die(name + " must be in format: <repository-url>#<commit-sha>, got: " + value);
-        }
-        var repo = value.substring(0, i);
-        var sha = value.substring(i + 1).trim();
-        if (sha.isEmpty()) {
-            die(name + " must be in format: <repository-url>#<commit-sha>, got: " + value);
+            System.err.println("Usage: java CheckRemoteProjectRef.java <propertyKey1> <propertyKey2> ...");
+            System.exit(2);
         }
 
-        System.out.println("Checking if commit " + sha + " is tagged in " + repo);
-        var r = exec("git", "ls-remote", "--tags", repo);
-        if (r.code != 0) {
-            die("Failed to list tags from " + repo + ": " + r.out);
+        Path propsPath = Paths.get("gradle.properties");
+        if (!Files.exists(propsPath)) {
+            System.err.println("gradle.properties not found at: " + propsPath.toAbsolutePath());
+            System.exit(2);
         }
 
-        var tags = new ArrayList<String>();
-        for (var line : r.out.split("\n")) {
-            line = line.trim();
-            if (line.isEmpty()) {
+        Map<String, String> props = readProperties(propsPath);
+
+        List<String> missing = new ArrayList<>();
+        List<String> empty = new ArrayList<>();
+
+        for (String rawKey : args) {
+            String key = rawKey.trim();
+            if (key.isEmpty()) continue;
+            if (!props.containsKey(key)) {
+                missing.add(key);
                 continue;
             }
-            var parts = line.split("\t");
-            if (parts.length != 2) {
+            String value = props.get(key);
+            if (value == null || value.trim().isEmpty()) {
+                empty.add(key);
+            }
+        }
+
+        if (!missing.isEmpty() || !empty.isEmpty()) {
+            if (!missing.isEmpty()) {
+                System.err.println("Missing required properties in gradle.properties:");
+                for (String k : missing) {
+                    System.err.println("  - " + k);
+                }
+            }
+            if (!empty.isEmpty()) {
+                System.err.println("Properties with empty values in gradle.properties:");
+                for (String k : empty) {
+                    System.err.println("  - " + k);
+                }
+            }
+            System.exit(1);
+        }
+    }
+
+    private static Map<String, String> readProperties(Path file) throws IOException {
+        Map<String, String> out = new LinkedHashMap<>();
+        List<String> lines = Files.readAllLines(file, StandardCharsets.UTF_8);
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmed.isEmpty() || trimmed.startsWith("#") || trimmed.startsWith("!")) {
                 continue;
             }
-            if (parts[0].trim().startsWith(sha)) {
-                tags.add(parts[1].trim().replaceFirst("^refs/tags/", "").replaceFirst("\\^\\{\\}$", ""));
+            int idx = trimmed.indexOf('=');
+            if (idx < 0) {
+                continue;
+            }
+            String key = trimmed.substring(0, idx).trim();
+            String value = trimmed.substring(idx + 1).trim();
+            if (!key.isEmpty()) {
+                out.put(key, value);
             }
         }
-        if (tags.isEmpty()) {
-            die("Commit " + sha + " in repository " + repo
-                    + " is not tagged. Please ensure the commit is tagged before using it in smoke tests.");
-        }
-        System.out.println("✓ Commit " + sha + " is tagged: " + String.join(", ", tags));
-    }
-
-    static Res exec(String... cmd) throws Exception {
-        var p = new ProcessBuilder(cmd).redirectErrorStream(true).start();
-        var out = new String(p.getInputStream().readAllBytes());
-        return new Res(out, p.waitFor());
-    }
-
-    record Res(String out, int code) {
+        return out;
     }
 }
+

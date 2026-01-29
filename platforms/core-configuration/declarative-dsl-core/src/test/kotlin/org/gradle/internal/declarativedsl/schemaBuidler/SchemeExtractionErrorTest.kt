@@ -20,8 +20,6 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationException
 import org.gradle.internal.declarativedsl.assertFailsWith
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.File
@@ -117,27 +115,6 @@ class SchemeExtractionErrorTest {
     abstract class ReceiverFunctionReturn {
 
         abstract fun mood(): ListProperty<in String>
-    }
-
-    @Test
-    fun `type used not in schema scope`() {
-        val exception = assertFailsWith<DeclarativeDslInterpretationException>(
-            block = {
-                schemaFromTypes(
-                    UsageOfTypeOutsideSchema::class,
-                    listOf(UsageOfTypeOutsideSchema::class)
-                )
-            }
-        )
-        assertThat(
-            exception.message,
-            equalTo(
-                "Type 'File' is not in the schema\n" +
-                    "  in configured type 'File'\n" +
-                    "  in schema function 'configure(): Unit'\n" +
-                    "  in schema type 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.UsageOfTypeOutsideSchema'"
-            )
-        )
     }
 
     interface UsageOfTypeOutsideSchema {

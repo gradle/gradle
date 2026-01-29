@@ -156,21 +156,25 @@ fun configureCompileTask(options: CompileOptions) {
 }
 
 fun addDependencies() {
+    if (project.name == "gradle-kotlin-dsl-accessors") return
+    val libs = project.versionCatalogs.named("libs")
+    val testLibs = project.versionCatalogs.named("testLibs")
+
     dependencies {
-        testCompileOnly(libs.junit)
-        testRuntimeOnly(libs.junit5Vintage)
-        testImplementation(libs.groovy)
-        testImplementation(libs.groovyAnt)
-        testImplementation(libs.groovyJson)
-        testImplementation(libs.groovyTest)
-        testImplementation(libs.groovyXml)
-        testImplementation(libs.spock)
-        testImplementation(libs.junit5Vintage)
-        testImplementation(libs.spockJUnit4)
-        testImplementation(libs.develocityTestAnnotation)
-        testRuntimeOnly(libs.bytebuddy)
-        testRuntimeOnly(libs.objenesis)
-        testRuntimeOnly(libs.junitPlatform)
+        testCompileOnly(testLibs.findLibrary("junit").get())
+        testRuntimeOnly(testLibs.findLibrary("junit5Vintage").get())
+        testImplementation(libs.findLibrary("groovy").get())
+        testImplementation(libs.findLibrary("groovyAnt").get())
+        testImplementation(libs.findLibrary("groovyJson").get())
+        testImplementation(testLibs.findLibrary("groovyTest").get())
+        testImplementation(libs.findLibrary("groovyXml").get())
+        testImplementation(testLibs.findLibrary("spock").get())
+        testImplementation(testLibs.findLibrary("junit5Vintage").get())
+        testImplementation(testLibs.findLibrary("spockJUnit4").get())
+        testImplementation(testLibs.findLibrary("develocityTestAnnotation").get())
+        testRuntimeOnly(testLibs.findLibrary("bytebuddy").get())
+        testRuntimeOnly(testLibs.findLibrary("objenesis").get())
+        testRuntimeOnly(testLibs.findLibrary("junitPlatform").get())
 
         // use a separate configuration for the platform dependency that does not get published as part of 'apiElements' or 'runtimeElements'
         val platformImplementation by configurations.creating

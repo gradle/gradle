@@ -49,7 +49,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
         projectFeaturesDynamicObject.invokeMethod("foo", closureArg { bar = 'baz' })
 
         then:
-        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": projectTypeImplementation]
+        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
         1 * projectFeatureApplicator.applyFeatureTo(dynamicObjectAware, projectTypeImplementation) >> foo
 
         and:
@@ -85,7 +85,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
         projectFeaturesDynamicObject.invokeMethod("fizz", closureArg { bar = 'baz' })
 
         then:
-        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": projectTypeImplementation]
+        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
         0 * projectFeatureApplicator.applyFeatureTo(_, _)
 
         and:
@@ -97,7 +97,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
         assert projectFeaturesDynamicObject.hasMethod("foo", closureArg {})
 
         then:
-        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": projectTypeImplementation]
+        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
         0 * projectFeatureApplicator.applyFeatureTo(_, _)
     }
 

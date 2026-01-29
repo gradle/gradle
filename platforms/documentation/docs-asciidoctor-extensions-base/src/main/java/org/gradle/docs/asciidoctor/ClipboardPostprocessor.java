@@ -46,7 +46,6 @@ public class ClipboardPostprocessor extends Postprocessor {
             return output; // No <code> block found
         }
 
-        output = addExternalJs(output, "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js");
         output = addExternalJs(output, "https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js");
         output = addJs(output, "/clipboard.js");
         output = addCss(output, "/clipboard.css");

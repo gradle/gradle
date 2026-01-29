@@ -76,6 +76,7 @@ dependencies {
     testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(testFixtures(projects.buildProcessServices))
     testFixturesImplementation(testFixtures(projects.enterpriseLogging))
+    testFixturesImplementation(testFixtures(projects.launcher))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
 
@@ -89,9 +90,9 @@ dependencies {
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
     crossVersionTestImplementation(testFixtures(projects.launcher))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
-    crossVersionTestImplementation(libs.jettyWebApp)
+    crossVersionTestImplementation(testLibs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)
-    crossVersionTestRuntimeOnly(libs.cglib) {
+    crossVersionTestRuntimeOnly(testLibs.cglib) {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
     }
 

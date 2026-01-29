@@ -1,5 +1,4 @@
 import gradlebuild.basics.configurationCacheEnabledForDocsTests
-import gradlebuild.basics.googleApisJs
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runBrokenForConfigurationCacheDocsTests
 import gradlebuild.basics.util.getSingleFileProvider
@@ -36,10 +35,6 @@ androidHomeWarmup {
             SdkVersion(compileSdk = 28, buildTools = "35.0.0", agpVersion = "8.9.0"),
         ),
     )
-}
-
-repositories {
-    googleApisJs()
 }
 
 configurations {
@@ -81,21 +76,19 @@ dependencies {
 
     userGuideStyleSheets("net.sf.docbook:docbook-xsl:1.75.2:resources@zip")
 
-    jquery("jquery:jquery.min:3.5.1@js")
-
     testImplementation(project(":base-services"))
     testImplementation(project(":core"))
     testImplementation(libs.jsoup)
-    testImplementation("org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2")
+    testImplementation(testLibs.selenium)
     testImplementation(libs.commonsHttpclient)
-    testImplementation(libs.httpmime)
+    testImplementation(testLibs.httpmime)
 
     docsTestImplementation(platform(project(":distributions-dependencies")))
     docsTestImplementation(project(":internal-integ-testing"))
     docsTestImplementation(project(":base-services"))
     docsTestImplementation(project(":logging"))
-    docsTestImplementation(libs.junit)
-    docsTestRuntimeOnly(libs.junitPlatform)
+    docsTestImplementation(testLibs.junit)
+    docsTestRuntimeOnly(testLibs.junitPlatform)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
@@ -137,8 +130,8 @@ gradleDocumentation {
         val jvmVersion = jvmCompile.compilations.named("main").flatMap { it.targetJvmVersion }
         javaApi = jvmVersion.map { v -> uri("https://docs.oracle.com/en/java/javase/$v/docs/api/") }
         javaPackageListLoc = jvmVersion.map { v -> project.layout.projectDirectory.dir("src/docs/javaPackageList/$v/") }
-        groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${libs.groovyVersion}/html/gapi")
-        groovyPackageListSrc = "org.apache.groovy:groovy-all:${libs.groovyVersion}:groovydoc"
+        groovyApi = libs.versions.groovy.map { v -> project.uri("https://docs.groovy-lang.org/docs/groovy-$v/html/gapi") }
+        groovyPackageListSrc = libs.versions.groovy.map { v -> "org.apache.groovy:groovy-all:$v:groovydoc" }
     }
 }
 

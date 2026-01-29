@@ -41,7 +41,7 @@ dependencies {
     compileOnly(libs.kotlinReflect)
 
     testImplementation(testFixtures(projects.kotlinDsl))
-    testImplementation(libs.mockitoKotlin)
+    testImplementation(testLibs.mockitoKotlin)
 }
 
 packageCycles {

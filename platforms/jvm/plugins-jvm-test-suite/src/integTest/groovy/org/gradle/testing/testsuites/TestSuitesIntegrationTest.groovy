@@ -1087,4 +1087,33 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("test", "anotherTest")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/36428")
+    def "cross-project dependency manipulation with allDependencies.configureEach does not break test suite creation"() {
+        given: "a multi-project build with cross-project configuration accessing allDependencies"
+        settingsFile << """
+            include 'sub'
+        """
+
+        buildFile << """
+            subprojects {
+                configurations.configureEach {
+                    allDependencies.configureEach {
+                        // This is bad practice but should not cause a failure
+                    }
+                }
+            }
+        """
+
+        file('sub/build.gradle') << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+        """
+
+        expect: "the build should succeed without errors about finalized properties"
+        succeeds(":sub:dependencies")
+    }
 }

@@ -18,10 +18,8 @@ package org.gradle.internal.scripts;
 
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
-import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 
-import javax.inject.Inject;
 import java.io.File;
 import java.util.stream.Collectors;
 
@@ -29,12 +27,7 @@ public class ScriptResolutionResultReporter {
 
     private final ProblemReporter problemReporter;
 
-    @Inject
-    public ScriptResolutionResultReporter(Problems problems) {
-        this(problems.getReporter());
-    }
-
-    protected ScriptResolutionResultReporter(ProblemReporter problemReporter) {
+    public ScriptResolutionResultReporter(ProblemReporter problemReporter) {
         this.problemReporter = problemReporter;
     }
 

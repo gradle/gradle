@@ -529,7 +529,6 @@ trait ProjectTypeFixture {
                 import org.gradle.api.Plugin;
                 import org.gradle.api.initialization.Settings;
                 import org.gradle.api.internal.SettingsInternal;
-                import org.gradle.plugin.software.internal.ProjectFeatureRegistry;
                 import ${RegistersSoftwareTypes.class.name};
                 import ${RegistersProjectFeatures.class.name};
 
