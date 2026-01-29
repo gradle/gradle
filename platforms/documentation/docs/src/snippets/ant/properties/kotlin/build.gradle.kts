@@ -7,7 +7,7 @@ ant.withGroovyBuilder {
 }
 // end::set-property[]
 
-ant.importBuild("../common/build.xml")
+ant.importBuild("build.xml")
 
 // tag::get-property[]
 println(ant.getProperty("antProp"))

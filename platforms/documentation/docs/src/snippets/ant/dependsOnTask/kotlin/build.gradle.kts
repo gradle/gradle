@@ -1,4 +1,4 @@
-ant.importBuild("../common/build.xml")
+ant.importBuild("build.xml")
 
 tasks.register("intro") {
     doLast {
