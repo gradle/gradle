@@ -36,6 +36,32 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.5.0]]
+== Upgrading from 9.4.0 and earlier
+
+=== Potential breaking changes
+
+==== The Windows start script has been reworked to improve usability
+The default Windows start script template (used for `gradlew.bat` and application start scripts) has been reworked to improve usability and consistency with the Unix shell script.
+However, this change may have unintended side effects due to certain checks being removed and slight changes in behavior.
+
+The new script features multiple changes:
+
+- No check of the `OS` variable is performed since Gradle does not support versions of Windows that are not NT-based.
+- `endlocal` is used before invoking the application so the local environment changes of the script do not affect the invoked process.
+  Environment variables intended for the invoked process should be set before the `gradlew.bat` invocation.
+- `& CALL` is used after invoking the application to remove the "Terminate batch job (Y/N)?" prompt.
+- `exit /b` has been changed to `"%COMSPEC%" /c exit`. This allows the use of `&&` and `||` when invoking the script from another batch file.
+
+=== Deprecations
+
+[[deprecate_exit_environment_var]]
+==== Deprecation of setting an exit environment variable
+`CreateStartScripts.getExitEnvironmentVariable()` and `CreateStartScripts.setExitEnvironmentVariable(String)` have been deprecated and will be removed in Gradle 10.0.0.
+Due to the changes in the Windows start script template, these functions no longer have any effect with the default templates.
+
+It is recommended that custom start script templates are updated to not rely on this functionality.
+
 [[changes_9.4.0]]
 == Upgrading from 9.3.0 and earlier
 
