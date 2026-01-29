@@ -99,6 +99,9 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
         if (classLoaderScope == null) {
             return AccessorsClassPath.empty
         }
+        if (classPathCache.containsKey(classLoaderScope)) {
+            throw RuntimeException("Cache was hit!")
+        }
         return classPathCache.computeIfAbsent(classLoaderScope) {
             buildAccessorsClassPathFor(classLoaderScope, scriptTarget, classPath)
                 ?: AccessorsClassPath.empty
