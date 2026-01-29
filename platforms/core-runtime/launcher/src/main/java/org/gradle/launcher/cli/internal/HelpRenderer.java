@@ -17,6 +17,7 @@
 package org.gradle.launcher.cli.internal;
 
 import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.HelpCategory;
 import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildClientMetaData;
@@ -92,9 +93,9 @@ public final class HelpRenderer {
         new StartParameterConverter().configure(parser);
         new BuildOptionBackedConverter<>(new DaemonBuildOptions()).configure(parser);
         // Built-in options: -h/--help/-?, -v/--version, -V/--show-version
-        parser.option("h", "?", "help").hasDescription("Shows this help message.");
-        parser.option("v", "version").hasDescription("Print version info and exit.");
-        parser.option("V", "show-version").hasDescription("Print version info and continue.");
+        parser.option("h", "?", "help").hasDescription("Shows this help message.").hasCategory(HelpCategory.BUILTIN);
+        parser.option("v", "version").hasDescription("Print version info and exit.").hasCategory(HelpCategory.BUILTIN);
+        parser.option("V", "show-version").hasDescription("Print version info and continue.").hasCategory(HelpCategory.BUILTIN);
         return parser;
     }
 }
