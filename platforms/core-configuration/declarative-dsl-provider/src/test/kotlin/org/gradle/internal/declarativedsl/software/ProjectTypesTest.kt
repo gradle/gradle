@@ -50,6 +50,7 @@ class ProjectTypesTest {
                             override fun getDefinitionImplementationType(): Class<out Subtype> = definitionPublicType
                             override fun getTargetDefinitionType(): TargetTypeInformation<*> = TargetTypeInformation.DefinitionTargetTypeInformation(Project::class.java)
                             override fun getDefinitionSafety(): ProjectFeatureBindingDeclaration.Safety = ProjectFeatureBindingDeclaration.Safety.UNSAFE
+                            override fun getApplyActionSafety(): ProjectFeatureBindingDeclaration.Safety = ProjectFeatureBindingDeclaration.Safety.UNSAFE
                             override fun getBuildModelType(): Class<ModelType> = ModelType::class.java
                             override fun getBuildModelImplementationType(): Class<out ModelType> = buildModelType
                             override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java

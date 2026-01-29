@@ -203,6 +203,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             TaskContainer taskContainer,
             ProjectLayout projectLayout,
             ConfigurationContainer configurationContainer,
+            InternalProblems problemService,
             ServiceRegistry services
         ) {
             return new DefaultProjectFeatureApplicator(
@@ -215,6 +216,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
                 taskContainer,
                 projectLayout,
                 configurationContainer,
+                problemService.getInternalReporter(),
                 services
             );
         }

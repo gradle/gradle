@@ -24,6 +24,8 @@ import org.gradle.api.internal.plugins.ProjectTypeBinding
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.api.internal.registration.TaskRegistrar
+import org.gradle.api.tasks.TaskContainer
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -289,6 +291,45 @@ trait ProjectTypeFixture {
         )
     }
 
+    PluginBuilder withProjectTypeWithUnsafeApplyActionDeclaredUnsafe() {
+        def definition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypeThatUsesUnsafeServicesClassBuilder(definition).withUnsafeApplyAction()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+
+        return withProjectType(
+            definition,
+            projectType,
+            settingsBuilder
+        )
+    }
+
+    PluginBuilder withProjectTypeWithUnsafeApplyActionDeclaredSafe() {
+        def definition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypeThatUsesUnsafeServicesClassBuilder(definition)
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+
+        return withProjectType(
+            definition,
+            projectType,
+            settingsBuilder
+        )
+    }
+
+    PluginBuilder withProjectTypeWithUnsafeApplyActionInjectingUnknownService() {
+        def definition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypeThatUsesUnknownServicesClassBuilder(definition).withUnsafeApplyAction()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+
+        return withProjectType(
+            definition,
+            projectType,
+            settingsBuilder
+        )
+    }
+
     static class ProjectTypePluginClassBuilder {
         final ProjectTypeDefinitionClassBuilder definition
         String projectTypePluginClassName = "ProjectTypeImplPlugin"
@@ -329,6 +370,11 @@ trait ProjectTypeFixture {
             return this
         }
 
+        ProjectTypePluginClassBuilder withUnsafeApplyAction() {
+            this.bindingModifiers.add("withUnsafeApplyAction()")
+            return this
+        }
+
         void build(PluginBuilder pluginBuilder) {
             pluginBuilder.file("src/main/java/org/gradle/test/${projectTypePluginClassName}.java") << getClassContent()
         }
@@ -358,11 +404,10 @@ trait ProjectTypeFixture {
 
                                 System.out.println("Binding " + ${definition.publicTypeClassName}.class.getSimpleName());
                                 ${conventions == null ? "" : conventions}
-                                String projectName = services.getProject().getName();
 
                                 ${definition.buildModelMapping}
 
-                                services.getProject().getTasks().register("print${definition.publicTypeClassName}Configuration", DefaultTask.class, task -> {
+                                services.getTaskRegistrar().register("print${definition.publicTypeClassName}Configuration", DefaultTask.class, task -> {
                                     task.doLast("print restricted extension content", t -> {
                                         ${definition.displayDefinitionPropertyValues()}
                                         ${definition.displayModelPropertyValues()}
@@ -373,7 +418,7 @@ trait ProjectTypeFixture {
                             ${maybeDeclareBindingModifiers()};
                         }
 
-                        ${servicesInterfaceWithProjectGetter}
+                        ${servicesInterface}
                     }
 
                     @Override
@@ -392,11 +437,11 @@ trait ProjectTypeFixture {
             return bindingModifiers.isEmpty() ? "" : bindingModifiers.collect { ".${it}" }.join("")
         }
 
-        String getServicesInterfaceWithProjectGetter() {
+        String getServicesInterface() {
             return """
                 interface Services {
-                    @Inject
-                    Project getProject();
+                    @javax.inject.Inject
+                    ${TaskRegistrar.class.name} getTaskRegistrar();
                 }
             """
         }
@@ -434,8 +479,7 @@ trait ProjectTypeFixture {
                                 definition.getId().convention("<no id>");
                                 definition.getFoo().getBar().convention("bar");
                                 model.getId().set(definition.getId());
-                                String projectName = services.getProject().getName();
-                                services.getProject().getTasks().register("printTestProjectTypeDefinitionConfiguration", DefaultTask.class, task -> {
+                                services.getTaskRegistrar().register("printTestProjectTypeDefinitionConfiguration", DefaultTask.class, task -> {
                                     task.doLast("print restricted extension content", t -> {
                                         ${definition.displayDefinitionPropertyValues()}
                                         ${definition.displayModelPropertyValues()}
@@ -448,8 +492,7 @@ trait ProjectTypeFixture {
                                 definition.getFoo().convention("foo");
                                 definition.getBar().getBaz().convention("baz");
                                 model.getId().set(definition.getId());
-                                String projectName = services.getProject().getName();
-                                services.getProject().getTasks().register("printAnotherProjectTypeDefinitionConfiguration", DefaultTask.class, task -> {
+                                services.getTaskRegistrar().register("printAnotherProjectTypeDefinitionConfiguration", DefaultTask.class, task -> {
                                     task.doLast("print restricted extension content", t -> {
                                         ${anotherProjectTypeDefinition.displayDefinitionPropertyValues()}
                                         ${anotherProjectTypeDefinition.displayModelPropertyValues()}
@@ -458,7 +501,7 @@ trait ProjectTypeFixture {
                             });
                         }
 
-                        ${servicesInterfaceWithProjectGetter}
+                        ${servicesInterface}
                     }
 
                     @Override
@@ -490,6 +533,48 @@ trait ProjectTypeFixture {
                 }
             }
         """
+        }
+    }
+
+    static class ProjectTypeThatUsesUnsafeServicesClassBuilder extends ProjectTypePluginClassBuilder {
+        ProjectTypeThatUsesUnsafeServicesClassBuilder(ProjectTypeDefinitionClassBuilder definition) {
+            super(definition)
+        }
+
+        @Override
+        String getServicesInterface() {
+            return """
+                interface Services {
+                    @javax.inject.Inject
+                    Project getProject(); // Unsafe Service
+
+                    default ${TaskContainer.class.name} getTaskRegistrar() {
+                        return getProject().getTasks();
+                    }
+                }
+            """
+        }
+    }
+
+    static class ProjectTypeThatUsesUnknownServicesClassBuilder extends ProjectTypePluginClassBuilder {
+        ProjectTypeThatUsesUnknownServicesClassBuilder(ProjectTypeDefinitionClassBuilder definition) {
+            super(definition)
+        }
+
+        @Override
+        String getServicesInterface() {
+            return """
+                interface Services {
+                    default ${TaskRegistrar.class.name} getTaskRegistrar() {
+                        return getUnknownService();
+                    }
+
+                    @javax.inject.Inject
+                    UnknownService getUnknownService();
+                }
+
+                interface UnknownService extends ${TaskRegistrar.class.name} { }
+            """
         }
     }
 
@@ -685,10 +770,8 @@ trait ProjectTypeFixture {
         }
 
         static String displayProperty(String objectType, String propertyName, String propertyValueExpression) {
-            // Note that this assumes that "projectName" variable has been set in some outer scope in order to avoid
-            // accessing the project object at execution time.
             return """
-                System.out.println(projectName + ": ${objectType} ${propertyName} = " + ${propertyValueExpression});
+                System.out.println("${objectType} ${propertyName} = " + ${propertyValueExpression});
             """
         }
     }

@@ -20,6 +20,7 @@ import org.gradle.api.internal.plugins.BindsProjectType
 import org.gradle.api.internal.plugins.ProjectTypeBinding
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.api.internal.registration.TaskRegistrar
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.intellij.lang.annotations.Language
 
@@ -202,7 +203,7 @@ secondaryAccess { three, true, true}"""
                     public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
                         builder.bindProjectType("restricted",  Extension.class, (context, definition, model) -> {
                             Services services = context.getObjectFactory().newInstance(Services.class);
-                            services.getProject().getTasks().register("printConfiguration", DefaultTask.class, task -> {
+                            services.getTaskRegistrar().register("printConfiguration", DefaultTask.class, task -> {
                                 Property<Extension.Point> referencePoint = definition.getReferencePoint();
                                 Extension.Access acc = definition.getPrimaryAccess();
                                 ListProperty<Extension.Access> secondaryAccess = definition.getSecondaryAccess();
@@ -231,7 +232,7 @@ secondaryAccess { three, true, true}"""
 
                     interface Services {
                         @javax.inject.Inject
-                        Project getProject();
+                        ${TaskRegistrar.class.name} getTaskRegistrar();
                     }
                 }
 

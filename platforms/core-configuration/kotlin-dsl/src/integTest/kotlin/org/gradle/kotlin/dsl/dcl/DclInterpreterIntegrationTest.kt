@@ -24,6 +24,7 @@ import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
 import org.gradle.api.internal.plugins.ProjectFeatureBinding
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.plugins.ProjectTypeBinding
+import org.gradle.api.internal.registration.TaskRegistrar
 import org.gradle.kotlin.dsl.accessors.DCL_ENABLED_PROPERTY_NAME
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.junit.Test
@@ -144,7 +145,7 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                         override fun bind(builder: ProjectTypeBindingBuilder) {
                             builder.bindProjectType("myProjectType") { definition: MyExtension, model ->
                                 val services = objectFactory.newInstance(Services::class.java)
-                                services.project.tasks.register("printNames") {
+                                services.taskRegistrar.register("printNames") {
                                     val names = definition.myElements.names
                                     doFirst {
                                         println(names)
@@ -155,7 +156,7 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
 
                         interface Services {
                             @get:Inject
-                            val project: Project
+                            val taskRegistrar: ${TaskRegistrar::class.qualifiedName}
                         }
                     }
                     class FeatureBinding : ${ProjectFeatureBinding::class.simpleName} {

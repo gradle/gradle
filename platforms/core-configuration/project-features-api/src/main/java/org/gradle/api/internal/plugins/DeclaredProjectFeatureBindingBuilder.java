@@ -54,4 +54,21 @@ public interface DeclaredProjectFeatureBindingBuilder<OwnDefinition extends Defi
      * @return this builder
      */
     DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withUnsafeDefinition();
+
+    /**
+     * Indicates that the apply action is not safe.  A safe apply action is one that only injects safe services.  These services include:
+     * <ul>
+     *     <li>{@link org.gradle.api.internal.registration.TaskRegistrar}</li>
+     *     <li>{@link org.gradle.api.internal.file.ProjectFeatureLayout}</li>
+     *     <li>{@link org.gradle.api.internal.registration.ConfigurationRegistrar}</li>
+     *     <li>{@link org.gradle.api.artifacts.dsl.DependencyFactory}</li>
+     *     <li>{@link org.gradle.api.model.ObjectFactory}</li>
+     *     <li>{@link org.gradle.api.provider.ProviderFactory}</li>
+     * </ul>
+     *
+     * If an apply action needs additional services, it must be marked as unsafe using this method.
+     *
+     * @return this builder
+     */
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withUnsafeApplyAction();
 }

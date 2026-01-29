@@ -16,9 +16,11 @@
 
 package org.gradle.plugin.software.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.file.DefaultProjectFeatureLayout;
@@ -29,14 +31,23 @@ import org.gradle.api.internal.plugins.BuildModel;
 import org.gradle.api.internal.plugins.Definition;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.ProjectFeatureApplicationContext;
+import org.gradle.api.internal.plugins.ProjectFeatureBindingDeclaration;
 import org.gradle.api.internal.registration.ConfigurationRegistrar;
 import org.gradle.api.internal.registration.DefaultConfigurationRegistrar;
 import org.gradle.api.internal.registration.DefaultTaskRegistrar;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.internal.registration.TaskRegistrar;
+import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
@@ -46,6 +57,7 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Set;
 
 /**
  * Applies project features to a target object by registering the software model as an extension of the target object (unless
@@ -63,6 +75,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
     private final TaskContainer taskContainer;
     private final ProjectLayout projectLayout;
     private final ConfigurationContainer configurationContainer;
+    private final InternalProblemReporter problemReporter;
     private final ServiceLookup allServices;
 
     public DefaultProjectFeatureApplicator(
@@ -75,6 +88,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         TaskContainer taskContainer,
         ProjectLayout projectLayout,
         ConfigurationContainer configurationContainer,
+        InternalProblemReporter problemReporter,
         ServiceLookup allServices
     ) {
         this.projectFeatureDeclarations = projectFeatureDeclarations;
@@ -86,6 +100,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         this.taskContainer = taskContainer;
         this.projectLayout = projectLayout;
         this.configurationContainer = configurationContainer;
+        this.problemReporter = problemReporter;
         this.allServices = allServices;
     }
 
@@ -135,8 +150,11 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         ProjectFeatureLayout projectFeatureLayout = new DefaultProjectFeatureLayout(projectLayout);
         ConfigurationRegistrar configurationRegistrar = new DefaultConfigurationRegistrar(configurationContainer);
 
-        // Construct an object factory that provides these services during apply action execution
-        ObjectFactory featureObjectFactory = objectFactoryFactory.createObjectFactory(new UnsafeServicesForApplyAction(allServices, taskRegistrar, projectFeatureLayout, configurationRegistrar));
+        // Construct an object factory that provides the appropriate services during apply action execution
+        ServiceLookup objectFactoryServiceLookup = projectFeature.getApplyActionSafety() == ProjectFeatureBindingDeclaration.Safety.SAFE
+            ? new SafeServicesForApplyAction(allServices, taskRegistrar, projectFeatureLayout, configurationRegistrar, projectFeature.getFeatureName(), problemReporter)
+            : new UnsafeServicesForApplyAction(allServices, taskRegistrar, projectFeatureLayout, configurationRegistrar, projectFeature.getFeatureName(), problemReporter);
+        ObjectFactory featureObjectFactory = objectFactoryFactory.createObjectFactory(objectFactoryServiceLookup);
 
         ProjectFeatureApplicationContext applyActionContext =
             projectObjectFactory.newInstance(DefaultProjectFeatureApplicationContextInternal.class, featureObjectFactory);
@@ -187,16 +205,27 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         }
     }
 
-    /**
-     * A limited service lookup for use during feature apply actions, exposing both safe and unsafe services.
-     */
-    private static class UnsafeServicesForApplyAction implements ServiceLookup {
-        private final ServiceLookup allServices;
-        private final TaskRegistrar taskRegistrar;
-        private final ProjectFeatureLayout projectFeatureLayout;
-        private final ConfigurationRegistrar configurationRegistrar;
+    private static final Set<Class<?>> SAFE_APPLY_ACTION_SERVICES = ImmutableSet.of(
+        TaskRegistrar.class,
+        ProjectFeatureLayout.class,
+        ConfigurationRegistrar.class,
+        ObjectFactory.class,
+        ProviderFactory.class,
+        DependencyFactory.class
+    );
 
-        public UnsafeServicesForApplyAction(ServiceLookup allServices, TaskRegistrar taskRegistrar, ProjectFeatureLayout projectFeatureLayout, ConfigurationRegistrar configurationRegistrar) {
+    /**
+     * A base class for limited service lookups for use during feature apply actions.  Provides context-specific services
+     * unique to the feature binding as well as a small set of services used by Gradle internals.
+     */
+    private abstract static class ServicesForApplyAction implements ServiceLookup {
+
+        protected final ServiceLookup allServices;
+        protected final TaskRegistrar taskRegistrar;
+        protected final ProjectFeatureLayout projectFeatureLayout;
+        protected final ConfigurationRegistrar configurationRegistrar;
+
+        private ServicesForApplyAction(ServiceLookup allServices, TaskRegistrar taskRegistrar, ProjectFeatureLayout projectFeatureLayout, ConfigurationRegistrar configurationRegistrar) {
             this.allServices = allServices;
             this.taskRegistrar = taskRegistrar;
             this.projectFeatureLayout = projectFeatureLayout;
@@ -207,6 +236,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         public @Nullable Object find(Type serviceType) throws ServiceLookupException {
             if (serviceType instanceof Class) {
                 Class<?> serviceClass = Cast.uncheckedNonnullCast(serviceType);
+                // Context-specific services unique to this feature binding
                 if (serviceClass.isAssignableFrom(TaskRegistrar.class)) {
                     return taskRegistrar;
                 }
@@ -216,7 +246,21 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
                 if (serviceClass.isAssignableFrom(ConfigurationRegistrar.class)) {
                     return configurationRegistrar;
                 }
-                return allServices.find(serviceType);
+                // Services used by Gradle internals
+                if (serviceClass.isAssignableFrom(ManagedObjectRegistry.class)) {
+                    return allServices.find(ManagedObjectRegistry.class);
+                }
+                if (serviceClass.isAssignableFrom(ProjectFeatureDeclarations.class)) {
+                    return allServices.find(ProjectFeatureDeclarations.class);
+                }
+                if (serviceClass.isAssignableFrom(ProjectFeatureApplicator.class)) {
+                    return allServices.find(ProjectFeatureApplicator.class);
+                }
+                if (serviceClass.isAssignableFrom(TaskDependencyFactory.class)) {
+                    return allServices.find(TaskDependencyFactory.class);
+                }
+                // None of the above
+                return null;
             }
             return null;
         }
@@ -235,12 +279,101 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
             return notFound(serviceType);
         }
 
-        private Object notFound(Type serviceType) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node("Services of type ");
-            formatter.appendType(serviceType);
-            formatter.append(" are not available for injection into project feature apply actions.");
-            throw new UnknownServiceException(serviceType, formatter.toString());
+        protected abstract Object notFound(Type serviceType);
+    }
+
+    /**
+     * A limited service lookup for use during feature apply actions, exposing both safe and unsafe services.
+     */
+    private static class UnsafeServicesForApplyAction extends ServicesForApplyAction {
+        private final String featureName;
+        private final InternalProblemReporter problemReporter; // Not used in this class
+
+        public UnsafeServicesForApplyAction(ServiceLookup allServices, TaskRegistrar taskRegistrar, ProjectFeatureLayout projectFeatureLayout, ConfigurationRegistrar configurationRegistrar, String featureName, InternalProblemReporter problemReporter) {
+            super(allServices, taskRegistrar, projectFeatureLayout, configurationRegistrar);
+            this.featureName = featureName;
+            this.problemReporter = problemReporter;
+        }
+
+        @Override
+        public @Nullable Object find(Type serviceType) throws ServiceLookupException {
+            Object found = super.find(serviceType);
+            if (found != null) {
+                return found;
+            }
+
+            // If not found in the safe/limited set, allow lookup from all services
+            return allServices.find(serviceType);
+        }
+
+        @Override
+        protected Object notFound(Type serviceType) {
+            InternalProblem problem = problemReporter.internalCreate(builder -> builder
+                .id("unsafe-apply-action-uses-unknown-service", "An unsafe apply action is attempting to use an unknown service", GradleCoreProblemGroup.configurationUsage())
+                .contextualLabel("Project feature '" + featureName + "' has an apply action that attempts to inject an unknown service with type '" + serviceType.getTypeName() + "'.")
+                .details("Services of type " + serviceType.getTypeName() + " are not available for injection into project feature apply actions.")
+                .solution("Remove the '" + serviceType.getTypeName() + "' injection from the apply action.")
+                .severity(Severity.ERROR)
+            );
+            problemReporter.report(problem);
+            throw new UnknownServiceException(serviceType, TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
+        }
+    }
+
+    /**
+     * A limited service lookup for use during safe feature apply actions, exposing only a small set of safe services.
+     */
+    private static class SafeServicesForApplyAction extends ServicesForApplyAction {
+        private final String featureName;
+        private final InternalProblemReporter problemReporter;
+
+        public SafeServicesForApplyAction(ServiceLookup allServices, TaskRegistrar taskRegistrar, ProjectFeatureLayout projectFeatureLayout, ConfigurationRegistrar configurationRegistrar, String featureName, InternalProblemReporter problemReporter) {
+            super(allServices, taskRegistrar, projectFeatureLayout, configurationRegistrar);
+            this.featureName = featureName;
+            this.problemReporter = problemReporter;
+        }
+
+        @Override
+        public @Nullable Object find(Type serviceType) throws ServiceLookupException {
+            Object found = super.find(serviceType);
+            if (found != null) {
+                return found;
+            }
+
+            // Only allow access to a small set of safe services from the parent services
+            Class<?> serviceClass = Cast.uncheckedNonnullCast(serviceType);
+            for (Class<?> safeService : SAFE_APPLY_ACTION_SERVICES) {
+                if (serviceClass.isAssignableFrom(safeService)) {
+                    return allServices.find(serviceType);
+                }
+            }
+
+            return null;
+        }
+
+        private static String getSafeServicesListExplanation() {
+            TreeFormatter formatter = new TreeFormatter(true)
+                .node("Only the following services are available in safe apply actions");
+            formatter.startChildren();
+            for (Class<?> safeService : SAFE_APPLY_ACTION_SERVICES) {
+                formatter.node("").appendType(safeService);
+            }
+            formatter.endChildren();
+            return formatter.toString();
+        }
+
+        @Override
+        protected Object notFound(Type serviceType) {
+            InternalProblem problem = problemReporter.internalCreate(builder -> builder
+                .id("safe-apply-action-uses-unsafe-service", "A safe apply action is attempting to use an unsafe service", GradleCoreProblemGroup.configurationUsage())
+                .contextualLabel("Project feature '" + featureName + "' has a safe apply action that attempts to inject an unsafe service with type '" + serviceType.getTypeName() + "'.")
+                .details(getSafeServicesListExplanation())
+                .solution("Mark the apply action as unsafe.")
+                .solution("Remove the '" + serviceType.getTypeName() + "' injection from the apply action.")
+                .severity(Severity.ERROR)
+            );
+            problemReporter.report(problem);
+            throw new UnknownServiceException(serviceType, TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
         }
     }
 }
