@@ -533,6 +533,7 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
         new ResultAssertion(
                 expectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
             maybeExpectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
+            Collections.emptyList(),
             !stackTraceChecksOn,
             shouldCheckForDeprecationWarnings(),
             true
