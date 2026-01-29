@@ -17,12 +17,15 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.api.tasks.Nested;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.NonNull;
 
 /**
  * A {@code MavenPublication} is the representation/configuration of how Gradle should publish something in Maven format.
@@ -248,7 +251,7 @@ public interface MavenPublication extends Publication {
      * task sourceJar(type: Jar) {
      *   archiveClassifier = "sources"
      * }
-
+     *
      * publishing {
      *   publications {
      *     maven(MavenPublication) {
@@ -265,6 +268,7 @@ public interface MavenPublication extends Publication {
 
     /**
      * Returns the complete set of artifacts for this publication.
+     *
      * @return the artifacts.
      */
     MavenArtifactSet getArtifacts();
@@ -327,7 +331,6 @@ public interface MavenPublication extends Publication {
      * </pre>
      *
      * @param configureAction the configuration
-     *
      * @since 5.2
      */
     void versionMapping(Action<? super VersionMappingStrategy> configureAction);
@@ -338,11 +341,9 @@ public interface MavenPublication extends Publication {
      * Warnings are emitted when Gradle features are used that cannot be mapped completely to Maven POM.
      *
      * @param variantName the variant to silence warning for
-     *
      * @since 6.0
      */
     void suppressPomMetadataWarningsFor(String variantName);
-
 
     /**
      * Silences all the compatibility warnings for the Maven publication.
@@ -352,4 +353,20 @@ public interface MavenPublication extends Publication {
      * @since 6.0
      */
     void suppressAllPomMetadataWarnings();
+
+    /**
+     * Controls whether checksum files should be generated and published for derived artifacts.
+     * <p>
+     * Currently, the only known use case for derived artifacts is adding
+     * {@code .asc} signature files created by the signing plugin.
+     * Maven Central does not require checksums for signature files:
+     * <a href="https://central.sonatype.org/publish/requirements/#provide-file-checksums">https://central.sonatype.org/publish/requirements/#provide-file-checksums</a>.
+     * <p>
+     * This option is only relevant when publishing to a remote Maven repository.
+     * Checksums are not generated for any artifacts published to Maven Local.
+     *
+     * @since 9.5.0
+     */
+    @Incubating
+    Property<@NonNull Boolean> getEnableChecksumsForDerivedArtifacts();
 }
