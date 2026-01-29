@@ -36,6 +36,7 @@ dependencies {
     implementation(libs.jacksonDatabind)
     implementation(libs.jacksonDatatypeJdk8)
     implementation(libs.jacksonDatatypeJsr310)
+    implementation(libs.jctools)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
