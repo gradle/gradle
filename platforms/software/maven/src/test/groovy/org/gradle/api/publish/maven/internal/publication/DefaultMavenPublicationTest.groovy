@@ -44,6 +44,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.DefaultSoftwareComponentVariant
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.publish.internal.PublicationArtifactInternal
 import org.gradle.api.publish.internal.PublicationInternal
@@ -51,6 +52,9 @@ import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolv
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.api.publish.maven.MavenArtifact
+import org.gradle.api.publish.maven.internal.artifact.AbstractMavenArtifact
+import org.gradle.api.publish.maven.internal.artifact.DerivedMavenArtifact
+import org.gradle.api.publish.maven.internal.artifact.MavenArtifactInternal
 import org.gradle.api.publish.maven.internal.dependencies.VersionRangeMapper
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskOutputs
@@ -595,7 +599,58 @@ class DefaultMavenPublicationTest extends Specification {
         publication.publishableArtifacts.files.contains(gradleMetadataFile)
     }
 
-    def createPublication() {
+    def "checksums for derived artifacts false by default"() {
+        given:
+        def publication = createPublication()
+
+        expect:
+        publication.enableChecksumsForDerivedArtifacts.orNull == false
+    }
+
+    def "derived artifacts use publication's value of enableChecksumsForDerivedArtifacts"() {
+        given:
+        DefaultMavenPublication publication = createPublication()
+        AbstractMavenArtifact mavenArtifact = Mock(AbstractMavenArtifact)
+        mavenArtifact.enableChecksumFileGeneration >> Providers.TRUE
+
+        PublicationInternal.DerivedArtifact derivedArtifact = Mock(PublicationInternal.DerivedArtifact)
+
+        publication.addDerivedArtifact(mavenArtifact, derivedArtifact)
+
+        expect:
+        DerivedMavenArtifact actual = (DerivedMavenArtifact) publication.derivedArtifacts.first()
+        actual.enableChecksumFileGeneration.orNull == false
+
+        when:
+        publication.enableChecksumsForDerivedArtifacts.set(true)
+
+        then:
+        actual.enableChecksumFileGeneration.orNull == true
+    }
+
+    def "checksums are only enabled if checksums are enabled for original file"() {
+        given:
+        DefaultMavenPublication publication = createPublication()
+        publication.enableChecksumsForDerivedArtifacts.set(true)
+
+        AbstractMavenArtifact mavenArtifact = Mock(AbstractMavenArtifact)
+        mavenArtifact.enableChecksumFileGeneration >> Providers.of(enabledForArtifact)
+
+        PublicationInternal.DerivedArtifact derivedArtifact = Mock(PublicationInternal.DerivedArtifact)
+
+        publication.addDerivedArtifact(mavenArtifact, derivedArtifact)
+
+        expect:
+        DerivedMavenArtifact actual = (DerivedMavenArtifact) publication.derivedArtifacts.first()
+        actual.enableChecksumFileGeneration.orNull == expectChecksumEnabledForDerivedFile
+
+        where:
+        enabledForArtifact | expectChecksumEnabledForDerivedFile
+        true               | true
+        false              | false
+    }
+
+    DefaultMavenPublication createPublication() {
         def versionRangeMapper = Mock(VersionRangeMapper) {
             map(_) >> { "mapped-" + it[0] }
         }
@@ -674,6 +729,6 @@ class DefaultMavenPublicationTest extends Specification {
         return AttributeTestUtil.attributesFactory().of(Category.CATEGORY_ATTRIBUTE, TestUtil.objectFactory().named(Category, Category.REGULAR_PLATFORM))
     }
 
-    interface MavenTestArtifact extends MavenArtifact, PublicationArtifactInternal {
+    interface MavenTestArtifact extends MavenArtifactInternal, PublicationArtifactInternal {
     }
 }
