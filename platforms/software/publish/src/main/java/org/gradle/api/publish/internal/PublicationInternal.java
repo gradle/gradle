@@ -51,6 +51,8 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
      * <p>Currently, the only known use case for derived artifacts is adding signature files
      * created by the signing plugin.
      *
+     * <p>Maven publications will not generate checksum files for derived artifacts.
+     *
      * @param originalArtifact The original artifact to create a derived artifact for.
      * @param file The file to be used for publishing the derived artifact.
      * @return The newly created derived artifact.
@@ -80,6 +82,7 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
 
     interface DerivedArtifact {
         boolean shouldBePublished();
+
         File create();
     }
 }
