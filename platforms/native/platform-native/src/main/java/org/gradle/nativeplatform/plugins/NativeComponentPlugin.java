@@ -21,7 +21,6 @@ import org.gradle.api.Project;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
-import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 
 import javax.inject.Inject;
 
@@ -36,8 +35,6 @@ public abstract class NativeComponentPlugin implements Plugin<Project> {
 
         NativeToolChainRegistryInternal toolChains = (NativeToolChainRegistryInternal) getToolChains();
         project.getExtensions().add(NativeToolChainRegistry.class, "toolChains", toolChains);
-
-        project.getPluginManager().apply(StandardToolChainsPlugin.class);
 
         project.afterEvaluate(p -> {
             // add defaults

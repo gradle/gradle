@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
 /**
  * A plugin for projects wishing to build native binary components from C sources.
  *
- * <p>Automatically includes the {@link CLangPlugin} for core C++ support and the {@link org.gradle.nativeplatform.plugins.NativeComponentPlugin} for native component support.</p>
+ * <p>Automatically includes the {@link CLangPlugin} for core C++ support and the {@link org.gradle.nativeplatform.plugins.NativeComponentModelPlugin} for native component support.</p>
  *
  * <ul>
  * <li>Creates a {@link org.gradle.language.c.tasks.CCompile} task for each {@link org.gradle.language.c.CSourceSet} to compile the C sources.</li>
