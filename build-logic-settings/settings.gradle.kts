@@ -51,6 +51,7 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }
 
+include("architecture-docs")
 include("build-environment")
 include("configuration-cache-compatibility")
 include("default-settings-plugins")
