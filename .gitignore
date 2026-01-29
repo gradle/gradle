@@ -8,6 +8,7 @@
 /*/*/*/*/*/build
 /**/docs/src/samples/**/build
 /**/docs/src/snippets/**/build
+/**/docs/src/snippets/**/target
 /*/internal-android-performance-testing/build-android-libs
 test-splits/
 /gradle/verification-keyring.gpg
