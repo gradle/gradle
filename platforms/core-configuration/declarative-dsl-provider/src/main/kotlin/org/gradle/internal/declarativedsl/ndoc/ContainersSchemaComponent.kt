@@ -64,6 +64,8 @@ import org.gradle.internal.declarativedsl.ndoc.DclContainerMemberExtractionUtils
 import org.gradle.internal.declarativedsl.ndoc.DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType
 import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag
+import org.gradle.internal.declarativedsl.schemaBuilder.asSupported
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaBuildingFailure
 import java.util.Locale
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -95,10 +97,10 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
         object : FunctionExtractor {
             override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
                 if (kClass.isSubclassOf(NamedDomainObjectContainer::class) && kClass != NamedDomainObjectContainer::class) {
-                    val elementType = elementTypeFromNdocContainerType(kClass.starProjectedType)
+                    val elementType = elementTypeFromNdocContainerType(host, kClass.starProjectedType.asSupported() ?: host.schemaBuildingFailure("unsupported element type"))
                     if (elementType != null) {
                         host.withTag(SchemaBuildingTags.elementTypeOfContainerSubtype(kClass)) {
-                            listOf(newElementFactoryFunction(host, host.containerTypeRef(kClass), elementType, kClass))
+                            listOf(newElementFactoryFunction(host, host.containerTypeRef(kClass), elementType.toKType(), kClass))
                         }
                     } else emptyList()
                 } else emptyList()
@@ -235,13 +237,13 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
         val propertiesFromMemberProperties = members.mapNotNull {
             if (it.kind != MemberKind.READ_ONLY_PROPERTY) return@mapNotNull null
 
-            val elementType = elementTypeFromNdocContainerType(it.returnType) ?: return@mapNotNull null
+            val elementType = elementTypeFromNdocContainerType(host, it.returnType) ?: return@mapNotNull null
             ContainerProperty(kClass, it.name, it.returnType, elementType, ContainerPropertyDeclaration.KotlinProperty(it.kCallable as KProperty<*>))
         }
         val propertiesFromMemberFunctions = members.mapNotNull {
             if (it.kind != MemberKind.FUNCTION || it.parameters.isNotEmpty()) return@mapNotNull null
 
-            val elementType = elementTypeFromNdocContainerType(it.returnType) ?: return@mapNotNull null
+            val elementType = elementTypeFromNdocContainerType(host, it.returnType) ?: return@mapNotNull null
             ContainerProperty(kClass, it.kCallable.propertyName(), it.returnType, elementType, ContainerPropertyDeclaration.Getter(it.kCallable as KFunction<*>))
         }
 
@@ -268,7 +270,7 @@ private fun elementFactoryFunction(
     val elementTypeRef = host.modelTypeRef(elementType) as? DataTypeRef.Name
         ?: throw DeclarativeDslInterpretationException("Cannot use $elementType as container element type in $context")
 
-    val elementFactoryName = elementFactoryFunctionNameFromElementType(elementType)
+    val elementFactoryName = elementFactoryFunctionNameFromElementType(elementType.asSupported() ?: host.schemaBuildingFailure("unsupported element type"))
 
     return DefaultDataMemberFunction(
         receiverTypeRef,

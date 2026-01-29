@@ -157,6 +157,153 @@ inline fun <R> SchemaBuildingHost.inContextOf(contextElement: SchemaBuildingCont
         leaveSchemaBuildingContext(contextElement)
     }
 
+class DefaultSchemaBuildingHost(override val topLevelReceiverClass: KClass<*>) : SchemaBuildingHost {
+    val dataClassToKClass = mutableMapOf<DataClass, KClass<*>>()
+
+    val typeSignatures = mutableMapOf<FqName, ParameterizedTypeSignature>()
+    val typeInstances = mutableMapOf<FqName, MutableMap<List<TypeArgument>, ParameterizedTypeInstance>>()
+
+    private val typeVariables = mutableMapOf<KTypeParameter, DataType.TypeVariableUsage>()
+    private var nextTypeVariableId = AtomicLong()
+
+    private val currentContextStack = mutableListOf<SchemaBuildingContextElement>()
+
+    override val context: List<SchemaBuildingContextElement>
+        get() = currentContextStack
+
+    private val classMembersCache = mutableMapOf<KClass<*>, ClassMembersForSchema>()
+    private val declarativeSupertypesCache = mutableMapOf<KClass<*>, Iterable<MaybeDeclarativeClassInHierarchy>>()
+
+    override fun classMembers(kClass: KClass<*>): ClassMembersForSchema =
+        classMembersCache.getOrPut(kClass) { collectMembersForSchema(this, kClass) }
+
+    override fun declarativeSupertypesHierarchy(kClass: KClass<*>) =
+        declarativeSupertypesCache.getOrPut(kClass) { collectDeclarativeSuperclassHierarchy(kClass) }
+
+    override fun containerTypeRef(kClass: KClass<*>): DataTypeRef {
+        if (kClass.typeParameters.isNotEmpty()) {
+            schemaBuildingFailure("Cannot use the parameterized class '$kClass' as a configurable type")
+        }
+        return modelTypeRef(kClass.starProjectedType)
+    }
+
+    override fun modelTypeRef(kType: KType): DataTypeRef {
+        if (kType.isMarkedNullable) {
+            schemaBuildingFailure("Unsupported usage of a nullable type")
+        }
+
+        return typeRef(kType)
+    }
+
+    override fun varargTypeRef(varargType: KType): DataTypeRef {
+        val varargTypeSignature = typeSignatures.getOrPut(DefaultVarargSignature.name) { DefaultVarargSignature }
+
+        val elementTypeRef = withTag(varargType(varargType)) {
+            when (varargType) {
+                typeOf<IntArray>() -> DataTypeInternal.DefaultIntDataType.ref
+                typeOf<LongArray>() -> DataTypeInternal.DefaultLongDataType.ref
+                typeOf<BooleanArray>() -> DataTypeInternal.DefaultBooleanDataType.ref
+                else -> modelTypeRef(varargType.arguments.singleOrNull()?.type ?: schemaBuildingFailure("unexpected vararg type"))
+            }
+        }
+
+        return registerTypeInstance(varargTypeSignature, listOf(TypeArgumentInternal.DefaultConcreteTypeArgument(elementTypeRef))).ref
+    }
+
+    override fun enterSchemaBuildingContext(contextElement: SchemaBuildingContextElement) {
+        currentContextStack.add(contextElement)
+    }
+
+    override fun leaveSchemaBuildingContext(contextElement: SchemaBuildingContextElement) {
+        currentContextStack.removeLast().also {
+            check(it === contextElement) { "Schema building context mismatch: expected $contextElement on top, got $it" }
+        }
+    }
+
+    override fun typeRef(kType: KType): DataTypeRef {
+        check(currentContextStack.isNotEmpty()) { "Cannot reference a type $kType outside of a context" }
+
+        return when (val kClassifier = kType.classifier) {
+            Unit::class -> DataTypeInternal.DefaultUnitType.ref
+            Int::class -> DataTypeInternal.DefaultIntDataType.ref
+            String::class -> DataTypeInternal.DefaultStringDataType.ref
+            Boolean::class -> DataTypeInternal.DefaultBooleanDataType.ref
+            Long::class -> DataTypeInternal.DefaultLongDataType.ref
+            is KClass<*> -> {
+                if (kType.arguments.isEmpty())
+                    DataTypeRefInternal.DefaultName(DefaultFqName.parse(checkNotNull(kClassifier.qualifiedName)))
+                else {
+                    instantiateGenericOpaqueType(kType)
+                }
+            }
+
+            is KTypeParameter -> if (isAllowedTypeParameter(kClassifier))
+                typeVariableUsage(kClassifier).ref
+            else
+                schemaBuildingFailure("Type parameter '$kClassifier' cannot be used as a type")
+
+            else -> error("can't convert an unexpected type $kType to data type reference")
+        }
+    }
+
+    private fun isAllowedTypeParameter(typeParameter: KTypeParameter): Boolean =
+        currentContextStack.any { contextElement ->
+            contextElement is SchemaBuildingContextElement.ModelMemberContextElement && contextElement.kCallable.typeParameters.any {
+                Workarounds.typeParameterMatches(it, typeParameter)
+            }
+        }
+
+    private fun instantiateGenericOpaqueType(kType: KType): DataTypeRef {
+        require(kType.arguments.isNotEmpty())
+        val kClass = kType.classifier as KClass<*>
+
+        val fqn = DefaultFqName.parse(checkNotNull(kClass.qualifiedName))
+
+        val typeArguments = kType.arguments.map {
+            if (it == KTypeProjection.STAR)
+                TypeArgumentInternal.DefaultStarProjection()
+            else {
+                inContextOf(SchemaBuildingTags.typeArgument(it)) {
+                    if (it.variance != KVariance.INVARIANT) {
+                        schemaBuildingFailure("Illegal '${it.variance}' variance")
+                    }
+                    val argumentTypeRef = modelTypeRef(
+                        it.type ?: schemaBuildingFailure("Type argument has no proper type")
+                    )
+                    TypeArgumentInternal.DefaultConcreteTypeArgument(argumentTypeRef)
+                }
+            }
+        }
+
+        val registeredTypeSignature = typeSignatures.getOrPut(fqn) {
+            DataTypeInternal.DefaultParameterizedTypeSignature(
+                fqn,
+                kClass.typeParameters.map {
+                    if (it.variance == KVariance.IN)
+                        schemaBuildingFailure("Type parameter '$it' of '$kType' has 'in' variance, which is not supported")
+                    DataTypeInternal.DefaultParameterizedTypeSignature.TypeParameter(it.name, it.variance == KVariance.OUT)
+                },
+                kClass.java.name
+            )
+        }
+
+        val instance = registerTypeInstance(registeredTypeSignature, typeArguments)
+
+        return DataTypeRefInternal.DefaultNameWithArgs(instance.name, instance.typeArguments)
+    }
+
+    private fun registerTypeInstance(
+        registeredTypeSignature: ParameterizedTypeSignature,
+        typeArguments: List<TypeArgument>
+    ) = typeInstances.getOrPut(registeredTypeSignature.name) { mutableMapOf() }.getOrPut(typeArguments) {
+        DataTypeInternal.DefaultParameterizedTypeInstance(registeredTypeSignature, typeArguments)
+    }
+
+    private fun typeVariableUsage(kTypeParameter: KTypeParameter): DataType.TypeVariableUsage =
+        typeVariables.getOrPut(kTypeParameter) { DataTypeInternal.DefaultTypeVariableUsage(nextTypeVariableId.getAndIncrement()) }
+}
+
+
 
 class DataSchemaBuilder(
     private val typeDiscovery: TypeDiscovery,
@@ -164,153 +311,6 @@ class DataSchemaBuilder(
     private val functionExtractor: FunctionExtractor,
     private val augmentationsProvider: AugmentationsProvider
 ) {
-
-    private class Host(override val topLevelReceiverClass: KClass<*>) : SchemaBuildingHost {
-        val dataClassToKClass = mutableMapOf<DataClass, KClass<*>>()
-
-        val typeSignatures = mutableMapOf<FqName, ParameterizedTypeSignature>()
-        val typeInstances = mutableMapOf<FqName, MutableMap<List<TypeArgument>, ParameterizedTypeInstance>>()
-
-        private val typeVariables = mutableMapOf<KTypeParameter, DataType.TypeVariableUsage>()
-        private var nextTypeVariableId = AtomicLong()
-
-        private val currentContextStack = mutableListOf<SchemaBuildingContextElement>()
-
-        override val context: List<SchemaBuildingContextElement>
-            get() = currentContextStack
-
-        private val classMembersCache = mutableMapOf<KClass<*>, ClassMembersForSchema>()
-        private val declarativeSupertypesCache = mutableMapOf<KClass<*>, Iterable<MaybeDeclarativeClassInHierarchy>>()
-
-        override fun classMembers(kClass: KClass<*>): ClassMembersForSchema =
-            classMembersCache.getOrPut(kClass) { collectMembersForSchema(this, kClass) }
-
-        override fun declarativeSupertypesHierarchy(kClass: KClass<*>) =
-            declarativeSupertypesCache.getOrPut(kClass) { collectDeclarativeSuperclassHierarchy(kClass) }
-
-        override fun containerTypeRef(kClass: KClass<*>): DataTypeRef {
-            if (kClass.typeParameters.isNotEmpty()) {
-                schemaBuildingFailure("Cannot use the parameterized class '$kClass' as a configurable type")
-            }
-            return modelTypeRef(kClass.starProjectedType)
-        }
-
-        override fun modelTypeRef(kType: KType): DataTypeRef {
-            if (kType.isMarkedNullable) {
-                schemaBuildingFailure("Unsupported usage of a nullable type")
-            }
-
-            return typeRef(kType)
-        }
-
-        override fun varargTypeRef(varargType: KType): DataTypeRef {
-            val varargTypeSignature = typeSignatures.getOrPut(DefaultVarargSignature.name) { DefaultVarargSignature }
-
-            val elementTypeRef = withTag(varargType(varargType)) {
-                when (varargType) {
-                    typeOf<IntArray>() -> DataTypeInternal.DefaultIntDataType.ref
-                    typeOf<LongArray>() -> DataTypeInternal.DefaultLongDataType.ref
-                    typeOf<BooleanArray>() -> DataTypeInternal.DefaultBooleanDataType.ref
-                    else -> modelTypeRef(varargType.arguments.singleOrNull()?.type ?: schemaBuildingFailure("unexpected vararg type"))
-                }
-            }
-
-            return registerTypeInstance(varargTypeSignature, listOf(TypeArgumentInternal.DefaultConcreteTypeArgument(elementTypeRef))).ref
-        }
-
-        override fun enterSchemaBuildingContext(contextElement: SchemaBuildingContextElement) {
-            currentContextStack.add(contextElement)
-        }
-
-        override fun leaveSchemaBuildingContext(contextElement: SchemaBuildingContextElement) {
-            currentContextStack.removeLast().also {
-                check(it === contextElement) { "Schema building context mismatch: expected $contextElement on top, got $it" }
-            }
-        }
-
-        override fun typeRef(kType: KType): DataTypeRef {
-            check(currentContextStack.isNotEmpty()) { "Cannot reference a type $kType outside of a context" }
-
-            return when (val kClassifier = kType.classifier) {
-                Unit::class -> DataTypeInternal.DefaultUnitType.ref
-                Int::class -> DataTypeInternal.DefaultIntDataType.ref
-                String::class -> DataTypeInternal.DefaultStringDataType.ref
-                Boolean::class -> DataTypeInternal.DefaultBooleanDataType.ref
-                Long::class -> DataTypeInternal.DefaultLongDataType.ref
-                is KClass<*> -> {
-                    if (kType.arguments.isEmpty())
-                        DataTypeRefInternal.DefaultName(DefaultFqName.parse(checkNotNull(kClassifier.qualifiedName)))
-                    else {
-                        instantiateGenericOpaqueType(kType)
-                    }
-                }
-
-                is KTypeParameter -> if (isAllowedTypeParameter(kClassifier))
-                    typeVariableUsage(kClassifier).ref
-                else
-                    schemaBuildingFailure("Type parameter '$kClassifier' cannot be used as a type")
-
-                else -> error("can't convert an unexpected type $kType to data type reference")
-            }
-        }
-
-        private fun isAllowedTypeParameter(typeParameter: KTypeParameter): Boolean =
-            currentContextStack.any { contextElement ->
-                contextElement is SchemaBuildingContextElement.ModelMemberContextElement && contextElement.kCallable.typeParameters.any {
-                    Workarounds.typeParameterMatches(it, typeParameter)
-                }
-            }
-
-        private fun instantiateGenericOpaqueType(kType: KType): DataTypeRef {
-            require(kType.arguments.isNotEmpty())
-            val kClass = kType.classifier as KClass<*>
-
-            val fqn = DefaultFqName.parse(checkNotNull(kClass.qualifiedName))
-
-            val typeArguments = kType.arguments.map {
-                if (it == KTypeProjection.STAR)
-                    TypeArgumentInternal.DefaultStarProjection()
-                else {
-                    inContextOf(SchemaBuildingTags.typeArgument(it)) {
-                        if (it.variance != KVariance.INVARIANT) {
-                            schemaBuildingFailure("Illegal '${it.variance}' variance")
-                        }
-                        val argumentTypeRef = modelTypeRef(
-                            it.type ?: schemaBuildingFailure("Type argument has no proper type")
-                        )
-                        TypeArgumentInternal.DefaultConcreteTypeArgument(argumentTypeRef)
-                    }
-                }
-            }
-
-            val registeredTypeSignature = typeSignatures.getOrPut(fqn) {
-                DataTypeInternal.DefaultParameterizedTypeSignature(
-                    fqn,
-                    kClass.typeParameters.map {
-                        if (it.variance == KVariance.IN)
-                            schemaBuildingFailure("Type parameter '$it' of '$kType' has 'in' variance, which is not supported")
-                        DataTypeInternal.DefaultParameterizedTypeSignature.TypeParameter(it.name, it.variance == KVariance.OUT)
-                    },
-                    kClass.java.name
-                )
-            }
-
-            val instance = registerTypeInstance(registeredTypeSignature, typeArguments)
-
-            return DataTypeRefInternal.DefaultNameWithArgs(instance.name, instance.typeArguments)
-        }
-
-        private fun registerTypeInstance(
-            registeredTypeSignature: ParameterizedTypeSignature,
-            typeArguments: List<TypeArgument>
-        ) = typeInstances.getOrPut(registeredTypeSignature.name) { mutableMapOf() }.getOrPut(typeArguments) {
-            DataTypeInternal.DefaultParameterizedTypeInstance(registeredTypeSignature, typeArguments)
-        }
-
-        private fun typeVariableUsage(kTypeParameter: KTypeParameter): DataType.TypeVariableUsage =
-            typeVariables.getOrPut(kTypeParameter) { DataTypeInternal.DefaultTypeVariableUsage(nextTypeVariableId.getAndIncrement()) }
-    }
-
     fun schemaFromTypes(
         topLevelReceiver: KClass<*>,
         types: Iterable<KClass<*>>,
@@ -318,7 +318,7 @@ class DataSchemaBuilder(
         externalObjects: Map<FqName, KClass<*>> = emptyMap(),
         defaultImports: List<FqName> = emptyList(),
     ): AnalysisSchema {
-        val host = Host(topLevelReceiver)
+        val host = DefaultSchemaBuildingHost(topLevelReceiver)
         val preIndex = createPreIndex(host, types)
 
         val dataTypes = preIndex.types.filter { it.typeParameters.none() }.map {
@@ -353,13 +353,13 @@ class DataSchemaBuilder(
         return schema
     }
 
-    private fun validateSchema(host: Host, schema: AnalysisSchema) {
+    private fun validateSchema(host: DefaultSchemaBuildingHost, schema: AnalysisSchema) {
         val configurableTypes = collectReachableContainerTypes(schema)
         checkGenericTypeUsage(host, configurableTypes)
         checkAllTypesInScope(host, schema, configurableTypes)
     }
 
-    private fun checkGenericTypeUsage(host: Host, configurableTypes: Iterable<DataClass>) {
+    private fun checkGenericTypeUsage(host: DefaultSchemaBuildingHost, configurableTypes: Iterable<DataClass>) {
         configurableTypes.forEach {
             val kClass = host.dataClassToKClass[it]
             if (kClass != null) {
@@ -372,7 +372,7 @@ class DataSchemaBuilder(
         }
     }
 
-    private fun checkAllTypesInScope(host: Host, schema: AnalysisSchema, configurableTypes: Set<DataClass>) {
+    private fun checkAllTypesInScope(host: SchemaBuildingHost, schema: AnalysisSchema, configurableTypes: Set<DataClass>) {
         val typeRefContext = SchemaTypeRefContext(schema)
 
         fun checkTypeInScope(dataTypeRef: DataTypeRef) {
@@ -600,7 +600,7 @@ class DataSchemaBuilder(
     @Suppress("UNCHECKED_CAST")
     private
     fun createDataType(
-        host: Host,
+        host: SchemaBuildingHost,
         kClass: KClass<*>,
         preIndex: PreIndex
     ): DataType.ClassDataType = host.inContextOfModelClass(kClass) {
@@ -614,7 +614,6 @@ class DataSchemaBuilder(
                 val properties = preIndex.getAllProperties(kClass)
                 val functions = functionExtractor.memberFunctions(host, kClass, preIndex).toList()
                 DefaultDataClass(kClass.fqName, kClass.java.name, listOf(), supertypesOf(kClass), properties, functions, emptyList())
-                    .also { host.dataClassToKClass[it] = kClass }
             }
         }
     }

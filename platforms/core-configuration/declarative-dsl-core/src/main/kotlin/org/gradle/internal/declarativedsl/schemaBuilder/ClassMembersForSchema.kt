@@ -22,6 +22,7 @@ import org.gradle.declarative.dsl.model.annotations.internal.DeclarativeWithHidd
 import org.gradle.internal.declarativedsl.schemaBuilder.MaybeDeclarativeClassInHierarchy.SuperclassWithMapping
 import org.gradle.internal.declarativedsl.schemaBuilder.MaybeDeclarativeClassInHierarchy.VisibleSuperclassInHierarchy
 import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection.SupportedType
+import java.lang.reflect.Modifier
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
@@ -36,6 +37,7 @@ import kotlin.reflect.KVisibility
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.declaredMembers
 import kotlin.reflect.full.instanceParameter
+import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.javaField
 
 data class ClassMembersForSchema(
