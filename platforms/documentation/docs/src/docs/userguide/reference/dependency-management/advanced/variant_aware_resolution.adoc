@@ -463,7 +463,7 @@ By default, `outgoingVariants` prints information about variants with attributes
 It offers the optional parameter `--variant <variantName>` to select a single *variant* to display.
 It also accepts the `--all` flag to include information about legacy and deprecated configurations, as well as variants without attributes, or `--no-all` to exclude this information.
 
-NOTE: Variants without attributes are marked with `(n)` in the report and cannot be selected during variant-aware dependency resolution.
+NOTE: Configurations without attributes are marked with `(n)` in the report and cannot be selected during variant-aware dependency resolution.
 
 Here is the output of the `outgoingVariants` task on a freshly generated `java-library` project:
 
