@@ -1,4 +1,4 @@
-ant.importBuild("../../common/web/build.xml")
+ant.importBuild("build.xml")
 
 tasks {
     named<Task>("compile") {

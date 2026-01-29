@@ -493,7 +493,7 @@ You will need to replace targets that use `<ant>` tasks with Gradle <<controllin
 For example, your web project depends on a "util" library that's part of the same build. The Ant build file for "web" might have a target like this:
 +
 ====
-include::sample[dir="snippets/antMigration/multiProject/common",files="web/build.xml[tags=build-required]"]
+include::sample[dir="snippets/antMigration/multiProject/groovy",files="web/build.xml[tags=build-required]"]
 ====
 <1> `root.dir` would have to be defined by the build
 +

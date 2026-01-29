@@ -5,7 +5,7 @@ plugins {
 // end::apply-plugin[]
 
 // tag::import-build[]
-ant.importBuild("../common/build.xml") { oldTargetName ->
+ant.importBuild("build.xml") { oldTargetName ->
     if (oldTargetName == "build") "ant_build" else oldTargetName  // <1>
 }
 // end::import-build[]

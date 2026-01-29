@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <project name="util" default="build" basedir=".">
-    <property name="src.dir" value="src"/>
+    <property name="src.dir" value="../../common/util/src"/>
     <property name="build.dir" value="target"/>
     <property name="classes.dir" value="${build.dir}/classes"/>
 

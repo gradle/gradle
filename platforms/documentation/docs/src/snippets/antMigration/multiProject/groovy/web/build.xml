@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <project name="web" default="build" basedir=".">
     <property name="root.dir" value="${basedir}/.."/>
-    <property name="src.dir" value="src"/>
+    <property name="src.dir" value="../../common/web/src"/>
     <property name="build.dir" value="target"/>
     <property name="classes.dir" value="${build.dir}/classes"/>
 
     <!-- tag::build-required[] -->
     <target name="buildRequiredProjects">
-        <ant dir="${root.dir}/util" target="build"/>
+        <ant dir="${root.dir}/util" target="build"/>  <!--1-->
     </target>
     <!-- end::build-required[] -->
 
