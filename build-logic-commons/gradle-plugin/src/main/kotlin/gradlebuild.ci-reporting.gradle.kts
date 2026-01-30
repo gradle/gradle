@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import gradlebuild.testcleanup.TestFilesCleanupRootPlugin
-import gradlebuild.testcleanup.extension.TestFileCleanUpExtension
-import gradlebuild.testcleanup.extension.TestFilesCleanupBuildServiceRootExtension
-import gradlebuild.testcleanup.extension.TestFilesCleanupProjectState
+import gradlebuild.testcleanup.TestFilesCleanupPlugin
 
 /**
  * When run from a Continuous Integration environment, we only want to archive a subset of reports, mostly for
@@ -25,21 +22,9 @@ import gradlebuild.testcleanup.extension.TestFilesCleanupProjectState
  * artifact publishing by reducing the artifacts and packaging reports that consist of multiple files.
  *
  * Reducing the number of reports also makes it easier to find the important ones when analysing a failed build in
- * Team City.
+ * TeamCity.
  */
 
-val testFilesCleanup = extensions.create<TestFileCleanUpExtension>("testFilesCleanup").apply {
-    reportOnly.convention(false)
-}
-
 if ("CI" in System.getenv() && project.name != "gradle-kotlin-dsl-accessors") {
-    rootProject.plugins.apply(TestFilesCleanupRootPlugin::class.java)
-    val globalExtension = rootProject.extensions.getByType<TestFilesCleanupBuildServiceRootExtension>()
-
-    val projectState = objects.newInstance(TestFilesCleanupProjectState::class.java)
-
-    globalExtension.projectStates.put(path, projectState)
-    projectState.projectBuildDir = layout.buildDirectory
-    projectState.projectPath = path
-    projectState.reportOnly = testFilesCleanup.reportOnly
+    plugins.apply(TestFilesCleanupPlugin::class.java)
 }
