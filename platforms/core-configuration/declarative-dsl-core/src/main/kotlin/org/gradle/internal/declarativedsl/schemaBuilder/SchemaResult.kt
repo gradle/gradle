@@ -30,7 +30,7 @@ import kotlin.reflect.KType
 import kotlin.reflect.KVariance
 
 /**
- * A container for returning a [Result] in schema building or reporting a [Failure] while carrying the context of the failure..
+ * A container for returning a [Result] in schema building or reporting a [Failure] while carrying the context of the failure.
  *
  * A [Failure] result means that the schema building operation cannot be continued because of a failed requirement.
  * If it happens inside a complex operation, it should be propagated to the caller, normally by using [orFailWith].
@@ -97,7 +97,7 @@ sealed interface SchemaBuildingIssue {
         val illegalUsages: Iterable<DiscoveryTag>
     ) : SchemaBuildingIssue
 
-    data class UnsupportedListFactory(val returnType: SupportedTypeProjection.SupportedType) : SchemaBuildingIssue
+    data class UnsupportedPairFactory(val returnType: SupportedTypeProjection.SupportedType) : SchemaBuildingIssue
 
     data class UnsupportedMapFactory(val returnType: SupportedTypeProjection.SupportedType) : SchemaBuildingIssue
 
@@ -146,8 +146,8 @@ object SchemaFailureMessageFormatter {
                 SchemaBuildingIssue.UnrecognizedMember -> "Member not recognized as part of schema"
                 is SchemaBuildingIssue.UnsupportedTypeParameterAsContainerType -> "Using a type parameter as a configured type is not supported"
                 is SchemaBuildingIssue.UnsupportedGenericContainerType -> "Using a parameterized type as a configured type is not supported"
-                is SchemaBuildingIssue.UnsupportedListFactory -> "Illegal type '${returnType.toKType()}': functions returning Map types are not supported"
-                is SchemaBuildingIssue.UnsupportedMapFactory -> "Illegal type '${returnType.toKType()}': functions returning Pair are not supported"
+                is SchemaBuildingIssue.UnsupportedPairFactory -> "Illegal type '${returnType.toKType()}': functions returning Pair types are not supported"
+                is SchemaBuildingIssue.UnsupportedMapFactory -> "Illegal type '${returnType.toKType()}': functions returning Map types are not supported"
                 SchemaBuildingIssue.UnsupportedNullableReadOnlyProperty -> "Unsupported property declaration: nullable read-only property"
                 is SchemaBuildingIssue.UnsupportedNullableType -> "Unsupported usage of a nullable type"
                 is SchemaBuildingIssue.UnsupportedVarargType -> "Unsupported vararg type $type"

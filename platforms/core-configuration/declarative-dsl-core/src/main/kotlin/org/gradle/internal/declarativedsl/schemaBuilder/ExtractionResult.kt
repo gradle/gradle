@@ -49,7 +49,7 @@ fun <T, M> Iterable<ExtractionResult<T, M>>.combineGroupsByResult(combineMetadat
         extractionResult.replaceMetadata {
             when (it) {
                 is Extracted -> emptyList() // Group all success results into one bin
-                is Failure -> listOf(it)// Keep all failures separate – make the group key unique by using the item in it
+                is Failure -> listOf(it) // Keep all failures separate – make the group key unique by using the item in it
             }
         }
     }.run {

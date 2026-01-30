@@ -222,11 +222,11 @@ class DefaultFunctionExtractor(
         host.withTag(SchemaBuildingTags.returnValueType(type)) {
             when {
                 (type.classifier as? KClass<*>)?.isSubclassOf(Map::class) == true -> {
-                    host.schemaBuildingFailure(SchemaBuildingIssue.UnsupportedListFactory(type))
+                    host.schemaBuildingFailure(SchemaBuildingIssue.UnsupportedMapFactory(type))
                 }
 
                 type.classifier == Pair::class -> {
-                    host.schemaBuildingFailure(SchemaBuildingIssue.UnsupportedMapFactory(type))
+                    host.schemaBuildingFailure(SchemaBuildingIssue.UnsupportedPairFactory(type))
                 }
 
                 else -> schemaResult(Unit)

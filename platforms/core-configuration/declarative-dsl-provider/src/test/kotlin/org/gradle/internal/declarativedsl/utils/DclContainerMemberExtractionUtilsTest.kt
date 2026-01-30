@@ -119,7 +119,7 @@ class DclContainerMemberExtractionUtilsTest {
     }
 
     @Test
-    fun `no element type is extracted from out-projected types`() {
+    fun `element type is extracted from out-projected types`() {
         abstract class Subtype<S : Any> : NamedDomainObjectContainer<S>
 
         Assert.assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<NamedDomainObjectContainer<out String>>()))

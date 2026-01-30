@@ -108,7 +108,7 @@ class FunctionExtractorTest {
         assertFailsWith<DeclarativeDslSchemaBuildingException> { schemaFromTypes(HasPairFactory::class, listOf(HasPairFactory::class)) }.run {
             Assert.assertEquals(
                 """
-                    |Illegal type 'kotlin.Pair<kotlin.String, kotlin.String>': functions returning Pair are not supported
+                    |Illegal type 'kotlin.Pair<kotlin.String, kotlin.String>': functions returning Pair types are not supported
                     |  in return value type 'kotlin.Pair<kotlin.String, kotlin.String>'
                     |  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.HasPairFactory.pair(): kotlin.Pair<kotlin.String, kotlin.String>'
                     |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.HasPairFactory'
