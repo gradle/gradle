@@ -79,6 +79,7 @@ import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
+import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
@@ -621,8 +622,8 @@ public class DefaultTransform implements Transform {
         }
 
         @Override
-        public boolean usesMutableProjectState() {
-            return owner.getProject() != null;
+        public @Nullable ResourceLock getAccessLock() {
+            return owner.getModel().getAccessLock();
         }
 
         @Nullable
