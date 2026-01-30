@@ -77,7 +77,48 @@ public final class HelpRenderer {
         metaData.describeCommand(out, "[option...]", "[task...]");
         out.println();
         out.println();
-        parser.printUsage(out);
+        
+        StringWriter usageWriter = new StringWriter();
+        PrintWriter usageOut = new PrintWriter(usageWriter);
+        parser.printUsage(usageOut);
+        usageOut.flush();
+
+        String usage = usageWriter.toString();
+        String[] lines = usage.split("\r?\n");
+
+        String[] movePrefixes = new String[]{"-?, -h, --help", "-D, --system-prop", "-P, --project-prop", "-V, --show-version", "-v, --version"};
+
+        StringWriter reordered = new StringWriter();
+        PrintWriter reorderedOut = new PrintWriter(reordered);
+
+        for (String line : lines) {
+            String trimmed = line.trim();
+            for (String p : movePrefixes) {
+                if (trimmed.startsWith(p)) {
+                    reorderedOut.println(line);
+                    break;
+                }
+            }
+        }
+
+        reorderedOut.println();
+
+        for (String line : lines) {
+            String trimmed = line.trim();
+            boolean matched = false;
+            for (String p : movePrefixes) {
+                if (trimmed.startsWith(p)) {
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                reorderedOut.println(line);
+            }
+        }
+
+        reorderedOut.flush();
+        out.print(reordered.toString());
         out.println();
 
         out.flush();
@@ -93,9 +134,9 @@ public final class HelpRenderer {
         new StartParameterConverter().configure(parser);
         new BuildOptionBackedConverter<>(new DaemonBuildOptions()).configure(parser);
         // Built-in options: -h/--help/-?, -v/--version, -V/--show-version
-        parser.option("h", "?", "help").hasDescription("Shows this help message.").hasCategory(HelpCategory.BUILTIN);
-        parser.option("v", "version").hasDescription("Print version info and exit.").hasCategory(HelpCategory.BUILTIN);
-        parser.option("V", "show-version").hasDescription("Print version info and continue.").hasCategory(HelpCategory.BUILTIN);
+        parser.option("h", "?", "help").hasDescription("Shows this help message.");
+        parser.option("v", "version").hasDescription("Print version info and exit.");
+        parser.option("V", "show-version").hasDescription("Print version info and continue.");
         return parser;
     }
 }
