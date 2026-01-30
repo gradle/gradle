@@ -119,6 +119,31 @@ final class PersistentArrayTrie<T> implements PersistentArray<T> {
         }
     }
 
+    @Override
+    public PersistentArray<T> set(int index, T value) {
+        int tailOffset = size - tail.length;
+        if (index < tailOffset) {
+            if (index < 0) {
+                throw indexOutOfBounds(index);
+            }
+            return new PersistentArrayTrie<>(size, shift, set(root, index, value, shift), tail);
+        } else {
+            if (index >= size) {
+                throw indexOutOfBounds(index);
+            }
+            return new PersistentArrayTrie<>(size, shift, root, ArrayCopy.replaceAt(index - tailOffset, tail, value));
+        }
+    }
+
+    private static Object[] set(Object[] array, int index, Object value, int shift) {
+        if (shift > 0) {
+            int nodeIndex = (index >>> shift) & BITMASK;
+            return ArrayCopy.replaceAt(nodeIndex, array, set((Object[]) array[nodeIndex], index, value, shift - BITS));
+        } else {
+            return ArrayCopy.replaceAt(index & BITMASK, array, value);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public T getLast() {
