@@ -12,6 +12,7 @@ compileTesting = "0.21.0!!"
 develocityTestAnnotation = "2.0.1!!"
 dockerJavaApi = "3.4.0!!"
 equalsverifier = "2.1.6!!"
+flot = "0.8.1" # performance test reports
 gradleIdeStarter = "0.8.2!!"
 gradleProfiler = "0.24.0-alpha-1!!"
 guice = "5.1.0!!"
@@ -31,7 +32,8 @@ mockwebserver = "4.12.0!!"
 mySqlConnector = "9.2.0!!"
 netty = "4.1.63.Final"
 objenesis = "2.6!!"
-opentest4j = "1.3.0!!"
+opentest4j = "1.3.0!!" # MultipleFailuresError appears only since 1.3.0-RC2
+playwright = "1.20.1!!"
 samples = "1.0.3!!"
 selenium = "2.42.2!!"
 servletApi = "3.1.0!!"
@@ -57,6 +59,7 @@ compileTesting = { group = "com.google.testing.compile", name = "compile-testing
 develocityTestAnnotation = { group = "com.gradle", name = "develocity-testing-annotations", version.ref = "develocityTestAnnotation" }
 dockerJavaApi = { group = "com.github.docker-java", name = "docker-java-api", version.ref = "dockerJavaApi" }
 equalsverifier = { group = "nl.jqno.equalsverifier", name = "equalsverifier", version.ref = "equalsverifier" }
+flot = { group = "flot", name = "flot", version.ref = "flot" }
 gradleIdeStarter = { group = "org.gradle.buildtool.internal", name = "gradle-ide-starter", version.ref = "gradleIdeStarter" }
 gradleIdeStarterScenarios = { group = "org.gradle.buildtool.internal", name = "gradle-ide-starter-scenarios", version.ref = "gradleIdeStarter" }
 gradleProfiler = { group = "org.gradle.profiler", name = "gradle-profiler", version.ref = "gradleProfiler" }
@@ -76,6 +79,7 @@ joptSimple = { group = "net.sf.jopt-simple", name = "jopt-simple", version.ref =
 jtar = { group = "org.kamranzafar", name = "jtar", version.ref = "jtar" }
 junit = { group = "junit", name = "junit", version.ref = "junitForTests" }
 junit5JupiterApi = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit5ForTests" }
+junit5JupiterEngine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit5ForTests" }
 junit5Vintage = { group = "org.junit.vintage", name = "junit-vintage-engine", version.ref = "junit5ForTests" }
 junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junit5ForTests" }
 junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit5ForTests" }
@@ -96,6 +100,7 @@ mySqlConnector = { group = "com.mysql", name = "mysql-connector-j", version.ref 
 netty = { group = "io.netty", name = "netty-all", version.ref = "netty" }
 objenesis = { group = "org.objenesis", name = "objenesis", version.ref = "objenesis" }
 opentest4j = { group = "org.opentest4j", name = "opentest4j", version.ref = "opentest4j" }
+playwright = { group = "com.microsoft.playwright", name = "playwright", version.ref = "playwright" }
 samplesCheck = { group = "org.gradle.exemplar", name = "samples-check", version.ref = "samples" }
 samplesDiscovery = { group = "org.gradle.exemplar", name = "samples-discovery", version.ref = "samples" }
 selenium = { group = "org.seleniumhq.selenium", name = "selenium-htmlunit-driver", version.ref = "selenium" }

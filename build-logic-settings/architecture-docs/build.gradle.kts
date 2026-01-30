@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,14 @@
  */
 
 plugins {
-    id("java-library")
+    `kotlin-dsl`
 }
-description = "Provides a custom CodeNarc rule used by the Gradle build"
+
+description = "Provides plugin for generating architecture documentation"
 
 group = "gradlebuild"
 
 dependencies {
-    api(platform(projects.buildPlatform))
-    compileOnly(localGroovy())
-    compileOnly(buildLibs.codenarc) {
-        exclude(group = "org.apache.groovy")
-        exclude(group = "org.codehaus.groovy")
-    }
+    implementation(project(":build-environment"))
+    implementation(buildLibs.gson)
 }

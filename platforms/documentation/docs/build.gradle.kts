@@ -70,11 +70,11 @@ dependencies {
     // generate Javadoc for the full Gradle distribution
     runtimeOnly(project(":distributions-full"))
 
-    userGuideTask("xalan:xalan:2.7.1")
-    userGuideTask("xerces:xercesImpl:2.11.0")
-    userGuideTask("net.sf.xslthl:xslthl:2.0.1")
+    userGuideTask(buildLibs.xalan)
+    userGuideTask(buildLibs.xerces)
+    userGuideTask(buildLibs.xslthl)
 
-    userGuideStyleSheets("net.sf.docbook:docbook-xsl:1.75.2:resources@zip")
+    userGuideStyleSheets(variantOf(buildLibs.docbook) { classifier("resources"); artifactType("zip") })
 
     testImplementation(project(":base-services"))
     testImplementation(project(":core"))

@@ -17,7 +17,7 @@ import java.util.Properties
  */
 
 dependencyResolutionManagement {
-    val root = if (rootProject.name == "build-logic") {
+    val root = if (rootProject.name.startsWith("build-logic")) {
         layout.rootDirectory.dir("..")
     } else {
         layout.rootDirectory
