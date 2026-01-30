@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.file.OperatingSystemFileResolver
 import org.gradle.internal.serialize.JavaClassUtil
 import org.gradle.test.fixtures.file.TestFile
 
@@ -129,6 +130,6 @@ trait JavaToolchainFixture {
     }
 
     private boolean hasJavaExecutable(File potentialHome) {
-        return new File(potentialHome, OperatingSystem.current().getExecutableName("bin/java")).exists()
+        return new File(potentialHome, OperatingSystemFileResolver.current().getExecutableName("bin/java")).exists()
     }
 }

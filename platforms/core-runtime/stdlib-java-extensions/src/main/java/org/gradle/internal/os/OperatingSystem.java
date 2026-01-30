@@ -21,7 +21,6 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -107,62 +106,8 @@ public abstract class OperatingSystem {
 
     public abstract String getNativePrefix();
 
-    public abstract String getScriptName(String scriptPath);
-
-    public abstract String getExecutableName(String executablePath);
-
-    public abstract String getExecutableSuffix();
-
-    public abstract String getSharedLibraryName(String libraryName);
-
-    public abstract String getSharedLibrarySuffix();
-
-    public abstract String getStaticLibraryName(String libraryName);
-
-    public abstract String getStaticLibrarySuffix();
-
-    public abstract String getLinkLibrarySuffix();
-
-    public abstract String getLinkLibraryName(String libraryPath);
-
     @UsedByScanPlugin
     public abstract String getFamilyName();
-
-    /**
-     * Locates the given executable in the system path. Returns null if not found.
-     */
-    @Nullable
-    public File findInPath(String name) {
-        String exeName = getExecutableName(name);
-        if (exeName.contains(File.separator)) {
-            File candidate = new File(exeName);
-            if (candidate.isFile()) {
-                return candidate;
-            }
-            return null;
-        }
-        for (File dir : getPath()) {
-            File candidate = new File(dir, exeName);
-            if (candidate.isFile()) {
-                return candidate;
-            }
-        }
-
-        return null;
-    }
-
-    public List<File> findAllInPath(String name) {
-        List<File> all = new LinkedList<File>();
-
-        for (File dir : getPath()) {
-            File candidate = new File(dir, name);
-            if (candidate.isFile()) {
-                all.add(candidate);
-            }
-        }
-
-        return all;
-    }
 
     @SuppressWarnings("MixedMutabilityReturnType")
     public List<File> getPath() {
@@ -199,51 +144,6 @@ public abstract class OperatingSystem {
         }
 
         @Override
-        public String getScriptName(String scriptPath) {
-            return withExtension(scriptPath, ".bat");
-        }
-
-        @Override
-        public String getExecutableSuffix() {
-            return ".exe";
-        }
-
-        @Override
-        public String getExecutableName(String executablePath) {
-            return withExtension(executablePath, ".exe");
-        }
-
-        @Override
-        public String getSharedLibrarySuffix() {
-            return ".dll";
-        }
-
-        @Override
-        public String getSharedLibraryName(String libraryPath) {
-            return withExtension(libraryPath, ".dll");
-        }
-
-        @Override
-        public String getLinkLibrarySuffix() {
-            return ".lib";
-        }
-
-        @Override
-        public String getLinkLibraryName(String libraryPath) {
-            return withExtension(libraryPath, ".lib");
-        }
-
-        @Override
-        public String getStaticLibrarySuffix() {
-            return ".lib";
-        }
-
-        @Override
-        public String getStaticLibraryName(String libraryName) {
-            return withExtension(libraryName, ".lib");
-        }
-
-        @Override
         public String getNativePrefix() {
             return nativePrefix;
         }
@@ -260,16 +160,6 @@ public abstract class OperatingSystem {
         public String getPathVar() {
             return "Path";
         }
-
-        private static String withExtension(String filePath, String extension) {
-            if (filePath.toLowerCase(Locale.ROOT).endsWith(extension)) {
-                return filePath;
-            }
-            int lastFileSeparator = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'));
-            int lastDot = filePath.lastIndexOf('.');
-            String base = lastDot > lastFileSeparator ? filePath.substring(0, lastDot) : filePath;
-            return base + extension;
-        }
     }
 
     static class Unix extends OperatingSystem {
@@ -280,65 +170,8 @@ public abstract class OperatingSystem {
         }
 
         @Override
-        public String getScriptName(String scriptPath) {
-            return scriptPath;
-        }
-
-        @Override
         public String getFamilyName() {
             return "unknown";
-        }
-
-        @Override
-        public String getExecutableSuffix() {
-            return "";
-        }
-
-        @Override
-        public String getExecutableName(String executablePath) {
-            return executablePath;
-        }
-
-        @Override
-        public String getSharedLibraryName(String libraryName) {
-            return getLibraryName(libraryName, getSharedLibrarySuffix());
-        }
-
-        private String getLibraryName(String libraryName, String suffix) {
-            if (libraryName.endsWith(suffix)) {
-                return libraryName;
-            }
-            int pos = libraryName.lastIndexOf('/');
-            if (pos >= 0) {
-                return libraryName.substring(0, pos + 1) + "lib" + libraryName.substring(pos + 1) + suffix;
-            } else {
-                return "lib" + libraryName + suffix;
-            }
-        }
-
-        @Override
-        public String getSharedLibrarySuffix() {
-            return ".so";
-        }
-
-        @Override
-        public String getLinkLibrarySuffix() {
-            return getSharedLibrarySuffix();
-        }
-
-        @Override
-        public String getLinkLibraryName(String libraryPath) {
-            return getSharedLibraryName(libraryPath);
-        }
-
-        @Override
-        public String getStaticLibrarySuffix() {
-            return ".a";
-        }
-
-        @Override
-        public String getStaticLibraryName(String libraryName) {
-            return getLibraryName(libraryName, ".a");
         }
 
         @Override
@@ -391,11 +224,6 @@ public abstract class OperatingSystem {
         @Override
         public String getFamilyName() {
             return "os x";
-        }
-
-        @Override
-        public String getSharedLibrarySuffix() {
-            return ".dylib";
         }
 
         @Override
