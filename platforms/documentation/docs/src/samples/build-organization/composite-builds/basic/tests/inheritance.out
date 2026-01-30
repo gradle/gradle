@@ -1,0 +1,17 @@
+> Configure project :my-app:app
+propertiesFileMessage = null
+systemMessage = Hello from the root build -D CLI flag
+propertiesMessage = Hello from the root build -P CLI flag
+
+> Configure project :my-utils:number-utils
+propertiesFileMessage = null
+systemMessage = Hello from the root build -D CLI flag
+propertiesMessage = Hello from the root build -P CLI flag
+
+> Configure project :
+propertiesFileMessage = Hello from the root build gradle.properties
+systemMessage = Hello from the root build -D CLI flag
+propertiesMessage = Hello from the root build -P CLI flag
+
+BUILD SUCCESSFUL in 5s
+5 actionable tasks: 2 executed, 3 from cache
