@@ -2,7 +2,7 @@
 [versions]
 asciidoctor = "2.5.13"
 checkstyle = "10.25.0"
-develocity = "4.3.2" # TODO: fix `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>`
+develocity = "4.3.2"
 javaparser = "3.18.0"
 kotlin = "kotlin-stub" # will be replaced by platfrom
 
