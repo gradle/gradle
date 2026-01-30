@@ -22,7 +22,7 @@ import org.gradle.testing.junit.AbstractJUnitIntegrationTest
 import org.gradle.testing.junit.jupiter.JUnitJupiterMultiVersionTest
 
 @TargetCoverage({ JUnitCoverage.JUNIT_6 })
-class JUnit6JunitIntegrationTest extends AbstractJUnitIntegrationTest implements JUnitJupiterMultiVersionTest {
+class JUnit6JUnitIntegrationTest extends AbstractJUnitIntegrationTest implements JUnitJupiterMultiVersionTest {
     def "works with JUnit 6 features (MethodOrderer.Default and ClassOrderer.Default)"() {
         given:
         buildFile("""
