@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.executer.DefaultGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
@@ -384,6 +385,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         value = IntegTestPreconditions.NotEmbeddedExecutor,
         reason = "InProcessGradleExecuter assumes all tests use the same gradle distribution"
     )
+    @LeaksFileHandles("https://github.com/gradle/gradle-private/issues/5063")
     def "current distribution is a test task input"() {
         given:
         buildFile()

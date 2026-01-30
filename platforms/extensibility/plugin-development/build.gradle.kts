@@ -92,3 +92,5 @@ strictCompile {
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+testFilesCleanup.reportOnly = true
