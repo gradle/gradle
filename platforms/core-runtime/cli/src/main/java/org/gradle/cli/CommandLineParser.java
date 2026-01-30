@@ -220,6 +220,7 @@ public class CommandLineParser {
             if (section == null) {
                 section = grouped.get(HelpCategory.OTHER);
             }
+            java.util.Objects.requireNonNull(section);
             section.put(key, value);
         }
 

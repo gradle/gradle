@@ -22,6 +22,7 @@ import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.EnumBuildOption;
 import org.gradle.internal.buildoption.Origin;
+import org.gradle.cli.HelpCategory;
 
 import java.util.Collections;
 import java.util.List;
@@ -46,6 +47,11 @@ public class WelcomeMessageBuildOptions extends BuildOptionSet<WelcomeMessageCon
         @Override
         public void applyTo(WelcomeMessageDisplayMode value, WelcomeMessageConfiguration settings, Origin origin) {
             settings.setWelcomeMessageDisplayMode(value);
+        }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.CONFIGURATION;
         }
     }
 }
