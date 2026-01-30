@@ -49,7 +49,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         return runner.withJvmArguments(runner.jvmArguments + [
             // A workaround for this has been added to TaskExecutionAccessCheckers;
             // TODO once we remove it, uncomment the flag below or upgrade AGP
-            // "-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true"
+            // "-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true"
         ])
     }
 
