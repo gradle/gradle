@@ -16,13 +16,15 @@
 
 package org.gradle.testing.junit.junit6.jupiter
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.junit.AbstractJUnitIntegrationTest
 import org.gradle.testing.junit.jupiter.JUnitJupiterMultiVersionTest
 
 @TargetCoverage({ JUnitCoverage.JUNIT_6 })
-class JUnit6JUnitIntegrationTest extends AbstractJUnitIntegrationTest implements JUnitJupiterMultiVersionTest {
+class JUnit6JUnitIntegrationTest extends AbstractJUnitIntegrationTest implements JUnitJupiterMultiVersionTest, JavaToolchainFixture {
     def "works with JUnit 6 features (MethodOrderer.Default and ClassOrderer.Default)"() {
         given:
         buildFile("""
@@ -113,5 +115,81 @@ JUnit6OrderingTest > NestedTestWithDefaultOrdering > testY() STANDARD_OUT
 
 JUnit6OrderingTest > NestedTestWithDefaultOrdering > testZ() STANDARD_OUT
     testZ""")
+    }
+
+    def "Gradle emits resolution help message if JUnit6 is used with Java below 17"() {
+        def jdk = AvailableJavaHomes.getJdk8()
+        buildFile"""
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+            ${javaPluginToolchainVersion(jdk)}
+
+            testing.suites.test {
+                useJUnitJupiter("${version}")
+            }
+        """
+        file("src/test/java/com/example/FooTest.java").java """
+package com.example;
+
+import org.junit.jupiter.api.Test;
+
+public class FooTest {
+    @Test
+    public void testIt() {
+        assert true;
+    }
+}
+        """
+        when:
+        withInstallations(jdk)
+        fails("test")
+        then:
+        failure.assertHasCause("Dependency resolution is looking for a library compatible with JVM runtime version 8, but 'org.junit.jupiter:junit-jupiter:${version}' is only compatible with JVM runtime version 17 or newer.")
+    }
+
+    def "Gradle emits help message if JUnit6 is used with Java below 17"() {
+        def jdk = AvailableJavaHomes.getJdk8()
+        buildFile"""
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+            ${javaPluginToolchainVersion(17)}
+
+            testing.suites.test {
+                useJUnitJupiter("${version}")
+                targets {
+                    all {
+                        testTask.configure {
+                            javaLauncher = javaToolchains.launcherFor {
+                                languageVersion = JavaLanguageVersion.of(8)
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        file("src/test/java/com/example/FooTest.java").java """
+package com.example;
+
+import org.junit.jupiter.api.Test;
+
+public class FooTest {
+    @Test
+    public void testIt() {
+        assert true;
+    }
+}
+        """
+        when:
+        withInstallations(jdk)
+        fails("test")
+        then:
+        // TODO: This captures existing behavior, but not desired behavior
+        failure.assertHasCause("Test process encountered an unexpected problem.")
     }
 }
