@@ -203,6 +203,74 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
         )
     }
 
+    def 'can declare and configure a custom project type with an unsafe apply action'() {
+        given:
+        withProjectTypeWithUnsafeApplyActionDeclaredUnsafe().prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
+
+        when:
+        run(":printTestProjectTypeDefinitionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+
+        and:
+        outputContains("Applying ProjectTypeImplPlugin")
+    }
+
+    def 'sensible error when a project type with an unsafe apply action is declared safe'() {
+        given:
+        withProjectTypeWithUnsafeApplyActionDeclaredSafe().prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
+
+        when:
+        fails(":printTestProjectTypeDefinitionConfiguration")
+
+        then:
+        failure.assertHasCause(
+            "Project feature 'testProjectType' has a safe apply action that attempts to inject an unsafe service with type 'org.gradle.api.Project'.\n" +
+            "\n" +
+            "Reason: Only the following services are available in safe apply actions:\n" +
+            "  - TaskRegistrar\n" +
+            "  - ProjectFeatureLayout\n" +
+            "  - ConfigurationRegistrar\n" +
+            "  - ObjectFactory\n" +
+            "  - ProviderFactory\n" +
+            "  - DependencyFactory.\n" +
+            "\n" +
+            "Possible solutions:\n" +
+            "  1. Mark the apply action as unsafe.\n" +
+            "  2. Remove the 'org.gradle.api.Project' injection from the apply action."
+        )
+    }
+
+    def 'sensible error when a project type with an unsafe apply action attempts to use an unknown service'() {
+        given:
+        withProjectTypeWithUnsafeApplyActionInjectingUnknownService().prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
+
+        when:
+        fails(":printTestProjectTypeDefinitionConfiguration")
+
+        then:
+        failure.assertHasCause(
+            "Project feature 'testProjectType' has an apply action that attempts to inject an unknown service with type 'org.gradle.test.ProjectTypeImplPlugin\$Binding\$UnknownService'.\n" +
+            "\n" +
+            "Reason: Services of type org.gradle.test.ProjectTypeImplPlugin\$Binding\$UnknownService are not available for injection into project feature apply actions.\n" +
+            "\n" +
+            "Possible solution: Remove the 'org.gradle.test.ProjectTypeImplPlugin\$Binding\$UnknownService' injection from the apply action."
+        )
+    }
+
     void assertDescriptionOrCause(ExecutionFailure failure, String expectedMessage) {
         if (currentDsl() == GradleDsl.DECLARATIVE) {
             failure.assertHasDescription(expectedMessage)

@@ -33,8 +33,9 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.DecompressionCoordinator;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.api.internal.model.DefaultObjectFactory;
+import org.gradle.api.internal.model.DefaultObjectFactoryFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.model.ObjectFactoryFactory;
 import org.gradle.api.internal.provider.DefaultPropertyFactory;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.provider.PropertyHost;
@@ -143,20 +144,32 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
     }
 
     @Provides
-    ObjectFactory createObjectFactory(
-        InstantiatorFactory instantiatorFactory, ServiceRegistry services, PatternSetFactory patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory,
-        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
-        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator
+    protected ObjectFactoryFactory createObjectFactoryFactory(
+        InstantiatorFactory instantiatorFactory,
+        PatternSetFactory patternSetFactory,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        PropertyFactory propertyFactory,
+        FilePropertyFactory filePropertyFactory,
+        TaskDependencyFactory taskDependencyFactory,
+        FileCollectionFactory fileCollectionFactory,
+        DomainObjectCollectionFactory domainObjectCollectionFactory,
+        NamedObjectInstantiator namedObjectInstantiator
     ) {
-        return new DefaultObjectFactory(
-            instantiatorFactory.decorate(services),
-            namedObjectInstantiator,
-            directoryFileTreeFactory,
+        return new DefaultObjectFactoryFactory(
+            instantiatorFactory,
             patternSetFactory,
+            directoryFileTreeFactory,
             propertyFactory,
             filePropertyFactory,
             taskDependencyFactory,
             fileCollectionFactory,
-            domainObjectCollectionFactory);
+            domainObjectCollectionFactory,
+            namedObjectInstantiator
+        );
+    }
+
+    @Provides
+    ObjectFactory createObjectFactory(ObjectFactoryFactory objectFactoryFactory, ServiceRegistry services) {
+        return objectFactoryFactory.createObjectFactory(services);
     }
 }

@@ -164,6 +164,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
                 binding.getDefinitionType(),
                 binding.getDefinitionImplementationType().orElse(binding.getDefinitionType()),
                 binding.getDefinitionSafety(),
+                binding.getApplyActionSafety(),
                 binding.targetDefinitionType(),
                 binding.getBuildModelType(),
                 binding.getBuildModelImplementationType().orElse(binding.getBuildModelType()),

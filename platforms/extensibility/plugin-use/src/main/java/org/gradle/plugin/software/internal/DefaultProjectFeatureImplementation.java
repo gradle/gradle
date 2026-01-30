@@ -39,6 +39,7 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
     private final Class<T> definitionPublicType;
     private final Class<? extends T> definitionImplementationType;
     private final ProjectFeatureBindingDeclaration.Safety definitionSafety;
+    private final ProjectFeatureBindingDeclaration.Safety applyActionSafety;
     private final TargetTypeInformation<?> targetDefinitionType;
     private final Class<V> buildModelType;
     private final Class<? extends V> buildModelImplementationType;
@@ -54,6 +55,7 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
         Class<T> definitionPublicType,
         Class<? extends T> definitionImplementationType,
         ProjectFeatureBindingDeclaration.Safety definitionSafety,
+        ProjectFeatureBindingDeclaration.Safety applyActionSafety,
         TargetTypeInformation<?> targetDefinitionType,
         Class<V> buildModelType,
         Class<? extends V> buildModelImplementationType,
@@ -66,6 +68,7 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
         this.definitionPublicType = definitionPublicType;
         this.definitionImplementationType = definitionImplementationType;
         this.definitionSafety = definitionSafety;
+        this.applyActionSafety = applyActionSafety;
         this.targetDefinitionType = targetDefinitionType;
         this.buildModelType = buildModelType;
         this.buildModelImplementationType = buildModelImplementationType;
@@ -93,6 +96,11 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
     @Override
     public ProjectFeatureBindingDeclaration.Safety getDefinitionSafety() {
         return definitionSafety;
+    }
+
+    @Override
+    public ProjectFeatureBindingDeclaration.Safety getApplyActionSafety() {
+        return applyActionSafety;
     }
 
     @Override

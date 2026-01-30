@@ -16,36 +16,18 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.Project;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
-
-import javax.inject.Inject;
 
 /**
  * Represents the context in which a project feature is applied and the services
  * available in that context.
  */
 public interface ProjectFeatureApplicationContext {
-    /**
-     * The ProjectLayout for the Project object the project feature is applied to.
-     */
-    @Inject
-    ProjectLayout getProjectLayout();
 
     /**
      * The ObjectFactory for the Project object the project feature is applied to.
      */
-    @Inject
     ObjectFactory getObjectFactory();
-
-    /**
-     * The containing Project object where this project feature is applied.  This should be used as a last
-     * resort when the services necessary are not exposed in other ways in this context.
-     * This method will eventually be removed.
-     */
-    @Inject
-    Project getProject();
 
     /**
      * Allows a {@link ProjectFeatureApplyAction} or {@link ProjectTypeApplyAction} to access the build model object of a given

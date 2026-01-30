@@ -330,7 +330,8 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
                 static class TypeBinding implements ProjectTypeBinding {
                     public void bind(ProjectTypeBindingBuilder builder) {
                         builder.bindProjectType("testSoftwareType", TestSoftwareTypeExtension.class, (context, definition, model) -> {
-                            context.getProject().getTasks().register("printConfiguration", DefaultTask.class, task -> {
+                            Services services = context.getObjectFactory().newInstance(Services.class);
+                            services.getProject().getTasks().register("printConfiguration", DefaultTask.class, task -> {
                                 task.doLast("print restricted extension content", t -> {
                                     System.out.println("id = " + definition.getId().get());
                                     System.out.println("bar = " + definition.getFoo().getBar().get());
@@ -342,6 +343,11 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
                             });
                         })
                         .withUnsafeDefinition();
+                    }
+
+                    interface Services {
+                        @javax.inject.Inject
+                        Project getProject();
                     }
                 }
 

@@ -43,6 +43,8 @@ public interface ProjectFeatureImplementation<T extends Definition<V>, V extends
 
     ProjectFeatureBindingDeclaration.Safety getDefinitionSafety();
 
+    ProjectFeatureBindingDeclaration.Safety getApplyActionSafety();
+
     TargetTypeInformation<?> getTargetDefinitionType();
 
     Class<V> getBuildModelType();
