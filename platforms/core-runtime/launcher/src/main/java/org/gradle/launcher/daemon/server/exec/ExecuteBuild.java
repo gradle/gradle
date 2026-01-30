@@ -23,9 +23,11 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
+import org.gradle.internal.concurrent.MultiProducerSingleConsumerProcessor;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
+import org.gradle.launcher.daemon.server.api.DaemonConnection;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -53,12 +55,17 @@ public class ExecuteBuild extends BuildCommandOnly {
         LOGGER.debug(DaemonMessages.STARTED_BUILD);
         LOGGER.debug("Executing build with daemon context: {}", execution.getDaemonContext());
         runningStats.buildStarted();
-        DaemonConnectionBackedEventConsumer buildEventConsumer = new DaemonConnectionBackedEventConsumer(execution);
+
+        DaemonConnection connection = execution.getConnection();
+        MultiProducerSingleConsumerProcessor<Object> buildEventConsumer =
+            new MultiProducerSingleConsumerProcessor<>("Daemon client event forwarder", connection::event);
+        buildEventConsumer.start();
+
         try {
             BuildCancellationToken cancellationToken = execution.getDaemonStateControl().getCancellationToken();
             DefaultBuildClientMetaData clientMetaData = new DefaultBuildClientMetaData(build.getBuildClientMetaData());
             BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(clientMetaData, build.getStartTime(), build.isInteractive());
-            BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(buildRequestMetaData, cancellationToken, buildEventConsumer);
+            BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(buildRequestMetaData, cancellationToken, buildEventConsumer::submit);
             if (!build.getAction().getStartParameter().isContinuous()) {
                 buildRequestContext.getCancellationToken().addCallback(new Runnable() {
                     @Override
@@ -70,7 +77,7 @@ public class ExecuteBuild extends BuildCommandOnly {
             BuildActionResult result = actionExecuter.execute(build.getAction(), build.getParameters(), buildRequestContext);
             execution.setResult(result);
         } finally {
-            buildEventConsumer.waitForFinish();
+            buildEventConsumer.stop(null);
             runningStats.buildFinished();
             LOGGER.debug(DaemonMessages.FINISHED_BUILD);
         }

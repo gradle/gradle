@@ -106,6 +106,23 @@ public class MultiProducerSingleConsumerProcessor<T> {
             throw new IllegalStateException("Cannot submit values after processor has been stopped.");
         }
 
+        doSubmit(value);
+    }
+
+    /**
+     * Submit a value to be processed, discarding the value if the processor is
+     * shutdown or in a failure state.
+     */
+    public void maybeSubmit(T value) {
+        if (failure == null && running) {
+            doSubmit(value);
+        }
+    }
+
+    /**
+     * Submit the value to the queue, waking up the worker thread if necessary.
+     */
+    private void doSubmit(T value) {
         if (!queue.offer(value)) {
             throw new IllegalStateException("Failed to offer value to queue");
         }
@@ -125,12 +142,12 @@ public class MultiProducerSingleConsumerProcessor<T> {
      * Stop the handler, waiting for the given timeout. An exception
      * is thrown if the worker did not complete by the timeout.
      */
-    public void stop(Duration timeout) {
+    public void stop(@Nullable Duration timeout) {
         this.running = false;
         LockSupport.unpark(worker);
 
         try {
-            worker.join(timeout.toMillis());
+            worker.join(timeout == null ? 0 : timeout.toMillis());
             if (worker.isAlive()) {
                 throw new RuntimeException("Timed out waiting for handler to complete");
             }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -36,7 +37,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 3.5
  */
 @ServiceScope(Scope.Global.class)
-public interface BuildOperationListenerManager {
+public interface BuildOperationListenerManager extends Stoppable {
 
     void addListener(BuildOperationListener listener);
 

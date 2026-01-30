@@ -54,7 +54,7 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         isRootBuild() >> true
     }
     def buildResult = new BuildResult(gradle, null)
-    def registry = new DefaultBuildEventsListenerRegistry(new DefaultUserCodeApplicationContext(), factory, listenerManager, buildOperationListenerManager, executorFactory)
+    def registry = new DefaultBuildEventsListenerRegistry(new DefaultUserCodeApplicationContext(), factory, listenerManager, buildOperationListenerManager)
 
     def cleanup() {
         // Signal the end of the build, to stop everything

@@ -17,6 +17,7 @@
 package org.gradle.internal.operations;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.concurrent.MultiProducerSingleConsumerProcessor;
 
 import java.util.List;
 import java.util.Map;
@@ -28,38 +29,7 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
     // Imitation of CopyOnWriteArrayList, which supports safe iteration in reverse
     private final AtomicReference<ImmutableList<ProgressShieldingBuildOperationListener>> listeners = new AtomicReference<>(ImmutableList.of());
 
-    private final BuildOperationListener broadcaster = new BuildOperationListener() {
-        @Override
-        public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            List<? extends BuildOperationListener> listeners = getListeners();
-            //noinspection ForLoopReplaceableByForEach
-            for (int i = 0; i < listeners.size(); ++i) {
-                listeners.get(i).started(buildOperation, startEvent);
-            }
-        }
-
-        @Override
-        public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-            List<? extends BuildOperationListener> listeners = getListeners();
-            //noinspection ForLoopReplaceableByForEach
-            for (int i = 0; i < listeners.size(); ++i) {
-                listeners.get(i).progress(operationIdentifier, progressEvent);
-            }
-        }
-
-        @Override
-        public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            List<? extends BuildOperationListener> listeners = getListeners();
-            for (int i = listeners.size() - 1; i >= 0; --i) {
-                listeners.get(i).finished(buildOperation, finishEvent);
-            }
-        }
-    };
-
-    @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
-    private ImmutableList<ProgressShieldingBuildOperationListener> getListeners() {
-        return DefaultBuildOperationListenerManager.this.listeners.get();
-    }
+    private final AsyncCompositeBuildOperationListener broadcaster = new AsyncCompositeBuildOperationListener(listeners);
 
     @Override
     public void addListener(BuildOperationListener listener) {
@@ -81,6 +51,11 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
     @Override
     public BuildOperationListener getBroadcaster() {
         return broadcaster;
+    }
+
+    @Override
+    public void stop() {
+        broadcaster.stop();
     }
 
     /**
@@ -112,6 +87,98 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
             active.remove(buildOperation.getId());
             delegate.finished(buildOperation, finishEvent);
+        }
+    }
+
+    private static class AsyncCompositeBuildOperationListener implements BuildOperationListener {
+
+        private final AtomicReference<ImmutableList<ProgressShieldingBuildOperationListener>> listeners;
+
+        private final MultiProducerSingleConsumerProcessor<Object> queue;
+
+        public AsyncCompositeBuildOperationListener(
+            AtomicReference<ImmutableList<ProgressShieldingBuildOperationListener>> listeners
+        ) {
+            this.listeners = listeners;
+
+            this.queue = new MultiProducerSingleConsumerProcessor<>("build-operation-broadcaster", this::processEvent);
+            queue.start();
+        }
+
+        @Override
+        public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+            queue.submit(new Started(buildOperation, startEvent));
+        }
+
+        @Override
+        public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
+            queue.submit(new Progress(operationIdentifier, progressEvent));
+        }
+
+        @Override
+        public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+            queue.submit(new Finished(buildOperation, finishEvent));
+        }
+
+        @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
+        private void processEvent(Object event) {
+            if (event instanceof Started) {
+                Started started = (Started) event;
+                List<? extends BuildOperationListener> currentListeners = listeners.get();
+                //noinspection ForLoopReplaceableByForEach
+                for (int i = 0; i < currentListeners.size(); ++i) {
+                    currentListeners.get(i).started(started.buildOperation, started.startEvent);
+                }
+            } else if (event instanceof Progress) {
+                Progress progress = (Progress) event;
+                List<? extends BuildOperationListener> currentListeners = listeners.get();
+                //noinspection ForLoopReplaceableByForEach
+                for (int i = 0; i < currentListeners.size(); ++i) {
+                    currentListeners.get(i).progress(progress.operationIdentifier, progress.progressEvent);
+                }
+            } else if (event instanceof Finished) {
+                Finished finished = (Finished) event;
+                List<? extends BuildOperationListener> currentListeners = listeners.get();
+                for (int i = currentListeners.size() - 1; i >= 0; --i) {
+                    currentListeners.get(i).finished(finished.buildOperation, finished.finishEvent);
+                }
+            } else {
+                throw new IllegalArgumentException("Unsupported event type: " + event.getClass().getName());
+            }
+        }
+
+        public void stop() {
+            queue.stop(null);
+        }
+    }
+
+    private static class Started {
+        final BuildOperationDescriptor buildOperation;
+        final OperationStartEvent startEvent;
+
+        public Started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+            this.buildOperation = buildOperation;
+            this.startEvent = startEvent;
+        }
+    }
+
+    private static class Progress {
+        final OperationIdentifier operationIdentifier;
+        final OperationProgressEvent progressEvent;
+
+        public Progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
+            this.operationIdentifier = operationIdentifier;
+            this.progressEvent = progressEvent;
+        }
+    }
+
+    private static class Finished {
+        final BuildOperationDescriptor buildOperation;
+        final OperationFinishEvent finishEvent;
+
+        public Finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+            this.buildOperation = buildOperation;
+            this.finishEvent = finishEvent;
         }
     }
 }
