@@ -119,13 +119,19 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractDeclarativeKotli
                     class Binding : ${ProjectTypeBinding::class.java.simpleName} {
                         override fun bind(builder: ${ProjectTypeBindingBuilder::class.java.simpleName}) {
                             builder.bindProjectType("mySoftwareType") { definition: MyExtension, model ->
-                                project.tasks.register("printNames") {
+                                val services = objectFactory.newInstance(Services::class.java)
+                                services.taskRegistrar.register("printNames") {
                                     val names = definition.myElements.names + definition.myElementsConcreteContainer.names
                                     doFirst {
                                         println(names)
                                     }
                                 }
                             }.withUnsafeDefinition()
+                        }
+
+                        interface Services {
+                            @get:Inject
+                            val taskRegistrar: ${TaskRegistrar::class.java.name}
                         }
                     }
 

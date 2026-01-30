@@ -58,7 +58,8 @@ class KotlinDslDeclarativeNestedModelIntegrationTest : AbstractDeclarativeKotlin
                     class Binding : ${ProjectTypeBinding::class.java.simpleName} {
                         override fun bind(builder: ${ProjectTypeBindingBuilder::class.java.simpleName}) {
                             builder.bindProjectType("mySoftwareType") { definition: MyExtension, model ->
-                                project.tasks.register("printFoo") {
+                                val services = objectFactory.newInstance(Services::class.java)
+                                services.taskRegistrar.register("printFoo") {
                                     val nestedFoo = definition.myNested.foo
                                     val moreNestedFoo = definition.myNested.moreNested.foo
                                     doFirst {
@@ -66,6 +67,11 @@ class KotlinDslDeclarativeNestedModelIntegrationTest : AbstractDeclarativeKotlin
                                     }
                                 }
                             }
+                        }
+
+                        interface Services {
+                            @get:Inject
+                            val taskRegistrar: ${TaskRegistrar::class.java.name}
                         }
                     }
 
