@@ -30,7 +30,6 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -54,7 +53,7 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
     private final Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer;
     private final Serializer<AttributeContainer> attributeContainerSerializer;
     private final Serializer<ComponentIdentifier> componentIdSerializer;
-    private final Serializer<List<Capability>> capabilitySerializer;
+    private final ListSerializer<Capability> capabilitySerializer;
 
     @Inject
     public CompleteComponentResultSerializer(
@@ -128,11 +127,11 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
         ComponentIdentifier ownerId = componentIdSerializer.read(decoder);
         String displayName = decoder.readString();
         AttributeContainer attributes = attributeContainerSerializer.read(decoder);
-        List<Capability> capabilities = capabilitySerializer.read(decoder);
+        ImmutableList<Capability> capabilities = capabilitySerializer.read(decoder);
 
         // TODO: Read the external variant, like we do with the variant reference.
 
-        visitor.visitSelectedVariant(nodeId, new DefaultResolvedVariantResult(ownerId, Describables.of(displayName), attributes, ImmutableCapabilities.of(capabilities), null));
+        visitor.visitSelectedVariant(nodeId, new DefaultResolvedVariantResult(ownerId, Describables.of(displayName), attributes, capabilities, null));
     }
 
 }
