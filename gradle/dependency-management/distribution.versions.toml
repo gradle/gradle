@@ -29,6 +29,7 @@ jatl = "0.2.3!!"
 javaParser = "3.27.1!!"
 javaPoet = "1.13.0!!"
 jcifs = "1.3.17!!"
+jctools = "4.0.5!!"
 jetbrainsAnnotations = "24.0.1!!"
 jgit = "7.2.1.202505142326-r!!"
 jna = "5.17.0!!"
@@ -109,6 +110,7 @@ javaParser = { group = "com.github.javaparser", name = "javaparser-core", versio
 javaPoet = { group = "com.squareup", name = "javapoet", version.ref = "javaPoet" }
 jcifs = { group = "jcifs", name = "jcifs", version.ref = "jcifs" }
 jclToSlf4j = { group = "org.slf4j", name = "jcl-over-slf4j", version.ref = "slf4j" }
+jctools = { group = "org.jctools", name = "jctools-core", version.ref = "jctools" }
 jetbrainsAnnotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrainsAnnotations" }
 jgit = { group = "org.eclipse.jgit", name = "org.eclipse.jgit", version.ref = "jgit" }
 jgitSsh = { group = "org.eclipse.jgit", name = "org.eclipse.jgit.ssh.apache", version.ref = "jgit" }

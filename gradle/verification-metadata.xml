@@ -387,6 +387,7 @@
          <trusted-key id="FFFD810FFFDE203D5FA27263BEABCFBEE059E4E5" group="com.github.siom79.japicmp"/>
          <trusted-key id="331224E1D7BE883D16E8A685825C06C827AF6B66" group="me.champeau.gradle"/>
          <trusted-key id="D477D51812E692011DB11E66A6EA2E2BF22E0543" group="io.github.java-diff-utils"/>
+         <trusted-key id="9B5D41D28D8231A341B6713BC8C127A0EC7665D6" group="org.jctools"/>
       </trusted-keys>
    </configuration>
    <components>
