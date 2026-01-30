@@ -25,7 +25,7 @@ class IsolatedProjectsGradleExecuter extends DaemonGradleExecuter {
     static final List<String> ISOLATED_PROJECTS_ARGS = [
         "-D${StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME}=true",
         "-D${StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0",
-        "-Dorg.gradle.configuration-cache.internal.report-output-directory=.gradle/isolated-projects/reports",
+        "-Dorg.gradle.internal.configuration-cache.report-output-directory=.gradle/isolated-projects/reports",
     ].collect { it.toString() }
 
     IsolatedProjectsGradleExecuter(
