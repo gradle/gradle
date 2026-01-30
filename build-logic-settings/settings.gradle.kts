@@ -44,13 +44,6 @@ pluginManagement {
     }
 }
 
-plugins {
-    //FIXME: find a way to avoid hardcoding the version here
-    id("com.gradle.develocity").version("4.3.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
-    id("io.github.gradle.develocity-conventions-plugin").version("0.12.1")
-    id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
-}
-
 include("architecture-docs")
 include("build-environment")
 include("configuration-cache-compatibility")
