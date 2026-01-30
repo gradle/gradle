@@ -28,7 +28,7 @@ import org.gradle.api.internal.plugins.features.dsl.bindProjectFeatureToDefiniti
 import org.gradle.api.plugins.java.HasSources
 import org.gradle.api.plugins.java.JvmOutputs
 import org.gradle.api.plugins.quality.Checkstyle
-import org.gradle.api.internal.registration.TaskRegistrar
+import org.gradle.features.registration.TaskRegistrar
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import javax.inject.Inject
 

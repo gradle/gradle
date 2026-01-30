@@ -19,7 +19,7 @@ package org.gradle.api.plugins.antlr
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.file.ProjectFeatureLayout
+import org.gradle.features.file.ProjectFeatureLayout
 import org.gradle.api.internal.plugins.BindsProjectFeature
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
 import org.gradle.api.internal.plugins.ProjectFeatureBinding
@@ -27,7 +27,7 @@ import org.gradle.api.internal.plugins.features.dsl.bindProjectFeatureToBuildMod
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.antlr.internal.DefaultAntlrSourceDirectorySet
 import org.gradle.api.plugins.java.JavaClasses
-import org.gradle.api.internal.registration.TaskRegistrar
+import org.gradle.features.registration.TaskRegistrar
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import javax.inject.Inject
 

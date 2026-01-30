@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.registration;
+package org.gradle.features.registration;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -34,6 +34,7 @@ import org.gradle.api.artifacts.ResolvableConfiguration;
  *
  * @since 9.5.0
  */
+@Incubating
 public interface ConfigurationRegistrar {
     /**
      * Registers a {@link ResolvableConfiguration} with an immutable role. Resolvable configurations

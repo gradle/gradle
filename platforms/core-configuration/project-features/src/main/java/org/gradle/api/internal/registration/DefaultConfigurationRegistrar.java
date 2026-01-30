@@ -21,6 +21,7 @@ import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.DependencyScopeConfiguration;
 import org.gradle.api.artifacts.ResolvableConfiguration;
+import org.gradle.features.registration.ConfigurationRegistrar;
 
 /**
  * Default implementation of {@link ConfigurationRegistrar} which delegates to {@link org.gradle.api.artifacts.ConfigurationContainer},

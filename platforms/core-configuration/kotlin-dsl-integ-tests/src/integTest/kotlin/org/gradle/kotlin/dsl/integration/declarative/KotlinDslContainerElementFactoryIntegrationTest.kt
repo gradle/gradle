@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.integration.declarative
 
 import org.gradle.api.Namer
+import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.plugins.BindsProjectType

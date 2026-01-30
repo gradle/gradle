@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.features.file.ProjectFeatureLayout;
+import org.gradle.features.registration.ConfigurationRegistrar;
+import org.gradle.features.registration.TaskRegistrar;
+
 /**
  * A builder for further configuring a declared binding for a project type or project feature.
  *
@@ -58,9 +62,9 @@ public interface DeclaredProjectFeatureBindingBuilder<OwnDefinition extends Defi
     /**
      * Indicates that the apply action is not safe.  A safe apply action is one that only injects safe services.  These services include:
      * <ul>
-     *     <li>{@link org.gradle.api.internal.registration.TaskRegistrar}</li>
-     *     <li>{@link org.gradle.api.internal.file.ProjectFeatureLayout}</li>
-     *     <li>{@link org.gradle.api.internal.registration.ConfigurationRegistrar}</li>
+     *     <li>{@link TaskRegistrar}</li>
+     *     <li>{@link ProjectFeatureLayout}</li>
+     *     <li>{@link ConfigurationRegistrar}</li>
      *     <li>{@link org.gradle.api.artifacts.dsl.DependencyFactory}</li>
      *     <li>{@link org.gradle.api.model.ObjectFactory}</li>
      *     <li>{@link org.gradle.api.provider.ProviderFactory}</li>

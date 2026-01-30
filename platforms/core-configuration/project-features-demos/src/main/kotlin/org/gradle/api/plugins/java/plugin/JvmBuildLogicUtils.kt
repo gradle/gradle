@@ -23,7 +23,7 @@ import org.gradle.api.plugins.java.HasCompiledBytecode
 import org.gradle.api.plugins.java.HasJarFile
 import org.gradle.api.plugins.java.HasProcessedResources
 import org.gradle.api.plugins.java.HasResources
-import org.gradle.api.internal.registration.TaskRegistrar
+import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.jvm.tasks.Jar

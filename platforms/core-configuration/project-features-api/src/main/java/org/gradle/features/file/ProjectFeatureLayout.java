@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file;
+package org.gradle.features.file;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
@@ -30,6 +31,7 @@ import java.io.File;
  *
  * @since 9.5.0
  */
+@Incubating
 public interface ProjectFeatureLayout {
     /**
      * Returns the project directory.

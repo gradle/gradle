@@ -15,4 +15,4 @@
  */
 
 @org.jspecify.annotations.NullMarked
-package org.gradle.api.internal.file;
+package org.gradle.features.file;
