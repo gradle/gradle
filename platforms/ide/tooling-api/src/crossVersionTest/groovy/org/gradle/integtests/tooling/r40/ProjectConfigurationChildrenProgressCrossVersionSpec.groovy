@@ -377,7 +377,13 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         events.operation(applyBuildScriptRootProject('root')).with { applyRoot ->
             applyRoot.child(applyBuildScriptPluginRootProject(scriptPluginGroovy1, 'root')).with { applyGroovy1 ->
                 applyGroovy1.child(applyBuildScriptPluginRootProject(scriptPluginKotlin, 'root')).with { applyKotlin ->
-                    applyKotlin.child(applyBuildScriptPluginRootProject(scriptPluginGroovy2, 'root'))
+                    if (targetVersion.baseVersion >= GradleVersion.version("9.5")) {
+                       applyKotlin.child("Evaluate script '${scriptPluginKotlin.name}'").with { evaluateKotlin ->
+                           evaluateKotlin.child(applyBuildScriptPluginRootProject(scriptPluginGroovy2, 'root'))
+                       }
+                    } else {
+                        applyKotlin.child(applyBuildScriptPluginRootProject(scriptPluginGroovy2, 'root'))
+                    }
                 }
             }
         }
