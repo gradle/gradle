@@ -20,6 +20,8 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.features.binding.BindsProjectFeature;
+import org.gradle.features.binding.BindsProjectType;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures;
@@ -33,7 +35,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 

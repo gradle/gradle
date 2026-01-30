@@ -17,9 +17,12 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.plugins.BuildModel;
-import org.gradle.api.internal.plugins.Definition;
-import org.gradle.api.internal.plugins.ProjectFeatureApplicationContext;
+import org.gradle.features.binding.BuildModel;
+import org.gradle.features.binding.Definition;
+import org.gradle.features.binding.ProjectFeatureApplicationContext;
+import org.gradle.features.internal.binding.ProjectFeatureApplicator;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
+import org.gradle.features.internal.binding.ProjectFeatureSupportInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.inspection.DefaultTypeParameterInspection;
 import org.gradle.internal.inspection.TypeParameterInspection;

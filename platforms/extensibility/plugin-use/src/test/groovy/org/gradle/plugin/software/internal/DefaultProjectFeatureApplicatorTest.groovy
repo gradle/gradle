@@ -22,10 +22,10 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.model.ObjectFactoryFactory
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.Definition
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
 import org.gradle.api.internal.plugins.PluginManagerInternal
-import org.gradle.api.internal.plugins.ProjectFeatureApplyAction
+import org.gradle.features.binding.ProjectFeatureApplyAction
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
@@ -33,6 +33,11 @@ import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.internal.Cast
+import org.gradle.features.internal.binding.BoundProjectFeatureImplementation
+import org.gradle.features.internal.binding.ModelDefaultsApplicator
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeatureSupportInternal
+import org.gradle.features.internal.binding.ProjectFeaturesDynamicObject
 import org.gradle.internal.extensibility.ExtensibleDynamicObject
 import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.service.ServiceLookup

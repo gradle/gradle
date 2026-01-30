@@ -54,10 +54,10 @@ import org.gradle.plugin.management.internal.autoapply.InjectedAutoAppliedPlugin
 import org.gradle.plugin.software.internal.DefaultModelDefaultsApplicator;
 import org.gradle.plugin.software.internal.DefaultProjectFeatureApplicator;
 import org.gradle.plugin.software.internal.DefaultProjectFeatureDeclarations;
-import org.gradle.plugin.software.internal.ModelDefaultsApplicator;
-import org.gradle.plugin.software.internal.ModelDefaultsHandler;
-import org.gradle.plugin.software.internal.ProjectFeatureApplicator;
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
+import org.gradle.features.internal.binding.ModelDefaultsApplicator;
+import org.gradle.features.internal.binding.ModelDefaultsHandler;
+import org.gradle.features.internal.binding.ProjectFeatureApplicator;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;

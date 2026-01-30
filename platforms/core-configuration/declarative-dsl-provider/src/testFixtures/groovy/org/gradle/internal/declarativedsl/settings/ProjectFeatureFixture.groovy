@@ -17,16 +17,16 @@
 package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.features.file.ProjectFeatureLayout
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.Definition
-import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
-import org.gradle.api.internal.plugins.ProjectFeatureBinding
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectFeatureBindingBuilder
+import org.gradle.features.binding.ProjectFeatureBinding
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.gradle.api.internal.plugins.BindsProjectFeature
+import org.gradle.features.binding.BindsProjectFeature
 import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 
@@ -561,7 +561,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${BindsProjectFeature.class.name}
                 import ${ProjectFeatureBindingBuilder.class.name}
                 import ${ProjectFeatureBinding.class.name}
-                import org.gradle.api.internal.plugins.features.dsl.bindProjectFeatureToDefinition
+                import org.gradle.features.internal.dsl.bindProjectFeatureToDefinition
                 import org.gradle.test.${bindingTypeClassName}
 
                 @${BindsProjectFeature.class.simpleName}(${projectFeaturePluginClassName}.Binding::class)
@@ -628,7 +628,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${BindsProjectFeature.class.name}
                 import ${ProjectFeatureBindingBuilder.class.name}
                 import ${ProjectFeatureBinding.class.name}
-                import org.gradle.api.internal.plugins.features.dsl.bindProjectFeature
+                import org.gradle.features.internal.dsl.bindProjectFeature
 
                 @${BindsProjectFeature.class.simpleName}(${projectFeaturePluginClassName}.Binding::class)
                 class ${projectFeaturePluginClassName} : Plugin<Project> {

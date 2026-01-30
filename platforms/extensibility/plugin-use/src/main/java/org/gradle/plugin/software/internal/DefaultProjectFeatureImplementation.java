@@ -19,11 +19,13 @@ package org.gradle.plugin.software.internal;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.plugins.BuildModel;
-import org.gradle.api.internal.plugins.Definition;
-import org.gradle.api.internal.plugins.ProjectFeatureApplyAction;
-import org.gradle.api.internal.plugins.ProjectFeatureBindingDeclaration;
-import org.gradle.api.internal.plugins.TargetTypeInformation;
+import org.gradle.features.binding.BuildModel;
+import org.gradle.features.binding.Definition;
+import org.gradle.features.binding.ProjectFeatureApplyAction;
+import org.gradle.features.internal.binding.ProjectFeatureBindingDeclaration;
+import org.gradle.features.binding.TargetTypeInformation;
+import org.gradle.features.internal.binding.ModelDefault;
+import org.gradle.features.internal.binding.ProjectFeatureImplementation;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;

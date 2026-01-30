@@ -17,6 +17,9 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.Plugin;
+import org.gradle.features.internal.binding.ModelDefaultsApplicator;
+import org.gradle.features.internal.binding.ModelDefaultsHandler;
+import org.gradle.features.internal.binding.ProjectFeatureImplementation;
 
 import java.util.List;
 

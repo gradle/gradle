@@ -22,16 +22,16 @@ import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.plugins.BindsProjectFeature;
-import org.gradle.api.internal.plugins.BindsProjectType;
-import org.gradle.api.internal.plugins.BuildModel;
-import org.gradle.api.internal.plugins.Definition;
-import org.gradle.api.internal.plugins.ProjectFeatureBindingDeclaration;
-import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilderInternal;
-import org.gradle.api.internal.plugins.ProjectFeatureBinding;
-import org.gradle.api.internal.plugins.ProjectTypeBindingBuilderInternal;
-import org.gradle.api.internal.plugins.ProjectTypeBinding;
-import org.gradle.api.internal.plugins.TargetTypeInformation;
+import org.gradle.features.binding.BindsProjectFeature;
+import org.gradle.features.binding.BindsProjectType;
+import org.gradle.features.binding.BuildModel;
+import org.gradle.features.binding.Definition;
+import org.gradle.features.internal.binding.ProjectFeatureBindingDeclaration;
+import org.gradle.features.internal.binding.ProjectFeatureBindingBuilderInternal;
+import org.gradle.features.binding.ProjectFeatureBinding;
+import org.gradle.features.internal.binding.ProjectTypeBindingBuilderInternal;
+import org.gradle.features.binding.ProjectTypeBinding;
+import org.gradle.features.binding.TargetTypeInformation;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -39,6 +39,11 @@ import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.Nested;
+import org.gradle.features.internal.binding.DefaultProjectFeatureBindingBuilder;
+import org.gradle.features.internal.binding.DefaultProjectTypeBindingBuilder;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
+import org.gradle.features.internal.binding.ProjectFeatureImplementation;
+import org.gradle.features.internal.binding.TargetTypeInformationChecks;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -116,7 +121,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         }
 
         if (binding.targetDefinitionType() instanceof TargetTypeInformation.BuildModelTargetTypeInformation &&
-            ((TargetTypeInformation.BuildModelTargetTypeInformation<?>) binding.targetDefinitionType()).buildModelType.equals(BuildModel.None.class)) {
+            ((TargetTypeInformation.BuildModelTargetTypeInformation<?>) binding.targetDefinitionType()).getBuildModelType().equals(BuildModel.None.class)) {
 
             InternalProblem bindingTypeProblem = problemReporter.internalCreate(builder -> builder
                 .id("bind=to-build-model-none", "Project features binds to BuildModel.None", GradleCoreProblemGroup.configurationUsage())
