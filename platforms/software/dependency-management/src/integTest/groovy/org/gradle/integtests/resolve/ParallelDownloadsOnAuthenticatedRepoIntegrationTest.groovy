@@ -16,9 +16,6 @@
 
 package org.gradle.integtests.resolve
 
-import org.gradle.test.fixtures.Flaky
-
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/5047")
 class ParallelDownloadsOnAuthenticatedRepoIntegrationTest extends ParallelDownloadsIntegrationTest {
     private final static String USERNAME = 'username'
     private final static String PASSWORD = 'password'
