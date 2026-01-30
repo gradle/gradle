@@ -33,7 +33,7 @@ class GradleProjectModelCrossVersionSpec extends ToolingApiSpecification {
         projectDir.file('a/build.gradle').text = """
             def something = configurations.create('something')
             tasks.register('aTask') {
-               something.resolve()
+               something.getFiles()
             }
             """
 
@@ -58,7 +58,7 @@ class GradleProjectModelCrossVersionSpec extends ToolingApiSpecification {
             '''
         projectDir.file('a/build.gradle').text = """
             def something = configurations.create('something')
-            something.resolve()
+            something.getFiles()
             """
 
         when:

@@ -69,7 +69,7 @@ class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegra
             task resolveDependencies {
                 doLast {
                     def timeStart = new Date()
-                    configurations.deps.resolve()
+                    configurations.deps.getFiles()
                     def timeStop = new Date()
                     def duration = groovy.time.TimeCategory.minus(timeStop, timeStart)
                     assert duration.toMilliseconds() < $maxMillis

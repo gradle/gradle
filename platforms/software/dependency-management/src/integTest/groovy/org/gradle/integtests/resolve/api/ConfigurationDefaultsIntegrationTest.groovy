@@ -382,11 +382,11 @@ confCopy.withDependencies { incoming ->
 
 task check {
     doLast {
-        conf.resolve()
+        conf.getFiles()
         assert calls == ["sharedWithDependencies", "confWithDependencies", "sharedBeforeResolve", "confBeforeResolve"]
         calls.clear()
 
-        confCopy.resolve()
+        confCopy.getFiles()
         assert calls == ["sharedWithDependencies", "copyWithDependencies", "sharedBeforeResolve", "copyBeforeResolve"]
     }
 }

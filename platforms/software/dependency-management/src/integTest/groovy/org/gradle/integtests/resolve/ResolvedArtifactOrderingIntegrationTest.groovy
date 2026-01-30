@@ -94,6 +94,9 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
             }
         """
 
+        if (!GradleContextualExecuter.configCache) {
+            executer.expectDocumentedDeprecationWarning("The Configuration.resolve method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the getIncoming().getFiles() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_configuration_resolve")
+        }
         assert succeeds("check${name}")
     }
 

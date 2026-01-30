@@ -45,8 +45,9 @@ dependencies {
 
 tasks.register("resolve") {
     val files = configurations.runtimeClasspath.get().incoming.files
-    val fileNames = files.map { it.name }
+    inputs.files(files)
     doLast {
+        val fileNames = files.map { it.name }
         check(fileNames.contains("guava-33.2.1-jre-transformed.jar"))
     }
 }
