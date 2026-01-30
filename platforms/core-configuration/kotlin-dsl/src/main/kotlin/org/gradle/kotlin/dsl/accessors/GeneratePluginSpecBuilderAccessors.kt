@@ -68,6 +68,7 @@ import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import java.io.BufferedWriter
 import java.io.File
+import java.util.Optional
 import kotlin.metadata.jvm.JvmMethodSignature
 
 
@@ -105,6 +106,10 @@ class GeneratePluginSpecBuilderAccessors(
 ) {
 
     override fun getDisplayName(): String = "Kotlin DSL plugin specs accessors for classpath '$classLoaderHash'"
+
+    override fun getBuildOperationWorkType(): Optional<String> {
+        return Optional.of("GENERATE_PLUGIN_SPEC_BUILDER_ACCESSORS")
+    }
 
     override val identitySuffix: String = "PS"
 

@@ -312,6 +312,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(ScriptClassPathResolver.class, DefaultScriptClassPathResolver.class);
         registration.add(ScriptHandlerFactory.class, DefaultScriptHandlerFactory.class);
         registration.add(BuildOutputCleanupRegistry.class, HoldsProjectState.class, DefaultBuildOutputCleanupRegistry.class);
+        registration.add(BuildLogicBuilder.class, DefaultBuildLogicBuilder.class);
 
         for (GradleModuleServices services : serviceProviders) {
             services.registerBuildServices(registration);
@@ -635,15 +636,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             buildRegistry,
             publicBuildPath,
             buildQueue);
-    }
-
-    @Provides
-    protected BuildLogicBuilder createBuildLogicBuilder(
-        BuildState currentBuild,
-        ScriptClassPathResolver scriptClassPathResolver,
-        BuildLogicBuildQueue buildQueue
-    ) {
-        return new DefaultBuildLogicBuilder(currentBuild, scriptClassPathResolver, buildQueue);
     }
 
     @Provides
