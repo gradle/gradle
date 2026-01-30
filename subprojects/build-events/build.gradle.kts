@@ -24,6 +24,7 @@ dependencies {
 
     implementation(libs.errorProneAnnotations)
     implementation(libs.guava)
+    implementation(libs.jctools)
 
     testImplementation(projects.internalTesting)
     testImplementation(projects.modelCore)

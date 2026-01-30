@@ -62,6 +62,7 @@ dependencies {
     // Required directly by CliTextPrinter (uses Ant Main and Groovy ReleaseInfo)
     implementation(libs.ant)
     implementation(libs.groovy)
+    implementation(libs.jctools)
 
     runtimeOnly(projects.gradleCliMain)
     runtimeOnly(projects.declarativeDslProvider)
