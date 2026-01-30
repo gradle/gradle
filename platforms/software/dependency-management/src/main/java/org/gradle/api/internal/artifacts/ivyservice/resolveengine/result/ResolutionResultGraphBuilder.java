@@ -76,7 +76,7 @@ public class ResolutionResultGraphBuilder implements ResolvedComponentVisitor {
             componentIdentifier,
             Describables.of(rootVariantName),
             attributeDesugaring.desugar(attributes),
-            capabilities,
+            ImmutableList.copyOf(capabilities.asSet()),
             null
         );
 
