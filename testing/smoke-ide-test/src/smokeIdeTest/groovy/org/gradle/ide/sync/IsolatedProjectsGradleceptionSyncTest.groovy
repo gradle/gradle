@@ -25,7 +25,7 @@ import org.gradle.test.fixtures.file.TestFile
 class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
     def setup() {
-        ideXmxMb = 4096 + 512
+        ideXmxMb = 6 * 1024
     }
 
     def "can sync gradle/gradle build without problems"() {
