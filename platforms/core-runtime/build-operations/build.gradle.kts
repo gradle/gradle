@@ -12,11 +12,13 @@ gradleModule {
 }
 
 dependencies {
+    api(projects.concurrent)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
 
     api(libs.jspecify)
 
+    implementation(libs.jctools)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
 

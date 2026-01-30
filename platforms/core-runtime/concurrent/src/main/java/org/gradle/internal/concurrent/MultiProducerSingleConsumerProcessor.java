@@ -125,12 +125,12 @@ public class MultiProducerSingleConsumerProcessor<T> {
      * Stop the handler, waiting for the given timeout. An exception
      * is thrown if the worker did not complete by the timeout.
      */
-    public void stop(Duration timeout) {
+    public void stop(@Nullable Duration timeout) {
         this.running = false;
         LockSupport.unpark(worker);
 
         try {
-            worker.join(timeout.toMillis());
+            worker.join(timeout == null ? 0 : timeout.toMillis());
             if (worker.isAlive()) {
                 throw new RuntimeException("Timed out waiting for handler to complete");
             }
