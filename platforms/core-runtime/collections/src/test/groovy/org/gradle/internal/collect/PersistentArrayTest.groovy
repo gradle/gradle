@@ -84,7 +84,7 @@ class PersistentArrayTest extends Specification {
         original.toList() == list
 
         where:
-        size << [1, 32, 33, 32 * 32 + 1]
+        size << [1, 32, 33, 32 * 32 + 1, 32 * 32 * 32 + 1]
     }
 
     def 'contains'() {

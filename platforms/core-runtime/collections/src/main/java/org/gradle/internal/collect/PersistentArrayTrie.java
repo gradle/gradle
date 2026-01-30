@@ -106,7 +106,7 @@ final class PersistentArrayTrie<T> implements PersistentArray<T> {
                 throw indexOutOfBounds(index);
             }
             Object[] array = root;
-            for (int i = shift; i > 0; i -= BITS) {
+            for (int i = shift; i != 0; i -= BITS) {
                 int nodeIndex = (index >>> i) & BITMASK;
                 array = (Object[]) array[nodeIndex];
             }
@@ -126,21 +126,23 @@ final class PersistentArrayTrie<T> implements PersistentArray<T> {
             if (index < 0) {
                 throw indexOutOfBounds(index);
             }
-            return new PersistentArrayTrie<>(size, shift, set(root, index, value, shift), tail);
+            Object[] newRoot = root.clone();
+            Object[] array = newRoot;
+            for (int i = shift; i != 0; i -= BITS) {
+                int nodeIndex = (index >>> i) & BITMASK;
+                Object[] node = ((Object[]) array[nodeIndex]).clone();
+                array[nodeIndex] = node;
+                array = node;
+            }
+            array[index & BITMASK] = value;
+            return new PersistentArrayTrie<>(size, shift, newRoot, tail);
         } else {
             if (index >= size) {
                 throw indexOutOfBounds(index);
             }
-            return new PersistentArrayTrie<>(size, shift, root, ArrayCopy.replaceAt(index - tailOffset, tail, value));
-        }
-    }
-
-    private static Object[] set(Object[] array, int index, Object value, int shift) {
-        if (shift > 0) {
-            int nodeIndex = (index >>> shift) & BITMASK;
-            return ArrayCopy.replaceAt(nodeIndex, array, set((Object[]) array[nodeIndex], index, value, shift - BITS));
-        } else {
-            return ArrayCopy.replaceAt(index & BITMASK, array, value);
+            Object[] newTail = tail.clone();
+            newTail[index - tailOffset] = value;
+            return new PersistentArrayTrie<>(size, shift, root, newTail);
         }
     }
 

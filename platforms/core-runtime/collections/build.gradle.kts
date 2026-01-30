@@ -60,6 +60,7 @@ jmh {
 //        "PersistentArrayBenchmark.iterator",
 //        "PersistentArrayBenchmark.iterationByIndex",
 //        "PersistentArrayBenchmark.randomAccess",
+//        "PersistentArrayBenchmark.randomUpdate",
 //        "PersistentSetBenchmark",
 //        "PersistentSetBenchmark.iteration",
 //        "PersistentSetBenchmark.contains(Absent|Present)",
