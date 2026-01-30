@@ -167,6 +167,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    <T> T blocking(Factory<T> action) {
+        return action.create()
+    }
+
+    @Override
     <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
         return factory.create()
     }
