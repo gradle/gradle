@@ -29,16 +29,17 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.model.gradle.GradleBuild
 
+/**
+ * This is weird functionality, but it's currently needed by IntelliJ's SYNC process.
+ * They need the classloader that sees whatever was loaded by init script's buildscript { dependencies { classpath { ... } } }.
+ * Their relevant logic is here: https://github.com/JetBrains/intellij-community/blob/f7ae5ea359f1732d72345ff2298dcf86413a7fd6/plugins/gradle/tooling-extension-impl/src/com/intellij/gradle/toolingExtension/impl/modelSerialization/ToolingSerializerConverter.java#L26
+ *
+ * The purpose of this test class is to make sure the private API they rely on (ProtocolToModelAdapter) won't be modified by us, thus breaking the SYNC process.
+ * If we need to modify it, then we need to talk to them first.
+ */
 @ToolingApiVersion('>=9.3.0')
 @TargetGradleVersion('>=9.4.0')
 class DummyModelCrossVersionSpec extends ToolingApiSpecification {
-
-    // This is weird functionality, but it's currently needed by IntelliJ's SYNC process.
-    ///They need the classloader that sees whatever was loaded by init script's buildscript { dependencies { classpath { ... } } }.
-    // Their relevant logic is here: https://github.com/JetBrains/intellij-community/blob/f7ae5ea359f1732d72345ff2298dcf86413a7fd6/plugins/gradle/tooling-extension-impl/src/com/intellij/gradle/toolingExtension/impl/modelSerialization/ToolingSerializerConverter.java#L26
-    //
-    // The purpose of this test class is to make sure the private API they rely on (ProtocolToModelAdapter) won't be modified by us, thus breaking the SYNC process.
-    // If we need to modify it, then we need to talk to them first.
 
     def setup() {
         settingsFile.delete()
@@ -61,7 +62,7 @@ class DummyModelCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        assertClassLoaderName(classLoaderName, dsl)
+        isRightClassLoader(classLoaderName, dsl)
 
         where:
         dsl << [GradleDsl.KOTLIN, GradleDsl.GROOVY]
@@ -85,7 +86,7 @@ class DummyModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        assertClassLoaderName(classLoaderName, dsl)
+        isRightClassLoader(classLoaderName, dsl)
 
         where:
         dsl << [GradleDsl.KOTLIN, GradleDsl.GROOVY]
@@ -135,7 +136,7 @@ class DummyModelCrossVersionSpec extends ToolingApiSpecification {
 
         then:
         thrown(BuildException)
-        assertClassLoaderName(classLoaderName, dsl)
+        isRightClassLoader(classLoaderName, dsl)
 
         where:
         dsl << [GradleDsl.KOTLIN, GradleDsl.GROOVY]
@@ -164,7 +165,7 @@ class DummyModelCrossVersionSpec extends ToolingApiSpecification {
             def result = controller.fetch(DummyModel.class)
             def dummyModel = result.model
             assert dummyModel != null
-            Object unpacked = new ProtocolToModelAdapter().unpack(dummyModel);
+            Object unpacked = new ProtocolToModelAdapter().unpack(dummyModel)
             ClassLoader modelBuildersClassLoader = unpacked.getClass().getClassLoader()
             return modelBuildersClassLoader.toString()
         }
@@ -243,7 +244,7 @@ class DummyModelCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    static def assertClassLoaderName(String classLoaderName, GradleDsl dsl) {
+    static def isRightClassLoader(String classLoaderName, GradleDsl dsl) {
         switch (dsl) {
             case GradleDsl.GROOVY :
                 return classLoaderName ==~ /ScriptClassLoader\(groovy-script-.*dummy-init\.gradle-loader\)/
