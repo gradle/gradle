@@ -33,7 +33,9 @@ import org.openjdk.jmh.infra.Blackhole;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 @Fork(1)
 @Warmup(iterations = 3)
@@ -44,6 +46,7 @@ public class PersistentSetBenchmark {
     public enum SetType {
         HashSet(true, new HashSetSetProtocol()),
         TreeSet(true, new TreeSetSetProtocol()),
+        CopyOnWriteArraySet(true, new CopyOnWriteArraySetProtocol()),
         fastutil(true, new FastutilSetProtocol()),
         guava(false, new GuavaSetProtocol()),
         // To avoid imposing the required dependencies on every Gradle developer
@@ -68,7 +71,7 @@ public class PersistentSetBenchmark {
     //    @Param({"16", "1024", "65536"})
 //    @Param({"16", "64", "512", "1024", "65536"})
 //    @Param({"16", "64", "512"})
-    @Param({"64", "1024"})
+    @Param({"10", "100", "1000"})
     int size;
 
     //    @Param({"gradle", "fastutil", "HashSet", "TreeSet", "guava", "capsule", "clojure", "scala"})
@@ -78,7 +81,7 @@ public class PersistentSetBenchmark {
 //    @Param({"gradle", "scala", "clojure", "capsule", "guava"})
 //    @Param({"gradle", "clojure", "scala", "capsule"})
 //    @Param({"gradle", "pcollections"})
-    @Param({"gradle", "guava"})
+    @Param({"gradle", "CopyOnWriteArraySet"})
     SetType type;
     SetProtocol protocol;
     SetFixture fixture;
@@ -157,6 +160,15 @@ public class PersistentSetBenchmark {
     @Benchmark
     public void containsPresent(Blackhole blackhole) {
         blackhole.consume(protocol.contains(set, fixture.randomPresent()));
+    }
+
+    @Benchmark
+    public void randomLookup(Blackhole blackhole) {
+        if (fixture.random().nextBoolean()) {
+            containsPresent(blackhole);
+        } else {
+            containsAbsent(blackhole);
+        }
     }
 
     @Benchmark
@@ -275,7 +287,20 @@ public class PersistentSetBenchmark {
     }
 
     @SuppressWarnings("unchecked")
-    static class HashSetSetProtocol implements SetProtocol {
+    abstract static class JavaSetProtocol implements SetProtocol {
+        @Override
+        public Object insert(Object set, Object key) {
+            ((Set<Object>) set).add(key);
+            return set;
+        }
+
+        @Override
+        public boolean contains(Object set, Object key) {
+            return ((Set<Object>) set).contains(key);
+        }
+    }
+
+    static class HashSetSetProtocol extends JavaSetProtocol {
 
         @Override
         public Object newInstance() {
@@ -286,21 +311,9 @@ public class PersistentSetBenchmark {
         public Object copyOf(Collection<Object> keys) {
             return new HashSet<>(keys);
         }
-
-        @Override
-        public Object insert(Object set, Object key) {
-            ((HashSet<Object>) set).add(key);
-            return set;
-        }
-
-        @Override
-        public boolean contains(Object set, Object key) {
-            return ((HashSet<Object>) set).contains(key);
-        }
     }
 
-    @SuppressWarnings("unchecked")
-    static class TreeSetSetProtocol implements SetProtocol {
+    static class TreeSetSetProtocol extends JavaSetProtocol {
 
         @Override
         public Object newInstance() {
@@ -311,16 +324,18 @@ public class PersistentSetBenchmark {
         public Object copyOf(Collection<Object> keys) {
             return new TreeSet<>(keys);
         }
+    }
+
+    static class CopyOnWriteArraySetProtocol extends JavaSetProtocol {
 
         @Override
-        public Object insert(Object set, Object key) {
-            ((TreeSet<Object>) set).add(key);
-            return set;
+        public Object newInstance() {
+            return new CopyOnWriteArraySet<>();
         }
 
         @Override
-        public boolean contains(Object set, Object key) {
-            return ((TreeSet<Object>) set).contains(key);
+        public Object copyOf(Collection<Object> keys) {
+            return new CopyOnWriteArraySet<>(keys);
         }
     }
 
@@ -378,7 +393,7 @@ public class PersistentSetBenchmark {
 //
 //        @Override
 //        public Object removeAll(Object set, Iterable<Object> keys) {
-//            Set.Transient<Object> builder = ((io.usethesource.capsule.Set.Immutable<Object>) set).asTransient();
+//            io.usethesource.capsule.Set.Transient<Object> builder = ((io.usethesource.capsule.Set.Immutable<Object>) set).asTransient();
 //            for (Object key : keys) {
 //                builder.__remove(key);
 //            }
