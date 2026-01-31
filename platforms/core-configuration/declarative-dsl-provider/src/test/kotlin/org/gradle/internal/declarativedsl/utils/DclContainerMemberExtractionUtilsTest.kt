@@ -18,17 +18,30 @@ package org.gradle.internal.declarativedsl.utils
 
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
-import org.gradle.internal.declarativedsl.ndoc.DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType
+import org.gradle.internal.declarativedsl.ndoc.DclContainerMemberExtractionUtils
 import org.gradle.internal.declarativedsl.ndoc.DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType
-import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection
+import org.gradle.internal.declarativedsl.schemaBuilder.DefaultSchemaBuildingHost
+import org.gradle.internal.declarativedsl.schemaBuilder.LossySchemaBuildingOperation
 import org.gradle.internal.declarativedsl.schemaBuilder.asSupported
+import org.gradle.internal.declarativedsl.schemaBuilder.orError
+import org.gradle.internal.declarativedsl.schemaBuilder.toKType
 import org.junit.Assert
 import org.junit.Test
 import org.junit.jupiter.api.assertThrows
-import kotlin.reflect.jvm.javaGetter
+import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
+@OptIn(LossySchemaBuildingOperation::class)
 class DclContainerMemberExtractionUtilsTest {
+
+    private val host = DefaultSchemaBuildingHost(Unit::class)
+
+    private fun elementFactoryFunctionNameFromElementType(type: KType): String =
+        DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType(type.asSupported(host).orError())
+
+    private fun elementTypeFromNdocContainerType(type: KType): KType? =
+        elementTypeFromNdocContainerType(host, type.asSupported(host).orError())?.toKType()
+
     @Test
     fun `the default element factory name is the decapitalized type name`() {
         Assert.assertEquals("any", elementFactoryFunctionNameFromElementType(typeOf<Any>()))
@@ -56,44 +69,36 @@ class DclContainerMemberExtractionUtilsTest {
     @Test
     fun `no element type is extracted from unrelated parameterized types`() {
         Assert.assertNull(elementTypeFromNdocContainerType(typeOf<Unrelated<String>>()))
-        Assert.assertNull(elementTypeFromNdocContainerType(typeOf<Unrelated<String>>().asSupported() as SupportedTypeProjection.SupportedType))
-        Assert.assertNull(elementTypeFromNdocContainerType(::parameterizedUnrelated.javaGetter!!.genericReturnType))
     }
 
     @Test
     fun `element type is extracted from an exact NDOC instantiation`() {
         Assert.assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<NamedDomainObjectContainer<String>>()))
-        Assert.assertEquals(String::class.java, elementTypeFromNdocContainerType(::ndocOfString.javaGetter!!.genericReturnType))
     }
 
     @Test
     fun `parameterized types get properly extracted as element types`() {
         Assert.assertEquals(typeOf<List<String>>(), elementTypeFromNdocContainerType(typeOf<NamedDomainObjectContainer<List<String>>>()))
-        Assert.assertEquals(::listOfString.javaGetter!!.genericReturnType, elementTypeFromNdocContainerType(::ndocOfListOfString.javaGetter!!.genericReturnType))
     }
 
     @Test
     fun `supertype arguments get properly discovered in types with multiple type arguments`() {
         Assert.assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<MultiArgSubtype<Int, String>>()))
-        Assert.assertEquals(String::class.java, elementTypeFromNdocContainerType(Instantiation::multiArgSubtypeOfIntString.javaGetter!!.genericReturnType))
     }
 
     @Test
     fun `element type is extracted from an NDOC subtype with concrete type`() {
         Assert.assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<NdocStringSubtype>()))
-        Assert.assertEquals(String::class.java, elementTypeFromNdocContainerType(NdocStringSubtype::class.java))
     }
 
     @Test
     fun `element type is extracted from parameterized NDOC subtype instantiation`() {
         Assert.assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<Subtype1<String>>()))
-        Assert.assertEquals(String::class.java, elementTypeFromNdocContainerType(::parameterizedSubtype.javaGetter!!.genericReturnType))
     }
 
     @Test
     fun `element type is extracted from deeply parameterized NDOC subtype instantiation`() {
         Assert.assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<Subtype2<String>>()))
-        Assert.assertEquals(String::class.java, elementTypeFromNdocContainerType(Instantiation::subtype2OfString.javaGetter!!.genericReturnType))
     }
 
     @Test
@@ -103,22 +108,22 @@ class DclContainerMemberExtractionUtilsTest {
         }
 
         Assert.assertNull(elementTypeFromNdocContainerType(Parameterized<*>::t.returnType))
-        Assert.assertNull(elementTypeFromNdocContainerType(Parameterized::class.java))
     }
 
     @Test
-    fun `no element type is extracted from projected types`() {
+    fun `no element type is extracted from in-projected types`() {
         abstract class Subtype<S : Any> : NamedDomainObjectContainer<S>
 
         Assert.assertNull(elementTypeFromNdocContainerType(typeOf<NamedDomainObjectContainer<in String>>()))
-        Assert.assertNull(elementTypeFromNdocContainerType(typeOf<NamedDomainObjectContainer<out String>>()))
         Assert.assertNull(elementTypeFromNdocContainerType(typeOf<Subtype<in String>>()))
-        Assert.assertNull(elementTypeFromNdocContainerType(typeOf<Subtype<out String>>()))
+    }
 
-        Assert.assertNull(elementTypeFromNdocContainerType(::inProjectedNdocOfString.javaGetter!!.genericReturnType))
-        Assert.assertNull(elementTypeFromNdocContainerType(::outProjectedNdocOfString.javaGetter!!.genericReturnType))
-        Assert.assertNull(elementTypeFromNdocContainerType(::inProjectedNdocSubtypeOfString.javaGetter!!.genericReturnType))
-        Assert.assertNull(elementTypeFromNdocContainerType(::outProjectedNdocSubtypeOfString.javaGetter!!.genericReturnType))
+    @Test
+    fun `element type is extracted from out-projected types`() {
+        abstract class Subtype<S : Any> : NamedDomainObjectContainer<S>
+
+        Assert.assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<NamedDomainObjectContainer<out String>>()))
+        Assert.assertEquals(typeOf<String>(), elementTypeFromNdocContainerType(typeOf<Subtype<out String>>()))
     }
 
     class Unrelated<@Suppress("unused") T>

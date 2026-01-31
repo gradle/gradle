@@ -16,7 +16,9 @@
 
 package org.gradle.internal.declarativedsl.evaluationSchema
 
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaResult
 import kotlin.reflect.KClass
 
 
@@ -26,10 +28,10 @@ import kotlin.reflect.KClass
  */
 internal
 class FixedTypeDiscovery(private val keyClass: KClass<*>?, private val discoverClasses: List<TypeDiscovery.DiscoveredClass>) : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> =
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<TypeDiscovery.DiscoveredClass>> =
         when (kClass) {
-            keyClass -> discoverClasses
-            typeDiscoveryServices.host.topLevelReceiverClass -> if (keyClass == null) discoverClasses else emptyList()
+            keyClass -> discoverClasses.map(::schemaResult)
+            typeDiscoveryServices.host.topLevelReceiverClass -> if (keyClass == null) discoverClasses.map(::schemaResult) else emptyList()
             else -> emptyList()
         }
 }

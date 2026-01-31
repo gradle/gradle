@@ -39,6 +39,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.DefaultImportsProvider
 import org.gradle.internal.declarativedsl.schemaBuilder.FilteringTypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.ThrowingSchemaFailureReporter
 import org.gradle.internal.declarativedsl.schemaBuilder.TopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -177,7 +178,8 @@ fun analysisSchema(
         functionExtractor = CompositeFunctionExtractor(builder.functionExtractors),
         typeDiscovery = FilteringTypeDiscovery(CompositeTypeDiscovery(builder.typeDiscoveries), ::isValidTypeForDiscovery),
         defaultImports = CompositeDefaultImportsProvider(builder.defaultImportsProviders).defaultImports(),
-        augmentationsProvider = CompositeAugmentationsProvider(builder.augmentationsProviders)
+        augmentationsProvider = CompositeAugmentationsProvider(builder.augmentationsProviders),
+        failureReporter = ThrowingSchemaFailureReporter
     )
     return analysisSchema
 }

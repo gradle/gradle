@@ -26,26 +26,30 @@ import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaFunction
-import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeFunction
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
+import org.gradle.internal.declarativedsl.schemaBuilder.ExtractionResult
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractionMetadata
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractionResult
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.LossySchemaBuildingOperation
+import org.gradle.internal.declarativedsl.schemaBuilder.MemberKind
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingContextElement
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
+import org.gradle.internal.declarativedsl.schemaBuilder.SupportedCallable
+import org.gradle.internal.declarativedsl.schemaBuilder.orError
+import org.gradle.internal.declarativedsl.schemaBuilder.orFailWith
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.withTag
 import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlin.reflect.KMutableProperty
-import kotlin.reflect.KProperty
 import kotlin.reflect.full.isSubclassOf
-import kotlin.reflect.full.memberFunctions
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.typeOf
 
 
 internal
@@ -60,20 +64,10 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
 
     private
     data class DependencyCollectorDeclaration(
-        val addingSchemaFunction: DataMemberFunction,
+        val originalDeclaration: SupportedCallable,
+        val addingSchemaFunction: SchemaResult<DataMemberFunction>,
         val runtimeFunction: DeclarativeRuntimeFunction,
     )
-
-    private
-    sealed interface DependencyCollectorAccessor : (Any) -> DependencyCollector {
-        data class Getter(val getterFunction: KFunction<*>) : DependencyCollectorAccessor {
-            override fun invoke(receiver: Any): DependencyCollector = getterFunction.call(receiver) as DependencyCollector
-        }
-
-        data class Property(val property: KProperty<*>) : DependencyCollectorAccessor {
-            override fun invoke(receiver: Any): DependencyCollector = property.call(receiver) as DependencyCollector
-        }
-    }
 
     private
     fun expandToOverloads(host: SchemaBuildingHost, produceDeclaration: (DataParameter) -> DependencyCollectorDeclaration) =
@@ -82,59 +76,55 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
             produceDeclaration(param)
         }
 
-    override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> {
-        val result = mutableSetOf<DataMemberFunction>()
-
+    override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): List<FunctionExtractionResult> = buildList {
         // Early out and skip this logic if the class is not a subclass of Dependencies, as other types shouldn't have any dependency collectors
         if (kClass.isSubclassOf(Dependencies::class)) {
-            result.addAll(extractCollectorSchemaFunctions(host, kClass))
+            addAll(extractCollectorSchemaFunctions(host, kClass))
 
             // Only add platform modifiers if this Dependencies subtype is also a subtype of PlatformDependencyModifiers, these aren't needed otherwise
             if (kClass.isSubclassOf(PlatformDependencyModifiers::class)) {
-                result.addAll(extractModifierSchemaFunctions(host, kClass))
+                addAll(extractModifierSchemaFunctions(host, kClass).map { ExtractionResult.of(it, FunctionExtractionMetadata(emptyList())) })
             }
         }
-
-        return result
     }
 
     private
-    fun extractModifierSchemaFunctions(host: SchemaBuildingHost, kClass: KClass<*>): Set<DataMemberFunction> {
-        val modifiersBySchemaFunction: Map<DataMemberFunction, DeclarativeRuntimeFunction> = mapOf(
+    fun extractModifierSchemaFunctions(host: SchemaBuildingHost, kClass: KClass<*>): Set<SchemaResult<DataMemberFunction>> {
+        val modifiersBySchemaFunction: Map<SchemaResult<DataMemberFunction>, DeclarativeRuntimeFunction> = mapOf(
             buildDataMemberFunction(host, kClass, "platform", gavDependencyParam(host)) to PlatformRuntimeFunction,
             buildDataMemberFunction(host, kClass, "platform", dependencyParam(host)) to PlatformRuntimeFunction
         )
-        modifierDeclarationsByClass[kClass] = modifiersBySchemaFunction
+        @OptIn(LossySchemaBuildingOperation::class) // No user input here, it should not fail, and if it does, it's our fault
+        modifierDeclarationsByClass[kClass] = modifiersBySchemaFunction.filterKeys { it is SchemaResult.Result }.mapKeys { it.key.orError() }
         return modifiersBySchemaFunction.keys
     }
 
     private
-    fun extractCollectorSchemaFunctions(host: SchemaBuildingHost, kClass: KClass<*>): Set<DataMemberFunction> {
-        val discoveredCollectorDeclarations: List<DependencyCollectorDeclaration> = kClass.memberFunctions
-            .filter { function -> hasDependencyCollectorGetterSignature(kClass, function) }
-            .flatMap { function ->
-                val name = dependencyCollectorNameFromGetterName(function.name)
-                expandToOverloads(host) { param ->
-                    DependencyCollectorDeclaration(
-                        buildDataMemberFunction(host, kClass, name, param),
-                        buildDeclarativeRuntimeFunction(DependencyCollectorAccessor.Getter(function)),
-                    )
-                }
-            }
-            .plus(kClass.memberProperties.filter { isDependencyCollectorProperty(kClass, it) }.flatMap { property ->
-                expandToOverloads(host) { param ->
-                    DependencyCollectorDeclaration(
-                        buildDataMemberFunction(host, kClass, property.name, param),
-                        buildDeclarativeRuntimeFunction(DependencyCollectorAccessor.Property(property)),
-                    )
-                }
-            })
+    fun extractCollectorSchemaFunctions(host: SchemaBuildingHost, kClass: KClass<*>): List<FunctionExtractionResult> {
+        val discoveredCollectorDeclarations: List<DependencyCollectorDeclaration> = run {
+            val members = host.classMembers(kClass).declarativeMembers
 
-        val declarationsBySchemaFunctions = discoveredCollectorDeclarations.associate { it.addingSchemaFunction to it.runtimeFunction }
+            val namedCollectorGetters = members
+                .filter { function -> hasDependencyCollectorGetterSignature(kClass, function) }
+                .map { function -> dependencyCollectorNameFromGetterName(function.name) to function }
+
+            val namedCollectorProperties = members
+                .filter { isDependencyCollectorProperty(kClass, it) }
+                .map { property -> property.name to property }
+
+            (namedCollectorGetters + namedCollectorProperties)
+                .flatMap { (name, callable) ->
+                    expandToOverloads(host) { param -> DependencyCollectorDeclaration(callable, buildDataMemberFunction(host, kClass, name, param), buildDeclarativeRuntimeFunction(callable)) }
+                }
+        }
+
+        val declarationsBySchemaFunctions = discoveredCollectorDeclarations.filter { it.addingSchemaFunction is SchemaResult.Result }
+            .associate { (it.addingSchemaFunction as SchemaResult.Result).result to it.runtimeFunction }
+
         if (!declarationsBySchemaFunctions.isEmpty()) {
             collectorDeclarationsByClass[kClass] = declarationsBySchemaFunctions
         }
-        return declarationsBySchemaFunctions.keys
+        return discoveredCollectorDeclarations.map { ExtractionResult.of(it.addingSchemaFunction, FunctionExtractionMetadata(listOf(it.originalDeclaration))) }
     }
 
     private
@@ -157,33 +147,35 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
         }
     }
 
-    override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
+    override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): SchemaResult<DataTopLevelFunction>? = null
 
     private
     fun dependencyCollectorNameFromGetterName(getterName: String) = getterName.removePrefix("get").replaceFirstChar { it.lowercase(Locale.getDefault()) }
 
     private
-    fun buildDataMemberFunction(host: SchemaBuildingHost, kClass: KClass<*>, name: String, dependencyParam: DataParameter) =
+    fun buildDataMemberFunction(host: SchemaBuildingHost, kClass: KClass<*>, name: String, dependencyParam: DataParameter): SchemaResult<DataMemberFunction> =
         host.withTag(dependencyCollectorTag(kClass, name)) {
             DefaultDataMemberFunction(
-                host.containerTypeRef(kClass),
+                host.containerTypeRef(kClass)
+                    .orFailWith { return it },
                 name,
                 listOf(dependencyParam),
                 false,
                 FunctionSemanticsInternal.DefaultAddAndConfigure(
-                    host.containerTypeRef(ProjectDependency::class),
+                    @OptIn(LossySchemaBuildingOperation::class) // referencing a predefined type is safe
+                    host.containerTypeRef(ProjectDependency::class).orError(),
                     FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultNotAllowed
                 )
-            )
+            ).let(::schemaResult)
         }
 
     private fun dependencyCollectorTag(kClass: KClass<*>, name: String) =
         SchemaBuildingContextElement.TagContextElement("dependency collector '$name' in $kClass")
 
     private
-    fun buildDeclarativeRuntimeFunction(collectorAccessor: DependencyCollectorAccessor) = object : DeclarativeRuntimeFunction {
+    fun buildDeclarativeRuntimeFunction(collectorAccessor: SupportedCallable) = object : DeclarativeRuntimeFunction {
         override fun callBy(receiver: Any?, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
-            val dependencyCollector = collectorAccessor(checkNotNull(receiver))
+            val dependencyCollector = collectorAccessor.kCallable.call(checkNotNull(receiver)) as DependencyCollector
             when (val dependencyNotation = binding.values.single()) {
                 is ProjectDependency -> dependencyCollector.add(dependencyNotation)
                 else -> dependencyCollector.add(dependencyNotation.toString())
@@ -193,17 +185,17 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
     }
 
     private
-    fun hasDependencyCollectorGetterSignature(receiverClass: KClass<*>, function: KFunction<*>): Boolean {
-        return receiverClass.isSubclassOf(Dependencies::class) && with(function) {
-            name.startsWith("get") && returnType.classifier == DependencyCollector::class && parameters.size == 1
+    fun hasDependencyCollectorGetterSignature(receiverClass: KClass<*>, function: SupportedCallable): Boolean {
+        return function.kind == MemberKind.FUNCTION && receiverClass.isSubclassOf(Dependencies::class) && with(function) {
+            name.startsWith("get") && returnType.classifier == DependencyCollector::class && parameters.isEmpty()
         }
     }
 
     private
-    fun isDependencyCollectorProperty(receiverClass: KClass<*>, property: KProperty<*>): Boolean {
+    fun isDependencyCollectorProperty(receiverClass: KClass<*>, property: SupportedCallable): Boolean {
         return receiverClass.isSubclassOf(Dependencies::class) &&
-            property.returnType == typeOf<DependencyCollector>() &&
-            property !is KMutableProperty // TODO: decide what to do with `var foo: DependencyCollector`
+            property.returnType.classifier == DependencyCollector::class &&
+            property.kind == MemberKind.READ_ONLY_PROPERTY // TODO: decide what to do with `var foo: DependencyCollector`
     }
 
     override fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction, scopeClassLoader: ClassLoader): RuntimeFunctionResolver.Resolution {

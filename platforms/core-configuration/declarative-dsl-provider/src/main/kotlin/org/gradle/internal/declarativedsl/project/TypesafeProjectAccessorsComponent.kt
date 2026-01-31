@@ -18,21 +18,24 @@ package org.gradle.internal.declarativedsl.project
 
 import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
 import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
-import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
-import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.MemberKind
+import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractionResult
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
-import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Special
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaResult
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 
@@ -56,16 +59,14 @@ class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : ObjectC
     }
 
     private
-    val projectAccessorsExtension: CollectedPropertyInformation? = projectAccessorsClass?.let {
-        CollectedPropertyInformation(
+    val projectAccessorsExtension: DataProperty? = projectAccessorsClass?.let {
+        DefaultDataProperty(
             "projects",
-            SupportedTypeProjection.SupportedType(projectAccessorsClass, isMarkedNullable = false, emptyList()),
-            returnType = DataTypeRefInternal.DefaultName(DefaultFqName.parse(projectAccessorsClass.qualifiedName!!)),
-            propertyMode = DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly,
+            valueType = DataTypeRefInternal.DefaultName(DefaultFqName.parse(projectAccessorsClass.qualifiedName!!)),
+            mode = DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly,
             hasDefaultValue = true,
-            isHiddenInDefinition = false,
+            isHiddenInDsl = false,
             isDirectAccessOnly = false,
-            claimedFunctions = emptyList()
         )
     }
 
@@ -104,9 +105,11 @@ class ProjectPropertyAccessorRuntimeResolver : RuntimePropertyResolver {
 
 private
 class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<TypeDiscovery.DiscoveredClass> {
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<TypeDiscovery.DiscoveredClass>> {
         return if (kClass.isGeneratedAccessors()) {
-            allClassesReachableFromGetters(typeDiscoveryServices.host, kClass).map { TypeDiscovery.DiscoveredClass(it, listOf(Special("type-safe project accessor"))) }
+            allClassesReachableFromGetters(typeDiscoveryServices.host, kClass).map {
+                schemaResult(TypeDiscovery.DiscoveredClass(it, listOf(Special("type-safe project accessor"))))
+            }
         } else {
             emptyList()
         }
@@ -116,18 +119,21 @@ class TypesafeProjectAccessorTypeDiscovery : TypeDiscovery {
     fun allClassesReachableFromGetters(host: SchemaBuildingHost, kClass: KClass<*>) = buildSet {
         fun visit(kClass: KClass<*>) {
             if (add(kClass)) {
-                val properties = DefaultPropertyExtractor().extractProperties(host, kClass)
-                val typesFromGetters = properties.mapNotNull { it.originalReturnType.classifier as? KClass<*> }
+                val properties =
+                    host.classMembers(kClass).declarativeMembers
+                        .filter { it.kind == MemberKind.READ_ONLY_PROPERTY || (it.kind == MemberKind.FUNCTION && it.name.startsWith("get") && it.parameters.isEmpty()) }
+                val typesFromGetters = properties.mapNotNull { it.returnType.classifier as? KClass<*> }
                 typesFromGetters.forEach(::visit)
             }
         }
         visit(kClass)
-    } }
+    }
+}
 
 
 private
 class TypesafeProjectPropertyProducer : PropertyExtractor {
-    override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
+    override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<PropertyExtractionResult> =
         if (kClass.isGeneratedAccessors()) {
             DefaultPropertyExtractor().extractProperties(host, kClass, propertyNamePredicate)
         } else emptyList()

@@ -22,6 +22,7 @@ import org.gradle.declarative.dsl.model.annotations.internal.DeclarativeWithHidd
 import org.gradle.internal.declarativedsl.schemaBuilder.MaybeDeclarativeClassInHierarchy.SuperclassWithMapping
 import org.gradle.internal.declarativedsl.schemaBuilder.MaybeDeclarativeClassInHierarchy.VisibleSuperclassInHierarchy
 import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection.SupportedType
+import java.lang.reflect.Modifier
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
@@ -36,47 +37,49 @@ import kotlin.reflect.KVisibility
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.declaredMembers
 import kotlin.reflect.full.instanceParameter
+import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.javaField
 
 data class ClassMembersForSchema(
-    val potentiallyDeclarativeMembersBySupertype: Map<KClass<*>, List<SupportedCallable>>,
-    val unsupportedMembersBySupertype: Map<KClass<*>, List<NonDeclarativeMember>>
+    val membersBySupertype: Map<KClass<*>, List<ExtractionResult<SupportedCallable, KCallable<*>>>>,
 ) {
-    data class NonDeclarativeMember(val member: KCallable<*>, val reason: NonDeclarativeReason, val context: List<SchemaBuildingContextElement>)
-
-    val potentiallyDeclarativeMembers: Iterable<SupportedCallable> by lazy { potentiallyDeclarativeMembersBySupertype.values.flatten() }
+    val declarativeMembers: Iterable<SupportedCallable> by lazy {
+        membersBySupertype.values.flatten()
+            .filterIsInstance<ExtractionResult.Extracted<SupportedCallable, KCallable<*>>>().map { it.result }
+    }
 }
 
+typealias SupportedCallableResult = ExtractionResult<SupportedCallable, KCallable<*>>
+
 internal fun collectMembersForSchema(host: SchemaBuildingHost, kClass: KClass<*>): ClassMembersForSchema {
-    return host.inContextOfModelClass(kClass) {
-        val supertypesWithMapping = host.declarativeSupertypesHierarchy(kClass)
+    // Members in enum types are not supported
+    if (kClass.isSubclassOf(Enum::class)) {
+        return ClassMembersForSchema(emptyMap())
+    }
 
-        val supported: MutableMap<KClass<*>, MutableList<SupportedCallable>> = mutableMapOf()
-        val unsupported: MutableMap<KClass<*>, MutableList<ClassMembersForSchema.NonDeclarativeMember>> = mutableMapOf()
+    val supertypesWithMapping = host.declarativeSupertypesHierarchy(kClass)
 
-        supertypesWithMapping.forEach { supertype ->
-            if (!isValidMemberHolderType(supertype.superClass)) {
-                return@forEach
-            }
+    val results: MutableMap<KClass<*>, List<SupportedCallableResult>> = mutableMapOf()
 
-            host.inContextOfModelClass(supertype.superClass) {
-                when (supertype) {
-                    is SuperclassWithMapping -> {
-                        val supportedMembers by lazy { supported.getOrPut(supertype.superClass) { mutableListOf() } }
-                        val unsupported by lazy { unsupported.getOrPut(supertype.superClass) { mutableListOf() } }
-
-                        supertype.superClass.declaredMembers.forEach { member ->
-                            handleMember(host, member, supertype, supportedMembers::add, unsupported::add)
-                        }
-                    }
-
-                    is MaybeDeclarativeClassInHierarchy.NonDeclarativeSuperclassInHierarchy -> Unit
-                }
-            }
+    supertypesWithMapping.forEach { supertype ->
+        if (!isValidMemberHolderType(supertype.superClass)) {
+            return@forEach
         }
 
-        ClassMembersForSchema(mergeMembersBySignature(supported), unsupported)
+        host.inContextOfModelClass(supertype.superClass) {
+            when (supertype) {
+                is SuperclassWithMapping -> {
+                    results[supertype.superClass] = supertype.superClass.declaredMembers.mapNotNull { member ->
+                        maybeSupportedCallable(host, member, supertype)
+                    }
+                }
+
+                is MaybeDeclarativeClassInHierarchy.NonDeclarativeSuperclassInHierarchy -> Unit
+            }
+        }
     }
+
+    return ClassMembersForSchema(mergeMembersBySignature(results))
 }
 
 private fun isValidMemberHolderType(kClass: KClass<*>): Boolean = when {
@@ -101,72 +104,42 @@ fun TypeVariableAssignments.applyToType(supportedType: SupportedType): Supported
         else -> SupportedType(supportedType.classifier, supportedType.isMarkedNullable, supportedType.arguments.map { applyTo(it) })
     }
 
-private sealed class TypeVariableAssignmentsIfSupported {
-    class Supported(val typeMapping: TypeVariableAssignments) : TypeVariableAssignmentsIfSupported()
-    class Unsupported(val reason: NonDeclarativeReason) : TypeVariableAssignmentsIfSupported()
-}
-
-private fun handleMember(
+@Suppress("ReturnCount")
+private fun maybeSupportedCallable(
     host: SchemaBuildingHost,
     member: KCallable<*>,
     supertype: SuperclassWithMapping,
-    addAsSupported: (SupportedCallable) -> Unit,
-    addAsUnsupported: (ClassMembersForSchema.NonDeclarativeMember) -> Unit
-) {
-    if (member.annotationsWithGetters.run { any { it is VisibleInDefinition } && any { it is HiddenInDefinition} }) {
-        host.schemaBuildingFailure("Conflicting annotations on $member: both @${VisibleInDefinition::class.simpleName} and @${HiddenInDefinition::class.simpleName} are present")
-    }
-
-    if (member.visibility != KVisibility.PUBLIC) {
-        return
-    }
-
-    // Ignore statics:
-    if (member is KProperty<*> && java.lang.reflect.Modifier.isStatic(member.javaField?.modifiers ?: 0)) {
-        return
-    }
-
-    val isInHiddenType = supertype is MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy
-    val isExposedByAnnotation = member.annotations.any { it is VisibleInDefinition } || (member is KProperty<*> && member.getter.annotations.any { it is VisibleInDefinition })
-    val isHiddenByAnnotation = member.annotations.any { it is HiddenInDefinition } || (member is KProperty<*> && member.getter.annotations.any { it is HiddenInDefinition })
-    if (isHiddenByAnnotation || isInHiddenType && !isExposedByAnnotation) {
-        return
-    }
-
+): SupportedCallableResult? {
     host.inContextOfModelMember(member) {
-        fun supportedTypeWithSubstitution(type: KType): SupportedType? =
-            type.asSupported()?.let(supertype.typeVariableAssignments::applyToType)
-
-        val parameters = member.parameters.filter { it != member.instanceParameter }.map { param ->
-            host.withTag(SchemaBuildingTags.parameter(param)) {
-                val supportedType = supportedTypeWithSubstitution(param.type)
-                    ?: run {
-                        addAsUnsupported(
-                            ClassMembersForSchema.NonDeclarativeMember(
-                                member,
-                                NonDeclarativeReason.UnsupportedTypeUsage(param.type), // FIXME use the more precise reasons
-                                host.context.toList()
-                            )
-                        )
-                        return
-                    }
-
-                SupportedKParameter(param.name, supportedType, param.isVararg, param.isOptional)
-            }
+        if (member.visibility != KVisibility.PUBLIC) {
+            return null
         }
 
+        // Ignore statics:
+        if (member is KProperty<*> && Modifier.isStatic(member.javaField?.modifiers ?: 0)) {
+            return null
+        }
+
+        if (member.annotationsWithGetters.run { any { it is VisibleInDefinition } && any { it is HiddenInDefinition } }) {
+            return ExtractionResult.Failure(
+                host.schemaBuildingFailure(SchemaBuildingIssue.DeclarationBothHiddenAndVisible),
+                member
+            )
+        }
+
+        val isInHiddenType = supertype is MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy
+        val isExposedByAnnotation = member.annotations.any { it is VisibleInDefinition } || (member is KProperty<*> && member.getter.annotations.any { it is VisibleInDefinition })
+        val isHiddenByAnnotation = member.annotations.any { it is HiddenInDefinition } || (member is KProperty<*> && member.getter.annotations.any { it is HiddenInDefinition })
+        if (isHiddenByAnnotation || isInHiddenType && !isExposedByAnnotation) {
+            return null
+        }
+
+        val parameters = memberParameters(member, host, supertype)
+            .getAllOrFailWith { return ExtractionResult.Failure(it.first(), member) }
+
         val returnType = host.withTag(SchemaBuildingTags.returnValueType(member.returnType)) {
-            supportedTypeWithSubstitution(member.returnType)
-                ?: run {
-                    addAsUnsupported(
-                        ClassMembersForSchema.NonDeclarativeMember( // FIXME use the more precise reasons
-                            member,
-                            NonDeclarativeReason.UnsupportedTypeUsage(member.returnType), // FIXME use the more precise reasons
-                            host.context.toList()
-                        )
-                    )
-                    return
-                }
+            supportedTypeWithSubstitution(host, supertype, member.returnType)
+                .orFailWith { return ExtractionResult.Failure(it, member) }
         }
 
         val memberKind = when (member) {
@@ -176,17 +149,33 @@ private fun handleMember(
             else -> error("Unexpected member kind: $member")
         }
 
-        addAsSupported(
+        return ExtractionResult.Extracted(
             SupportedCallable(
                 member,
                 kind = memberKind,
                 name = member.name,
                 parameters = parameters,
                 returnType = returnType
-            )
+            ),
+            member
         )
     }
 }
+
+private fun memberParameters(
+    member: KCallable<*>,
+    host: SchemaBuildingHost,
+    supertype: SuperclassWithMapping
+): List<SchemaResult<SupportedKParameter>> = member.parameters.filter { it != member.instanceParameter }.map { param ->
+    host.withTag(SchemaBuildingTags.parameter(param)) {
+        supportedTypeWithSubstitution(host, supertype, param.type).map { paramType ->
+            SupportedKParameter(param.name, paramType, param.isVararg, param.isOptional)
+        }
+    }
+}
+
+private fun supportedTypeWithSubstitution(host: SchemaBuildingHost, supertype: SuperclassWithMapping, type: KType): SchemaResult<SupportedType> =
+    type.asSupported(host).map(supertype.typeVariableAssignments::applyToType)
 
 
 /**
@@ -195,8 +184,11 @@ private fun handleMember(
  * Provided the [members] map sorted topologically from subtypes to supertypes, if there are overrides, the implementation preserves the
  * overriding member from the subtype and drops the member(s) from the supertype(s).
  */
-private fun mergeMembersBySignature(members: Map<KClass<*>, List<SupportedCallable>>): Map<KClass<*>, List<SupportedCallable>> {
-    fun SupportedCallable.signature() = listOf(name, this.kind) + this.parameters
+private fun mergeMembersBySignature(members: Map<KClass<*>, List<SupportedCallableResult>>): Map<KClass<*>, List<SupportedCallableResult>> {
+    fun SupportedCallableResult.signature() = when (this) {
+        is ExtractionResult.Extracted -> listOf(result.name, result.kind) + result.parameters
+        is ExtractionResult.Failure -> listOf(this)
+    }
 
     val entries = members.entries
         .flatMap { (kClass, classMembers) -> classMembers.map { kClass to it } }
@@ -219,18 +211,21 @@ sealed interface MaybeDeclarativeClassInHierarchy {
 
     data class VisibleSuperclassInHierarchy(override val superClass: KClass<*>, override val typeVariableAssignments: TypeVariableAssignments) : SuperclassWithMapping
     data class HiddenSuperclassInHierarchy(override val superClass: KClass<*>, override val typeVariableAssignments: TypeVariableAssignments) : SuperclassWithMapping
-    data class NonDeclarativeSuperclassInHierarchy(override val superClass: KClass<*>, val reason: NonDeclarativeReason) : MaybeDeclarativeClassInHierarchy
+    data class NonDeclarativeSuperclassInHierarchy(override val superClass: KClass<*>, val reason: SchemaResult.Failure) : MaybeDeclarativeClassInHierarchy
 }
 
-internal fun collectDeclarativeSuperclassHierarchy(kClass: KClass<*>): Iterable<MaybeDeclarativeClassInHierarchy> {
+internal fun collectDeclarativeSuperclassHierarchy(host: SchemaBuildingHost, kClass: KClass<*>): Iterable<MaybeDeclarativeClassInHierarchy> {
     /**
      * Using [VisibleSuperclassInHierarchy] as keys for all classes at first.
-     * In post-processing, some might become [MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy].
+     * In post-processing, some might become [MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy] or [MaybeDeclarativeClassInHierarchy.NonDeclarativeSuperclassInHierarchy].
      */
     val reachedFrom = mutableMapOf<VisibleSuperclassInHierarchy, MutableSet<VisibleSuperclassInHierarchy>>()
     val nonDeclarative = mutableSetOf<MaybeDeclarativeClassInHierarchy.NonDeclarativeSuperclassInHierarchy>()
 
-    /** Using a separate list to ensure that the result is topologically sorted (by adding a node only after all its connections are added, then reversing the result). */
+    /**
+     * Using a separate list to ensure that the result is topologically sorted (by adding a node only after all its connections are added, then reversing the result).
+     * This is needed because the members are collected and deduplicated using the order of elements in this result.
+     */
     val visitedDeclarativeSupertypes = mutableListOf<VisibleSuperclassInHierarchy>()
 
     fun visit(current: VisibleSuperclassInHierarchy, parent: VisibleSuperclassInHierarchy?) {
@@ -245,14 +240,14 @@ internal fun collectDeclarativeSuperclassHierarchy(kClass: KClass<*>): Iterable<
         if (!isSeen) {
             current.superClass.supertypes.forEach { supertype ->
                 val superclass = supertype.classifier as? KClass<*> ?: return@forEach
-                when (val typeMappingIfSupported = typeMappingForSupertype(current.typeVariableAssignments, supertype)) {
-                    is TypeVariableAssignmentsIfSupported.Supported -> {
+                when (val typeMappingIfSupported = typeMappingForSupertype(host, current.typeVariableAssignments, supertype)) {
+                    is SchemaResult.Result -> {
                         val superClass = supertype.classifier as KClass<*>
-                        visit(VisibleSuperclassInHierarchy(superClass, typeMappingIfSupported.typeMapping), current)
+                        visit(VisibleSuperclassInHierarchy(superClass, typeMappingIfSupported.result), current)
                     }
 
-                    is TypeVariableAssignmentsIfSupported.Unsupported -> {
-                        nonDeclarative.add(MaybeDeclarativeClassInHierarchy.NonDeclarativeSuperclassInHierarchy(superclass, typeMappingIfSupported.reason))
+                    is SchemaResult.Failure -> {
+                        nonDeclarative.add(MaybeDeclarativeClassInHierarchy.NonDeclarativeSuperclassInHierarchy(superclass, typeMappingIfSupported))
                     }
                 }
             }
@@ -264,10 +259,10 @@ internal fun collectDeclarativeSuperclassHierarchy(kClass: KClass<*>): Iterable<
     val root = VisibleSuperclassInHierarchy(kClass, kClass.typeParameters.associateWith { SupportedType(it, isMarkedNullable = false, arguments = emptyList()) })
     visit(root, null)
 
-    val visible = checkDefinitionVisibilityInHierarchy(root, reachedFrom)
+    val visibilityCheckResult: Map<KClass<*>, MaybeDeclarativeClassInHierarchy> = checkDefinitionVisibilityInHierarchy(host, root, reachedFrom)
 
     return visitedDeclarativeSupertypes.asReversed().map {
-        if (it in visible) it else MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy(it.superClass, it.typeVariableAssignments)
+        visibilityCheckResult[it.superClass] ?: MaybeDeclarativeClassInHierarchy.HiddenSuperclassInHierarchy(it.superClass, it.typeVariableAssignments)
     } + nonDeclarative
 }
 
@@ -283,12 +278,13 @@ internal fun collectDeclarativeSuperclassHierarchy(kClass: KClass<*>): Iterable<
  *
  * Here we start with the mapping for `Sup`: `{G: Int}`. From that, we go to the mapping for `Sub`: `{T: Int, S: List<Int>}`
  */
-private fun typeMappingForSupertype(typeMapping: TypeVariableAssignments, supertype: KType): TypeVariableAssignmentsIfSupported {
+private fun typeMappingForSupertype(host: SchemaBuildingHost, typeMapping: TypeVariableAssignments, supertype: KType): SchemaResult<TypeVariableAssignments> {
     val superClass = supertype.classifier as KClass<*>
-    return TypeVariableAssignmentsIfSupported.Supported(superClass.typeParameters.zip(supertype.arguments).associate { (param, arg) ->
+    return SchemaResult.Result(superClass.typeParameters.zip(supertype.arguments).associate { (param, arg) ->
         val argType = arg.type ?: error("Unexpected type projection in supertype: $arg; expected to have a projection with a type, got none.")
 
-        val supportedArgType = argType.asSupported() ?: return TypeVariableAssignmentsIfSupported.Unsupported(NonDeclarativeReason.UnsupportedTypeUsage(argType))
+        val supportedArgType = argType.asSupported(host)
+            .orFailWith { return it }
 
         param to when (val argClassifier = arg.type?.classifier) {
             is KTypeParameter -> typeMapping.getValue(argClassifier)
@@ -298,11 +294,13 @@ private fun typeMappingForSupertype(typeMapping: TypeVariableAssignments, supert
 }
 
 private fun checkDefinitionVisibilityInHierarchy(
+    host: SchemaBuildingHost,
     root: VisibleSuperclassInHierarchy,
     reachedFrom: MutableMap<VisibleSuperclassInHierarchy, MutableSet<VisibleSuperclassInHierarchy>>,
-): HashSet<VisibleSuperclassInHierarchy> {
+): Map<KClass<*>, MaybeDeclarativeClassInHierarchy> {
     val visible = hashSetOf<VisibleSuperclassInHierarchy>()
     val invisible = hashSetOf<VisibleSuperclassInHierarchy>()
+    val invalid = hashSetOf<MaybeDeclarativeClassInHierarchy.NonDeclarativeSuperclassInHierarchy>()
 
     fun checkVisibility(from: VisibleSuperclassInHierarchy): Boolean {
         if (from in visible) return true
@@ -312,10 +310,14 @@ private fun checkDefinitionVisibilityInHierarchy(
         val annotatedHidden = from.superClass.annotations.any { it is HiddenInDefinition }
 
         return when {
-            annotatedHidden && annotatedVisible -> {
-                // TODO: properly collect this error and report in a batch
-                error("Conflicting annotations on ${from.superClass.qualifiedName}: both @${HiddenInDefinition::class.simpleName} and @${VisibleInDefinition::class.simpleName} are present")
-            }
+            annotatedHidden && annotatedVisible -> invalid.add(
+                MaybeDeclarativeClassInHierarchy.NonDeclarativeSuperclassInHierarchy(
+                    from.superClass,
+                    host.inContextOfModelClass(from.superClass) {
+                        host.schemaBuildingFailure(SchemaBuildingIssue.DeclarationBothHiddenAndVisible)
+                    }
+                )
+            )
 
             annotatedVisible -> {
                 visible.add(from)
@@ -336,18 +338,12 @@ private fun checkDefinitionVisibilityInHierarchy(
     }
 
     reachedFrom.keys.forEach { checkVisibility(it) }
-    return visible
+    return visible.associateBy { it.superClass } + invalid.associateBy { it.superClass }
 }
 
 private fun isVisibleDeclarativeDefinitionClass(kClass: KClass<*>): Boolean = when {
     kClass.annotations.any { it is HiddenInDefinition } -> false
     else -> true
-}
-
-sealed interface NonDeclarativeReason {
-    class UnsupportedTypeUsage(val type: KType) : NonDeclarativeReason
-    class UnsupportedNullableType(val type: KType) : NonDeclarativeReason // FIXME use the more precise reasons
-    class UnsupportedTypeProjection(val type: KTypeProjection) : NonDeclarativeReason
 }
 
 data class SupportedCallable(
@@ -364,23 +360,30 @@ enum class MemberKind {
     val isProperty get() = this == READ_ONLY_PROPERTY || this == MUTABLE_PROPERTY
 }
 
-fun KTypeProjection.asSupported(): SupportedTypeProjection? {
+fun KTypeProjection.asSupported(host: SchemaBuildingHost): SchemaResult<SupportedTypeProjection> {
     return when {
-        this == KTypeProjection.STAR -> SupportedTypeProjection.StarProjection
-        variance != KVariance.INVARIANT -> SupportedTypeProjection.ProjectedType(variance!!, type?.asSupported() ?: return null)
-        else -> type?.asSupported()
+        this == KTypeProjection.STAR -> schemaResult(SupportedTypeProjection.StarProjection)
+        else -> {
+            val type = type ?: host.schemaBuildingError("Type projection is not a star projection but the type is null: $this")
+            type.asSupported(host).map {
+                if (variance != KVariance.INVARIANT)
+                    SupportedTypeProjection.ProjectedType(variance!!, it)
+                else it
+            }
+        }
     }
 }
 
-fun KType.asSupported(): SupportedType? = when {
-    classifier == null -> null
+fun KType.asSupported(host: SchemaBuildingHost): SchemaResult<SupportedType> = when {
+    classifier == null -> host.schemaBuildingFailure(SchemaBuildingIssue.NonClassifiableType(this))
     else -> {
-        val args = arguments.mapNotNull { it.asSupported() }
-        if (args.size != arguments.size) { // i.e., there is an unsupported argument
-            null
-        } else {
-            SupportedType(classifier!!, isMarkedNullable, args)
+        val args = arguments.map { arg ->
+            when (val argSupported = arg.asSupported(host)) {
+                is SchemaResult.Failure -> return argSupported
+                is SchemaResult.Result -> argSupported.result
+            }
         }
+        SchemaResult.Result(SupportedType(classifier!!, isMarkedNullable, args))
     }
 }
 
