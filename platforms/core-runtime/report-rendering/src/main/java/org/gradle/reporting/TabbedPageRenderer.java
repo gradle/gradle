@@ -44,6 +44,10 @@ public abstract class TabbedPageRenderer<T> extends ReportRenderer<T, HtmlPageBu
 
     protected abstract URL getStyleUrl();
 
+    protected boolean shouldRenderFailureFilter() {
+        return false;
+    }
+
     @Override
     public void render(final T model, HtmlPageBuilder<SimpleHtmlWriter> builder) throws IOException {
         this.model = model;
@@ -67,7 +71,31 @@ public abstract class TabbedPageRenderer<T> extends ReportRenderer<T, HtmlPageBu
         htmlWriter.startElement("body")
             .startElement("div").attribute("id", "content");
                 if (!title.isEmpty()) {
-                    htmlWriter.startElement("h1").characters(title).endElement();
+                    htmlWriter.startElement("h1")
+                        .characters(title);
+                        if (shouldRenderFailureFilter()) {
+                            htmlWriter.startElement("label")
+                                .attribute("class", "hidden")
+                                .attribute("id", "label-for-failure-filter-toggle")
+                                .attribute("for", "failure-filter-toggle")
+                                .attribute("style", "margin-left: 20px; font-size: 16px; font-weight: normal;")
+                                .startElement("input")
+                                    .attribute("id", "failure-filter-toggle")
+                                    .attribute("type", "checkbox")
+                                    .attribute("autocomplete", "off")
+                                    .attribute("checked", "checked")
+                                .endElement()
+                                .characters(" Failures only")
+                            .endElement()
+                            .startElement("a")
+                                .attribute("id", "failure-summary-link")
+                                .attribute("href", "#")
+                                .attribute("class", "hidden")
+                                .attribute("style", "margin-left: 10px; font-size: 16px; font-weight: normal;")
+                                .characters("Failure Summary")
+                            .endElement();
+                        }
+                        htmlWriter.endElement();
                 }
 
                 getHeaderRenderer().render(model, htmlWriter);
