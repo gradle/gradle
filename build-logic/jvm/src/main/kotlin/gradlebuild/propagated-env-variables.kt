@@ -16,7 +16,6 @@
 
 package gradlebuild
 
-import com.gradle.scan.agent.serialization.scan.serializer.kryo.it
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.os.OperatingSystem
 
