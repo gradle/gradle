@@ -16,10 +16,8 @@
 
 package org.gradle.internal.declarativedsl
 
-import kotlin.reflect.KClassifier
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty
-import kotlin.reflect.KTypeParameter
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
@@ -38,29 +36,5 @@ object Workarounds {
     private val kFunctionImplSignature: (KFunction<*>) -> String by lazy {
         val property: KProperty<*> = Class.forName("kotlin.reflect.jvm.internal.DescriptorKFunction").kotlin.memberProperties.first { it.name == "signature" }.apply { isAccessible = true }
         return@lazy { kFunction: KFunction<*> -> property.call(kFunction) as String }
-    }
-
-    /**
-     * Workaround: the Kotlin standard library functions have their type parameter `T` represented by different [KTypeParameter] objects when seen in the functions [KFunction.typeParameters] and when
-     * found in the function's [kotlin.reflect.KParameter.type].
-     *
-     * Therefore, it is not possible to identify the `KTypeParameter` that appears in the function signature to check if it is declared by the function.
-     * The `KTypeParameter`s, however, share the descriptor.
-     *
-     * As a workaround, access the descriptor via the internal API.
-     */
-    internal fun typeParameterMatches(left: KTypeParameter, right: KTypeParameter): Boolean {
-        if (left == right)
-            return true
-
-        fun KClassifier.descriptor(): Any? = descriptorMethod.invoke(this)
-
-        val leftDescriptor = left.descriptor()
-        val rightDescriptor = right.descriptor()
-        return leftDescriptor == rightDescriptor
-    }
-
-    private val descriptorMethod by lazy {
-        Class.forName("kotlin.reflect.jvm.internal.KTypeParameterImpl").methods.single { it.name == "getDescriptor" }
     }
 }
