@@ -26,11 +26,11 @@ dependencies {
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.core))
-    testImplementation(libs.servletApi)
+    testImplementation(testLibs.servletApi)
 
     integTestImplementation(projects.enterpriseOperations)
     integTestImplementation(testFixtures(projects.buildCache))
-    integTestImplementation(libs.jetty)
+    integTestImplementation(testLibs.jetty)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")

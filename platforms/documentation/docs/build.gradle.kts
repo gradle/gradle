@@ -1,5 +1,4 @@
 import gradlebuild.basics.configurationCacheEnabledForDocsTests
-import gradlebuild.basics.googleApisJs
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runBrokenForConfigurationCacheDocsTests
 import gradlebuild.basics.util.getSingleFileProvider
@@ -38,10 +37,6 @@ androidHomeWarmup {
     )
 }
 
-repositories {
-    googleApisJs()
-}
-
 configurations {
     consumable("gradleFullDocsElements") {
         attributes {
@@ -75,27 +70,25 @@ dependencies {
     // generate Javadoc for the full Gradle distribution
     runtimeOnly(project(":distributions-full"))
 
-    userGuideTask("xalan:xalan:2.7.1")
-    userGuideTask("xerces:xercesImpl:2.11.0")
-    userGuideTask("net.sf.xslthl:xslthl:2.0.1")
+    userGuideTask(buildLibs.xalan)
+    userGuideTask(buildLibs.xerces)
+    userGuideTask(buildLibs.xslthl)
 
-    userGuideStyleSheets("net.sf.docbook:docbook-xsl:1.75.2:resources@zip")
-
-    jquery("jquery:jquery.min:3.5.1@js")
+    userGuideStyleSheets(variantOf(buildLibs.docbook) { classifier("resources"); artifactType("zip") })
 
     testImplementation(project(":base-services"))
     testImplementation(project(":core"))
     testImplementation(libs.jsoup)
-    testImplementation("org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2")
+    testImplementation(testLibs.selenium)
     testImplementation(libs.commonsHttpclient)
-    testImplementation(libs.httpmime)
+    testImplementation(testLibs.httpmime)
 
     docsTestImplementation(platform(project(":distributions-dependencies")))
     docsTestImplementation(project(":internal-integ-testing"))
     docsTestImplementation(project(":base-services"))
     docsTestImplementation(project(":logging"))
-    docsTestImplementation(libs.junit)
-    docsTestRuntimeOnly(libs.junitPlatform)
+    docsTestImplementation(testLibs.junit)
+    docsTestRuntimeOnly(testLibs.junitPlatform)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }

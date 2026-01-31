@@ -61,6 +61,7 @@ testFixturesRuntimeElements.extendsFrom(testFixturesRuntimeOnly)
 // do not attempt to find projects when the plugin is applied just to generate accessors
 if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test" /* remove once wrapper is updated */) {
     val libs = project.versionCatalogs.named("libs")
+    val testLibs = project.versionCatalogs.named("testLibs")
 
     dependencies {
         testFixturesApi(project(":internal-testing"))
@@ -68,11 +69,11 @@ if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "test" /* r
         testFixturesImplementation(platform(project(":distributions-dependencies")))
 
         // add a set of default dependencies for fixture implementation
-        testFixturesImplementation(libs.findLibrary("junit").get())
+        testFixturesImplementation(testLibs.findLibrary("junit").get())
         testFixturesImplementation(libs.findLibrary("groovy").get())
-        testFixturesImplementation(libs.findLibrary("spock").get())
-        testFixturesRuntimeOnly(libs.findLibrary("bytebuddy").get())
-        testFixturesRuntimeOnly(libs.findLibrary("cglib").get())
+        testFixturesImplementation(testLibs.findLibrary("spock").get())
+        testFixturesRuntimeOnly(testLibs.findLibrary("bytebuddy").get())
+        testFixturesRuntimeOnly(testLibs.findLibrary("cglib").get())
     }
 }
 

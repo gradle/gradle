@@ -39,10 +39,10 @@ object BuildModelParametersProvider {
     val logger = Logging.getLogger(BuildModelParametersProvider::class.java)
 
     private
-    val configurationCacheParallelStore = InternalFlag("org.gradle.configuration-cache.internal.parallel-store", true)
+    val configurationCacheParallelStore = InternalFlag("org.gradle.internal.configuration-cache.parallel-store", true)
 
     private
-    val configurationCacheParallelLoad = InternalFlag("org.gradle.configuration-cache.internal.parallel-load", true)
+    val configurationCacheParallelLoad = InternalFlag("org.gradle.internal.configuration-cache.parallel-load", true)
 
     private
     val invalidateCoupledProjects = InternalFlag("org.gradle.internal.invalidate-coupled-projects", true)
