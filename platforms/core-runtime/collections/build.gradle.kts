@@ -63,6 +63,7 @@ jmh {
 //        "PersistentArrayBenchmark.randomUpdate",
 //        "PersistentSetBenchmark",
 //        "PersistentSetBenchmark.iteration",
+//        "PersistentSetBenchmark.randomLookup",
 //        "PersistentSetBenchmark.contains(Absent|Present)",
 //        "PersistentSetBenchmark.remove",
 //        "PersistentSetBenchmark.removeAbsent",
