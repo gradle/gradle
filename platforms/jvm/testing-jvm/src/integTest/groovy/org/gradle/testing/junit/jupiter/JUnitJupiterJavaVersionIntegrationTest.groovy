@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,21 @@
 
 package org.gradle.testing.junit.jupiter
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.AbstractTestJavaVersionIntegrationTest
+import org.gradle.testing.fixture.JUnitCoverage
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 
 /**
  * Tests support for different JUnit Jupiter versions across different Java versions.
  */
-@TargetCoverage({ JUNIT_JUPITER })
+@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
 class JUnitJupiterJavaVersionIntegrationTest extends AbstractTestJavaVersionIntegrationTest implements JUnitJupiterMultiVersionTest {
+    @Override
+    List<Jvm> getSupportedJvms() {
+        return AvailableJavaHomes.supportedWorkerJdks
+    }
 }

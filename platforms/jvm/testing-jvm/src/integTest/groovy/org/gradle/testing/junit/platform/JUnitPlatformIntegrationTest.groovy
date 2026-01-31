@@ -16,7 +16,6 @@
 
 package org.gradle.testing.junit.platform
 
-
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
@@ -24,10 +23,17 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 import spock.lang.Timeout
 
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT5_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_PLATFORM
 import static org.hamcrest.CoreMatchers.containsString
 
 class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
+    @Override
+    String getJupiterVersion() {
+        return LATEST_JUPITER_VERSION
+    }
 
     def 'can work with junit-platform-runner'() {
         given:
@@ -264,7 +270,7 @@ public class StaticInnerTest {
                     ${key} ${value}
                 }
             }
-        """)
+        """, jupiterVersion)
         createSimpleJupiterTests()
 
         when:
@@ -278,7 +284,7 @@ public class StaticInnerTest {
             test {
                 useJUnitPlatform()
             }
-        """)
+        """, jupiterVersion)
 
         and:
         succeeds ':test'
@@ -306,7 +312,7 @@ public class StaticInnerTest {
                 systemProperty('junit.jupiter.execution.parallel.config.strategy', 'fixed')
                 systemProperty('junit.jupiter.execution.parallel.config.fixed.parallelism', '$numTestClasses')
             }
-        """)
+        """, version)
         file('src/test/java/org/gradle/Tests.java') << """
             package org.gradle;
 
@@ -341,15 +347,18 @@ public class StaticInnerTest {
                 testClass("org.gradle.Test$classNumber").assertTestCount(1, 0)
             }
         }
+
+        where:
+        version << JUNIT_JUPITER
     }
 
     @Issue("https://github.com/junit-team/junit5/issues/2028 and https://github.com/gradle/gradle/issues/12073")
-    def 'properly fails when engine fails during discovery #scenario'() {
+    def 'properly fails when engine fails during discovery #scenario with platform version #platformVersion'() {
         given:
         createSimpleJupiterTest()
         buildFile << """
             dependencies {
-                testImplementation 'org.junit.platform:junit-platform-engine:${LATEST_PLATFORM_VERSION}'
+                testImplementation 'org.junit.platform:junit-platform-engine:${platformVersion}'
             }
         """
         file('src/test/java/EngineFailingDiscovery.java') << '''
@@ -377,9 +386,11 @@ public class StaticInnerTest {
         failure.assertHasCause('Test process encountered an unexpected problem.')
 
         where:
-        scenario       | extraArgs
-        "w/o filters"  | []
-        "with filters" | ['--tests', 'JUnitJupiterTest']
+        scenario       | extraArgs                         | platformVersion
+        "w/o filters"  | []                                | JUNIT_PLATFORM[0]
+        "with filters" | ['--tests', 'JUnitJupiterTest']   | JUNIT_PLATFORM[0]
+        "w/o filters"  | []                                | JUNIT_PLATFORM[1]
+        "with filters" | ['--tests', 'JUnitJupiterTest']   | JUNIT_PLATFORM[1]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23602")
@@ -468,14 +479,14 @@ public class StaticInnerTest {
         succeeds "test"
 
         where:
-        version << ["5.9.2", "5.6.3"]
+        version << [LATEST_JUPITER_VERSION, LATEST_JUNIT5_VERSION, "5.9.2", "5.6.3"]
     }
 
-    def 'properly fails when engine fails during execution'() {
+    def 'properly fails when engine fails during execution with platform version #platformVersion'() {
         given:
         buildFile << """
             dependencies {
-                testImplementation 'org.junit.platform:junit-platform-engine:${LATEST_PLATFORM_VERSION}'
+                testImplementation 'org.junit.platform:junit-platform-engine:${platformVersion}'
             }
         """
         file('src/test/java/EngineFailingExecution.java') << '''
@@ -509,6 +520,11 @@ public class StaticInnerTest {
         fails('test')
 
         then:
+        failureDescriptionContains("Execution failed for task ':test'.")
         failureCauseContains('There were failing tests.')
+        outputContains("EngineFailingExecution > initializationError FAILED")
+
+        where:
+        platformVersion << JUNIT_PLATFORM
     }
 }

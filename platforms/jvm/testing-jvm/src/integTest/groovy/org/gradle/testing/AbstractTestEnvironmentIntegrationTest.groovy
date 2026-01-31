@@ -17,10 +17,8 @@
 package org.gradle.testing
 
 import org.gradle.api.tasks.testing.TestResult
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.util.Matchers
@@ -234,61 +232,6 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
         def result = new DefaultTestExecutionResult(testDirectory, testFramework)
         result.assertTestClassesExecuted('org.gradle.JUnitTest')
         result.testClass('org.gradle.JUnitTest').assertTestPassed('mySystemClassLoaderIsUsed')
-    }
-
-    @Requires(IntegTestPreconditions.Java11HomeAvailable)
-    def "can run tests with custom security manager"() {
-        executer
-                .withArgument("-Dorg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
-                .withToolchainDetectionEnabled()
-
-        given:
-        file('src/test/java/org/gradle/JUnitTest.java') << """
-            package org.gradle;
-
-            ${testFrameworkImports}
-
-            public class JUnitTest {
-                @Test
-                public void mySecurityManagerIsUsed() throws ClassNotFoundException {
-                    assertTrue(System.getSecurityManager() instanceof MySecurityManager);
-                    assertEquals(ClassLoader.getSystemClassLoader(), MySecurityManager.class.getClassLoader());
-                }
-            }
-        """.stripIndent()
-        file('src/test/java/org/gradle/MySecurityManager.java') << """
-            package org.gradle;
-
-            import java.security.Permission;
-
-            public class MySecurityManager extends SecurityManager {
-                public MySecurityManager() {
-                    assert getClass().getName().equals(System.getProperty("java.security.manager"));
-                }
-
-                @Override
-                public void checkPermission(Permission permission) {
-                }
-            }
-        """.stripIndent()
-        buildFile << """
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
-                }
-            }
-            test {
-                systemProperties 'java.security.manager': 'org.gradle.MySecurityManager'
-            }
-        """.stripIndent()
-
-        when:
-        run 'test'
-
-        then:
-        def results = resultsFor(testDirectory)
-        results.testPath('org.gradle.JUnitTest', 'mySecurityManagerIsUsed').onlyRoot()
-            .assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     String getCustomSystemClassLoaderClass() {

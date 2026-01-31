@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit.jupiter
+package org.gradle.testing.junit.junit5.jupiter
 
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.junit.platform.JUnitPlatformIntegrationSpec
 
+import static org.gradle.testing.fixture.JUnitCoverage.getLATEST_JUNIT5_VERSION
 import static org.hamcrest.Matchers.equalTo
 
-class JUnitJupiterParameterizedClassIntegrationTest extends JUnitPlatformIntegrationSpec {
+class JUnit5JupiterParameterizedClassIntegrationTest extends JUnitPlatformIntegrationSpec {
+    @Override
+    String getJupiterVersion() {
+        return LATEST_JUNIT5_VERSION
+    }
+
     def "parameterized class has reasonable hierarchy"() {
         given:
         file('src/test/java/org/gradle/ParamClass.java') << '''
@@ -68,14 +74,14 @@ class JUnitJupiterParameterizedClassIntegrationTest extends JUnitPlatformIntegra
             ":org.gradle.ParamClass:org.gradle.ParamClass[2]:sayCombinedValue(String):sayCombinedValue(String)[2]",
         )
         testResults.testPathPreNormalized(":org.gradle.ParamClass:org.gradle.ParamClass[1]").onlyRoot()
-            .assertDisplayName(equalTo("[1] one"))
+            .assertDisplayName(equalTo('[1] one'))
         testResults.testPathPreNormalized(":org.gradle.ParamClass:org.gradle.ParamClass[2]").onlyRoot()
-            .assertDisplayName(equalTo("[2] two"))
+            .assertDisplayName(equalTo('[2] two'))
         for (int i = 1; i <= 2; i++) {
             testResults.testPathPreNormalized(":org.gradle.ParamClass:org.gradle.ParamClass[$i]:sayCombinedValue(String):sayCombinedValue(String)[1]").onlyRoot()
-                .assertDisplayName(equalTo("[1] buckle"))
+                .assertDisplayName(equalTo('[1] buckle'))
             testResults.testPathPreNormalized(":org.gradle.ParamClass:org.gradle.ParamClass[$i]:sayCombinedValue(String):sayCombinedValue(String)[2]").onlyRoot()
-                .assertDisplayName(equalTo("[2] shoe"))
+                .assertDisplayName(equalTo('[2] shoe'))
         }
         testResults.testPath(":org.gradle.ParamClass:org.gradle.ParamClass[1]:sayValue()").onlyRoot()
             .assertHasResult(TestResult.ResultType.SUCCESS)

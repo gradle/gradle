@@ -28,7 +28,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 
 /**
- * A Junit rule which replaces stdout and stderr with mocks for the duration of the test, and restores them at the end
+ * A JUnit rule which replaces stdout and stderr with mocks for the duration of the test, and restores them at the end
  * of the test.
  */
 public class RedirectStdOutAndErr implements MethodRule {

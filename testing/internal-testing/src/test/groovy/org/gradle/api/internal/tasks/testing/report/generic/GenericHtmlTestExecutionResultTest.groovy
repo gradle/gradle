@@ -42,7 +42,7 @@ final class GenericHtmlTestExecutionResultTest extends Specification {
         "suite:class:method"    | ":suite:class:method"
     }
 
-    def "can convert paths for Junit Jupiter"() {
+    def "can convert paths for JUnit Jupiter"() {
         given:
         def results = new GenericHtmlTestExecutionResult(new File("doesnt-matter"), "irrelevant", TestFramework.JUNIT_JUPITER)
 

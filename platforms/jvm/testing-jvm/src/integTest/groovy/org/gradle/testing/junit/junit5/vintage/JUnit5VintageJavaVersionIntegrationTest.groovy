@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit.vintage
+package org.gradle.testing.junit.junit5.vintage
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.AbstractTestJavaVersionIntegrationTest
-
-import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_VINTAGE
+import org.gradle.testing.fixture.JUnitCoverage
+import org.gradle.testing.junit.vintage.JUnitVintageMultiVersionTest
 
 /**
  * Tests support for different JUnit Vintage versions across different Java versions.
  */
-@TargetCoverage({ JUNIT_VINTAGE })
-class JUnitVintageJavaVersionIntegrationTest extends AbstractTestJavaVersionIntegrationTest implements JUnitVintageMultiVersionTest {
+@TargetCoverage({ JUnitCoverage.JUNIT_5_VINTAGE })
+class JUnit5VintageJavaVersionIntegrationTest extends AbstractTestJavaVersionIntegrationTest implements JUnitVintageMultiVersionTest {
+    @Override
+    List<Jvm> getSupportedJvms() {
+        return AvailableJavaHomes.supportedWorkerJdks
+    }
 }

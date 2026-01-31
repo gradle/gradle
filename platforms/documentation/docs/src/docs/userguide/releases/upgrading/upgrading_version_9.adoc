@@ -107,6 +107,12 @@ The embedded Kotlin has been upgraded from 2.2.21 to link:https://github.com/Jet
 
 Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.12.0[1.12.0].
 
+==== Default version for JUnit Jupiter when using Test Suites is 5.14.2
+
+When using <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suites>> with JUnit Jupiter tests, Gradle provides JUnit Jupiter link:https://docs.junit.org/5.14.2/release-notes.html[5.14.2] by default.
+
+Previously, the default was 5.12.2.
+
 === Deprecations
 
 [[findAll_removal]]

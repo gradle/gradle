@@ -129,22 +129,31 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
     }
 
     private GradleExecuter createExecuter(Executer executerType) {
+        GradleExecuter result;
         switch (executerType) {
             case embedded:
-                return new InProcessGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+                result = new InProcessGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+                break;
             case noDaemon:
-                return new NoDaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+                result =  new NoDaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+                break;
             case parallel:
-                return new ParallelForkingGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+                result = new ParallelForkingGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+                break;
             case forking:
-                return new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+                result = new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+                break;
             case configCache:
-                return new ConfigurationCacheGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+                result = new ConfigurationCacheGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+                break;
             case isolatedProjects:
-                return new IsolatedProjectsGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+                result = new IsolatedProjectsGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+                break;
             default:
                 throw new RuntimeException("Not a supported executer type: " + executerType);
         }
+        result.ignoreLines(getIgnoredLines());
+        return result;
     }
 
     @Override

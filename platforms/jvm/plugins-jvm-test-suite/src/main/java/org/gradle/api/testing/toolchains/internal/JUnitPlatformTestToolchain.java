@@ -35,7 +35,7 @@ abstract public class JUnitPlatformTestToolchain<T extends JUnitPlatformToolchai
     /**
      * The default version of the JUnit Platform to use for executing tests.
      */
-    public static final String DEFAULT_VERSION = "1.10.0";
+    public static final String DEFAULT_VERSION = "1.14.2";
     private static final String GROUP_NAME = "org.junit.platform:junit-platform-launcher";
 
     @Inject
