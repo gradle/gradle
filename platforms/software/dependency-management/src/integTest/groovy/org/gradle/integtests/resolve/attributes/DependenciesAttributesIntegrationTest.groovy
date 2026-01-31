@@ -1261,6 +1261,126 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         'c2'                        | 'c1'                      | 'c2'                      | 'runtime'             | 'api'                      | 'runtime'                  | 'runtime'
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/13736")
+    def "fails with NO_VARIANTS_EXIST when resolving a variant without attributes using variant-aware resolution"() {
+        given:
+        settingsFile << """
+            include 'producer'
+            include 'consumer'
+        """
+
+        file("producer/build.gradle") << """
+            configurations.consumable("producerConfig") // No attributes - this is key
+
+            def generateFile = tasks.register('generateFile') {
+                def outputFile = layout.buildDirectory.file('custom/output.txt')
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.get().asFile.text = 'Custom output from producer'
+                }
+            }
+
+            artifacts {
+                producerConfig(generateFile)
+            }
+        """
+
+        file("consumer/build.gradle") << """
+            configurations {
+                dependencyScope("deps")
+                resolvable("consumerConfig") {
+                    extendsFrom(deps)
+                    attributes {
+                        attribute(Attribute.of("customAttr", String), "customValue")
+                    }
+                }
+            }
+
+            dependencies {
+                deps(project(':producer'))
+            }
+
+            task resolveConsumer {
+                doLast {
+                    configurations.consumerConfig.resolve()
+                }
+            }
+        """
+
+        when:
+        fails ':consumer:resolveConsumer'
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':consumer:resolveConsumer'.")
+        failure.assertHasCause("""|No matching variant of project :producer was found. The consumer was configured to find attribute 'customAttr' with value 'customValue' but:
+            |  - No variants exist.""".stripMargin())
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13736")
+    def "warns when resolving a variant without attributes using resolution by name (consumer attributes: #consumerHasAttributes, producer attributes: #producerHasAttributes"() {
+        given:
+        settingsFile << """
+            include 'producer'
+            include 'consumer'
+        """
+
+        file("producer/build.gradle") << """
+            configurations.consumable("producerConfig")
+
+            def generateFile = tasks.register('generateFile') {
+                def outputFile = layout.buildDirectory.file('custom/output.txt')
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.get().asFile.text = 'Custom output from producer'
+                }
+            }
+
+            artifacts {
+                producerConfig(generateFile)
+            }
+        """
+
+        file("consumer/build.gradle") << """
+            configurations {
+                dependencyScope("deps")
+                resolvable("consumerConfig") {
+                    extendsFrom(deps)
+                    ${if (consumerHasAttributes) {
+            '''
+                    attributes {
+                        attribute(Attribute.of("customAttr", String), "customValue")
+                    }'''
+        } else { '' }}
+                }
+            }
+
+            dependencies {
+                deps(project(path: ':producer', configuration: 'producerConfig'))
+            }
+
+            task resolveConsumer {
+                inputs.files(configurations.consumerConfig)
+                doLast {
+                    inputs.files.each { file ->
+                        logger.lifecycle("Resolved: \${file.name}")
+                    }
+                }
+            }
+        """
+
+        when:
+        if (!consumerHasAttributes) {
+            executer.expectDocumentedDeprecationWarning("Configuration: 'consumerConfig' has no attributes and has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#attributeless-configurations")
+        }
+        succeeds ':consumer:resolveConsumer'
+
+        then:
+        outputContains("Resolved: output.txt")
+
+        where:
+        consumerHasAttributes << [true, false]
+    }
+
     static Closure<String> defaultStatus() {
         { -> GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release' }
     }
