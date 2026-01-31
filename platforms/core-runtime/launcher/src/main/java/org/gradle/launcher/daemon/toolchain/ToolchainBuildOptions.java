@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon.toolchain;
 
+import org.gradle.cli.HelpCategory;
+
 import org.gradle.StartParameter;
 import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BooleanBuildOption;
@@ -135,6 +137,11 @@ public class ToolchainBuildOptions {
         public JavaInstallationPathsOption() {
             super(GRADLE_PROPERTY);
         }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.CONFIGURATION;
+        }
     }
 
     private abstract static class JavaInstallationEnvironmentPathsOption<T> extends StringBuildOption<T> {
@@ -142,6 +149,11 @@ public class ToolchainBuildOptions {
 
         public JavaInstallationEnvironmentPathsOption() {
             super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.CONFIGURATION;
         }
     }
 
@@ -151,6 +163,11 @@ public class ToolchainBuildOptions {
         public AutoDetectionOption() {
             super(GRADLE_PROPERTY);
         }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.CONFIGURATION;
+        }
     }
 
     private abstract static class AutoDownloadOption<T> extends BooleanBuildOption<T> {
@@ -159,6 +176,11 @@ public class ToolchainBuildOptions {
         public AutoDownloadOption() {
             super(GRADLE_PROPERTY);
         }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.CONFIGURATION;
+        }
     }
 
     private abstract static class IntellijJdkBuildOption<T> extends StringBuildOption<T> {
@@ -166,6 +188,11 @@ public class ToolchainBuildOptions {
 
         public IntellijJdkBuildOption() {
             super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.CONFIGURATION;
         }
     }
 }

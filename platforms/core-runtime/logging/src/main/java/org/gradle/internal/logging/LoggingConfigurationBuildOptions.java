@@ -16,6 +16,8 @@
 
 package org.gradle.internal.logging;
 
+import org.gradle.cli.HelpCategory;
+
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
@@ -86,6 +88,11 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         }
 
         @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.LOGGING;
+        }
+
+        @Override
         public void applyFromProperty(Map<String, String> properties, LoggingConfiguration settings) {
             String value = properties.get(property);
 
@@ -144,6 +151,11 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         }
 
         @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.LOGGING;
+        }
+
+        @Override
         public void applyFromProperty(Map<String, String> properties, LoggingConfiguration settings) {
             String value = properties.get(property);
 
@@ -188,6 +200,11 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
         }
 
         @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.LOGGING;
+        }
+
+        @Override
         public void applyTo(String value, LoggingConfiguration settings, Origin origin) {
             String normalized = value.toLowerCase(Locale.ROOT);
             String consoleValue = TextUtil.capitalize(normalized);
@@ -207,6 +224,11 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
 
         public ConsoleUnicodeOption() {
             super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies which character types are allowed in console output to generate. Values are 'auto' (default), 'disable' or 'enable'."));
+        }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.LOGGING;
         }
 
         @Override
@@ -237,6 +259,11 @@ public class LoggingConfigurationBuildOptions extends BuildOptionSet<LoggingConf
             } catch (IllegalArgumentException e) {
                 origin.handleInvalidValue(value);
             }
+        }
+
+        @Override
+        protected HelpCategory getHelpCategory() {
+            return HelpCategory.LOGGING;
         }
     }
 }
