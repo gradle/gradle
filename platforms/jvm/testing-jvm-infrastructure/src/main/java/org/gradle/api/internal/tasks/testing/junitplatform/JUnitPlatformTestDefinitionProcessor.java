@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestDefinitionConsumer;
 import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
+import org.gradle.api.internal.tasks.testing.TestIdentifierTestDefinition;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -141,6 +142,8 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
                 executeClass((ClassTestDefinition) testDefinition);
             } else if (testDefinition instanceof DirectoryBasedTestDefinition) {
                 executeDirectory((DirectoryBasedTestDefinition) testDefinition);
+            } else if (testDefinition instanceof TestIdentifierTestDefinition) {
+                executeTest((TestIdentifierTestDefinition) testDefinition);
             } else {
                 throw new IllegalStateException("Unexpected test definition type " + testDefinition.getClass().getName());
             }
@@ -157,6 +160,10 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
 
         private void executeDirectory(DirectoryBasedTestDefinition testDefinition) {
             selectors.add(DiscoverySelectors.selectDirectory(testDefinition.getTestDefinitionsDir()));
+        }
+
+        private void executeTest(TestIdentifierTestDefinition testDefinition) {
+            selectors.add(DiscoverySelectors.selectUniqueId(testDefinition.getId()));
         }
 
         private void processAllTestDefinitions() {
