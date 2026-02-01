@@ -84,6 +84,7 @@ class InstallTest extends Specification {
         configuration.distributionBase = PathAssembler.GRADLE_USER_HOME_STRING
         configuration.distributionPath = 'someDistPath'
         configuration.distribution = new URI("http://server/$zipFileName")
+        configuration.setRetries(2)
     }
 
     void createTestZip(File zipDestination) {
