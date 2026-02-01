@@ -70,9 +70,27 @@ interface SchemaBuildingHost {
     fun classMembers(kClass: KClass<*>): ClassMembersForSchema
     fun declarativeSupertypesHierarchy(kClass: KClass<*>): Iterable<MaybeDeclarativeClassInHierarchy>
 
+    /**
+     * Convert a [kClass] to a type that can be used as a DCL container (a block receiver).
+     */
     fun containerTypeRef(kClass: KClass<*>): DataTypeRef
+
+    /**
+     * Convert a [kType] to a type that can be used as a DCL model value type reference.
+     * Validates that the type is not nullable.
+     */
     fun modelTypeRef(kType: KType): DataTypeRef
+
+    /**
+     * Convert a [varargType] (element type) of a vararg function parameter to a DCL vararg (array) type reference.
+     */
     fun varargTypeRef(varargType: KType): DataTypeRef
+
+    /**
+     * Convert a [kType] to a DCL type reference without usage validation.
+     * The caller must validate the [kType] before using this function or using the returned type reference in the schema.
+     */
+    fun typeRef(kType: KType): DataTypeRef
 
     fun enterSchemaBuildingContext(contextElement: SchemaBuildingContextElement)
     fun leaveSchemaBuildingContext(contextElement: SchemaBuildingContextElement)
@@ -177,8 +195,13 @@ class DataSchemaBuilder(
             return modelTypeRef(kClass.starProjectedType)
         }
 
-        override fun modelTypeRef(kType: KType): DataTypeRef =
-            typeRef(kType)
+        override fun modelTypeRef(kType: KType): DataTypeRef {
+            if (kType.isMarkedNullable) {
+                schemaBuildingFailure("Unsupported usage of a nullable type")
+            }
+
+            return typeRef(kType)
+        }
 
         override fun varargTypeRef(varargType: KType): DataTypeRef {
             val varargTypeSignature = typeSignatures.getOrPut(DefaultVarargSignature.name) { DefaultVarargSignature }
@@ -205,7 +228,7 @@ class DataSchemaBuilder(
             }
         }
 
-        private fun typeRef(kType: KType): DataTypeRef {
+        override fun typeRef(kType: KType): DataTypeRef {
             check(currentContextStack.isNotEmpty()) { "Cannot reference a type $kType outside of a context" }
 
             return when (val kClassifier = kType.classifier) {
@@ -252,7 +275,7 @@ class DataSchemaBuilder(
                         if (it.variance != KVariance.INVARIANT) {
                             schemaBuildingFailure("Illegal '${it.variance}' variance")
                         }
-                        val argumentTypeRef = this.typeRef(
+                        val argumentTypeRef = modelTypeRef(
                             it.type ?: schemaBuildingFailure("Type argument has no proper type")
                         )
                         TypeArgumentInternal.DefaultConcreteTypeArgument(argumentTypeRef)

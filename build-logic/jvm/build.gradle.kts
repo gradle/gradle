@@ -10,12 +10,6 @@ dependencies {
 
     implementation(projects.dependencyModules)
 
-    implementation("org.eclipse.jgit:org.eclipse.jgit")
-    implementation("org.jsoup:jsoup")
-    implementation("com.google.guava:guava")
-    implementation("org.ow2.asm:asm")
-    implementation("org.ow2.asm:asm-commons")
-    implementation("com.google.code.gson:gson")
-    implementation("com.gradle:develocity-gradle-plugin")
-    implementation(kotlin("gradle-plugin"))
+    implementation(buildLibs.develocityPlugin)
+    implementation(buildLibs.kgp)
 }

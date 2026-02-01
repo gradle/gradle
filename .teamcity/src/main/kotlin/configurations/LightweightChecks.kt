@@ -57,6 +57,10 @@ class LightweightChecks(
                         "$defaultJavaBinary" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
                         "$defaultJavaBinary" .teamcity/scripts/CheckWrapper.java
                         """.trimIndent()
+
+                    conditions {
+                        doesNotEqual("teamcity.build.branch", BOT_DAILY_UPGRADLE_WRAPPER_BRANCH)
+                    }
                 }
                 if (model.branch.isMaster) {
                     script {
@@ -69,14 +73,14 @@ class LightweightChecks(
                             "$defaultJavaBinary" .teamcity/scripts/CheckBadMerge.java
                             """.trimIndent()
                     }
-                    script {
-                        name = "CHECK_REMOTE_PROJECT_REF"
-                        scriptContent =
-                            """
-                            set -eu
-                            "$defaultJavaBinary" .teamcity/scripts/CheckRemoteProjectRef.java ${remoteProjectRefs.joinToString(" ")}
-                            """.trimIndent()
-                    }
+                }
+                script {
+                    name = "CHECK_REMOTE_PROJECT_REF"
+                    scriptContent =
+                        """
+                        set -eu
+                        "$defaultJavaBinary" .teamcity/scripts/CheckRemoteProjectRef.java ${remoteProjectRefs.joinToString(" ")}
+                        """.trimIndent()
                 }
                 script {
                     name = "RUN_MAVEN_CLEAN_VERIFY"

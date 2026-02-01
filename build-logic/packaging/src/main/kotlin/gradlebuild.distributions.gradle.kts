@@ -176,13 +176,14 @@ val kotlinDslSharedRuntime = configurations.dependencyScope("kotlinDslSharedRunt
 val kotlinDslSharedRuntimeClasspath = configurations.resolvable("kotlinDslSharedRuntimeClasspath") {
     extendsFrom(kotlinDslSharedRuntime.get())
 }
+val libs = project.versionCatalogs.named("libs")
 dependencies {
     kotlinDslSharedRuntime(platform("gradlebuild:build-platform"))
     kotlinDslSharedRuntime("org.gradle:kotlin-dsl-shared-runtime")
     kotlinDslSharedRuntime(kotlin("stdlib", embeddedKotlinVersion))
-    kotlinDslSharedRuntime("org.ow2.asm:asm-tree")
-    kotlinDslSharedRuntime("com.google.code.findbugs:jsr305")
-    kotlinDslSharedRuntime("org.jspecify:jspecify")
+    kotlinDslSharedRuntime(libs.findLibrary("asmTree").get())
+    kotlinDslSharedRuntime(libs.findLibrary("jsr305").get())
+    kotlinDslSharedRuntime(libs.findLibrary("jspecify").get())
 }
 val gradleApiKotlinExtensions by tasks.registering(GenerateKotlinExtensionsForGradleApi::class) {
     sharedRuntimeClasspath.from(kotlinDslSharedRuntimeClasspath)

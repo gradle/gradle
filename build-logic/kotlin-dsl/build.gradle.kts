@@ -11,11 +11,11 @@ dependencies {
     implementation(projects.jvm)
     implementation(projects.kotlinDslSharedRuntime)
 
-    implementation(kotlin("gradle-plugin"))
-    implementation(kotlin("sam-with-receiver"))
-    implementation("org.ow2.asm:asm")
-    implementation("com.thoughtworks.qdox:qdox")
+    implementation(buildLibs.kgp)
+    implementation(buildLibs.kotlinSamWithReceiver)
+    implementation(libs.asm)
+    implementation(buildLibs.qdox)
 
-    testImplementation("junit:junit")
-    testImplementation("org.mockito.kotlin:mockito-kotlin")
+    testImplementation(testLibs.junit)
+    testImplementation(testLibs.mockitoKotlin)
 }

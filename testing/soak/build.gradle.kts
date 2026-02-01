@@ -23,8 +23,8 @@ dependencies {
     integTestImplementation(projects.persistentCache)
     integTestImplementation(libs.commonsCompress)
     integTestImplementation(libs.slf4jApi)
-    integTestImplementation(libs.jetty)
-    integTestImplementation(libs.assertj) {
+    integTestImplementation(testLibs.jetty)
+    integTestImplementation(testLibs.assertj) {
         because("Kotlin soak tests use AssertJ")
     }
 

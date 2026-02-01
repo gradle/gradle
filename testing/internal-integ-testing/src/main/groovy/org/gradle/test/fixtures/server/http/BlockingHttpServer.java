@@ -75,7 +75,7 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
 
     public BlockingHttpServer(int timeoutMs) throws IOException {
         // Use an OS selected port
-        this(HttpServer.create(new InetSocketAddress(0), 10), timeoutMs, Scheme.HTTP);
+        this(HttpServer.create(new InetSocketAddress(0), 100), timeoutMs, Scheme.HTTP);
     }
 
     public void setHostAlias(String hostAlias) {

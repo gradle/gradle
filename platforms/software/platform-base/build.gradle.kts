@@ -12,6 +12,7 @@ dependencies {
     api(projects.files)
     api(projects.logging)
     api(projects.modelCore)
+    api(projects.baseCompilerWorker)
 
     api(libs.guava)
     api(libs.jspecify)
