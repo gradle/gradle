@@ -111,11 +111,10 @@ public class Install {
         retryTimeoutMs = retryTimeoutMs < MIN_RETRY_TIMEOUT_MS ? MIN_RETRY_TIMEOUT_MS :
                          (retryTimeoutMs > MAX_RETRY_TIMEOUT_MS ? MAX_RETRY_TIMEOUT_MS : retryTimeoutMs);
 
-        String lastExceptionMessage = "";
+        Exception lastException = null;
 
         logger.log(String.format(
-            "Fetching distribution from %s. Retry settings: %d attempts, %d ms timeout",
-            distributionUrl.toString(),
+            "Fetching distribution. Retry settings: %d attempts, %d ms timeout",
             retries,
             retryTimeoutMs));
 
@@ -137,21 +136,21 @@ public class Install {
                     distributionSha256Sum = fetchDistributionSha256Sum(configuration, localZipFile);
                 }
                 failed = true;
-                lastExceptionMessage = "Downloaded distribution file " + localZipFile + " is no valid zip file.";
+                lastException = new Exception("Downloaded distribution file " + localZipFile + " is no valid zip file.");
             } catch (IOException e) {
                 failed = true;
-                lastExceptionMessage = "Network or I/O error: " + e.getMessage();
+                lastException = e;
             }
 
             if (failed) {
                 if (retries-- <= 0) {
-                    throw new RuntimeException(lastExceptionMessage);
+                    throw new RuntimeException(lastException);
                 }
 
                 logger.log(String.format(
                     "Attempt failed. Retrying in %d ms... Reason: %s",
                     retryTimeoutMs,
-                    lastExceptionMessage));
+                    lastException == null ? "" : lastException.getMessage()));
 
                 waitFor(retryTimeoutMs);
             }
