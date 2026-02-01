@@ -509,6 +509,8 @@ public abstract class Wrapper extends DefaultTask {
      * If a download fails, the wrapper will attempt to download it again up to the specified number of times.
      *
      * @return The number of retries property.
+     * 
+     * @since 9.5.0
      */
     @Input
     @Incubating
@@ -524,6 +526,8 @@ public abstract class Wrapper extends DefaultTask {
      * After a failed download attempt, the wrapper will wait for this amount of time before attempting the next retry.
      *
      * @return The retry timeout property in milliseconds.
+     * 
+     * @since 9.5.0
      */
     @Input
     @Incubating

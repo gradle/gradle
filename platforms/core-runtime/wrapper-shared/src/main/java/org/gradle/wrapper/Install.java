@@ -132,7 +132,7 @@ public class Install {
                 unzipLocal(localZipFile, distDir);
                 failed = false;
             } catch (ZipException e) {
-                if (failed == false && distributionSha256Sum == null) {
+                if (!failed && distributionSha256Sum == null) {
                     distributionSha256Sum = fetchDistributionSha256Sum(configuration, localZipFile);
                 }
                 failed = true;
