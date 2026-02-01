@@ -219,6 +219,35 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         failure.assertHasErrorOutput("Downloading from http://$HOST:${server.port}/$TEST_DISTRIBUTION_URL failed: timeout (5000ms)")
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/18124')
+    def "check retries and retry timeout"() {
+        given:
+        server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
+        server.expect(server.get("/$TEST_DISTRIBUTION_URL").broken())
+        prepareWrapper(getDefaultBaseUrl()).run()
+
+        and:
+        def retries=2
+        def retryTimeoutMs=2500
+
+        file('gradle/wrapper/gradle-wrapper.properties') << """
+            retries=$retries
+            retryTimeoutMs=$retryTimeoutMs
+        """
+
+        when:
+        wrapperExecuter.withStackTraceChecksDisabled()
+        def failure = wrapperExecuter.runWithFailure()
+
+        then:
+        failure.assertHasErrorOutput("Server returned HTTP response code: 500 for URL")
+        def resultAttempts = failure.output.readLines().findAll{ it.contains(
+            "Attempt failed. Retrying in ${retryTimeoutMs} ms... Reason: Server returned HTTP response code: 500") }.size()
+        assert resultAttempts == retries
+    }
+
     def "downloads wrapper via proxy"() {
         given:
         proxyServer.start()
