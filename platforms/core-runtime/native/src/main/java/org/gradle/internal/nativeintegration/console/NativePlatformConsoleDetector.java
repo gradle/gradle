@@ -18,12 +18,15 @@ package org.gradle.internal.nativeintegration.console;
 
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.terminal.Terminals;
+import org.fusesource.jansi.internal.Kernel32;
 import org.gradle.internal.os.OperatingSystem;
 
 import static net.rubygrapefruit.platform.terminal.Terminals.Output.Stderr;
 import static net.rubygrapefruit.platform.terminal.Terminals.Output.Stdout;
 
 public class NativePlatformConsoleDetector implements ConsoleDetector {
+    private static final int WINDOWS_UTF8_CODEPAGE_ID = 65001;
+
     private final Terminals terminals;
 
     public NativePlatformConsoleDetector(Terminals terminals) {
@@ -35,18 +38,20 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
         // Dumb terminal doesn't support ANSI control codes.
         // TODO - remove this when we use Terminal rather than JAnsi to render to console
         String term = System.getenv("TERM");
-        if ((term != null && term.equals("dumb")) || (OperatingSystem.current().isUnix() && term == null)) {
+        OperatingSystem operatingSystem = OperatingSystem.current();
+        if ("dumb".equals(term) || (operatingSystem.isUnix() && term == null)) {
             return null;
         }
 
         boolean isStdoutATerminal = terminals.isTerminal(Stdout);
         boolean isStderrATerminal = terminals.isTerminal(Stderr);
+        boolean disableUnicodeSupport = !isWindowsWithUnicodeCodePage();
 
         try {
             if (isStdoutATerminal) {
-                return new NativePlatformConsoleMetaData(isStdoutATerminal, isStderrATerminal, terminals.getTerminal(Stdout));
+                return new NativePlatformConsoleMetaData(isStdoutATerminal, isStderrATerminal, terminals.getTerminal(Stdout), disableUnicodeSupport);
             } else if (isStderrATerminal) {
-                return new NativePlatformConsoleMetaData(isStdoutATerminal, isStderrATerminal, terminals.getTerminal(Stderr));
+                return new NativePlatformConsoleMetaData(isStdoutATerminal, isStderrATerminal, terminals.getTerminal(Stderr), disableUnicodeSupport);
             } else {
                 return null;
             }
@@ -55,6 +60,14 @@ public class NativePlatformConsoleDetector implements ConsoleDetector {
             // this can happen if a terminal is in use that does not have its terminfo installed
             return null;
         }
+    }
+
+    static boolean isWindowsWithUnicodeCodePage() {
+        if (!OperatingSystem.current().isWindows()) {
+            return false;
+        }
+        //see https://learn.microsoft.com/en-us/windows/win32/intl/code-page-identifiers (e.g. code page 65001 is UTF-8)
+        return Kernel32.GetConsoleOutputCP() == WINDOWS_UTF8_CODEPAGE_ID;
     }
 
     @Override

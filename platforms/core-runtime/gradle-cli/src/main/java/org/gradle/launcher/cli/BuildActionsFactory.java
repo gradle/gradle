@@ -22,6 +22,8 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
@@ -69,6 +71,9 @@ import java.util.Properties;
 import java.util.UUID;
 
 class BuildActionsFactory implements CommandLineActionCreator {
+    private static final Logger LOGGER = Logging.getLogger(BuildActionsFactory.class);
+    private static final String CAN_USE_CURRENT_PROCESS_MESSAGE = "The current JVM process isn't compatible with build requirement. {}";
+
     private final ServiceRegistry loggingServices;
     private final FileCollectionFactory fileCollectionFactory;
     private final ServiceRegistry basicServices;
@@ -146,10 +151,15 @@ class BuildActionsFactory implements CommandLineActionCreator {
         DaemonContext contextForCurrentProcess = buildDaemonContextForCurrentProcess(requestContext, currentProcess);
 
         DaemonCompatibilitySpec comparison = new DaemonCompatibilitySpec(requestContext);
-        if (!currentProcess.isLowMemoryProcess()) {
-            return comparison.isSatisfiedBy(contextForCurrentProcess);
+        if (currentProcess.isLowMemoryProcess()) {
+            LOGGER.info(CAN_USE_CURRENT_PROCESS_MESSAGE, "The maximum heap size is insufficient.\n");
+            return false;
         }
-        return false;
+        String whyUnsatisfied = comparison.whyUnsatisfied(contextForCurrentProcess);
+        if (whyUnsatisfied != null) {
+            LOGGER.info(CAN_USE_CURRENT_PROCESS_MESSAGE, whyUnsatisfied);
+        }
+        return whyUnsatisfied == null;
     }
 
     @VisibleForTesting

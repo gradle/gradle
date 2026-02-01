@@ -59,7 +59,7 @@ class TypesafeProjectAccessorsComponent(targetScope: ClassLoaderScope) : ObjectC
     val projectAccessorsExtension: CollectedPropertyInformation? = projectAccessorsClass?.let {
         CollectedPropertyInformation(
             "projects",
-            SupportedTypeProjection.SupportedType(projectAccessorsClass, emptyList()),
+            SupportedTypeProjection.SupportedType(projectAccessorsClass, isMarkedNullable = false, emptyList()),
             returnType = DataTypeRefInternal.DefaultName(DefaultFqName.parse(projectAccessorsClass.qualifiedName!!)),
             propertyMode = DefaultDataProperty.DefaultPropertyMode.DefaultReadOnly,
             hasDefaultValue = true,

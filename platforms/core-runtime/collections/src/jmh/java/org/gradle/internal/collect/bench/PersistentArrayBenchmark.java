@@ -120,6 +120,11 @@ public class PersistentArrayBenchmark {
     }
 
     @Benchmark
+    public void randomUpdate(Blackhole blackhole) {
+        blackhole.consume(protocol.set(array, random.nextInt(size), 42));
+    }
+
+    @Benchmark
     public void iterator(Blackhole blackhole) {
         for (Object value : protocol.iterable(array)) {
             blackhole.consume(value);
@@ -142,7 +147,7 @@ public class PersistentArrayBenchmark {
 
         Object newInstance();
 
-        Object append(Object array, Object key);
+        Object append(Object array, Object val);
 
         Object get(Object array, int index);
 
@@ -150,6 +155,8 @@ public class PersistentArrayBenchmark {
         default Iterable<Object> iterable(Object array) {
             return (Iterable<Object>) array;
         }
+
+        Object set(Object array, int index, Object val);
     }
 
     @SuppressWarnings("unchecked")
@@ -161,13 +168,18 @@ public class PersistentArrayBenchmark {
         }
 
         @Override
-        public Object append(Object array, Object key) {
-            return ((PersistentArray<Object>) array).plus(key);
+        public Object append(Object array, Object val) {
+            return ((PersistentArray<Object>) array).plus(val);
         }
 
         @Override
         public Object get(Object array, int index) {
             return ((PersistentArray<Object>) array).get(index);
+        }
+
+        @Override
+        public Object set(Object array, int index, Object val) {
+            return ((PersistentArray<Object>) array).set(index, val);
         }
     }
 
@@ -180,12 +192,17 @@ public class PersistentArrayBenchmark {
         }
 
         @Override
-        public Object append(Object array, Object key) {
-            return ((PersistentList<Object>) array).plus(key);
+        public Object append(Object array, Object val) {
+            return ((PersistentList<Object>) array).plus(val);
         }
 
         @Override
         public Object get(Object array, int index) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Object set(Object array, int index, Object val) {
             throw new UnsupportedOperationException();
         }
     }
@@ -199,17 +216,27 @@ public class PersistentArrayBenchmark {
         }
 
         @Override
-        public Object append(Object array, Object key) {
+        public Object append(Object array, Object val) {
             ImmutableList<Object> typed = (ImmutableList<Object>) array;
             return ImmutableList.builderWithExpectedSize(typed.size() + 1)
                 .addAll(typed)
-                .add(key)
+                .add(val)
                 .build();
         }
 
         @Override
         public Object get(Object array, int index) {
             return ((ImmutableList<Object>) array).contains(index);
+        }
+
+        @Override
+        public Object set(Object array, int index, Object val) {
+            ImmutableList<Object> typed = (ImmutableList<Object>) array;
+            return ImmutableList.builderWithExpectedSize(typed.size())
+                .addAll(typed.subList(0, index))
+                .add(val)
+                .addAll(typed.subList(index + 1, typed.size()))
+                .build();
         }
     }
 
@@ -222,14 +249,21 @@ public class PersistentArrayBenchmark {
         }
 
         @Override
-        public Object append(Object array, Object key) {
-            ((ArrayList<Object>) array).add(key);
+        public Object append(Object array, Object val) {
+            ((ArrayList<Object>) array).add(val);
             return array;
         }
 
         @Override
         public Object get(Object array, int index) {
             return ((ArrayList<Object>) array).get(index);
+        }
+
+        @Override
+        public Object set(Object array, int index, Object val) {
+            ArrayList<Object> result = new ArrayList<>((ArrayList<Object>) array);
+            result.set(index, val);
+            return result;
         }
     }
 
@@ -242,14 +276,20 @@ public class PersistentArrayBenchmark {
         }
 
         @Override
-        public Object append(Object array, Object key) {
-            ((CopyOnWriteArrayList<Object>) array).add(key);
+        public Object append(Object array, Object val) {
+            ((CopyOnWriteArrayList<Object>) array).add(val);
             return array;
         }
 
         @Override
         public Object get(Object array, int index) {
             return ((CopyOnWriteArrayList<Object>) array).get(index);
+        }
+
+        @Override
+        public Object set(Object array, int index, Object val) {
+            ((CopyOnWriteArrayList<Object>) array).set(index, val);
+            return array;
         }
     }
 
@@ -263,9 +303,9 @@ public class PersistentArrayBenchmark {
 //        }
 //
 //        @Override
-//        public Object append(Object array, Object key) {
+//        public Object append(Object array, Object val) {
 //            io.usethesource.capsule.Map.Immutable<Integer, Object> map = (io.usethesource.capsule.Map.Immutable<Integer, Object>) array;
-//            return map.__put(map.size(), key);
+//            return map.__put(map.size(), val);
 //        }
 //
 //        @Override
@@ -283,13 +323,18 @@ public class PersistentArrayBenchmark {
 //        }
 //
 //        @Override
-//        public Object append(Object array, Object key) {
-//            return ((com.github.krukow.clj_ds.PersistentVector<Object>) array).plus(key);
+//        public Object append(Object array, Object val) {
+//            return ((com.github.krukow.clj_ds.PersistentVector<Object>) array).plus(val);
 //        }
 //
 //        @Override
 //        public Object get(Object array, int index) {
 //            return ((com.github.krukow.clj_ds.PersistentVector<Object>) array).get(index);
+//        }
+//
+//        @Override
+//        public Object set(Object array, int index, Object val) {
+//            return ((com.github.krukow.clj_ds.PersistentVector<Object>) array).plusN(index, val);
 //        }
 //    }
 
@@ -307,13 +352,18 @@ public class PersistentArrayBenchmark {
 //        }
 //
 //        @Override
-//        public Object append(Object array, Object key) {
-//            return ((scala.collection.immutable.Vector<Object>) array).$colon$plus(key);
+//        public Object append(Object array, Object val) {
+//            return ((scala.collection.immutable.Vector<Object>) array).$colon$plus(val);
 //        }
 //
 //        @Override
 //        public Object get(Object array, int index) {
 //            return ((scala.collection.immutable.Vector<Object>) array).apply(index);
+//        }
+//
+//        @Override
+//        public Object set(Object array, int index, Object val) {
+//            return ((scala.collection.immutable.StrictOptimizedSeqOps<?, ?, ?>) array).updated(index, val);
 //        }
 //    }
 

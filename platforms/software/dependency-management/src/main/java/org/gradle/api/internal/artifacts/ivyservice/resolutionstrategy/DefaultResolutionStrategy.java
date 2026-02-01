@@ -219,10 +219,10 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
-    public DefaultResolutionStrategy force(Object... moduleVersionSelectorNotations) {
+    public DefaultResolutionStrategy force(Object... notations) {
         mutationValidator.validateMutation(STRATEGY);
         parsedForcedModules = null;
-        Collections.addAll(forcedModules, moduleVersionSelectorNotations);
+        Collections.addAll(forcedModules, notations);
         return this;
     }
 

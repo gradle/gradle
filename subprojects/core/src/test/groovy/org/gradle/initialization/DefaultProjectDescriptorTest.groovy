@@ -18,6 +18,7 @@ package org.gradle.initialization
 import org.gradle.api.Project
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.problems.ProblemReporter
 import org.gradle.internal.scripts.DefaultScriptFileResolver
 import org.gradle.internal.scripts.ScriptFileResolver
 import org.gradle.test.fixtures.file.TestFile
@@ -29,8 +30,8 @@ import spock.lang.Specification
 
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.is
-import static org.junit.Assert.assertSame
 import static org.hamcrest.MatcherAssert.assertThat
+import static org.junit.Assert.assertSame
 import static org.junit.Assert.assertTrue
 
 class DefaultProjectDescriptorTest extends Specification {
@@ -98,9 +99,10 @@ class DefaultProjectDescriptorTest extends Specification {
         def descriptor = projectDescriptor()
 
         and:
+        def problemsReporter = Stub(ProblemReporter)
         def otherRegistry = new DefaultProjectDescriptorRegistry()
-        def parentDescriptor = new DefaultProjectDescriptor(null, "other", new File("other"), otherRegistry, fileResolver)
-        def otherDescriptor = new DefaultProjectDescriptor(parentDescriptor, testName.methodName, testDirectory, otherRegistry, fileResolver)
+        def parentDescriptor = new DefaultProjectDescriptor(null, "other", new File("other"), otherRegistry, fileResolver, problemsReporter)
+        def otherDescriptor = new DefaultProjectDescriptor(parentDescriptor, testName.methodName, testDirectory, otherRegistry, fileResolver, problemsReporter)
 
         expect:
         descriptor != otherDescriptor
@@ -124,8 +126,9 @@ class DefaultProjectDescriptorTest extends Specification {
     }
 
     private ProjectDescriptor projectDescriptor(ScriptFileResolver scriptFileResolver = null, String expectedBuildFileName = Project.DEFAULT_BUILD_FILE) {
-        def parentDescriptor = new DefaultProjectDescriptor(null, "somename", new File("somefile"), descriptorRegistry, fileResolver, scriptFileResolver)
-        def descriptor = new DefaultProjectDescriptor(parentDescriptor, testName.methodName, testDirectory, descriptorRegistry, fileResolver, scriptFileResolver)
+        def problemsReporter = Stub(ProblemReporter)
+        def parentDescriptor = new DefaultProjectDescriptor(null, "somename", new File("somefile"), descriptorRegistry, fileResolver, scriptFileResolver, problemsReporter)
+        def descriptor = new DefaultProjectDescriptor(parentDescriptor, testName.methodName, testDirectory, descriptorRegistry, fileResolver, scriptFileResolver, problemsReporter)
         assertSame(parentDescriptor, descriptor.parent)
         assertThat(parentDescriptor.children.size(), is(1))
         assertTrue(parentDescriptor.children.contains(descriptor))

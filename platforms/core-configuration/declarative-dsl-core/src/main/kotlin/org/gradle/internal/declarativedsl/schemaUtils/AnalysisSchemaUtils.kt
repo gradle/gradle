@@ -28,6 +28,7 @@ import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.TypeArgumentInternal
 import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.dom.mutation.TypedMember
+import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty1
@@ -146,18 +147,24 @@ fun AnalysisSchema.findFunctionsFor(functionReference: KFunction<*>): List<Typed
 
 
 private
-fun AnalysisSchema.findTypeFor(kType: KType): DataType.ClassDataType? {
-    val classifier = kType.classifier
-    return if (classifier is KClass<*>) {
-        if (classifier.typeParameters.isEmpty()) {
+fun AnalysisSchema.findTypeFor(kType: KType): DataType? {
+    return when (val classifier = kType.classifier) {
+        String::class -> DataTypeInternal.DefaultStringDataType
+        Int::class -> DataTypeInternal.DefaultIntDataType
+        Long::class -> DataTypeInternal.DefaultLongDataType
+        Boolean::class -> DataTypeInternal.DefaultBooleanDataType
+        Unit::class -> DataTypeInternal.DefaultUnitType
+        is KClass<*> -> if (classifier.typeParameters.isEmpty()) {
             findTypeFor(classifier.java)
         } else {
             if (kType.arguments.all { it == KTypeProjection.STAR || it.variance == KVariance.INVARIANT && it.type != null }) {
                 genericInstantiationsByFqName[DefaultFqName.parse(classifier.qualifiedName ?: return null)]
-                    ?.get(kType.arguments.map { typeArgument(it)?: return null })
+                    ?.get(kType.arguments.map { typeArgument(it) ?: return null })
             } else null
         }
-    } else null
+
+        else -> null
+    }
 }
 
 private fun AnalysisSchema.typeArgument(typeProjection: KTypeProjection): TypeArgument? {

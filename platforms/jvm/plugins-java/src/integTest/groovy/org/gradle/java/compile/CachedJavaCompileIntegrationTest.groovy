@@ -19,6 +19,7 @@ package org.gradle.java.compile
 import org.gradle.api.tasks.compile.AbstractCachedCompileIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationTest implements IncrementalCompileMultiProjectTestFixture {
     String compilationTask = ':compileJava'
@@ -85,5 +86,29 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
 
         then:
         outputContains "${appCompileTask} FROM-CACHE"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/36387")
+    def 'compilation can be cached when non-BMP characters are present in filename'() {
+        when:
+        file("src/main/java/Hello𓊖.java") << """
+            public class Hello𓊖 {
+                public static void main(String... args) {
+                    System.out.println("Hello𓊖!");
+                }
+            }
+        """.stripIndent()
+        withBuildCache().run compilationTask
+
+        then:
+        compileIsNotCached()
+        file("build/classes/java/main/Hello𓊖.class").exists()
+
+        when:
+        withBuildCache().succeeds 'clean', compilationTask
+
+        then:
+        compileIsCached()
+        file("build/classes/java/main/Hello𓊖.class").exists()
     }
 }

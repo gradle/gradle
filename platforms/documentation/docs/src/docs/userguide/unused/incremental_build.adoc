@@ -158,7 +158,7 @@ Now that you have seen some of the input and output annotations in practice, let
 
 | `@link:{javadocPath}/org/gradle/api/tasks/InputFiles.html[InputFiles]`
 | `Iterable&lt;File&gt;`*
-| An iterable of input files and directories
+| An iterable of input files and directories. The order of the files is not considered for up-to-date checks.
 
 | `@link:{javadocPath}/org/gradle/api/tasks/Classpath.html[Classpath]`
 | `Iterable&lt;File&gt;`*
