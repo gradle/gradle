@@ -151,7 +151,6 @@ public class FooTest {
     }
 
     def "Gradle emits help message if JUnit6 is used with Java below 17"() {
-        def jdk = AvailableJavaHomes.getJdk8()
         buildFile"""
             plugins {
                 id 'java-library'
@@ -186,7 +185,7 @@ public class FooTest {
 }
         """
         when:
-        withInstallations(jdk)
+        withInstallations(AvailableJavaHomes.getJdk8(), AvailableJavaHomes.getJdk17())
         fails("test")
         then:
         // TODO: This captures existing behavior, but not desired behavior
