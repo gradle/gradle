@@ -91,8 +91,11 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
 ) {
 
     fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath {
-        val classLoaderScope = classLoaderScopeOf(scriptTarget) ?: return AccessorsClassPath.empty
-        val configuredProjectSchemaOf = configuredProjectSchemaOf(scriptTarget, classLoaderScope) ?: return AccessorsClassPath.empty
+        val classLoaderScope = classLoaderScopeOf(scriptTarget)
+            ?: return AccessorsClassPath.empty
+        val configuredProjectSchemaOf = configuredProjectSchemaOf(scriptTarget, classLoaderScope)
+            ?: return AccessorsClassPath.empty
+
         val work = GenerateProjectAccessors(
             scriptTarget,
             configuredProjectSchemaOf,
