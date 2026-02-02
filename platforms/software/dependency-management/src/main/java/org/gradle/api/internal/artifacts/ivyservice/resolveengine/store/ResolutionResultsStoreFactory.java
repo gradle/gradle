@@ -94,11 +94,11 @@ public class ResolutionResultsStoreFactory implements Closeable {
     public StoreSet createStoreSet() {
         return new StoreSet() {
             final int storeSetId = storeSetBaseId.getAndIncrement();
-            int binaryStoreId;
+            final AtomicInteger binaryStoreId = new AtomicInteger(0);
             @Override
             public DefaultBinaryStore nextBinaryStore() {
                 //one binary store per id+threadId
-                String storeKey = Thread.currentThread().getId() + "-" + binaryStoreId++;
+                String storeKey = Thread.currentThread().getId() + "-" + binaryStoreId.getAndIncrement();
                 return createBinaryStore(storeKey);
             }
 
