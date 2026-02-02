@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.evaluationSchema
 
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.provider.Provider
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultFunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
@@ -34,7 +35,8 @@ import kotlin.reflect.full.isSubclassOf
  * Besides, no custom Gradle APIs are considered as schema contributors.
  */
 class MinimalSchemaBuildingComponent : AnalysisSchemaComponent {
-    override fun propertyExtractors(): List<PropertyExtractor> = listOf(DefaultPropertyExtractor())
+    override fun propertyExtractors(): List<PropertyExtractor> =
+        listOf(DefaultPropertyExtractor(propertyTypePredicate = ::isValidBasicPropertyType))
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
         DefaultFunctionExtractor(configureLambdas = gradleConfigureLambdas),
         GetterBasedConfiguringFunctionExtractor(::isValidNestedGradleModelType)
@@ -48,5 +50,11 @@ private fun isValidNestedGradleModelType(type: SupportedTypeProjection.Supported
              * For NDOCs, we generate the configuring functions with synthetic types in [org.gradle.internal.declarativedsl.ndoc.ContainersSchemaComponent]
              * TODO replace this check with a generic schema member inclusion tracking mechanism
              */
-            !it.isSubclassOf(NamedDomainObjectContainer::class)
+            !it.isSubclassOf(NamedDomainObjectContainer::class) &&
+            !it.isSubclassOf(DependencyCollector::class)
     } == true
+
+private fun isValidBasicPropertyType(type: SupportedTypeProjection.SupportedType): Boolean =
+    (type.classifier as? KClass<*>)?.let {
+        !it.isSubclassOf(DependencyCollector::class)
+    } ?: true

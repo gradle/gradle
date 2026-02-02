@@ -66,13 +66,13 @@ operator fun PropertyExtractor.plus(other: PropertyExtractor): CompositeProperty
     include(other)
 })
 
-class DefaultPropertyExtractor : PropertyExtractor {
+class DefaultPropertyExtractor(val propertyTypePredicate: (SupportedTypeProjection.SupportedType) -> Boolean = { true }) : PropertyExtractor {
     override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<PropertyExtractionResult> =
         propertiesFromAccessorsOf(host, kClass, propertyNamePredicate) + memberPropertiesOf(host, kClass, propertyNamePredicate)
 
     private
     fun propertiesFromAccessorsOf(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<PropertyExtractionResult> {
-        val functions = host.classMembers(kClass).declarativeMembers.filter { it.kind == MemberKind.FUNCTION }
+        val functions = host.classMembers(kClass).declarativeMembers.filter { it.kind == MemberKind.FUNCTION && propertyTypePredicate(it.returnType) }
         val functionsByName = functions.groupBy { it.name }
 
         val getters = functionsByName
@@ -124,7 +124,7 @@ class DefaultPropertyExtractor : PropertyExtractor {
     private
     fun memberPropertiesOf(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<PropertyExtractionResult> =
         host.classMembers(kClass).declarativeMembers.filter { it.kind.isProperty }.filter { property ->
-            propertyNamePredicate(property.name) && property.returnType.classifier.isValidPropertyType
+            propertyNamePredicate(property.name) && propertyTypePredicate(property.returnType) && property.returnType.classifier.isValidPropertyType
         }.map { property ->
             host.inContextOfModelMember(property.kCallable) { kPropertyInformation(host, property) }
         }
