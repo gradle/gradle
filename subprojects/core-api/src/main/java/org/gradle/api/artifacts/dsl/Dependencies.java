@@ -77,8 +77,11 @@ public interface Dependencies {
      *
      * @implSpec Do not implement this method. Gradle generates the implementation automatically.
      * @since 8.0
+     *
+     * @deprecated This method is deprecated and will be removed in Gradle 10.
      */
     @Inject
+    @Deprecated
     @HiddenInDefinition
     Project getProject();
 
@@ -93,7 +96,7 @@ public interface Dependencies {
      * @see org.gradle.api.Project#project(String)
      */
     default ProjectDependency project(String projectPath) {
-        return getDependencyFactory().create(getProject().project(projectPath));
+        return getDependencyFactory().createProjectDependency(projectPath);
     }
 
     /**
@@ -103,7 +106,7 @@ public interface Dependencies {
      */
     @HiddenInDefinition
     default ProjectDependency project() {
-        return getDependencyFactory().create(getProject());
+        return getDependencyFactory().createProjectDependency();
     }
 
     /**

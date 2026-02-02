@@ -66,6 +66,7 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
     }
     def objectFactory = Mock(ObjectFactory)
     def objectFactoryFactory = Mock(ObjectFactoryFactory)
+    def featureObjectFactory = Mock(ObjectFactory)
     def taskContainer = Mock(TaskContainer)
     def projectLayout = Mock(ProjectLayout)
     def configurationContainer = Mock(ConfigurationContainer)
@@ -93,7 +94,8 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         _ * plugins.getPlugin(plugin.class) >> plugin
         1 * pluginManager.apply(plugin.class)
         1 * modelDefaultsApplicator.applyDefaultsTo(target, _, _, plugin, boundProjectTypeImplementation)
-        1 * objectFactory.newInstance(Foo) >> foo
+        1 * objectFactoryFactory.createObjectFactory(_) >> featureObjectFactory
+        1 * featureObjectFactory.newInstance(Foo) >> foo
 
         and:
         returned == foo
@@ -121,7 +123,8 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         _ * plugins.getPlugin(plugin.class) >> plugin
         1 * pluginManager.apply(plugin.class)
         1 * modelDefaultsApplicator.applyDefaultsTo(project, _, _, plugin, boundProjectTypeImplementation)
-        1 * objectFactory.newInstance(Foo) >> foo
+        1 * objectFactoryFactory.createObjectFactory(_) >> featureObjectFactory
+        1 * featureObjectFactory.newInstance(Foo) >> foo
 
         and:
         returned == foo

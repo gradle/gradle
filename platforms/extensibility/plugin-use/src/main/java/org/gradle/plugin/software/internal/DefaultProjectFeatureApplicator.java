@@ -45,6 +45,7 @@ import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
@@ -141,10 +142,6 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
     }
 
     private <T extends Definition<V>, V extends BuildModel> T instantiateBoundFeatureObjectsAndApply(Object parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
-        T definition = instantiateDefinitionObject(projectFeature);
-        V buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(projectObjectFactory, projectFeature);
-        ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, projectFeatureDeclarations, projectObjectFactory);
-
         // Context-specific services for this feature binding
         TaskRegistrar taskRegistrar = new DefaultTaskRegistrar(taskContainer);
         ProjectFeatureLayout projectFeatureLayout = new DefaultProjectFeatureLayout(projectLayout);
@@ -156,6 +153,10 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
             : new UnsafeServicesForApplyAction(allServices, taskRegistrar, projectFeatureLayout, configurationRegistrar, projectFeature.getFeatureName(), problemReporter);
         ObjectFactory featureObjectFactory = objectFactoryFactory.createObjectFactory(objectFactoryServiceLookup);
 
+        T definition = instantiateDefinitionObject(featureObjectFactory, projectFeature);
+        V buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(featureObjectFactory, projectFeature);
+        ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, projectFeatureDeclarations, featureObjectFactory);
+
         ProjectFeatureApplicationContext applyActionContext =
             projectObjectFactory.newInstance(DefaultProjectFeatureApplicationContextInternal.class, featureObjectFactory);
 
@@ -164,8 +165,8 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         return definition;
     }
 
-    private <T extends Definition<V>, V extends BuildModel> T instantiateDefinitionObject(ProjectFeatureImplementation<T, V> projectFeature) {
-        return projectObjectFactory.newInstance(projectFeature.getDefinitionImplementationType());
+    private <T extends Definition<V>, V extends BuildModel> T instantiateDefinitionObject(ObjectFactory featureObjectFactory, ProjectFeatureImplementation<T, V> projectFeature) {
+        return featureObjectFactory.newInstance(projectFeature.getDefinitionImplementationType());
     }
 
     /**
@@ -258,6 +259,9 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
                 }
                 if (serviceClass.isAssignableFrom(TaskDependencyFactory.class)) {
                     return allServices.find(TaskDependencyFactory.class);
+                }
+                if (serviceClass.isAssignableFrom(InstantiatorFactory.class)) {
+                    return allServices.find(InstantiatorFactory.class);
                 }
                 // None of the above
                 return null;
