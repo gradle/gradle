@@ -607,6 +607,23 @@ samples {
                 from(templates.named("problemsApiUsage"))
             }
         }
+
+        // Configure antMigration snippets to copy files from common directories
+        named("snippet-antMigration-fileDeps") {
+            common {
+                from(fileTree(sampleDirectory.dir("common")))
+            }
+        }
+        named("snippet-antMigration-importBuild") {
+            common {
+                from(fileTree(sampleDirectory.dir("common")))
+            }
+        }
+        named("snippet-antMigration-multiProject") {
+            common {
+                from(fileTree(sampleDirectory.dir("common")))
+            }
+        }
     }
 }
 
