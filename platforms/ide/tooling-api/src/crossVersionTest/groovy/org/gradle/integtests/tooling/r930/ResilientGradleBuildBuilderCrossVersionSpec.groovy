@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.r930
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildAction
@@ -30,7 +29,7 @@ import java.util.function.Consumer
 
 @ToolingApiVersion('>=9.3.0')
 @TargetGradleVersion('>=9.3.0')
-class ResilientGradleBuildBuilderCrossVersionSpec extends ToolingApiSpecification {
+class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelatedToolingApiSpecification {
     static final String RESILIENT_MODEL_TRUE = "-Dorg.gradle.internal.resilient-model-building=true"
     static final String BROKEN_SETTINGS_CONTENT = "broken settings file content!!!"
     static final String BROKEN_BUILD_CONTENT = "broken build file content!!!"
