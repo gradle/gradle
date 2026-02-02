@@ -89,9 +89,9 @@ Environment variables intended for the invoked process should be set before the 
 - `& CALL` is used after invoking the application to remove the "Terminate batch job (Y/N)?" prompt.
 - `exit /b` has been changed to `"%COMSPEC%" /c exit`. This allows the use of `&&` and `||` when invoking the script from another batch file.
 
-==== Upgrade to Kotlin 2.3.10
+==== Upgrade to Kotlin 2.3.20-RC2
 
-The embedded Kotlin has been upgraded from 2.3.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.10[Kotlin 2.3.10].
+The embedded Kotlin has been upgraded from 2.3.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.20-RC2[Kotlin 2.3.20-RC2].
 
 === Deprecations
 
