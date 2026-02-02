@@ -18,8 +18,8 @@ package org.gradle.integtests.tooling.r940
 
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
@@ -31,7 +31,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 
 import java.util.regex.Pattern
 
-class ResilientGradleBuildBuilderCrossVersionSpec extends ToolingApiSpecification {
+class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelatedToolingApiSpecification {
 
     TestFile initScriptFile
     KotlinModelCollector modelCollector
