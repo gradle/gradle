@@ -77,6 +77,10 @@ Existing lockfiles written with Windows line endings can still be read, but new 
 
 During the next lock update using Gradle 9.5.0 or above, if the lockfiles were previously generated with Windows line endings, all line endings will be changed, regardless of whether dependencies have changed.
 
+==== Upgrade to Kotlin 2.3.10-RC2
+
+The embedded Kotlin has been upgraded from 2.3.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.20-Beta2[Kotlin 2.3.10-RC2].
+
 [[changes_9.4.0]]
 == Upgrading from 9.3.1 and earlier
 
@@ -159,9 +163,9 @@ If a property is defined in multiple locations, Gradle now strictly honors the f
 
 For more details see the link:https://github.com/gradle/gradle/issues/36189[related issue].
 
-==== Upgrade to Kotlin 2.3.10-RC
+==== Upgrade to Kotlin 2.3.0
 
-The embedded Kotlin has been upgraded from 2.2.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.10-RC[Kotlin 2.3.10-RC].
+The embedded Kotlin has been upgraded from 2.2.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.0[Kotlin 2.3.0].
 
 ==== Upgrade to Zinc 1.12.0
 
