@@ -1,5 +1,6 @@
 package org.gradle;
 
+import java.io.StringReader;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.antlr.runtime.CommonTokenStream;
