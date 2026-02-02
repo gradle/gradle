@@ -77,9 +77,9 @@ Existing lockfiles written with Windows line endings can still be read, but new 
 
 During the next lock update using Gradle 9.5.0 or above, if the lockfiles were previously generated with Windows line endings, all line endings will be changed, regardless of whether dependencies have changed.
 
-==== Upgrade to Kotlin 2.3.10
+==== Upgrade to Kotlin 2.3.20-RC2
 
-The embedded Kotlin has been upgraded from 2.3.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.10[Kotlin 2.3.10].
+The embedded Kotlin has been upgraded from 2.3.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.20-RC2[Kotlin 2.3.20-RC2].
 
 [[changes_9.4.0]]
 == Upgrading from 9.3.1 and earlier
