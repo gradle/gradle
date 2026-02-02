@@ -36,6 +36,17 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.5.0]]
+== Upgrading from 9.4.0 and earlier
+
+=== Potential breaking changes
+
+==== Upgrade to Kotlin 2.3.10-RC2
+
+The embedded Kotlin has been upgraded from 2.3.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.20-Beta2[Kotlin 2.3.10-RC2].
+
+
+
 [[changes_9.4.0]]
 == Upgrading from 9.3.0 and earlier
 
@@ -99,9 +110,9 @@ From this version onwards, the priority of system properties follows the documen
 
 For more details see the link:https://github.com/gradle/gradle/issues/36189[related issue].
 
-==== Upgrade to Kotlin 2.3.10-RC
+==== Upgrade to Kotlin 2.3.0
 
-The embedded Kotlin has been upgraded from 2.2.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.10-RC[Kotlin 2.3.10-RC].
+The embedded Kotlin has been upgraded from 2.2.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.0[Kotlin 2.3.0].
 
 ==== Upgrade to Zinc 1.12.0
 
