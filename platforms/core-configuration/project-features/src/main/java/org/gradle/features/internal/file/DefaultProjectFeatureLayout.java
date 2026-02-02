@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file;
+package org.gradle.features.internal.file;
 
 import org.gradle.features.file.ProjectFeatureLayout;
 import org.gradle.api.file.Directory;

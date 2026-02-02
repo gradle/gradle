@@ -15,4 +15,4 @@
  */
 
 @org.jspecify.annotations.NullMarked
-package org.gradle.api.internal.registration;
+package org.gradle.features.internal.registration;

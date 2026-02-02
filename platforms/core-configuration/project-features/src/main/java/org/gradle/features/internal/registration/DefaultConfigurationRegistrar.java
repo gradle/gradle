@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.registration;
+package org.gradle.features.internal.registration;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectProvider;
