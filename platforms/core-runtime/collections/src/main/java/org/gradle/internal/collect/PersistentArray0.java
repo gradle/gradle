@@ -59,6 +59,11 @@ final class PersistentArray0 implements PersistentArray<Object> {
     }
 
     @Override
+    public PersistentArray<Object> set(int index, Object value) {
+        throw indexOutOfBounds(index);
+    }
+
+    @Override
     public @Nullable Object getLast() {
         return null;
     }

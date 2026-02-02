@@ -1,5 +1,58 @@
 # some versions are in shared-versions.properties
+[versions]
+asciidoctor = "2.5.13"
+checkstyle = "10.25.0"
+develocity = "4.3.2"
+javaparser = "3.18.0"
+kotlin = "kotlin-stub" # will be replaced by platfrom
+
 [libraries]
+ant = { module = "org.apache.ant:ant", version = "1.10.15" } # Bump the version brought in transitively by gradle-guides-plugin
+asciidoctor = { module = "org.asciidoctor:asciidoctorj", version.ref = "asciidoctor" }
+asciidoctorApi = { module = "org.asciidoctor:asciidoctorj-api", version.ref = "asciidoctor" }
+asciidoctorJvm = { module = "org.asciidoctor:asciidoctor-gradle-jvm", version = "4.0.2" }
+codenarc = { module = "org.codenarc:CodeNarc", version = "3.6.0-groovy-4.0" }
+commonsIo = { module = "commons-io:commons-io", version = "2.14.0" }
+commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.20.0" }
+dependencyAnalysisPlugin = { module = "com.autonomousapps:dependency-analysis-gradle-plugin", version = "3.4.0" }
+detektPlugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version = "1.23.7" }
+develocityConventions = { module = "io.github.gradle.develocity-conventions-plugin:io.github.gradle.develocity-conventions-plugin.gradle.plugin", version = "0.12.1" }
+develocityPlugin = { module = "com.gradle.develocity:com.gradle.develocity.gradle.plugin", version.ref = "develocity" }
+docbook = { module = "net.sf.docbook:docbook-xsl", version = "1.75.2" }
+dokkaPlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version = "2.0.0" }
 errorProne = { module = "com.google.errorprone:error_prone_core", version.ref = "errorProne" }
+errorPronePlugin = { module = "net.ltgt.gradle:gradle-errorprone-plugin", version = "4.1.0" }
+flexmark = { module = "com.vladsch.flexmark:flexmark-all", version = "0.34.60" } # Higher versions tested are either incompatible (0.62.2) or bring additional unwanted dependencies (0.36.8)
+foojayConventions = { module = "org.gradle.toolchains.foojay-resolver-convention:org.gradle.toolchains.foojay-resolver-convention.gradle.plugin", version = "1.0.0" }
+gradleGuidesPlugin = { group = "org.gradle.guides", name = "gradle-guides-plugin", version = "0.24.0" }
+gson = { module = "com.google.code.gson:gson", version = "2.13.1" }
+guava = { module = "com.google.guava:guava", version = "33.4.6-jre" }
+ideaExtPlugin = { module = "gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext", version = "1.3" }
+jacksonBom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.16.1" } # CVE-2025-52999 on lower versions
+jakartaXml = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version = "4.0.2" }
+japiCmpPlugin = { module = "me.champeau.gradle:japicmp-gradle-plugin", version = "0.4.6" }
+javaAssist = { module = "org.javassist:javassist", version = "3.30.2-GA" }
+javaParserCore = { module = "com.github.javaparser:javaparser-core", version.ref = "javaparser" }
+javaParserSymbolSolver = { module = "com.github.javaparser:javaparser-symbol-solver-core", version.ref = "javaparser" }
+jaxb = { module = "com.sun.xml.bind:jaxb-impl", version = "4.0.5" }
+jhighlight = { module = "com.uwyn:jhighlight", version = "1.0" }
+jmhPlugin = { module = "me.champeau.jmh:jmh-gradle-plugin", version = "0.7.2" }
+jsoup = { module = "org.jsoup:jsoup", version = "1.15.3" }
+jspecify = { module = "org.jspecify:jspecify", version = "1.0.0" }
+kgp = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlinCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin" }
+kotlinMetadata = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm", version.ref = "kotlin" }
+kotlinSamWithReceiver = { group = "org.jetbrains.kotlin", name = "kotlin-sam-with-receiver", version.ref = "kotlin" }
 nullaway = { module = "com.uber.nullaway:nullaway", version = "0.12.10" }
-configurationCacheReport = { group = "org.gradle.buildtool.internal", name = "configuration-cache-report", version = "1.31" }
+nullawayPlugin = { module = "net.ltgt.gradle:gradle-nullaway-plugin", version = "2.2.0" }
+pdfbox = { module = "org.apache.pdfbox:pdfbox", version = "2.0.24" } # Flexmark 0.34.60 brings in a vulnerable version of pdfbox
+publishPlugin = { module = "com.gradle.publish:plugin-publish-plugin", version = "1.3.1" }
+qdox = { module = "com.thoughtworks.qdox:qdox", version = "2.0.3" }
+testRetryPlugin = { module = "org.gradle:test-retry-gradle-plugin", version = "1.6.2" }
+woodstox = { module = "com.fasterxml.woodstox:woodstox-core", version = "6.4.0" } # CVE-2022-40152 on lower versions
+xalan = { module = "xalan:xalan", version = "2.7.1" }
+xerces = { module = "xerces:xercesImpl", version = "2.11.0" }
+xslthl = { module = "net.sf.xslthl:xslthl", version = "2.0.1" }
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version = "9.1.0" }

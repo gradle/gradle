@@ -45,7 +45,7 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.jatl)
 
-    implementationResources("jquery:jquery.min:3.7.1@js")
+    implementationResources(variantOf(libs.jquery) { artifactType("js") })
 
     testFixturesApi(testFixtures(projects.platformNative))
     testFixturesApi(testFixtures(projects.logging))

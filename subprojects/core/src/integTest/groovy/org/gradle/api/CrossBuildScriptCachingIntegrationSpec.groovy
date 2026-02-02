@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.internal.scripts.CompileScriptBuildOperationType
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
@@ -163,6 +164,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         getCompileBuildFileOperationsCount() == 6 // classpath + body for settings and for each build.gradle file
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/5065")
     def "reuses scripts when build file changes in a way that does not affect behaviour"() {
         given:
         root {

@@ -10,26 +10,26 @@ dependencies {
     api("gradlebuild:build-environment")
     api(platform(projects.buildPlatform))
 
-    implementation("com.google.guava:guava") {
+    implementation(buildLibs.guava) {
         because("Used by class analysis")
     }
-    implementation("org.ow2.asm:asm") {
+    implementation(libs.asm) {
         because("Used by class analysis")
     }
-    implementation("org.ow2.asm:asm-commons") {
+    implementation(libs.asmCommons) {
         because("Used by class analysis")
     }
 
-    compileOnly(kotlin("compiler-embeddable") as String) {
+    compileOnly(buildLibs.kotlinCompilerEmbeddable) {
         because("Required by KotlinSourceParser")
     }
-    implementation(kotlin("gradle-plugin") as String) {
+    implementation(buildLibs.kgp) {
         because("For manually defined KotlinSourceSet accessor - sourceSets.main.get().kotlin")
     }
 
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+    testImplementation(testLibs.junit5JupiterEngine)
 
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly(testLibs.junitPlatform)
 }
 
 tasks.test {

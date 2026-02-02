@@ -7,7 +7,7 @@ plugins {
     id("gradlebuild.kotlin-dsl-dependencies-embedded")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
     id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
-    id("com.gradleup.shadow").version("9.1.0")
+    alias(buildLibs.plugins.shadow)
 }
 
 description = "Kotlin DSL Provider"

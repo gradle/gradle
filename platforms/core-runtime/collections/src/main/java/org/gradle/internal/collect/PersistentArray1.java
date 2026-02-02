@@ -61,6 +61,14 @@ final class PersistentArray1<T> implements PersistentArray<T> {
     }
 
     @Override
+    public PersistentArray<T> set(int index, T value) {
+        if (index != 0) {
+            throw indexOutOfBounds(index);
+        }
+        return new PersistentArray1<>(value);
+    }
+
+    @Override
     public T getLast() {
         return value;
     }

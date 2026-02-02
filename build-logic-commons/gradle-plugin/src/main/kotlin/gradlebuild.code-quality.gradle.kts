@@ -2,11 +2,9 @@ import gradlebuild.nullaway.NullawayAttributes
 import gradlebuild.nullaway.NullawayCompatibilityRule
 import gradlebuild.nullaway.NullawayState
 import gradlebuild.nullaway.NullawayStatusTask
-import groovy.lang.GroovySystem
 import net.ltgt.gradle.errorprone.CheckSeverity
 import net.ltgt.gradle.errorprone.errorprone
 import net.ltgt.gradle.nullaway.nullaway
-import org.gradle.util.internal.VersionNumber
 
 /*
  * Copyright 2022 the original author or authors.
@@ -173,9 +171,11 @@ val rules by configurations.creating {
     }
 }
 
-val groovyVersion = GroovySystem.getVersion()
-val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
-val codenarcVersion = if (isAtLeastGroovy4) "3.6.0-groovy-4.0" else "3.6.0"
+val buildLibs = if (project.name != "gradle-kotlin-dsl-accessors") {
+    project.versionCatalogs.named("buildLibs")
+} else {
+    null
+}
 
 dependencies {
     rules("gradlebuild:code-quality-rules") {
@@ -184,20 +184,18 @@ dependencies {
     codenarc("gradlebuild:code-quality-rules") {
         because("Provides the IntegrationTestFixturesRule implementation")
     }
-    codenarc("org.codenarc:CodeNarc:$codenarcVersion")
-    codenarc(embeddedKotlin("stdlib"))
-
-    components {
-        withModule<CodeNarcRule>("org.codenarc:CodeNarc") {
-            params(groovyVersion)
-        }
+    buildLibs?.let {
+        codenarc(buildLibs.findLibrary("codenarc").get())
+        codenarc(buildLibs.findLibrary("kotlinCompilerEmbeddable").get())
     }
 }
 
 fun configFile(fileName: String) = resources.text.fromFile(rules.asFileTree.filter { it.name == fileName })
 
 checkstyle {
-    toolVersion = "10.25.0"
+    buildLibs?.let {
+        toolVersion = buildLibs.findVersion("checkstyle").get().requiredVersion
+    }
     config = configFile("checkstyle.xml")
     val projectDirectory = layout.projectDirectory
     configDirectory = rules.elements.map {
@@ -229,25 +227,3 @@ tasks.withType<CodeNarc>().configureEach {
 
 val SourceSet.allGroovy: SourceDirectorySet
     get() = the<GroovySourceDirectorySet>()
-
-abstract class CodeNarcRule @Inject constructor(
-    private val groovyVersion: String
-) : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencies {
-                val isAtLeastGroovy4 = VersionNumber.parse(groovyVersion).major >= 4
-                val groovyGroup = if (isAtLeastGroovy4) "org.apache.groovy" else "org.codehaus.groovy"
-                removeAll { it.group == groovyGroup }
-                add("$groovyGroup:groovy") {
-                    version { prefer(groovyVersion) }
-                    because("We use the packaged groovy")
-                }
-                add("$groovyGroup:groovy-templates") {
-                    version { prefer(groovyVersion) }
-                    because("We use the packaged groovy")
-                }
-            }
-        }
-    }
-}

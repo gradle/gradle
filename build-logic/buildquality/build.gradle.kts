@@ -16,21 +16,21 @@ dependencies {
     implementation(projects.binaryCompatibility)
     implementation(projects.dependencyModules)
 
-    implementation("org.codenarc:CodeNarc") {
+    implementation(buildLibs.codenarc) {
         exclude(group = "org.apache.groovy")
         exclude(group = "org.codehaus.groovy")
     }
-    implementation("com.github.javaparser:javaparser-symbol-solver-core") {
+    implementation(buildLibs.javaParserSymbolSolver) {
         exclude(group = "com.google.guava")
     }
-    implementation(kotlin("gradle-plugin"))
-    compileOnly(kotlin("compiler-embeddable") as String) {
+    implementation(buildLibs.kgp)
+    compileOnly(buildLibs.kotlinCompilerEmbeddable) {
         because("Required by IncubatingApiReportTask")
     }
-    implementation("com.gradle:develocity-gradle-plugin") {
+    implementation(buildLibs.develocityPlugin) {
         because("Arch-test plugin configures the PTS extension")
     }
 
-    testImplementation("org.junit.jupiter:junit-jupiter-engine")
-    testImplementation("org.apache.commons:commons-lang3")
+    testImplementation(testLibs.junit5JupiterEngine)
+    testImplementation(buildLibs.commonsLang3)
 }
