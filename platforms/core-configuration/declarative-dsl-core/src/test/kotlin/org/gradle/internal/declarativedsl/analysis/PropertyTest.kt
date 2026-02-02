@@ -16,18 +16,21 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.assertIs
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
-import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultPropertyExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.ExtractionResult
+import org.gradle.internal.declarativedsl.schemaBuilder.LossySchemaBuildingOperation
+import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractionMetadata
+import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractionResult
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
-import org.gradle.internal.declarativedsl.schemaBuilder.asSupported
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelClass
+import org.gradle.internal.declarativedsl.schemaBuilder.orError
 import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
+import org.gradle.internal.declarativedsl.schemaUtils.typeFor
 import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -58,15 +61,16 @@ class PropertyTest {
     fun `if multiple property extractors have properties with the same name, first wins`() {
         val expectedName = "test"
         val schema = schemaFromTypes(
-            MyReceiver::class,
-            listOf(MyReceiver::class),
+            EmptyReceiver::class,
             propertyExtractor = testPropertyContributor(expectedName, typeOf<Int>()) + testPropertyContributor(expectedName, typeOf<String>())
         )
 
-        val property = (schema.dataClassTypesByFqName[DefaultFqName.parse(MyReceiver::class.qualifiedName!!)]!! as DataClass).properties.single()
+        val property = schema.typeFor<EmptyReceiver>().properties.single()
         assertEquals(expectedName, property.name)
         assertEquals(DataTypeInternal.DefaultIntDataType.ref, property.valueType)
     }
+
+    class EmptyReceiver
 
     @Suppress("unused")
     private
@@ -77,31 +81,43 @@ class PropertyTest {
 
     // don't make this private, will produce failures on Java 8 (due to https://youtrack.jetbrains.com/issue/KT-37660)
     val writeOnlyPropertyContributor = object : PropertyExtractor {
-        override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> {
+        override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<PropertyExtractionResult> {
             return if (kClass == MyReceiver::class) {
                 listOf(
-                    CollectedPropertyInformation(
+                    ExtractionResult.Extracted(
+                        DefaultDataProperty(
                         "z",
-                        typeOf<Int>().asSupported()!!,
                         DataTypeInternal.DefaultIntDataType.ref,
                         DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
                         hasDefaultValue = false,
-                        isHiddenInDefinition = false,
                         isDirectAccessOnly = false,
-                        claimedFunctions = emptyList()
+                        ),
+                        metadata = PropertyExtractionMetadata(emptyList(), null)
                     )
                 )
             } else emptyList()
         }
     }
 
+    @OptIn(LossySchemaBuildingOperation::class)
     private
     fun testPropertyContributor(name: String, type: KType) = object : PropertyExtractor {
-        override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
+        override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<PropertyExtractionResult> =
             host.inContextOfModelClass(kClass) {
                 val returnType = host.modelTypeRef(type)
-                listOf(CollectedPropertyInformation(name, type.asSupported()!!, returnType, DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite, false, false, false, emptyList()))
-                    .filter { propertyNamePredicate(it.name) }
+                if (!propertyNamePredicate(name))
+                    emptyList()
+                else listOf(
+                    ExtractionResult.Extracted(
+                        DefaultDataProperty(
+                            name,
+                            returnType.orError(),
+                            DefaultDataProperty.DefaultPropertyMode.DefaultReadWrite,
+                            false,
+                        ),
+                        metadata = PropertyExtractionMetadata(emptyList(), null)
+                    )
+                )
             }
     }
 

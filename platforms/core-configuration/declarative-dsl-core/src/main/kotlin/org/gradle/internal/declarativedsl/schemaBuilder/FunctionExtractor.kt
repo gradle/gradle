@@ -41,8 +41,6 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
-import kotlin.reflect.KType
-import kotlin.reflect.KTypeParameter
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.jvm.javaMethod
@@ -50,17 +48,48 @@ import kotlin.reflect.typeOf
 
 
 interface FunctionExtractor {
-    fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> = emptyList()
-    fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
+    interface MemberFunctionExtractionHandler {
+        fun onExtractedFunction(function: SchemaMemberFunction, claimedMembers: Iterable<SupportedCallable>)
+        fun onFailedFunctionExtraction(failure: SchemaResult.Failure, member: SupportedCallable)
+    }
+
+    fun memberFunctions(
+        host: SchemaBuildingHost,
+        kClass: KClass<*>,
+        preIndex: DataSchemaBuilder.PreIndex,
+    ): Iterable<FunctionExtractionResult> =
+        emptyList()
+
+    fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): SchemaResult<DataTopLevelFunction>? =
+        null
 }
 
+fun FunctionExtractor.MemberFunctionExtractionHandler.accept(from: SupportedCallable, functionResult: SchemaResult<SchemaMemberFunction>) {
+    when (functionResult) {
+        is SchemaResult.Failure -> onFailedFunctionExtraction(functionResult, from)
+        is SchemaResult.Result -> onExtractedFunction(functionResult.result, listOf(from))
+    }
+}
+
+typealias FunctionExtractionResult = ExtractionResult<SchemaMemberFunction, FunctionExtractionMetadata>
+
+data class FunctionExtractionMetadata(val fromMembers: List<SupportedCallable>)
 
 class CompositeFunctionExtractor(internal val extractors: Iterable<FunctionExtractor>) : FunctionExtractor {
-    override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
-        extractors.flatMapTo(mutableSetOf()) { it.memberFunctions(host, kClass, preIndex) }
+    override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<FunctionExtractionResult> =
+        extractors.flatMap { it.memberFunctions(host, kClass, preIndex) }
+            /**
+             * It is possible that two declarations produce the exact same resulting function, e.g.:
+             * * fun foo(action: Action<in Foo>)
+             * * fun foo(action: Foo.() -> Unit)
+             *
+             * For now, we merge the results into a single schema function and postpone the ambiguity resolution to runtime (where it is going to fail).
+             * TODO: investigate if we can simply import the ambiguous functions into the schema
+             */
+            .combineGroupsByResult { FunctionExtractionMetadata(it.flatMap { it.fromMembers }) }
 
-    override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? =
-        extractors.asSequence().mapNotNull { it.topLevelFunction(host, function, preIndex) }.firstOrNull()
+    override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): SchemaResult<DataTopLevelFunction>? =
+        extractors.firstNotNullOfOrNull { it.topLevelFunction(host, function, preIndex) }
 }
 
 
@@ -77,20 +106,12 @@ operator fun FunctionExtractor.plus(other: FunctionExtractor): CompositeFunction
 class DefaultFunctionExtractor(
     private val configureLambdas: ConfigureLambdaHandler,
 ) : FunctionExtractor {
-    override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> {
-        val functionsClaimedByProperties = preIndex.getClaimedFunctions(kClass)
+    override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): List<FunctionExtractionResult> =
+        host.classMembers(kClass).declarativeMembers
+            .filter { it.kind == MemberKind.FUNCTION && host.isUnusedMember(kClass, it) }
+            .map { ExtractionResult.of(memberFunction(host, kClass, it, preIndex, configureLambdas), FunctionExtractionMetadata(listOf(it))) }
 
-        val functions = host.classMembers(kClass).potentiallyDeclarativeMembers
-            .filter {
-                it.kind == MemberKind.FUNCTION
-                    // TODO replace with a generic schema member inclusion tracking mechanism
-                    && it.kCallable !in functionsClaimedByProperties
-            }
-
-        return functions.map { function -> memberFunction(host, kClass, function, preIndex, configureLambdas) }
-    }
-
-    override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction =
+    override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): SchemaResult<DataTopLevelFunction> =
         dataTopLevelFunction(host, function)
 
     private
@@ -100,18 +121,21 @@ class DefaultFunctionExtractor(
         function: SupportedCallable,
         preIndex: DataSchemaBuilder.PreIndex,
         configureLambdas: ConfigureLambdaHandler
-    ): SchemaMemberFunction = host.inContextOfModelMember(function.kCallable) {
+    ): SchemaResult<SchemaMemberFunction> = host.inContextOfModelMember(function.kCallable) {
         val thisTypeRef = host.withTag(SchemaBuildingTags.receiverType(inType)) {
-            host.containerTypeRef(inType)
+            @OptIn(LossySchemaBuildingOperation::class) // the receiver should be a valid type to get to this point
+            host.containerTypeRef(inType).orError()
         }
 
         val returnClassifier = function.returnType.classifier
 
         checkReturnType(host, function.returnType)
+            .orFailWith { return it }
 
         val fnParams = function.parameters
 
         val semanticsFromSignature = inferFunctionSemanticsFromSignature(host, function, inType, configureLambdas)
+            .orFailWith { return it }
 
         val params = fnParams
             .filterIndexed { index, _ ->
@@ -121,41 +145,50 @@ class DefaultFunctionExtractor(
                 isNotLastParameter || lastParamIsNotConfigureBlock
             }
             .map { fnParam -> dataParameter(host, function, fnParam, returnClassifier, semanticsFromSignature, preIndex) }
+            .getAllOrFailWith {
+                return it.first() // TODO: report all issues found in parameters as a "multi-failure"?
+            }
 
         val isDirectAccessOnly = function.kCallable.annotations.any { it is AccessFromCurrentReceiverOnly }
 
-        if (semanticsFromSignature is FunctionSemantics.Builder) {
-            DefaultDataBuilderFunction(
-                thisTypeRef,
-                function.name,
-                isDirectAccessOnly,
-                params.single(),
-            )
-        } else {
-            DefaultDataMemberFunction(
-                thisTypeRef,
-                function.name,
-                params,
-                isDirectAccessOnly,
-                semanticsFromSignature
-            )
-        }
+        schemaResult(
+            if (semanticsFromSignature is FunctionSemantics.Builder) {
+                DefaultDataBuilderFunction(
+                    thisTypeRef,
+                    function.name,
+                    isDirectAccessOnly,
+                    params.single(),
+                )
+            } else {
+                DefaultDataMemberFunction(
+                    thisTypeRef,
+                    function.name,
+                    params,
+                    isDirectAccessOnly,
+                    semanticsFromSignature
+                )
+            }
+        )
     }
 
     private
     fun dataTopLevelFunction(
         host: SchemaBuildingHost,
         function: KFunction<*>
-    ): DataTopLevelFunction = host.inContextOfModelMember(function) {
+    ): SchemaResult<DataTopLevelFunction> = host.inContextOfModelMember(function) {
         check(function.instanceParameter == null)
 
         val returnTypeClassifier = function.returnType
-        val semanticsFromSignature = FunctionSemanticsInternal.DefaultPure(function.returnTypeToRefOrError(host))
+        val semanticsFromSignature = FunctionSemanticsInternal.DefaultPure(
+            function.returnTypeRef(host)
+                .orFailWith { return it }
+        )
 
         val fnParams = function.parameters
-        val params = fnParams.filterIndexed { index, _ ->
-            index != fnParams.lastIndex || configureLambdas.getTypeConfiguredByLambda(returnTypeClassifier) == null
-        }.map { topLevelFunctionParameter(host, it) }
+        val params = fnParams
+            .filterIndexed { index, _ -> index != fnParams.lastIndex || configureLambdas.getTypeConfiguredByLambda(returnTypeClassifier) == null }
+            .map { topLevelFunctionParameter(host, it) }
+            .getAllOrFailWith { return it.first() }
 
         val javaDeclaringClass = function.javaMethod!!.declaringClass
 
@@ -165,33 +198,40 @@ class DefaultFunctionExtractor(
             function.name,
             params,
             semanticsFromSignature
-        )
+        ).let(::schemaResult)
     }
 
     private
     fun topLevelFunctionParameter(
         host: SchemaBuildingHost,
         fnParam: KParameter,
-    ): DataParameter {
+    ): SchemaResult<DataParameter> {
         val paramSemantics = ParameterSemanticsInternal.DefaultUnknown
 
-        return if (fnParam.isVararg) {
-            DefaultVarargParameter(fnParam.name, fnParam.parameterTypeToRefOrError(host), fnParam.isOptional, paramSemantics)
+        @Suppress("DuplicatedCode") // detects a duplicate that uses SupportedKParameter instead of KParameter
+        return schemaResult(
+            if (fnParam.isVararg) {
+                DefaultVarargParameter(fnParam.name, fnParam.parameterTypeToRef(host).orFailWith { return it }, fnParam.isOptional, paramSemantics)
         } else {
-            DefaultDataParameter(fnParam.name, fnParam.parameterTypeToRefOrError(host), fnParam.isOptional, paramSemantics)
-        }
+                DefaultDataParameter(fnParam.name, fnParam.parameterTypeToRef(host).orFailWith { return it }, fnParam.isOptional, paramSemantics)
+            }
+        )
     }
 
-    private fun checkReturnType(host: SchemaBuildingHost, type: SupportedTypeProjection.SupportedType) {
+    private fun checkReturnType(host: SchemaBuildingHost, type: SupportedTypeProjection.SupportedType): SchemaResult<Unit> =
         host.withTag(SchemaBuildingTags.returnValueType(type)) {
-            if ((type.classifier as? KClass<*>)?.isSubclassOf(Map::class) == true) {
-                host.schemaBuildingFailure("Illegal type '${type.toKType()}': functions returning Map types are not supported")
-            }
-            if (type.classifier == Pair::class) {
-                host.schemaBuildingFailure("Illegal type '${type.toKType()}': functions returning Pair are not supported")
+            when {
+                (type.classifier as? KClass<*>)?.isSubclassOf(Map::class) == true -> {
+                    host.schemaBuildingFailure(SchemaBuildingIssue.UnsupportedMapFactory(type))
+                }
+
+                type.classifier == Pair::class -> {
+                    host.schemaBuildingFailure(SchemaBuildingIssue.UnsupportedPairFactory(type))
+                }
+
+                else -> schemaResult(Unit)
             }
         }
-    }
 
     private
     fun dataParameter(
@@ -201,14 +241,17 @@ class DefaultFunctionExtractor(
         returnClassifier: KClassifier,
         functionSemantics: FunctionSemantics,
         preIndex: DataSchemaBuilder.PreIndex
-    ): DataParameter {
+    ): SchemaResult<DataParameter> {
         val paramSemantics = getParameterSemantics(functionSemantics, function, fnParam, returnClassifier, preIndex)
 
-        return if (fnParam.isVararg) {
-            DefaultVarargParameter(fnParam.name, fnParam.parameterTypeToRefOrError(host), fnParam.isOptional, paramSemantics)
-        } else {
-            DefaultDataParameter(fnParam.name, fnParam.parameterTypeToRefOrError(host), fnParam.isOptional, paramSemantics)
-        }
+        @Suppress("DuplicatedCode") // detects a duplicate that uses KParameter instead of SupportedKParameter
+        return schemaResult(
+            if (fnParam.isVararg) {
+                DefaultVarargParameter(fnParam.name, fnParam.parameterTypeToRef(host).orFailWith { return it }, fnParam.isOptional, paramSemantics)
+            } else {
+                DefaultDataParameter(fnParam.name, fnParam.parameterTypeToRef(host).orFailWith { return it }, fnParam.isOptional, paramSemantics)
+            }
+        )
     }
 
     private
@@ -243,7 +286,7 @@ class DefaultFunctionExtractor(
         function: SupportedCallable,
         inType: KClass<*>?,
         configureLambdas: ConfigureLambdaHandler
-    ): FunctionSemantics {
+    ): SchemaResult<FunctionSemantics> {
         val lastParam = function.parameters.lastOrNull()
 
         val configuredType = lastParam?.let { configureLambdas.getTypeConfiguredByLambda(lastParam.type.toKType()) }
@@ -256,7 +299,7 @@ class DefaultFunctionExtractor(
         return when {
             function.kCallable.annotations.any { it is Builder } -> {
                 check(inType != null)
-                FunctionSemanticsInternal.DefaultBuilder(function.returnTypeToRefOrError(host))
+                function.returnTypeRef(host).map(FunctionSemanticsInternal::DefaultBuilder)
             }
 
             function.kCallable.annotations.any { it is Adding } -> {
@@ -264,37 +307,39 @@ class DefaultFunctionExtractor(
 
                 val lastParamOrNull = function.parameters.lastOrNull()
                 check(function.returnType.classifier != Unit::class || lastParamOrNull == null || configureLambdas.getTypeConfiguredByLambda(lastParamOrNull.type.toKType()) == null) {
-                    "an @Adding function with a Unit return type may not accept configuring lambdas"
+                    return host.schemaBuildingFailure(
+                        SchemaBuildingIssue.UnitAddingFunctionWithLambda
+                    )
                 }
 
-                val returnType = function.returnTypeToRefOrError(host)
-                configuredType?.let(host::checkConfiguredType)
-                FunctionSemanticsInternal.DefaultAddAndConfigure(returnType, blockRequirement)
+                val returnType = function.returnTypeRef(host).orFailWith { return it }
+                if (configuredType != null) {
+                    host.withTag(SchemaBuildingTags.configuredType(configuredType)) { host.containerTypeRef(configuredType) }
+                        .orFailWith { return it }
+                }
+                schemaResult(FunctionSemanticsInternal.DefaultAddAndConfigure(returnType, blockRequirement))
             }
 
             configuredType != null -> {
                 check(inType != null)
-
-                host.checkConfiguredType(configuredType)
 
                 val returnType = when (function.returnType.toKType()) {
                     typeOf<Unit>() -> FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
                     configuredType -> FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject
                     else -> error("cannot infer the return type of a configuring function $function; it must be Unit or the configured object type")
                 }
-                val configuredTypeRef = host.withTag(SchemaBuildingTags.configuredType(function.returnType)) { host.typeRef(configuredType) }
-                val accessor = ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(configuredTypeRef)
+                val configuredTypeRef = host.withTag(SchemaBuildingTags.configuredType(configuredType)) { host.containerTypeRef(configuredType) }
+                    .orFailWith { return it }
 
-                // TODO: when "definitely existing" objects get properly implemented, ensure that functions configuring them do not accept parameters
                 FunctionSemanticsInternal.DefaultAccessAndConfigure(
-                    accessor,
+                    accessor = ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(configuredTypeRef),
                     returnType,
                     configuredTypeRef,
                     blockRequirement
-                )
+                ).let(::schemaResult)
             }
 
-            else -> FunctionSemanticsInternal.DefaultPure(function.returnTypeToRefOrError(host))
+            else -> function.returnTypeRef(host).map(FunctionSemanticsInternal::DefaultPure)
         }
     }
 }
@@ -302,14 +347,18 @@ class DefaultFunctionExtractor(
 
 class GetterBasedConfiguringFunctionExtractor(private val propertyTypePredicate: (SupportedTypeProjection.SupportedType) -> Boolean) : FunctionExtractor {
 
-    override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> {
-        return (configuringFunctionsFromKotlinProperties(host, kClass) + configuringFunctionsFromGetters(host, kClass)).distinctBy { it.simpleName }
-    }
+    override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): List<FunctionExtractionResult> =
+        listOf(
+            configuringFunctionsFromKotlinProperties(host, kClass),
+            configuringFunctionsFromGetters(host, kClass)
+        ).flatten()
 
-    override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
-
-    private fun configuringFunctionsFromGetters(host: SchemaBuildingHost, kClass: KClass<*>): List<SchemaMemberFunction> {
-        val functions = host.classMembers(kClass).potentiallyDeclarativeMembers.filter { it.kind == MemberKind.FUNCTION && isNotValueFactoriesGetter(it) }
+    private fun configuringFunctionsFromGetters(host: SchemaBuildingHost, kClass: KClass<*>): List<FunctionExtractionResult> {
+        val functions = host.classMembers(kClass).declarativeMembers.filter {
+            it.kind == MemberKind.FUNCTION &&
+                memberIsInSchema(host, kClass, it) && // Only produce configuring functions for members that are already used as properties. TODO: express this in a more explicit way
+                isNotValueFactoriesGetter(it)
+        }
 
         val functionsByName = functions.groupBy { it.name }
         val gettersWithoutSetter = functionsByName
@@ -317,36 +366,35 @@ class GetterBasedConfiguringFunctionExtractor(private val propertyTypePredicate:
             .mapValues { (_, functions) -> functions.singleOrNull { fn -> fn.parameters.isEmpty() } }
             .filterValues { it != null && propertyTypePredicate(it.returnType) }
 
-        return gettersWithoutSetter.mapNotNull { (name, getter) ->
+        return gettersWithoutSetter.map { (name, getter) ->
             checkNotNull(getter)
             host.inContextOfModelMember(getter.kCallable) {
                 val nameAfterGet = name.substringAfter("get")
                 val propertyName = nameAfterGet.replaceFirstChar { it.lowercase(Locale.getDefault()) }
 
-                val type = getter.returnTypeToRefOrError(host)
-                val property = DefaultDataProperty(
-                    propertyName,
-                    type,
-                    DefaultPropertyMode.DefaultReadOnly,
-                    hasDefaultValue = true,
-                    isHiddenInDsl = false,
-                    isDirectAccessOnly = false
-                )
-
-                configuringFunction(host, kClass, getter.name, propertyName, property)
+                val type = getter.returnTypeRef(host).orFailWith {
+                    return@map ExtractionResult.of(it, FunctionExtractionMetadata(listOf(getter)))
+                }
+                val property = DefaultDataProperty(propertyName, type, DefaultPropertyMode.DefaultReadOnly, hasDefaultValue = true, isHiddenInDsl = false, isDirectAccessOnly = false)
+                ExtractionResult.Extracted(configuringFunction(host, kClass, getter.name, propertyName, property), FunctionExtractionMetadata(listOf(getter)))
             }
         }
     }
 
-    private fun configuringFunctionsFromKotlinProperties(host: SchemaBuildingHost, kClass: KClass<*>): List<SchemaMemberFunction> {
-        val properties =
-            host.classMembers(kClass).potentiallyDeclarativeMembers
-                .filter { it.kind == MemberKind.READ_ONLY_PROPERTY && propertyTypePredicate(it.returnType) && isNotValueFactoriesGetter(it) }
+    private fun configuringFunctionsFromKotlinProperties(host: SchemaBuildingHost, kClass: KClass<*>): List<FunctionExtractionResult> {
+        val properties = host.classMembers(kClass).declarativeMembers
+            .filter {
+                it.kind == MemberKind.READ_ONLY_PROPERTY && propertyTypePredicate(it.returnType) &&
+                    memberIsInSchema(host, kClass, it) && // Only produce configuring functions for members that are already used as properties. TODO: express this in a more explicit way
+                    isNotValueFactoriesGetter(it)
+            }
 
         return properties.map { property ->
             host.inContextOfModelMember(property.kCallable) {
-                val type = property.returnTypeToRefOrError(host)
-                val property = DefaultDataProperty(
+                val type = property.returnTypeRef(host).orFailWith {
+                    return@map ExtractionResult.of(it, FunctionExtractionMetadata(listOf(property)))
+                }
+                val dataProperty = DefaultDataProperty(
                     property.name,
                     type,
                     DefaultPropertyMode.DefaultReadOnly,
@@ -355,10 +403,19 @@ class GetterBasedConfiguringFunctionExtractor(private val propertyTypePredicate:
                     isDirectAccessOnly = false
                 )
 
-                configuringFunction(host, kClass, property.name, property.name, property)
+                ExtractionResult.of(
+                    schemaResult(configuringFunction(host, kClass, dataProperty.name, dataProperty.name, dataProperty)),
+                    FunctionExtractionMetadata(listOf(property))
+                )
             }
         }
     }
+
+    private fun memberIsInSchema(
+        host: SchemaBuildingHost,
+        kClass: KClass<*>,
+        callable: SupportedCallable
+    ): Boolean = !host.isUnusedMember(kClass, callable) && callable !in host.membersWithFailures(kClass)
 
     private fun isNotValueFactoriesGetter(callable: SupportedCallable): Boolean = callable.kCallable.annotationsWithGetters.none { it is ValueFactories }
 
@@ -370,7 +427,8 @@ class GetterBasedConfiguringFunctionExtractor(private val propertyTypePredicate:
         property: DefaultDataProperty
     ): DefaultDataMemberFunction {
         val thisTypeRef = host.withTag(SchemaBuildingTags.receiverType(kClass)) {
-            host.containerTypeRef(kClass)
+            @OptIn(LossySchemaBuildingOperation::class) // the receiver should be a valid type to get to this point
+            host.containerTypeRef(kClass).orError()
         }
 
         return DefaultDataMemberFunction(
@@ -395,19 +453,5 @@ fun isValidNestedModelType(type: SupportedTypeProjection.SupportedType): Boolean
         (classifier as? KClass<*>)?.javaPrimitiveType != null -> false
         classifier == Unit::class -> false
         else -> true
-    }
-}
-
-private fun SchemaBuildingHost.checkConfiguredType(configuredType: KType) {
-    withTag(SchemaBuildingTags.configuredType(configuredType)) {
-        if (configuredType.isMarkedNullable) {
-            schemaBuildingFailure("The receiver type of a configuring lambda cannot be nullable")
-        }
-
-        when (val classifier = configuredType.classifier) {
-            is KClass<*> -> containerTypeRef(classifier)
-            is KTypeParameter -> schemaBuildingFailure("Using a type parameter as a configured type is not supported")
-            else -> Unit
-        }
     }
 }
