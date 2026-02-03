@@ -275,6 +275,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         executorServiceTypeOnCurrentJvm()     | Executor                       | "java.util.concurrent.Executors.newSingleThreadExecutor().tap { shutdown() }"
         // Concurrency primitives
         ReentrantLock                         | Lock                           | "new java.util.concurrent.locks.ReentrantLock()"
+        ReentrantReadWriteLock               | ReadWriteLock                  | "new java.util.concurrent.locks.ReentrantReadWriteLock()"
         CountDownLatch                        | CountDownLatch                 | "new java.util.concurrent.CountDownLatch(1)"
         CyclicBarrier                         | CyclicBarrier                  | "new java.util.concurrent.CyclicBarrier(1)"
         Phaser                                | Phaser                         | "new java.util.concurrent.Phaser()"
