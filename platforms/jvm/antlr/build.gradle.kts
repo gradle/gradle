@@ -27,7 +27,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
-    compileOnly("antlr:antlr:2.7.7") {
+    compileOnly(providedLibs.antlr) {
         because("this dependency is downloaded by the antlr plugin")
     }
 

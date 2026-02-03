@@ -19,6 +19,12 @@ dependencyResolutionManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+    versionCatalogs {
+        create("buildLibs") {
+            from(files("../gradle/dependency-management/build.versions.toml"))
+            version("errorProne", "stub") // not used in this project
+        }
+    }
 }
 
 pluginManagement {
@@ -38,14 +44,10 @@ pluginManagement {
     }
 }
 
-plugins {
-    id("com.gradle.develocity").version("4.3.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
-    id("io.github.gradle.develocity-conventions-plugin").version("0.12.1")
-    id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
-}
-
+include("architecture-docs")
 include("build-environment")
 include("configuration-cache-compatibility")
+include("default-settings-plugins")
 include("version-catalogs")
 
 rootProject.name = "build-logic-settings"

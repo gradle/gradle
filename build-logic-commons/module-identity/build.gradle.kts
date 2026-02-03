@@ -11,5 +11,5 @@ dependencies {
 
     implementation(projects.basics)
 
-    implementation("com.google.code.gson:gson")
+    implementation(buildLibs.gson)
 }
