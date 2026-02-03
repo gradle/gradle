@@ -88,6 +88,14 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<RandomAccessFile>())
     bind(unsupported<Socket>())
     bind(unsupported<ServerSocket>())
+    bind(unsupported<Lock>())
+    bind(unsupported<ReadWriteLock>())
+    bind(unsupported<CountDownLatch>())
+    bind(unsupported<CyclicBarrier>())
+    bind(unsupported<Phaser>())
+    bind(unsupported<Semaphore>())
+    bind(unsupported<Exchanger<*>>())
+    bind(unsupported<SynchronousQueue<*>>())
 
     // Gradle Scripts
     bind(unsupported<GradleScript>(" Gradle script object references"))
