@@ -94,7 +94,7 @@ class NullableTypesTest {
     fun `nullable configured types are not supported`() {
         assertThrows<DeclarativeDslSchemaBuildingException> { schemaFromTypes(HasNullableConfiguredType::class) }.run {
             Assert.assertEquals("""
-                |The receiver type of a configuring lambda cannot be nullable
+                |Unsupported usage of a nullable type
                 |  in configured type 'org.gradle.internal.declarativedsl.schemaBuidler.NullableTypesTest.Nested?'
                 |  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.NullableTypesTest.HasNullableConfiguredType.configure((org.gradle.internal.declarativedsl.schemaBuidler.NullableTypesTest.Nested?) -> kotlin.Unit): kotlin.Unit'
                 |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.NullableTypesTest.HasNullableConfiguredType'

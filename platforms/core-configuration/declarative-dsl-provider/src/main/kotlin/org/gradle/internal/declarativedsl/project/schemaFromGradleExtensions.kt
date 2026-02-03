@@ -19,8 +19,8 @@ package org.gradle.internal.declarativedsl.project
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
+import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataTopLevelFunction
-import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
@@ -33,11 +33,19 @@ import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionCompo
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
+import org.gradle.internal.declarativedsl.schemaBuilder.ExtractionResult
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractionMetadata
+import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractionResult
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.LossySchemaBuildingOperation
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingContextElement
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Special
+import org.gradle.internal.declarativedsl.schemaBuilder.orError
+import org.gradle.internal.declarativedsl.schemaBuilder.orFailWith
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.withTag
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -107,11 +115,14 @@ data class ExtensionInfo(
 ) {
     val customAccessorId = DefaultSettingsExtensionAccessorIdentifier(name)
 
-    fun schemaFunction(host: SchemaBuildingHost) =
-        host.withTag(extensionTag(name)) {
+    fun schemaFunction(host: SchemaBuildingHost): SchemaResult<DataMemberFunction> {
+        return host.withTag(extensionTag(name)) {
             val objectType = host.containerTypeRef(type)
+                .orFailWith { return it }
+
             DefaultDataMemberFunction(
-                host.containerTypeRef(ProjectTopLevelReceiver::class),
+                @OptIn(LossySchemaBuildingOperation::class) // referencing a predefined type is safe
+                host.containerTypeRef(ProjectTopLevelReceiver::class).orError(),
                 name,
                 emptyList(),
                 isDirectAccessOnly = true,
@@ -121,8 +132,9 @@ data class ExtensionInfo(
                     objectType,
                     FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
                 )
-            )
+            ).let(::schemaResult)
         }
+    }
 
     private fun extensionTag(name: String) = SchemaBuildingContextElement.TagContextElement("'$name' extension")
 }
@@ -141,10 +153,10 @@ class RuntimeExtensionAccessors(info: List<ExtensionInfo>) : RuntimeCustomAccess
 
 private
 fun extensionConfiguringFunctions(typeToExtend: KClass<*>, extensionInfo: Iterable<ExtensionInfo>): FunctionExtractor = object : FunctionExtractor {
-    override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
-        if (kClass == typeToExtend) extensionInfo.map { it.schemaFunction(host) } else emptyList()
+    override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): List<FunctionExtractionResult> =
+        if (kClass == typeToExtend) extensionInfo.map { ExtractionResult.of(it.schemaFunction(host), FunctionExtractionMetadata(emptyList())) } else emptyList()
 
-    override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
+    override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): SchemaResult<DataTopLevelFunction>? = null
 }
 
 

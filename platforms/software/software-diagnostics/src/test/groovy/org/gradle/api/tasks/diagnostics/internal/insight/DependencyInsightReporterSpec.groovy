@@ -34,7 +34,6 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependenc
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.external.model.ImmutableCapabilities
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -210,7 +209,7 @@ class DependencyInsightReporterSpec extends Specification {
         def ownerId = DefaultModuleComponentIdentifier.newId(
             DefaultModuleVersionIdentifier.newId(ownerGroup, ownerModule, ownerVersion)
         )
-        new DefaultResolvedVariantResult(ownerId, Describables.of("default"), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, null)
+        new DefaultResolvedVariantResult(ownerId, Describables.of("default"), ImmutableAttributes.EMPTY, ImmutableList.of(), null)
     }
 
     private static DefaultResolvedDependencyResult path(String path) {
