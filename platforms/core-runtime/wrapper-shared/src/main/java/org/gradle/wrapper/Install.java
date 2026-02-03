@@ -136,7 +136,7 @@ public class Install {
                     distributionSha256Sum = fetchDistributionSha256Sum(configuration, localZipFile);
                 }
                 failed = true;
-                lastException = new Exception("Downloaded distribution file " + localZipFile + " is no valid zip file.");
+                lastException = new RuntimeException("Downloaded distribution file " + localZipFile + " is no valid zip file.");
             } catch (IOException e) {
                 failed = true;
                 lastException = e;
@@ -144,7 +144,7 @@ public class Install {
 
             if (failed) {
                 if (retries-- <= 0) {
-                    throw new RuntimeException(lastException);
+                    throw lastException;
                 }
 
                 logger.log(String.format(

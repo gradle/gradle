@@ -87,6 +87,8 @@ class WrapperTest extends AbstractTaskTest {
         wrapper.getDistributionSha256Sum() == null
         !wrapper.getNetworkTimeout().isPresent()
         wrapper.getValidateDistributionUrl()
+        !wrapper.getRetries().isPresent()
+        !wrapper.getRetryTimeoutMs().isPresent()
     }
 
     def "determines Windows script path from unix script path with #inName"() {
@@ -232,7 +234,8 @@ class WrapperTest extends AbstractTaskTest {
         expect:
         TaskPropertyTestUtils.getProperties(wrapper).keySet() == WrapUtil.toSet(
             "distributionBase", "distributionPath", "distributionUrl", "distributionSha256Sum",
-            "distributionType", "archiveBase", "archivePath", "gradleVersion", "networkTimeout", "validateDistributionUrl")
+            "distributionType", "archiveBase", "archivePath", "gradleVersion", "networkTimeout",
+            "validateDistributionUrl", "retries", "retryTimeoutMs")
     }
 
     def "execute with extant wrapper jar parent directory and extant wrapper jar"() {
