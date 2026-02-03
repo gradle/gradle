@@ -709,4 +709,74 @@ class CommandLineParserTest extends Specification {
             '--no-c-option'
         ]
     }
+
+    def "usage output contains aliases and descriptions"() {
+        parser.option('a', 'long-option').hasDescription('this is option a')
+        parser.option('b')
+        parser.option('another-long-option').hasDescription('this is a long option')
+        parser.option('z', 'y', 'last-option', 'end-option').hasDescription('this is the last option')
+        parser.option('B')
+        def outstr = new StringWriter()
+
+        expect:
+        parser.printUsage(outstr)
+        def usage = outstr.toString()
+        usage.contains('-a, --long-option')
+        usage.contains('--another-long-option')
+        usage.contains('-y') || usage.contains('-z')
+        usage.contains('this is option a')
+        usage.contains('this is a long option')
+    }
+
+    def "groups options by category"() {
+        parser.option('exec1', 'e1').hasDescription('exec option 1').hasCategory(org.gradle.cli.HelpCategory.EXECUTION)
+        parser.option('exec2').hasDescription('exec option 2').hasCategory(org.gradle.cli.HelpCategory.EXECUTION)
+        parser.option('log1').hasDescription('log option 1').hasCategory(org.gradle.cli.HelpCategory.LOGGING)
+        def outstr = new StringWriter()
+
+        expect:
+        parser.printUsage(outstr)
+        def usage = outstr.toString()
+        usage.contains('Execution:')
+        usage.contains('Logging:')
+        // Execution section should come before Logging section
+        usage.indexOf('Execution:') < usage.indexOf('Logging:')
+        // options exist in output
+        usage.contains('--exec1') || usage.contains('--e1')
+        usage.contains('--exec2')
+        usage.contains('--log1')
+    }
+
+    def "options within same category are ordered alphabetically"() {
+        parser.option('b-option').hasDescription('b').hasCategory(org.gradle.cli.HelpCategory.EXECUTION)
+        parser.option('a-option').hasDescription('a').hasCategory(org.gradle.cli.HelpCategory.EXECUTION)
+        def outstr = new StringWriter()
+
+        expect:
+        parser.printUsage(outstr)
+        def lines = outstr.toString().readLines()
+        int idxA = lines.findIndexOf { it.contains('--a-option') }
+        int idxB = lines.findIndexOf { it.contains('--b-option') }
+        // both present and a-option appears immediately before b-option in the same section
+        idxA >= 0
+        idxB >= 0
+        idxB == idxA + 1
+    }
+
+    def "opposite boolean options are adjacent within their category"() {
+        parser.option('a-option').hasDescription('this is option --a-option').hasCategory(org.gradle.cli.HelpCategory.CONFIGURATION)
+        parser.option('no-a-option').hasDescription('Disables option --a-option').hasCategory(org.gradle.cli.HelpCategory.CONFIGURATION)
+        parser.option('log1').hasDescription('log option 1').hasCategory(org.gradle.cli.HelpCategory.LOGGING)
+        def outstr = new StringWriter()
+
+        expect:
+        parser.printUsage(outstr)
+        def lines = outstr.toString().readLines()
+        int idxOn = lines.findIndexOf { it.contains('--a-option') }
+        int idxOff = lines.findIndexOf { it.contains('--no-a-option') }
+        idxOn >= 0
+        idxOff >= 0
+        // ensure they are adjacent (no other option between them)
+        idxOff == idxOn + 1
+    }
 }
