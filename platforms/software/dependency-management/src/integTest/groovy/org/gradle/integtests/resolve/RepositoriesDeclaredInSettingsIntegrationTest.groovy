@@ -301,12 +301,16 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             version = '0.x'
 
             configurations {
-                    create 'default'
+                create("elements")
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
+                    }
                 }
+            }
 
-                dependencies {
-                    add('default', 'org:module:1.0')
-                }
+            dependencies {
+                elements('org:module:1.0')
+            }
         """
         file("included/settings.gradle") << """
             rootProject.name = 'included'
@@ -332,7 +336,6 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("com.acme:included:1.0", ":included", "com.acme:included:0.x") {
-                    configuration = 'default'
                     compositeSubstitute()
                     noArtifacts()
                     module('org:module:1.0')
@@ -350,12 +353,16 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             version = '0.x'
 
             configurations {
-                    create 'default'
+                create("elements")
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
+                    }
                 }
+            }
 
-                dependencies {
-                    add('default', 'com.acme:nested:1.0')
-                }
+            dependencies {
+                elements('com.acme:nested:1.0')
+            }
         """
         file("included/settings.gradle") << """
             rootProject.name = 'included'
@@ -367,12 +374,16 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             version = '0.x'
 
             configurations {
-                    create 'default'
+                create("elements")
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
+                    }
                 }
+            }
 
-                dependencies {
-                    add('default', 'org:module:1.0')
-                }
+            dependencies {
+                elements('org:module:1.0')
+            }
         """
         file("nested/settings.gradle") << """
             rootProject.name = 'nested'
@@ -422,12 +433,16 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             version = '0.x'
 
             configurations {
-                    create 'default'
+                create("elements")
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
+                    }
                 }
+            }
 
-                dependencies {
-                    add('default', 'com.acme:nested:1.0')
-                }
+            dependencies {
+                elements('com.acme:nested:1.0')
+            }
         """
         file("included/settings.gradle") << """
             rootProject.name = 'included'
@@ -439,12 +454,16 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             version = '0.x'
 
             configurations {
-                    create 'default'
+                create("elements")
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
+                    }
                 }
+            }
 
-                dependencies {
-                    add('default', 'org:module:1.0')
-                }
+            dependencies {
+                elements('org:module:1.0')
+            }
         """
         file("nested/settings.gradle") << """
             rootProject.name = 'nested'
@@ -502,12 +521,16 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             version = '0.x'
 
             configurations {
-                    create 'default'
+                create("elements")
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
+                    }
                 }
+            }
 
-                dependencies {
-                    add('default', 'org:module:1.0')
-                }
+            dependencies {
+                elements('org:module:1.0')
+            }
         """
         file("included/settings.gradle") << """
             rootProject.name = 'included'

@@ -56,13 +56,22 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         buildFile << """
             subprojects {
                 group = 'test'
-                configurations { create("default") }
+
                 task producer(type: FileProducer) {
                     content = providers.systemProperty("\${project.name}Content").orElse("content")
                     output = layout.buildDirectory.file("\${project.name}.out")
                 }
-                configurations.default.outgoing.artifact(tasks.producer.output)
+
+                configurations {
+                    create("elements") {
+                        attributes {
+                            attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
+                        }
+                        outgoing.artifact(tasks.producer.output)
+                    }
+                }
             }
+
             repositories {
                 maven { url = uri('${remoteRepo.uri}') }
             }
@@ -146,7 +155,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         result.assertTaskSkipped(":b:producer")
         outputContains("files = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
         outputContains("artifacts = [a.thing (a.thing), b.thing (b.thing), a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
-        outputContains("variants = [{artifactType=thing}, {artifactType=thing}, {artifactType=out}, {artifactType=out}, {artifactType=jar, org.gradle.status=release}]")
+        outputContains("variants = [{artifactType=thing}, {artifactType=thing}, {artifactType=out, org.gradle.category=library}, {artifactType=out, org.gradle.category=library}, {artifactType=jar, org.gradle.status=release}]")
         outputContains("variant capabilities = [[], [], [capability group='test', name='a', version='unspecified'], [capability group='test', name='b', version='unspecified'], [capability group='group', name='lib1', version='6500']]")
 
         when:
@@ -162,7 +171,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         result.assertTaskSkipped(":b:producer")
         outputContains("files = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
         outputContains("artifacts = [a.thing (a.thing), b.thing (b.thing), a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
-        outputContains("variants = [{artifactType=thing}, {artifactType=thing}, {artifactType=out}, {artifactType=out}, {artifactType=jar, org.gradle.status=release}]")
+        outputContains("variants = [{artifactType=thing}, {artifactType=thing}, {artifactType=out, org.gradle.category=library}, {artifactType=out, org.gradle.category=library}, {artifactType=jar, org.gradle.status=release}]")
         outputContains("variant capabilities = [[], [], [capability group='test', name='a', version='unspecified'], [capability group='test', name='b', version='unspecified'], [capability group='group', name='lib1', version='6500']]")
     }
 
@@ -176,12 +185,19 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
 
         buildFile << """
             subprojects {
-                configurations { create("default") }
                 task producer(type: FileProducer) {
                     content = providers.systemProperty("\${project.name}Content").orElse("0")
                     output = layout.buildDirectory.file("\${project.name}.out")
                 }
-                configurations.default.outgoing.artifact(tasks.producer.output)
+
+                configurations {
+                    create("elements") {
+                        attributes {
+                            attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
+                        }
+                        outgoing.artifact(tasks.producer.output)
+                    }
+                }
             }
             configurations {
                 implementation

@@ -31,6 +31,7 @@ import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.jspecify.annotations.Nullable;
@@ -165,6 +166,11 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
         @Nullable
         @Override
         public VariantGraphResolveState getLegacyVariant() {
+            DeprecationLogger.deprecateAction("Selecting the default configuration of a local component using legacy variant selection")
+                .willBecomeAnErrorInGradle10()
+                .undocumented()
+                .nagUser();
+
             return getVariantByConfigurationName(Dependency.DEFAULT_CONFIGURATION);
         }
 
