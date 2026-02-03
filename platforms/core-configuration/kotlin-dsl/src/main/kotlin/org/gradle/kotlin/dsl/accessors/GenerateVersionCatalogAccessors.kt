@@ -56,6 +56,7 @@ import org.gradle.kotlin.dsl.support.useToRun
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import java.io.BufferedWriter
 import java.io.File
+import java.util.Optional
 import kotlin.metadata.jvm.JvmMethodSignature
 import kotlin.reflect.KClass
 
@@ -74,6 +75,10 @@ class GenerateVersionCatalogAccessors(
 ) {
 
     override fun getDisplayName(): String = "Kotlin DSL version catalog plugin accessors for classpath '$classLoaderHash'"
+
+    override fun getBuildOperationWorkType(): Optional<String> {
+        return Optional.of("GENERATE_VERSION_CATALOG_ACCESSORS")
+    }
 
     override val identitySuffix: String = "VC"
 
