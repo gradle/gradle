@@ -285,7 +285,6 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         settingsFile.text = useHttpBuildCache(httpBuildCacheServer.uri)
 
         when:
-        executer.withStackTraceChecksDisabled()
         withBuildCache().run "jar"
 
         then:
@@ -329,7 +328,6 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         """
 
         when:
-        executer.withStackTraceChecksDisabled()
         withBuildCache().run "jar"
         then:
         output.contains "response status 401: Unauthorized"
@@ -515,7 +513,6 @@ class HttpBuildCacheServiceIntegrationTest extends HttpBuildCacheFixture {
         }
 
         when:
-        executer.withStackTraceChecksDisabled()
         withBuildCache().run "jar"
         then:
         noneSkipped()

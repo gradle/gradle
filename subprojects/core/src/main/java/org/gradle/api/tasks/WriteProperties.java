@@ -91,6 +91,7 @@ public abstract class WriteProperties extends DefaultTask {
      */
     public void setProperties(Map<String, Object> properties) {
         this.properties.clear();
+        this.deferredProperties.clear();
         properties(properties);
     }
 
@@ -119,8 +120,10 @@ public abstract class WriteProperties extends DefaultTask {
                     return String.valueOf(futureValue);
                 }
             });
+            properties.remove(name);
         } else {
             properties.put(name, String.valueOf(value));
+            deferredProperties.remove(name);
         }
     }
 

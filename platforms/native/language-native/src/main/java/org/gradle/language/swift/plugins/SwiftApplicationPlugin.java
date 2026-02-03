@@ -19,7 +19,6 @@ package org.gradle.language.swift.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.attributes.AttributesFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.internal.NativeComponentFactory;
 import org.gradle.language.nativeplatform.internal.Dimensions;
@@ -70,7 +69,6 @@ public abstract class SwiftApplicationPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
-        final ObjectFactory objectFactory = project.getObjects();
         final ProviderFactory providers = project.getProviders();
 
         // Add the application and extension
@@ -98,7 +96,7 @@ public abstract class SwiftApplicationPlugin implements Plugin<Project> {
 
         project.afterEvaluate(p -> {
             // TODO: make build type configurable for components
-            Dimensions.applicationVariants(application.getModule(), application.getTargetMachines(), objectFactory, attributesFactory,
+            Dimensions.applicationVariants(application.getModule(), application.getTargetMachines(), attributesFactory,
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {

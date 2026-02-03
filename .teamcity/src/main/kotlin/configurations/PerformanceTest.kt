@@ -38,6 +38,7 @@ import model.CIBuildModel
 import model.PerformanceTestBuildSpec
 import model.PerformanceTestType
 import model.Stage
+import model.cleanupPerformanceTestSplits
 
 class PerformanceTest(
     model: CIBuildModel,
@@ -119,6 +120,7 @@ class PerformanceTest(
                     removeSubstDirOnWindows(os)
                     killProcessStep(buildTypeThis, KILL_PROCESSES_STARTED_BY_GRADLE, os, executionMode = BuildStep.ExecutionMode.ALWAYS)
                     checkCleanM2AndAndroidUserHome(os)
+                    cleanupPerformanceTestSplits(os)()
                 }
             }
 

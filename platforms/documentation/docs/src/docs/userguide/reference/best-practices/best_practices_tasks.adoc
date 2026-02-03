@@ -400,7 +400,7 @@ include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually
 include::sample[dir="snippets/bestPractices/avoidResolvingConfigurationsManually-do/groovy/app",files="build.gradle[tags=do-this]"]
 ====
 
-<1> *Add project dependency*: This is the same.
+<1> *Write to a file in the output directory*: This is the same.
 <2> *Declare input files property as ConfigurableFileCollection*: This lazy collection type will track task dependencies.
 <3> *Dependency artifacts are resolved to calculate digest*: The classpath will be resolved at execution time to calculate the digest.
 <4> *Configuration is passed to input property directly*: Using `from` causes the configuration to be lazily wired to the input proeprty.
@@ -471,6 +471,87 @@ include::sample[dir="snippets/bestPractices/preferPathSensitivityNone-do/groovy"
 === References
 
 - <<build_cache_concepts.adoc#relocatability,Input Relocatability>>
+
+=== Tags
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`
+
+[[use_unique_output_files_and_directories]]
+== Use unique output files and directories
+
+Overlapping output files or directories cause tasks to rerun unnecessarily and waste work.
+
+=== Explanation
+
+Gradle tracks all output files and directories declared by tasks to decide whether a task needs to be rerun.
+For example, if the contents of a task’s output directory change after its last execution, Gradle will rerun that task.
+
+Ensuring that each task uses its own unique output files and directories, both within a project and across the entire build, prevents unnecessary work.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/uniqueOutputs-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/uniqueOutputs-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Write to a file in the output directory*: This task produces a single file in the `outputDirectory`, named based on the `type` input.
+<2> *Read a specific file in the input directory*: This task only needs to read a single `a.txt` file in the input directory.
+<3> *Set output directory*: Sets `outputDirectory` to a subdirectory in `buildDirectory`.
+<4> *Set output directory*: Same as above, using the same shared `greetings` directory.
+<5> *Wire `greeterA` to consumer*: Makes sure that `greeterA` runs and produces the output directory before it is used by `consumer`.
+
+With this setup, if you run the `consumer` task, then `greeterB`, the `consumer` task will be invalidated.
+
+The next time `consumer` is run it will *not* be `UP-TO-DATE` and will have to run again despite not using the output from `greeterB`.
+
+This happens because `greeterB` changes the contents of the shared output directory `greetings`, which is an output of `greeterA` that `consumer` depends on (despite `consumer` only actually using the unchanged `a.txt` file in that directory).
+
+==== Do This Instead
+
+To avoid issues, avoid using shared task output directories and files.
+
+Instead, tasks should only declare the exact outputs and consume the exact inputs that they actually produce and consume.
+
+The _simplest_ change to make here is to use distinct output directories for each `GreetingTask`.
+This alone is sufficient to fix the problem.
+
+====
+include::sample[dir="snippets/bestPractices/uniqueOutputs-simple-do/kotlin",files="build.gradle.kts[tags=simple-do-this]"]
+include::sample[dir="snippets/bestPractices/uniqueOutputs-simple-do/groovy",files="build.gradle[tags=simple-do-this]"]
+====
+
+<1> *Set unique output directories*: Each `GreetingTask` is assigned its own unique output directory based on the `type` input.
+
+Now when running `consumer` task, then `greeterB`, then `consumer` task remains `UP-TO-DATE` as Gradle knows that it is not using the output from `greeterB`, since `greeterA` and `greeterB` write to distinct output directories.
+
+However, a more _complete and idiomatic_ approach realizes that:
+
+1. Tasks that produce single output files should make this clear from the type of their `@Output` properties.
+1. Tasks that only consume single input files should make this clear from the type of their `@Input` properties.
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/uniqueOutputs-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/bestPractices/uniqueOutputs-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/bestPractices/uniqueOutputs-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/uniqueOutputs-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Write to a specific output file*: This task produces a single file to a directly specified `outputFile` without registering an entire output directory.
+<2> *Read a specific file*: Unlike the previous example the input is a single directly specified `inputFile` file.
+<3> *Set output file*: Sets `outputFile` to a file that is inside a `shared` subdirectory of `buildDirectory`.
+<4> *Wire `greeterA` to consumer*: Makes sure that `greeterA` produces the output file before it is used by `consumer` by wiring task inputs to outputs directly.
+
+Now when running `consumer` task, then `greeterB`, the `consumer` task remains `UP-TO-DATE` as Gradle knows that it is not using the output from `greeterB`, since `greeterA` and `greeterB` _produce and consume distinct files_ (that happen to be in created in the same directory).
 
 === Tags
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`

@@ -43,6 +43,7 @@ class PluginsTopLevelReceiver {
 
 
 class PluginsCollectingPluginsBlock {
+    @get:HiddenInDefinition
     val specs: List<MutablePluginDependencySpec>
         get() = _specs
 
@@ -58,6 +59,7 @@ class PluginsCollectingPluginsBlock {
 
 
 class MutablePluginDependencySpec(
+    @get:HiddenInDefinition
     val id: String
 ) {
     @get:HiddenInDefinition

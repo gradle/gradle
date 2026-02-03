@@ -16,6 +16,8 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import com.google.common.collect.ImmutableMap;
+import org.apache.http.HttpHeaders;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
@@ -30,44 +32,36 @@ import java.net.URI;
 public class HttpResourceAccessor extends AbstractExternalResourceAccessor implements ExternalResourceAccessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpResourceAccessor.class);
-    private final HttpClientHelper http;
+    private static final ImmutableMap<String, String> REVALIDATE_HEADERS = ImmutableMap.of(HttpHeaders.CACHE_CONTROL, "max-age=0");
 
-    public HttpResourceAccessor(HttpClientHelper http) {
-        this.http = http;
+    private final HttpClient client;
+
+    public HttpResourceAccessor(HttpClient client) {
+        this.client = client;
     }
 
     @Override
     @Nullable
     public HttpResponseResource openResource(final ExternalResourceName location, boolean revalidate) {
-        String uri = location.getUri().toString();
         LOGGER.debug("Constructing external resource: {}", location);
 
-        HttpClientResponse response = http.performGet(uri, revalidate);
-        return wrapResponse(location.getUri(), response);
-    }
-
-    /**
-     * Same as #getResource except that it always gives access to the response body,
-     * irrespective of the returned HTTP status code. Never returns {@code null}.
-     */
-    public HttpResponseResource getRawResource(final URI uri, boolean revalidate) {
-        String location = uri.toString();
-        LOGGER.debug("Constructing external resource: {}", location);
-        HttpClientResponse response = http.performRawGet(location, revalidate);
+        URI uri = location.getUri();
+        HttpClient.Response response = client.performGet(uri, getHeaders(revalidate));
         return wrapResponse(uri, response);
     }
 
     @Override
     public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) {
-        String uri = location.getUri().toString();
         LOGGER.debug("Constructing external resource metadata: {}", location);
-        HttpClientResponse response = http.performHead(uri, revalidate);
 
-        if (response == null || response.wasMissing()) {
+        URI uri = location.getUri();
+        HttpClient.Response response = client.performHead(uri, getHeaders(revalidate));
+
+        if (response.isMissing()) {
             return null;
         }
 
-        HttpResponseResource resource = new HttpResponseResource("HEAD", location.getUri(), response);
+        HttpResponseResource resource = new HttpResponseResource("HEAD", uri, response);
         try {
             return resource.getMetaData();
         } finally {
@@ -75,8 +69,12 @@ public class HttpResourceAccessor extends AbstractExternalResourceAccessor imple
         }
     }
 
-    private HttpResponseResource wrapResponse(URI uri, HttpClientResponse response) {
+    private HttpResponseResource wrapResponse(URI uri, HttpClient.Response response) {
         return new HttpResponseResource("GET", uri, response);
+    }
+
+    private static ImmutableMap<String, String> getHeaders(boolean revalidate) {
+        return revalidate ? REVALIDATE_HEADERS : ImmutableMap.of();
     }
 
 }

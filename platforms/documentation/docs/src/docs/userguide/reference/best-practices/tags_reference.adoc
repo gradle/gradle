@@ -56,6 +56,9 @@ Here you can find a brief explanation of all the tags used in the best practices
 [[tag:tasks]]
 `#tasks` :: Items that explain the proper way to <<writing_tasks_intermediate.adoc#sec:sample_task,write tasks>> in Gradle, and common footguns involved in task authoring.
 
+[[tag:testing]]
+`#testing` :: Items that explain the proper way to test in Gradle, and common footguns involved in testing.
+
 [[tag:up-to-date-checking]]
 `#up-to-date-checking` :: Items that are related to Gradle's <<incremental_build.adoc#sec:how_does_it_work,up-to-date checking>> mechanism, and how to ensure work avoidance behaves properly in your build.
 

@@ -53,35 +53,34 @@ class OutputScrapingExecutionResultTest extends AbstractExecutionResultTest {
     }
 
     def "finds stack traces when present"() {
-        def output = '''
-* What went wrong:
-A problem occurred evaluating root project '4j0h2'.
-org.gradle.api.GradleScriptException: A problem occurred evaluating root project '4j0h2'.
-	at org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory$ScriptRunnerImpl.run(DefaultScriptRunnerFactory.java:93)
-	at org.gradle.configuration.DefaultScriptPluginFactory$ScriptPluginImpl.lambda$apply$0(DefaultScriptPluginFactory.java:133)
-	at org.gradle.configuration.ProjectScriptTarget.addConfiguration(ProjectScriptTarget.java:79)
-	at org.gradle.configuration.DefaultScriptPluginFactory$ScriptPluginImpl.apply(DefaultScriptPluginFactory.java:136)
-	at org.gradle.configuration.BuildOperationScriptPlugin$1.run(BuildOperationScriptPlugin.java:65)
-	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:29)
-'''
-        def matches = output.readLines().grep(line -> STACK_TRACE_ELEMENT.matcher(line).matches())
         expect:
-        matches.size() == 6
-        matches[0] == '\tat org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory$ScriptRunnerImpl.run(DefaultScriptRunnerFactory.java:93)'
+        STACK_TRACE_ELEMENT.matcher(line).matches()
+
+        where:
+        line << [
+                '''\tat jdk.proxy1/jdk.proxy1.$Proxy4.stop(Unknown Source)''',
+                '''\tat DeprecatedTask.someFeature(DeprecatedTask.java:14)''',
+                '''\tat org.gradle.configuration.ProjectScriptTarget.addConfiguration(ProjectScriptTarget.java:79)''',
+                '''\tat org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory$ScriptRunnerImpl.run(DefaultScriptRunnerFactory.java:93)''',
+                '''\tat org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:29)''',
+                '''\tat org.gradle.configuration.DefaultScriptPluginFactory$ScriptPluginImpl.lambda$apply$1(DefaultScriptPluginFactory.java:141)''',
+                '''\tat build_5abs4jnj31g76wj4rw9cupsgl.run(/Users/jbartok/Work/gradle/platforms/core-runtime/logging/build/tmp/teŝt files/Deprecation.Test/xuu5l/build.gradle:2)''',
+                '''\tat build_a8verxc0a56jssp30abf9tlic$_run_closure1$_closure2.doCall(/Users/jbartok/Work/gradle/platforms/core-runtime/logging/build/tmp/teŝt files/Deprecation.Test/s74s0/build.gradle)''',
+                '''\tat build_1htzvtc431jm24qcc7eskegp0.run(C:\\tcagent1\\work\\f63322e10dd6b396\\platforms\\core-runtime\\logging\\build\\tmp\\test files\\Deprecation.Test\\x92gv\\build.gradle:2)''',
+                '''\tat build_1htzvtc431jm24qcc7eskegp0.run(C:\\tcagent1\\work\\f63322e10dd6b396\\platforms\\core-runtime\\logging\\build\\tmp\\test files\\Deprecation.Test\\x92gv\\build.gradle)''',
+        ]
     }
 
     def "does not find things that might look like stack traces"() {
-        def output = """
-* What went wrong:
-A problem occurred evaluating root project '4j0h2'.
-> Could not create an instance of type Thing.
-   > Multiple constructors for parameters ['a', 'b']:
-       1. candidate: Thing(String, String, ProjectLayout)
-       2. best match: Thing(String, String, ObjectFactory)
-"""
-        def matches = output.readLines().grep(line -> STACK_TRACE_ELEMENT.matcher(line).matches())
         expect:
-        matches.empty
+        !STACK_TRACE_ELEMENT.matcher(line).matches()
+
+        where:
+        line << [
+                '''\t1. candidate: Thing(String, String, ProjectLayout)''',
+                '''\tapiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)''',
+                '''org.gradle.api.tasks.compile.JavaCompile.setSource(): at test.MyPlugin(MyPlugin.java:13)''',
+        ]
     }
 
     def "can assert build output is present in main content"() {
@@ -191,13 +190,13 @@ post build
 
     def "can assert post build output is present"() {
         def output = """
-message
-
-BUILD SUCCESSFUL in 12s
-
-post build
-more post build
-"""
+            message
+            
+            BUILD SUCCESSFUL in 12s
+            
+            post build
+            more post build
+            """.stripIndent()
         when:
         def result = OutputScrapingExecutionResult.from(output, "")
 
@@ -687,9 +686,9 @@ BUILD FAILED in 13s
         e.message.startsWith(message)
 
         where:
-        tasksExecuted                                      | message
-        '> Task :a SKIPPED\n\n> Task :b SKIPPED'           | "Build output contains only skipped tasks: [:a, :b]"
-        ''                                                 | "Build output does not contain any executed tasks."
+        tasksExecuted                            | message
+        '> Task :a SKIPPED\n\n> Task :b SKIPPED' | "Build output contains only skipped tasks: [:a, :b]"
+        ''                                       | "Build output does not contain any executed tasks."
     }
 
     def 'assertAllTasksSkipped() fails assertion when output contains at least one task that is executed'() {
@@ -743,8 +742,8 @@ BUILD FAILED in 13s
 
         where:
         tasksExecuted << [
-            '> Task :a SKIPPED\n\n> Task :b SKIPPED',
-            ''
+                '> Task :a SKIPPED\n\n> Task :b SKIPPED',
+                ''
         ]
     }
 
@@ -809,7 +808,6 @@ BUILD FAILED in 13s
         where:
         taskPaths << [[] as Object[], null]
     }
-
 
 
     def "strips out work in progress area when evaluating rich console output"() {

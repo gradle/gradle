@@ -48,6 +48,18 @@ trait AbstractNamedDomainObjectContainerIntegrationTest {
 
 
 class NamedDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest implements AbstractNamedDomainObjectContainerIntegrationTest {
+
+    def "findAll is deprecated"() {
+        buildFile """
+            testContainer.findAll {
+                true
+            }
+        """
+        expect:
+        executer.expectDocumentedDeprecationWarning("The DomainObjectCollection.findAll(Closure) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#findAll_removal")
+        succeeds("help")
+    }
+
     def "can mutate the task container from named container"() {
         buildFile """
             testContainer.configureEach {

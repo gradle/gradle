@@ -234,11 +234,11 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         then:
         assertDescriptionOrCause(failure,
             "Project feature 'testProjectType' is registered by multiple plugins:\n" +
-            "  - Project feature 'testProjectType' is registered by both 'org.gradle.test.AnotherProjectTypeImplPlugin' and 'org.gradle.test.ProjectTypeImplPlugin'.\n" +
-            "    \n" +
-            "    Reason: A project feature or type with a given name can only be registered by a single plugin.\n" +
-            "    \n" +
-            "    Possible solution: Remove one of the plugins from the build."
+                "  - Project feature 'testProjectType' is registered by both 'org.gradle.test.AnotherProjectTypeImplPlugin' and 'org.gradle.test.ProjectTypeImplPlugin' but their bindings have overlapping target types.\n" +
+                "    \n" +
+                "    Reason: A project feature or type with a given name must bind to a unique target type.\n" +
+                "    \n" +
+                "    Possible solution: Remove one of the plugins from the build."
         )
     }
 

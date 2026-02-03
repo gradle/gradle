@@ -25,8 +25,10 @@ dependencies {
 
     api(libs.jspecify)
 
-    implementation(projects.baseServices)
     implementation(projects.buildProcessServices)
+    implementation(projects.baseServices)
+
+    integTestDistributionRuntimeOnly(projects.distributionsCore)
 }
 
 errorprone {

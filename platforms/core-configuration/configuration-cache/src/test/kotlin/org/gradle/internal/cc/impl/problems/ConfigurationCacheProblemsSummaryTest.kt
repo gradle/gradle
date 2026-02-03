@@ -69,7 +69,7 @@ class ConfigurationCacheProblemsSummaryTest {
         )
         assertThat(subject.get().reportUniqueProblemCount, equalTo(3))
         assertThat(subject.get().consoleUniqueProblemCount, equalTo(3))
-        assertFalse(subject.get().overflowed)
+        assertThat(subject.get().overflownProblemCount, equalTo(0))
 
         // now we do overflow
         assertFalse(
@@ -78,7 +78,7 @@ class ConfigurationCacheProblemsSummaryTest {
         )
         assertThat(subject.get().reportUniqueProblemCount, equalTo(3))
         assertThat(subject.get().consoleUniqueProblemCount, equalTo(3))
-        assertTrue(subject.get().overflowed)
+        assertThat(subject.get().overflownProblemCount, equalTo(1))
     }
 
     @Test

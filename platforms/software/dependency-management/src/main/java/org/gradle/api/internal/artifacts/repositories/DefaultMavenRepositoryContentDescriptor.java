@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MavenVersionUtils;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.internal.Actions;
 
@@ -50,7 +51,7 @@ class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDe
         if (!snapshots || !releases) {
             Action<? super ArtifactResolutionDetails> action = details -> {
                 if (!details.isVersionListing()) {
-                    String version = details.getComponentId().getVersion();
+                    String version = MavenVersionUtils.toEffectiveVersion(details.getComponentId().getVersion());
                     if (snapshots && !version.endsWith("-SNAPSHOT")) {
                         details.notFound();
                         return;

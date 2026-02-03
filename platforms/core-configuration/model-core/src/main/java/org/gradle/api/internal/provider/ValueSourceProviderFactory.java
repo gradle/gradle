@@ -22,7 +22,6 @@ import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.provider.ValueSourceSpec;
 import org.gradle.internal.Try;
-import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
@@ -42,14 +41,6 @@ public interface ValueSourceProviderFactory {
         Action<? super ValueSourceSpec<P>> configureAction
     );
 
-    void addValueListener(ValueListener listener);
-
-    void removeValueListener(ValueListener listener);
-
-    void addComputationListener(ComputationListener listener);
-
-    void removeComputationListener(ComputationListener listener);
-
     <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(
         Class<? extends ValueSource<T, P>> valueSourceType,
         @Nullable Class<P> parametersType,
@@ -59,15 +50,20 @@ public interface ValueSourceProviderFactory {
     /**
      * The listener that is notified when the value of the {@code ValueSource} is computed. There is no ordering guarantees with the
      * {@link ValueListener#valueObtained(ValueListener.ObtainedValue, ValueSource)}.
+     * These events are not sent through {@code ListenerManager}.
      */
-    @EventScope(Scope.Build.class)
+    @ServiceScope(Scope.Build.class)
     interface ComputationListener {
         void beforeValueObtained();
 
         void afterValueObtained();
     }
 
-    @EventScope(Scope.Build.class)
+    /**
+     * Receives events after a {@link ValueSource}'s value has been obtained.
+     * These events are not sent through {@code ListenerManager}.
+     */
+    @ServiceScope(Scope.Build.class)
     interface ValueListener {
         <T, P extends ValueSourceParameters> void valueObtained(
             ObtainedValue<T, P> obtainedValue,

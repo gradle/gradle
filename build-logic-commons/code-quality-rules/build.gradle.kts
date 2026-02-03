@@ -24,7 +24,7 @@ group = "gradlebuild"
 dependencies {
     api(platform(projects.buildPlatform))
     compileOnly(localGroovy())
-    compileOnly("org.codenarc:CodeNarc") {
+    compileOnly(buildLibs.codenarc) {
         exclude(group = "org.apache.groovy")
         exclude(group = "org.codehaus.groovy")
     }

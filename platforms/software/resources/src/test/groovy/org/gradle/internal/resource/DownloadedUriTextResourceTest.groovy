@@ -39,7 +39,7 @@ class DownloadedUriTextResourceTest extends Specification {
     def setup() {
         testDir = tmpDir.createDir('dir')
         downloadedFile = tmpDir.file("dummy.txt")
-        sourceUri = "http://www.gradle.org/unknown.txt".toURI()
+        sourceUri = "https://www.gradle.org/unknown.txt".toURI()
 
     }
 

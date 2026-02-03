@@ -30,7 +30,6 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.ReportingBasePlugin;
@@ -136,14 +135,13 @@ public abstract class JacocoPlugin implements Plugin<Project> {
         return project.getConfigurations().consumable(variantName, conf -> {
             conf.setDescription("Binary results containing Jacoco test coverage for all targets in the '" + suite.getName() + "' Test Suite.");
 
-            ObjectFactory objects = project.getObjects();
             conf.attributes(attributes -> {
-                attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-                attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS));
+                attributes.attribute(Category.CATEGORY_ATTRIBUTE, attributes.named(Category.class, Category.VERIFICATION));
+                attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, attributes.named(VerificationType.class, VerificationType.JACOCO_RESULTS));
 
                 // TODO: Allow targets to define attributes uniquely identifying themselves.
                 // Then, create a jacoco results variant for each target instead of each suite.
-                attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, objects.named(TestSuiteName.class, suite.getName()));
+                attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, attributes.named(TestSuiteName.class, suite.getName()));
             });
         });
     }

@@ -954,6 +954,38 @@ internal property sun.java.command changes.
         outputContains("Execution: build-logic-value")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/30990")
+    def "listening to system properties is reentrant"() {
+        buildFile """
+            class CustomSerializable implements Serializable {
+                private void writeObject(ObjectOutputStream stream) throws IOException {
+                    // Trigger reading a system property while we're writing a system property.
+                    // Not reading 'foo' is important to reproduce the issue, because interceptor may take shortcuts when reading the modified property.
+                    println("bar in writeObject = \${System.properties["bar"]}")
+                    stream.defaultWriteObject()
+                }
+
+                private void readObject(ObjectInputStream stream) throws IOException {
+                    stream.defaultReadObject()
+                }
+            }
+
+            tasks.register("run") {
+                System.properties["foo"] = new CustomSerializable()
+                doLast {
+                    println("foo in doLast = \${System.properties["foo"]}")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("run")
+
+        then:
+        outputContains("bar in writeObject = null")
+        outputContains("foo in doLast = CustomSerializable@")
+    }
+
     def "reports build logic reading files in #title"() {
         def configurationCache = newConfigurationCacheFixture()
         def inputFile = testDirectory.file("testInput.txt") << "some test input"

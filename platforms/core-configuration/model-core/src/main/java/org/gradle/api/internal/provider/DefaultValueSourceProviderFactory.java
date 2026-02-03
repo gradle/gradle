@@ -32,8 +32,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
-import org.gradle.internal.event.AnonymousListenerBroadcast;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
@@ -57,14 +55,15 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     private final GradleProperties gradleProperties;
     private final CalculatedValueFactory calculatedValueFactory;
     private final ExecOperations execOperations;
-    private final AnonymousListenerBroadcast<ValueListener> valueBroadcaster;
-    private final AnonymousListenerBroadcast<ComputationListener> computationBroadcaster;
+    private final ValueListener valueListener;
+    private final ComputationListener computationListener;
     private final IsolationScheme<ValueSource, ValueSourceParameters> isolationScheme = new IsolationScheme<>(ValueSource.class, ValueSourceParameters.class, ValueSourceParameters.None.class);
     private final InstanceGenerator paramsInstantiator;
     private final InstanceGenerator specInstantiator;
 
     public DefaultValueSourceProviderFactory(
-        ListenerManager listenerManager,
+        ValueListener valueListener,
+        ComputationListener computationListener,
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
         GradleProperties gradleProperties,
@@ -72,8 +71,8 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         ExecOperations execOperations,
         ServiceLookup services
     ) {
-        this.valueBroadcaster = listenerManager.createAnonymousBroadcaster(ValueListener.class);
-        this.computationBroadcaster = listenerManager.createAnonymousBroadcaster(ComputationListener.class);
+        this.valueListener = valueListener;
+        this.computationListener = computationListener;
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
         this.gradleProperties = gradleProperties;
@@ -103,26 +102,6 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         } catch (Exception e) {
             throw new GradleException(couldNotCreateProviderOf(valueSourceType), e);
         }
-    }
-
-    @Override
-    public void addValueListener(ValueListener listener) {
-        valueBroadcaster.add(listener);
-    }
-
-    @Override
-    public void removeValueListener(ValueListener listener) {
-        valueBroadcaster.remove(listener);
-    }
-
-    @Override
-    public void addComputationListener(ComputationListener listener) {
-        computationBroadcaster.add(listener);
-    }
-
-    @Override
-    public void removeComputationListener(ComputationListener listener) {
-        computationBroadcaster.remove(listener);
     }
 
     @Override
@@ -299,13 +278,13 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             this.parametersType = parametersType;
             this.parameters = parameters;
             this.value = calculatedValueFactory.create(Describables.of("ValueSource of type", sourceType), () -> {
-                    computationBroadcaster.getSource().beforeValueObtained();
+                    computationListener.beforeValueObtained();
                     try {
                         ValueSource<T, P> source = source();
                         sourceRef.set(source);
                         return source.obtain();
                     } finally {
-                        computationBroadcaster.getSource().afterValueObtained();
+                        computationListener.afterValueObtained();
                     }
                 }
             );
@@ -327,7 +306,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             Try<@Nullable T> obtained = value.getValue();
             if (obtainedFrom != null) {
                 // We are the first thread to see the obtained value. Let's tell the interested parties about it.
-                valueBroadcaster.getSource().valueObtained(obtainedValue(obtained), obtainedFrom);
+                valueListener.valueObtained(obtainedValue(obtained), obtainedFrom);
                 DisplayName displayName = null;
                 if (obtainedFrom instanceof Describable) {
                     displayName = Describables.of(((Describable) obtainedFrom).getDisplayName());

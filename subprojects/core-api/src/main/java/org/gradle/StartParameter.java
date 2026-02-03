@@ -26,6 +26,7 @@ import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
@@ -149,8 +150,24 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * {@inheritDoc}
      */
     @Override
+    public ConsoleUnicodeSupport getConsoleUnicodeSupport() {
+        return loggingConfiguration.getConsoleUnicodeSupport();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void setConsoleOutput(ConsoleOutput consoleOutput) {
         loggingConfiguration.setConsoleOutput(consoleOutput);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setConsoleUnicodeSupport(ConsoleUnicodeSupport unicodeSupport) {
+        loggingConfiguration.setConsoleUnicodeSupport(unicodeSupport);
     }
 
     /**
@@ -250,6 +267,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.gradleHomeDir = gradleHomeDir;
         p.setLogLevel(getLogLevel());
         p.setConsoleOutput(getConsoleOutput());
+        p.setConsoleUnicodeSupport(getConsoleUnicodeSupport());
         p.setShowStacktrace(getShowStacktrace());
         p.setWarningMode(getWarningMode());
         p.profile = profile;

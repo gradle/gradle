@@ -20,6 +20,7 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.DocLink
 import org.gradle.api.problems.FileLocation
 import org.gradle.api.problems.LineInFileLocation
@@ -68,6 +69,7 @@ class DefaultProblemsReportCreator(
     private val taskNames = startParameter.taskNames
     private val problemCount = AtomicInteger(0)
     private val failureDecorator = FailureDecorator()
+    private val warningMode = startParameter.warningMode
 
     override fun addProblem(problem: InternalProblem) {
         problemCount.incrementAndGet()
@@ -88,7 +90,7 @@ class DefaultProblemsReportCreator(
                 }
             }
         })
-        if (reportFile != null) {
+        if (reportFile != null && warningMode != WarningMode.None) {
             logger.warn(
                 "{}[Incubating] Problems report is available at: {}",
                 System.lineSeparator(),

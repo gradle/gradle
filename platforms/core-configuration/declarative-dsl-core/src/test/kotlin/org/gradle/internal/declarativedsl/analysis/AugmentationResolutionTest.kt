@@ -22,8 +22,11 @@ import org.gradle.internal.declarativedsl.analysis.ErrorReason.AugmentingAssignm
 import org.gradle.internal.declarativedsl.assertIs
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.AugmentationsProvider
+import org.gradle.internal.declarativedsl.schemaBuilder.LossySchemaBuildingOperation
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingContextElement
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
+import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelClass
+import org.gradle.internal.declarativedsl.schemaBuilder.orError
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaBuilder.withTag
 import org.junit.Assert.assertEquals
@@ -86,15 +89,20 @@ class AugmentationResolutionTest {
         override fun augmentations(host: SchemaBuildingHost): Map<FqName, List<AssignmentAugmentation>> =
             mapOf(DefaultFqName.parse(Data::class.qualifiedName!!) to listOf(DefaultAssignmentAugmentation(AssignmentAugmentationKindInternal.DefaultPlus, augmentationFunction(host))))
 
-        private fun augmentationFunction(host: SchemaBuildingHost) =
-            host.withTag(SchemaBuildingContextElement.TagContextElement("augmentation function")) {
-                DefaultDataTopLevelFunction(
-                    "com.example", "com.example.TestJvm", "augment", listOf(
-                        DefaultDataParameter("left", host.modelTypeRef(typeOf<Data>()), false, ParameterSemanticsInternal.DefaultUnknown),
-                        DefaultDataParameter("right", host.modelTypeRef(typeOf<Data>()), false, ParameterSemanticsInternal.DefaultUnknown)
-                    ), FunctionSemanticsInternal.DefaultPure(host.modelTypeRef(typeOf<Data>()))
-                )
+        private fun augmentationFunction(host: SchemaBuildingHost): DefaultDataTopLevelFunction {
+            host.inContextOfModelClass(TopLevelReceiver::class) {
+                @OptIn(LossySchemaBuildingOperation::class) // referencing a predefined type is safe
+                val dataType = host.modelTypeRef(typeOf<Data>()).orError()
+                return host.withTag(SchemaBuildingContextElement.TagContextElement("augmentation function")) {
+                    DefaultDataTopLevelFunction(
+                        "com.example", "com.example.TestJvm", "augment", listOf(
+                            DefaultDataParameter("left", dataType, false, ParameterSemanticsInternal.DefaultUnknown),
+                            DefaultDataParameter("right", dataType, false, ParameterSemanticsInternal.DefaultUnknown)
+                        ), FunctionSemanticsInternal.DefaultPure(dataType)
+                    )
+                }
             }
+        }
     })
 
 

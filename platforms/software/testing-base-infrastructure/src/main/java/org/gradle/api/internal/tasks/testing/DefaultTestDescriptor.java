@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import com.google.common.base.Strings;
 import org.gradle.api.internal.tasks.testing.source.DefaultNoSource;
 import org.gradle.api.tasks.testing.source.TestSource;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -54,7 +53,7 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
 
     @Override
     public String toString() {
-        return "Test " + getName() + (Strings.isNullOrEmpty(className) ? "" : ("(" + className + ")"));
+        return "Test " + getName() + ((className == null || className.isEmpty()) ? "" : ("(" + className + ")"));
     }
 
     @Override

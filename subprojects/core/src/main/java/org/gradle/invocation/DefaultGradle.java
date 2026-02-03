@@ -44,6 +44,7 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.invocation.GradleLifecycle;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -321,6 +322,10 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Inject
     @Override
     public abstract TaskExecutionGraphInternal getTaskGraph();
+
+    @Inject
+    @Override
+    public abstract ProviderFactory getProviders();
 
     @Override
     public ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener listener) {

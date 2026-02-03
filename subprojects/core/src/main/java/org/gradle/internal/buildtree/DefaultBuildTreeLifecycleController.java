@@ -15,17 +15,23 @@
  */
 package org.gradle.internal.buildtree;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.StartParameter;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.internal.Describables;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
+import org.gradle.internal.Try;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.buildtree.BuildTreeWorkController.TaskRunResult;
+import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.WorkTypeAware;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
@@ -82,25 +88,29 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
     public <T> T fromBuildModel(boolean runTasks, BuildTreeModelAction<? extends T> action) {
         return runBuild(() -> {
             modelCreator.beforeTasks(action);
+            ExecutionResult<Void> taskRunResult = ExecutionResult.succeeded();
             if (runTasks && isEligibleToRunTasks()) {
-                ExecutionResult<Void> result = runTasks();
-                if (!result.isSuccessful()) {
-                    return result.asFailure();
-                }
+                taskRunResult = runTasks();
             }
-            T model = modelCreator.fromBuildModel(action);
-            return ExecutionResult.succeeded(model);
+            // Allow model action to run even if tasks failed
+            ExecutionResult<T> modelResult = runFromBuildModel(action);
+            return modelResult.withFailures(taskRunResult);
         });
+    }
+
+    @SuppressWarnings("DataFlowIssue")
+    private <T> ExecutionResult<T> runFromBuildModel(BuildTreeModelAction<? extends T> action) {
+        Try<T> model = Try.ofFailable(() -> modelCreator.fromBuildModel(action));
+        return model.getFailure().isPresent()
+            ? ExecutionResult.failed(BuildActionExecutionException.wrap(model.getFailure().get()))
+            : ExecutionResult.succeeded(model.get());
     }
 
     private ExecutionResult<Void> runTasks() {
         TaskRunResult result = workController.scheduleAndRunRequestedTasks(null);
-        if (!result.getScheduleResult().isSuccessful() && buildModelParameters.isResilientModelBuilding()) {
-            // In resilient mode if scheduling fails, it means configuration failed. We don't propagate that failure,
-            // but we allow models to build. The configuration failure will be acquired from BuildState during model building.
-            return ExecutionResult.succeeded();
+        if (!result.getScheduleResult().isSuccessful()) {
+            return result.getScheduleResult();
         }
-
         return result.getExecutionResultOrThrow();
     }
 
@@ -141,5 +151,24 @@ public class DefaultBuildTreeLifecycleController implements BuildTreeLifecycleCo
 
             return result.getValue();
         });
+    }
+
+    @NullMarked
+    @Contextual
+    @VisibleForTesting
+    static class BuildActionExecutionException extends GradleException implements WorkTypeAware {
+
+        private BuildActionExecutionException(Throwable cause) {
+            super(cause.getMessage(), cause);
+        }
+
+        @Override
+        public String getWorkType() {
+            return "BuildAction";
+        }
+
+        public static BuildActionExecutionException wrap(Throwable throwable) {
+            return new BuildActionExecutionException(throwable);
+        }
     }
 }

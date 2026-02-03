@@ -20,12 +20,15 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.Cast;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolver;
+import org.gradle.internal.scripts.ScriptResolutionResult;
+import org.gradle.internal.scripts.ScriptResolutionResultReporter;
 import org.gradle.util.Path;
 import org.gradle.util.internal.NameValidator;
 import org.jspecify.annotations.Nullable;
@@ -45,24 +48,36 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
     private final PathToFileResolver fileResolver;
     private final ScriptFileResolver scriptFileResolver;
     private File dir;
+    @Nullable
     private File canonicalDir;
+    @Nullable
     private final ProjectDescriptorInternal parent;
     private final Set<ProjectDescriptorInternal> children = new LinkedHashSet<>();
     private ProjectDescriptorRegistry projectDescriptorRegistry;
     private Path path;
+    @Nullable
     private String buildFileName;
+    private final ScriptResolutionResultReporter scriptResolutionResultReporter;
 
     public DefaultProjectDescriptor(
-        @Nullable ProjectDescriptorInternal parent, String name, File dir,
-        ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver
+        @Nullable ProjectDescriptorInternal parent,
+        String name,
+        File dir,
+        ProjectDescriptorRegistry projectDescriptorRegistry,
+        PathToFileResolver fileResolver,
+        ProblemReporter problemReporter
     ) {
-        this(parent, name, dir, projectDescriptorRegistry, fileResolver, null);
+        this(parent, name, dir, projectDescriptorRegistry, fileResolver, null, problemReporter);
     }
 
     public DefaultProjectDescriptor(
-        @Nullable ProjectDescriptorInternal parent, String name, File dir,
-        ProjectDescriptorRegistry projectDescriptorRegistry, PathToFileResolver fileResolver,
-        @Nullable ScriptFileResolver scriptFileResolver
+        @Nullable ProjectDescriptorInternal parent,
+        String name,
+        File dir,
+        ProjectDescriptorRegistry projectDescriptorRegistry,
+        PathToFileResolver fileResolver,
+        @Nullable ScriptFileResolver scriptFileResolver,
+        ProblemReporter problemReporter
     ) {
         this.parent = parent;
         this.name = name;
@@ -78,6 +93,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
         if (parent != null) {
             parent.children().add(this);
         }
+        this.scriptResolutionResultReporter = new ScriptResolutionResultReporter(problemReporter);
     }
 
     private Path path(String name) {
@@ -174,11 +190,15 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
         if (buildFileName != null) {
             return new File(getProjectDir(), buildFileName);
         }
-        File buildScriptFile = scriptFileResolver.resolveScriptFile(getProjectDir(), BUILD_SCRIPT_BASENAME);
-        if (buildScriptFile != null) {
-            return buildScriptFile;
+        ScriptResolutionResult buildScriptFileResolution = scriptFileResolver.resolveScriptFile(getProjectDir(), BUILD_SCRIPT_BASENAME);
+        scriptResolutionResultReporter.reportResolutionProblemsOf(buildScriptFileResolution);
+
+        File selectedCandidate = buildScriptFileResolution.getSelectedCandidate();
+        if (selectedCandidate != null) {
+            return selectedCandidate;
+        } else {
+            return new File(getProjectDir(), Project.DEFAULT_BUILD_FILE);
         }
-        return new File(getProjectDir(), Project.DEFAULT_BUILD_FILE);
     }
 
     public ProjectDescriptorRegistry getProjectDescriptorRegistry() {

@@ -1,0 +1,41 @@
+// tag::do-this[]
+abstract class GreetingTask extends DefaultTask {
+    @Input
+    abstract Property<String> getType()
+    @OutputFile
+    abstract RegularFileProperty getOutputFile() // <1>
+
+    @TaskAction
+    void run() {
+        def message = "Hello " + type.get()
+        outputFile.get().asFile.text = message
+    }
+}
+
+abstract class ConsumerTask extends DefaultTask {
+    @InputFile
+    abstract RegularFileProperty getInputFile() // <2>
+    @OutputFile
+    abstract RegularFileProperty getOutputFile()
+
+    @TaskAction
+    void run() {
+        def message = inputFile.get().asFile.text
+        outputFile.get().asFile.write(message)
+    }
+}
+
+def greeterA = tasks.register("greeterA", GreetingTask) {
+    type = "a"
+    outputFile = layout.buildDirectory.dir("greetings").map { it.file("a.txt") } // <3>
+}
+tasks.register("greeterB", GreetingTask) {
+    type = "b"
+    outputFile = layout.buildDirectory.dir("greetings").map { it.file("b.txt") }
+}
+
+tasks.register("consumer", ConsumerTask) {
+    inputFile = greeterA.map { it.outputFile.get() } // <4>
+    outputFile = layout.buildDirectory.file("consumerOutput.txt")
+}
+// end::do-this[]

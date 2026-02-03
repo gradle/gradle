@@ -19,12 +19,18 @@ package org.gradle.initialization.properties
 import org.gradle.api.Project
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.initialization.Environment
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.initialization.properties.GradlePropertiesLoader.ENV_PROJECT_PROPERTIES_PREFIX
 import static org.gradle.initialization.properties.GradlePropertiesLoader.SYSTEM_PROJECT_PROPERTIES_PREFIX
 
 class DefaultGradlePropertiesLoaderTest extends Specification {
+
+    @Rule
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     private Map<String, String> prefixedEnvironmentVariables = [:]
     private Map<String, String> prefixedSystemProperties = [:]
@@ -47,11 +53,11 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
 
     def "load gradle.properties from Gradle home"() {
         given:
-        def gradleHomeDir = new File(".")
         def expectedProperties = ["gradleHomeProp": "gradle home value"]
+        def gradleHomeDir = tmpDir.createDir('gradle-home')
+        withGradlePropertiesIn(gradleHomeDir, expectedProperties)
 
         1 * startParameter.getGradleHomeDir() >> gradleHomeDir
-        1 * environment.propertiesFile(propertiesFileFromDir(gradleHomeDir)) >> expectedProperties
 
         when:
         def properties = gradlePropertiesLoader.loadFromGradleHome()
@@ -62,11 +68,11 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
 
     def "load gradle.properties from Gradle user home"() {
         given:
-        def gradleUserHomeDir = new File(".")
         def expectedProperties = ["gradleUserHomeProp": "gradle user home value"]
+        def gradleUserHomeDir = tmpDir.createDir("gradle-user-home")
+        withGradlePropertiesIn(gradleUserHomeDir, expectedProperties)
 
         1 * startParameter.getGradleUserHomeDir() >> gradleUserHomeDir
-        1 * environment.propertiesFile(propertiesFileFromDir(gradleUserHomeDir)) >> expectedProperties
 
         when:
         def properties = gradlePropertiesLoader.loadFromGradleUserHome()
@@ -77,10 +83,9 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
 
     def "load gradle.properties from custom directory"() {
         given:
-        def customDir = new File(".")
         def expectedProperties = ["customDirProp": "custom dir value"]
-
-        1 * environment.propertiesFile(propertiesFileFromDir(customDir)) >> expectedProperties
+        def customDir = tmpDir.createDir("custom-dir")
+        withGradlePropertiesIn(customDir, expectedProperties)
 
         when:
         def properties = gradlePropertiesLoader.loadFrom(customDir)
@@ -91,8 +96,7 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
 
     def "return empty map when gradle.properties file does not exist"() {
         given:
-        def customDir = new File("customDir")
-        1 * environment.propertiesFile(propertiesFileFromDir(customDir)) >> null
+        def customDir = tmpDir.createDir("customDir")
 
         when:
         def properties = gradlePropertiesLoader.loadFrom(customDir)
@@ -138,7 +142,7 @@ class DefaultGradlePropertiesLoaderTest extends Specification {
         properties["paramProp"] == "param value"
     }
 
-    private static File propertiesFileFromDir(File dir) {
-        new File(dir, Project.GRADLE_PROPERTIES)
+    private static void withGradlePropertiesIn(TestFile dir, Map<String, String> properties) {
+        dir.file(Project.GRADLE_PROPERTIES).writeProperties(properties)
     }
 }

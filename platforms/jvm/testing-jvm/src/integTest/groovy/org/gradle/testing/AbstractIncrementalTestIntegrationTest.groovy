@@ -185,8 +185,14 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
             }
         """.stripIndent()
 
-        buildFile << """
-            test.beforeTest { println "executed " + it }
+        buildFile """
+            class ExampleTestListener implements TestListener {
+                @Override
+                void beforeTest(TestDescriptor testDescriptor) {
+                    System.out.println("executed " + testDescriptor)
+                }
+            }
+            test.addTestListener(new ExampleTestListener())
         """
 
         when:

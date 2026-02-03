@@ -13,6 +13,7 @@ dependencies {
     api(projects.resources)
 
     api(libs.commonsHttpclient)
+    api(libs.guava)
     api(libs.httpcore)
     api(libs.jspecify)
 
@@ -22,13 +23,12 @@ dependencies {
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
-    implementation(libs.guava)
     implementation(libs.jcifs)
     implementation(libs.jsoup)
     implementation(libs.slf4jApi)
 
     testImplementation(projects.internalIntegTesting)
-    testImplementation(libs.jettyWebApp)
+    testImplementation(testLibs.jettyWebApp)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
 

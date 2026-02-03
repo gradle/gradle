@@ -17,7 +17,7 @@
 package org.gradle.internal.enterprise.impl;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.BuildType;
+import org.gradle.internal.buildtree.BuildActionModelRequirements;
 import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
 
 public class DefaultGradleEnterprisePluginConfig implements GradleEnterprisePluginConfig {
@@ -26,9 +26,13 @@ public class DefaultGradleEnterprisePluginConfig implements GradleEnterprisePlug
     private final boolean taskExecutingBuild;
     private final boolean autoApplied;
 
-    public DefaultGradleEnterprisePluginConfig(StartParameter startParameter, BuildType buildType, GradleEnterprisePluginAutoAppliedStatus autoAppliedStatus) {
+    public DefaultGradleEnterprisePluginConfig(
+        BuildActionModelRequirements requirements,
+        StartParameter startParameter,
+        GradleEnterprisePluginAutoAppliedStatus autoAppliedStatus
+    ) {
         this.buildScanRequest = buildScanRequest(startParameter);
-        this.taskExecutingBuild = buildType == BuildType.TASKS;
+        this.taskExecutingBuild = requirements.isRunsTasks();
         this.autoApplied = autoAppliedStatus.isAutoApplied();
     }
 

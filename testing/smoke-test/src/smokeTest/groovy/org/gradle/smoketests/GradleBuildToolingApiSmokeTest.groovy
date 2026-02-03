@@ -21,6 +21,7 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
+import org.gradle.tooling.model.build.Help
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 import org.gradle.tooling.model.gradle.BuildInvocations
@@ -64,7 +65,8 @@ class GradleBuildToolingApiSmokeTest extends AbstractGradleceptionSmokeTest {
                 GradleProject,
                 HierarchicalEclipseProject,
                 IdeaProject,
-                ProjectPublications
+                ProjectPublications,
+                Help
             ]
         ].combinations()
     }

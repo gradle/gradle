@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerParameters;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerWorkerExecutor;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
@@ -49,7 +50,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
     }
 
     @Override
-    protected CompilerWorkerExecutor.CompilerParameters getCompilerParameters(JavaCompileSpec spec) {
+    protected CompilerParameters getCompilerParameters(JavaCompileSpec spec) {
         return new JavaCompilerParameters(JdkJavaCompiler.class.getName(), new Object[]{javaCompilerFactory}, spec);
     }
 
@@ -101,17 +102,4 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
             .build();
     }
 
-    public static class JavaCompilerParameters extends CompilerWorkerExecutor.CompilerParameters {
-        private final JavaCompileSpec compileSpec;
-
-        public JavaCompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, JavaCompileSpec compileSpec) {
-            super(compilerClassName, compilerInstanceParameters);
-            this.compileSpec = compileSpec;
-        }
-
-        @Override
-        public JavaCompileSpec getCompileSpec() {
-            return compileSpec;
-        }
-    }
 }

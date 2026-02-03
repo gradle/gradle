@@ -86,7 +86,7 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         settingsFile.createFile()
 
         when:
-        configurationCacheRun("help", "-d", "-Dorg.gradle.configuration-cache.internal.parallel-store=false")
+        configurationCacheRun("help", "-d", "-Dorg.gradle.internal.configuration-cache.parallel-store=false")
 
         then:
         output.contains("[org.gradle.configurationcache] saving task graph sequentially")
@@ -98,7 +98,7 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         settingsFile.createFile()
 
         when:
-        configurationCacheRun("help", "-d", "-Dorg.gradle.configuration-cache.internal.parallel-load=false")
+        configurationCacheRun("help", "-d", "-Dorg.gradle.internal.configuration-cache.parallel-load=false")
 
         then:
         output.contains("[org.gradle.configurationcache] saving task graph in parallel")
@@ -124,7 +124,7 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
 
         when:
         run("-D${StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME}=true", "help", "-d",
-            "-Dorg.gradle.configuration-cache.internal.parallel-store=false")
+            "-Dorg.gradle.internal.configuration-cache.parallel-store=false")
 
         then:
         outputDoesNotContain("Parallel Configuration Cache is an incubating feature.")

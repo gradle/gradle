@@ -36,7 +36,7 @@ public abstract class DirectoryInitScriptFinder implements InitScriptFinder {
 
     @Nullable
     protected File resolveScriptFile(File dir, String basename) {
-        return resolver().resolveScriptFile(dir, basename);
+        return resolver().resolveScriptFile(dir, basename).getSelectedCandidate();
     }
 
     private List<File> initScriptsIn(File initScriptsDir) {

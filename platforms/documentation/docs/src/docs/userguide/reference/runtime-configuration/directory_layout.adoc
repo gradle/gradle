@@ -38,14 +38,14 @@ It is roughly structured as follows:
 ----
 ├── caches              // <1>
 │   ├── 4.8         // <2>
-│   ├── 4.9             // <2>
+│   ├── 9.2.0             // <2>
 │   ├── ⋮
 │   ├── jars-3      // <3>
 │   └── modules-2       // <3>
 ├── daemon          // <4>
 │   ├── ⋮
 │   ├── 4.8
-│   └── 4.9
+│   └── 9.2.0
 ├── init.d              // <5>
 │   └── my-setup.gradle
 ├── jdks                // <6>
@@ -55,8 +55,8 @@ It is roughly structured as follows:
 │   └── dists           // <7>
 │       ├── ⋮
 │       ├── gradle-4.8-bin
-│       ├── gradle-4.9-all
-│       └── gradle-4.9-bin
+│       ├── gradle-9.2.0-all
+│       └── gradle-9.2.0-bin
 └── gradle.properties   // <8>
 ----
 <1> Global cache directory (for everything that is not project-specific).
@@ -91,13 +91,16 @@ Depending on whether the file can be recreated locally or downloaded from a remo
 - Gradle distributions in `wrapper/dists/` are checked for whether they are still in use, i.e., whether there's a corresponding version-specific cache directory.
 +
 Unused distributions are deleted.
+- Daemon log files in `daemon/<GRADLE_VERSION>/` directories are checked for their last modification time.
++
+Log files older than 14 days are automatically deleted to prevent the daemon directory from growing indefinitely.
 
 [[dir:gradle_user_home:configure_cache_cleanup]]
 ==== Configuring cleanup of caches and distributions
 
 The retention periods of the various caches can be configured.
 
-Caches are classified into five categories:
+Caches are classified into six categories:
 
 1. *Released wrapper distributions:* Distributions and related version-specific caches corresponding to released versions (e.g., `4.6.2` or `8.0`).
 +
@@ -114,6 +117,9 @@ Default retention for unused resources is 7 days.
 5. *Build cache:* The local build cache (e.g., build-cache-1).
 +
 Default retention for unused build cache entries is 7 days.
+6. *Daemon logs:* Log files from Gradle Daemon processes in `daemon/<GRADLE_VERSION>/` directories.
++
+Default retention for daemon logs is 14 days.
 
 The retention period for each category can be configured independently via an <<init_scripts.adoc#init_scripts,init script>> in the Gradle User Home:
 

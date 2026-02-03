@@ -5,5 +5,6 @@ beforeSettings { settings ->
         downloadedResources.removeUnusedEntriesAfterDays = 45
         createdResources.removeUnusedEntriesAfterDays = 10
         buildCache.removeUnusedEntriesAfterDays = 5
+        daemonLogs.removeUnusedEntriesAfterDays = 14
     }
 }

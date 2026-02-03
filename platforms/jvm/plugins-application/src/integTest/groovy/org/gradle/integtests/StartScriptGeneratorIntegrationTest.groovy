@@ -51,6 +51,7 @@ class StartScriptGeneratorIntegrationTest extends AbstractIntegrationSpec {
                 def generate() {
                     def generator = new ${StartScriptGenerator.class.getName()}()
                     generator.setApplicationName("Jar Starter")
+                    generator.setGitRef("6c9eca778c871a6310d2c3f2c3d3f8e67a915538")
                     generator.setOptsEnvironmentVar("JAR_STARTER_OPTS")
                     generator.setExitEnvironmentVar("JAR_STARTER_EXIT")
                     // The jar is at <output dir>/main.jar

@@ -9,7 +9,6 @@ dependencies {
     api(projects.buildOperations)
     api(projects.hashing)
     api(projects.baseServices)
-    api(projects.messaging)
     api(projects.native)
 
     api(libs.jspecify)

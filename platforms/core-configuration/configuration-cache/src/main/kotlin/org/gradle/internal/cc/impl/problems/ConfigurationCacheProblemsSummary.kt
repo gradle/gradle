@@ -64,23 +64,32 @@ class ConfigurationCacheProblemsSummary(
     val maxCollectedProblems: Int = 4096
 
 ) {
-    /**
-     * Reported more problems than can be collected.
-     */
-    private
-    var overflowed: Boolean = false
-
     private
     var totalProblemCount: Int = 0
 
+    /**
+     * Non-fatal problems.
+     */
     private
     var deferredProblemCount: Int = 0
 
+    /**
+     * Problems reported by CC-incompatible tasks.
+     */
     private
     var suppressedProblemCount: Int = 0
 
+    /**
+     * Problems reported under graceful degradation.
+     */
     private
     var suppressedSilentlyProblemCount: Int = 0
+
+    /**
+     * Problems reported beyond what could be collected.
+     */
+    private
+    var overflownProblemCount: Int = 0
 
     private
     var incompatibleTasksCount: Int = 0
@@ -115,9 +124,9 @@ class ConfigurationCacheProblemsSummary(
             reportUniqueProblemCount = problemCauses.size,
             deferredProblemCount = deferredProblemCount,
             consoleProblemCount = totalProblemCount - suppressedSilentlyProblemCount,
+            overflownProblemCount = overflownProblemCount,
             consoleProblemCauses = problemCausesForConsole(),
             originalProblemExceptions = ImmutableList.copyOf(originalProblemExceptions),
-            overflowed = overflowed,
             maxCollectedProblems = maxCollectedProblems,
             incompatibleTasksCount = incompatibleTasksCount,
             incompatibleFeatureCount = incompatibleFeatureCount
@@ -152,13 +161,9 @@ class ConfigurationCacheProblemsSummary(
                 ProblemSeverity.SuppressedSilently -> suppressedSilentlyProblemCount += 1
                 ProblemSeverity.Interrupting -> {}
             }
-            if (overflowed) {
-                // we already overflowed during a previous problem
-                return false
-            }
             if (problemCauses.size == maxCollectedProblems) {
-                // we are overflowing now
-                overflowed = true
+                // we are no longer collecting problems due to overflow
+                overflownProblemCount += 1
                 return false
             }
             val isNewCause = recordProblemCause(problem, severity)
@@ -247,14 +252,11 @@ class Summary(
     /**
      * Count of problems that should appear in the HTML report.
      */
-    @get:VisibleForTesting
-    internal
     val reportUniqueProblemCount: Int,
 
-    val originalProblemExceptions: List<Throwable>,
+    val overflownProblemCount: Int,
 
-    internal
-    val overflowed: Boolean,
+    val originalProblemExceptions: List<Throwable>,
 
     private
     val maxCollectedProblems: Int,
@@ -270,6 +272,9 @@ class Summary(
     private
     val incompatibleFeatureCount: Int
 ) {
+    @VisibleForTesting
+    internal
+    val overflowed: Boolean get() = overflownProblemCount > 0
 
     @VisibleForTesting
     internal

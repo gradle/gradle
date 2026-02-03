@@ -81,7 +81,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 configurations = listOf(),
                 modelDefaults = listOf(),
                 projectFeatureEntries = emptyList(),
-                containerElementFactories = listOf()
+                containerElementFactories = listOf(),
+                nestedModelEntries = listOf()
             )
 
         val function0 = mock<() -> Unit>()
@@ -141,7 +142,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 ),
                 modelDefaults = listOf(),
                 projectFeatureEntries = emptyList(),
-                containerElementFactories = listOf()
+                containerElementFactories = listOf(),
+                nestedModelEntries = listOf()
             )
 
         val srcDir = newFolder("src")
@@ -215,7 +217,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     configurations = listOf(),
                     modelDefaults = listOf(),
                     projectFeatureEntries = emptyList(),
-                    containerElementFactories = listOf()
+                    containerElementFactories = listOf(),
+                    nestedModelEntries = listOf()
                 )
 
             val srcDir = newFolder("src")
@@ -293,7 +296,8 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 configurations = listOf(ConfigurationEntry("api")),
                 modelDefaults = listOf(),
                 projectFeatureEntries = emptyList(),
-                containerElementFactories = listOf()
+                containerElementFactories = listOf(),
+                nestedModelEntries = listOf()
             )
 
         val apiConfiguration = mock<NamedDomainObjectProvider<Configuration>>()

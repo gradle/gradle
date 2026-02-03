@@ -20,9 +20,12 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
+import java.util.function.Consumer
+
 @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperUserHomeIntegrationTest extends AbstractWrapperIntegrationSpec {
-    void 'uses gradle user home set by -Dgradle.user.home'() {
+
+    def 'uses gradle user home set by -Dgradle.user.home'() {
         given:
         prepareWrapper().run()
         def gradleUserHome = testDirectory.file('some-custom-user-home')
@@ -37,7 +40,7 @@ class WrapperUserHomeIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     @Issue('https://issues.gradle.org/browse/GRADLE-2802')
-    void 'uses gradle user home set by -g'() {
+    def 'uses gradle user home set by -g'() {
         given:
         prepareWrapper().run()
         def gradleUserHome = testDirectory.file('some-custom-user-home')
@@ -49,5 +52,59 @@ class WrapperUserHomeIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         installationIn gradleUserHome
+    }
+
+    def 'uses gradle user home in gradle.properties via a system property'() {
+        given:
+        prepareWrapper().run()
+        def gradleUserHome = testDirectory.file('some-custom-user-home')
+        writeProperties(testDirectory.file('gradle.properties')) { props ->
+            props.setProperty('systemProp.gradle.user.home', gradleUserHome.absolutePath)
+        }
+
+        when:
+        wrapperExecuter.withGradleUserHomeDir(null).run()
+
+        then:
+        installationIn gradleUserHome
+    }
+
+    def 'command-line gradle user home configuration has precedence'() {
+        given:
+        prepareWrapper().run()
+        def userGradleUserHome = testDirectory.file('user-custom-user-home')
+        def cmdGradleUserHome = testDirectory.file('cmd-custom-user-home')
+        writeProperties(testDirectory.file('gradle.properties')) { props ->
+            props.setProperty('systemProp.gradle.user.home', userGradleUserHome.absolutePath)
+        }
+
+        when:
+        wrapperExecuter.withGradleUserHomeDir(null).withArguments('-g', cmdGradleUserHome.absolutePath).run()
+
+        then:
+        installationIn cmdGradleUserHome
+    }
+
+    def 'ignores gradle user home system property declared in gradle user home'() {
+        given:
+        prepareWrapper().run()
+        def gradleUserHome = testDirectory.file('some-custom-user-home')
+        gradleUserHome.mkdirs()
+        def userGradleProperties = new File(gradleUserHome, 'gradle.properties')
+        userGradleProperties.text = 'systemProp.gradle.user.home=missingLocation'
+
+        when:
+        def res = wrapperExecuter.withGradleUserHomeDir(null).withArguments('-g', gradleUserHome.absolutePath).run()
+
+        then:
+        res.assertOutputContains("WARNING Ignored custom Gradle user home location configured in Gradle user home: ${userGradleProperties.absolutePath}")
+    }
+
+    private static def writeProperties(File target, Consumer<Properties> config) {
+        Properties props = new Properties()
+        config.accept(props)
+        try (OutputStream out = new FileOutputStream(target)) {
+            props.store(out, null);
+        }
     }
 }

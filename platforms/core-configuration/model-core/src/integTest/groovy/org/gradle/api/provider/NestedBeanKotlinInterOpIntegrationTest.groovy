@@ -26,7 +26,6 @@ import org.gradle.api.tasks.TaskAction
 class NestedBeanKotlinInterOpIntegrationTest extends AbstractNestedBeanLanguageInterOpIntegrationTest {
     def setup() {
         usesKotlin(pluginDir)
-        executer.withStackTraceChecksDisabled()
         pluginDir.file("src/main/kotlin/Params.kt") << """
             import ${Property.name}
             import ${Internal.name}

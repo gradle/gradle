@@ -75,7 +75,7 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
 
     public BlockingHttpServer(int timeoutMs) throws IOException {
         // Use an OS selected port
-        this(HttpServer.create(new InetSocketAddress(0), 10), timeoutMs, Scheme.HTTP);
+        this(HttpServer.create(new InetSocketAddress(0), 100), timeoutMs, Scheme.HTTP);
     }
 
     public void setHostAlias(String hostAlias) {
@@ -352,6 +352,17 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
      * Is not considered "complete" until all expected calls have been received.
      */
     public BlockingHandler expectConcurrentAndBlock(int concurrent, ExpectedRequest... expectedRequests) {
+        List<ResourceExpectation> expectations = new ArrayList<>();
+        for (ExpectedRequest request : expectedRequests) {
+            expectations.add((ResourceExpectation) request);
+        }
+        return addBlockingHandler(concurrent, expectations);
+    }
+
+    /**
+     * {@link #expectConcurrentAndBlock(int, ExpectedRequest...)}, but accepts a collection.
+     */
+    public BlockingHandler expectConcurrentAndBlock(int concurrent, Collection<ExpectedRequest> expectedRequests) {
         List<ResourceExpectation> expectations = new ArrayList<>();
         for (ExpectedRequest request : expectedRequests) {
             expectations.add((ResourceExpectation) request);

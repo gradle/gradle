@@ -23,55 +23,48 @@ import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.internal.work.NoAvailableWorkerLeaseException
 import org.gradle.internal.work.ResourceLockStatistics
-import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import spock.lang.Timeout
+
+import java.util.concurrent.CountDownLatch
 
 class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec {
     WorkerLeaseService workerRegistry
     BuildOperationExecutor buildOperationExecutor
-    WorkerLeaseRegistry.WorkerLeaseCompletion outerOperationCompletion
-    WorkerLeaseRegistry.WorkerLease outerOperation
 
-    def setupBuildOperationExecutor(int maxThreads) {
-        def workerLimits = new DefaultWorkerLimits(maxThreads)
+    def setupBuildOperationExecutor(int maxWorkers) {
+        def workerLimits = new DefaultWorkerLimits(maxWorkers)
         workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), workerLimits, ResourceLockStatistics.NO_OP)
         workerRegistry.startProjectExecution(true)
         buildOperationExecutor = BuildOperationExecutorSupport.builder(workerLimits).withWorkerLeaseService(workerRegistry).build()
-        outerOperationCompletion = workerRegistry.startWorker()
-        outerOperation = workerRegistry.getCurrentWorkerLease()
     }
 
     static class SimpleWorker implements BuildOperationWorker<DefaultBuildOperationQueueTest.TestBuildOperation> {
         void execute(DefaultBuildOperationQueueTest.TestBuildOperation run, BuildOperationContext context) { run.run(context) }
     }
 
-    def "cleanup"() {
-        if (outerOperationCompletion) {
-            outerOperationCompletion.leaseFinish()
-            workerRegistry.stop()
-        }
-    }
-
-    def "all #operations operations run to completion when using #maxThreads threads"() {
+    def "all #operations operations run to completion when using #maxWorkers threads"() {
         given:
-        setupBuildOperationExecutor(maxThreads)
+        setupBuildOperationExecutor(maxWorkers)
         def operation = Spy(DefaultBuildOperationQueueTest.Success)
         def worker = new SimpleWorker()
 
         when:
-        buildOperationExecutor.runAll(worker, { queue ->
-            operations.times { queue.add(operation) }
-        })
+        workerRegistry.runAsWorkerThread {
+            buildOperationExecutor.runAll(worker, { queue ->
+                operations.times { queue.add(operation) }
+            })
+        }
 
         then:
         operations * operation.run(_)
 
         where:
-        // Where operations < maxThreads
-        // operations = maxThreads
-        // operations >> maxThreads
-        operations | maxThreads
+        // Where operations < maxWorkers
+        // operations = maxWorkers
+        // operations >> maxWorkers
+        operations | maxWorkers
         0          | 1
         1          | 1
         20         | 1
@@ -80,11 +73,95 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         20         | 4
     }
 
-    def "all work run to completion for multiple queues when using multiple threads #maxThreads"() {
+    @Timeout(20)
+    def "unbounded executions to not block worker executions"() {
+        int maxWorkers = 4 // Some arbitrary number
+        setupBuildOperationExecutor(maxWorkers)
+        CountDownLatch started = new CountDownLatch(maxWorkers - 1)
+        CountDownLatch constrainedExecuted = new CountDownLatch(2)
+
+        // Start `maxWorkers - 1` number of blocking operations
+        workerThread {
+            buildOperationExecutor.runAll(queue -> { // Block until all operations have executed
+                (maxWorkers - 1).times {
+                    queue.add(new RunnableBuildOperation() {
+                        @Override
+                        void run(BuildOperationContext context) throws Exception {
+                            started.countDown() // We've captured a worker lease
+                            constrainedExecuted.await() // Wait until the constrained operation has executed
+                        }
+
+                        @Override
+                        BuildOperationDescriptor.Builder description() {
+                            return BuildOperationDescriptor.displayName("foo")
+                        }
+                    })
+                }
+            }, BuildOperationConstraint.UNCONSTRAINED)
+        }
+
+        started.await() // We've started `maxWorkers - 1` unconstrained operations
+
+        // Try to run 2 more constrained operations
+        workerRegistry.runAsWorkerThread {
+            buildOperationExecutor.runAll(queue -> {
+            2.times {
+                queue.add(new RunnableBuildOperation() {
+                    @Override
+                    void run(BuildOperationContext context) throws Exception {
+                        constrainedExecuted.countDown()
+                        constrainedExecuted.await()
+                    }
+
+                    @Override
+                    BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName("bar")
+                    }
+                })
+            }
+            }, BuildOperationConstraint.MAX_WORKERS)
+        }
+
+        expect:
+        constrainedExecuted.await()
+    }
+
+    def "can concurrently execute more unconstrained operations than there are worker leases"() {
+        int maxWorkers = 4 // Some arbitrary number
+        int numUnconstrainedOperations = DefaultBuildOperationExecutor.MIN_UNCONSTRAINED_EXECUTOR_PARALLELISM
+        assert numUnconstrainedOperations > maxWorkers
+
+        setupBuildOperationExecutor(maxWorkers)
+        CountDownLatch started = new CountDownLatch(numUnconstrainedOperations)
+
+        workerRegistry.runAsWorkerThread {
+            buildOperationExecutor.runAll(queue -> {
+                // Add more operations than there are worker leases
+                numUnconstrainedOperations.times {
+                    queue.add(new RunnableBuildOperation() {
+                        @Override
+                        void run(BuildOperationContext context) throws Exception {
+                            started.countDown() // We've captured a worker lease
+                            started.await() // Wait until all operations have started
+                        }
+
+                        @Override
+                        BuildOperationDescriptor.Builder description() {
+                            return BuildOperationDescriptor.displayName("foo")
+                        }
+                    })
+                }
+            }, BuildOperationConstraint.UNCONSTRAINED)
+        }
+
+        expect:
+        started.await()
+    }
+
+    def "all work run to completion for multiple queues when using multiple threads #maxWorkers"() {
         given:
         def amountOfWork = 10
-        setupBuildOperationExecutor(maxThreads)
-        outerOperationCompletion.leaseFinish() // The work of this test is done by other threads
+        setupBuildOperationExecutor(maxWorkers)
         def worker = new SimpleWorker()
         def numberOfQueues = 5
         def operations = [
@@ -114,14 +191,14 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         }
 
         where:
-        maxThreads << [1, 4, 10]
+        maxWorkers << [1, 4, 10]
     }
 
     def "failures in one queue do not cause failures in other queues"() {
         given:
         def amountOfWork = 10
-        def maxThreads = 4
-        setupBuildOperationExecutor(maxThreads)
+        def maxWorkers = 4
+        setupBuildOperationExecutor(maxWorkers)
         def success = new DefaultBuildOperationQueueTest.Success()
         def failure = new DefaultBuildOperationQueueTest.Failure()
         def worker = new SimpleWorker()
@@ -172,9 +249,11 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         }
 
         when:
-        buildOperationExecutor.runAll(worker, { queue ->
-            threadCount.times { queue.add(operation) }
-        })
+        workerRegistry.runAsWorkerThread {
+            buildOperationExecutor.runAll(worker, { queue ->
+                threadCount.times { queue.add(operation) }
+            })
+        }
 
         then:
         def e = thrown(MultipleBuildOperationFailures)
@@ -245,9 +324,12 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         def operation = Spy(DefaultBuildOperationQueueTest.Success)
 
         when:
-        buildOperationExecutor.runAll({ queue ->
-            5.times { queue.add(operation) }
-        })
+
+        workerRegistry.runAsWorkerThread {
+            buildOperationExecutor.runAll({ queue ->
+                5.times { queue.add(operation) }
+            })
+        }
 
         then:
         5 * operation.run(_)
@@ -259,11 +341,9 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         def operation = Spy(DefaultBuildOperationQueueTest.Success)
 
         when:
-        async {
-            buildOperationExecutor.runAll({ queue ->
-                5.times { queue.add(operation) }
-            })
-        }
+        buildOperationExecutor.runAll({ queue ->
+            5.times { queue.add(operation) }
+        })
 
         then:
         thrown(NoAvailableWorkerLeaseException)

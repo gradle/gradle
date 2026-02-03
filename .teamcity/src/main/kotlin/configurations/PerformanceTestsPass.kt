@@ -29,14 +29,14 @@ class PerformanceTestsPass(
     model: CIBuildModel,
     performanceTestProject: PerformanceTestProject,
 ) : OsAwareBaseGradleBuildType(
-        os = performanceTestProject.spec.os,
+        os = Os.LINUX,
         failStage = performanceTestProject.spec.failsStage,
         init = {
             id("${performanceTestProject.spec.asConfigurationId(model)}_Trigger")
             val performanceTestSpec = performanceTestProject.spec
             name = performanceTestProject.name + " (Trigger)"
 
-            val os = Os.LINUX
+            val os = os
             val type = performanceTestSpec.type
 
             applyDefaultSettings(os)

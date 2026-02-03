@@ -289,7 +289,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         withConnection {
             it.newBuild()
                 .forTasks(":reportProblem")
-                .setJavaHome(AvailableJavaHomes.differentJdk.javaHome)
+                .setJavaHome(AvailableJavaHomes.differentVersion.javaHome)
                 .addProgressListener(listener)
                 .run()
         }

@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.JarUtils
 import org.gradle.util.internal.DefaultGradleVersion
+import org.gradle.api.internal.cache.DefaultCacheConfigurations
 
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -87,19 +88,23 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
     }
 
     void withReleasedWrappersRetentionInDays(int days) {
-        withCacheRetentionInDays(days, "releasedWrappers")
+        withCacheRetentionInDays(days, DefaultCacheConfigurations.RELEASED_WRAPPERS)
+    }
+
+    void withDaemonLogRetentionInDays(int days) {
+        withCacheRetentionInDays(days, DefaultCacheConfigurations.DAEMON_LOGS)
     }
 
     void withCreatedResourcesRetentionInDays(int days) {
-        withCacheRetentionInDays(days, "createdResources")
+        withCacheRetentionInDays(days, DefaultCacheConfigurations.CREATED_RESOURCES)
     }
 
     void withDownloadedResourcesRetentionInDays(int days) {
-        withCacheRetentionInDays(days, "downloadedResources")
+        withCacheRetentionInDays(days, DefaultCacheConfigurations.DOWNLOADED_RESOURCES)
     }
 
     void withBuildCacheRetentionInDays(int days) {
-        withCacheRetentionInDays(days, "buildCache")
+        withCacheRetentionInDays(days, DefaultCacheConfigurations.BUILD_CACHE)
     }
 
     void withCacheRetentionInDays(int days, String resources) {
