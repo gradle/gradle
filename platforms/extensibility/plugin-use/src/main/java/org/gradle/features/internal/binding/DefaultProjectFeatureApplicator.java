@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.software.internal;
+package org.gradle.features.internal.binding;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Plugin;
@@ -23,11 +23,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.features.internal.binding.ModelDefaultsApplicator;
-import org.gradle.features.internal.binding.ProjectFeatureApplicator;
-import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
-import org.gradle.features.internal.binding.ProjectFeatureImplementation;
-import org.gradle.features.internal.binding.ProjectFeatureSupportInternal;
 import org.gradle.features.internal.file.DefaultProjectFeatureLayout;
 import org.gradle.features.file.ProjectFeatureLayout;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -36,7 +31,6 @@ import org.gradle.features.binding.BuildModel;
 import org.gradle.features.binding.Definition;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.features.binding.ProjectFeatureApplicationContext;
-import org.gradle.features.internal.binding.ProjectFeatureBindingDeclaration;
 import org.gradle.features.registration.ConfigurationRegistrar;
 import org.gradle.features.internal.registration.DefaultConfigurationRegistrar;
 import org.gradle.features.internal.registration.DefaultTaskRegistrar;
@@ -186,7 +180,7 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
      * The internal implementation of the context passed to project feature apply actions, exposing an object factory
      * appropriate for the configured safety of the apply action.
      */
-    abstract static class DefaultProjectFeatureApplicationContextInternal implements ProjectFeatureApplicationContextInternal {
+    abstract static class DefaultProjectFeatureApplicationContextInternal implements org.gradle.features.internal.binding.ProjectFeatureApplicationContextInternal {
         private final ObjectFactory objectFactory;
 
         @Inject

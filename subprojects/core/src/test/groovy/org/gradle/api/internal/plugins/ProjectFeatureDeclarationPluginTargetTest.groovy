@@ -19,10 +19,10 @@ package org.gradle.api.internal.plugins
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.features.binding.BindsProjectFeature
-import org.gradle.features.binding.BindsProjectType
-import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.features.annotations.BindsProjectFeature
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.features.annotations.RegistersSoftwareTypes
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.properties.annotations.TypeMetadata

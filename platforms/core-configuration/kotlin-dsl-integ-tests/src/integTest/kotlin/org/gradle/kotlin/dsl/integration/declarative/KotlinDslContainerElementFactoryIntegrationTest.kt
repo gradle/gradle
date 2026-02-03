@@ -20,7 +20,7 @@ import org.gradle.api.Namer
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.features.binding.BindsProjectType
+import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 import org.gradle.features.binding.ProjectTypeBinding

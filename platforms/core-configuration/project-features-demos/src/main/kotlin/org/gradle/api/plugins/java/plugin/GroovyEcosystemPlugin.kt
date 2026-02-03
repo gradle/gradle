@@ -18,7 +18,7 @@ package org.gradle.api.plugins.java.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.features.annotations.RegistersSoftwareTypes
 
 @RegistersSoftwareTypes(GroovyProjectTypePlugin::class)
 class GroovyEcosystemPlugin : Plugin<Settings> {

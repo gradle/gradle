@@ -20,13 +20,13 @@ dependencies {
     api(projects.serviceLookup)
 
     api(libs.guava)
-    api(libs.inject)
     api(libs.jspecify)
 
     implementation(projects.functional)
     implementation(projects.jvmServices)
     implementation(projects.modelReflect)
 
+    implementation(libs.inject)
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.resourcesHttp))

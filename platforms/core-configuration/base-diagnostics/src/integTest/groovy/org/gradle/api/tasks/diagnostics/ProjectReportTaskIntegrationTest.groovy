@@ -15,12 +15,12 @@
  */
 package org.gradle.api.tasks.diagnostics
 
-import org.gradle.features.binding.BindsProjectType
+import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
-import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
+import org.gradle.features.annotations.RegistersProjectFeatures
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.declarativedsl.settings.ProjectTypeFixture

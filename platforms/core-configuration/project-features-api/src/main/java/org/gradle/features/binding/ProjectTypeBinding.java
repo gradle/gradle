@@ -17,6 +17,7 @@
 package org.gradle.features.binding;
 
 import org.gradle.api.Incubating;
+import org.gradle.features.annotations.BindsProjectType;
 
 /**
  * A registration action for configuring a project type binding.  Instances of this interface should be

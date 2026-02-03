@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins.software;
+package org.gradle.features.annotations;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Plugin;
-import org.gradle.api.Project;
+import org.gradle.features.binding.ProjectTypeBinding;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -26,18 +25,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a Settings plugin as registering one or more project features.
+ * Annotation that can be applied to project plugins to register a {@link ProjectTypeBinding}.
  *
- * @since 9.2.0
+ * @since 9.5.0
  */
 @Incubating
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RegistersProjectFeatures {
+public @interface BindsProjectType {
     /**
-     * The {@link Project} plugins that provide the project features.
+     * The project type binding class to use.
      *
-     * @since 8.9
+     * @since 9.5.0
      */
-    Class<? extends Plugin<Project>>[] value();
+    Class<? extends ProjectTypeBinding> value();
 }

@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.integration.declarative
 
 import org.gradle.features.registration.TaskRegistrar
-import org.gradle.features.binding.BindsProjectType
+import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 import org.gradle.features.binding.ProjectTypeBinding

@@ -26,9 +26,9 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.gradle.features.binding.BindsProjectFeature
-import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.features.annotations.BindsProjectFeature
+import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.features.annotations.RegistersSoftwareTypes
 
 trait ProjectFeatureFixture extends ProjectTypeFixture {
     PluginBuilder withProjectFeature(ProjectTypeDefinitionClassBuilder projectTypeDefinition, ProjectTypePluginClassBuilder projectType, ProjectFeatureDefinitionClassBuilder projectFeatureDefinition, ProjectFeaturePluginClassBuilder projectFeature, SettingsPluginClassBuilder settingsBuilder) {

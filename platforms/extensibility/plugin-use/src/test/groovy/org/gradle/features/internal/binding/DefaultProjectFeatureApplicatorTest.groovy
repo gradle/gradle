@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.software.internal
+package org.gradle.features.internal.binding
 
 import org.gradle.api.Plugin
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -33,11 +33,6 @@ import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.internal.Cast
-import org.gradle.features.internal.binding.BoundProjectFeatureImplementation
-import org.gradle.features.internal.binding.ModelDefaultsApplicator
-import org.gradle.features.internal.binding.ProjectFeatureDeclarations
-import org.gradle.features.internal.binding.ProjectFeatureSupportInternal
-import org.gradle.features.internal.binding.ProjectFeaturesDynamicObject
 import org.gradle.internal.extensibility.ExtensibleDynamicObject
 import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.service.ServiceLookup

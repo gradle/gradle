@@ -16,7 +16,8 @@
 
 package org.gradle.kotlin.dsl.dcl
 
-import org.gradle.features.binding.BindsProjectType
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.annotations.RegistersSoftwareTypes
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 import org.gradle.features.binding.ProjectTypeBinding
@@ -79,9 +80,9 @@ class DeprecationInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest()
 
                 import org.gradle.api.Plugin
                 import org.gradle.api.initialization.Settings
-                import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+                import ${RegistersSoftwareTypes::class.qualifiedName}
 
-                @RegistersSoftwareTypes(MyPlugin::class)
+                @${RegistersSoftwareTypes::class.simpleName}(MyPlugin::class)
                 class MyEcosystemPlugin : Plugin<Settings> {
                     override fun apply(settings: Settings) = Unit
                 }
@@ -151,7 +152,7 @@ class DeprecationInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest()
                 import ${ProjectTypeBindingBuilder::class.java.name}
                 import ${Definition::class.java.name}
                 import ${BuildModel::class.java.name}
-                import org.gradle.api.internal.plugins.features.dsl.bindProjectType
+                import org.gradle.features.internal.dsl.bindProjectType
 
                 @${BindsProjectType::class.java.simpleName}(MyPlugin.Binding::class)
                 @Suppress("deprecation")

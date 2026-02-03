@@ -19,7 +19,7 @@ package org.gradle.api.plugins.java.plugin
 import org.apache.commons.lang3.StringUtils.capitalize
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.features.binding.BindsProjectType
+import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.internal.dsl.bindProjectType

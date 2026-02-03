@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.software.internal;
+package org.gradle.features.internal.binding;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -22,14 +22,11 @@ import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
-import org.gradle.features.binding.BindsProjectFeature;
-import org.gradle.features.binding.BindsProjectType;
+import org.gradle.features.annotations.BindsProjectFeature;
+import org.gradle.features.annotations.BindsProjectType;
 import org.gradle.features.binding.BuildModel;
 import org.gradle.features.binding.Definition;
-import org.gradle.features.internal.binding.ProjectFeatureBindingDeclaration;
-import org.gradle.features.internal.binding.ProjectFeatureBindingBuilderInternal;
 import org.gradle.features.binding.ProjectFeatureBinding;
-import org.gradle.features.internal.binding.ProjectTypeBindingBuilderInternal;
 import org.gradle.features.binding.ProjectTypeBinding;
 import org.gradle.features.binding.TargetTypeInformation;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
@@ -39,11 +36,6 @@ import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.Nested;
-import org.gradle.features.internal.binding.DefaultProjectFeatureBindingBuilder;
-import org.gradle.features.internal.binding.DefaultProjectTypeBindingBuilder;
-import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
-import org.gradle.features.internal.binding.ProjectFeatureImplementation;
-import org.gradle.features.internal.binding.TargetTypeInformationChecks;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
 import org.gradle.internal.logging.text.TreeFormatter;

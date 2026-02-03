@@ -19,12 +19,12 @@ package org.gradle.internal.declarativedsl.project
 import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.features.binding.BindsProjectType
+import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.binding.Definition
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.features.annotations.RegistersSoftwareTypes
 import org.gradle.features.registration.ConfigurationRegistrar
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.tasks.InputFiles

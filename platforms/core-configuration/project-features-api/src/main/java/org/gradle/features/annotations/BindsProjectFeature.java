@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.features.binding;
+package org.gradle.features.annotations;
 
 import org.gradle.api.Incubating;
+import org.gradle.features.binding.ProjectFeatureBinding;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

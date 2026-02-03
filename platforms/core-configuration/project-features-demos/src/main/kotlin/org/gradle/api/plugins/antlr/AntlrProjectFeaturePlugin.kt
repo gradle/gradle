@@ -20,7 +20,7 @@ import org.apache.commons.lang3.StringUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.features.file.ProjectFeatureLayout
-import org.gradle.features.binding.BindsProjectFeature
+import org.gradle.features.annotations.BindsProjectFeature
 import org.gradle.features.binding.ProjectFeatureBindingBuilder
 import org.gradle.features.binding.ProjectFeatureBinding
 import org.gradle.features.internal.dsl.bindProjectFeatureToBuildModel
