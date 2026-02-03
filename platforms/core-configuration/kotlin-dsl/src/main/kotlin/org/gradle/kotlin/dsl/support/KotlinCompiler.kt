@@ -26,6 +26,28 @@ import org.gradle.internal.logging.ConsoleRenderer
 import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.assignment.plugin.AssignmentComponentRegistrar
 import org.jetbrains.kotlin.assignment.plugin.AssignmentConfigurationKeys
+import org.jetbrains.kotlin.buildtools.api.CompilationResult
+import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.API_VERSION
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.LANGUAGE_VERSION
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_SKIP_METADATA_VERSION_CHECK
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_SKIP_PRERELEASE_CHECK
+import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.X_USE_FIR_LT
+import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.JDK_HOME
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.JVM_DEFAULT
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.JVM_TARGET
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.MODULE_NAME
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_ALLOW_UNSTABLE_DEPENDENCIES
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_JSR305
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_SAM_CONVERSIONS
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_TYPE_ENHANCEMENT_IMPROVEMENTS_STRICT_MODE
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
@@ -44,10 +66,7 @@ import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.JDK_HOME
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.JVM_TARGET
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
-import org.jetbrains.kotlin.config.JVMConfigurationKeys.SAM_CONVERSIONS
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.JvmAnalysisFlags
 import org.jetbrains.kotlin.config.JvmClosureGenerationScheme
 import org.jetbrains.kotlin.config.JvmDefaultMode
@@ -73,6 +92,8 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
+import java.nio.file.Path
+import kotlin.io.path.Path
 import kotlin.reflect.KClass
 import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
@@ -141,7 +162,99 @@ fun compileKotlinScriptToDirectory(
         messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation)
     )
 
-    return NameUtils.getScriptNameForFile(scriptFile.name).asString()
+    val retVal = NameUtils.getScriptNameForFile(scriptFile.name).asString()
+
+    return retVal
+}
+
+@OptIn(ExperimentalBuildToolsApi::class)
+private class BTCompiler {
+
+    private val toolchains = KotlinToolchains.loadImplementation(this::class.java.classLoader)
+
+    private val buildSession = toolchains.createBuildSession()
+
+    @OptIn(ExperimentalCompilerArgument::class)
+    fun compile(sources: List<Path>, destinationDirectory: Path, arguments: (JvmCompilerArguments) -> Unit): CompilationResult {
+        val operation = toolchains.jvm.createJvmCompilationOperation(sources, destinationDirectory)
+
+        // compilation operation config
+        operation[JvmCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
+        /*operation[JvmCompilationOperation.INCREMENTAL_COMPILATION] = JvmSnapshotBasedIncrementalCompilationConfiguration(
+            workingDirectory = Paths.get(destinationDirectory.toString(), "build/kotlin"),
+            sourcesChanges = SourcesChanges.ToBeCalculated,
+            dependenciesSnapshotFiles = listOf(Paths.get(destinationDirectory.toString(), "build/deps")),
+            shrunkClasspathSnapshot = Paths.get(destinationDirectory.toString(), "build/shrunk"),
+            options = operation.createSnapshotBasedIcOptions().also { options ->
+                options[USE_FIR_RUNNER] = false
+            },
+        )*/
+
+        // implicit compiler arguments
+        operation.compilerArguments.also { args ->
+            args[JvmCompilerArguments.NO_STDLIB] = true
+            args[X_USE_FIR_LT] = false
+        }
+
+        // explicit compiler argument
+        arguments.invoke(operation.compilerArguments)
+
+        return buildSession.executeOperation(operation)
+    }
+}
+
+private val btCompiler by lazy { BTCompiler() }
+
+
+@ExperimentalCompilerArgument
+internal
+fun btCompileKotlinScriptToDirectory(
+    outputDirectory: File,
+    compilerOptions: KotlinCompilerOptions,
+    moduleName: String,
+    scriptFile: File,
+    configuration: (JvmCompilerArguments) -> Unit,
+): String {
+
+    val retVal = NameUtils.getScriptNameForFile(scriptFile.name).asString()
+
+    val secondaryOutputDir = Path(outputDirectory.absolutePath + "_")
+    val result = btCompiler.compile(listOf(Path(scriptFile.path)), secondaryOutputDir) {
+
+        // apply external configuration
+        configuration.invoke(it)
+
+        it[MODULE_NAME] = moduleName
+        // TODO: addScriptingCompilerComponents() ????
+        // TODO: add(SamWithReceiverConfigurationKeys.ANNOTATION, HasImplicitReceiver::class.qualifiedName!!)
+        // TODO: add(AssignmentConfigurationKeys.ANNOTATION, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)
+        it.also { // apply compiler configuration
+            it[X_USE_FIR_LT] = true
+            it[JVM_TARGET] = org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.valueOf("JVM_" + compilerOptions.jvmTarget.toKotlinJvmTarget().description) // TODO: ugly conversion
+            it[JDK_HOME] = System.getProperty("java.home") // TODO: might not be necessary
+            it[X_SAM_CONVERSIONS] = "class"
+            // TODO: addJvmSdkRoot(...)
+            it.also { // apply language version settings
+                it[LANGUAGE_VERSION] = org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion.V2_2
+                it[API_VERSION] = org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion.V2_2
+                it.also { // apply analysis flags
+                    it[X_SKIP_METADATA_VERSION_CHECK] = compilerOptions.skipMetadataVersionCheck
+                    it[X_SKIP_PRERELEASE_CHECK] = true
+                    it[X_ALLOW_UNSTABLE_DEPENDENCIES] = true
+                    it[JVM_DEFAULT] = "enable"
+                    it.also { // apply java type enhancement settings
+                        it[X_TYPE_ENHANCEMENT_IMPROVEMENTS_STRICT_MODE] = true // TODO: not sure this is necessary
+                        it[X_JSR305] = arrayOf("strict", "under-migration:strict")
+                        // TODO: not sure what the equivalent of `getReportLevelForAnnotation` is... maybe JvmCompilerArguments.X_JSPECIFY_ANNOTATIONS, but that defaults to the right value
+                    }
+                }
+            }
+            it[X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS] = true
+        }
+    }
+    println("result = ${result}")
+
+    return retVal
 }
 
 
@@ -158,7 +271,7 @@ fun compileKotlinScriptModuleTo(
     withRootDisposable {
         withCompilationExceptionHandler(messageCollector) {
             val configuration = compilerConfigurationFor(messageCollector, compilerOptions).apply {
-                put(OUTPUT_DIRECTORY, outputDirectory)
+                put(JVMConfigurationKeys.OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName(moduleName)
                 addScriptingCompilerComponents()
                 add(SamWithReceiverConfigurationKeys.ANNOTATION, HasImplicitReceiver::class.qualifiedName!!)
@@ -314,9 +427,9 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions
     CompilerConfiguration().apply {
         put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         put(CommonConfigurationKeys.USE_FIR, true) // Enables K2
-        put(JVM_TARGET, compilerOptions.jvmTarget.toKotlinJvmTarget())
-        put(JDK_HOME, File(System.getProperty("java.home")))
-        put(SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
+        put(JVMConfigurationKeys.JVM_TARGET, compilerOptions.jvmTarget.toKotlinJvmTarget())
+        put(JVMConfigurationKeys.JDK_HOME, File(System.getProperty("java.home")))
+        put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
         addJvmSdkRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
         put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettingsFor(compilerOptions))
         put(CommonConfigurationKeys.ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS, true)
@@ -428,8 +541,8 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
 
     val errors: List<ScriptCompilationError> by unsafeLazy {
         scriptCompilationErrors.filter { it.location == null } +
-            scriptCompilationErrors.filter { it.location != null }
-                .sortedBy { it.location!!.line }
+                scriptCompilationErrors.filter { it.location != null }
+                    .sortedBy { it.location!!.line }
     }
 
     init {
@@ -441,10 +554,10 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
 
     override val message: String
         get() = (
-            listOf("Script compilation $errorPlural:")
-                + indentedErrorMessages()
-                + "${errors.size} $errorPlural"
-            )
+                listOf("Script compilation $errorPlural:")
+                        + indentedErrorMessages()
+                        + "${errors.size} $errorPlural"
+                )
             .joinToString("\n\n")
 
     private
@@ -461,10 +574,10 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
     fun errorAt(location: CompilerMessageSourceLocation, message: String): String {
         val columnIndent = " ".repeat(5 + maxLineNumberStringLength + 1 + location.column)
         return "Line ${lineNumber(location)}: ${location.lineContent}\n" +
-            "^ $message".lines().joinToString(
-                prefix = columnIndent,
-                separator = "\n$columnIndent  $INDENT"
-            )
+                "^ $message".lines().joinToString(
+                    prefix = columnIndent,
+                    separator = "\n$columnIndent  $INDENT"
+                )
     }
 
     private
