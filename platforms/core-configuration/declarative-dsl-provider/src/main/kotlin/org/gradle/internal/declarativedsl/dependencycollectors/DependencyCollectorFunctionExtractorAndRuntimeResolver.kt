@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.common
+package org.gradle.internal.declarativedsl.dependencycollectors
 
 import com.google.common.graph.Traverser
 import org.gradle.api.artifacts.ModuleDependency
@@ -42,6 +42,7 @@ import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingContextEle
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.SupportedCallable
+import org.gradle.internal.declarativedsl.schemaBuilder.isJavaBeanGetter
 import org.gradle.internal.declarativedsl.schemaBuilder.orError
 import org.gradle.internal.declarativedsl.schemaBuilder.orFailWith
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaResult
@@ -50,7 +51,6 @@ import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.isSubclassOf
-
 
 internal
 class DependencyCollectorFunctionExtractorAndRuntimeResolver(
@@ -83,7 +83,7 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
 
             // Only add platform modifiers if this Dependencies subtype is also a subtype of PlatformDependencyModifiers, these aren't needed otherwise
             if (kClass.isSubclassOf(PlatformDependencyModifiers::class)) {
-                addAll(extractModifierSchemaFunctions(host, kClass).map { ExtractionResult.of(it, FunctionExtractionMetadata(emptyList())) })
+                addAll(extractModifierSchemaFunctions(host, kClass).map { ExtractionResult.Companion.of(it, FunctionExtractionMetadata(emptyList())) })
             }
         }
     }
@@ -105,11 +105,11 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
             val members = host.classMembers(kClass).declarativeMembers
 
             val namedCollectorGetters = members
-                .filter { function -> hasDependencyCollectorGetterSignature(kClass, function) }
+                .filter { it.kind == MemberKind.FUNCTION && isDependencyCollectorPropertyOrGetter(kClass, it) }
                 .map { function -> dependencyCollectorNameFromGetterName(function.name) to function }
 
             val namedCollectorProperties = members
-                .filter { isDependencyCollectorProperty(kClass, it) }
+                .filter { it.kind == MemberKind.READ_ONLY_PROPERTY && isDependencyCollectorPropertyOrGetter(kClass, it) }
                 .map { property -> property.name to property }
 
             (namedCollectorGetters + namedCollectorProperties)
@@ -124,7 +124,7 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
         if (!declarationsBySchemaFunctions.isEmpty()) {
             collectorDeclarationsByClass[kClass] = declarationsBySchemaFunctions
         }
-        return discoveredCollectorDeclarations.map { ExtractionResult.of(it.addingSchemaFunction, FunctionExtractionMetadata(listOf(it.originalDeclaration))) }
+        return discoveredCollectorDeclarations.map { ExtractionResult.Companion.of(it.addingSchemaFunction, FunctionExtractionMetadata(listOf(it.originalDeclaration))) }
     }
 
     private
@@ -180,22 +180,16 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
                 is ProjectDependency -> dependencyCollector.add(dependencyNotation)
                 else -> dependencyCollector.add(dependencyNotation.toString())
             }
-            return DeclarativeRuntimeFunction.InvocationResult(InstanceAndPublicType.UNIT, InstanceAndPublicType.NULL)
+            return DeclarativeRuntimeFunction.InvocationResult(InstanceAndPublicType.Companion.UNIT, InstanceAndPublicType.Companion.NULL)
         }
     }
 
-    private
-    fun hasDependencyCollectorGetterSignature(receiverClass: KClass<*>, function: SupportedCallable): Boolean {
-        return function.kind == MemberKind.FUNCTION && receiverClass.isSubclassOf(Dependencies::class) && with(function) {
-            name.startsWith("get") && returnType.classifier == DependencyCollector::class && parameters.isEmpty()
-        }
-    }
-
-    private
-    fun isDependencyCollectorProperty(receiverClass: KClass<*>, property: SupportedCallable): Boolean {
-        return receiverClass.isSubclassOf(Dependencies::class) &&
-            property.returnType.classifier == DependencyCollector::class &&
-            property.kind == MemberKind.READ_ONLY_PROPERTY // TODO: decide what to do with `var foo: DependencyCollector`
+    companion object {
+        fun isDependencyCollectorPropertyOrGetter(owner: KClass<*>, callable: SupportedCallable): Boolean =
+            owner.isSubclassOf(Dependencies::class) &&
+                callable.returnType.classifier == DependencyCollector::class &&
+                (callable.kind == MemberKind.FUNCTION && callable.isJavaBeanGetter ||
+                    callable.kind == MemberKind.READ_ONLY_PROPERTY)
     }
 
     override fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction, scopeClassLoader: ClassLoader): RuntimeFunctionResolver.Resolution {

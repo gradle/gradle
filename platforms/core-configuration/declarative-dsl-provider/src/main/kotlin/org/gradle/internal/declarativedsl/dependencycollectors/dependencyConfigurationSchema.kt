@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.common
+package org.gradle.internal.declarativedsl.dependencycollectors
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalDependency
-import org.gradle.api.artifacts.dsl.DependencyCollector
 import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
 import org.gradle.internal.declarativedsl.analysis.DefaultDataParameter
-import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal.DefaultUnknown
+import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
@@ -31,10 +30,8 @@ import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.LossySchemaBuildingOperation
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
-import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Special
 import org.gradle.internal.declarativedsl.schemaBuilder.orError
 import kotlin.reflect.typeOf
-
 
 internal
 fun EvaluationSchemaBuilder.dependencyCollectors() {
@@ -49,15 +46,15 @@ fun EvaluationSchemaBuilder.dependencyCollectors() {
 
 /**
  * Introduces functions for registering dependencies, such as `implementation(...)`, as member functions of
- * types with getters returning [DependencyCollector] in the schema.
+ * types with getters returning [org.gradle.api.artifacts.dsl.DependencyCollector] in the schema.
  * Resolves such functions at runtime, if used with object conversion.
  */
 private
 class DependencyCollectorsComponent : AnalysisSchemaComponent, ObjectConversionComponent {
     @OptIn(LossySchemaBuildingOperation::class) // referencing a predefined type is safe
     private val dependencyCollectorFunctionExtractorAndRuntimeResolver = DependencyCollectorFunctionExtractorAndRuntimeResolver(
-        gavDependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<String>()).orError(), false, DefaultUnknown) },
-        dependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<Dependency>()).orError(), false, DefaultUnknown) },
+        gavDependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<String>()).orError(), false, ParameterSemanticsInternal.DefaultUnknown) },
+        dependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<Dependency>()).orError(), false, ParameterSemanticsInternal.DefaultUnknown) },
     )
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
@@ -74,7 +71,7 @@ class DependencyCollectorsComponent : AnalysisSchemaComponent, ObjectConversionC
             FixedTypeDiscovery(
                 PlatformDependencyModifiers::class,
                 listOf(
-                    TypeDiscovery.DiscoveredClass(ExternalDependency::class, listOf(Special("needed for dependencies DSL")))
+                    TypeDiscovery.DiscoveredClass(ExternalDependency::class, listOf(TypeDiscovery.DiscoveredClass.DiscoveryTag.Special("needed for dependencies DSL")))
                 )
             )
         )
