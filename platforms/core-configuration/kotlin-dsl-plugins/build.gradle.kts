@@ -32,10 +32,11 @@ dependencies {
     api(libs.kotlinStdlib)
 
 
-    implementation(libs.kotlinGradlePlugin.relaxRestriction())
-    implementation(libs.kotlinGradlePluginApi.relaxRestriction())
-    implementation(libs.kotlinSamWithReceiver.relaxRestriction())
-    implementation(libs.kotlinAssignment.relaxRestriction())
+    implementation(libs.kotlinGradlePlugin/*.relaxRestriction()*/)
+    implementation(libs.kotlinGradlePluginApi/*.relaxRestriction()*/)
+    implementation(libs.kotlinSamWithReceiver/*.relaxRestriction()*/)
+    implementation(libs.kotlinAssignment/*.relaxRestriction()*/)
+    // TODO: why were these `relaxRestrictions` things there? they break `KotlinDslPluginGradlePluginCrossVersionSmokeTest`
 
 
     testImplementation(projects.logging)
