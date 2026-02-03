@@ -235,8 +235,8 @@ public class CommandLineParser {
         }
         max = Math.max(max, delimiterKey.length());
 
-        final int MAX_PAD = 120;
-        max = Math.min(max, MAX_PAD);
+        final int maxPad = 120;
+        max = Math.min(max, maxPad);
 
         for (HelpCategory cat : HelpCategory.values()) {
             Map<String, String> section = grouped.get(cat);
