@@ -170,7 +170,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         val projectScriptPlugins = selectProjectScriptPlugins()
         if (projectScriptPlugins.isNotEmpty()) {
             asyncIOScopeFactory.newScope().useToRun {
-                generateTypeSafeAccessorsFor(projectScriptPlugins)
+                generateTypeSafeAccessorsForProject(projectScriptPlugins)
             }
         }
     }
@@ -192,43 +192,40 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     }
 
     private
-    fun IO.generateTypeSafeAccessorsFor(projectScriptPlugins: List<PrecompiledScriptPlugin>) {
-        resolvePluginGraphOf(projectScriptPlugins)
+    fun IO.generateTypeSafeAccessorsForProject(projectScriptPlugins: List<PrecompiledScriptPlugin>) {
+        generateTypeSafeAccessorsFor(
+            ::projectSchemaImpliedByPluginGroups,
+            projectScriptPlugins
+        )
+    }
+
+    private fun IO.generateTypeSafeAccessorsForSettings(scriptPlugins: List<PrecompiledScriptPlugin>) {
+        generateTypeSafeAccessorsFor(
+            ::settingsSchemaImpliedByPluginGroups,
+            scriptPlugins
+        )
+    }
+
+    private fun IO.generateTypeSafeAccessorsFor(
+        schemaImpliedByPluginGroups: (Map<List<String>, List<PrecompiledScriptPlugin>>) -> Map<HashedProjectSchema, List<PrecompiledScriptPlugin>>,
+        plugins: List<PrecompiledScriptPlugin>
+    ) {
+        resolvePluginGraphOf(plugins)
             .groupBy(
                 { it.appliedPlugins },
                 { it.scriptPlugin }
             ).let {
-                projectSchemaImpliedByPluginGroups(it)
-            }.forEach { (projectSchema, scriptPlugins) ->
-                writeTypeSafeAccessorsFor(projectSchema)
+                schemaImpliedByPluginGroups(it)
+            }.forEach { (schema, scriptPlugins) ->
+                writeTypeSafeAccessorsFor(schema)
                 for (scriptPlugin in scriptPlugins) {
                     writeContentAddressableImplicitImportFor(
-                        projectSchema.packageName,
+                        schema.packageName,
                         scriptPlugin
                     )
                 }
             }
     }
-
-    private
-    fun IO.generateTypeSafeAccessorsForSettings(projectScriptPlugins: List<PrecompiledScriptPlugin>) {
-        resolvePluginGraphOf(projectScriptPlugins)
-            .groupBy(
-                { it.appliedPlugins },
-                { it.scriptPlugin }
-            ).let {
-                settingsSchemaImpliedByPluginGroups(it)
-            }.forEach { (settingsSchema, scriptPlugins) ->
-                writeTypeSafeAccessorsFor(settingsSchema)
-                for (scriptPlugin in scriptPlugins) {
-                    writeContentAddressableImplicitImportFor(
-                        settingsSchema.packageName,
-                        scriptPlugin
-                    )
-                }
-            }
-    }
-
     private
     fun resolvePluginGraphOf(projectScriptPlugins: List<PrecompiledScriptPlugin>): Sequence<ScriptPluginPlugins> {
 
@@ -383,33 +380,26 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     fun projectSchemaImpliedByPluginGroups(
         pluginGroupsPerRequests: Map<List<String>, List<PrecompiledScriptPlugin>>
     ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> =
-
-        pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
-            withCapturedOutputOnError(
-                {
-                    val schema = projectSchemaFor(pluginRequestsOf(scriptPlugins.first(), uniquePluginRequests)).get()
-                    val hashed = HashedProjectSchema(schema)
-                    scriptPlugins.map { hashed to it }
-                },
-                { (error, stdout, stderr) ->
-                    reportProjectSchemaError(scriptPlugins, stdout, stderr, error)
-                    emptyList()
-                }
-            )
-        }.groupBy(
-            { (schema, _) -> schema },
-            { (_, plugin) -> plugin }
-        )
+        captureSchemaForPluginGroups(pluginGroupsPerRequests) { scriptPlugin, uniquePluginRequests ->
+            projectSchemaFor(pluginRequestsOf(scriptPlugin, uniquePluginRequests))
+        }
 
     private
     fun settingsSchemaImpliedByPluginGroups(
         pluginGroupsPerRequests: Map<List<String>, List<PrecompiledScriptPlugin>>
     ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> =
+        captureSchemaForPluginGroups(pluginGroupsPerRequests) { scriptPlugin, uniquePluginRequests ->
+            settingsSchemaFor(pluginRequestsOf(scriptPlugin, uniquePluginRequests))
+        }
 
+    private fun captureSchemaForPluginGroups(
+        pluginGroupsPerRequests: Map<List<String>, List<PrecompiledScriptPlugin>>,
+        produceSchema: (PrecompiledScriptPlugin, List<String>) -> Try<TypedProjectSchema>
+    ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> =
         pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
             withCapturedOutputOnError(
                 {
-                    val schema = settingsSchemaFor(pluginRequestsOf(scriptPlugins.first(), uniquePluginRequests)).get()
+                    val schema = produceSchema(scriptPlugins.first(), uniquePluginRequests).get()
                     val hashed = HashedProjectSchema(schema)
                     scriptPlugins.map { hashed to it }
                 },
