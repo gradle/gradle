@@ -375,12 +375,12 @@ class CommandLineParserTest extends Specification {
         expect:
         parser.printUsage(outstr)
         outstr.toString().readLines() == [
-            '-a, --long-option                    this is option a',
-            '--another-long-option                this is a long option',
+            '',
+            '-a, --long-option                   this is option a',
+            '--another-long-option               this is a long option',
             '-B',
             '-b',
-            '-y, -z, --end-option, --last-option  this is the last option',
-            '--                                   Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.'
+            '-y, -z, --end-option, --last-option this is the last option'
         ]
     }
 
@@ -394,11 +394,11 @@ class CommandLineParserTest extends Specification {
         expect:
         parser.printUsage(outstr)
         outstr.toString().readLines() == [
-            '-a, --long-option  this is option a [deprecated]',
-            '-b                 [deprecated]',
-            '-c                 option c [incubating]',
-            '-d                 [incubating]',
-            '--                 Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.'
+            '',
+            '-a, --long-option this is option a [deprecated]',
+            '-b                [deprecated]',
+            '-c                option c [incubating]',
+            '-d                [incubating]'
         ]
     }
 
@@ -701,12 +701,12 @@ class CommandLineParserTest extends Specification {
         expect:
         parser.printUsage(outstr)
         outstr.toString().readLines() == [
-            '--a-option        this is option --a-option',
-            '--no-a-option     Disables option --a-option',
-            '--a-option-other  this is option --a-option-other',
+            '',
+            '--a-option       this is option --a-option',
+            '--no-a-option    Disables option --a-option',
+            '--a-option-other this is option --a-option-other',
             '--c-option',
-            '--no-c-option',
-            '--                Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.'
+            '--no-c-option'
         ]
     }
 }
