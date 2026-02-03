@@ -523,7 +523,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': line 2: Project ':a' cannot dynamically look up a $kind in the parent project ':'")
+            problem("Build file 'a/build.gradle': line 2: Project ':a' cannot dynamically look up a $kind in the parent project")
         }
 
         where:
@@ -560,8 +560,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":sub", ":sub:sub-a", ":sub:sub-b")
-            problem("Build file 'sub/sub-a/build.gradle': line 2: Project ':sub:sub-a' cannot dynamically look up a property in the parent project ':sub'")
-            problem("Build file 'sub/sub-b/build.gradle': line 2: Project ':sub:sub-b' cannot dynamically look up a property in the parent project ':sub'")
+            problem("Build file 'sub/sub-a/build.gradle': line 2: Project ':sub:sub-a' cannot dynamically look up a property in the parent project")
+            problem("Build file 'sub/sub-b/build.gradle': line 2: Project ':sub:sub-b' cannot dynamically look up a property in the parent project")
         }
     }
 
@@ -592,9 +592,40 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': line 5: Project ':a' cannot dynamically look up a property in the parent project ':'")
-            problem("Build file 'a/build.gradle': line 6: Project ':a' cannot dynamically look up a method in the parent project ':'")
+            problem("Build file 'a/build.gradle': line 5: Project ':a' cannot dynamically look up a property in the parent project")
+            problem("Build file 'a/build.gradle': line 6: Project ':a' cannot dynamically look up a method in the parent project")
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26057")
+    def "invocations of closures in current project extra properties does not trigger parent project warnings"() {
+        createDirs("a")
+        settingsFile << """
+            include("a")
+        """
+        file("declarer.gradle") << """
+            def testFunction() {
+              println("running script testFunction")
+            }
+
+            ext.testFunction = this.&testFunction
+        """
+        file("invoker.gradle") << """
+            project.apply(from: "\${buildscript.sourceFile.parent}/declarer.gradle")
+            testFunction()
+        """
+        file("a/build.gradle") << """
+            project.apply(from: "../invoker.gradle")
+        """
+
+        when:
+        isolatedProjectsRun(":a:help")
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a")
+        }
+        outputContains("running script testFunction")
     }
 
     def "reports problem when cross-project access happens in a script-owned configure-action"() {
@@ -630,8 +661,8 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         // an additional subproject demonstrates that the problems are duplicated as the property lookup traverses up the project hierarchy
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":a:aa")
-            problem("Script 'a/aa/myscript.gradle': line 4: Project ':a' cannot dynamically look up a property in the parent project ':'")
-            problem("Script 'a/aa/myscript.gradle': line 4: Project ':a:aa' cannot dynamically look up a property in the parent project ':a'")
+            problem("Script 'a/aa/myscript.gradle': line 4: Project ':a' cannot dynamically look up a property in the parent project")
+            problem("Script 'a/aa/myscript.gradle': line 4: Project ':a:aa' cannot dynamically look up a property in the parent project")
         }
     }
 
