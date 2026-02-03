@@ -105,9 +105,9 @@ jobs:
 `<<tags_reference.adoc#tag:wrapper,#wrapper>>`
 
 [[run_gradle_on_external_projects]]
-== Do not Run `./gradlew` on External Projects
+== Do not Run `./gradlew` on Untrusted Projects
 
-When working with an external project, you should exercise caution before running `./gradlew`.
+When working with an untrusted project, you should exercise caution before running `./gradlew`.
 
 === Explanation
 
@@ -119,9 +119,9 @@ An unreviewed wrapper or build script could potentially access or modify files o
 
 ==== Do this
 
-===== 1. Review the Source Code
+===== 1. Review the Build Scripts
 
-* **Inspect Build Files:** Look at `build.gradle(.kts)`, `settings.gradle(.kts)`, and `gradle.properties` for suspicious dependencies, custom `exec` tasks, or obfuscated code.
+* **Inspect Build Files:** Look at `build.gradle(.kts)`, `settings.gradle(.kts)`, and `gradle.properties` for suspicious dependencies, plugins, custom `exec` tasks, or obfuscated code.
 
 ===== 2. Verify the Gradle Wrapper Files
 
@@ -133,16 +133,6 @@ An unreviewed wrapper or build script could potentially access or modify files o
 
 You can optionally run the project in a **Docker container** or a **Virtual Machine (VM)**.
 This ensures that even if a malicious script runs, it cannot access your files.
-
-===== 4. Start with a Safe Task
-
-Instead of running `./gradlew build` (which executes the full lifecycle including tests), start with informational tasks:
-
-[source,bash]
-----
-$ ./gradlew help
-$ ./gradlew tasks
-----
 
 === References
 
