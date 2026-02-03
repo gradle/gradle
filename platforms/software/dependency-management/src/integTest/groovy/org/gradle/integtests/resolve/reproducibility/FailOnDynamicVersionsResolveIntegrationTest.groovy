@@ -46,7 +46,11 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
         """
 
         file("other/build.gradle") << """
-            configurations.create('default')
+            configurations.create('elements') {
+                attributes {
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+                }
+            }
         """
         repository {
             'org:test:1.0'()
@@ -64,7 +68,6 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":other", "test:other:unspecified") {
-                    configuration('default')
                     noArtifacts()
                 }
                 module('org:test:1.0')

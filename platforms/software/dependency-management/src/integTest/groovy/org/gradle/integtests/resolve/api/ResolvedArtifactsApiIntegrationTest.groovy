@@ -43,7 +43,10 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
             }
             configurations {
                 compile
-                create("default") {
+                create("elements") {
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+                    }
                     extendsFrom compile
                 }
             }
@@ -973,7 +976,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         file("a/build.gradle") << """
             $header
 
-            configurations.default.outgoing.variants {
+            configurations.elements.outgoing.variants {
                 v1 { }
                 v2 { }
             }
@@ -1047,7 +1050,7 @@ class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResoluti
         file("a/build.gradle") << """
             $header
 
-            configurations.default.outgoing.variants {
+            configurations.elements.outgoing.variants {
                 v1 { }
                 v2 { }
             }
@@ -1086,10 +1089,10 @@ Searched in the following locations:
     ${m1.artifact.uri}""")
         outputContains("failure 5: Could not download broken-artifact-1.0.jar (org:broken-artifact:1.0)")
         outputContains("""failure 6: The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
-  - Configuration ':a:default' variant v1:
+  - Configuration ':a:elements' variant v1:
       - Unmatched attribute:
           - Doesn't say anything about usage (required 'compile')
-  - Configuration ':a:default' variant v2:
+  - Configuration ':a:elements' variant v2:
       - Unmatched attribute:
           - Doesn't say anything about usage (required 'compile')""")
     }
@@ -1146,7 +1149,7 @@ Searched in the following locations:
             dependencies {
                 compile project(':c')
             }
-            configurations.default.outgoing.variants {
+            configurations.elements.outgoing.variants {
                 v1 { artifact tasks.jar1 }
                 v2 { artifact tasks.jar2 }
             }

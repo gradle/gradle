@@ -175,7 +175,7 @@ Instead, a resolvable ('canBeResolved=true') dependency configuration that exten
         'dependency scope'      | 'canBeResolved = false; canBeConsumed = false'
     }
 
-    def "cannot depend on default configuration if it's not consumable (#role)"() {
+    def "cannot depend on elements configuration if it's not consumable (#role)"() {
         given:
         file('settings.gradle') << 'include "a", "b"'
 
@@ -195,8 +195,11 @@ Instead, a resolvable ('canBeResolved=true') dependency configuration that exten
 
         file("b/build.gradle") << """
             configurations {
-                'default' {
+                create('elements') {
                     $code
+                    attributes {
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+                    }
                 }
             }
         """

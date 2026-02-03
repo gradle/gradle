@@ -301,7 +301,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             version = '0.x'
 
             configurations {
-                create("elements")
+                create("elements") {
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
                     }
@@ -353,7 +353,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             version = '0.x'
 
             configurations {
-                create("elements")
+                create("elements") {
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
                     }
@@ -374,7 +374,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             version = '0.x'
 
             configurations {
-                create("elements")
+                create("elements") {
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
                     }
@@ -410,11 +410,9 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("com.acme:included:1.0", ":included", "com.acme:included:0.x") {
-                    configuration = 'default'
                     compositeSubstitute()
                     noArtifacts()
                     edge("com.acme:nested:1.0", ":nested", "com.acme:nested:0.x") {
-                        configuration = 'default'
                         compositeSubstitute()
                         noArtifacts()
                         module('org:module:1.0')
@@ -433,7 +431,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             version = '0.x'
 
             configurations {
-                create("elements")
+                create("elements") {
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
                     }
@@ -454,7 +452,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             version = '0.x'
 
             configurations {
-                create("elements")
+                create("elements") {
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
                     }
@@ -498,11 +496,9 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("com.acme:included:1.0", ":included", "com.acme:included:0.x") {
-                    configuration = 'default'
                     compositeSubstitute()
                     noArtifacts()
                     edge("com.acme:nested:1.0", ":nested", "com.acme:nested:0.x") {
-                        configuration = 'default'
                         compositeSubstitute()
                         noArtifacts()
                         module('org:module:1.0')
@@ -521,7 +517,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             version = '0.x'
 
             configurations {
-                create("elements")
+                create("elements") {
                     attributes {
                         attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
                     }
