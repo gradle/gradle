@@ -105,8 +105,6 @@ public abstract class Wrapper extends DefaultTask {
     private String archivePath = WrapperDefaults.ARCHIVE_PATH;
     private PathBase archiveBase = WrapperDefaults.ARCHIVE_BASE;
     private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
-    private final Property<Integer> retries = getProject().getObjects().property(Integer.class);
-    private final Property<Integer> retryTimeoutMs = getProject().getObjects().property(Integer.class);
     private boolean distributionUrlConfigured = false;
     private final boolean isOffline = getProject().getGradle().getStartParameter().isOffline();
 
@@ -138,8 +136,8 @@ public abstract class Wrapper extends DefaultTask {
             getDistributionUrl(),
             getValidateDistributionUrl().get(),
             networkTimeout.getOrNull(),
-            retries.getOrNull(),
-            retryTimeoutMs.getOrNull()
+            getRetries().getOrNull(),
+            getRetryTimeoutMs().getOrNull()
         );
     }
 
@@ -516,9 +514,7 @@ public abstract class Wrapper extends DefaultTask {
     @Incubating
     @Optional
     @Option(option = "retries", description = "The number of download retries.")
-    public Property<Integer> getRetries() {
-        return retries;
-    }
+    public abstract Property<Integer> getRetries();
 
     /**
      * The timeout in milliseconds to wait between download retries.
@@ -533,9 +529,7 @@ public abstract class Wrapper extends DefaultTask {
     @Incubating
     @Optional
     @Option(option = "retry-timeout-ms", description = "The timeout in milliseconds between retries.")
-    public Property<Integer> getRetryTimeoutMs() {
-        return retryTimeoutMs;
-    }
+    public abstract Property<Integer> getRetryTimeoutMs();
 
     /**
      * Indicates if this task will validate the distribution url that has been configured.
