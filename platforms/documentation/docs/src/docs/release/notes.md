@@ -12,7 +12,16 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release features [1](), [2](), ... [n](), and more.
+Gradle now supports [Java 26](#support-for-java-26).
+
+This release significantly improves [test reporting and execution](#test-reporting-and-execution) by introducing support for non-class-based tests, enabling direct execution of Cucumber features and custom test engines, and capturing richer test metadata directly into HTML reports.
+
+There are notable [reporting](#error-warning-and-problem-reporting) refinements, including high-resolution progress bars with native terminal integration, a more intuitive Problems HTML report, and expanded output formats for the PMD plugin.
+
+This version also enhances [build authoring](#build-authoring) with simplified APIs, improves [Configuration Cache](#configuration-cache) debugging with clearer attribution for closures and lambdas, and adds [security improvements](#security-and-infrastructure), including Bearer token authentication for the Gradle Wrapper and automatic cleanup of old daemon logs. 
+[Plugin authoring](#core-plugin-and-plugin-authoring) is streamlined with default plugin IDs and stricter validation for published plugins.
+
+Finally, [tooling integration](#tooling-and-ide-integration) improvements provide new Tooling API models plus granular control over Tooling API parallelism.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [akankshaa-00](https://github.com/akankshaa-00),
@@ -61,7 +70,7 @@ Third-party tool compatibility with Java 26 may still be limited.
 
 See the [compatibility documentation](userguide/compatibility.html#java_runtime) for more details.
 
-### Test reporting and execution improvements
+### Test reporting and execution
 
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 
@@ -69,15 +78,9 @@ Gradle provides a [set of features and abstractions](userguide/java_testing.html
 
 When testing using [JUnit Platform](https://junit.org/), Gradle can now discover and execute tests that are not defined in classes.
 
-JUnit Platform [`TestEngine`](https://docs.junit.org/current/user-guide/#test-engines)s are capable of discovering and executing tests defined in arbitrary formats, extending testing beyond the confines of JVM classes.
-However, Gradle's [`Test`](dsl/org.gradle.api.tasks.testing.Test.html) task requires test classes to be present; otherwise execution fails with a message:
-
-```text
-There are test sources present and no filters are applied, but the test task did not discover any tests to execute.
-```
-
-In this release, tests can be defined in whatever format is understood by the configured `TestEngine`.
-Gradle no longer requires a test class be present to “unlock” test execution.
+JUnit Platform [`TestEngine`s](https://docs.junit.org/current/user-guide/#test-engines) can discover and execute tests in arbitrary formats, extending testing beyond the confines of JVM classes.
+In this release, tests can be defined in any format supported by the configured `TestEngine`.
+Gradle no longer requires a test class to be present to “unlock” test execution.
 
 For example, this library project structure doesn't use typical class-based testing, but instead uses XML test definitions understood by a custom `TestEngine`:
 
@@ -85,7 +88,7 @@ For example, this library project structure doesn't use typical class-based test
 my-lib/
 ├── src/
 │   ├── main/
-│   │   └── test/
+│   │   └── java/
 │   └── test/
 │       └── definitions/
 │           ├── some-tests.xml
@@ -99,9 +102,9 @@ my-lib/
 testing.suites.named("test", JvmTestSuite::class) {
     useJUnitJupiter()
 
-	dependencies {
-	    implementation("...") // Library containing custom TestEngine
-	}
+    dependencies {
+        implementation("...") // Library containing custom TestEngine
+    }
 
     targets.all {
         testTask.configure {
@@ -111,7 +114,7 @@ testing.suites.named("test", JvmTestSuite::class) {
 }
 ```
 
-This feature works both with and without using [JvmTestSuites](userguide/jvm_test_suite_plugin.htm).
+This feature works both with and without using [JvmTestSuites](userguide/jvm_test_suite_plugin.html).
 
 We recommend storing non-class test definitions in the conventional location `src/<TEST_TASK_NAME>/definitions` to keep builds using this feature structured similarly; however, any location can be used.
 
@@ -124,35 +127,38 @@ For more information, see the section on [Non-Class-Based Testing](userguide/jav
 These non-class-based tests can now be run directly without workarounds:
 
 ```kotlin
-    testing.suites.named("test", JvmTestSuite::class) {
-        useJUnitJupiter()
+testing.suites.named("test", JvmTestSuite::class) {
+    useJUnitJupiter()
 
-        dependencies {
-            implementation("io.cucumber:cucumber-java:7.15.0")
-            runtimeOnly("io.cucumber:cucumber-junit-platform-engine:7.15.0")
-        }
+    dependencies {
+        implementation("io.cucumber:cucumber-java:7.15.0")
+        runtimeOnly("io.cucumber:cucumber-junit-platform-engine:7.15.0")
+    }
 
-        targets.all {
-            testTask.configure {
-                testDefinitionDirs.from("src/test/resources")  // Conventional Cucumber *.feature files location
-            }
+    targets.all {
+        testTask.configure {
+            testDefinitionDirs.from("src/test/resources")  // Conventional Cucumber *.feature files location
         }
     }
+}
+
 ```
 
 #### Additional test data capture
 
-During test execution, JUnit Platform tests can emit additional data such as file attachments or arbitrary key–value pairs using the [TestReporter API](https://docs.junit.org/current/user-guide/#writing-tests-dependency-injection).
+During test execution, JUnit Platform tests can emit additional data such as file attachments or arbitrary key–value pairs using the [TestReporter API](javadoc/org/gradle/api/tasks/testing/TestReport.html).
+
+This data can include metadata about the tests or their environment, or files used or generated during testing, such as screenshots.
 
 For example:
 
 ```java
-    @Test
-    void someTestMethod(TestReporter testReporter) {
-        testReporter.publishEntry("myKey", "myValue");
-        testReporter.publishFile("test1.txt", MediaType.TEXT_PLAIN_UTF_8, file -> Files.write(file, List.of("Test 1")));
-        // Test logic continues...
-    }
+@Test
+void someTestMethod(TestReporter testReporter) {
+    testReporter.publishEntry("myKey", "myValue");
+    testReporter.publishFile("screenshot1.svg", MediaType.create("image", "svg+xml"), file -> {});
+    // Test logic continues...
+}
 ```
 
 Gradle now captures this metadata and integrates it directly into both the [HTML test report](userguide/java_testing.html#test_reporting) and the [XML test results](userguide/java_testing.html#test_reporting).
@@ -167,13 +173,19 @@ To ensure compatibility with CI/CD pipelines, this data is represented in the XM
 - `ReportEntry` values are mapped to `<properties/>`.
 - `FileEntry` values are formatted as `[[ATTACHMENT|/path/to/file]]`, following established conventions used by Jenkins, Azure Pipelines, and GitLab.
 
-This capture mechanism is comprehensive, it supports both class-based and non-class-based tests and includes data published during test construction as well as setup and teardown phases.
+This capture mechanism is comprehensive; it supports both class-based and non-class-based tests and includes data published during test construction as well as setup and teardown phases.
+
+This is especially useful for capturing failure screenshots in UI tests.
+For file attachments, some known media types, such as images and videos, are rendered directly in the HTML reports.  Other file types are presented as links.
+This can make it easier to diagnose issues without reproducing them locally:
+
+![test-report-metadata.png](release-notes-assets/test-report-metadata.png)
 
 #### Test metadata logging
 
-Gradle now supports [listening](userguide/build_lifecycle.html#buildlistener_api) for test metadata events during execution, allowing for more sophisticated tracking of test behavior.
+Test data capture events, as detailed in the previous section, can be observed by Gradle through a new [listener](userguide/build_lifecycle.html#buildlistener_api) dedicated to test metadata events during execution, allowing for more sophisticated tracking of test behavior.
 
-Similar to the existing [`TestOutputListener`](javadoc/org/gradle/api/tasks/testing/TestOutputListener.html), you can now register a [`TestMetadataListener`](javadoc/org/gradle/api/tasks/testing/TestMetadataListener.html) to receive structured metadata events emitted by the test framework. 
+Similar to the existing [`TestOutputListener`](javadoc/org/gradle/api/tasks/testing/TestOutputListener.html), you can now register a [`TestMetadataListener`](javadoc/org/gradle/api/tasks/testing/TestMetadataListener.html) to receive structured metadata events emitted by the test framework.
 This is done via the new [`Test#addTestMetadataListener(TestMetadataListener)`](dsl/org.gradle.api.tasks.testing.Test.html#addTestMetadataListener(TestMetadataListener)) method:
 
 ```kotlin
@@ -188,18 +200,31 @@ tasks.named<Test>("test").configure {
 }
 ```
 
-This addition enables fuller support for advanced JUnit Platform features. 
+This addition enables fuller support for advanced JUnit Platform features.
 It allows tests to communicate structured information back to the build process, providing a cleaner and more reliable alternative to parsing standard output or error streams.
+For example, you can use the listener to automatically copy the failure screenshots (from the previous section) to a dedicated CI artifacts directory, upload them to cloud storage for team access, or compress and archive them with timestamp-based naming.
 
-### Error, warning and problem reporting
+### Error, warning, and problem reporting
 
-Gradle provides [error and warning messages](userguide/logging.html) to help you understand and resolve problems in your build.
+Gradle provides structured [error and warning messages](userguide/logging.html) to help developers quickly identify, understand, and resolve issues within their build scripts.
+
+#### Enhanced terminal progress bars
+
+Gradle’s [command-line interface](userguide/command_line_interface.html) has been updated with progress bars that offer enhanced compatibility for modern terminals:
+
+- **Ligature-Safe Rendering:** Progress bars no longer interfere with ligature fonts, ensuring a clean visual experience.
+- **Unicode Support:** High-resolution Unicode characters are now used for rendering whenever the terminal supports them.
+- **Native Terminal Integration:** Added support for OSC 9;4 escape sequences. This allows native progress bar display in terminals like [Ghostty](https://ghostty.org/) and [iTerm2 >3.6.6](https://iterm2.com/).
+
+The progress bars are displayed on terminals that support them:
+
+![gradle-progress-bar-new.gif](release-notes-assets/gradle-progress-bar-new.gif)
 
 #### Problems HTML report refinements
 
 The incubating [Problems HTML report](userguide/reporting_problems.html#sec:generated_html_report) has been refined to provide a more intuitive and efficient user experience.
 
-To help you find relevant information faster, the report's structure and readability has been optimized:
+To help you find relevant information faster, the report's structure and readability have been optimized:
 
 - **Clearer Summaries:** The summary clearly displays the number of problems that lack a specific location or were skipped for performance reasons.
 - **Smart Hierarchy:** Each tab loads with collapsed trees for a cleaner initial view, while specific location and solution nodes are expanded by default to reduce the number of clicks needed to see actionable data.
@@ -207,17 +232,19 @@ To help you find relevant information faster, the report's structure and readabi
 - **Improved Formatting:** Problem details use a monospaced font, ensuring that multi-line messages and stack traces maintain their intended alignment.
 - **Reduced Noise:** Duplicate information has been removed across the report, and the overall file size has been reduced for faster loading.
 
-You can now influence whether a link to the report is printed at the end of a build via the `org.gradle.warning.mode` property. 
+You can now influence whether a link to the report is printed at the end of a build via the `org.gradle.warning.mode` property.
 If set to `none`, the report is still generated in the background, but the link is omitted from the build output to keep your console clean.
+
+![new-problems-report.png](release-notes-assets/new-problems-report.png)
 
 #### Support for CSV, Code Climate, and SARIF reports in the PMD plugin
 
 The [PMD plugin](userguide/pmd_plugin.html), which performs quality checks on your Java source files, has expanded its reporting capabilities.
 
-In addition to standard XML and HTML, the plugin now supports generating reports in CSV, Code Climate, and SARIF formats. 
+In addition to standard XML and HTML, the plugin now supports generating reports in CSV, Code Climate, and SARIF formats.
 This allows for easier ingestion of PMD results by static analysis platforms and CI/CD security dashboards.
 
-These formats are not enabled by default. 
+These formats are not enabled by default.
 To use them, configure the specific `Pmd` task (such as `pmdMain`) rather than the general `pmd` extension:
 
 ```kotlin
@@ -227,11 +254,11 @@ tasks.pmdMain {
         csv.required = true
         // Optional, defaults to "<project dir>/build/reports/pmd/main.csv"
         csv.outputLocation = layout.buildDirectory.file("reports/my-custom-pmd-report.csv")
-        
+
         codeClimate.required = true
         // Optional, defaults to "<project dir>/build/reports/pmd/main.codeclimate.json"
         codeClimate.outputLocation = layout.buildDirectory.file("reports/my-custom-codeclimate-pmd-report.json")
-        
+
         sarif.required = true
         // Optional, defaults to "<project dir>/build/reports/pmd/main.sarif.json"
         sarif.outputLocation = layout.buildDirectory.file("reports/my-custom-sarif-pmd-report.json")
@@ -241,39 +268,14 @@ tasks.pmdMain {
 
 For more information on configuring static analysis, see the [PMD plugin documentation](/userguide/pmd_plugin.html#sec:pmd_configuration).
 
-### Build authoring improvements
+### Build authoring
 
-Gradle provides [rich APIs](userguide/getting_started_dev.html) for plugin authors and build engineers to develop custom build logic.
-
-#### Simpler plugin registration
-
-This release reduces the boilerplate required when using the [`java-gradle-plugin` plugin](userguide/java_gradle_plugin.html#sec:gradle_plugin_dev_usage) by introducing a sensible default for plugin IDs.
-
-Previously, you had to explicitly provide a string for both the registration name and the `id` property, even though they were almost always identical. 
-Now, the plugin ID is automatically set to the registration name by default:
-
-```kotlin
-gradlePlugin {
-    plugins {
-        register("my.plugin-id") {
-            // id is automatically inferred as "my.plugin-id"
-            implementationClass = "my.PluginClass"
-        }
-    }
-}
-```
-
-This change makes your build scripts cleaner and less repetitive, especially in projects that define multiple plugins. 
-If you still need a custom ID that differs from the registration name, the `id` property remains available for manual overrides.
-
-For more details, check out the [Java Gradle Plugin documentation](userguide/java_gradle_plugin.html).
+Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
 #### `Configuration.extendsFrom` accepts `Provider`s
 
 It is now possible to pass a `Provider<Configuration>` directly when calling [`extendsFrom()`](javadoc/org/gradle/api/artifacts/Configuration.html#extendsFrom(org.gradle.api.artifacts.Configuration...)) on a [`Configuration`](javadoc/org/gradle/api/artifacts/Configuration.html)).
 
-Previously, this method required the parent configuration to be fully realized. 
-This often forced developers to use `.get()`, which triggers eager realization and can lead to configuration ordering issues. 
 By accepting a `Provider`, Gradle can now establish the relationship without requiring the parent to be realized immediately:
 
 ```kotlin
@@ -287,43 +289,7 @@ configurations {
 }
 ```
 
-#### POM exclusion importing
-
-To further streamline migrations from Maven, the [Build Init Plugin](https://www.google.com/search?q=userguide/build_init_plugin.html%23sec:pom_maven_conversion) now automatically converts `<exclusion>` elements from Maven POM files into Gradle dependency exclusions.
-
-When generating a Gradle build from an existing Maven project, Gradle now detects dependency exclusions in your `pom.xml` and translates them into the equivalent Gradle syntax:
-
-```xml
-<dependencies>
-    <dependency>
-        <groupId>sample.Project</groupId>
-        <artifactId>Project</artifactId>
-        <version>1.0</version>
-        <exclusions>
-            <exclusion>
-                <groupId>excluded.group</groupId>
-                <artifactId>excluded-artifact</artifactId>
-            </exclusion>
-        </exclusions>
-    </dependency>
-</dependencies>
-```
-
-Because Maven and Gradle handle dependency resolution and exclusions differently, a direct translation may not always be perfectly equivalent. 
-To ensure build integrity, generated exclusions include a `TODO` comment for manual verification:
-
-```kotlin
-dependencies {
-    implementation("some.group:some-artifact:1.0") {
-        // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent
-        exclude(group = "excluded.group", module = "excluded-artifact")
-    }
-}
-```
-
-This improvement significantly reduces the manual effort required to mirror complex dependency graphs when moving to Gradle.
-
-### Configuration Cache improvements
+### Configuration Cache
 
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
@@ -363,7 +329,7 @@ Gradle provides robust [security features and underlying infrastructure](usergui
 
 #### Bearer token authentication for wrapper download
 
-The [Gradle Wrapper](userguide/gradle_wrapper.html) now supports Bearer token authentication for downloading Gradle distributions from authenticated backends. 
+The [Gradle Wrapper](userguide/gradle_wrapper.html) now supports Bearer token authentication for downloading Gradle distributions from authenticated backends.
 This provides a modern, secure alternative to Basic authentication (username and password), which was the only method supported in previous versions:
 
 * **Authentication Priority:** Bearer tokens can be specified via system properties and take precedence over Basic authentication if both are configured.
@@ -375,22 +341,49 @@ For more details on setup, see the [Wrapper documentation](userguide/gradle_wrap
 
 #### Daemon logging improvements
 
-The [Gradle Daemon](userguide/gradle_daemon.html) is a long-lived, persistent process that runs in the background and hosts Gradle’s execution engine. 
+The [Gradle Daemon](userguide/gradle_daemon.html) is a long-lived, persistent process that runs in the background and hosts Gradle’s execution engine.
 It dramatically reduces build times using caching, runtime optimizations, and eliminating JVM startup overhead.
 
 Gradle Daemon logs older than 14 days are now automatically cleaned up when the daemon shuts down, eliminating the need for manual cleanup.
 
 See the [Daemon documentation](userguide/gradle_daemon.html#sec:daemon_log_cleanup) for more details.
 
+### Core plugin and plugin authoring
+
+Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
+
+#### Default plugin IDs
+
+This release reduces the boilerplate required for plugin authors when using the [`java-gradle-plugin` plugin](userguide/java_gradle_plugin.html#sec:gradle_plugin_dev_usage) by introducing a sensible default for plugin IDs.
+
+Previously, you had to explicitly provide a string for both the registration name and the `id` property.
+Now, the plugin ID is automatically set to the registration name by default:
+
+```kotlin
+gradlePlugin {
+    plugins {
+        register("my.plugin-id") {
+            // id is automatically inferred as "my.plugin-id"
+            implementationClass = "my.PluginClass"
+        }
+    }
+}
+```
+
+This change makes your build scripts cleaner and less repetitive, especially in projects that define multiple plugins.
+If you still need a custom ID that differs from the registration name, the `id` property remains available for manual overrides.
+
+For more details, check out the [Java Gradle Plugin documentation](userguide/java_gradle_plugin.html).
+
 #### Stricter validation for published plugins
 
-To ensure high quality and compatibility across the [plugin ecosystem](userguide/plugins.html), Gradle now automatically enables [stricter validation](userguide/preparing_to_publish.html#validating) for projects that use the `com.gradle.plugin-publish`, `ivy-publish`, or `maven-publish` plugins. 
+To ensure high quality and compatibility across the [plugin ecosystem](userguide/plugins.html), Gradle now automatically enables [stricter validation](userguide/preparing_to_publish.html#validating) for projects that use the `com.gradle.plugin-publish`, `ivy-publish`, or `maven-publish` plugins.
 
 This validation catches common issues, such as missing task input annotations or improper property definitions, before a plugin is distributed.
 
-To avoid breaking your internal builds, this automatic enforcement does not apply to local plugins (e.g., those in `buildSrc` or included builds). 
+To avoid breaking your internal builds, this automatic enforcement does not apply to local plugins (e.g., those in `buildSrc` or included builds).
 
-While only enabled by default for publishing, we recommend opting into stricter validation for all plugin projects to ensure they are robust and future-proof. 
+While only enabled by default for publishing, we recommend opting into stricter validation for all plugin projects to ensure they are robust and future-proof.
 You can enable it manually in your build script:
 
 ```kotlin
@@ -399,21 +392,9 @@ tasks.validatePlugins {
 }
 ```
 
-### User interface and tooling integration
+### Tooling and IDE integration
 
-Gradle provides a modern [command-line interface](serguide/command_line_interface.html) and [powerful APIs](userguide/third_party_integration.html) that allow IDEs and other tools to integrate deeply with your build.
-
-#### Enhanced terminal progress bars
-
-Gradle’s [command-line interface](userguide/command_line_interface.html) has been updated with progress bars that offer enhanced compatibility for modern terminals:
-
-- **Ligature-Safe Rendering:** Progress bars no longer interfere with ligature fonts, ensuring a clean visual experience.
-- **Unicode Support:** High-resolution Unicode characters are now used for rendering whenever the terminal supports them.
-- **Native Terminal Integration:** Added support for OSC 9;4 escape sequences. This allows native progress bar display in terminals like [Ghostty](https://ghostty.org/) and [iTerm2 >3.6.6](https://iterm2.com/).
-
-This allows the progress bars to be displayed correctly on terminals that support them:
-
-![gradle-progress-bar-new.gif](release-notes-assets/gradle-progress-bar-new.gif)
+Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html) and [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
 
 #### Tooling integration improvements
 
@@ -445,7 +426,7 @@ void main() {
 
 Gradle now provides granular control over how [Tooling API](/userguide/tooling_api.html) clients interact with your build in parallel using a new `org.gradle.tooling.parallel` [property](userguide/build_environment.html#sec:gradle_configuration_properties).
 
-Previously, parallelism for Tooling API actions was tied directly to the `org.gradle.parallel property`.
+Previously, parallelism for Tooling API actions was tied directly to the `org.gradle.parallel` property.
 This meant that if you wanted to enable parallel task execution, you were forced to also enable parallel IDE actions, and vice versa.
 
 The new property decouples these two behaviors.
@@ -474,6 +455,24 @@ The following are the features that have been promoted in this Gradle release.
 
 The [task graph](userguide/command_line_interface.html#sec:command_line_execution_options), introduced as an incubating feature in Gradle 9.1.0, is now stable.
 It is no longer marked as experimental.
+
+## Documentation and training
+
+### Documentation
+
+#### User Manual
+
+A brand-new section of the User Manual has been started, called [Securing Your Gradle Builds](userguide/security.html).
+
+#### Best Practices
+
+The following best practices have been added in this Gradle release:
+- [Prefer the -bin Gradle Distribution](userguide/best_practices_performance.html#prefer_bin_distribution)
+
+### Training
+
+The following course is now available:
+- [Authoring Gradle Plugins](https://dpeuniversity.gradle.com/app/courses/7603d9fb-620d-4d60-8e79-ee94433dc2b1)
 
 ## Fixed issues
 
