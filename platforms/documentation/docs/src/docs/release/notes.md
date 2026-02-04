@@ -10,15 +10,16 @@
 <meta name="twitter:description" content="Gradle @version@ adds support for Java 24, Native Image toolchains, improved skipped test reporting, lazy dependency configuration for better performance, richer diagnostics via the Problems API, and a new integrity check mode for the configuration cache.">
 <meta name="twitter:image" content="https://gradle.org/images/releases/gradle-default.png">
 
-Gradle @version@ is the fourth patch release for Gradle 8.14 (released [@releaseDate@](https://gradle.org/releases/)).
+Gradle @version@ is the fifth patch release for Gradle 8.14 (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release addresses two security vulnerabilities:
+It fixes the following issues:
 
-* [Failure to disable repositories failing to answer can expose builds to malicious artifacts](https://github.com/gradle/gradle/security/advisories/GHSA-mqwm-5m85-gmcv)
-* [Failure to disable repositories with unknown host can expose builds to malicious artifacts](https://github.com/gradle/gradle/security/advisories/GHSA-w78c-w6vf-rw82)
+* TODO
 
-It also fixes the following issues:
+Issues fixed in the fourth patch release:
 
+* [Security advisory] [Failure to disable repositories failing to answer can expose builds to malicious artifacts](https://github.com/gradle/gradle/security/advisories/GHSA-mqwm-5m85-gmcv)
+* [Security advisory] [Failure to disable repositories with unknown host can expose builds to malicious artifacts](https://github.com/gradle/gradle/security/advisories/GHSA-w78c-w6vf-rw82)
 * [#34365](https://github.com/gradle/gradle/issues/34365) [Backport] Gradle doesn't stop forked processes
 * [#35125](https://github.com/gradle/gradle/issues/35125) [Backport] Precompiled script plugin with @file annotation loses package and breaks
 * [#35184](https://github.com/gradle/gradle/issues/35184) [Backport] Different fingerprints in the compile classpath for the same dependency
