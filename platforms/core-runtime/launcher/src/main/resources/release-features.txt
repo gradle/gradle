@@ -1,0 +1,3 @@
+ - Java 26 support
+ - Non-class-based JVM tests
+ - Enhanced console progress bar
