@@ -1,0 +1,476 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[verifying-dependencies]]
+= Verifying and Validating Dependencies
+
+Working with external dependencies and plugins from third-party repositories exposes your build to significant supply chain risks.
+Dependencies are the most commonly attacked part of the software supply chain, and every artifact you consume—including transitively pulled-in binaries—needs to be both legitimate and unchanged.
+
+To illustrate the risk, consider building an application that uses the `trusty-lib:1.0` library from a public repository.
+If an attacker successfully replaces `trusty-lib` in the repository with a malicious version having the same coordinates (`trusty-lib:1.0`), your next build will download the compromised code without any warning.
+
+image::trusty-lib-attack.png[]
+
+To mitigate these risks and avoid integrating compromised artifacts, Gradle provides *dependency verification*.
+
+Dependency verification is, by nature, an inconvenient feature to use: *So why keep it on?*
+
+Because dependency verification is about *trust*: trust that what you download is what you think it is, and that what you ship is what you intended.
+
+Without verification, it is easier for attackers to compromise your supply chain by publishing malicious artifacts under trusted coordinates or by tampering with artifacts in transit or at rest.
+Dependency verification helps protect you from these attacks by requiring you to confirm that the artifacts used in your build are the ones you expect.
+
+Finding the right balance between security and convenience is hard, but Gradle provides options to let you choose the right level for your needs.
+
+NOTE: Dependency verification is meant to protect yourself from compromised dependencies, not to prevent you from including _vulnerable_ dependencies.
+
+You can use dependency verification to:
+
+- Detect compromised dependencies
+- Detect compromised plugins
+- Detect tampered dependencies in the local dependency caches
+
+== Understanding Verification Methods
+
+Gradle provides two complementary mechanisms for dependency verification:
+
+1. *Checksums* – Verify the *integrity* of the artifact (that file contents haven't changed)
+2. *Signatures* – Verify the *provenance* of the artifact (who published it)
+
+Used together, they help ensure you get the right library or plugin from a trustworthy author.
+
+[[checksums]]
+=== Checksums
+
+A checksum is a short *fingerprint* of a file's contents.
+
+To produce a checksum, the library or plugin file is passed through a cryptographic hash function (for example, SHA-256), which returns a fixed-length string that uniquely represents that exact content.
+If the file changes in any way, the checksum will also change.
+
+With *checksums*, the build tool keeps a list of expected hashes for each artifact:
+
+* You record the expected checksum (for example, SHA-256) of a library or plugin in a trusted file: `gradle/verification-metadata.xml`.
+* When the build downloads that artifact, it computes the checksum of the downloaded bytes.
+* If the computed checksum doesn't match the expected value, the build fails instead of using the tampered file.
+
+image::checksum-verification.png[]
+
+For example, the checksum entry for `trusty-lib-1.0.jar` might look like this:
+
+[source,xml]
+.verification-metadata.xml
+----
+<artifact name="trusty-lib-1.0.jar">
+    <sha256 value="5e87d84077de0c60d9ff4eedbc9fac1506693019eb6f55652afc9e1ff235bd15"/>
+</artifact>
+----
+
+TIP: Checksum calculation can use different hash algorithms. SHA-256 is currently considered secure for general use. SHA-1 has known collisions and is considered weak. MD5 should not be used.
+
+[[signatures]]
+=== Signatures
+
+A signature is a cryptographic *stamp* that proves authenticity.
+
+To produce a signature, the author uses their *private key* to create a digital signature over the library or plugin (typically over its checksum).
+
+With *signatures*, you verify *who* produced the artifact, not just that it hasn't changed:
+
+* The author signs the artifact's checksum using their private key.
+* Your build tool trusts a set of public keys.
+* When the artifact is downloaded, the build verifies the signature against the trusted public key.
+* If the signature is missing, invalid, or signed by an untrusted key, the build fails.
+
+For `trusty-lib-1.0.jar`, a combined checksum and signature entry might look like this:
+
+[source,xml]
+.verification-metadata.xml
+----
+<artifact name="trusty-lib-1.0.jar">
+    <sha256 value="5e87d84077de0c60d9ff4eedbc9fac1506693019eb6f55652afc9e1ff235bd15"/>
+    <pgp value="D4C89EA4AAF455FD88B22087EFE8086F9E93774E"/>
+</artifact>
+----
+
+NOTE: The strongest security posture is to use *both* signatures and checksums. Checksums verify *what* you downloaded (content integrity), while signatures verify *who* produced it (publisher authenticity). Use signatures whenever they are available, and fall back to checksums when artifacts are not signed.
+
+[[trusted-keys]]
+=== Trusted Keys and Key Servers
+
+Because public keys are part of the verification process, Gradle also records trusted public keys in `verification-metadata.xml` on a group-level basis:
+
+[source,xml]
+.verification-metadata.xml
+----
+<trusted-keys>
+    <trusted-key
+        id="06D34ED6FF73DE368A772A781063FE98BCECB758"
+        group="com.puppycrawl.tools"
+        name="checkstyle"/>
+</trusted-keys>
+----
+
+Public keys are typically fetched from key servers, which are repositories for public keys, such as:
+
+* https://keyserver.ubuntu.com
+* https://keys.openpgp.org
+* https://pgp.mit.edu
+
+Gradle uses these trusted keys plus the checksum/signature data in `verification-metadata.xml` to ensure that dependencies come from the expected author and have not been tampered with.
+
+[[sub:enabling-verification]]
+== Enabling Dependency Verification
+
+[[sub:verification-metadata]]
+=== The Verification Metadata File
+
+Dependency verification is automatically enabled as soon as the configuration file is detected.
+The file must be located at `$PROJECT_ROOT/gradle/verification-metadata.xml`.
+
+NOTE: Currently, the only source of dependency verification metadata is this XML configuration file. Future versions of Gradle may include other sources (for example, via external services).
+
+A minimal configuration consists of the following:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+    </configuration>
+</verification-metadata>
+----
+
+With this configuration, Gradle verifies all artifacts using checksums but will not verify signatures.
+
+Gradle verifies any artifact downloaded via its dependency management engine, including but not limited to:
+
+- Artifact files (e.g., JAR files, ZIPs) used during the build
+- Metadata artifacts (POM files, Ivy descriptors, and Gradle Module Metadata)
+- Plugins (both project and settings plugins)
+- Artifacts resolved via advanced dependency resolution APIs
+
+Gradle does _not_ verify changing dependencies (specifically `SNAPSHOT` versions) or locally produced artifacts (such as JARs generated during the build itself).
+By nature, the checksums and signatures of these files change constantly.
+
+WARNING: Using such a minimal configuration file will cause a project with external dependencies or plugins to fail immediately, as the file does not yet contain the required checksums for verification.
+
+[[sec:verification-scope]]
+=== Scope of Dependency Verification
+
+The dependency verification configuration is _global_; a single file is used to verify the entire build.
+Specifically, the same file applies to all subprojects, the root project, and `buildSrc`.
+
+When using an included build, the following rules apply:
+
+- The configuration file of the _current_ build is used for verification.
+- If an included build has its own verification metadata, that configuration is ignored in favor of the _current_ build's settings.
+- Much like upgrading a dependency, including a new build may require you to update your _current_ verification metadata.
+
+Because this configuration is global and strict, the most efficient way to begin is by generating a baseline configuration for your existing build.
+
+[[sec:bootstrapping-verification]]
+== Bootstrapping and Generating Verification Metadata
+
+IMPORTANT: While Gradle can generate a dependency verification file for you, you should always check whatever Gradle generated because your build may _already_ contain compromised dependencies without you knowing about it.
+
+=== Generating Checksums Only
+
+To enable checksum verification, you need to generate a configuration file based on your current, trusted dependencies.
+
+Run the following command in your terminal:
+
+[source,bash]
+----
+./gradlew --write-verification-metadata sha256
+----
+
+What this does:
+
+1. It scans all the dependencies in your project.
+2. It calculates the SHA-256 checksum for each.
+3. It creates a file located at `gradle/verification-metadata.xml`.
+
+=== Generating Checksums and Signatures
+
+To generate both checksums and signatures (recommended when signatures are available), run:
+
+[source,shell]
+----
+./gradlew --write-verification-metadata sha256,pgp
+----
+
+Gradle will:
+
+* Resolve your dependencies.
+* Download and/or generate the required verification information.
+* Write it in a VCS-friendly XML file at `gradle/verification-metadata.xml`.
+
+The `write-verification-metadata` flag requires the list of checksums that you want to generate or `pgp` for signatures.
+
+Executing this command will cause Gradle to:
+
+* Resolve all resolvable configurations, which includes:
+** Configurations from the root project
+** Configurations from all subprojects
+** Configurations from `buildSrc`
+** Included builds configurations
+** Configurations used by plugins
+* Download all artifacts discovered during resolution
+* Compute the requested checksums and possibly verify signatures depending on what you asked
+* At the end of the build, generate the configuration file which will contain the inferred _verification metadata_
+
+=== Example Verification Metadata File
+
+A snippet of the resulting `verification-metadata.xml` looks like this:
+
+[source,xml]
+.verification-metadata.xml
+----
+<verification-metadata
+    xmlns="https://schema.gradle.org/dependency-verification"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+
+    <components>
+
+        <!-- BOTH SIGNATURE AND CHECKSUM -->
+        <component group="com.google.guava" name="failureaccess" version="1.0.3">
+            <artifact name="failureaccess-1.0.3.jar">
+                <pgp value="BDB5FA4FE719D787FB3D3197F6D4A1D411E9D1AE"/>
+                <sha256 value="cbfc3906b19b8f55dd7cfd6dfe0aa4532e834250d7f080bd8d211a3e246b59cb"
+                        origin="Verified"
+                        reason="Added manually to fix CI"/>
+            </artifact>
+        </component>
+
+        <!-- CHECKSUM ONLY -->
+        <component group="antlr" name="antlr" version="2.7.7">
+            <artifact name="antlr-2.7.7.jar">
+                <sha256 value="88fbda4b912596b9f56e8e12e580cc954bacfb51776ecfddd3e18fc1cf56dc4c"
+                        origin="Verified"
+                        reason="Artifact is not signed"/>
+            </artifact>
+        </component>
+
+        <!-- SIGNATURE ONLY -->
+        <component group="com.beust" name="jcommander" version="1.78">
+            <artifact name="jcommander-1.78.jar">
+                <pgp value="C70B844F002F21F6D2B9C87522E44AC0622B91C3"/>
+                <pgp value="DCBA03381EF6C89096ACD985AC5EC74981F9CDA6"/>
+            </artifact>
+        </component>
+
+    </components>
+</verification-metadata>
+----
+
+=== Updating Verification Metadata
+
+From this point forward, every time a developer or CI server runs the build, Gradle will compare the downloaded file's checksum against the one stored in this XML file.
+
+When you add a new library or update a version, the build will fail because the new checksum isn't in your XML file yet.
+
+Bootstrapping can either be used to create the file from the beginning or to _update_ an existing file with new information.
+Therefore, it's recommended to always use the same parameters once you started bootstrapping.
+
+You have two options:
+
+1. *Manual Update*: Add the new `<component>` entry to the XML file manually with the checksum provided by the library author.
+2. *Auto-update*: Run the `--write-verification-metadata` command again to append the new hashes.
+
+WARNING: There are dependencies that Gradle _cannot_ discover automatically. In particular, dependencies that are only resolved during task execution or in custom dependency resolution logic may not be included in the generated file. You may need to add these manually.
+
+[[sec:verification-console-output]]
+=== Configuring the Console Output
+
+By default, if dependency verification fails, Gradle generates a small summary about the verification failure as well as an HTML report containing the full information about the failures.
+
+If your environment prevents you from reading this HTML report file (for example, if you run a build on CI and it's not easy to fetch the remote artifacts), Gradle provides a way to opt-in to a verbose console report.
+
+Add this Gradle property to your `gradle.properties` file:
+
+----
+org.gradle.dependency.verification.console=verbose
+----
+
+[[sec:troubleshooting-verification]]
+== Troubleshooting Verification Failures
+
+[[sec:manual-checking-dependency]]
+=== Manual Verification of a Dependency
+
+You will likely face a dependency verification failure (either checksum verification or signature verification) and will need to figure out if the dependency has been compromised or not.
+
+In this section we give _an example_ of how you can manually check if a dependency was compromised.
+
+For this we will take this example failure:
+
+----
+> Dependency verification failed for configuration ':compileClasspath':
+- On artifact j2objc-annotations-1.1.jar (com.google.j2objc:j2objc-annotations:1.1) in repository 'MyCompany Mirror': Artifact was signed with key '29579f18fa8fd93b' but signature didn't match
+----
+
+This error message gives us the GAV coordinates of the problematic dependency, as well as an indication of where the dependency was fetched from.
+Here, the dependency comes from `MyCompany Mirror`, which is a repository declared in our build.
+
+The first thing to do is therefore to download the artifact and its signature manually from the mirror:
+
+----
+$ curl https://my-company-mirror.com/repo/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar --output j2objc-annotations-1.1.jar
+$ curl https://my-company-mirror.com/repo/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar.asc --output j2objc-annotations-1.1.jar.asc
+----
+
+Then we can use the key information provided in the error message to import the key locally:
+
+----
+$ gpg --recv-keys B801E2F8EF035068EC1139CC29579F18FA8FD93B
+----
+
+And perform verification:
+
+----
+$ gpg --verify j2objc-annotations-1.1.jar.asc
+gpg: assuming signed data in 'j2objc-annotations-1.1.jar'
+gpg: Signature made Thu 19 Jan 2017 12:06:51 AM CET
+gpg:                using RSA key 29579F18FA8FD93B
+gpg: BAD signature from "Tom Ball <****>" [unknown]
+----
+
+What this tells us is that the problem is _not_ on the local machine: the repository _already contains a bad signature_.
+
+The next step is to do the same by downloading what is actually on Maven Central:
+
+----
+$ curl https://repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar  --output central-j2objc-annotations-1.1.jar
+$ curl https://repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar.asc  --output central-j2objc-annotations-1.1.jar.asc
+----
+
+And we can now check the signature again:
+
+----
+$ gpg --verify central-j2objc-annotations-1.1.jar.asc
+
+gpg: assuming signed data in 'central-j2objc-annotations-1.1.jar'
+gpg: Signature made Thu 19 Jan 2017 12:06:51 AM CET
+gpg:                using RSA key 29579F18FA8FD93B
+gpg: Good signature from "Tom Ball <****>" [unknown]
+gpg: WARNING: This key is not certified with a trusted signature!
+gpg:          There is no indication that the signature belongs to the owner.
+Primary key fingerprint: B801 E2F8 EF03 5068 EC11  39CC 2957 9F18 FA8F D93B
+----
+
+This indicates that the dependency is _valid_ on Maven Central.
+At this stage, we already know that the problem lives in the mirror—it _may_ have been compromised, but we need to verify.
+
+A good idea is to compare the 2 artifacts, which you can do with a tool like https://try.diffoscope.org/[diffoscope].
+
+We then figure out that the intent wasn't malicious but that somehow a build has been overwritten with a newer version (the version in Central is newer than the one in our repository).
+
+In this case, you can decide to:
+
+- Ignore the signature for this artifact and trust the different possible checksums (both for the old artifact and the new version)
+- Or cleanup your mirror so that it contains the same version as in Maven Central
+
+It's worth noting that if you choose to delete the version from your repository, you will _also_ need to remove it from the local Gradle cache.
+
+This is facilitated by the fact the error message tells you where the file is located:
+
+----
+> Dependency verification failed for configuration ':compileClasspath':
+    - On artifact j2objc-annotations-1.1.jar (com.google.j2objc:j2objc-annotations:1.1) in repository 'MyCompany Mirror': Artifact was signed with key '29579f18fa8fd93b' but signature didn't match
+
+  This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums.
+
+  For your information here are the path to the files which failed verification:
+    - $GRADLE_USER_HOME/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.1/976d8d30bebc251db406f2bdb3eb01962b5685b3/j2objc-annotations-1.1.jar (signature: GRADLE_USER_HOME/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.1/82e922e14f57d522de465fd144ec26eb7da44501/j2objc-annotations-1.1.jar.asc)
+
+  GRADLE_USER_HOME = /home/user/.gradle
+----
+
+You can safely delete the artifact file as Gradle would automatically re-download it:
+
+----
+rm -rf ~/.gradle/caches/modules-2/files-2.1/com.google.j2objc/j2objc-annotations/1.1
+----
+
+=== Handling Wrong Signatures
+
+There are several options when you encounter a signature verification failure:
+
+1. The signature was wrong in the first place, which happens frequently with dependencies published on different repositories.
+2. The signature is correct but the artifact has been compromised (either in the local dependency cache or remotely).
+
+The right approach here is to go to the official site of the dependency and see if they publish signatures for their artifacts.
+If they do, verify that the signature that Gradle downloaded matches the one published.
+
+If you have checked that the dependency is _not_ compromised and that it's "only" the signature which is wrong, you should declare an _artifact level key exclusion_:
+
+[source,xml]
+----
+   <components>
+       <component group="com.github.javaparser" name="javaparser-core" version="3.6.11">
+          <artifact name="javaparser-core-3.6.11.pom">
+             <ignored-keys>
+                <ignored-key id="379ce192d401ab61" reason="internal repo has corrupted POM"/>
+             </ignored-keys>
+          </artifact>
+       </component>
+   </components>
+----
+
+However, if you only do so, Gradle will still fail because all keys for this artifact will be ignored and you didn't provide a checksum:
+
+[source,xml]
+----
+   <components>
+       <component group="com.github.javaparser" name="javaparser-core" version="3.6.11">
+          <artifact name="javaparser-core-3.6.11.pom">
+             <ignored-keys>
+                <ignored-key id="379ce192d401ab61" reason="internal repo has corrupted POM"/>
+             </ignored-keys>
+             <sha256 value="a2023504cfd611332177f96358b6f6db26e43d96e8ef4cff59b0f5a2bee3c1e1"/>
+          </artifact>
+       </component>
+   </components>
+----
+
+[[sec:verification-metadata-hygiene]]
+== Maintaining Verification Metadata
+
+=== Cleaning Up the Verification File
+
+If you do nothing, the dependency verification metadata will grow over time as you add new dependencies or change versions: Gradle will not automatically remove _unused_ entries from this file.
+The reason is that there's no way for Gradle to know upfront if a dependency will effectively be used during the build or not.
+
+As a consequence, adding dependencies or changing dependency versions can easily lead to more entries in the file while leaving unnecessary entries.
+
+One option to cleanup the file is to move the existing `verification-metadata.xml` file to a different location and call Gradle with the `--dry-run` mode: while not perfect (it will not notice dependencies only resolved at configuration time), it generates _a new file_ that you can compare with the existing one.
+
+We need to move the existing file because both the bootstrapping mode and the dry-run mode are incremental: they copy information from the existing metadata verification file (in particular, trusted keys).
+
+[[sec:refreshing-missing-keys]]
+=== Refreshing Missing Keys
+
+Gradle caches missing keys for 24 hours, meaning it will not attempt to re-download the missing keys for 24 hours after failing.
+
+If you want to retry immediately, you can run with the `--refresh-keys` CLI flag:
+
+----
+./gradlew build --refresh-keys
+----
