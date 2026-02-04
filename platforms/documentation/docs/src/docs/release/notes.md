@@ -1,4 +1,4 @@
-<meta property="og:image" content="https://gradle.org/images/releases/gradle-default.png" />
+<meta property="og:image" content="https://gradle.org/assets/images/releases/gradle-default.png" />
 <meta property="og:type"  content="article" />
 <meta property="og:title" content="Gradle @version@ Release Notes" />
 <meta property="og:site_name" content="Gradle Release Notes">
@@ -8,7 +8,7 @@
 <meta name="twitter:creator" content="@gradle">
 <meta name="twitter:title" content="Gradle @version@ Release Notes">
 <meta name="twitter:description" content="We are excited to announce Gradle @version@.">
-<meta name="twitter:image" content="https://gradle.org/images/releases/gradle-default.png">
+<meta name="twitter:image" content="https://gradle.org/assets/images/releases/gradle-default.png">
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
