@@ -16,9 +16,7 @@
 
 package org.gradle.nativeplatform.plugins
 
-
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry
-import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class NativeComponentPluginTest extends AbstractProjectBuilderSpec {
@@ -27,9 +25,8 @@ class NativeComponentPluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(NativeComponentPlugin)
     }
 
-    def "registers extensions and adds default compilers"() {
+    def "registers extensions"() {
         expect:
         project.toolChains instanceof NativeToolChainRegistry
-        project.plugins.hasPlugin(StandardToolChainsPlugin)
     }
 }

@@ -435,6 +435,9 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         result.assertTaskSkipped(":test")
 
+        cleanup:
+        customExecuter.cleanup()
+
         where:
         fileName            | content
         "foo.txt"           | ""

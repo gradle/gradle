@@ -1696,6 +1696,88 @@ Required by:
                 }
             }
         }
+    }
 
+    @Issue("https://github.com/gradle/gradle/issues/36331")
+    def "exclusions are applied to originally requested dependency"() {
+        mavenRepo.module("org", "foo")
+            .dependsOn(mavenRepo.module("org", "bar").publish())
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org:foo:1.0") {
+                    exclude(group: "org", module: "bar")
+                }
+                implementation("org:baz:1.0")
+            }
+
+            ${resolve.configureProject("runtimeClasspath")}
+
+            configurations.runtimeClasspath {
+                exclude(group: "org", module: "baz")
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module("org:bar")).using(module("org:a:1.0"))
+                    substitute(module("org:baz")).using(module("org:b:1.0"))
+               }
+            }
+        """
+
+        when:
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":depsub:") {
+                module("org:foo:1.0")
+            }
+        }
+    }
+
+    def "exclusions are applied to substituted dependency"() {
+        mavenRepo.module("org", "foo")
+            .dependsOn(mavenRepo.module("org", "bar").publish())
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org:foo:1.0") {
+                    exclude(group: "org", module: "a")
+                }
+                implementation("org:baz:1.0")
+            }
+
+            ${resolve.configureProject("runtimeClasspath")}
+
+            configurations.runtimeClasspath {
+                exclude(group: "org", module: "b")
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module("org:bar")).using(module("org:a:1.0"))
+                    substitute(module("org:baz")).using(module("org:b:1.0"))
+               }
+            }
+        """
+
+        when:
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":depsub:") {
+                module("org:foo:1.0")
+            }
+        }
     }
 }

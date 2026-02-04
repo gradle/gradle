@@ -25,18 +25,16 @@ import net.rubygrapefruit.platform.ProcessLauncher;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import net.rubygrapefruit.platform.file.FileSystems;
-import net.rubygrapefruit.platform.file.Files;
-import net.rubygrapefruit.platform.file.PosixFiles;
 import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
 import net.rubygrapefruit.platform.memory.Memory;
 import net.rubygrapefruit.platform.terminal.Terminals;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.fileevents.FileEvents;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.file.FileMetadataAccessor;
+import org.gradle.internal.file.nio.NioFileMetadataAccessor;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.NativeCapabilities;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -45,10 +43,7 @@ import org.gradle.internal.nativeintegration.console.FallbackConsoleDetector;
 import org.gradle.internal.nativeintegration.console.NativePlatformConsoleDetector;
 import org.gradle.internal.nativeintegration.console.TestOverrideConsoleDetector;
 import org.gradle.internal.nativeintegration.console.WindowsConsoleDetector;
-import org.gradle.internal.nativeintegration.filesystem.services.FallbackFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FileSystemServices;
-import org.gradle.internal.nativeintegration.filesystem.services.NativePlatformBackedFileMetadataAccessor;
-import org.gradle.internal.nativeintegration.filesystem.services.UnavailablePosixFiles;
 import org.gradle.internal.nativeintegration.jansi.JansiBootPathConfigurer;
 import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
 import org.gradle.internal.nativeintegration.network.HostnameLookup;
@@ -76,7 +71,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallbackHelper.newInstanceOrFallback;
 
 /**
  * Provides various native platform integration services.
@@ -490,18 +484,6 @@ public class NativeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected PosixFiles createPosixFiles(OperatingSystem operatingSystem) {
-        if (useNativeIntegrations) {
-            try {
-                return nativeIntegration.get(PosixFiles.class);
-            } catch (NativeIntegrationUnavailableException e) {
-                LOGGER.debug("Native-platform posix files integration is not available. Continuing with fallback.");
-            }
-        }
-        return notAvailable(UnavailablePosixFiles.class, operatingSystem);
-    }
-
-    @Provides
     protected HostnameLookup createHostnameLookup() {
         if (useNativeIntegrations) {
             try {
@@ -515,7 +497,6 @@ public class NativeServices implements ServiceRegistrationProvider {
         try {
             hostname = InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
-            //noinspection Since15
             hostname = InetAddress.getLoopbackAddress().getHostAddress();
         }
         return new FixedHostname(hostname);
@@ -523,24 +504,7 @@ public class NativeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected FileMetadataAccessor createFileMetadataAccessor(OperatingSystem operatingSystem) {
-        // Based on the benchmark found in org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessorBenchmark
-        // and the results in the PR https://github.com/gradle/gradle/pull/12966
-        // we're using "native platform" for all OSes if available.
-        // If it isn't available, we fall back to using Java NIO and, if that fails, to using the old `File` APIs.
-
-        if (useNativeIntegrations) {
-            try {
-                return new NativePlatformBackedFileMetadataAccessor(nativeIntegration.get(Files.class));
-            } catch (NativeIntegrationUnavailableException e) {
-                LOGGER.debug("Native-platform files integration is not available. Continuing with fallback.");
-            }
-        }
-
-        if (JavaVersion.current().isJava7Compatible()) {
-            return newInstanceOrFallback("org.gradle.internal.file.nio.NioFileMetadataAccessor", NativeServices.class.getClassLoader(), FallbackFileMetadataAccessor.class);
-        }
-
-        return new FallbackFileMetadataAccessor();
+        return new NioFileMetadataAccessor();
     }
 
     @Provides

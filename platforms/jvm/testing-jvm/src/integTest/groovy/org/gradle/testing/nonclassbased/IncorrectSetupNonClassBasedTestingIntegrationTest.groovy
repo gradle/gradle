@@ -261,7 +261,7 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         } else if (shouldFail) {
             sourcesPresentAndNoTestsFound()
         } else {
-            if (scanForTestClasses && hasTestClasses) {
+            if (scanForTestClasses && hasTestClasses) { // Even if scanForTestClasses is false, class-based tests will be detected and executed if present
                 classBasedTestsExecuted(false)
             }
             if (addTestDefsDir && hasTestDefs) {
@@ -281,11 +281,11 @@ class IncorrectSetupNonClassBasedTestingIntegrationTest extends AbstractNonClass
         true                | false             | false             | false         || true             || false
         false               | true              | true              | true          || false            || false
         false               | false             | true              | true          || false            || false
-        false               | true              | false             | true          || false            || true
-        false               | true              | true              | false         || false            || true
+        false               | true              | false             | true          || false            || false
+        false               | true              | true              | false         || false            || false
         false               | false             | false             | true          || true             || false
         false               | false             | true              | false         || true             || false
-        false               | true              | false             | false         || false            || true
+        false               | true              | false             | false         || false            || false
         false               | false             | false             | false         || true             || false
     }
 
