@@ -20,7 +20,7 @@ import okhttp3.HttpUrl
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
@@ -310,7 +310,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "buildFinished")
+    @UnsupportedWithConfigurationCache(because = "buildFinished")
     fun `can use Closure only APIs`() {
 
         withBuildScript(
@@ -1143,8 +1143,10 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForConfigurationCache(because = "No builders are available to build a model of type 'org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel'")
+    @UnsupportedWithConfigurationCache(because = "TAPI shouldn't be used this way; if it is, then it genuinely needs a Project instance, which is not supported by the CC")
     fun `can query KotlinBuildScriptModel`() {
+
+        // TODO: why does this test exist? why isn't it a proper Toolin API test? what's the point of it being here? Why build TAPI models in a task?
 
         // This test breaks encapsulation a bit in the interest of ensuring Gradle Kotlin DSL use
         // of internal APIs is not broken by refactorings on the Gradle side
