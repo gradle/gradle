@@ -34,13 +34,8 @@ class JUnit6JUnitIntegrationTest extends AbstractJUnitIntegrationTest implements
 
             ${mavenCentralRepository()}
 
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter:${version}'
-                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-            }
-
             testing.suites.test {
-                useJUnitJupiter()
+                useJUnitJupiter("${version}")
 
                 targets.all {
                     testTask.configure {

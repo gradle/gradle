@@ -21,10 +21,11 @@ package org.gradle.testing.fixture
  * JUNIT_VINTAGE is JUnit Vintage engine which supports JUnit 4 tests on top of JUnit Platform, i.e. org.junit.vintage:junit-vintage-engine:5.7.1
  */
 class JUnitCoverage {
+    // Keep in sync with JUnitPlatformTestToolchain, JUnitJupiterTestToolchain, JUnit4TestToolchain
     final static String LATEST_JUNIT3_VERSION = '3.8.2'
     final static String LATEST_JUNIT4_VERSION = '4.13.2'
-    final static String LATEST_JUNIT5_VERSION = '5.14.1'
-    final static String LATEST_JUNIT6_VERSION = '6.0.1'
+    final static String LATEST_JUNIT5_VERSION = '5.14.2'
+    final static String LATEST_JUNIT6_VERSION = '6.0.2'
     final static String LATEST_JUPITER_VERSION = LATEST_JUNIT6_VERSION
     final static String LATEST_VINTAGE_VERSION = LATEST_JUNIT6_VERSION
     final static String LATEST_PLATFORM_VERSION = LATEST_JUNIT6_VERSION
