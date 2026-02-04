@@ -54,7 +54,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
                             LogBuildEventAction.class,
                             spec ->
                                     spec.getParameters().getEventToLog().set(
-                                            getFlowProviders().getBuildWorkResult().map(result -> "gradle.buildFinished failure=\${Util.unpack(result.failure)} [\${buildPath}]")
+                                            getFlowProviders().getBuildWorkResult().map(result -> "buildFinished failure=\${Util.unpack(result.failure)} [\${buildPath}]")
                                     )
                     );
                 }
@@ -93,23 +93,17 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
                 settings.apply plugin: LoggingPlugin
             }
             gradle.taskGraph.whenReady {
-                println '# gradle.taskGraphReady [' + gradle.buildPath + ']'
+                println '# taskGraphReady [' + gradle.buildPath + ']'
             }
-            gradle.addBuildListener(new LoggingBuildListener())
-            class LoggingBuildListener extends BuildAdapter {
-                void settingsEvaluated(Settings settings) {
-                    def buildName = settings.gradle.parent == null ? '' : settings.rootProject.name
-                    println '# buildListener.settingsEvaluated [:' + buildName + ']'
-                }
-                void projectsLoaded(Gradle gradle) {
-                    println '# buildListener.projectsLoaded [' + gradle.buildPath + ']'
-                }
-                void projectsEvaluated(Gradle gradle) {
-                    println '# buildListener.projectsEvaluated [' + gradle.buildPath + ']'
-                }
-                void buildFinished(BuildResult result) {
-                    println '# buildListener.buildFinished failure=' + Util.unpack(java.util.Optional.ofNullable(result.failure)) + ' [' + result.gradle.buildPath + ']'
-                }
+            gradle.settingsEvaluated { settings -> 
+                def buildName = settings.gradle.parent == null ? '' : settings.rootProject.name
+                println '# settingsEvaluated [:' + buildName + ']'
+            }
+            gradle.projectsLoaded { gradle ->
+                println '# projectsLoaded [' + gradle.buildPath + ']' 
+            }
+            gradle.projectsEvaluated { gradle ->
+                println '# projectsEvaluated [' + gradle.buildPath + ']'
             }
 """
 
@@ -137,7 +131,6 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         includedBuilds << buildC
     }
 
-    @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build listener events on included builds"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -150,22 +143,19 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         verifyBuildEvents()
     }
 
-    @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build listener events for unused included builds"() {
         when:
         execute()
 
         then:
-        events(16)
-        loggedOncePerBuild('buildListener.settingsEvaluated')
-        loggedOncePerBuild('buildListener.projectsLoaded')
-        loggedOncePerBuild('buildListener.projectsEvaluated')
-        loggedOncePerBuild('gradle.taskGraphReady', [':'])
-        loggedOncePerBuild('buildListener.buildFinished failure=null')
-        loggedOncePerBuild('gradle.buildFinished failure=null')
+        events(13)
+        loggedOncePerBuild('settingsEvaluated')
+        loggedOncePerBuild('projectsLoaded')
+        loggedOncePerBuild('projectsEvaluated')
+        loggedOncePerBuild('taskGraphReady', [':'])
+        loggedOncePerBuild('buildFinished failure=null')
     }
 
-    @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build listener events for included build that provides buildscript and compile dependencies"() {
         given:
         def pluginBuild = pluginProjectBuild("pluginD")
@@ -179,16 +169,14 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         execute()
 
         then:
-        events(23)
-        loggedOncePerBuild('buildListener.settingsEvaluated', [':', ':buildB', ':buildC', ':pluginD'])
-        loggedOncePerBuild('buildListener.projectsLoaded', [':', ':buildB', ':buildC', ':pluginD'])
-        loggedOncePerBuild('buildListener.projectsEvaluated', [':', ':buildB', ':buildC', ':pluginD'])
-        loggedOncePerBuild('gradle.taskGraphReady', [':', ':buildB', ':pluginD'])
-        loggedOncePerBuild('buildListener.buildFinished failure=null', [':', ':buildB', ':buildC', ':pluginD'])
-        loggedOncePerBuild('gradle.buildFinished failure=null', [':', ':buildB', ':buildC', ':pluginD'])
+        events(19)
+        loggedOncePerBuild('settingsEvaluated', [':', ':buildB', ':buildC', ':pluginD'])
+        loggedOncePerBuild('projectsLoaded', [':', ':buildB', ':buildC', ':pluginD'])
+        loggedOncePerBuild('projectsEvaluated', [':', ':buildB', ':buildC', ':pluginD'])
+        loggedOncePerBuild('taskGraphReady', [':', ':buildB', ':pluginD'])
+        loggedOncePerBuild('buildFinished failure=null', [':', ':buildB', ':buildC', ':pluginD'])
     }
 
-    @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build listener events for included builds with additional discovered (compileOnly) dependencies"() {
         given:
         // BuildB will be initially evaluated with a single dependency on 'b1'.
@@ -208,7 +196,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         verifyBuildEvents()
     }
 
-    @ToBeFixedForConfigurationCache(because = "build listener")
+    @ToBeFixedForConfigurationCache(because = "buildFinished")
     def "buildFinished for root build is guaranteed to complete after included builds"() {
         given:
 
@@ -239,12 +227,12 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
 
         then:
         def outputLines = result.normalizedOutput.readLines()
-        def rootBuildFinishedPosition = outputLines.indexOf("# gradle.buildFinished failure=null [:]")
+        def rootBuildFinishedPosition = outputLines.indexOf("# buildFinished failure=null [:]")
         rootBuildFinishedPosition >= 0
 
-        def buildBFinishedPosition = outputLines.indexOf("# gradle.buildFinished failure=null [:buildB]")
+        def buildBFinishedPosition = outputLines.indexOf("# buildFinished failure=null [:buildB]")
         buildBFinishedPosition >= 0
-        def buildCFinishedPosition = outputLines.indexOf("# gradle.buildFinished failure=null [:buildC]")
+        def buildCFinishedPosition = outputLines.indexOf("# buildFinished failure=null [:buildC]")
         buildCFinishedPosition >= 0
 
         def buildSuccessfulPosition = outputLines.indexOf("BUILD SUCCESSFUL in 0s")
@@ -264,7 +252,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         lateIncludedBuildTaskPosition < rootBuildFinishedPosition
     }
 
-    @ToBeFixedForConfigurationCache(because = "build listener")
+    @ToBeFixedForConfigurationCache(because = "buildFinished")
     def "fires build finished events for all builds when settings script for child build cannot be compiled"() {
         given:
         buildA.settingsFile << """
@@ -286,11 +274,10 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         then:
         outputContains("build A finished")
 
-        events(5)
-        loggedOncePerBuild("buildListener.settingsEvaluated", [':'])
+        events(3)
+        loggedOncePerBuild("settingsEvaluated", [':'])
         // Root build also receives the failure from its children
-        loggedOncePerBuild("buildListener.buildFinished failure=org.gradle.groovy.scripts.ScriptCompilationException: Could not compile settings file '${buildB.settingsFile}'.", [':', ':buildB'])
-        loggedOncePerBuild("gradle.buildFinished failure=org.gradle.groovy.scripts.ScriptCompilationException: Could not compile settings file '${buildB.settingsFile}'.", [':', ':buildB'])
+        loggedOncePerBuild("buildFinished failure=org.gradle.groovy.scripts.ScriptCompilationException: Could not compile settings file '${buildB.settingsFile}'.", [':', ':buildB'])
 
         failure.assertHasFailures(2)
         failure.assertHasDescription("Could not compile settings file")
@@ -301,7 +288,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
             .assertHasLineNumber(19)
     }
 
-    @ToBeFixedForConfigurationCache(because = "build listener")
+    @ToBeFixedForConfigurationCache(because = "buildFinished")
     def "fires build finished events for all builds when build script for child build fails"() {
         given:
         disableProblemsApiCheck()
@@ -333,14 +320,11 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         outputContains("build B finished")
         outputContains("build C finished")
 
-        events(13)
-        loggedOncePerBuild("buildListener.buildFinished failure=null", [':buildB'])
-        loggedOncePerBuild("gradle.buildFinished failure=null", [':buildB'])
-        loggedOncePerBuild("buildListener.buildFinished failure=org.gradle.api.GradleScriptException: A problem occurred evaluating project ':buildC'.", [':buildC'])
-        loggedOncePerBuild("gradle.buildFinished failure=org.gradle.api.GradleScriptException: A problem occurred evaluating project ':buildC'.", [':buildC'])
+        events(10)
+        loggedOncePerBuild("buildFinished failure=null", [':buildB'])
+        loggedOncePerBuild("buildFinished failure=org.gradle.api.GradleScriptException: A problem occurred evaluating project ':buildC'.", [':buildC'])
         // Root build also receives the failures from its children, including the buildFinished { } failure
-        loggedOncePerBuild("buildListener.buildFinished failure=[org.gradle.api.GradleScriptException: A problem occurred evaluating project ':buildC'., java.lang.RuntimeException: build C broken]", [':'])
-        loggedOncePerBuild("gradle.buildFinished failure=[org.gradle.api.GradleScriptException: A problem occurred evaluating project ':buildC'., java.lang.RuntimeException: build C broken]", [':'])
+        loggedOncePerBuild("buildFinished failure=[org.gradle.api.GradleScriptException: A problem occurred evaluating project ':buildC'., java.lang.RuntimeException: build C broken]", [':'])
 
         failure.assertHasFailures(3)
         failure.assertHasDescription("build A broken")
@@ -354,7 +338,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
             .assertHasLineNumber(6)
     }
 
-    @ToBeFixedForConfigurationCache(because = "build listener")
+    @ToBeFixedForConfigurationCache(because = "buildFinished")
     def "fires build finished events for all builds when build finished event for other builds fail"() {
         given:
         disableProblemsApiCheck()
@@ -385,12 +369,10 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         outputContains("build B finished")
         outputContains("build C finished")
 
-        events(16)
-        loggedOncePerBuild('buildListener.buildFinished failure=null', [':buildB', ':buildC'])
-        loggedOncePerBuild('gradle.buildFinished failure=null', [':buildB', ':buildC'])
+        events(13)
+        loggedOncePerBuild('buildFinished failure=null', [':buildB', ':buildC'])
         // Root build also receives the failures from its children, including the buildFinished { } failures
-        loggedOncePerBuild('buildListener.buildFinished failure=[java.lang.RuntimeException: build B broken, java.lang.RuntimeException: build C broken]', [':'])
-        loggedOncePerBuild('gradle.buildFinished failure=[java.lang.RuntimeException: build B broken, java.lang.RuntimeException: build C broken]', [':'])
+        loggedOncePerBuild('buildFinished failure=[java.lang.RuntimeException: build B broken, java.lang.RuntimeException: build C broken]', [':'])
 
         failure.assertHasFailures(3)
         failure.assertHasDescription("build A broken")
@@ -404,7 +386,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
             .assertHasLineNumber(6)
     }
 
-    @ToBeFixedForConfigurationCache(because = "build listener")
+    @ToBeFixedForConfigurationCache(because = "buildFinished")
     def "fires build finished events for all builds when other builds fail"() {
         given:
         disableProblemsApiCheck()
@@ -441,14 +423,11 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         outputContains("build B finished")
         outputContains("build C finished")
 
-        events(17)
-        loggedOncePerBuild("buildListener.buildFinished failure=org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken'.", [':buildB'])
-        loggedOncePerBuild("gradle.buildFinished failure=org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken'.", [':buildB'])
-        loggedOncePerBuild('buildListener.buildFinished failure=null', [':buildC'])
-        loggedOncePerBuild('gradle.buildFinished failure=null', [':buildC'])
+        events(14)
+        loggedOncePerBuild("buildFinished failure=org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken'.", [':buildB'])
+        loggedOncePerBuild('buildFinished failure=null', [':buildC'])
         // Root build also receives the failures from its children, including the buildFinished { } failures
-        loggedOncePerBuild("buildListener.buildFinished failure=[org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken'., java.lang.RuntimeException: build B broken, java.lang.RuntimeException: build C broken]", [':'])
-        loggedOncePerBuild("gradle.buildFinished failure=[org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken'., java.lang.RuntimeException: build B broken, java.lang.RuntimeException: build C broken]", [':'])
+        loggedOncePerBuild("buildFinished failure=[org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':buildB:broken'., java.lang.RuntimeException: build B broken, java.lang.RuntimeException: build C broken]", [':'])
 
         failure.assertHasFailures(4)
         failure.assertHasDescription("Execution failed for task ':buildB:broken'.")
@@ -466,13 +445,12 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     }
 
     void verifyBuildEvents() {
-        events(18) // 3 build * 6 events
-        loggedOncePerBuild('buildListener.settingsEvaluated')
-        loggedOncePerBuild('buildListener.projectsLoaded')
-        loggedOncePerBuild('buildListener.projectsEvaluated')
-        loggedOncePerBuild('gradle.taskGraphReady')
-        loggedOncePerBuild('buildListener.buildFinished failure=null')
-        loggedOncePerBuild('gradle.buildFinished failure=null')
+        events(15) // 3 build * 5 events
+        loggedOncePerBuild('settingsEvaluated')
+        loggedOncePerBuild('projectsLoaded')
+        loggedOncePerBuild('projectsEvaluated')
+        loggedOncePerBuild('taskGraphReady')
+        loggedOncePerBuild('buildFinished failure=null')
     }
 
     void loggedOncePerBuild(message, def builds = [':', ':buildB', ':buildC']) {
@@ -482,7 +460,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     }
 
     void events(int expected) {
-        assert result.output.count("# gradle.") + result.output.count("# buildListener.") == expected
+        assert result.output.count("# ") == expected
     }
 
     void loggedOnce(String message) {
