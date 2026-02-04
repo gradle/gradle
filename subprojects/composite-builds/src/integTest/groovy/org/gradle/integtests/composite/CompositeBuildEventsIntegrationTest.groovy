@@ -27,20 +27,70 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
 
     def setup() {
         file('gradle-user-home/init.gradle') << """
+            import org.gradle.api.Plugin
+            import org.gradle.api.flow.FlowAction;
+            import org.gradle.api.flow.FlowParameters;
+            import org.gradle.api.flow.FlowProviders;
+            import org.gradle.api.flow.FlowScope;
+            import org.gradle.api.initialization.Settings
+            import org.gradle.execution.MultipleBuildFailures
+            import org.gradle.internal.exceptions.LocationAwareException
+            
+            import javax.inject.Inject;
+
+            abstract class LoggingPlugin implements Plugin<Settings> {
+            
+                @Inject
+                protected abstract FlowScope getFlowScope();
+            
+                @Inject
+                protected abstract FlowProviders getFlowProviders();
+            
+                @Override
+                void apply(Settings settings) {
+                    def buildPath = settings.gradle.buildPath
+            
+                    getFlowScope().always(
+                            LogBuildEventAction.class,
+                            spec ->
+                                    spec.getParameters().getEventToLog().set(
+                                            getFlowProviders().getBuildWorkResult().map(result -> "gradle.buildFinished failure=\${Util.unpack(result.failure)} [\${buildPath}]")
+                                    )
+                    );
+                }
+            }
+
+            abstract class LogBuildEventAction implements FlowAction<Parameters> {
+                interface Parameters extends FlowParameters {
+                    @Input
+                    Property<String> getEventToLog();
+                }
+            
+                @Override
+                void execute(Parameters parameters) {
+                    println("# \${parameters.eventToLog.get()}")
+                }
+            }
+
             class Util {
-                static def unpack(Throwable t) {
+                static def unpack(java.util.Optional<Throwable> ot) {
+                    if (!ot.isPresent()) {
+                        return null
+                    }
+                    
+                    def t = ot.get()
                     if (t instanceof ${LocationAwareException.name}) {
-                        return unpack(t.cause)
+                        return unpack(java.util.Optional.ofNullable(t.cause))
                     } else if (t instanceof ${MultipleBuildFailures.name}) {
-                        return t.causes.collect { unpack(it) }
+                        return t.causes.collect { unpack(java.util.Optional.ofNullable(it)) }
                     } else {
                         return t
                     }
                 }
             }
-
-            gradle.buildFinished { result ->
-                println '# gradle.buildFinished failure=' + Util.unpack(result.failure) + ' [' + gradle.buildPath + ']'
+            
+            gradle.beforeSettings { settings ->
+                settings.apply plugin: LoggingPlugin
             }
             gradle.taskGraph.whenReady {
                 println '# gradle.taskGraphReady [' + gradle.buildPath + ']'
@@ -58,7 +108,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
                     println '# buildListener.projectsEvaluated [' + gradle.buildPath + ']'
                 }
                 void buildFinished(BuildResult result) {
-                    println '# buildListener.buildFinished failure=' + Util.unpack(result.failure) + ' [' + result.gradle.buildPath + ']'
+                    println '# buildListener.buildFinished failure=' + Util.unpack(java.util.Optional.ofNullable(result.failure)) + ' [' + result.gradle.buildPath + ']'
                 }
             }
 """
