@@ -20,9 +20,14 @@ import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecution
 import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Issue
 
+import static org.gradle.testing.fixture.JUnitCoverage.getLATEST_JUPITER_VERSION
 import static org.hamcrest.Matchers.equalTo
 
 class JUnitPlatformLoggingIntegrationTest extends JUnitPlatformIntegrationSpec {
+    @Override
+    String getJupiterVersion() {
+        return LATEST_JUPITER_VERSION
+    }
 
     @Override
     def setup() {
