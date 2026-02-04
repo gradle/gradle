@@ -189,8 +189,8 @@ class PerformanceTestPlugin : Plugin<Project> {
             performanceResultsDirectory = repoRoot().dir("perf-results")
             reportDir = project.layout.buildDirectory.dir(this@configureEach.name)
             databaseParameters = project.propertiesForPerformanceDb
-            branchName = buildBranch
-            channel = project.performanceChannel
+            branchName = "release8x"
+            channel = "commits-release8x"
             val prefix = channel.map { channelName ->
                 val osIndependentPrefix = if (channelName.startsWith("flakiness-detection")) {
                     "flakiness-detection"
