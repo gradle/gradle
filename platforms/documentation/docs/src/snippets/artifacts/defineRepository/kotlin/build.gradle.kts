@@ -127,8 +127,8 @@ repositories {
     maven {
         url = uri("http://repo.mycompany.com/maven2")
         credentials {
-            username = "user"
-            password = "password"
+            username = providers.environmentVariable("username").orNull
+            password = providers.environmentVariable("password").orNull
         }
     }
 }
@@ -259,8 +259,8 @@ repositories {
     ivy {
         url = uri("http://repo.mycompany.com")
         credentials {
-            username = "user"
-            password = "password"
+            username = providers.environmentVariable("username").orNull
+            password = providers.environmentVariable("password").orNull
         }
     }
 }
@@ -279,8 +279,8 @@ repositories {
     maven {
         url = uri("https://repo.mycompany.com/maven2")
         credentials {
-            username = "user"
-            password = "password"
+            username = providers.environmentVariable("username").orNull
+            password = providers.environmentVariable("password").orNull
         }
         authentication {
             create<DigestAuthentication>("digest")
@@ -294,8 +294,8 @@ repositories {
     maven {
         url = uri("https://repo.mycompany.com/maven2")
         credentials {
-            username = "user"
-            password = "password"
+            username = providers.environmentVariable("username").orNull
+            password = providers.environmentVariable("password").orNull
         }
         authentication {
             create<BasicAuthentication>("basic")
