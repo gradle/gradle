@@ -115,7 +115,7 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
             if (onlyOneTestExecuted) {
                 System.out.println("##teamcity[buildStatus text='" + failedMessage + "']");
             }
-            throw new GradleException(failedMessage);
+            throw new GradleException(failedMessage + failureCollector.formatFailedScenarioDetails());
         }
         String successMessage = "Performance test passed" + resultString;
         System.out.println(successMessage);
@@ -199,10 +199,16 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
         private int flakyScenarioBigRegressions = 0;
         private int flakyScenarioSmallRegressions = 0;
         private boolean failBuild;
+        private final List<String> failedScenarioSummaries = new ArrayList<>();
 
         public void scenarioFailed() {
             buildFailures++;
             failBuild = true;
+        }
+
+        public void scenarioFailed(PerformanceReportScenario scenario) {
+            scenarioFailed();
+            failedScenarioSummaries.add(renderScenarioSummary("FAILED", scenario));
         }
 
         public void scenarioRegressed() {
@@ -210,13 +216,28 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
             failBuild = true;
         }
 
+        public void scenarioRegressed(PerformanceReportScenario scenario) {
+            scenarioRegressed();
+            failedScenarioSummaries.add(renderScenarioSummary("REGRESSED", scenario));
+        }
+
         public void flakyScenarioWithBigRegression() {
             flakyScenarioBigRegressions++;
             failBuild = true;
         }
 
+        public void flakyScenarioWithBigRegression(PerformanceReportScenario scenario) {
+            flakyScenarioWithBigRegression();
+            failedScenarioSummaries.add(renderScenarioSummary("FLAKY_BIG_REGRESSION", scenario));
+        }
+
         public void flakyScenarioWithSmallRegression() {
             flakyScenarioSmallRegressions++;
+        }
+
+        public void flakyScenarioWithSmallRegression(PerformanceReportScenario scenario) {
+            flakyScenarioWithSmallRegression();
+            failedScenarioSummaries.add(renderScenarioSummary("FLAKY_SMALL_REGRESSION", scenario));
         }
 
         public boolean isFailBuild() {
@@ -237,6 +258,34 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
 
         public int getFlakyScenarioSmallRegressions() {
             return flakyScenarioSmallRegressions;
+        }
+
+        public List<String> getFailedScenarioSummaries() {
+            return failedScenarioSummaries;
+        }
+
+        public String formatFailedScenarioDetails() {
+            if (failedScenarioSummaries.isEmpty()) {
+                return "";
+            }
+            String lineSeparator = System.lineSeparator();
+            return lineSeparator
+                + "Failing scenarios (TeamCity build id):" + lineSeparator
+                + failedScenarioSummaries.stream().map(s -> " - " + s).collect(Collectors.joining(lineSeparator));
+        }
+
+        private static String renderScenarioSummary(String kind, PerformanceReportScenario scenario) {
+            String displayName = scenario.getPerformanceExperiment().getDisplayName();
+            List<String> buildIds = scenario.getTeamCityExecutions().stream()
+                .map(PerformanceTestExecutionResult::getTeamCityBuildId)
+                .filter(StringUtils::isNotBlank)
+                .distinct()
+                .collect(Collectors.toList());
+
+            String suffix = buildIds.isEmpty()
+                ? ""
+                : " teamCityBuildId=" + String.join(",", buildIds);
+            return kind + ": " + displayName + suffix;
         }
     }
 }
