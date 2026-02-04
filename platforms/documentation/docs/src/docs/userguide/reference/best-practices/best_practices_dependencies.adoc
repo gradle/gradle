@@ -504,10 +504,10 @@ When creating custom configurations that are meant to be consumed or resolved, a
 
 === Explanation
 
-Gradle uses <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variant-aware dependency resolution>> to select the correct artifacts when resolving dependencies.
-Attributes are the primary mechanism for matching resolvable configurations to consumable configurations (variants).
+Gradle uses <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variant-aware dependency resolution>> to select the appropriate artifacts.
+Attributes serve as the primary matching mechanism between resolvable configurations (what a consumer needs) and consumable configurations (what a producer provides as variants).
 
-Even if there is only a single consumable configuration in a producer project, if that configuration lacks attributes, resolving it using variant-aware dependency resolution is not possible and will result in the following error:
+Even if a producer project has only one consumable configuration, omitting attributes will cause variant-aware resolution to fail with the following error:
 
 [source,text]
 ----
@@ -515,10 +515,11 @@ Unable to find a matching variant of project :producer:
   - No variants exist.
 ----
 
-Gradle is able to resolve configurations without using attributes, by selecting configurations by name directly.
-This is now only recommended when using Ivy repositories, and <<upgrading_version_8.adoc#selecting_variant_by_configuration_name,was deprecated for Maven repositories>> in Gradle 8.10 and removed in Gradle 9.0.0.
+While Gradle can resolve configurations by selecting them directly by name, this approach is outdated:
+
+- It was <<upgrading_version_8.adoc#selecting_variant_by_configuration_name,deprecated for Maven repositories>> in Gradle 8.10 and removed in Gradle 9.0.0. It is only recommended for Ivy repositories.
 This mechanism can still be used for local project dependencies, but should be avoided.
-The name of a configuration should be considered an implementation detail that shouldn't leave the bounds of a project, and should not be relied upon for dependency resolution.
+- Configuration names should be treated as internal implementation details. Relying on them for resolution forces the consumer to know too much about the producer's internal structure.
 
 When adding attributes to a configuration, common attributes to use include:
 
@@ -526,8 +527,9 @@ When adding attributes to a configuration, common attributes to use include:
 
 And for JVM projects, also:
 
-* `Usage.USAGE_ATTRIBUTE` - Indicates how the dependency is used (e.g., `JAVA_RUNTIME`, `JAVA_API`)
-* `LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE` - Indicates the type of library elements (e.g., `JAR`, `CLASSES`)
+* For JVM Projects:
+** `Usage.USAGE_ATTRIBUTE` - Indicates how the dependency is used (e.g., `JAVA_RUNTIME`, `JAVA_API`)
+** `LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE` - Indicates the type of library elements (e.g., `JAR`, `CLASSES`)
 
 It is a best practice to always declare sensible attributes on both consumable and resolvable configurations to ensure reliable dependency resolution.
 While attributes are not yet *required* on resolvable configurations when using variant-aware dependency resolution, omitting them leads to fragile builds that are prone to breakage as the build evolves.
@@ -584,7 +586,7 @@ include::sample[dir="snippets/bestPractices/avoidConfigurationsWithoutAttributes
 <1> *New Attribute type defined in consumer*: The consumable configuration defines the same new `custom` attrbute that contains project-specific variant identification information.
 <2> *Attributes declared in consumer*: The resolvable configuration is identified as `Category` = `LIBRARY`, and `custom` attribute = `my-custom-value`.
 
-By declaring compatible attributes on both the consumable and resolvable configurations, Gradle can properly match the variants, ignoring implementation details like configuration name, and will resolve the dependency reliably.
+By declaring compatible attributes, you decouple your projects from internal naming conventions, resulting in a more robust and maintainable build.
 
 === References
 
