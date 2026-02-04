@@ -891,7 +891,7 @@
   {
     "name": "jvm-compiler-worker",
     "path": "platforms/jvm/jvm-compiler-worker",
-    "unitTests": true,
+    "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },
