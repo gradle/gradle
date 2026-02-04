@@ -1,0 +1,8 @@
+> Task :generate
+
+> Task :consume
+Input file: /home/user/gradle/samples/build/output.txt
+Content: Generated content
+
+BUILD SUCCESSFUL in 0s
+2 actionable tasks: 2 executed

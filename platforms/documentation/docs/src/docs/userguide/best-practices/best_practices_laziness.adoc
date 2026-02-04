@@ -18,54 +18,255 @@
 [[map_versus_flatmap]]
 == Be Careful with `map` vs. `flatMap` when Wiring Properties
 
-Using `flatMap` on a `TaskProvider` to extract an input property will sever the automatic task dependency chain, causing build failures or incorrect incremental results.
+When wiring task outputs to inputs, several common patterns break task dependency tracking or cause configuration-time failures.
+Understanding when to use `map`, `flatMap`, and how to avoid creating "naked providers" is essential for reliable builds.
 
 === Explanation
 
-The primary difference between `map` and `flatMap` in the <<lazy_configuration.adoc#lazy_configuration_faqs,Provider API>> is how they handle the producer information.
-When you use `map`, Gradle treats the transformation as a continuation of the existing provider; the task dependency (the _producer_) remains attached.
+Gradle's Provider API uses `map` and `flatMap` to transform and connect task properties.
+However, certain patterns break the connection between tasks, causing builds to fail or produce incorrect results.
 
-In contrast, `flatMap` is designed to transform one provider into a completely different provider.
-If you use `flatMap` to extract a property from a task (e.g., `task.flatMap { it.someProperty }`), Gradle often loses the connection to the original task that owns that property.
-The code will look logically correct but fails at execution time because the producer task is never added to the task graph.
+The confusion often arises when using a mix of eager properties (like `File`) and lazy properties (like `RegularFileProperty`):
 
-Key rules:
+- For **eager properties**, you use `map` to extract the value
+- For **lazy properties**, you use `flatMap` to extract the Provider
 
-- Don't ever call .`get()` inside a closure. Calling `.get()` realizes the value immediately, breaking lazy configuration and task dependency tracking.
-- If you need to transform a file's content, ensure the file's provider is what you are mapping over, not the task itself.
+When unsure which to use, developers often resort to `.get()` or create new providers with `provider {}`.
+These "naked providers" have no dependency information and break dependency tracking.
+
+When wiring task outputs to inputs:
+
+1. **Use directly annotated output properties** - avoid deriving properties through `.map {}`
+2. **Use `flatMap` to extract Provider properties** - this is correct and necessary for the Provider API
+3. **Use `map` to extract eager properties** - extract plain values like `File` or `String`, not Provider properties
+4. **Chain `map` to transform values** - don't create new providers with `provider {}`
+5. **Never call `.get()` to read file content in callbacks** - the file doesn't exist yet at configuration time
+6. **For derived properties, use `.map { it.property.get() }` as a workaround** - but prefer direct annotations
+
+NOTE: For dependency tracking to work, task output properties must be properly annotated with `@OutputFile`, `@OutputDirectory`, or similar annotations. Without these annotations, Gradle cannot track task dependencies.
 
 ==== Don't Do This
 
-In this example, using `flatMap` on the `TaskProvider` results in a new Provider that has _forgotten_ it was produced by `GeneratorTask`:
+===== Creating Naked Providers with `provider {}`
+
+This is the most common mistake.
+Creating a new provider inside `flatMap` loses all dependency information:
 
 [source,kotlin]
 ----
-val generator = tasks.register<GeneratorTask>("generate") {
-    outputFile.set(layout.buildDirectory.file("out.txt"))
+val generator = tasks.register<GeneratorTask>("generator") {
+    outputFile.set(layout.buildDirectory.file("output.txt"))
 }
 
-val consumer = tasks.register<ConsumerTask>("consume") {
-    // FOOTGUN: flatMap here loses the dependency on the 'generator' task
-    // Gradle will try to run 'consume' without running 'generate' first
-    inputContent.set(generator.flatMap { it.outputFile.map { file -> file.asFile.readText() } })
+tasks.register<ConsumerTask>("consumer") {
+    // BROKEN: Creating provider {} inside flatMap creates a "naked provider"
+    // The resulting provider has NO knowledge of the 'generator' task
+    inputContent.set(generator.flatMap {
+        provider { it.outputFile.get().asFile.readText() }
+    })
+}
+----
+
+The `provider {}` factory creates a new provider with no connection to any task.
+Gradle cannot determine that this provider depends on the `generator` task.
+
+Instead, you should chain `map` on the Provider itself:
+
+[source,kotlin]
+----
+tasks.register<ConsumerTask>("consumer") {
+    // CORRECT: Chain map on the Provider to transform the value
+    inputContent.set(
+        generator.flatMap { it.outputFile }
+                 .map { it.asFile.readText() }
+    )
+}
+----
+
+==== Reading File Content at Configuration Time
+
+Calling `.get()` to read file content fails immediately because the file doesn't exist yet:
+
+[source,kotlin]
+----
+val generator = tasks.register<GeneratorTask>("generator") {
+    outputFile.set(layout.buildDirectory.file("output.txt"))
+}
+
+tasks.register<ConsumerTask>("consumer") {
+    // BROKEN: Tries to read the file at configuration time
+    // The file doesn't exist yet - generator hasn't run!
+    inputContent.set(generator.map {
+        it.outputFile.get().asFile.readText() // FAILS HERE
+    })
+}
+----
+
+The `map` callback executes at configuration time (when setting up the build).
+The file won't exist until the `generator` task runs during execution time.
+
+This pattern also breaks Configuration Cache because file content cannot be serialized.
+
+Instead, use lazy evaluation by chaining `map` on the Provider:
+
+[source,kotlin]
+----
+tasks.register<ConsumerTask>("consumer") {
+    // CORRECT: The file is read lazily when the task executes
+    inputContent.set(
+        generator.flatMap { it.outputFile }
+                 .map { it.asFile.readText() } // Evaluated at execution time
+    )
+}
+----
+
+==== Using `flatMap` on Derived Properties
+
+Using `flatMap` to extract properties that are themselves derived through `.map {}` can lose the task dependency:
+
+[source,kotlin]
+----
+abstract class ProducerTask @Inject constructor(
+    objectFactory: ObjectFactory
+) : DefaultTask() {
+    @get:Internal
+    val someDirectory = objectFactory.directoryProperty()
+
+    // This property is DERIVED via map - not directly annotated
+    @get:OutputFile
+    val outputFile = someDirectory.map { it.file("output.txt") }
+
+    @TaskAction
+    fun execute() {
+        outputFile.get().asFile.writeText("content")
+    }
+}
+
+val producer = tasks.register<ProducerTask>("producer") {
+    someDirectory.set(layout.buildDirectory.dir("output"))
+}
+
+tasks.register<Sync>("consumer") {
+    // BROKEN: flatMap on a derived property may lose the task dependency
+    from(producer.flatMap { it.outputFile })
+    into(layout.buildDirectory.dir("sync"))
+}
+----
+
+When the output property is derived through `.map {}`, `flatMap` may extract the mapped provider without preserving the connection to the original task.
+
+Instead, use `.map { it.property.get() }` to preserve the dependency:
+
+[source,kotlin]
+----
+tasks.register<Sync>("consumer") {
+    // WORKAROUND: Using map with .get() preserves the dependency
+    from(producer.map { it.outputFile.get() })
+    into(layout.buildDirectory.dir("sync"))
+}
+----
+
+Or use directly annotated properties instead of derived ones:
+
+[source,kotlin]
+----
+abstract class ProducerTask : DefaultTask() {
+    // Directly annotated property - not derived
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+
+    @TaskAction
+    fun execute() {
+        outputFile.get().asFile.writeText("content")
+    }
+}
+
+val producer = tasks.register<ProducerTask>("producer") {
+    outputFile.set(layout.buildDirectory.file("output/output.txt"))
+}
+
+tasks.register<Sync>("consumer") {
+    // CORRECT: flatMap works reliably with directly annotated properties
+    from(producer.flatMap { it.outputFile })
+    into(layout.buildDirectory.dir("sync"))
 }
 ----
 
 ==== Do This Instead
 
-Chain the transformations directly off the property itself.
-By mapping the `RegularFileProperty` directly, the producer information is carried through the `Provider`:
+===== Extracting Provider Properties with `flatMap`
+
+Use `flatMap` when extracting a Provider property from a task - this is the correct and necessary approach:
 
 [source,kotlin]
 ----
-val generator = tasks.register<GeneratorTask>("generate") {
-    outputFile.set(layout.buildDirectory.file("out.txt"))
+abstract class GeneratorTask : DefaultTask() {
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+
+    @TaskAction
+    fun generate() {
+        outputFile.get().asFile.writeText("Generated content")
+    }
 }
 
-val consumer = tasks.register<ConsumerTask>("consume") {
-    // CORRECT: Map the property directly.
-    // The resulting Provider<String> still "knows" it comes from the 'generator' task.
-    inputContent.set(generator.flatMap { it.outputFile }.map { it.asFile.readText() })
+val generator = tasks.register<GeneratorTask>("generator") {
+    outputFile.set(layout.buildDirectory.file("output.txt"))
+}
+
+tasks.register<ConsumerTask>("consumer") {
+    // CORRECT: flatMap extracts the Provider property
+    // The dependency on 'generator' is preserved
+    inputFile.set(generator.flatMap { it.outputFile })
+}
+----
+
+===== Extracting Eager Properties with `map`
+
+Use `map` when extracting plain (non-Provider) values from tasks:
+
+[source,kotlin]
+----
+abstract class LegacyTask : DefaultTask() {
+    // Old-style eager property (before Provider API)
+    @get:OutputDirectory
+    lateinit var destinationDir: File
+
+    @TaskAction
+    fun execute() {
+        destinationDir.mkdirs()
+        File(destinationDir, "output.txt").writeText("content")
+    }
+}
+
+val legacy = tasks.register<LegacyTask>("legacy") {
+    destinationDir = layout.buildDirectory.dir("docs").get().asFile
+}
+
+tasks.register<ConsumerTask>("consumer") {
+    // CORRECT: Use map for eager (non-Provider) properties
+    inputDir.set(legacy.map { it.destinationDir })
+}
+----
+
+===== Chaining Transformations
+
+Chain `map` calls to transform Provider values without breaking dependency tracking:
+
+[source,kotlin]
+----
+val generator = tasks.register<GeneratorTask>("generator") {
+    outputFile.set(layout.buildDirectory.file("output.txt"))
+}
+
+tasks.register<ConsumerTask>("consumer") {
+    // CORRECT: Chain transformations on the Provider itself
+    // First flatMap extracts the Provider, then map transforms it
+    inputContent.set(
+        generator.flatMap { it.outputFile }
+                 .map { it.asFile.readText() }
+                 .map { it.uppercase() }
+    )
 }
 ----
 

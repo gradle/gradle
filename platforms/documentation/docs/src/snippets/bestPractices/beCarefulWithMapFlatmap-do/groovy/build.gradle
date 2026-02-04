@@ -1,0 +1,40 @@
+// Task that generates a file
+abstract class GeneratorTask extends DefaultTask {
+    // This annotation is required for dependency tracking
+    @OutputFile
+    abstract RegularFileProperty getOutputFile()
+
+    @TaskAction
+    void generate() {
+        outputFile.get().asFile.text = "Generated content"
+    }
+}
+
+// Task that consumes the generated file
+abstract class ConsumerTask extends DefaultTask {
+    @InputFile
+    abstract RegularFileProperty getInputFile()
+
+    @Input
+    abstract Property<String> getInputContent()
+
+    @TaskAction
+    void consume() {
+        println "Input file: ${inputFile.get().asFile}"
+        println "Content: ${inputContent.get()}"
+    }
+}
+
+// Correct task wiring
+def generator = tasks.register('generate', GeneratorTask) {
+    outputFile = layout.buildDirectory.file('output.txt')
+}
+
+tasks.register('consume', ConsumerTask) {
+    // ✓ Correct: flatMap extracts the Provider property
+    inputFile = generator.flatMap { it.outputFile }
+
+    // ✓ Correct: Chain map on the Provider to read content
+    inputContent = generator.flatMap { it.outputFile }
+        .map { it.asFile.text }
+}
