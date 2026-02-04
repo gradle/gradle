@@ -17,7 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.execution.MultipleBuildFailures
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.exceptions.LocationAwareException
 
@@ -196,7 +196,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         verifyBuildEvents()
     }
 
-    @ToBeFixedForConfigurationCache(because = "buildFinished")
+    @UnsupportedWithConfigurationCache(because = "buildFinished") // TODO: could we write this test somehow with CC friendly API?
     def "buildFinished for root build is guaranteed to complete after included builds"() {
         given:
 
@@ -252,7 +252,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         lateIncludedBuildTaskPosition < rootBuildFinishedPosition
     }
 
-    @ToBeFixedForConfigurationCache(because = "buildFinished")
+    @UnsupportedWithConfigurationCache(because = "buildFinished") // TODO: could we write this test somehow with CC friendly API?
     def "fires build finished events for all builds when settings script for child build cannot be compiled"() {
         given:
         buildA.settingsFile << """
@@ -288,7 +288,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
             .assertHasLineNumber(19)
     }
 
-    @ToBeFixedForConfigurationCache(because = "buildFinished")
+    @UnsupportedWithConfigurationCache(because = "buildFinished") // TODO: could we write this test somehow with CC friendly API?
     def "fires build finished events for all builds when build script for child build fails"() {
         given:
         disableProblemsApiCheck()
@@ -338,7 +338,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
             .assertHasLineNumber(6)
     }
 
-    @ToBeFixedForConfigurationCache(because = "buildFinished")
+    @UnsupportedWithConfigurationCache(because = "buildFinished") // TODO: could we write this test somehow with CC friendly API?
     def "fires build finished events for all builds when build finished event for other builds fail"() {
         given:
         disableProblemsApiCheck()
@@ -386,7 +386,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
             .assertHasLineNumber(6)
     }
 
-    @ToBeFixedForConfigurationCache(because = "buildFinished")
+    @UnsupportedWithConfigurationCache(because = "buildFinished") // TODO: could we write this test somehow with CC friendly API?
     def "fires build finished events for all builds when other builds fail"() {
         given:
         disableProblemsApiCheck()
