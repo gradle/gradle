@@ -53,6 +53,7 @@ public class DefaultTaskReference implements TaskReference, TaskDependencyContai
      * @throws IllegalArgumentException If the provided task path string is not absolute or does not represent
      * a valid task path.
      */
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public static TaskReference create(
         String pathStr,
         TaskDependencyFactory taskDependencyFactory

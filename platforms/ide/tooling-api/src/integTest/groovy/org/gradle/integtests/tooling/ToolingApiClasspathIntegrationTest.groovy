@@ -57,6 +57,7 @@ class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
                     def shadedTapiJar = files.find { it.name ==~ /gradle-tooling-api.*\\.jar/ }
                     assert shadedTapiJar != null
                     println "SHADED_TAPI_JAR_SIZE: " + shadedTapiJar.size() + " bytes"
+                    println shadedTapiJar
                 }
             }
         """
@@ -68,7 +69,7 @@ class ToolingApiClasspathIntegrationTest extends AbstractIntegrationSpec {
         def actualSize = extractShadedTapiJarSize(output)
         def actualSizeKB = (int) Math.ceil((double) actualSize / 1024)
 
-        def expectedSizeKB = 2900
+        def expectedSizeKB = 2950
         def marginKB = 50
 
         def message = { smaller ->

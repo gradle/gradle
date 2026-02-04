@@ -34,17 +34,17 @@ dependencies {
 
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.concurrent)
-    implementation(projects.declarativeDslInternalUtils)
     implementation(projects.baseServices)
     implementation(projects.modelCore)
     implementation(projects.messaging)
+    implementation(projects.projectFeaturesApi)
     implementation(projects.resources)
     implementation(projects.serviceLookup)
     implementation(libs.guava)
     implementation(libs.kotlinReflect)
     implementation(libs.jspecify)
 
-    testImplementation(libs.mockitoKotlin)
+    testImplementation(testLibs.mockitoKotlin)
     testImplementation(testFixtures(projects.declarativeDslCore))
     testImplementation(testFixtures(projects.declarativeDslEvaluator))
 

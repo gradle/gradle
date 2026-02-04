@@ -19,8 +19,8 @@ package org.gradle.internal.buildoption;
 public class IntegerInternalOption extends InternalOption<Integer> {
     private final int defaultValue;
 
-    public IntegerInternalOption(String systemPropertyName, int defaultValue) {
-        super(systemPropertyName);
+    public IntegerInternalOption(String propertyName, int defaultValue) {
+        super(propertyName);
         this.defaultValue = defaultValue;
     }
 

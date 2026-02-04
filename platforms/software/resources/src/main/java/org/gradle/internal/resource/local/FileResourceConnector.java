@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.resource.local;
 
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
@@ -29,9 +28,9 @@ public class FileResourceConnector implements FileResourceRepository {
     private final FileSystem fileSystem;
     private final FileResourceListener listener;
 
-    public FileResourceConnector(FileSystem fileSystem, ListenerManager listenerManager) {
+    public FileResourceConnector(FileSystem fileSystem, FileResourceListener listener) {
         this.fileSystem = fileSystem;
-        this.listener = listenerManager.getBroadcaster(FileResourceListener.class);
+        this.listener = listener;
     }
 
     @Override

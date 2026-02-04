@@ -77,6 +77,7 @@ abstract class GradleStartScriptGenerator : DefaultTask() {
         logging.captureStandardOutput(LogLevel.INFO)
         val generator = StartScriptGenerator(createUnixStartScriptGenerator(), createWindowsStartScriptGenerator())
         generator.setApplicationName("Gradle")
+        //generator.setGitRef(DefaultGradleVersion.current().getGitRevision()) // TODO uncomment after wrapper upgrade. See #35693
         generator.setOptsEnvironmentVar("GRADLE_OPTS")
         generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE")
         generator.setEntryPoint(ExecutableJar("lib/$launcherJarName"))

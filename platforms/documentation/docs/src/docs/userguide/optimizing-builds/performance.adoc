@@ -173,6 +173,39 @@ By adjusting the build configuration to run these two slow tasks earlier and in 
 
 image::performance/parallel-task-fast.png[title="Optimized parallel execution"]
 
+=== Configure Tooling API actions parallelism
+
+By enabling Parallel Execution, you also allow parallelism for Tooling API actions.
+This means that Tooling API clients, such as IDEs, can do some of their work faster.
+In practice, this improves the speed of scenarios like IDE sync.
+
+However, enabling Parallel Execution may not work for all builds.
+In some cases, the additional parallelism may lead to instability if tasks access shared mutable state across project boundaries.
+In other cases, the parallel Tooling API actions might misbehave for similar reasons.
+
+If you observe such problems after enabling Parallel Execution, you should consider disabling it to preserve the reliability of the build results.
+At the same time, it is rare for builds to have problems with tasks _and_ Tooling API actions at the same time.
+
+Since Gradle 9.4.0, there is an additional option `org.gradle.tooling.parallel`
+that allows controlling parallelism of Tooling API actions independently of task execution parallelism.
+
+For instance, you can enable Tooling parallelism without task parallelism:
+
+[source,properties]
+.gradle.properties
+----
+org.gradle.tooling.parallel=true
+----
+
+Alternatively, you can keep task parallelism, but disable Tooling parallelism:
+
+[source,properties]
+.gradle.properties
+----
+org.gradle.parallel=true
+org.gradle.tooling.parallel=false
+----
+
 [[enable_daemon]]
 == 3. Re-enable the Gradle Daemon
 

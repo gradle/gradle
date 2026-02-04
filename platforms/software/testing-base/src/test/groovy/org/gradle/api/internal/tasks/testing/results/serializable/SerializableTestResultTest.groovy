@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.results.serializable
 
+
+import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent
 import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Specification
 
@@ -24,7 +26,7 @@ import java.time.Instant
 /**
  * Tests for {@link SerializableTestResult}.
  */
-final class SerializableTestResultTest extends Specification implements SerializesMetadata {
+final class SerializableTestResultTest extends Specification {
     def "can serialize test result with metadata"() {
         when:
         def builder = SerializableTestResult.builder()
@@ -32,19 +34,18 @@ final class SerializableTestResultTest extends Specification implements Serializ
         builder.displayName("Test 1")
         builder.startTime(Instant.now().toEpochMilli())
 
-        def metadataTime = Instant.now().toEpochMilli();
-        builder.addMetadata(new SerializedMetadata(metadataTime, Collections.singletonMap("key", "value")))
+        def metadataTime = Instant.now()
+        builder.addMetadata(new DefaultTestKeyValueDataEvent(metadataTime, Collections.singletonMap("key", "value")))
 
         builder.resultType(TestResult.ResultType.SUCCESS)
         builder.endTime(Instant.now().toEpochMilli())
         def result = builder.build()
 
         then:
-        result.metadatas[0].entries.size() == 1
+        result.metadatas.size() == 1
         result.metadatas[0].logTime == metadataTime
-        result.metadatas[0].entries[0].key == "key"
-        result.metadatas[0].entries[0].value == "value"
-        result.metadatas[0].entries[0].serializedValue == serialize("value")
+        result.metadatas[0].values.size() == 1
+        result.metadatas[0].values["key"] == "value"
 
     }
 }

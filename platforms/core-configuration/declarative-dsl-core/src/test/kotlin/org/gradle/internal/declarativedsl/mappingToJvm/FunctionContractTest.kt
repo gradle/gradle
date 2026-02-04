@@ -16,8 +16,6 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -47,15 +45,12 @@ class FunctionContractTest {
     val schema = schemaFromTypes(Receiver::class, this::class.nestedClasses)
 
     class Receiver {
-
         var invokedTimes = 0
 
-        @get:Restricted
         var x: Int = 0
 
-        @get:Restricted
         var y: Int = 0
-        @Configuring
+
         fun configure(configure: Receiver.() -> Unit) {
             configure(this)
             invokedTimes++

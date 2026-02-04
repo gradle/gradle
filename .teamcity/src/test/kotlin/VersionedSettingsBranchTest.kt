@@ -1,13 +1,10 @@
 import common.VersionedSettingsBranch
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
+import promotion.determineNightlyPromotionTriggerHour
 
 /*
  * Copyright 2023 the original author or authors.
@@ -41,8 +38,7 @@ class VersionedSettingsBranchTest {
         expectedNightlyPromotionTriggerHour: Int?,
     ) {
         val vsb = VersionedSettingsBranch(branchName)
-        assertTrue(vsb.enableVcsTriggers)
-        assertEquals(expectedNightlyPromotionTriggerHour, vsb.nightlyPromotionTriggerHour)
+        assertEquals(expectedNightlyPromotionTriggerHour, vsb.determineNightlyPromotionTriggerHour())
     }
 
     @ParameterizedTest
@@ -55,14 +51,6 @@ class VersionedSettingsBranchTest {
     )
     fun branchesWithVcsTriggerDisabled(branchName: String) {
         val vsb = VersionedSettingsBranch(branchName)
-        assertFalse(vsb.enableVcsTriggers)
-        assertNull(vsb.nightlyPromotionTriggerHour)
-    }
-
-    @Test
-    fun invalidBranches() {
-        Assertions.assertThrows(Exception::class.java) {
-            VersionedSettingsBranch("release28x")
-        }
+        assertNull(vsb.determineNightlyPromotionTriggerHour())
     }
 }

@@ -67,18 +67,18 @@ dependencies {
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.toolingApi))
 
-    integTestImplementation(libs.groovyTest)
+    integTestImplementation(testLibs.groovyTest)
     integTestImplementation(libs.jetbrainsAnnotations)
 
     integTestLocalRepository(projects.toolingApi) {
         because("Required by GradleImplDepsCompatibilityIntegrationTest")
     }
 
-    testRuntimeOnly(projects.distributionsBasics) {
+    testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(projects.distributionsBasics)
-    crossVersionTestDistributionRuntimeOnly(projects.distributionsBasics)
+    integTestDistributionRuntimeOnly(projects.distributionsJvm)
+    crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 
     testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(projects.logging)
@@ -92,3 +92,5 @@ strictCompile {
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }
+
+testFilesCleanup.reportOnly = true

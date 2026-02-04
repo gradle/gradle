@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.results
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure
+import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
@@ -30,6 +31,8 @@ import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.junit.AssumptionViolatedException
 import spock.lang.Issue
 import spock.lang.Specification
+
+import java.time.Instant
 
 class StateTrackingTestResultProcessorTest extends Specification {
 
@@ -297,6 +300,19 @@ class StateTrackingTestResultProcessorTest extends Specification {
 
         then:
         1 * listener.output({it.descriptor == test}, event)
+    }
+
+    def "notifies metadata listener"() {
+        given:
+        def event = new DefaultTestKeyValueDataEvent(Instant.now(), Map.of("myKey", "myValue"))
+        def test = new DefaultTestDescriptor("testid", "DogTest", "shouldBarkAtStrangers");
+
+        when:
+        adapter.started(test, new TestStartEvent(100L))
+        adapter.published("testid", event)
+
+        then:
+        1 * listener.metadata({it.descriptor == test}, event)
     }
 
     @Issue("GRADLE-2035")

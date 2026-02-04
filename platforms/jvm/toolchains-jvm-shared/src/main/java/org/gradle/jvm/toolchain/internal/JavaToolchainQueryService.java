@@ -196,6 +196,10 @@ public class JavaToolchainQueryService {
             return asToolchainOrThrow(InstallationLocation.userDefined(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation"), spec, requiredCapabilities, false);
         }
 
+        if (spec instanceof SpecificExecutableToolchainSpec) {
+            return asToolchainOrThrow(InstallationLocation.userDefined(((SpecificExecutableToolchainSpec) spec).getJavaHome(), "specific executable"), spec, requiredCapabilities, false);
+        }
+
         return findInstalledToolchain(spec, requiredCapabilities).orElseGet(() -> downloadToolchain(spec, requiredCapabilities));
     }
 
@@ -236,12 +240,18 @@ public class JavaToolchainQueryService {
     private JavaToolchain asToolchainOrThrow(InstallationLocation javaHome, JavaToolchainSpec spec, Set<JavaInstallationCapability> requiredCapabilities, boolean isFallback) {
         final JvmInstallationMetadata metadata = detector.getMetadata(javaHome);
 
-        if (!metadata.isValidInstallation()) {
+        boolean cannotProbeSpecificExecutable = (spec instanceof SpecificExecutableToolchainSpec) && !metadata.isValidInstallation();
+
+        if (!metadata.isValidInstallation() && !cannotProbeSpecificExecutable) {
             throw new GradleException("Toolchain installation '" + javaHome.getLocation() + "' could not be probed: " + metadata.getErrorMessage(), metadata.getErrorCause());
         }
         if (!metadata.getCapabilities().containsAll(requiredCapabilities)) {
             throw new GradleException("Toolchain installation '" + javaHome.getLocation() + "' does not provide the required capabilities: " + requiredCapabilities);
         }
-        return new JavaToolchain(metadata, fileFactory, new JavaToolchainInput(spec), isFallback);
+        if (cannotProbeSpecificExecutable) {
+            return new SpecificExecutableJavaToolchain(metadata, fileFactory, new JavaToolchainInput(spec), isFallback, ((SpecificExecutableToolchainSpec) spec).getJavaExecutable());
+        } else {
+            return new JavaToolchain(metadata, fileFactory, new JavaToolchainInput(spec), isFallback);
+        }
     }
 }

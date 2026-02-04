@@ -44,7 +44,6 @@ public interface JvmDebugSpec {
 
     void setSuspend(boolean suspend);
 
-    @NullMarked
     class DefaultJvmDebugSpec implements JvmDebugSpec {
         private boolean enabled;
         private String host;
@@ -112,7 +111,6 @@ public interface JvmDebugSpec {
         }
     }
 
-    @NullMarked
     class JavaDebugOptionsBackedSpec implements JvmDebugSpec {
         private final JavaDebugOptions delegate;
 

@@ -25,6 +25,16 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 
+/**
+ * Tracks which files in a Gradle distribution are relevant as a task input.
+ * For example, this object is used as a task input on an integration test task,
+ * and describes which files in a distribution home dir are relevant, and how
+ * to interpret them.
+ * <p>
+ * This is further important for test distribution, as it marks certain files
+ * within the distribution as task inputs. Only files marked as task inputs
+ * are uploaded to the test distribution workers.
+ */
 abstract class GradleDistribution {
 
     @get:Internal
@@ -63,6 +73,15 @@ abstract class GradleDistribution {
     val pluginJars: FileCollection
         get() = homeDir.asFileTree.matching {
             include("lib/plugins/*.jar")
+        }
+
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    val moduleProperties: FileCollection
+        get() = homeDir.asFileTree.matching {
+            include("lib/*.properties")
+            include("lib/agents/*.properties")
+            include("lib/plugins/*.properties")
         }
 
 }

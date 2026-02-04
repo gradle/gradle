@@ -500,6 +500,9 @@ public class MavenComponentParser {
 
         @Override
         public boolean equals(Object obj) {
+            if (!(obj instanceof ArtifactKey)) {
+                return false;
+            }
             ArtifactKey other = (ArtifactKey) obj;
             return file.equals(other.file) && Objects.equals(classifier, other.classifier) && Objects.equals(extension, other.extension);
         }

@@ -50,7 +50,7 @@ class WrapperChecksumVerificationTest extends AbstractWrapperIntegrationSpec {
     def "wrapper execution fails when using bad checksum"() {
         given:
         configureServer(true)
-        prepareWrapper(new URI(gradleBin))
+        prepareWrapper(new URI(gradleBin)).run()
 
         and:
         file(WRAPPER_PROPERTIES_PATH) << 'distributionSha256Sum=bad'
@@ -88,7 +88,7 @@ Visit https://gradle.org/release-checksums/ to verify the checksums of official 
     def "wrapper successfully verifies good checksum"() {
         given:
         configureServer(true)
-        prepareWrapper(new URI(gradleBin))
+        prepareWrapper(new URI(gradleBin)).run()
 
         and:
         writeValidDistributionHash()
@@ -102,7 +102,7 @@ Visit https://gradle.org/release-checksums/ to verify the checksums of official 
     def "wrapper requires checksum configuration if a checksum is present in gradle-wrapper.properties"() {
         given:
         configureServer(true)
-        prepareWrapper(new URI(gradleBin))
+        prepareWrapper(new URI(gradleBin)).run()
 
         and:
         writeValidDistributionHash()
@@ -124,7 +124,7 @@ Visit https://gradle.org/release-checksums/ to verify the checksums of official 
     def "wrapper uses new checksum if it was provided as an option"() {
         given:
         configureServer(true)
-        prepareWrapper(new URI(gradleBin))
+        prepareWrapper(new URI(gradleBin)).run()
 
         and:
         writeValidDistributionHash()
@@ -147,7 +147,7 @@ Visit https://gradle.org/release-checksums/ to verify the checksums of official 
         given:
         configureServer(false)
         def releasedDistribution = IntegrationTestBuildContext.INSTANCE.distribution("7.5")
-        prepareWrapper(releasedDistribution.binDistribution.toURI())
+        prepareWrapper(releasedDistribution.binDistribution.toURI()).run()
 
         and:
         def underDevelopmentDistributionChecksum = distributionHash

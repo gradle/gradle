@@ -70,7 +70,7 @@ import static org.gradle.util.Matchers.matchesRegexp
 @CleanupTestDirectory
 @SuppressWarnings("IntegrationTestFixtures")
 @IntegrationTestTimeout(DEFAULT_TIMEOUT_SECONDS)
-abstract class AbstractIntegrationSpec extends Specification implements LanguageSpecificTestFileFixture, HasGradleExecutor {
+abstract class AbstractIntegrationSpec extends Specification implements CommonTestFilesFixture, LanguageSpecificTestFileFixture, HasGradleExecutor {
 
     @Rule
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -181,11 +181,9 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
         new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
     }
 
-    /**
-     * Want syntax highlighting inside of IntelliJ? Consider using {@link AbstractIntegrationSpec#buildFile(String)}
-     */
-    TestFile getBuildFile() {
-        getBuildFile(GROOVY)
+    @Override
+    TestFile getUserActionRootDir() {
+        testDirectory
     }
 
     String getTestJunitCoordinates() {
@@ -204,15 +202,6 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
         testDirectory.file(*path, dsl.fileNameFor("build"))
     }
 
-    protected TestFile getSettingsFile() {
-        getSettingsFile(GROOVY)
-    }
-
-    protected TestFile getInitScriptFile() {
-        testDirectory.file(initScriptFileName)
-    }
-
-
     protected TestFile getSettingsKotlinFile() {
         getSettingsFile(KOTLIN)
     }
@@ -221,20 +210,8 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
         testDirectory.file(dsl.fileNameFor("settings"))
     }
 
-    protected TestFile getPropertiesFile() {
-        testDirectory.file('gradle.properties')
-    }
-
-    protected TestFile getVersionCatalogFile() {
-        testDirectory.file('gradle/libs.versions.toml')
-    }
-
     private static String getSettingsFileName(GradleDsl dsl) {
         return dsl.fileNameFor("settings")
-    }
-
-    protected static String getInitScriptFileName() {
-        return 'init.gradle'
     }
 
     def singleProjectBuild(String projectName, @DelegatesTo(value = BuildTestFile, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
@@ -667,15 +644,6 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         names.collect { name ->
             createDir(name)
         }
-    }
-
-    /**
-     * Replaces the given text in the build script with new value, asserting that the change was actually applied (ie the text was present).
-     */
-    void editBuildFile(String oldText, String newText) {
-        def newContent = buildFile.text.replace(oldText, newText)
-        assert newContent != buildFile.text
-        buildFile.text = newContent
     }
 
     /**

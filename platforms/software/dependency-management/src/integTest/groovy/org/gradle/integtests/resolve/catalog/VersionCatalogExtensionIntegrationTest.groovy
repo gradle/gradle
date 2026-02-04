@@ -1965,7 +1965,7 @@ Second: 1.1"""
         and:
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:reserved-alias-name'
-            contextualLabel == "Problem: In version catalog libs, alias '$reserved' is not a valid alias."
+            contextualLabel == "Problem: In version catalog libs, alias '$reserved' is a reserved alias."
             details == "Alias '$reserved' is a reserved name in Gradle which prevents generation of accessors."
             solutions == [ 'Use a different alias which doesn\'t contain any of \'convention\' or \'extensions\'.' ]
         }
@@ -2006,7 +2006,7 @@ Second: 1.1"""
         and:
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:reserved-alias-name'
-            contextualLabel == "Problem: In version catalog libs, alias '$reserved' is not a valid alias."
+            contextualLabel == "Problem: In version catalog libs, alias '$reserved' is a reserved alias."
             details == "Alias '$reserved' is a reserved name in Gradle which prevents generation of accessors."
             solutions == [ 'Use a different alias which doesn\'t contain \'class\'.' ]
         }
@@ -2047,7 +2047,7 @@ Second: 1.1"""
         and:
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:reserved-alias-name'
-            contextualLabel == "Problem: In version catalog libs, alias '$reservedName' is not a valid alias."
+            contextualLabel == "Problem: In version catalog libs, alias '$reservedName' is a reserved alias."
             details == "Prefix for dependency shouldn\'t be equal to '$prefix'"
             solutions == [ 'Use a different alias which prefix is not equal to \'bundles\', \'plugins\', or \'versions\'' ]
         }
@@ -2326,7 +2326,7 @@ Second: 1.1"""
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("Cannot convert a version catalog entry: 'org.gradle.test:lib:{strictly [3.0, 4.0[; prefer 3.0.5}' to an object of type ModuleVersionSelector. Rich versions are not supported for 'force()'.")
+        failure.assertHasCause("Cannot convert a version catalog entry: 'org.gradle.test:lib:{strictly [3.0, 4.0[; prefer 3.0.5}' to an object of type ModuleComponentSelector. Rich versions are not supported for 'force()'.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17874")
@@ -2363,7 +2363,7 @@ Second: 1.1"""
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("Cannot convert a version catalog entry '$catalogEntryAsString' to an object of type ModuleVersionSelector. Only dependency accessors are supported but not plugin, bundle or version accessors for 'force()'.")
+        failure.assertHasCause("Cannot convert a version catalog entry '$catalogEntryAsString' to an object of type ModuleComponentSelector. Only dependency accessors are supported but not plugin, bundle or version accessors for 'force()'.")
 
         where:
         catalogEntry         | catalogEntryAsString

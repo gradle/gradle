@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing
 
 import org.gradle.api.GradleException
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestExecuter
@@ -317,6 +318,11 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         task.filter {
             it.includePatterns = "Foo"
         }
+
+        def testDir = temporaryFolder.createDir("testClasses")
+        testDir.mkdir()
+        new File(testDir, "Foo.class").createNewFile()
+        task.setTestClassesDirs(TestFiles.fixed(testDir))
 
         when:
         task.executeTests()

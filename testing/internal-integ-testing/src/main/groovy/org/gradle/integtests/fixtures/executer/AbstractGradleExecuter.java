@@ -301,6 +301,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
+    public IntegrationTestBuildContext getBuildContext() {
+        return buildContext;
+    }
+
+    @Override
     public void beforeExecute(Action<? super GradleExecuter> action) {
         beforeExecute.add(action);
     }
@@ -590,18 +595,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             gradleInvocation.implicitLauncherJvmArgs.add(debugLauncher.toDebugArgument());
         }
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
-
-        // Note: it's possible we shouldn't calculate _any_ implicit JVM args when requested to use only the specified ones, but to preserve behavior I only excluded the new flag here
-        if (useOnlyRequestedJvmOpts) {
-            return;
-        }
-
-        JavaVersion javaVersion = getJavaVersionFromJavaHome();
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
-            // Remove known warning that occurs in the launcher. This can be fixed by refactoring the bin/gradle start script to pass the flag or by adding the flag to the launcher JAR
-            // and refactoring the start script to use that JAR instead of a main class.
-            gradleInvocation.implicitLauncherJvmArgs.add("--enable-native-access=ALL-UNNAMED");
-        }
     }
 
     protected static String joinAndQuoteJvmArgs(List<String> buildJvmArgs) {
@@ -1238,10 +1231,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         properties.put(WelcomeMessageAction.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
-
-        // Having this unset is now deprecated, default to `false` in Gradle 9.0.0
-        // TODO remove - see https://github.com/gradle/gradle/issues/26810
-        properties.put("org.gradle.kotlin.dsl.skipMetadataVersionCheck", "false");
 
         return properties;
     }

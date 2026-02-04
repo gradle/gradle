@@ -37,11 +37,11 @@ public enum ConsoleAttachment {
     }
 
     public boolean isStderrAttached() {
-        return consoleMetaData != null && consoleMetaData.isStdErr();
+        return consoleMetaData != null && consoleMetaData.isStdErrATerminal();
     }
 
     public boolean isStdoutAttached() {
-        return consoleMetaData != null && consoleMetaData.isStdOut();
+        return consoleMetaData != null && consoleMetaData.isStdOutATerminal();
     }
 
     public TestConsoleMetadata getConsoleMetaData() {

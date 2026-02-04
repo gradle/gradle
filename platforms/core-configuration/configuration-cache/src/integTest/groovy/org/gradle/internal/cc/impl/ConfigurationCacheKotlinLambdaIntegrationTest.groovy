@@ -27,7 +27,7 @@ class ConfigurationCacheKotlinLambdaIntegrationTest extends AbstractConfiguratio
         given:
         file("buildSrc/settings.gradle.kts").text = ""
         file("buildSrc/build.gradle.kts").text = """
-            plugins { `embedded-kotlin` }
+            plugins { `kotlin-dsl` }
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
         """
         file("buildSrc/src/main/kotlin/my/LambdaTask.kt").tap {

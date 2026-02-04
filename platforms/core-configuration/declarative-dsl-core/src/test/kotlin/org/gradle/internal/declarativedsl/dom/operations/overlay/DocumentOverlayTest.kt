@@ -17,8 +17,6 @@
 package org.gradle.internal.declarativedsl.dom.operations.overlay
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
@@ -651,39 +649,29 @@ class DocumentOverlayTest {
         documentWithResolution(schema, ParseTestUtil.parse(code), DefaultOperationGenerationId.finalEvaluation, analyzeEverything)
 
     interface TopLevelReceiver {
-        @get:Restricted
         var x: Int
 
-        @get: Restricted
         var y: Int
 
-        @Configuring
         fun configuring(configure: NestedReceiver.() -> Unit)
 
-        @Configuring
         fun configuringById(id: Int, configure: NestedReceiver.() -> Unit)
 
         @Adding
         fun adding(someValue: Int, configure: NestedReceiver.() -> Unit): NestedReceiver
 
-        @Restricted
         fun myInt(): Int
 
-        @Restricted
         fun myStringList(vararg strings: String): List<String>
     }
 
     interface NestedReceiver {
-        @get:Restricted
         var a: Int
 
-        @get:Restricted
         var b: Int
 
-        @get:Restricted
         var s: List<String>
 
-        @Configuring
         fun configuringNested(nestedReceiver: NestedReceiver.() -> Unit)
 
         @Adding

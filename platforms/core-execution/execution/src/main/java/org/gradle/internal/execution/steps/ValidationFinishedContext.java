@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,12 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.Problem;
 
-import java.util.List;
-
-public class ValidationFinishedContext extends BeforeExecutionContext {
-
-    private final List<? extends Problem> validationProblems;
-
-    public ValidationFinishedContext(BeforeExecutionContext parent, List<? extends Problem> validationProblems) {
-        super(parent);
-        this.validationProblems = validationProblems;
-    }
-
-    protected ValidationFinishedContext(ValidationFinishedContext parent) {
-        this(parent, parent.getValidationProblems());
-    }
-
+public interface ValidationFinishedContext extends BeforeExecutionContext {
     /**
      * Returns the list of validation warnings encountered so far.
      */
-    public List<? extends Problem> getValidationProblems() {
-        return validationProblems;
-    }
+    ImmutableList<? extends Problem> getValidationProblems();
 }

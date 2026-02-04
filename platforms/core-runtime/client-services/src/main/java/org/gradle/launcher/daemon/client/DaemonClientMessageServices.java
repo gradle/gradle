@@ -103,7 +103,6 @@ public class DaemonClientMessageServices implements ServiceRegistrationProvider 
         return new UnavailableDaemonStarter();
     }
 
-    @NullMarked
     private static class UnavailableDaemonStarter implements DaemonStarter {
         @Override
         public DaemonStartupInfo startDaemon(boolean singleRun) {

@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.declarative.dsl.model.annotations.internal.DeclarativeWithHiddenMembers;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -42,6 +43,7 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * <p>
  * For examples on configuring exclude rules for modules please refer to {@link #exclude(java.util.Map)}.
  */
+@DeclarativeWithHiddenMembers
 public interface ModuleDependency extends Dependency, HasConfigurableAttributes<ModuleDependency> {
     /**
      * Adds an exclude rule to exclude transitive dependencies of this dependency.

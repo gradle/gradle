@@ -48,7 +48,7 @@ public final class ScriptingLanguages {
             }
 
             @Override
-            public String getProvider() {
+            public @Nullable String getProvider() {
                 return scriptPluginFactory;
             }
         };

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+
 import gradlebuild.EnrichedReportRenderer
 import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.PublicKotlinDslApi
-import gradlebuild.binarycompatibility.AcceptedApiChanges
 import gradlebuild.binarycompatibility.BinaryCompatibilityHelper
 import gradlebuild.binarycompatibility.CleanAcceptedApiChanges
 import gradlebuild.binarycompatibility.transforms.ExplodeZipAndFindJars
@@ -50,11 +50,6 @@ repositories {
 // We support multiple accepted public api changes JSON files, but "accepted-public-api-changes.json"
 // is the "main" one that is also shown in HTML report
 def apiChangesJsonDirectory = layout.projectDirectory.dir("src/changes/accepted-changes")
-def mainApiChangesJsonFile = apiChangesJsonDirectory.file("accepted-public-api-changes.json")
-def acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonDirectory.asFile.listFiles()
-    .findAll { it.name.endsWith(".json") }
-    .collect { providers.fileContents(apiChangesJsonDirectory.file(it.name)).asText.get() }
-)
 
 def compatibilityBaselineVersion = gradleModule.identity.releasedVersions.get().mostRecentRelease.version
 
@@ -129,9 +124,15 @@ def extractGradleApiInfo = tasks.register("extractGradleApiInfo", gradlebuild.bi
     baselineUpgradedProperties = baselineUpgradedPropertiesFile
 }
 
-def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradlebuild.binarycompatibility.JapicmpTask) {
+def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradlebuild.binarycompatibility.JapicmpTaskWithKotlin) {
+    def mainApiChangesJsonFile = apiChangesJsonDirectory.file("accepted-public-api-changes.json")
+
+    def acceptedViolationsFiles = apiChangesJsonDirectory.asFileTree.matching {
+        include("**/*.json")
+    }
+
     def isSnapshot = gradleModule.identity.snapshot
-    inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
+    inputs.files(acceptedViolationsFiles)
     inputs.property("baseline.version", compatibilityBaselineVersion)
     inputs.property("currentVersion", baseVersion)
     def apiSourceFolders = configurations.currentSources.incoming.artifactView { lenient(true) }.files
@@ -149,14 +150,25 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
     onlyModified = false
     failOnModification = false // we rely on the custom report to fail or not
     ignoreMissingClasses = true // because of a missing scala.runtime.AbstractFunction0 class
-    richReport({
-        it.includedClasses = toPatterns(PublicApi.includes + PublicKotlinDslApi.includes)
-        it.excludedClasses = toPatterns(PublicApi.excludes + PublicKotlinDslApi.excludes)
 
-        it.title = "Binary compatibility report for Gradle ${isSnapshot.get() ? "${baseVersion.get()}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
-        it.destinationDir = file("$buildDir/reports/binary-compatibility")
-        it.reportName = "report.html"
-        it.description = """
+    BinaryCompatibilityHelper.setupJApiCmpRichReportRules(
+        delegate,
+        project,
+        apiChangesJsonDirectory,
+        apiSourceFolders,
+        baseVersion.get(),
+        mainApiChangesJsonFile.asFile,
+        project.isolated.rootProject.projectDirectory,
+        currentUpgradedPropertiesFile.get().asFile,
+        baselineUpgradedPropertiesFile.get().asFile,
+        {
+            it.includedClasses = toPatterns(PublicApi.includes + PublicKotlinDslApi.includes)
+            it.excludedClasses = toPatterns(PublicApi.excludes + PublicKotlinDslApi.excludes)
+
+            it.title = "Binary compatibility report for Gradle ${isSnapshot.get() ? "${baseVersion.get()}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
+            it.destinationDir = layout.buildDirectory.dir("reports/binary-compatibility")
+            it.reportName = "report.html"
+            it.description = """
             <p>See the <a href="https://bt-internal-docs.grdev.net/gbt/how-to/release/release-troubleshooting/#binary-compatibility-check-failed-">documentation</a> for more details.</p>
             <p>
             We check the binary compatibility by comparing the current code’s binary interfaces
@@ -167,19 +179,11 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradle
             ${writeFilterPreset(project)}
 """.stripIndent()
 
-        it.renderer.set(EnrichedReportRenderer.class)
-    } as Action)
-
-    BinaryCompatibilityHelper.setupJApiCmpRichReportRules(
-        delegate,
-        acceptedViolations,
-        apiSourceFolders,
-        baseVersion.get(),
-        mainApiChangesJsonFile.asFile,
-        project.isolated.rootProject.projectDirectory,
-        currentUpgradedPropertiesFile.get().asFile,
-        baselineUpgradedPropertiesFile.get().asFile
+            it.renderer.set(EnrichedReportRenderer.class)
+        } as Action
     )
+
+
 }
 tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }
 

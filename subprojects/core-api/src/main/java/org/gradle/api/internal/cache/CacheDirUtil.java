@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -60,7 +61,7 @@ class CacheDirUtil {
                             "# This file is a cache directory tag created by Gradle.\n" +
                             "# For information about cache directory tags, see:\n" +
                             "#\thttps://bford.info/cachedir/"
-                    ).getBytes("UTF-8")
+                    ).getBytes(StandardCharsets.UTF_8)
                 );
             } finally {
                 // stream close is done here so if it throws, we can re-use the outer catch block

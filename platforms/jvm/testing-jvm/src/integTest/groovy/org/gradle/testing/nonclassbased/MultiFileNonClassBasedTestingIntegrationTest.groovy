@@ -55,13 +55,10 @@ class MultiFileNonClassBasedTestingIntegrationTest extends AbstractNonClassBased
         }
 
         when:
-        succeeds("test", "--info")
+        succeeds("test")
 
         then:
-        // Once reporting is addressed, this should use more robust verification using existing report-checking fixtures
-        outputContains("INFO: Executing resource-based test: Test[file=first-half.txt, name=test1]")
-        outputContains("INFO: Executing resource-based test: Test[file=first-half.txt, name=test2]")
-        outputContains("INFO: Executing resource-based test: Test[file=second-half.txt, name=test1]")
-        outputContains("INFO: Executing resource-based test: Test[file=second-half.txt, name=test2]")
+        resultsFor().assertTestPathsExecuted(":first-half.txt - test1", ":first-half.txt - test2",
+            ":second-half.txt - test1", ":second-half.txt - test2")
     }
 }

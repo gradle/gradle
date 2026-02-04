@@ -39,6 +39,7 @@ public class ReadOnlyModuleArtifactsCache extends DefaultModuleArtifactsCache {
         return operationShouldNotHaveBeenCalled();
     }
 
+    @SuppressWarnings("TypeParameterUnusedInFormals") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private static <T> T operationShouldNotHaveBeenCalled() {
         throw new UnsupportedOperationException("A write operation shouldn't have been called in a read-only cache");
     }

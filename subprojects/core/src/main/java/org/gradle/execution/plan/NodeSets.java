@@ -170,8 +170,13 @@ public final class NodeSets {
             if (version <= 0) {
                 return;
             }
-            Arrays.sort(uncheckedCast(array), 0, size, comparator);
-            version = -version;
+            synchronized (this) {
+                if (version <= 0) {
+                    return;
+                }
+                Arrays.sort(uncheckedCast(array), 0, size, comparator);
+                version = -version;
+            }
         }
 
         private int indexOf(Object o) {

@@ -28,6 +28,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -115,12 +116,12 @@ public class ToolSearchPath {
         try {
             byte[] header = new byte[10];
             instr.readFully(header);
-            if (!new String(header, "utf-8").equals("!<symlink>")) {
+            if (!new String(header, StandardCharsets.UTF_8).equals("!<symlink>")) {
                 return null;
             }
             byte[] pathContent = new byte[(int) symlink.length() - 11];
             instr.readFully(pathContent);
-            pathStr = new String(pathContent, "utf-8");
+            pathStr = new String(pathContent, StandardCharsets.UTF_8);
         } finally {
             instr.close();
         }

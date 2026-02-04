@@ -22,8 +22,11 @@ import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.reflect.Instantiator;
 
+import javax.inject.Inject;
+
 public class DefaultAuthenticationContainer extends DefaultPolymorphicDomainObjectContainer<Authentication> implements AuthenticationContainer {
 
+    @Inject
     public DefaultAuthenticationContainer(Instantiator instantiator, CollectionCallbackActionDecorator callbackDecorator) {
         super(Authentication.class, instantiator, instantiator, callbackDecorator);
     }

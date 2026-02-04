@@ -52,7 +52,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
 
     @CompileStatic
     DefaultMavenArtifactRepository createRepository() {
-        return new DefaultMavenLocalArtifactRepository(
+        return TestUtil.newInstance(DefaultMavenLocalArtifactRepository,
             resolver,
             transportFactory,
             locallyAvailableResourceFinder,

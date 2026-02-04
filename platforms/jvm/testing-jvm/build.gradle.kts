@@ -37,7 +37,6 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.classloaders)
     implementation(projects.concurrent)
-    implementation(projects.fileCollections)
     implementation(projects.fileTemp)
     implementation(projects.functional)
     implementation(projects.loggingApi)
@@ -50,7 +49,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
-    compileOnly(libs.junit) {
+    compileOnly(providedLibs.junit) {
         because("The actual version is provided by the user on the testRuntimeClasspath")
     }
 
@@ -58,14 +57,17 @@ dependencies {
     testImplementation(testFixtures(projects.modelReflect))
     testImplementation(testFixtures(projects.time))
 
-    integTestImplementation(testFixtures(projects.testingBase))
     integTestImplementation(testFixtures(projects.languageGroovy))
     integTestImplementation(testFixtures(projects.scala))
+    integTestImplementation(testFixtures(projects.testingBase))
+    integTestImplementation(testFixtures(projects.toolingApi))
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(projects.distributionsJvm)
+    integTestDistributionRuntimeOnly(projects.distributionsFull) {
+        because("TestTaskCusomExecutorIntegrationTest requires the full distribution to apply the DV plugin")
+    }
 
     testFixturesImplementation(projects.internalIntegTesting)
 }

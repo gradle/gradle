@@ -29,8 +29,6 @@ import static org.gradle.internal.SafeFileLocationUtils.toSafeFileName
 
 class SafeFileLocationUtilsTest extends Specification {
 
-    private static final String TRUNCATED_PREFIX = '_cut_'
-
     def "toSafeFileName preserves Unicode and replaces problematic characters"() {
         expect:
         toSafeFileName(input, false) == output
@@ -110,13 +108,13 @@ class SafeFileLocationUtilsTest extends Specification {
         then:
         // Prove our test string is what it says it is, since it may not be obvious to the reader
         stringWithExactlyMaxSafeFileNameChars.length() == MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES
-        // This gets shortened because it is at the byte limit, it comes out as 254 as the entire multi-byte char is removed
-        toSafeFileName(stringWithExactlyMaxSafeFileNameChars, false).getBytes(StandardCharsets.UTF_8).length == 254
+        // This gets shortened because it is at the byte limit, it comes out as 119 as the entire multi-byte char is removed
+        toSafeFileName(stringWithExactlyMaxSafeFileNameChars, false).getBytes(StandardCharsets.UTF_8).length == 119
 
         when:
         def stringWithOneMoreThanMaxSafeBytes = 'A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES + 1)
         then:
-        toSafeFileName(stringWithOneMoreThanMaxSafeBytes, false).getBytes(StandardCharsets.UTF_8).length == 255
+        toSafeFileName(stringWithOneMoreThanMaxSafeBytes, false).getBytes(StandardCharsets.UTF_8).length == 120
 
         when:
         def stringWithExactlyMaxSafeBytesWithUnicode = ('Θ' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES / 2)) +
@@ -130,22 +128,72 @@ class SafeFileLocationUtilsTest extends Specification {
 
     def "toSafeFileName hashes overly long paths"() {
         expect:
-        toSafeFileName(input, false) == TRUNCATED_PREFIX + output
+        toSafeFileName(input, false) ==  output
         where:
-        input                       | output
-        'A' * 256                   | 'A' * MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES + '-RH50HNS6NT02C'
-        ('A' * 253) + 'Θ'           | 'A' * MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES + '-CDRIEFT37CF62'
+        input                          | output
+        'A' * 256                      | 'A' * MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES + '-RH50HNS6NT02C'
+        ('A' * 253) + 'Θ'              | 'A' * MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES + '-CDRIEFT37CF62'
         // Hash should preserve extension
-        ('A' * 256) + '.html'       | 'A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - Utf8.encodedLength('.html')) + '-NR9BSEM4PR5K8.html'
-        ('A' * 256) + '.Θ'          | 'A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - Utf8.encodedLength('.Θ')) + '-3UVVBHCH79BP4.Θ'
-        'Θ' + ('A' * 300) + '.html' | 'Θ' + ('A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - Utf8.encodedLength('Θ') - Utf8.encodedLength('.html'))) + '-G48FMD1TA7KI0.html'
-        'Θ' + ('A' * 300) + '.Θ'    | 'Θ' + ('A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - Utf8.encodedLength('Θ') - Utf8.encodedLength('.Θ'))) + '-47RJVSJSPTLNE.Θ'
+        ('A' * 256) + '.html'          | 'A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - Utf8.encodedLength('.html')) + '-NR9BSEM4PR5K8.html'
+        ('A' * 256) + '.Θ'             | 'A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - Utf8.encodedLength('.Θ')) + '-3UVVBHCH79BP4.Θ'
+        'Θ' + ('A' * 300) + '.html'    | 'Θ' + ('A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - Utf8.encodedLength('Θ') - Utf8.encodedLength('.html'))) + '-G48FMD1TA7KI0.html'
+        'Θ' + ('A' * 300) + '.Θ'       | 'Θ' + ('A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - Utf8.encodedLength('Θ') - Utf8.encodedLength('.Θ'))) + '-47RJVSJSPTLNE.Θ'
         // Extension is only preserved if it fits, otherwise normal truncation occurs.
-        'A.' + ('B' * 300)          | 'A.' + ('B' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - Utf8.encodedLength('A.'))) + '-2MG4M8VQTCJRC'
+        'A.' + ('B' * 300)             | 'A.' + ('B' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - Utf8.encodedLength('A.'))) + '-2MG4M8VQTCJRC'
+        // Extension fits, but requires truncation of preceding bytes
+        'AAA.' + lessThanMax('B')      | 'A-POLLM7CJFJOD6.' + ('B' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - 2))
         // Preserves multiple extensions
         ('A' * 256) + '.html.gz'       | 'A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - Utf8.encodedLength('.html.gz')) + '-3M67KJ1Q0I79C.html.gz'
         // But only as many as will fit
-        'A.' + ('B' * 300) + '.tar.gz'  | 'A.' + ('B' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - Utf8.encodedLength('A.' + '.tar.gz'))) + '-EMGQFU4IK3JLU.tar.gz'
+        'A.' + ('B' * 300) + '.tar.gz' | 'A.' + ('B' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - Utf8.encodedLength('A.' + '.tar.gz'))) + '-EMGQFU4IK3JLU.tar.gz'
+    }
+
+    private static final String PREFIX = 'FOO-'
+    private static final int MAX_SAFE_FILE_NAME_LENGTH_WITH_PREFIX_IN_BYTES = MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - Utf8.encodedLength(PREFIX)
+
+    def "toSafeFileName hashes overly long paths and preserves a prefix when specified"() {
+        expect:
+        toSafeFileName(PREFIX, input, false) ==  output
+        where:
+        input                                                  | output
+        'A' * 256                                              | PREFIX + 'A' * MAX_SAFE_FILE_NAME_LENGTH_WITH_PREFIX_IN_BYTES + '-RH50HNS6NT02C'
+        ('A' * 253) + 'Θ'                                      | PREFIX + 'A' * MAX_SAFE_FILE_NAME_LENGTH_WITH_PREFIX_IN_BYTES + '-CDRIEFT37CF62'
+        // Hash should preserve extension
+        ('A' * 256) + '.html'                                  | PREFIX + 'A' * (MAX_SAFE_FILE_NAME_LENGTH_WITH_PREFIX_IN_BYTES - Utf8.encodedLength('.html')) + '-NR9BSEM4PR5K8.html'
+        ('A' * 256) + '.Θ'                                     | PREFIX + 'A' * (MAX_SAFE_FILE_NAME_LENGTH_WITH_PREFIX_IN_BYTES - Utf8.encodedLength('.Θ')) + '-3UVVBHCH79BP4.Θ'
+        'Θ' + ('A' * 300) + '.html'                            | PREFIX + 'Θ' + ('A' * (MAX_SAFE_FILE_NAME_LENGTH_WITH_PREFIX_IN_BYTES - Utf8.encodedLength('Θ') - Utf8.encodedLength('.html'))) + '-G48FMD1TA7KI0.html'
+        'Θ' + ('A' * 300) + '.Θ'                               | PREFIX + 'Θ' + ('A' * (MAX_SAFE_FILE_NAME_LENGTH_WITH_PREFIX_IN_BYTES - Utf8.encodedLength('Θ') - Utf8.encodedLength('.Θ'))) + '-47RJVSJSPTLNE.Θ'
+        // Extension is only preserved if it fits, otherwise normal truncation occurs.
+        'A.' + ('B' * 300)                                     | PREFIX + 'A.' + ('B' * (MAX_SAFE_FILE_NAME_LENGTH_WITH_PREFIX_IN_BYTES - Utf8.encodedLength('A.'))) + '-2MG4M8VQTCJRC'
+        // Extension fits, but requires truncation of preceding bytes which cannot preserve the prefix (i.e. preceding bytes are shorter than the prefix)
+        'AA.' + lessThanMax('B')                               | PREFIX + 'AA.' + ('B' * (MAX_SAFE_FILE_NAME_LENGTH_WITH_PREFIX_IN_BYTES - Utf8.encodedLength('AA.'))) + "-91EHDNB985FVE"
+        // Extension fits, but requires truncation of preceding bytes which can still preserve the prefix
+        moreThanPrefix('A') + '.' + lessThanMaxWithPrefix('B') | PREFIX + 'A' + "-ILUQRCDVFD7TC" + '.' + ('B' * (MAX_SAFE_FILE_NAME_LENGTH_WITH_PREFIX_IN_BYTES - Utf8.encodedLength('A.')))
+        // Preserves multiple extensions
+        ('A' * 256) + '.html.gz'                               | PREFIX + 'A' * (MAX_SAFE_FILE_NAME_LENGTH_WITH_PREFIX_IN_BYTES - Utf8.encodedLength('.html.gz')) + '-3M67KJ1Q0I79C.html.gz'
+        // But only as many as will fit
+        'A.' + ('B' * 300) + '.tar.gz'                         | PREFIX + 'A.' + ('B' * (MAX_SAFE_FILE_NAME_LENGTH_WITH_PREFIX_IN_BYTES - Utf8.encodedLength('A.' + '.tar.gz'))) + '-EMGQFU4IK3JLU.tar.gz'
+    }
+
+    static String lessThanMax(String character) {
+        return character * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - 2)
+    }
+
+    static String lessThanMaxWithPrefix(String character) {
+        return character * (MAX_SAFE_FILE_NAME_LENGTH_WITH_PREFIX_IN_BYTES - 2)
+    }
+
+    static String moreThanPrefix(String character) {
+        return character * Utf8.encodedLength(PREFIX) * 2
+    }
+
+    def "toSafeFileName throws exception when prefix is too long"() {
+        when:
+        toSafeFileName('A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES + 1), 'input', false)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("Prefix length exceeds maximum safe file name length")
     }
 
     def "toSafeFileName does not create invalid UTF-8 when truncating"() {
@@ -155,9 +203,9 @@ class SafeFileLocationUtilsTest extends Specification {
         // Prove our test string is what it says it is, since it may not be obvious to the reader
         stringWithUnicodeThatSitsOnByteLimit.getBytes(StandardCharsets.UTF_8).length == MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES + 1
         // The truncation should remove the multi-byte character to avoid invalid UTF-8
-        // resulting in a string of 254 bytes, not 255 bytes
-        toSafeFileName(stringWithUnicodeThatSitsOnByteLimit, false).getBytes(StandardCharsets.UTF_8).length == 254
-        toSafeFileName(stringWithUnicodeThatSitsOnByteLimit, false) == TRUNCATED_PREFIX + 'A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - 1) + '-72GHCULK4CDNS'
+        // resulting in a string of 119 bytes, not 120 bytes
+        toSafeFileName(stringWithUnicodeThatSitsOnByteLimit, false).getBytes(StandardCharsets.UTF_8).length == 119
+        toSafeFileName(stringWithUnicodeThatSitsOnByteLimit, false) == 'A' * (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - 1) + '-A11DLKHCAFOQO'
     }
 
     def "toSafeFileName handles null input"() {

@@ -1,0 +1,38 @@
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+group = "com.example"
+version = "0.1.0"
+
+repositories {
+    mavenCentral()
+    gradlePluginPortal()
+}
+
+gradlePlugin {
+    plugins {
+        create("baselineInitPlugin") {
+            id = "com.example.baseline-init-plugin"
+            implementationClass = "com.example.BaselineInitPlugin"
+            displayName = "Baseline Init Plugin"
+            description = "Simple org-wide conventions applied via init script"
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "mavenRepoInLocalBuild"
+            url = uri(project.layout.buildDirectory.dir("repo"))
+        }
+    }
+    publications {
+        main(MavenPublication) {
+            from components.java
+        }
+    }
+}

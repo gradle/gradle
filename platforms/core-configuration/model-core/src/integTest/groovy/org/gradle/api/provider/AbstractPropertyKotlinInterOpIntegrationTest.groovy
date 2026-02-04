@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 abstract class AbstractPropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInterOpIntegrationTest {
     def setup() {
         usesKotlin(pluginDir)
-        executer.withStackTraceChecksDisabled()
     }
 
     @Override

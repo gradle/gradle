@@ -19,29 +19,23 @@ package org.gradle.api.internal.catalog
 import com.google.common.collect.Interners
 import groovy.transform.Canonical
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.DefaultClassPathProvider
-import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
-import org.gradle.api.internal.classpath.DefaultModuleRegistry
-import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.api.internal.classpath.EffectiveClassPath
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
+import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.provider.ProviderFactory
-import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.installation.CurrentGradleInstallation
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.internal.management.VersionCatalogBuilderInternal
-import org.gradle.internal.service.scopes.Scope
 import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AttributeTestUtil
@@ -55,10 +49,6 @@ import static org.gradle.api.internal.catalog.AbstractSourceGenerator.toJavaName
 
 class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements VersionCatalogErrorMessages {
 
-    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
-    private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
-    private final ClassPath classPath = classPathRegistry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER")
-
     @Rule
     private final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
@@ -68,7 +58,8 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements
     final CapabilityNotationParser capabilityNotationParser = new CapabilityNotationParserFactory(false).create()
     final ProviderFactory providerFactory = new DefaultProviderFactory(
         new DefaultValueSourceProviderFactory(
-            new DefaultListenerManager(Scope.Build),
+            Stub(ValueSourceProviderFactory.ValueListener),
+            Stub(ValueSourceProviderFactory.ComputationListener),
             TestUtil.instantiatorFactory(),
             new TestIsolatableFactory(),
             Stub(GradleProperties),
@@ -474,7 +465,8 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         Object compile() {
             def srcDir = tmpDir.createDir("src")
             def dstDir = tmpDir.createDir("dst")
-            SimpleGeneratedJavaClassCompiler.compile(srcDir, dstDir, [new TestClassSource(className, source)], classPath)
+            def testClasspath = DefaultClassPath.of(new EffectiveClassPath(getClass().getClassLoader()).getAsFiles())
+            SimpleGeneratedJavaClassCompiler.compile(srcDir, dstDir, [new TestClassSource(className, source)], testClasspath)
             def cl = new URLClassLoader([dstDir.toURI().toURL()] as URL[], this.class.classLoader)
             factory = cl.loadClass("org.test.$className")
             assert factory

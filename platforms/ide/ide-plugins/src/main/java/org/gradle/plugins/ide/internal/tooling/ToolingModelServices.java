@@ -30,7 +30,6 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.plugins.ide.internal.configurer.DefaultUniqueProjectNameProvider;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
@@ -73,21 +72,16 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                     registry.register(new EclipseModelBuilder(gradleProjectBuilder, projectStateRegistry));
                     registry.register(ideaModelBuilder);
                     registry.register(gradleProjectBuilder);
-                    registry.register(createGradleBuildBuilder());
+                    registry.register(new GradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry, failureFactory));
                     registry.register(new BasicIdeaModelBuilder(ideaModelBuilder));
                     registry.register(new BuildInvocationsBuilder(taskLister));
                     registry.register(new PublicationsBuilder(projectPublicationRegistry));
                     registry.register(new BuildEnvironmentBuilder(fileCollectionFactory));
+                    registry.register(new HelpBuilder());
                     registry.register(new IsolatedGradleProjectInternalBuilder());
                     registry.register(new IsolatedIdeaModuleInternalBuilder());
                     registry.register(new PluginApplyingBuilder());
                     registry.register(new GradleDslBaseScriptModelBuilder());
-                }
-
-                private ToolingModelBuilder createGradleBuildBuilder() {
-                    return buildModelParameters.isResilientModelBuilding()
-                        ? new ResilientGradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry, failureFactory)
-                        : new GradleBuildBuilder(buildStateRegistry);
                 }
 
                 private IdeaModelBuilderInternal createIdeaModelBuilder(boolean isolatedProjects, GradleProjectBuilderInternal gradleProjectBuilder) {

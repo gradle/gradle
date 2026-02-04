@@ -122,7 +122,7 @@ baz:1.0 requested
                         if (it.id instanceof ModuleComponentIdentifier && it.id.module == 'leaf') {
                             def selectionReason = it.selectionReason
                             assert selectionReason.conflictResolution
-                            def descriptions = selectionReason.descriptions.reverse()
+                            def descriptions = selectionReason.descriptions
                             assert descriptions.size() > 1
                             descriptions.each {
                                 println "\$it.cause : \$it.description"
@@ -194,7 +194,7 @@ baz:1.0 requested
                         if (it.id instanceof ModuleComponentIdentifier && it.id.module == 'leaf') {
                             def selectionReason = it.selectionReason
                             assert selectionReason.conflictResolution
-                            def descriptions = selectionReason.descriptions.reverse()
+                            def descriptions = selectionReason.descriptions
                             assert descriptions.size() > 1
                             descriptions.each {
                                 println "\$it.cause : \$it.description"
@@ -1107,6 +1107,33 @@ testRuntimeClasspath
 
                     def usageAsString = root.get().attributes.getAttribute(Attribute.of(Usage.USAGE_ATTRIBUTE.name, String.class))
                     assert usageAsString == "java-runtime"
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
+
+    def "capabilities on variant always return same instance"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org:foo:1.0")
+            }
+
+            tasks.register("resolve") {
+                def rootComponent = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+                doLast {
+                    def variant = rootComponent.get().dependencies.first().resolvedVariant
+                    assert variant.capabilities.is(variant.capabilities)
                 }
             }
         """

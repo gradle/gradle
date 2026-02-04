@@ -23,6 +23,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.internal.HasInternalProtocol;
 import org.jspecify.annotations.Nullable;
 
@@ -143,6 +144,7 @@ import java.util.function.BiFunction;
  */
 @HasInternalProtocol
 @NonExtensible
+@HiddenInDefinition
 public interface Provider<T> {
 
     /**

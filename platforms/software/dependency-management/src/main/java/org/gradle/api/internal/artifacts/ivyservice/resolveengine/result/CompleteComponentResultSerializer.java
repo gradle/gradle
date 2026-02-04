@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -31,7 +30,6 @@ import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -55,7 +53,7 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
     private final Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer;
     private final Serializer<AttributeContainer> attributeContainerSerializer;
     private final Serializer<ComponentIdentifier> componentIdSerializer;
-    private final Serializer<List<Capability>> capabilitySerializer;
+    private final ListSerializer<Capability> capabilitySerializer;
 
     @Inject
     public CompleteComponentResultSerializer(
@@ -106,7 +104,7 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
     @Override
     public void readComponentResult(Decoder decoder, ResolvedComponentVisitor visitor) throws Exception {
         long resultId = decoder.readSmallLong();
-        ComponentSelectionReason reason = reasonSerializer.read(decoder);
+        ComponentSelectionReasonInternal reason = reasonSerializer.read(decoder);
         String repo = decoder.readNullableString();
         ComponentIdentifier componentIdentifier = componentIdSerializer.read(decoder);
         ModuleVersionIdentifier moduleVersionIdentifier = moduleVersionIdSerializer.read(decoder);
@@ -129,11 +127,11 @@ public class CompleteComponentResultSerializer implements ComponentResultSeriali
         ComponentIdentifier ownerId = componentIdSerializer.read(decoder);
         String displayName = decoder.readString();
         AttributeContainer attributes = attributeContainerSerializer.read(decoder);
-        List<Capability> capabilities = capabilitySerializer.read(decoder);
+        ImmutableList<Capability> capabilities = capabilitySerializer.read(decoder);
 
         // TODO: Read the external variant, like we do with the variant reference.
 
-        visitor.visitSelectedVariant(nodeId, new DefaultResolvedVariantResult(ownerId, Describables.of(displayName), attributes, ImmutableCapabilities.of(capabilities), null));
+        visitor.visitSelectedVariant(nodeId, new DefaultResolvedVariantResult(ownerId, Describables.of(displayName), attributes, capabilities, null));
     }
 
 }

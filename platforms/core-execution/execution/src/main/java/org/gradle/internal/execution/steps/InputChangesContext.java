@@ -22,13 +22,13 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
-public class InputChangesContext extends ValidationFinishedContext implements CachingContext {
+public class InputChangesContext extends MutableValidationFinishedContext implements CachingContext {
 
     @Nullable
     private final InputChangesInternal inputChanges;
     private final CachingState cachingState;
 
-    public InputChangesContext(ValidationFinishedContext parent, @Nullable InputChangesInternal inputChanges, CachingState cachingState) {
+    public InputChangesContext(MutableValidationFinishedContext parent, @Nullable InputChangesInternal inputChanges, CachingState cachingState) {
         super(parent);
         this.inputChanges = inputChanges;
         this.cachingState = cachingState;

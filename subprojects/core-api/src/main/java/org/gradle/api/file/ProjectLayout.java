@@ -16,10 +16,10 @@
 
 package org.gradle.api.file;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
+import org.gradle.declarative.dsl.model.annotations.ValueFactories;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
@@ -39,12 +39,13 @@ public interface ProjectLayout {
     /**
      * Returns the project directory.
      */
-    @Restricted
+    @ValueFactories
     Directory getProjectDirectory();
 
     /**
      * Returns the build directory for the project.
      */
+    @HiddenInDefinition
     DirectoryProperty getBuildDirectory();
 
     /**
@@ -55,8 +56,7 @@ public interface ProjectLayout {
      *
      * @since 8.13
      */
-    @Incubating
-    @Restricted
+    @ValueFactories
     Directory getSettingsDirectory();
 
     /**
@@ -65,6 +65,7 @@ public interface ProjectLayout {
      * File system locations based on relative paths will be
      * resolved against this layout's reference location, as defined by {@link #getProjectDirectory()}.
      */
+    @HiddenInDefinition
     Provider<RegularFile> file(Provider<File> file);
 
     /**
@@ -75,6 +76,7 @@ public interface ProjectLayout {
      *
      * @since 6.0
      */
+    @HiddenInDefinition
     Provider<Directory> dir(Provider<File> file);
 
     /**
@@ -86,5 +88,6 @@ public interface ProjectLayout {
      * @return The file collection. Never returns null.
      * @since 4.8
      */
+    @HiddenInDefinition
     FileCollection files(@Nullable Object... paths);
 }

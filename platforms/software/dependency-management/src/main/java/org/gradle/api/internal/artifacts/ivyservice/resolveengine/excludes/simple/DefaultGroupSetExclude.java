@@ -17,15 +17,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simp
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.GroupSetExclude;
+import org.gradle.internal.collect.PersistentSet;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.Set;
-
 final class DefaultGroupSetExclude implements GroupSetExclude {
-    private final Set<String> groups;
+    private final PersistentSet<String> groups;
     private final int hashCode;
 
-    DefaultGroupSetExclude(Set<String> groups) {
+    DefaultGroupSetExclude(PersistentSet<String> groups) {
         this.groups = groups;
         this.hashCode = groups.hashCode();
     }
@@ -51,7 +50,7 @@ final class DefaultGroupSetExclude implements GroupSetExclude {
     }
 
     @Override
-    public Set<String> getGroups() {
+    public PersistentSet<String> getGroups() {
         return groups;
     }
 

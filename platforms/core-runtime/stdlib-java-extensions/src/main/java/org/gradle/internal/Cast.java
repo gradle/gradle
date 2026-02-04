@@ -16,6 +16,7 @@
 
 package org.gradle.internal;
 
+import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 public abstract class Cast {
@@ -67,13 +68,45 @@ public abstract class Cast {
     }
 
     @SuppressWarnings({"unchecked", "TypeParameterUnusedInFormals"})
-    @Nullable
-    public static <T> T uncheckedCast(@Nullable Object object) {
+    @Contract("!null -> !null")
+    public static <T> @Nullable T uncheckedCast(@Nullable Object object) {
         return (T) object;
     }
 
     @SuppressWarnings({"unchecked", "TypeParameterUnusedInFormals"})
     public static <T> T uncheckedNonnullCast(Object object) {
         return (T) object;
+    }
+
+    /**
+     * Strips nullability from the type. This is useful to work around type system limitations, but must be used carefully.
+     * As a rule of thumb, do not use it outside situations where {@code T} is a type parameter that can hold both nullable and non-nullable types.
+     * <p>
+     * A typically safe pattern is to use it when the generic type parameter {@code T} can be nullable, but has to be mixed with {@code @Nullable T}.
+     * For example:
+     * <pre>
+     *     &lt;T extends{@literal @}Nullable Object&gt; T doFoo(Supplier&lt;T&gt; factory) {
+     *        {@literal @}Nullable T value = null;
+     *         value = factory.get();
+     *
+     *         // value holds a valid instance of T (only allowing null if T is a nullable type).
+     *         // But NullAway cannot get it and produces an error.
+     *         return value;
+     *     }
+     * </pre>
+     * <p>
+     * It is not possible to use {@code return Objects.requireNonNull(value)} because {@code value} can legitimately be null for {@code doFoo(() -> null)}.
+     * NullAway doesn't allow to use {@link #uncheckedNonnullCast(Object)} either. Using {@code return Cast.unsafeStripNullable(value)} is actually safe.
+     * <p>
+     * <b>Put a comment explaining the reasoning why this cast is safe nearby.</b>
+     *
+     * @param object the nullable instance that actually holds a valid value of the type {@code T}
+     * @return the given value with explicit nullability annotation stripped.
+     * @param <T> the type
+     * @see <a href="https://github.com/uber/NullAway/wiki/Suppressing-Warnings#downcasting">NullAway docs on "downcasting"</a>
+     */
+    @SuppressWarnings("NullAway") // See the javadoc
+    public static <T extends @Nullable Object> T unsafeStripNullable(@Nullable T object) {
+        return object;
     }
 }

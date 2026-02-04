@@ -8,7 +8,6 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
 
-    api(libs.httpcore)
     api(libs.inject)
     api(libs.jspecify)
 
@@ -23,14 +22,15 @@ dependencies {
 
     implementation(libs.commonsHttpclient)
     implementation(libs.guava)
+    implementation(libs.httpcore)
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.core))
-    testImplementation(libs.servletApi)
+    testImplementation(testLibs.servletApi)
 
     integTestImplementation(projects.enterpriseOperations)
     integTestImplementation(testFixtures(projects.buildCache))
-    integTestImplementation(libs.jetty)
+    integTestImplementation(testLibs.jetty)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")

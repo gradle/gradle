@@ -51,6 +51,10 @@ abstract class AbstractGradleBuildConfigurationCacheSmokeTest extends AbstractGr
     protected int maxConfigurationCacheProblems = 0
 
     void configurationCacheRun(List<String> tasks, int daemonId = 0) {
+        run(configurationCacheRunner(tasks, daemonId))
+    }
+
+    SmokeTestGradleRunner configurationCacheRunner(List<String> tasks, int daemonId = 0) {
         def ccOptions = [
             "--stacktrace",
             "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
@@ -61,7 +65,8 @@ abstract class AbstractGradleBuildConfigurationCacheSmokeTest extends AbstractGr
                 "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=$maxConfigurationCacheProblems".toString(),
             ]
         }
-        run(
+
+        return runnerFor(
             tasks + ccOptions,
             // use a unique testKitDir per daemonId other than 0 as 0 means default daemon.
             daemonId != 0 ? file("test-kit/$daemonId") : null

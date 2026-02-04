@@ -25,7 +25,7 @@ body:
     id: current-behavior
     attributes:
       label: Current Behavior (optional)
-      description: Explain the difference from current behavior
+      description: Is there a way to achieve the same or similar outcome today?
     validations:
       required: false
   - type: textarea

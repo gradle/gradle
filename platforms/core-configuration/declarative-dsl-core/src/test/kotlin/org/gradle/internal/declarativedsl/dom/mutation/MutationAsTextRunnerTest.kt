@@ -17,8 +17,6 @@
 package org.gradle.internal.declarativedsl.dom.mutation
 
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
@@ -231,36 +229,29 @@ val schema = object : EvaluationSchema {
 
 internal
 interface TopLevelReceiverForMutations {
-    @Configuring
     fun nestedOne(configure: NestedOne.() -> Unit)
 
-    @Configuring
     fun nestedAnotherOne(configure: NestedOne.() -> Unit)
 }
 
 
 internal
 interface NestedOne {
-    @get:Restricted
     var x: Int
 
-    @Configuring
     fun nestedTwo(configure: NestedTwo.() -> Unit)
 }
 
 
 internal
 interface NestedTwo {
-    @get:Restricted
     var y: Int
 
-    @Configuring
     fun nestedThree(configure: NestedTwo.() -> Unit)
 }
 
 
 internal
 interface NestedThree {
-    @get:Restricted
     var z: Int
 }

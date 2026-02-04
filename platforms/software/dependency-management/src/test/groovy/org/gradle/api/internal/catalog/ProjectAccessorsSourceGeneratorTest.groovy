@@ -21,16 +21,11 @@ import groovy.transform.CompileStatic
 import groovy.transform.ToString
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.initialization.ProjectDescriptor
-import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.DefaultClassPathProvider
-import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
-import org.gradle.api.internal.classpath.DefaultModuleRegistry
-import org.gradle.api.internal.classpath.ModuleRegistry
-import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.installation.CurrentGradleInstallation
+import org.gradle.api.internal.classpath.EffectiveClassPath
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.junit.Rule
@@ -39,9 +34,6 @@ import spock.lang.Specification
 import static org.gradle.api.internal.catalog.AbstractSourceGenerator.toJavaName
 
 class ProjectAccessorsSourceGeneratorTest extends Specification {
-    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
-    private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
-    private final ClassPath classPath = classPathRegistry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER")
 
     private final Map<String, GeneratedCode> generatedCode = [:]
     private final DefaultProjectDependencyFactory projectDependencyFactory = Stub(DefaultProjectDependencyFactory) {
@@ -187,12 +179,12 @@ class ProjectAccessorsSourceGeneratorTest extends Specification {
         }
         def srcDir = tmpDir.createDir("src")
         def dstDir = tmpDir.createDir("dst")
+        def classPath = DefaultClassPath.of(new EffectiveClassPath(getClass().getClassLoader()).getAsFiles())
         SimpleGeneratedJavaClassCompiler.compile(srcDir, dstDir, sources, classPath)
         def cl = new URLClassLoader([dstDir.toURI().toURL()] as URL[], this.class.classLoader)
         def factory = cl.loadClass("org.test.${RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME}")
         assert factory
         factory.newInstance(projectDependencyFactory, projectFinder)
-
     }
 
     private void generateSources(ProjectDescriptor descriptor) {

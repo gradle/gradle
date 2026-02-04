@@ -76,7 +76,6 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
      *
      * This is only used in DefaultDaemonStarter, and it should also stay this way. Ideally we would even remove it at one point.
      */
-    @NullMarked
     public static class RootClientExecHandleBuilderFactory implements ClientExecHandleBuilderFactory, Stoppable {
         private final DefaultClientExecHandleBuilderFactory delegate;
 

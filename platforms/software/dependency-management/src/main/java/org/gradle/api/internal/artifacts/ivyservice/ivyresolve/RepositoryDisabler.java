@@ -36,11 +36,12 @@ public interface RepositoryDisabler {
      *
      * @param repositoryId the id of the repository to disable
      * @param throwable the reason why the repository is being disabled
+     * @param retriesExceeded {@code true} if the maximum number of retries for the repository has been exceeded
      * @return {@code true} if the repository is now disabled, {@code false} if it was already disabled or could not be disabled
      * (<strong>Be sure to note the ambiguity in this value</strong>)
      * @implSpec implementations <strong>MUST</strong> return {@code false} if the repository is not disabled by this call
      */
-    boolean tryDisableRepository(String repositoryId, Throwable throwable);
+    boolean tryDisableRepository(String repositoryId, Throwable throwable, boolean retriesExceeded);
 
     enum NoOpDisabler implements RepositoryDisabler {
         INSTANCE;
@@ -56,7 +57,7 @@ public interface RepositoryDisabler {
         }
 
         @Override
-        public boolean tryDisableRepository(String repositoryId, Throwable throwable) {
+        public boolean tryDisableRepository(String repositoryId, Throwable throwable, boolean retriesExceeded) {
             return false;
         }
     }

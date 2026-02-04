@@ -108,13 +108,7 @@ class CustomPlugin implements Plugin<Project> {
         connection.action(new FetchProjectsCustomModelsAction())
             .setStandardError(stderr)
             .setStandardOutput(stdout)
-            .setJvmArguments(["-Xmx256m"] + kotlinDslJvmArguments())
+            .setJvmArguments(["-Xmx256m"])
             .run()
-    }
-
-    private static List<String> kotlinDslJvmArguments() {
-        // Having this unset is now deprecated, will default to `false` in Gradle 9.0
-        // TODO remove - see https://github.com/gradle/gradle/issues/26810
-        ['-Dorg.gradle.kotlin.dsl.skipMetadataVersionCheck=false']
     }
 }

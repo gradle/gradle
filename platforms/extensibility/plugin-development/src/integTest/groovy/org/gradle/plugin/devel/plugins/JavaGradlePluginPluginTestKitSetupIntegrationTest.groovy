@@ -44,9 +44,17 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
                     assert testRuntimeClasspath.files.containsAll(testKit.files)
                 }
             }
+            task assertHasGradleApi() {
+                def testRuntimeClasspath = project.sourceSets.test.runtimeClasspath
+                def gradleApi = dependencies.gradleApi().files
+                doLast {
+                    assert testRuntimeClasspath.files.containsAll(gradleApi.files)
+                }
+            }
         """
         expect:
         succeeds("assertHasTestKit")
+        succeeds("assertHasGradleApi")
         succeeds("test")
         result.assertTaskScheduled(":pluginUnderTestMetadata")
         result.assertTaskScheduled(":pluginDescriptors")

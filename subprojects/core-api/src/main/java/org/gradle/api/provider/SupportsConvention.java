@@ -17,6 +17,7 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 
 /**
  * Marks a Gradle API custom type as supporting conventions.
@@ -28,6 +29,7 @@ import org.gradle.api.Incubating;
  * @since 8.7
  */
 @Incubating
+@HiddenInDefinition
 public interface SupportsConvention {
     /**
      * Unsets this object's explicit value, allowing the convention to be

@@ -17,6 +17,8 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.executer.DefaultGradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -44,6 +46,9 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
     def "jar produces usable plugin jar"() {
         given:
         buildFile()
+        settingsFile << """
+            rootProject.name = "test"
+        """
         def descriptorFile = goodPluginDescriptor()
         goodPlugin()
 
@@ -155,7 +160,25 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         output.count(INVALID_DESCRIPTOR_WARNING_PREFIX) == 1
     }
 
-    def "Fails if plugin declaration has no id"() {
+    def "Fails if plugin declaration has null id"() {
+        given:
+        buildFile()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    helloPlugin {
+                        id = null
+                        implementationClass = 'com.foo.Bar'
+                    }
+                }
+            }
+        """
+        expect:
+        fails "jar"
+        failureCauseContains(String.format(JavaGradlePluginPlugin.DECLARATION_MISSING_ID_MESSAGE, 'helloPlugin'))
+    }
+
+    def "Uses plugin declaration name if plugin declaration id has not been set"() {
         given:
         buildFile()
         buildFile << """
@@ -168,8 +191,8 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
             }
         """
         expect:
-        fails "jar"
-        failureCauseContains(String.format(JavaGradlePluginPlugin.DECLARATION_MISSING_ID_MESSAGE, 'helloPlugin'))
+        succeeds "jar"
+        file("build/resources/main/META-INF/gradle-plugins/helloPlugin.properties").exists()
     }
 
     def "Fails if plugin declaration has no implementation class"() {
@@ -357,14 +380,77 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds "jar"
     }
 
+    @Requires(
+        value = IntegTestPreconditions.NotEmbeddedExecutor,
+        reason = "InProcessGradleExecuter assumes all tests use the same gradle distribution"
+    )
+    def "current distribution is a test task input"() {
+        given:
+        buildFile()
+        buildFile << """
+            ${mavenCentralRepository()}
+            testing.suites.test.useJUnitJupiter()
+        """
+        file("src/test/java/MyTest.java") << """
+            import org.junit.jupiter.api.Test;
+
+            class MyTest {
+                @Test
+                public void doTest() {
+                    System.out.println("Foo!");
+                }
+            }
+        """
+
+        and:
+        def distributionCopyDir = temporaryFolder.createDir("distribution-copy")
+        println(distributionCopyDir)
+        executer.distribution.gradleHomeDir.copyTo(distributionCopyDir)
+        def distributionCopy = new DefaultGradleDistribution(executer.distribution.version, distributionCopyDir, null)
+        def customExecuter = new GradleContextualExecuter(distributionCopy, executer.testDirectoryProvider, executer.buildContext)
+        customExecuter.requireIsolatedDaemons() // So different executions with different distributions don't try to share a daemon
+
+        when:
+        def result = customExecuter.withTasks("test").run()
+
+        then:
+        result.assertTaskExecuted(":test")
+
+        when:
+        result = customExecuter.withTasks("test").run()
+
+        then:
+        result.assertTaskSkipped(":test")
+
+        when:
+        distributionCopyDir.file(fileName).text = content
+        result = customExecuter.withTasks("test").run()
+
+        then:
+        result.assertTaskExecuted(":test")
+
+        when:
+        result = customExecuter.withTasks("test").run()
+
+        then:
+        result.assertTaskSkipped(":test")
+
+        cleanup:
+        customExecuter.cleanup()
+
+        where:
+        fileName            | content
+        "foo.txt"           | ""
+        "foo.txt"           | "foo"
+        "gradle.properties" | "prop=value"
+    }
+
     def buildFile() {
         buildFile << """
-apply plugin: 'java-gradle-plugin'
-
-jar {
-    archiveFileName = 'test.jar'
-}
-"""
+            plugins {
+                id("java-gradle-plugin")
+            }
+        """
     }
 
     def goodPluginDescriptor() {

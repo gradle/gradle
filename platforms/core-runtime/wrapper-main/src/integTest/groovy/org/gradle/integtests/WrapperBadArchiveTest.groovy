@@ -57,7 +57,7 @@ class WrapperBadArchiveTest extends AbstractWrapperIntegrationSpec {
     }
 
     private prepareWrapperWithGradleBin() {
-        prepareWrapper(new URI("$server.uri$GRADLE_BIN_ZIP"))
+        prepareWrapper(new URI("$server.uri$GRADLE_BIN_ZIP")).run()
     }
 
     def "wrapper gets bad archive on 2 attempts"() {

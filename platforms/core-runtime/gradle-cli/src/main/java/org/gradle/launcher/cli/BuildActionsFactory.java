@@ -22,6 +22,8 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
@@ -69,14 +71,19 @@ import java.util.Properties;
 import java.util.UUID;
 
 class BuildActionsFactory implements CommandLineActionCreator {
+    private static final Logger LOGGER = Logging.getLogger(BuildActionsFactory.class);
+    private static final String CAN_USE_CURRENT_PROCESS_MESSAGE = "The current JVM process isn't compatible with build requirement. {}";
+
     private final ServiceRegistry loggingServices;
     private final FileCollectionFactory fileCollectionFactory;
     private final ServiceRegistry basicServices;
+    private final CurrentGradleInstallation currentGradleInstallation;
 
-    public BuildActionsFactory(ServiceRegistry loggingServices, ServiceRegistry basicServices) {
+    public BuildActionsFactory(ServiceRegistry loggingServices, ServiceRegistry basicServices, CurrentGradleInstallation currentGradleInstallation) {
         this.basicServices = basicServices;
         this.loggingServices = loggingServices;
         this.fileCollectionFactory = basicServices.get(FileCollectionFactory.class);
+        this.currentGradleInstallation = currentGradleInstallation;
     }
 
     @Override
@@ -144,10 +151,15 @@ class BuildActionsFactory implements CommandLineActionCreator {
         DaemonContext contextForCurrentProcess = buildDaemonContextForCurrentProcess(requestContext, currentProcess);
 
         DaemonCompatibilitySpec comparison = new DaemonCompatibilitySpec(requestContext);
-        if (!currentProcess.isLowMemoryProcess()) {
-            return comparison.isSatisfiedBy(contextForCurrentProcess);
+        if (currentProcess.isLowMemoryProcess()) {
+            LOGGER.info(CAN_USE_CURRENT_PROCESS_MESSAGE, "The maximum heap size is insufficient.\n");
+            return false;
         }
-        return false;
+        String whyUnsatisfied = comparison.whyUnsatisfied(contextForCurrentProcess);
+        if (whyUnsatisfied != null) {
+            LOGGER.info(CAN_USE_CURRENT_PROCESS_MESSAGE, whyUnsatisfied);
+        }
+        return whyUnsatisfied == null;
     }
 
     @VisibleForTesting
@@ -173,12 +185,13 @@ class BuildActionsFactory implements CommandLineActionCreator {
         properties.putAll(daemonParameters.getEffectiveSystemProperties());
         System.setProperties(properties);
 
-        BuildProcessState buildProcessState = new BuildProcessState(startParameter.isContinuous(),
+        BuildProcessState buildProcessState = new BuildProcessState(
+            startParameter.isContinuous(),
             AgentStatus.of(daemonParameters.shouldApplyInstrumentationAgent()),
-            ClassPath.EMPTY,
-            CurrentGradleInstallation.locate(),
+            currentGradleInstallation,
             loggingServices,
-            NativeServices.getInstance());
+            NativeServices.getInstance()
+        );
 
         ServiceRegistry globalServices = buildProcessState.getServices();
         globalServices.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();

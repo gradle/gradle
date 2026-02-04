@@ -21,6 +21,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
+import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -296,7 +297,8 @@ public class GUtil {
     /**
      * Converts an arbitrary string to upper case identifier with words separated by _. Eg, camelCase -&gt; CAMEL_CASE
      */
-    public static String toConstant(CharSequence string) {
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String toConstant(@Nullable CharSequence string) {
         if (string == null) {
             return null;
         }
@@ -306,11 +308,13 @@ public class GUtil {
     /**
      * Converts an arbitrary string to space-separated words. Eg, camelCase -&gt; camel case, with_underscores -&gt; with underscores
      */
-    public static String toWords(CharSequence string) {
+    @Contract("null -> null; !null -> !null")
+    public static @Nullable String toWords(@Nullable CharSequence string) {
         return toWords(string, ' ');
     }
 
-    public static String toWords(CharSequence string, char separator) {
+    @Contract("null, _ -> null; !null, _ -> !null")
+    public static @Nullable String toWords(@Nullable CharSequence string, char separator) {
         if (string == null) {
             return null;
         }

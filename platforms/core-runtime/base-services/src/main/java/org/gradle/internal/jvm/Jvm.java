@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
@@ -39,7 +40,7 @@ public class Jvm implements JavaInfo {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Jvm.class);
     private static final Collection<String> VENDOR_PROPERTIES = Arrays.asList("java.vendor", "java.vm.vendor");
-    private static final AtomicReference<Jvm> CURRENT = new AtomicReference<Jvm>();
+    private static final AtomicReference<@Nullable Jvm> CURRENT = new AtomicReference<>();
     private static final Pattern APP_NAME_REGEX = Pattern.compile("APP_NAME_\\d+");
     private static final Pattern JAVA_MAIN_CLASS_REGEX = Pattern.compile("JAVA_MAIN_CLASS_\\d+");
 
@@ -49,21 +50,24 @@ public class Jvm implements JavaInfo {
     //discovered java location
     private final File javaHome;
     private final boolean userSupplied;
-    private final String implementationJavaVersion;
-    private final Integer javaVersionMajor;
+    private final @Nullable String implementationJavaVersion;
+    private final @Nullable Integer javaVersionMajor;
 
     // Cached resolved executables
-    private File javaExecutable;
-    private File javacExecutable;
-    private File javadocExecutable;
-    private Optional<File> toolsJar;
-    private Boolean jdk;
+    private @Nullable File javaExecutable;
+    private @Nullable File javacExecutable;
+    private @Nullable File javadocExecutable;
+    // This is ugly: toolsJar == null means there is no cached value.
+    // toolsJar == Optional.empty() is when the Java installation has no tools jar (e.g. it is a JRE).
+    @SuppressWarnings({"NullableOptional", "OptionalUsedAsFieldOrParameterType"})
+    private @Nullable Optional<File> toolsJar;
+    private @Nullable Boolean jdk;
 
     public static Jvm current() {
         Jvm jvm = CURRENT.get();
         if (jvm == null) {
             CURRENT.compareAndSet(null, new Jvm(OperatingSystem.current()));
-            jvm = CURRENT.get();
+            jvm = Objects.requireNonNull(CURRENT.get());
         }
         return jvm;
     }
@@ -287,7 +291,7 @@ public class Jvm implements JavaInfo {
      * {@inheritDoc}
      */
     @Override
-    public File getToolsJar() {
+    public @Nullable File getToolsJar() {
         if (toolsJar != null) {
             return toolsJar.orNull();
         } else {
@@ -306,7 +310,7 @@ public class Jvm implements JavaInfo {
         if (javaVersion != null && javaVersion.isJava9Compatible()) {
             return null;
         }
-        if (os.isWindows()) {
+        if (os.isWindows() && javaVersionMajor != null) {
             File jreDir;
             if (javaVersionMajor == 5) {
                 jreDir = new File(javaHome.getParentFile(), "jre" + implementationJavaVersion);

@@ -42,6 +42,7 @@ tasks.jar.configure {
             classpathDependency.joinToString(" ") { it.asFile.name }
         }
     }
+    dependsOn(classpath)
     manifest.attributes("Class-Path-Source" to "manifestClasspath")
     manifest.attributes("Class-Path" to classpath)
     if (app.mainClassName.isPresent) {

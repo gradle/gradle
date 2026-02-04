@@ -103,11 +103,11 @@ public class DefaultModuleConflictHandler implements ModuleConflictHandler {
         // Visit the winning module first so that when we visit unattached dependencies of
         // losing modules, the winning module always has a selected component.
         ModuleResolveState winningModule = selected.getModule();
-        resolveState.getModule(winningModule.getId()).replaceWith(selected);
+        resolveState.getModule(winningModule.getId()).changeSelection(selected);
 
         for (ModuleIdentifier moduleId : conflict.participants) {
             if (!moduleId.equals(winningModule.getId())) {
-                resolveState.getModule(moduleId).replaceWith(selected);
+                resolveState.getModule(moduleId).changeSelection(selected);
             }
         }
 

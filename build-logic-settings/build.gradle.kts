@@ -15,3 +15,7 @@
  */
 
 description = "Provides settings plugins for configuring global build configuration"
+
+tasks.register("check") {
+    dependsOn(subprojects.map { "${it.name}:check" })
+}

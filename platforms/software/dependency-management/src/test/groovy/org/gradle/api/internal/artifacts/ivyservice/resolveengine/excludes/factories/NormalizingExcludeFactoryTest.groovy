@@ -88,7 +88,7 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
     def "union of three elements"() {
         expect:
         [one, two, three].combinations().each { list ->
-            assert factory.anyOf(list as Set) == expected
+            assert factory.anyOf(psetOf(list)) == expected
         }
 
         where:
@@ -128,7 +128,7 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
     def "intersection of three elements"() {
         expect:
         [one, two, three].combinations().each { list ->
-            assert factory.allOf(list as Set) == expected
+            assert factory.allOf(psetOf(list)) == expected
         }
 
         where:
@@ -209,7 +209,7 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
         def operand59 = moduleId('root', 'word88')
         def operand60 = moduleId('root', 'word89')
         def operand61 = moduleId('root', 'word90')
-        def operation = factory.anyOf([
+        def operation = factory.anyOf(psetOf([
             operand0,
             operand1,
             operand2,
@@ -272,8 +272,7 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
             operand59,
             operand60,
             operand61
-        ] as Set)
-
+        ]))
 
         expect:
         operation

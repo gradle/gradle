@@ -49,7 +49,7 @@ class ProblemBodyWriter implements PartialProblemWriter {
         }
 
         // print solutions
-        if (!problem.getSolutions().isEmpty()) {
+        if (options.isRenderSolutions() && !problem.getSolutions().isEmpty()) {
             for (String solution : problem.getSolutions()) {
                 output.printf("%n");
 
@@ -60,6 +60,12 @@ class ProblemBodyWriter implements PartialProblemWriter {
                     indent(output, lines[i], 14); // 4 + "Solution: ".length()
                 }
             }
+        }
+
+        // print documentation
+        if (options.isRenderSolutions() && problem.getDefinition().getDocumentationLink() != null) {
+            output.printf("%n");
+            indent(output, "Documentation: " + problem.getDefinition().getDocumentationLink().getUrl(), 4);
         }
 
         // print locations

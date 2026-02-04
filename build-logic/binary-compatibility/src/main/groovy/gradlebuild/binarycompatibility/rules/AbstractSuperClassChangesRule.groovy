@@ -18,7 +18,6 @@ package gradlebuild.binarycompatibility.rules
 
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
-import japicmp.util.Optional
 import javassist.CtClass
 import me.champeau.gradle.japicmp.report.Violation
 

@@ -72,6 +72,13 @@ public abstract class ExecutionResult<T> {
     public abstract ExecutionResult<T> withFailures(ExecutionResult<Void> otherResult);
 
     /**
+     * Returns true if the operation was successful.
+     */
+    public boolean isSuccessful() {
+        return getFailures().isEmpty();
+    }
+
+    /**
      * Casts a failed result.
      */
     public abstract <S> ExecutionResult<S> asFailure();

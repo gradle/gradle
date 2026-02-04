@@ -25,7 +25,7 @@ import org.gradle.test.fixtures.file.TestFile
 class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
 
     def setup() {
-        ideXmxMb = 4096
+        ideXmxMb = 4096 + 512
     }
 
     def "can sync gradle/gradle build without problems"() {
@@ -36,7 +36,7 @@ class IsolatedProjectsGradleceptionSyncTest extends AbstractIdeSyncTest {
         ideaSync(IDEA_COMMUNITY_VERSION)
 
         then:
-        report.assertHtmlReportHasNoProblems()
+        report.htmlReport().assertHasNoProblems()
     }
 
     def "can sync gradle/gradle incrementally without error"() {

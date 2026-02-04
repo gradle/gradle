@@ -41,8 +41,8 @@ public abstract class AbstractCacheCleanup implements CleanupAction {
         for (File file : findEligibleFiles(cleanableStore)) {
             if (shouldDelete(file)) {
                 progressMonitor.incrementDeleted();
-                if (FileUtils.deleteQuietly(file)) {
-                    handleDeletion(file);
+                if (doDeletion(file)) {
+                    doAfterDeletion(file);
                     filesDeleted += 1 + deleteEmptyParentDirectories(cleanableStore.getBaseDir(), file.getParentFile());
                 }
             } else {
@@ -58,15 +58,28 @@ public abstract class AbstractCacheCleanup implements CleanupAction {
         }
         File[] files = dir.listFiles();
         if (files != null && files.length == 0 && dir.delete()) {
-            handleDeletion(dir);
+            doAfterDeletion(dir);
             return 1 + deleteEmptyParentDirectories(baseDir, dir.getParentFile());
         }
         return 0;
     }
 
+    /**
+     * Checks whether file should be deleted.
+     */
     protected abstract boolean shouldDelete(File file);
 
-    protected abstract void handleDeletion(File file);
+    /**
+     * Run action immediately after deletion.
+     */
+    protected abstract void doAfterDeletion(File file);
+
+    /**
+     * Runs deletion of a file/directory. Returns true if file/directory was deleted.
+     */
+    protected boolean doDeletion(File file) {
+        return FileUtils.deleteQuietly(file);
+    }
 
     private Iterable<File> findEligibleFiles(CleanableStore cleanableStore) {
         return eligibleFilesFinder.find(cleanableStore.getBaseDir(), new NonReservedFileFilter(cleanableStore.getReservedCacheFiles()));

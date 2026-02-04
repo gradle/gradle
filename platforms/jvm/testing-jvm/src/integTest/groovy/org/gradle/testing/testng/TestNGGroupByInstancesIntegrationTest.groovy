@@ -34,7 +34,7 @@ class TestNGGroupByInstancesIntegrationTest extends MultiVersionIntegrationSpec 
                     testName = 'Test Name'
                     groupByInstances = true
                 }
-                onOutput { test, event -> print "\$event.message" }
+                addTestOutputListener { test, event -> print "\$event.message" }
             }
         """
 

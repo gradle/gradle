@@ -18,6 +18,7 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import org.gradle.api.model.ManagedType;
 import org.gradle.api.provider.Provider;
+import org.gradle.declarative.dsl.model.annotations.internal.DeclarativeWithHiddenMembers;
 import org.gradle.util.Configurable;
 
 /**
@@ -35,6 +36,7 @@ import org.gradle.util.Configurable;
  * @see org.gradle.api.model.ObjectFactory#domainObjectContainer(Class) Create an instance of this manually.
  */
 @ManagedType
+@DeclarativeWithHiddenMembers
 public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, Configurable<NamedDomainObjectContainer<T>> {
 
     /**

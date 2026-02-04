@@ -285,7 +285,10 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             root(":", ":depsub:") {
                 edge("org.utils:impl:1.3", "org.utils:impl:1.5") {
                     forced()
-                    edge("org.utils:api:1.5", "org.utils:api:1.6").selectedByRule()
+                    edge("org.utils:api:1.5", "org.utils:api:1.6") {
+                        forced()
+                        selectedByRule()
+                    }
                 }
             }
         }
@@ -1571,6 +1574,7 @@ Required by:
             root(":", ":depsub:") {
                 edge('org:lib:1.0', 'org:lib:1.1') {
                     artifact(classifier: 'classy')
+                    forced()
                     selectedByRule()
                 }
                 module('org:other:1.0') {
@@ -1692,6 +1696,88 @@ Required by:
                 }
             }
         }
+    }
 
+    @Issue("https://github.com/gradle/gradle/issues/36331")
+    def "exclusions are applied to originally requested dependency"() {
+        mavenRepo.module("org", "foo")
+            .dependsOn(mavenRepo.module("org", "bar").publish())
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org:foo:1.0") {
+                    exclude(group: "org", module: "bar")
+                }
+                implementation("org:baz:1.0")
+            }
+
+            ${resolve.configureProject("runtimeClasspath")}
+
+            configurations.runtimeClasspath {
+                exclude(group: "org", module: "baz")
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module("org:bar")).using(module("org:a:1.0"))
+                    substitute(module("org:baz")).using(module("org:b:1.0"))
+               }
+            }
+        """
+
+        when:
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":depsub:") {
+                module("org:foo:1.0")
+            }
+        }
+    }
+
+    def "exclusions are applied to substituted dependency"() {
+        mavenRepo.module("org", "foo")
+            .dependsOn(mavenRepo.module("org", "bar").publish())
+            .publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org:foo:1.0") {
+                    exclude(group: "org", module: "a")
+                }
+                implementation("org:baz:1.0")
+            }
+
+            ${resolve.configureProject("runtimeClasspath")}
+
+            configurations.runtimeClasspath {
+                exclude(group: "org", module: "b")
+                resolutionStrategy.dependencySubstitution {
+                    substitute(module("org:bar")).using(module("org:a:1.0"))
+                    substitute(module("org:baz")).using(module("org:b:1.0"))
+               }
+            }
+        """
+
+        when:
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":depsub:") {
+                module("org:foo:1.0")
+            }
+        }
     }
 }

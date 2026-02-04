@@ -29,7 +29,7 @@ import java.time.Duration
 
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE
 
-class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
+class SkipUpToDateStepTest extends StepSpec<MutableChangesContext> {
     def step = new SkipUpToDateStep<>(delegate)
     def changes = Mock(ExecutionStateChanges)
     def delegateResult = Stub(AfterExecutionResult)

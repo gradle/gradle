@@ -26,6 +26,7 @@ dependencies {
     api(projects.buildOperations)
     api(projects.classloaders)
     api(projects.concurrent)
+    api(projects.declarativeDslApi)
     api(projects.fileTemp)
     api(projects.hashing)
     api(projects.serviceLookup)
@@ -34,6 +35,8 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
     api(libs.guava)
+
+    compileOnly(libs.jetbrainsAnnotations)
 
     implementation(projects.time)
     implementation(projects.baseAsm)
@@ -48,7 +51,7 @@ dependencies {
     testFixturesApi(projects.hashing)
     testFixturesImplementation(libs.guava)
     testImplementation(testFixtures(projects.core))
-    testImplementation(libs.xerces)
+    testImplementation(testLibs.xerces)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
@@ -82,4 +85,8 @@ val createBuildReceipt by tasks.registering(BuildReceipt::class) {
 
 tasks.named<Jar>("jar").configure {
     from(createBuildReceipt.map { it.receiptFolder })
+}
+
+errorprone {
+    nullawayEnabled = true
 }

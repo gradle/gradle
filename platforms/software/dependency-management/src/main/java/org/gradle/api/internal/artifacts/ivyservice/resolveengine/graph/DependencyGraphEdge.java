@@ -17,8 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.DependencyMetadata;
+
+import java.util.function.Consumer;
 
 /**
  * A {@link ResolvedGraphDependency} that is used during the resolution of the dependency graph.
@@ -27,9 +31,9 @@ import org.gradle.internal.component.model.DependencyMetadata;
 public interface DependencyGraphEdge extends ResolvedGraphDependency {
     DependencyGraphNode getFrom();
 
-    DependencyGraphSelector getSelector();
-
     boolean isTransitive();
+
+    boolean isFromLock();
 
     ExcludeSpec getExclusions();
 
@@ -44,5 +48,21 @@ public interface DependencyGraphEdge extends ResolvedGraphDependency {
     ImmutableAttributes getAttributes();
 
     boolean isTargetVirtualPlatform();
+
+    /**
+     * The reason this edge contributes to component selection.
+     * Overridden to enforce non-nullability. All edges have reasons, however
+     * the supertype only enforces those reasons to be present in failure cases,
+     * in order to avoid the overhead of serializing reasons for successful edges.
+     * <p>
+     * Prefer {@link #visitSelectionReasons(Consumer)}, which avoids allocations.
+     */
+    @Override
+    ComponentSelectionReasonInternal getReason();
+
+    /**
+     * Visits all reasons this edge contributes to component selection.
+     */
+    void visitSelectionReasons(Consumer<ComponentSelectionDescriptorInternal> visitor);
 
 }

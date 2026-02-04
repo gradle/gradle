@@ -25,7 +25,7 @@ import java.nio.file.Files
 class WrapperIntegrationTest extends AbstractWrapperIntegrationSpec {
     def "can recover from a broken distribution"() {
         buildFile << "task hello"
-        prepareWrapper()
+        prepareWrapper().run()
         def gradleUserHome = testDirectory.file('some-custom-user-home')
         when:
         def executer = wrapperExecuter.withGradleUserHomeDir(gradleUserHome)

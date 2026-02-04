@@ -42,6 +42,8 @@ import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import static org.gradle.launcher.daemon.logging.DaemonLogConstants.DAEMON_LOG_DIR;
+
 abstract public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     private static final String RELEASED_WRAPPERS = "releasedWrappers";
@@ -49,6 +51,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private static final String DOWNLOADED_RESOURCES = "downloadedResources";
     private static final String CREATED_RESOURCES = "createdResources";
     private static final String BUILD_CACHE = "buildCache";
+    private static final String DAEMON_LOGS = "daemonLogs";
     static final String UNSAFE_MODIFICATION_ERROR = "The property '%s' was modified from an unsafe location (for instance a settings script or plugin).  " +
         "This property can only be changed in an init script, preferably stored in the init.d directory inside the Gradle user home directory. " +
         DOCUMENTATION_REGISTRY.getDocumentationRecommendationFor("information on this", "directory_layout", "dir:gradle_user_home:configure_cache_cleanup");
@@ -58,6 +61,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private final CacheResourceConfigurationInternal downloadedResourcesConfiguration;
     private final CacheResourceConfigurationInternal createdResourcesConfiguration;
     private final CacheResourceConfigurationInternal buildCacheConfiguration;
+    private final CacheResourceConfigurationInternal daemonLogsConfiguration;
     private final Property<Cleanup> cleanup;
     private final Property<MarkingStrategy> markingStrategy;
 
@@ -70,6 +74,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, DOWNLOADED_RESOURCES, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
         this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, CREATED_RESOURCES, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
         this.buildCacheConfiguration = createResourceConfiguration(objectFactory, BUILD_CACHE, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_BUILD_CACHE_ENTRIES);
+        this.daemonLogsConfiguration = createResourceConfiguration(objectFactory, DAEMON_LOGS, clock, DEFAULT_MAX_AGE_IN_DAYS_FOR_DAEMON_LOGS);
         this.cleanup = new ContextualErrorMessageProperty<>(propertyHost, Cleanup.class, "cleanup").convention(Cleanup.DEFAULT);
         this.markingStrategy = new ContextualErrorMessageProperty<>(propertyHost, MarkingStrategy.class, "markingStrategy").convention(MarkingStrategy.CACHEDIR_TAG);
     }
@@ -131,6 +136,16 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     @Override
+    public CacheResourceConfigurationInternal getDaemonLogs() {
+        return daemonLogsConfiguration;
+    }
+
+    @Override
+    public void daemonLogs(Action<? super CacheResourceConfiguration> cacheConfiguration) {
+        cacheConfiguration.execute(daemonLogsConfiguration);
+    }
+
+    @Override
     public Property<Cleanup> getCleanup() {
         return cleanup;
     }
@@ -154,6 +169,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         persistentCacheConfigurations.getDownloadedResources().getEntryRetention().value(getDownloadedResources().getEntryRetention());
         persistentCacheConfigurations.getCreatedResources().getEntryRetention().value(getCreatedResources().getEntryRetention());
         persistentCacheConfigurations.getBuildCache().getEntryRetention().value(getBuildCache().getEntryRetention());
+        persistentCacheConfigurations.getDaemonLogs().getEntryRetention().value(getDaemonLogs().getEntryRetention());
         persistentCacheConfigurations.getCleanup().value(getCleanup());
         persistentCacheConfigurations.getMarkingStrategy().value(getMarkingStrategy());
     }
@@ -171,6 +187,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         downloadedResourcesConfiguration.getEntryRetention().finalizeValue();
         createdResourcesConfiguration.getEntryRetention().finalizeValue();
         buildCacheConfiguration.getEntryRetention().finalizeValue();
+        daemonLogsConfiguration.getEntryRetention().finalizeValue();
         getCleanup().finalizeValue();
         getMarkingStrategy().finalizeValue();
     }
@@ -183,7 +200,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         ));
         strategy.tryMarkCacheDirectory(new File(
             gradle.getGradleUserHomeDir(),
-            "daemon"
+            DAEMON_LOG_DIR
         ));
         strategy.tryMarkCacheDirectory(new File(
             gradle.getGradleUserHomeDir(),

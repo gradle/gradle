@@ -37,7 +37,8 @@ class DeclarativeDslFirstUsePerformanceTest extends AbstractCrossVersionPerforma
 
     private static final int MEASUREMENT_RUNS = 10
 
-    private static final String MINIMUM_BASE_VERSION = "8.8" // Declarative DSL not present in earlier versions
+    // Declarative DSL template only works with Gradle >= 9.4
+    private static final String MINIMUM_BASE_VERSION = "9.4"
 
     def "first use"() {
         given:

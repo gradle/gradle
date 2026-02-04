@@ -9,6 +9,7 @@ dependencies {
     implementation(projects.coreApi)
     implementation(projects.dependencyManagement)
     implementation(projects.launcher)
+    implementation(projects.loggingApi)
     implementation(projects.problemsApi)
     implementation(projects.testingBase)
     implementation(projects.testingBaseInfrastructure)

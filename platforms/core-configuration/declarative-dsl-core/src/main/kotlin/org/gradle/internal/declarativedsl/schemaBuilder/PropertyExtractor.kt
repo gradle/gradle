@@ -18,41 +18,40 @@ package org.gradle.internal.declarativedsl.schemaBuilder
 
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.HasDefaultValue
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
-import org.gradle.declarative.dsl.schema.DataProperty.PropertyMode
+import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode
 import java.util.Locale
 import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
-import kotlin.reflect.KMutableProperty
-import kotlin.reflect.KProperty
+import kotlin.reflect.KClassifier
 import kotlin.reflect.KType
-import kotlin.reflect.KVisibility
-import kotlin.reflect.full.instanceParameter
-import kotlin.reflect.full.memberFunctions
-import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.allSuperclasses
 
 
 interface PropertyExtractor {
-    fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean = { true }): Iterable<CollectedPropertyInformation>
+    fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean = { true }): Iterable<PropertyExtractionResult>
 
     companion object {
         val none = object : PropertyExtractor {
-            override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> = emptyList()
+            override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<PropertyExtractionResult> =
+                emptyList()
         }
     }
 }
 
+typealias PropertyExtractionResult = ExtractionResult<DataProperty, PropertyExtractionMetadata>
+
+data class PropertyExtractionMetadata(val fromMembers: List<SupportedCallable>, val originalType: SupportedTypeProjection.SupportedType?)
 
 class CompositePropertyExtractor(internal val extractors: Iterable<PropertyExtractor>) : PropertyExtractor {
-    override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> = buildList {
+    override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<PropertyExtractionResult> = buildList {
         val nameSet = mutableSetOf<String>()
         val predicateWithNamesFiltered: (String) -> Boolean = { propertyNamePredicate(it) && it !in nameSet }
         extractors.forEach { extractor ->
             val properties = extractor.extractProperties(host, kClass, predicateWithNamesFiltered)
             addAll(properties)
-            nameSet.addAll(properties.map { it.name })
+            nameSet.addAll(properties.filterIsInstance<ExtractionResult.Extracted<DataProperty, PropertyExtractionMetadata>>().map { it.result.name })
         }
     }
 }
@@ -67,78 +66,128 @@ operator fun PropertyExtractor.plus(other: PropertyExtractor): CompositeProperty
     include(other)
 })
 
-
-data class CollectedPropertyInformation(
-    val name: String,
-    val originalReturnType: KType,
-    val returnType: DataTypeRef,
-    val propertyMode: PropertyMode,
-    val hasDefaultValue: Boolean,
-    val isHiddenInDeclarativeDsl: Boolean,
-    val isDirectAccessOnly: Boolean,
-    val claimedFunctions: List<KFunction<*>>
-)
-
-
-class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = isPublicAndRestricted) : PropertyExtractor {
-    override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean) =
-        (propertiesFromAccessorsOf(host, kClass, propertyNamePredicate) + memberPropertiesOf(host, kClass, propertyNamePredicate)).distinctBy { it }
+class DefaultPropertyExtractor(
+    val includePredicate: (owner: KClass<*>, callable: SupportedCallable) -> Boolean = { _, _ -> true }
+) : PropertyExtractor {
+    override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<PropertyExtractionResult> =
+        propertiesFromAccessorsOf(host, kClass, propertyNamePredicate) + memberPropertiesOf(host, kClass, propertyNamePredicate)
 
     private
-    fun propertiesFromAccessorsOf(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<CollectedPropertyInformation> {
-        val functionsByName = kClass.memberFunctions.groupBy { it.name }
-        val getters = functionsByName
-            .filterKeys { it.startsWith("get") && it.substringAfter("get").firstOrNull()?.isUpperCase() == true }
-            .mapValues { (_, functions) -> functions.singleOrNull { fn -> fn.parameters.all { it == fn.instanceParameter } } }
-            .filterValues { it != null && includeMemberFilter.shouldIncludeMember(it) }
+    fun propertiesFromAccessorsOf(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<PropertyExtractionResult> {
+        val functions = host.classMembers(kClass).declarativeMembers.filter { it.kind == MemberKind.FUNCTION && includePredicate(kClass, it) }
+
+        val functionsByName = functions.groupBy { it.name }
+
+        val getters = functions
+            .filter { it.isJavaBeanGetter }
+            .groupBy { it.name }
+            .mapValues { (_, functions) -> functions.singleOrNull { fn -> fn.parameters.isEmpty() } }
+            .filterValues { it != null && it.returnType.classifier.isValidPropertyType }
         return getters.mapNotNull { (name, getter) ->
             checkNotNull(getter)
-            host.inContextOfModelMember(getter) {
+            host.inContextOfModelMember(getter.kCallable) {
                 val nameAfterGet = name.substringAfter("get")
                 val propertyName = nameAfterGet.replaceFirstChar { it.lowercase(Locale.getDefault()) }
-                if (!propertyNamePredicate(propertyName))
+                if (!propertyNamePredicate(propertyName)) {
                     return@inContextOfModelMember null
-
-                val type = getter.returnTypeToRefOrError(host)
-                val isHidden = getter.annotations.any { it is HiddenInDeclarativeDsl }
-                val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
-                val setter = functionsByName["set$nameAfterGet"]?.find { fn -> fn.parameters.singleOrNull { it != fn.instanceParameter }?.type == getter.returnType }
-                val mode = run {
-                    if (setter != null) DefaultPropertyMode.DefaultReadWrite else DefaultPropertyMode.DefaultReadOnly
                 }
-                CollectedPropertyInformation(propertyName, getter.returnType, type, mode, true, isHidden, isDirectAccessOnly, listOfNotNull(getter, setter))
+                val setter = functionsByName["set$nameAfterGet"]?.find { fn -> fn.parameters.singleOrNull()?.type == getter.returnType }
+
+                val canWrite = setter != null
+
+                val typeInfo = getter.propertyTypeOrError(host)
+                    .orFailWith {
+                        host.recordMemberWithFailure(kClass, getter, it)
+                        return@mapNotNull null
+                    }
+
+                checkPropertyModeAndNullability(host, canWrite, typeInfo)
+                    .orFailWith {
+                        host.recordMemberWithFailure(kClass, getter, it)
+                        return@mapNotNull null
+                    }
+
+                val canRead = !typeInfo.isNullable
+
+                val isDirectAccessOnly = getter.kCallable.annotations.any { it is AccessFromCurrentReceiverOnly }
+                ExtractionResult.Extracted(
+                    DefaultDataProperty(
+                        propertyName,
+                        typeInfo.typeRef,
+                        DefaultPropertyMode.of(canRead, canWrite),
+                        hasDefaultValue = true,
+                        isDirectAccessOnly = isDirectAccessOnly,
+                        isHiddenInDsl = false
+                    ),
+                    metadata = PropertyExtractionMetadata(listOfNotNull(getter, setter), getter.returnType)
+                )
             }
         }
     }
 
     private
-    fun memberPropertiesOf(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<CollectedPropertyInformation> = kClass.memberProperties
-        .filter { property ->
-            includeMemberFilter.shouldIncludeMember(property)
-                && property.visibility == KVisibility.PUBLIC
-                && propertyNamePredicate(property.name)
+    fun memberPropertiesOf(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<PropertyExtractionResult> =
+        host.classMembers(kClass).declarativeMembers.filter { it.kind.isProperty }.filter { property ->
+            propertyNamePredicate(property.name) && includePredicate(kClass, property) && property.returnType.classifier.isValidPropertyType
         }.map { property ->
-            host.inContextOfModelMember(property) {
-                kPropertyInformation(host, property)
-            }
+            host.inContextOfModelMember(property.kCallable) { kPropertyInformation(host, property) }
         }
 
     private
-    fun kPropertyInformation(host: SchemaBuildingHost, property: KProperty<*>): CollectedPropertyInformation {
-        val isReadOnly = property !is KMutableProperty<*>
-        val isHidden = property.annotationsWithGetters.any { it is HiddenInDeclarativeDsl }
-        val isDirectAccessOnly = property.annotationsWithGetters.any { it is AccessFromCurrentReceiverOnly }
-        return CollectedPropertyInformation(
-            property.name,
-            property.returnType,
-            property.returnTypeToRefOrError(host),
-            if (isReadOnly) DefaultPropertyMode.DefaultReadOnly else DefaultPropertyMode.DefaultReadWrite,
-            hasDefaultValue = run {
-                isReadOnly || property.annotationsWithGetters.none { it is HasDefaultValue && !it.value }
-            },
-            isHiddenInDeclarativeDsl = isHidden,
-            isDirectAccessOnly = isDirectAccessOnly,
-            claimedFunctions = emptyList()
+    fun kPropertyInformation(host: SchemaBuildingHost, property: SupportedCallable): PropertyExtractionResult {
+        val annotationsWithGetters = property.kCallable.annotationsWithGetters
+        val isDirectAccessOnly = annotationsWithGetters.any { it is AccessFromCurrentReceiverOnly }
+
+        val canWrite = property.kind == MemberKind.MUTABLE_PROPERTY
+
+        val typeInfo = property.propertyTypeOrError(host)
+            .orFailWith { return ExtractionResult.of(it, PropertyExtractionMetadata(listOf(property), property.returnType)) }
+
+        checkPropertyModeAndNullability(host, canWrite, typeInfo)
+            .orFailWith { return ExtractionResult.of(it, PropertyExtractionMetadata(listOf(property), property.returnType)) }
+
+        val canRead = !typeInfo.isNullable
+
+        return ExtractionResult.Extracted(
+            DefaultDataProperty(
+                property.name,
+                typeInfo.typeRef,
+                DefaultPropertyMode.of(canRead, canWrite),
+                hasDefaultValue = run {
+                    !canWrite || annotationsWithGetters.none { it is HasDefaultValue && !it.value }
+                },
+                isHiddenInDsl = false,
+                isDirectAccessOnly = isDirectAccessOnly,
+            ),
+            metadata = PropertyExtractionMetadata(listOf(property), property.returnType)
         )
     }
+
+    private val KClassifier.isValidPropertyType: Boolean // FIXME: Property API gets in the way, we don't want to import Provider-typed properties
+        get() = this is KClass<*> && allSuperclasses.none { it.java.name == "org.gradle.api.provider.Provider" }
+
+    private fun checkPropertyModeAndNullability(host: SchemaBuildingHost, isWritable: Boolean, type: CollectedPropertyType): SchemaResult<Unit> {
+        if (!isWritable && type.isNullable)
+            return host.schemaBuildingFailure(SchemaBuildingIssue.UnsupportedNullableReadOnlyProperty)
+        return schemaResult(Unit)
+    }
+}
+
+/**
+ * Provides the [typeRef] information of the imported property type.
+ *
+ * In addition, [isNullable] tells if the type of the property is originally declared as nullable.
+ * If it is, it cannot be used as readable property, for example, in grouped value factory calls (`foo.bar()`)
+ */
+data class CollectedPropertyType(val originalType: KType, val typeRef: DataTypeRef, val isNullable: Boolean)
+
+private fun SupportedCallable.propertyTypeOrError(host: SchemaBuildingHost): SchemaResult<CollectedPropertyType> = returnType.toKType().let { kType ->
+    CollectedPropertyType(
+        kType,
+        host.withTag(SchemaBuildingTags.returnValueType(kType)) {
+            host.typeRef(kType)
+                .orFailWith { return it }
+        },
+        returnType.isMarkedNullable
+    ).let(::schemaResult)
 }

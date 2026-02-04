@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.schemaBuidler
 
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.assertIs
@@ -50,7 +49,6 @@ class ExternalFunctionsTest {
 
     class TopLevel {
         @Suppress("unused")
-        @get:Restricted
         var myStrings: List<String> = emptyList()
     }
 }

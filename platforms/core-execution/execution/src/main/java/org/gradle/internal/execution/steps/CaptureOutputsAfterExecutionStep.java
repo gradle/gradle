@@ -40,7 +40,7 @@ import java.util.Optional;
  * Capture the outputs of the unit of work after its execution finished.
  *
  * All changes to the outputs must be done at this point, so this step needs to be around anything
- * which uses an {@link ChangingOutputsContext}.
+ * that changes the outputs.
  */
 // TODO Find better names for Result types
 @SuppressWarnings("SameNameButDifferent")
@@ -80,7 +80,7 @@ public class CaptureOutputsAfterExecutionStep<C extends WorkspaceContext & Cachi
             operationContext -> {
                 Timer timer = Time.startTimer();
                 ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshotsAfterExecution = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
-                ImmutableSortedMap<String, FileSystemSnapshot> outputsProducedByWork = outputFilter.filterOutputs(context, cacheKeyCalculatedState.getBeforeExecutionState(), unfilteredOutputSnapshotsAfterExecution);
+                ImmutableSortedMap<String, FileSystemSnapshot> outputsProducedByWork = outputFilter.filterOutputs(context, unfilteredOutputSnapshotsAfterExecution);
                 OriginMetadata originMetadata = createOriginMetadata(cacheKeyCalculatedState, result, timer);
                 operationContext.setResult(Operation.Result.INSTANCE);
                 return new DefaultExecutionOutputState(result.getExecution().isSuccessful(), outputsProducedByWork, originMetadata, false);

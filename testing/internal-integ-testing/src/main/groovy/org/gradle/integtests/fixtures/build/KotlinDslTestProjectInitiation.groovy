@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures.build
 
 import groovy.transform.CompileStatic
-import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
@@ -157,18 +156,6 @@ trait KotlinDslTestProjectInitiation {
         return withFile("$baseDir/$settingsKotlinFileName", script)
     }
 
-    TestFile withSettingsGroovy(String script) {
-        return withSettingsGroovyIn(".", script)
-    }
-
-    TestFile withDefaultSettingsGroovyIn(String baseDir) {
-        return withSettingsGroovyIn(baseDir, defaultSettingsScript)
-    }
-
-    TestFile withSettingsGroovyIn(String baseDir, String script) {
-        return withFile("$baseDir/$settingsFileName", script)
-    }
-
     TestFile withBuildScript(String script = "") {
         return withBuildScriptIn(".", script)
     }
@@ -258,18 +245,6 @@ trait KotlinDslTestProjectInitiation {
         return new ProjectSourceRoots(file(projectDir), ["main"], ["java", "kotlin"])
     }
 
-    TestFile getBuildFile() {
-        file(defaultBuildFileName)
-    }
-
-    TestFile buildFile(@GroovyBuildScriptLanguage String script) {
-        getBuildFile() << script
-    }
-
-    TestFile getPropertiesFile() {
-        file("gradle.properties")
-    }
-
     TestFile getBuildFileKts() {
         file(defaultBuildKotlinFileName)
     }
@@ -282,24 +257,12 @@ trait KotlinDslTestProjectInitiation {
         getSettingsFileKts()
     }
 
-    TestFile getSettingsFile() {
-        file(settingsFileName)
-    }
-
     TestFile getSettingsFileKts() {
         file(settingsKotlinFileName)
     }
 
-    String getSettingsFileName() {
-        'settings.gradle'
-    }
-
     String getSettingsKotlinFileName() {
         'settings.gradle.kts'
-    }
-
-    String getDefaultBuildFileName() {
-        'build.gradle'
     }
 
     String getDefaultBuildKotlinFileName() {

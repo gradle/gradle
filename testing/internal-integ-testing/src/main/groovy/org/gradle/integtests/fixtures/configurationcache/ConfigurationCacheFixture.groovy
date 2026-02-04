@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class ConfigurationCacheFixture {
-    static final String ISOLATED_PROJECTS_MESSAGE = "Isolated projects is an incubating feature."
+    static final String ISOLATED_PROJECTS_MESSAGE = "Isolated Projects is an incubating feature."
     static final String CONFIGURE_ON_DEMAND_MESSAGE = "Configuration on demand is an incubating feature."
     static final String LENIENT = "--${StartParameterBuildOptions.ConfigurationCacheProblemsOption.LONG_OPTION}=warn"
 
@@ -62,6 +62,7 @@ class ConfigurationCacheFixture {
         closure()
 
         assertStateStored(details)
+        assertHasNoProblems()
         assertHasWarningThatIncubatingFeatureUsed()
     }
 
@@ -71,8 +72,6 @@ class ConfigurationCacheFixture {
         assertWorkGraphOrModelStored(details.runsTasks, details.createsModels, details.loadsAfterStore)
 
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
-
-        assertHasNoProblems()
     }
 
     /**
@@ -286,7 +285,7 @@ class ConfigurationCacheFixture {
     }
 
     private void applyProblemsTo(HasProblems details, HasConfigurationCacheProblemsSpec spec) {
-        spec.withTotalProblemsCount(details.totalProblems)
+        spec.totalProblemsCount = details.totalProblems
         spec.problemsWithStackTraceCount = details.problemsWithStackTrace
         spec.withUniqueProblems(details.problems.collect {
             it.message.replace('/', File.separator)
@@ -296,8 +295,9 @@ class ConfigurationCacheFixture {
         }
     }
 
-    private assertHasNoProblems() {
+    void assertHasNoProblems() {
         problems.assertResultHasProblems(spec.result) {
+            totalProblemsCount = 0
         }
     }
 
@@ -442,7 +442,7 @@ class ConfigurationCacheFixture {
         }
 
         int getProblemsWithStackTrace() {
-            return problems.inject(0) { a, b -> a + (b.hasStackTrace ? b.count : 0) }
+            return problems.inject(0) { a, b -> a + (b.hasStackTrace ? 1 : 0) }
         }
 
         String getProblemsString() {

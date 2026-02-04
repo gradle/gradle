@@ -105,7 +105,7 @@ public interface TestSpec {
     TestSpec includeMethods(String cls, Collection<String> methods);
 
     /**
-     * Adds all test classes and methods to the test execution that matches the target pattern.
+     * Adds all tests to the execution that matches the target pattern.
      * <p>
      * The patterns follow the rules of
      * <a href="https://docs.gradle.org/current/userguide/java_testing.html#test_filtering">test filtering</a>.
@@ -116,7 +116,7 @@ public interface TestSpec {
     TestSpec includePattern(String pattern);
 
     /**
-     * Adds all test classes and methods to the test execution that matches the target patterns.
+     * Adds all tests to the execution that matches the target patterns.
      *
      * @see #includePattern(String)
      * @param patterns the patterns to select tests.

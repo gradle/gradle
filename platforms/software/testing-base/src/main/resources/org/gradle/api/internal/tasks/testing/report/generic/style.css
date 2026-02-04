@@ -133,3 +133,22 @@ div.metadata td {
     font-size: 0.9em;
     cursor: pointer;
 }
+
+.successGroup::before {
+    content: "\23FA";
+    margin-right: 8px;
+    color: #008000;
+    display: inline-block;
+}
+.failureGroup::before {
+    content: "\2297";
+    margin-right: 8px;
+    color: #b60808;
+    display: inline-block;
+}
+.skippedGroup::before {
+    content: "\2296";
+    margin-right: 8px;
+    color: #c09853;
+    display: inline-block;
+}

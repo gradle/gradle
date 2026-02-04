@@ -1,0 +1,14 @@
+    INFO: Discovering tests with engine: [engine:rbt-engine] using selectors:
+    	DirectorySelector [path = '/home/user/gradle/samples/lib/src/test/definitions']
+    INFO: Test specification file: /home/user/gradle/samples/lib/src/test/definitions/ExampleTests.xml
+    INFO: Test specification file: /home/user/gradle/samples/lib/src/test/definitions/sub/MoreTests.xml
+    INFO: Executing tests with engine: [engine:rbt-engine]
+
+ExampleTests.xml - foo STANDARD_ERROR
+    INFO: Executing resource-based test: Test[file=ExampleTests.xml, name=foo]
+
+ExampleTests.xml - bar STANDARD_ERROR
+    INFO: Executing resource-based test: Test[file=ExampleTests.xml, name=bar]
+
+MoreTests.xml - baz STANDARD_ERROR
+    INFO: Executing resource-based test: Test[file=MoreTests.xml, name=baz]

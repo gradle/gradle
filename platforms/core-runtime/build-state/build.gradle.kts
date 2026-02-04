@@ -33,7 +33,9 @@ dependencies {
     api(projects.serviceRegistryBuilder)
     api(projects.stdlibJavaExtensions)
 
+    implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOperationsTrace)
+    implementation(projects.buildOption)
     implementation(projects.concurrent)
     implementation(projects.coreApi)
     implementation(projects.loggingApi)

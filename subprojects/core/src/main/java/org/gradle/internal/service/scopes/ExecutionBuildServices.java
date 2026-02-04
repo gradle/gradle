@@ -48,10 +48,9 @@ import org.gradle.internal.execution.steps.AssignMutableWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.BuildCacheStep;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
-import org.gradle.internal.execution.steps.CaptureIncrementalStateBeforeExecutionStep;
-import org.gradle.internal.execution.steps.CaptureNonIncrementalStateBeforeExecutionStep;
+import org.gradle.internal.execution.steps.CaptureImmutableStateBeforeExecutionStep;
+import org.gradle.internal.execution.steps.CaptureMutableStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
-import org.gradle.internal.execution.steps.ChangingOutputsContext;
 import org.gradle.internal.execution.steps.ChoosePipelineStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep;
@@ -61,16 +60,14 @@ import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.IdentityContext;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
 import org.gradle.internal.execution.steps.NeverUpToDateStep;
-import org.gradle.internal.execution.steps.NoInputChangesStep;
 import org.gradle.internal.execution.steps.OverlappingOutputsFilter;
 import org.gradle.internal.execution.steps.PreCreateOutputParentsStep;
 import org.gradle.internal.execution.steps.RemovePreviousOutputsStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
-import org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep;
+import org.gradle.internal.execution.steps.ResolveImmutableCachingStateStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
-import org.gradle.internal.execution.steps.ResolveNonIncrementalCachingStateStep;
-import org.gradle.internal.execution.steps.Result;
-import org.gradle.internal.execution.steps.SkipEmptyIncrementalWorkStep;
+import org.gradle.internal.execution.steps.ResolveMutableCachingStateStep;
+import org.gradle.internal.execution.steps.SkipEmptyMutableWorkStep;
 import org.gradle.internal.execution.steps.SkipUpToDateStep;
 import org.gradle.internal.execution.steps.Step;
 import org.gradle.internal.execution.steps.StoreExecutionStateStep;
@@ -169,38 +166,33 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
 
         // @formatter:off
         // CHECKSTYLE:OFF
-        Step<ChangingOutputsContext,Result> sharedExecutionPipeline =
-            new PreCreateOutputParentsStep<>(
-            new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
-            new CancelExecutionStep<>(cancellationToken,
-            new ExecuteStep<>(buildOperationRunner
-        ))));
-
-        Step<IdentityContext,WorkspaceResult> immutablePipeline =
+        Step<IdentityContext, WorkspaceResult> immutablePipeline =
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
             new MarkSnapshottingInputsStartedStep<>(
-            new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classLoaderHierarchyHasher,
-            new ValidateStep<>(problemHandler,
-            new ResolveNonIncrementalCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
+            new CaptureImmutableStateBeforeExecutionStep<>(
+            new ValidateStep.Immutable<>(problemHandler,
+            new ResolveImmutableCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
             new MarkSnapshottingInputsFinishedStep<>(
             new NeverUpToDateStep<>(
             new BuildCacheStep<>(buildCacheController, deleter, fileSystemAccess, outputChangeListener,
-            new NoInputChangesStep<>(
             new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, NO_FILTER,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
-            sharedExecutionPipeline
-        )))))))))));
+            new PreCreateOutputParentsStep<>(
+            new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
+            new CancelExecutionStep<>(cancellationToken,
+            new ExecuteStep.Immutable(buildOperationRunner
+        ))))))))))))));
 
-        Step<IdentityContext,WorkspaceResult> mutablePipeline =
+        Step<IdentityContext, WorkspaceResult> mutablePipeline =
             new AssignMutableWorkspaceStep<>(
             new HandleStaleOutputsStep<>(buildOperationRunner, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
-            new SkipEmptyIncrementalWorkStep(problemHandler, outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
-            new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(problemHandler,
+            new SkipEmptyMutableWorkStep(problemHandler, outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
+            new CaptureMutableStateBeforeExecutionStep<>(buildOperationRunner, outputSnapshotter, overlappingOutputDetector,
+            new ValidateStep.Mutable<>(problemHandler,
             new ResolveChangesStep<>(changeDetector,
-            new ResolveIncrementalCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
+            new ResolveMutableCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
             new MarkSnapshottingInputsFinishedStep<>(
             new SkipUpToDateStep<>(
             new StoreExecutionStateStep<>(
@@ -209,11 +201,14 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new CaptureOutputsAfterExecutionStep<>(buildOperationRunner, buildId, outputSnapshotter, new OverlappingOutputsFilter(),
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
-            sharedExecutionPipeline
-        )))))))))))))))));
+            new PreCreateOutputParentsStep<>(
+            new TimeoutStep<>(timeoutHandler, currentBuildOperationRef,
+            new CancelExecutionStep<>(cancellationToken,
+            new ExecuteStep.Mutable(buildOperationRunner
+        )))))))))))))))))))));
 
         return new DefaultExecutionEngine(
-            new IdentifyStep<>(buildOperationRunner,
+            new IdentifyStep<>(buildOperationRunner, classLoaderHierarchyHasher,
             new IdentityCacheStep<>(buildOperationProgressEventEmitter,
             new ExecuteWorkBuildOperationFiringStep<>(buildOperationRunner,
             new ChoosePipelineStep<>(

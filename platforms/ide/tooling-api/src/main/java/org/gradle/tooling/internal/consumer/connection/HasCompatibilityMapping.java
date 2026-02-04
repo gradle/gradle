@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.consumer.converters.BasicGradleProjectIdentifierMixin;
+import org.gradle.tooling.internal.consumer.converters.BuildEnvironmentVersionInfoMixin;
 import org.gradle.tooling.internal.consumer.converters.EclipseExternalDependencyUnresolvedMixin;
 import org.gradle.tooling.internal.consumer.converters.EclipseProjectHasAutoBuildMixin;
 import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
@@ -26,8 +27,10 @@ import org.gradle.tooling.internal.consumer.converters.IdeaModuleDependencyTarge
 import org.gradle.tooling.internal.consumer.converters.IdeaProjectJavaLanguageSettingsMixin;
 import org.gradle.tooling.internal.consumer.converters.IncludedBuildsMixin;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
 import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.eclipse.EclipseExternalDependency;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
@@ -36,6 +39,12 @@ import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaProject;
 
 public class HasCompatibilityMapping {
+
+    private final VersionDetails versionDetails;
+
+    public HasCompatibilityMapping(VersionDetails versionDetails) {
+        this.versionDetails = versionDetails;
+    }
 
     public <T> ViewBuilder<T> applyCompatibilityMapping(ViewBuilder<T> viewBuilder, ConsumerOperationParameters parameters) {
         DefaultProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(parameters.getProjectDir(), ":");
@@ -52,6 +61,7 @@ public class HasCompatibilityMapping {
         viewBuilder.mixInTo(GradleBuild.class, IncludedBuildsMixin.class);
         viewBuilder.mixInTo(EclipseProject.class, EclipseProjectHasAutoBuildMixin.class);
         viewBuilder.mixInTo(EclipseExternalDependency.class, EclipseExternalDependencyUnresolvedMixin.class);
+        viewBuilder.mixInTo(BuildEnvironment.class, new BuildEnvironmentVersionInfoMixin(versionDetails.getVersion()));
         return viewBuilder;
     }
 }

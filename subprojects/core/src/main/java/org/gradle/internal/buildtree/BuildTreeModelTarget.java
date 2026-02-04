@@ -44,12 +44,21 @@ public abstract class BuildTreeModelTarget {
         return new Project(buildRootDir, Path.path(projectPath));
     }
 
+    public String describeTargetScope() {
+        throw new IllegalStateException("Unknown target: " + this);
+    }
+
     public static class Default extends BuildTreeModelTarget {
         private Default() {}
 
         @Override
         public String toString() {
             return "Default";
+        }
+
+        @Override
+        public String describeTargetScope() {
+            return "default scope";
         }
     }
 
@@ -85,6 +94,11 @@ public abstract class BuildTreeModelTarget {
             return "Build{" +
                 "buildRootDir=" + buildRootDir +
                 '}';
+        }
+
+        @Override
+        public String describeTargetScope() {
+            return "build scope";
         }
     }
 
@@ -132,6 +146,11 @@ public abstract class BuildTreeModelTarget {
                 "buildRootDir=" + buildRootDir +
                 ", projectPath=" + projectPath +
                 '}';
+        }
+
+        @Override
+        public String describeTargetScope() {
+            return "project scope";
         }
     }
 }

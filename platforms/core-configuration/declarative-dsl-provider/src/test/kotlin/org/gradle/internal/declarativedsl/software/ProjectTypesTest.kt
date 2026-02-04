@@ -19,7 +19,10 @@ package org.gradle.internal.declarativedsl.software
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.plugins.BuildModel
+import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectFeatureApplyAction
+import org.gradle.api.internal.plugins.ProjectFeatureBindingDeclaration
 import org.gradle.api.internal.plugins.TargetTypeInformation
 import org.gradle.declarative.dsl.schema.ProjectFeatureOrigin
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
@@ -30,7 +33,6 @@ import org.gradle.plugin.software.internal.ModelDefault
 import org.gradle.plugin.software.internal.ProjectFeatureImplementation
 import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
 import org.junit.Assert
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.kotlin.mock
@@ -41,21 +43,25 @@ class ProjectTypesTest {
     fun `project types are added to the schema along with their supertypes`() {
         val registryMock = mock<ProjectFeatureDeclarations> { mock ->
             on(mock.projectFeatureImplementations).thenReturn(
-                setOf(object : ProjectFeatureImplementation<Subtype, Subtype> {
-                    override fun getFeatureName(): String = "subtype"
-                    override fun getDefinitionPublicType(): Class<Subtype> = Subtype::class.java
-                    override fun getDefinitionImplementationType(): Class<out Subtype> = definitionPublicType
-                    override fun getTargetDefinitionType(): TargetTypeInformation<*> = TargetTypeInformation.DefinitionTargetTypeInformation(Project::class.java)
-                    override fun getBuildModelType(): Class<Subtype> = Subtype::class.java
-                    override fun getBuildModelImplementationType(): Class<out Subtype> = buildModelType
-                    override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java
-                    override fun getRegisteringPluginClass(): Class<out Plugin<Settings>> = SubtypeEcosystemPlugin::class.java
-                    override fun getRegisteringPluginId(): String = "com.example.test"
-                    override fun getBindingTransform(): ProjectFeatureApplyAction<Subtype, Subtype, Project> =
-                        ProjectFeatureApplyAction { _, _, _, _ -> }
-                    override fun addModelDefault(rule: ModelDefault<*>) = Unit
-                    override fun <V : ModelDefault.Visitor<*>> visitModelDefaults(type: Class<out ModelDefault<V>>, visitor: V) = Unit
-                }).associateBy { it.getFeatureName() }
+                setOf(
+                        setOf(object : ProjectFeatureImplementation<Subtype, ModelType> {
+                            override fun getFeatureName(): String = "subtype"
+                            override fun getDefinitionPublicType(): Class<Subtype> = Subtype::class.java
+                            override fun getDefinitionImplementationType(): Class<out Subtype> = definitionPublicType
+                            override fun getTargetDefinitionType(): TargetTypeInformation<*> = TargetTypeInformation.DefinitionTargetTypeInformation(Project::class.java)
+                            override fun getDefinitionSafety(): ProjectFeatureBindingDeclaration.Safety = ProjectFeatureBindingDeclaration.Safety.UNSAFE
+                            override fun getBuildModelType(): Class<ModelType> = ModelType::class.java
+                            override fun getBuildModelImplementationType(): Class<out ModelType> = buildModelType
+                            override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java
+                            override fun getRegisteringPluginClass(): Class<out Plugin<Settings>> = SubtypeEcosystemPlugin::class.java
+                            override fun getRegisteringPluginId(): String = "com.example.test"
+                            override fun getBindingTransform(): ProjectFeatureApplyAction<Subtype, ModelType, Project> =
+                                ProjectFeatureApplyAction { _, _, _, _ -> }
+
+                            override fun addModelDefault(rule: ModelDefault<*>) = Unit
+                            override fun <V : ModelDefault.Visitor<*>> visitModelDefaults(type: Class<out ModelDefault<V>>, visitor: V) = Unit
+                        })
+                ).associateBy { it.first().getFeatureName() }
             )
         }
 
@@ -72,8 +78,8 @@ class ProjectTypesTest {
         listOf(schemaForSettings, schemaForProject).forEach { schema ->
             assertTrue(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == Supertype::class.qualifiedName })
 
-            assertFalse(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == Any::class.qualifiedName })
-            assertFalse(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == "java.lang.Object" })
+            assertTrue(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == Any::class.qualifiedName })
+            assertTrue(schema.analysisSchema.dataClassTypesByFqName.any { it.value.javaTypeName == "java.lang.Object" })
         }
 
         schemaForProject.analysisSchema.topLevelReceiverType.memberFunctions.single { it.simpleName == "subtype" }.run {
@@ -92,10 +98,13 @@ class ProjectTypesTest {
     interface TopLevel
 
     internal
-    interface Supertype
+    interface Supertype : Definition<ModelType>
 
     internal
     interface Subtype : Supertype
+
+    internal
+    interface ModelType : BuildModel
 
     internal
     interface SubtypePlugin : Plugin<Project>

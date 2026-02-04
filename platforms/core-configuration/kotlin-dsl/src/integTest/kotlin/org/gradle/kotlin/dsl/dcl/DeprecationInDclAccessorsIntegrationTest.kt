@@ -16,6 +16,11 @@
 
 package org.gradle.kotlin.dsl.dcl
 
+import org.gradle.api.internal.plugins.BindsProjectType
+import org.gradle.api.internal.plugins.BuildModel
+import org.gradle.api.internal.plugins.Definition
+import org.gradle.api.internal.plugins.ProjectTypeBinding
+import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.kotlin.dsl.accessors.DCL_ENABLED_PROPERTY_NAME
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import kotlin.test.Test
@@ -140,22 +145,33 @@ class DeprecationInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest()
                 import org.gradle.api.Project
                 import org.gradle.api.Named
                 import org.gradle.api.NamedDomainObjectContainer
-                import org.gradle.api.internal.plugins.software.SoftwareType
                 import javax.inject.Inject
+                import ${BindsProjectType::class.java.name}
+                import ${ProjectTypeBinding::class.java.name}
+                import ${ProjectTypeBindingBuilder::class.java.name}
+                import ${Definition::class.java.name}
+                import ${BuildModel::class.java.name}
+                import org.gradle.api.internal.plugins.features.dsl.bindProjectType
 
+                @${BindsProjectType::class.java.simpleName}(MyPlugin.Binding::class)
                 @Suppress("deprecation")
                 abstract class MyPlugin @Inject constructor(private val project: Project) : Plugin<Project> {
-                    @get:SoftwareType(name = "myProjectType")
-                    abstract val myProjectType: MyExtension
+                    class Binding : ${ProjectTypeBinding::class.java.simpleName} {
+                        override fun bind(builder: ${ProjectTypeBindingBuilder::class.java.simpleName}) {
+                            builder.bindProjectType("myProjectType") { definition: MyExtension, model -> }
+                        }
+                    }
 
                     override fun apply(project: Project) = Unit
                 }
 
                 @Suppress("deprecation")
                 @Deprecated("Deprecated model type", level = DeprecationLevel.WARNING)
-                abstract class MyExtension {
-                    abstract val myElements: NamedDomainObjectContainer<MyElement>
+                interface MyExtension : ${Definition::class.java.simpleName}<Model> {
+                    val myElements: NamedDomainObjectContainer<MyElement>
                 }
+
+                interface Model : ${BuildModel::class.java.simpleName} { }
 
                 @Deprecated("Deprecated element type", level = DeprecationLevel.WARNING)
                 abstract class MyElement(val elementName: String) : Named {

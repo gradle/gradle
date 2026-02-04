@@ -75,7 +75,6 @@ import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
@@ -83,8 +82,6 @@ import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.buildoption.FeatureFlags;
-import org.gradle.internal.classpath.ClasspathBuilder;
-import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.event.ListenerManager;
@@ -93,7 +90,6 @@ import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -135,6 +131,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         registration.add(ResolverProviderFactories.class);
         registration.add(DefaultProjectDependencyFactory.class);
         registration.add(DependencyManagementManagedTypesFactory.class);
+        registration.add(RuntimeShadedJarFactory.class);
     }
 
     @Provides
@@ -217,11 +214,6 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     }
 
     @Provides
-    RuntimeShadedJarFactory createRuntimeShadedJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, BuildOperationRunner buildOperationRunner) {
-        return new RuntimeShadedJarFactory(jarCache, progressLoggerFactory, classpathWalker, classpathBuilder, buildOperationRunner);
-    }
-
-    @Provides
     ModuleExclusions createModuleExclusions() {
         return new ModuleExclusions();
     }
@@ -301,9 +293,18 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         DocumentationRegistry documentationRegistry,
         ListenerManager listenerManager,
         BuildCommencedTimeProvider timeProvider,
-        ServiceRegistry serviceRegistry
+        ServiceRegistry serviceRegistry,
+        FileResourceListener fileResourceListener
     ) {
-        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry, timeProvider, () -> serviceRegistry.get(GradleProperties.class), listenerManager.getBroadcaster(FileResourceListener.class));
+        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(
+            buildOperationExecutor,
+            checksumService,
+            signatureVerificationServiceFactory,
+            documentationRegistry,
+            timeProvider,
+            () -> serviceRegistry.get(GradleProperties.class),
+            fileResourceListener
+        );
         registerBuildFinishedHooks(listenerManager, override);
         return override;
     }
@@ -368,9 +369,19 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         BuildScopedCacheBuilderFactory buildScopedCacheBuilderFactory,
         FileHasher fileHasher,
         StartParameter startParameter,
-        ListenerManager listenerManager
+        FileResourceListener fileResourceListener
     ) {
-        return new DefaultSignatureVerificationServiceFactory(transportFactory, cacheBuilderFactory, decoratorFactory, buildOperationRunner, fileHasher, buildScopedCacheBuilderFactory, timeProvider, startParameter.isRefreshKeys(), listenerManager.getBroadcaster(FileResourceListener.class));
+        return new DefaultSignatureVerificationServiceFactory(
+            transportFactory,
+            cacheBuilderFactory,
+            decoratorFactory,
+            buildOperationRunner,
+            fileHasher,
+            buildScopedCacheBuilderFactory,
+            timeProvider,
+            startParameter.isRefreshKeys(),
+            fileResourceListener
+        );
     }
 
     private static void registerBuildFinishedHooks(ListenerManager listenerManager, DependencyVerificationOverride dependencyVerificationOverride) {

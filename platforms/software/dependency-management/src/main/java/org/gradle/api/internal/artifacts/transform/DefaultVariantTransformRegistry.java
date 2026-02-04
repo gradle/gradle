@@ -83,7 +83,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
         TypedRegistration<T> registration = null;
         try {
-            Class<T> parameterType = isolationScheme.parameterTypeFor(actionType);
+            Class<T> parameterType = isolationScheme.parameterTypeForOrNull(actionType);
             T parameterObject = parameterType == null ? null : parametersInstantiationScheme.withServices(services).instantiator().newInstance(parameterType);
             registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient(services).newInstance(TypedRegistration.class, parameterObject, attributesFactory));
             registrationAction.execute(registration);

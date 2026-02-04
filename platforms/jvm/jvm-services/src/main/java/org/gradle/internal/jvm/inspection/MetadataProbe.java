@@ -40,14 +40,14 @@ import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.RETURN;
 import static org.objectweb.asm.Opcodes.V1_1;
 
-class MetadataProbe {
-
+public class MetadataProbe {
+    public static final String PROBE_CLASS_NAME = "JavaProbe";
     public static final String MARKER_PREFIX = "GRADLE_PROBE_VALUE:";
 
     private final Supplier<byte[]> probeClass = Suppliers.memoize(() -> createProbeClass());
 
     public File writeClass(File outputDirectory) {
-        File probeFile = new File(outputDirectory, "JavaProbe.class");
+        File probeFile = new File(outputDirectory, PROBE_CLASS_NAME + ".class");
         try {
             IoActions.withResource(new FileOutputStream(probeFile), new ErroringAction<FileOutputStream>() {
                 @Override
@@ -71,7 +71,7 @@ class MetadataProbe {
     }
 
     private static void createClassHeader(ClassWriter cw) {
-        cw.visit(V1_1, ACC_PUBLIC + ACC_SUPER, "JavaProbe", null, "java/lang/Object", null);
+        cw.visit(V1_1, ACC_PUBLIC + ACC_SUPER, PROBE_CLASS_NAME, null, "java/lang/Object", null);
     }
 
     private static void createMainMethod(ClassWriter cw) {

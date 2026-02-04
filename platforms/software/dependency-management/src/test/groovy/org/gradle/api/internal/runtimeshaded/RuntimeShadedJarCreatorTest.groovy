@@ -57,7 +57,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
     def setup() {
         relocatedJarCreator = new RuntimeShadedJarCreator(
             progressLoggerFactory,
-            new ImplementationDependencyRelocator(RuntimeShadedJarType.API),
+            new ImplementationDependencyRelocator(RuntimeShadedJarCreatorTest.class.getResource(RuntimeShadedJarType.API.getIdentifier() + "-relocated.txt")),
             new ClasspathWalker(TestFiles.fileSystem()),
             new DefaultClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")))
         )

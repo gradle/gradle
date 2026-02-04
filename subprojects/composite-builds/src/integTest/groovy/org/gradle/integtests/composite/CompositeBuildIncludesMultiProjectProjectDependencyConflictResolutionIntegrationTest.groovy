@@ -44,7 +44,7 @@ class CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionInteg
     }
 
     @Override
-    protected TestFile getSettingsFile() {
+    TestFile getSettingsFile() {
         return multiProject.settingsFile;
     }
 

@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.properties;
 
-import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -25,10 +25,11 @@ import java.util.Map;
 
 /**
  * Allows registering Gradle property access as build configuration inputs.
+ * These events are not sent through {@code ListenerManager}.
  *
  * @see org.gradle.api.internal.properties.GradleProperties
  */
-@EventScope(Scope.BuildTree.class)
+@ServiceScope(Scope.BuildTree.class)
 public interface GradlePropertiesListener {
 
     /**

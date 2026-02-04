@@ -34,6 +34,7 @@ import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.watch.registry.WatchMode;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.time.Duration;
@@ -87,7 +88,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new IsolatedProjectsOption(),
         new ProblemReportGenerationOption(),
         new PropertyUpgradeReportOption(),
-        new TaskGraphOption()
+        new TaskGraphOption(),
+        new ParallelToolingModelBuildingOption()
     );
 
     @Override
@@ -591,7 +593,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
     public static class ConfigurationCacheDebugOption extends BooleanBuildOption<StartParameterInternal> {
 
-        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.internal.debug";
+        public static final String PROPERTY_NAME = "org.gradle.internal.configuration-cache.debug";
         public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache.debug";
 
         public ConfigurationCacheDebugOption() {
@@ -648,7 +650,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
     public static class ConfigurationCacheRecreateOption extends BooleanBuildOption<StartParameterInternal> {
 
-        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.internal.recreate-cache";
+        public static final String PROPERTY_NAME = "org.gradle.internal.configuration-cache.recreate-cache";
         public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache.recreate-cache";
 
         public ConfigurationCacheRecreateOption() {
@@ -664,7 +666,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
     public static class ConfigurationCacheQuietOption extends BooleanBuildOption<StartParameterInternal> {
 
-        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.internal.quiet";
+        public static final String PROPERTY_NAME = "org.gradle.internal.configuration-cache.quiet";
         public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache.quiet";
 
         public ConfigurationCacheQuietOption() {
@@ -768,12 +770,25 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         public static final String LONG_OPTION = "task-graph";
 
         public TaskGraphOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "(Experimental) Print task graph instead of executing tasks."));
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Print task graph instead of executing tasks."));
         }
 
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setTaskGraph(true);
+        }
+    }
+
+    public static class ParallelToolingModelBuildingOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.tooling.parallel";
+
+        public ParallelToolingModelBuildingOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, @Nullable Origin origin) {
+            settings.setParallelToolingModelBuilding(Option.Value.value(value));
         }
     }
 }

@@ -23,9 +23,18 @@ import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperatio
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.api.tasks.testing.source.ClassSource;
+import org.gradle.api.tasks.testing.source.ClasspathResourceSource;
+import org.gradle.api.tasks.testing.source.DirectorySource;
+import org.gradle.api.tasks.testing.source.FilePosition;
+import org.gradle.api.tasks.testing.source.FileSource;
+import org.gradle.api.tasks.testing.source.MethodSource;
+import org.gradle.api.tasks.testing.source.NoSource;
+import org.gradle.api.tasks.testing.source.TestSource;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.types.AbstractTestResult;
 import org.gradle.internal.build.event.types.DefaultFileComparisonTestAssertionFailure;
+import org.gradle.internal.build.event.types.DefaultFilePosition;
 import org.gradle.internal.build.event.types.DefaultTestAssertionFailure;
 import org.gradle.internal.build.event.types.DefaultTestDescriptor;
 import org.gradle.internal.build.event.types.DefaultTestFailureResult;
@@ -34,6 +43,13 @@ import org.gradle.internal.build.event.types.DefaultTestFrameworkFailure;
 import org.gradle.internal.build.event.types.DefaultTestSkippedResult;
 import org.gradle.internal.build.event.types.DefaultTestStartedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultTestSuccessResult;
+import org.gradle.internal.build.event.types.test.source.DefaultClassSource;
+import org.gradle.internal.build.event.types.test.source.DefaultClasspathResourceSource;
+import org.gradle.internal.build.event.types.test.source.DefaultDirectorySource;
+import org.gradle.internal.build.event.types.test.source.DefaultFileSource;
+import org.gradle.internal.build.event.types.test.source.DefaultMethodSource;
+import org.gradle.internal.build.event.types.test.source.DefaultNoSource;
+import org.gradle.internal.build.event.types.test.source.DefaultOtherSource;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -41,15 +57,18 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.gradle.tooling.internal.protocol.events.InternalFilePosition;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
+import org.gradle.tooling.internal.protocol.test.source.InternalTestSource;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperationType.Details, DefaultTestDescriptor> {
+class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperationType.Details, InternalTestDescriptor> {
     private final TaskForTestEventTracker taskTracker;
 
     TestOperationMapper(TaskForTestEventTracker taskTracker) {
@@ -72,26 +91,25 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
     }
 
     @Override
-    public DefaultTestDescriptor createDescriptor(ExecuteTestBuildOperationType.Details details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent) {
+    public InternalTestDescriptor createDescriptor(ExecuteTestBuildOperationType.Details details, BuildOperationDescriptor buildOperation, @Nullable OperationIdentifier parent) {
         TestDescriptor testDescriptor = details.getTestDescriptor();
         return testDescriptor.isComposite() ? toTestDescriptorForSuite(buildOperation.getId(), parent, testDescriptor) : toTestDescriptorForTest(buildOperation.getId(), parent, testDescriptor);
     }
 
     @Override
-    public InternalOperationStartedProgressEvent createStartedEvent(DefaultTestDescriptor descriptor, ExecuteTestBuildOperationType.Details details, OperationStartEvent startEvent) {
+    public InternalOperationStartedProgressEvent createStartedEvent(InternalTestDescriptor descriptor, ExecuteTestBuildOperationType.Details details, OperationStartEvent startEvent) {
         return new DefaultTestStartedProgressEvent(details.getStartTime(), descriptor);
     }
 
     @Override
-    public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultTestDescriptor descriptor, ExecuteTestBuildOperationType.Details details, OperationFinishEvent finishEvent) {
+    public InternalOperationFinishedProgressEvent createFinishedEvent(InternalTestDescriptor descriptor, ExecuteTestBuildOperationType.Details details, OperationFinishEvent finishEvent) {
         TestResult testResult = ((ExecuteTestBuildOperationType.Result) finishEvent.getResult()).getResult();
         return new DefaultTestFinishedProgressEvent(testResult.getEndTime(), descriptor, adapt(testResult));
     }
 
-    private DefaultTestDescriptor toTestDescriptorForSuite(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptor suite) {
+    private InternalTestDescriptor toTestDescriptorForSuite(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptor suite) {
         String methodName = null;
         String operationDisplayName = suite.toString();
-
         TestDescriptor originalDescriptor = getOriginalDescriptor(suite);
         if (originalDescriptor instanceof AbstractTestDescriptor) {
             methodName = ((AbstractTestDescriptor) originalDescriptor).getMethodName();
@@ -99,19 +117,61 @@ class TestOperationMapper implements BuildOperationMapper<ExecuteTestBuildOperat
         } else {
             operationDisplayName = getLegacyOperationDisplayName(operationDisplayName, originalDescriptor);
         }
-        return new DefaultTestDescriptor(buildOperationId, suite.getName(), operationDisplayName, suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), methodName, parentId, taskTracker.getTaskPath(buildOperationId));
+        InternalTestSource testSource = toInternalTestSource(suite.getSource());
+        return new DefaultTestDescriptor(buildOperationId, suite.getName(), operationDisplayName, suite.getDisplayName(), InternalJvmTestDescriptor.KIND_SUITE, suite.getName(), suite.getClassName(), methodName, parentId, taskTracker.getTaskPath(buildOperationId), testSource);
     }
 
-    private DefaultTestDescriptor toTestDescriptorForTest(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptor test) {
+    private InternalTestDescriptor toTestDescriptorForTest(OperationIdentifier buildOperationId, OperationIdentifier parentId, TestDescriptor test) {
         String operationDisplayName = test.toString();
-
         TestDescriptor originalDescriptor = getOriginalDescriptor(test);
         if (originalDescriptor instanceof AbstractTestDescriptor) {
             operationDisplayName = adjustOperationDisplayNameForIntelliJ(operationDisplayName, (AbstractTestDescriptor) originalDescriptor);
         } else {
             operationDisplayName = getLegacyOperationDisplayName(operationDisplayName, originalDescriptor);
         }
-        return new DefaultTestDescriptor(buildOperationId, test.getName(), operationDisplayName, test.getDisplayName(), InternalJvmTestDescriptor.KIND_ATOMIC, null, test.getClassName(), test.getName(), parentId, taskTracker.getTaskPath(buildOperationId));
+        InternalTestSource testSource = toInternalTestSource(test.getSource());
+        return new DefaultTestDescriptor(
+            buildOperationId,
+            test.getName(),
+            operationDisplayName,
+            test.getDisplayName(),
+            InternalJvmTestDescriptor.KIND_ATOMIC,
+            null,
+            test.getClassName(),
+            test.getName(),
+            parentId,
+            taskTracker.getTaskPath(buildOperationId),
+            testSource
+        );
+    }
+
+    private static InternalTestSource toInternalTestSource(TestSource source) {
+        if (source instanceof FileSource) {
+            FileSource fileSource = (FileSource) source;
+            return new DefaultFileSource(fileSource.getFile(), toFilePosition(fileSource.getPosition()));
+        } else if (source instanceof DirectorySource) {
+            return new DefaultDirectorySource(((DirectorySource) source).getFile());
+        } else if (source instanceof ClassSource) {
+            ClassSource classSource = (ClassSource) source;
+            return new DefaultClassSource(classSource.getClassName());
+        } else if (source instanceof MethodSource) {
+            MethodSource methodSource = (MethodSource) source;
+            return new DefaultMethodSource(methodSource.getClassName(), methodSource.getMethodName());
+        } else if (source instanceof ClasspathResourceSource) {
+            ClasspathResourceSource classpathResourceSource = (ClasspathResourceSource) source;
+            return new DefaultClasspathResourceSource(classpathResourceSource.getClasspathResourceName(), toFilePosition(classpathResourceSource.getPosition()));
+        } else if (source instanceof NoSource) {
+            return DefaultNoSource.getInstance();
+        } else {
+            return DefaultOtherSource.getInstance();
+        }
+    }
+
+    private static @Nullable InternalFilePosition toFilePosition(@Nullable FilePosition position) {
+        if (position == null) {
+            return null;
+        }
+        return new DefaultFilePosition(position.getLine(), position.getColumn());
     }
 
     /**

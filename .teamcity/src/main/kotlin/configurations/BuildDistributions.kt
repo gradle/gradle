@@ -3,6 +3,7 @@ package configurations
 import common.Os.LINUX
 import common.buildScanTagParam
 import common.getBuildScanCustomValueParam
+import common.setArtifactRules
 import model.CIBuildModel
 import model.Stage
 
@@ -22,7 +23,7 @@ class BuildDistributions(
                 listOf(
                     stage.getBuildScanCustomValueParam(),
                     buildScanTagParam("BuildDistributions"),
-                    "-PtestJavaVersion=${LINUX.buildJavaVersion.major}",
+                    "-PtestJavaVersion=${os.buildJavaVersion.major}",
                     "-Dorg.gradle.java.installations.auto-download=false",
                     "-Porg.gradle.java.installations.auto-download=false",
                 ).joinToString(" "),
@@ -32,9 +33,10 @@ class BuildDistributions(
             publishBuildStatusToGithub(model)
         }
 
-        artifactRules =
+        setArtifactRules(
             """$artifactRules
 packaging/distributions-full/build/distributions/*.zip => distributions
 platforms/core-runtime/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
-"""
+""",
+        )
     })

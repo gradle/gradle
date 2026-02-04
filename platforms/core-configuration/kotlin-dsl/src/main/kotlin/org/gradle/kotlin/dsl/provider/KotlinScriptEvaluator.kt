@@ -162,8 +162,8 @@ class StandardKotlinScriptEvaluator(
     private
     val interpreter by lazy {
         when (propertyUpgradeReportConfig.isEnabled) {
-            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradleProperties))
-            false -> Interpreter(InterpreterHost(gradleProperties))
+            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradleProperties), buildOperationRunner)
+            false -> Interpreter(InterpreterHost(gradleProperties), buildOperationRunner)
         }
     }
 
@@ -404,6 +404,8 @@ class StandardKotlinScriptEvaluator(
             const val ALL_WARNINGS_AS_ERRORS = "allWarningsAsErrors"
             const val SKIP_METADATA_VERSION_CHECK = "skipMetadataVersionCheck"
             const val TEMPLATE_ID = "templateId"
+            const val SCRIPT_FILE_NAME = "scriptFileName"
+            const val CLASS_NAME = "className"
             const val SOURCE_HASH = "sourceHash"
             const val COMPILATION_CLASS_PATH = "compilationClassPath"
             const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
@@ -414,6 +416,9 @@ class StandardKotlinScriptEvaluator(
         override fun getDisplayName(): String =
             "Kotlin DSL script compilation (${programId.templateId})"
 
+        override fun getBuildOperationWorkType(): Optional<String> {
+            return Optional.of("COMPILE_KOTLIN_SCRIPT")
+        }
 
         override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> {
             if (cachingDisabledByProperty) {
@@ -429,6 +434,8 @@ class StandardKotlinScriptEvaluator(
             visitor.visitInputProperty(ALL_WARNINGS_AS_ERRORS) { programId.compilerOptions.allWarningsAsErrors }
             visitor.visitInputProperty(SKIP_METADATA_VERSION_CHECK) { programId.compilerOptions.skipMetadataVersionCheck }
             visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }
+            visitor.visitInputProperty(SCRIPT_FILE_NAME) { programId.scriptFileName }
+            visitor.visitInputProperty(CLASS_NAME) { programId.className }
             visitor.visitInputProperty(SOURCE_HASH) { programId.sourceHash }
             visitor.visitInputProperty(COMPILATION_CLASS_PATH) { classpathHasher.hash(compilationClassPath) }
             visitor.visitInputProperty(ACCESSORS_CLASS_PATH) { classpathHasher.hash(accessorsClassPath) }

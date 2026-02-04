@@ -47,6 +47,8 @@ import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.cli.converter.BuildOptionBackedConverter;
 import org.gradle.launcher.cli.converter.InitialPropertiesConverter;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
+import org.gradle.launcher.cli.internal.HelpRenderer;
+import org.gradle.launcher.cli.internal.VersionInfoRenderer;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
@@ -64,6 +66,7 @@ import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
+import org.gradle.tooling.internal.build.DefaultHelp;
 import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter;
 import org.gradle.tooling.internal.gradle.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
@@ -88,6 +91,7 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.build.BuildEnvironment;
+import org.gradle.tooling.model.build.Help;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
@@ -168,12 +172,23 @@ public class ProviderConnection {
             if (tasks != null) {
                 throw new IllegalArgumentException("Cannot run tasks and fetch the build environment model.");
             }
+            File javaHome = reportableJavaHomeForBuild(params);
             return new DefaultBuildEnvironment(
                 new DefaultBuildIdentifier(providerParameters.getProjectDir()),
                 params.buildLayout.getGradleUserHomeDir(),
                 GradleVersion.current().getVersion(),
-                reportableJavaHomeForBuild(params),
-                params.daemonParams.getEffectiveJvmArgs());
+                javaHome,
+                params.daemonParams.getEffectiveJvmArgs(),
+                VersionInfoRenderer.renderWithLauncherJvm(Jvm.forHome(javaHome).toString())
+            );
+        }
+
+        if (Help.class.getName().equals(modelName)) {
+            if (tasks != null) {
+                throw new IllegalArgumentException("Cannot run tasks and fetch the Help model.");
+            }
+            String help = HelpRenderer.render(null, true);
+            return new DefaultHelp(help);
         }
 
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);

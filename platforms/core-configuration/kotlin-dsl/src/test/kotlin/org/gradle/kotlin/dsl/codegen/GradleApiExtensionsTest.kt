@@ -26,10 +26,9 @@ import org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClassParameterizedType
 import org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments
 import org.gradle.kotlin.dsl.fixtures.codegen.IncubatingFunction
 import org.gradle.kotlin.dsl.fixtures.codegen.IncubatingType
+import org.gradle.kotlin.dsl.fixtures.compileToDirectory
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.generateKotlinDslApiExtensionsSourceTo
-import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.bytecode.GradleJvmVersion
-import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
@@ -392,10 +391,9 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             file("out").also { it.mkdirs() },
             generatedSourceFiles + usageFiles,
             apiJars,
-            logger
         )
         // Assert no warnings were emitted
-        verify(logger, atMost(1)).isTraceEnabled
+        verify(logger, atMost(4)).isTraceEnabled
         verify(logger, atMost(1)).isDebugEnabled
         verifyNoMoreInteractions(logger)
     }
@@ -438,18 +436,14 @@ fun compileKotlinApiExtensionsTo(
     outputDirectory: File,
     sourceFiles: Collection<File>,
     classPath: Collection<File>,
-    logger: Logger,
 ) {
 
     val success = compileToDirectory(
         outputDirectory,
-        KotlinCompilerOptions(
-            jvmTarget = GradleJvmVersion.minimalJavaVersion
-        ),
         "gradle-api-extensions",
         sourceFiles,
-        logger,
-        classPath = classPath
+        classPath = classPath,
+        jvmTarget = GradleJvmVersion.minimalJavaVersion
     )
 
     if (!success) {

@@ -22,33 +22,41 @@ import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingTags.retur
 import kotlin.reflect.KCallable
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty
-import kotlin.reflect.KType
 
 
 val KCallable<*>.annotationsWithGetters: List<Annotation>
     get() = this.annotations + if (this is KProperty) this.getter.annotations else emptyList()
 
 
-fun KCallable<*>.returnTypeToRefOrError(host: SchemaBuildingHost) =
-    returnTypeToRefOrError(host) { this.returnType }
-
-
-fun KCallable<*>.returnTypeToRefOrError(host: SchemaBuildingHost, typeMapping: (KCallable<*>) -> KType): DataTypeRef {
-    val returnType = typeMapping(this)
-
-    return host.withTag(returnValueType(returnType)) {
-        host.modelTypeRef(returnType)
+fun KCallable<*>.returnTypeRef(host: SchemaBuildingHost): SchemaResult<DataTypeRef> {
+    return host.withTag(returnValueType(this.returnType)) {
+        host.modelTypeRef(this.returnType)
     }
 }
 
-fun KParameter.parameterTypeToRefOrError(host: SchemaBuildingHost): DataTypeRef =
-    parameterTypeToRefOrError(host) { this.type }
+fun SupportedCallable.returnTypeRef(host: SchemaBuildingHost) =
+    returnTypeRef(host) { this.returnType }
 
-fun KParameter.parameterTypeToRefOrError(host: SchemaBuildingHost, typeMapping: (KParameter) -> KType): DataTypeRef =
-    host.withTag(parameter(name ?: "(no name)")) {
-        if (isVararg) {
+fun SupportedCallable.returnTypeRef(host: SchemaBuildingHost, typeMapping: (SupportedCallable) -> SupportedTypeProjection.SupportedType): SchemaResult<DataTypeRef> {
+    val returnType = typeMapping(this)
+
+    return host.withTag(returnValueType(returnType)) {
+        host.modelTypeRef(returnType.toKType())
+    }
+}
+
+fun KParameter.parameterTypeToRef(host: SchemaBuildingHost): SchemaResult<DataTypeRef> {
+    return host.withTag(parameter(this)) {
+        if (isVararg)
             host.varargTypeRef(type)
-        } else {
-            host.modelTypeRef(typeMapping(this))
-        }
+        else
+            host.modelTypeRef(type)
+    }
+}
+
+fun SupportedKParameter.parameterTypeToRef(host: SchemaBuildingHost): SchemaResult<DataTypeRef> =
+    host.withTag(parameter(this)) {
+        if (isVararg)
+            host.varargTypeRef(type.toKType())
+        else host.typeRef(type.toKType())
     }

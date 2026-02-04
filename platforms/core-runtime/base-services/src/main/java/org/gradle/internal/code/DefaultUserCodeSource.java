@@ -25,7 +25,7 @@ import org.jspecify.annotations.Nullable;
 public class DefaultUserCodeSource implements UserCodeSource {
 
     private final DisplayName displayName;
-    private final String pluginId;
+    private final @Nullable String pluginId;
 
     public DefaultUserCodeSource(DisplayName displayName, @Nullable String pluginId) {
         this.displayName = displayName;

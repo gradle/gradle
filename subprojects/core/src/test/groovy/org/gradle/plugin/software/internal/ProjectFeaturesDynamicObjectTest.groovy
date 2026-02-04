@@ -17,6 +17,8 @@
 package org.gradle.plugin.software.internal
 
 import org.gradle.api.internal.DynamicObjectAware
+import org.gradle.api.internal.plugins.BuildModel
+import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.TargetTypeInformation
 import org.gradle.api.model.ObjectFactory
 import org.gradle.util.TestUtil
@@ -47,7 +49,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
         projectFeaturesDynamicObject.invokeMethod("foo", closureArg { bar = 'baz' })
 
         then:
-        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": projectTypeImplementation]
+        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
         1 * projectFeatureApplicator.applyFeatureTo(dynamicObjectAware, projectTypeImplementation) >> foo
 
         and:
@@ -83,7 +85,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
         projectFeaturesDynamicObject.invokeMethod("fizz", closureArg { bar = 'baz' })
 
         then:
-        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": projectTypeImplementation]
+        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
         0 * projectFeatureApplicator.applyFeatureTo(_, _)
 
         and:
@@ -95,7 +97,7 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
         assert projectFeaturesDynamicObject.hasMethod("foo", closureArg {})
 
         then:
-        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": projectTypeImplementation]
+        _ * projectFeatureRegistry.getProjectFeatureImplementations() >> ["foo": [projectTypeImplementation] as Set]
         0 * projectFeatureApplicator.applyFeatureTo(_, _)
     }
 
@@ -103,7 +105,9 @@ class ProjectFeaturesDynamicObjectTest extends Specification {
         return [closure]
     }
 
-    class Foo {
+    class Foo implements Definition<Baz> {
         String bar
     }
+
+    interface Baz extends BuildModel { }
 }

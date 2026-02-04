@@ -25,9 +25,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleIdSetExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ModuleSetExclude;
+import org.gradle.internal.collect.PersistentSet;
 import org.gradle.internal.component.model.IvyArtifactName;
-
-import java.util.Set;
 
 public interface ExcludeFactory {
     ExcludeNothing nothing();
@@ -44,19 +43,19 @@ public interface ExcludeFactory {
 
     ExcludeSpec allOf(ExcludeSpec one, ExcludeSpec two);
 
-    ExcludeSpec anyOf(Set<ExcludeSpec> specs);
+    ExcludeSpec anyOf(PersistentSet<ExcludeSpec> specs);
 
-    ExcludeSpec allOf(Set<ExcludeSpec> specs);
+    ExcludeSpec allOf(PersistentSet<ExcludeSpec> specs);
 
     ExcludeSpec ivyPatternExclude(ModuleIdentifier moduleId, IvyArtifactName artifact, String matcher);
 
-    ModuleIdSetExclude moduleIdSet(Set<ModuleIdentifier> modules);
+    ModuleIdSetExclude moduleIdSet(PersistentSet<ModuleIdentifier> modules);
 
-    GroupSetExclude groupSet(Set<String> groups);
+    GroupSetExclude groupSet(PersistentSet<String> groups);
 
-    ModuleSetExclude moduleSet(Set<String> modules);
+    ModuleSetExclude moduleSet(PersistentSet<String> modules);
 
-    default ExcludeSpec fromUnion(Set<ExcludeSpec> remainder) {
+    default ExcludeSpec fromUnion(PersistentSet<ExcludeSpec> remainder) {
         if (remainder.isEmpty()) {
             // It's an intersection, and this method is always called on the remainder
             // of a reduction operation. If the remainder is empty then it means that
@@ -66,7 +65,7 @@ public interface ExcludeFactory {
         return remainder.size() == 1 ? remainder.iterator().next() : anyOf(remainder);
     }
 
-    default ExcludeSpec fromModuleIds(Set<ModuleIdentifier> common) {
+    default ExcludeSpec fromModuleIds(PersistentSet<ModuleIdentifier> common) {
         if (common.isEmpty()) {
             return nothing();
         }
@@ -76,7 +75,7 @@ public interface ExcludeFactory {
         return moduleIdSet(common);
     }
 
-    default ExcludeSpec fromModules(Set<ModuleIdentifier> moduleIds) {
+    default ExcludeSpec fromModules(PersistentSet<ModuleIdentifier> moduleIds) {
         if (moduleIds.isEmpty()) {
             return nothing();
         }
@@ -86,7 +85,7 @@ public interface ExcludeFactory {
         return moduleIdSet(moduleIds);
     }
 
-    default ExcludeSpec fromGroups(Set<String> common) {
+    default ExcludeSpec fromGroups(PersistentSet<String> common) {
         if (common.isEmpty()) {
             return nothing();
         }

@@ -18,23 +18,22 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
-import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.internal.Describables;
 
 import java.util.concurrent.ExecutionException;
 
 public class CachingComponentSelectionDescriptorFactory implements ComponentSelectionDescriptorFactory {
-    private final Cache<Key, ComponentSelectionDescriptor> descriptors = CacheBuilder.newBuilder()
+    private final Cache<Key, ComponentSelectionDescriptorInternal> descriptors = CacheBuilder.newBuilder()
         .maximumSize(10000)
         .build();
 
     @Override
-    public ComponentSelectionDescriptor newDescriptor(ComponentSelectionCause cause, String reason) {
+    public ComponentSelectionDescriptorInternal newDescriptor(ComponentSelectionCause cause, String reason) {
         return getOrCreate(cause, reason);
     }
 
     @Override
-    public ComponentSelectionDescriptor newDescriptor(ComponentSelectionCause cause) {
+    public ComponentSelectionDescriptorInternal newDescriptor(ComponentSelectionCause cause) {
         try {
             return descriptors.get(new Key(cause, cause.getDefaultReason()), () -> new DefaultComponentSelectionDescriptor(cause));
         } catch (ExecutionException e) {
@@ -42,7 +41,7 @@ public class CachingComponentSelectionDescriptorFactory implements ComponentSele
         }
     }
 
-    private ComponentSelectionDescriptor getOrCreate(ComponentSelectionCause cause, String description) {
+    private ComponentSelectionDescriptorInternal getOrCreate(ComponentSelectionCause cause, String description) {
         try {
             return descriptors.get(new Key(cause, description), () -> newDescriptorInstance(cause, description));
         } catch (ExecutionException e) {
@@ -50,7 +49,7 @@ public class CachingComponentSelectionDescriptorFactory implements ComponentSele
         }
     }
 
-    private ComponentSelectionDescriptor newDescriptorInstance(ComponentSelectionCause cause, String description) {
+    private static ComponentSelectionDescriptorInternal newDescriptorInstance(ComponentSelectionCause cause, String description) {
         return new DefaultComponentSelectionDescriptor(cause, Describables.of(description));
     }
 

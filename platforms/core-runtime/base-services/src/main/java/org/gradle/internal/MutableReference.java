@@ -25,26 +25,25 @@ import java.io.Serializable;
  * A non-thread-safe type to hold a reference to a single value.
  */
 @NotThreadSafe
-public final class MutableReference<T> implements Serializable {
+public final class MutableReference<T extends @Nullable Object> implements Serializable {
     private T value;
 
-    public static <T> MutableReference<T> empty() {
+    public static <T> MutableReference<@Nullable T> empty() {
         return of(null);
     }
 
-    public static <T> MutableReference<T> of(@Nullable T initialValue) {
-        return new MutableReference<T>(initialValue);
+    public static <T extends @Nullable Object> MutableReference<T> of(T initialValue) {
+        return new MutableReference<>(initialValue);
     }
 
-    private MutableReference(@Nullable T initialValue) {
+    private MutableReference(T initialValue) {
         this.value = initialValue;
     }
 
-    public void set(@Nullable T value) {
+    public void set(T value) {
         this.value = value;
     }
 
-    @Nullable
     public T get() {
         return value;
     }

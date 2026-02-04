@@ -323,6 +323,100 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         aggregatedTestResults.assertTestClassesExecuted('application.AdderTest', 'direct.MultiplierTest', 'transitive.PowerizeTest')
     }
 
+
+    def 'can aggregate tests from root project with different overall statuses'() {
+        given:
+        buildFile << '''
+            apply plugin: 'org.gradle.test-report-aggregation'
+
+            dependencies {
+                testReportAggregation project(":application")
+                testReportAggregation project(":direct")
+            }
+
+            reporting {
+                reports {
+                    testAggregateTestReport(AggregateTestReport) {
+                        testSuiteName = "test"
+                    }
+                }
+            }
+        '''
+
+        file("transitive/src/test/java/transitive/PowerizeTest.java").java """
+                package transitive;
+
+                import org.junit.Assert;
+                import org.junit.Ignore;
+                import org.junit.Test;
+
+                @Ignore
+                public class PowerizeTest {
+                    @Test
+                    public void testPow() {
+                        Powerize powerize = new Powerize();
+                        Assert.assertEquals(1, powerize.pow(1, 1));
+                        Assert.assertEquals(4, powerize.pow(2, 2));
+                        Assert.assertEquals(1, powerize.pow(1, 2));
+                    }
+                }
+        """
+        file("direct/src/test/java/direct/MultiplierTest.java").java """
+                package direct;
+
+                import org.junit.Assert;
+                import org.junit.Test;
+
+                public class MultiplierTest {
+                    @Test
+                    public void testMultiply() {
+                        Multiplier multiplier = new Multiplier();
+                        Assert.assertEquals(-1, multiplier.multiply(1, 1));
+                        Assert.assertEquals(0, multiplier.multiply(2, 2));
+                        Assert.assertEquals(1, multiplier.multiply(1, 2));
+                    }
+                }
+            """
+
+        when:
+        fails(':testAggregateTestReport', "--continue")
+
+        then:
+        def transitiveTestResults = new HtmlTestExecutionResult(testDirectory.file('transitive'))
+        transitiveTestResults.assertTestClassesExecuted('transitive.PowerizeTest')
+
+        def directTestResults = new HtmlTestExecutionResult(testDirectory.file('direct'))
+        directTestResults.assertTestClassesExecuted('direct.MultiplierTest')
+
+        def applicationTestResults = new HtmlTestExecutionResult(testDirectory.file('application'))
+        applicationTestResults.assertTestClassesExecuted('application.AdderTest')
+
+        def aggregatedTestResults = new HtmlTestExecutionResult(testDirectory, 'build/reports/tests/test/aggregated-results')
+        aggregatedTestResults.assertTestClassesExecuted('application.AdderTest', 'direct.MultiplierTest', 'transitive.PowerizeTest')
+
+        aggregatedTestResults.assertHtml(".successGroup") {e ->
+            verifyAll {
+                e.size() == 1
+                e[0].tagName() == "a"
+                e[0].text() == "Gradle Test Run :application:test"
+            }
+        }
+        aggregatedTestResults.assertHtml(".failureGroup") {e ->
+            verifyAll {
+                e.size() == 1
+                e[0].tagName() == "a"
+                e[0].text() == "Gradle Test Run :direct:test"
+            }
+        }
+        aggregatedTestResults.assertHtml(".skippedGroup") {e ->
+            verifyAll {
+                e.size() == 1
+                e[0].tagName() == "a"
+                e[0].text() == "Gradle Test Run :transitive:test"
+            }
+        }
+    }
+
     def 'can aggregate tests from root project when subproject does not have tests'() {
         given:
         buildFile << '''

@@ -31,20 +31,20 @@ class IsolationSchemeTest extends Specification {
 
     def "can extract parameters type"() {
         expect:
-        scheme.parameterTypeFor(DirectUsage) == CustomParams
-        scheme.parameterTypeFor(IndirectUsage) == CustomParams
-        scheme.parameterTypeFor(ParameterizedType) == CustomParams
-        scheme.parameterTypeFor(ComplexParameterizedType) == CustomParamsWithType
-        scheme.parameterTypeFor(InheritedParameterizedType) == ExtendedCustomParams
-        scheme.parameterTypeFor(FirstLevelInheritedParameterizedType) == ExtendedCustomParams
+        scheme.parameterTypeForOrNull(DirectUsage) == CustomParams
+        scheme.parameterTypeForOrNull(IndirectUsage) == CustomParams
+        scheme.parameterTypeForOrNull(ParameterizedType) == CustomParams
+        scheme.parameterTypeForOrNull(ComplexParameterizedType) == CustomParamsWithType
+        scheme.parameterTypeForOrNull(InheritedParameterizedType) == ExtendedCustomParams
+        scheme.parameterTypeForOrNull(FirstLevelInheritedParameterizedType) == ExtendedCustomParams
 
-        scheme.parameterTypeFor(NoParams) == null
-        scheme.parameterTypeFor(SomeAction) == null
+        scheme.parameterTypeForOrNull(NoParams) == null
+        scheme.parameterTypeForOrNull(SomeAction) == null
     }
 
     def "fails when base parameters type is used"() {
         when:
-        scheme.parameterTypeFor(BaseParams)
+        scheme.parameterTypeForOrNull(BaseParams)
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -53,7 +53,7 @@ class IsolationSchemeTest extends Specification {
 
     def "fails when parameters type has not been declared"() {
         when:
-        scheme.parameterTypeFor(RawActionType)
+        scheme.parameterTypeForOrNull(RawActionType)
 
         then:
         def e = thrown(IllegalArgumentException)

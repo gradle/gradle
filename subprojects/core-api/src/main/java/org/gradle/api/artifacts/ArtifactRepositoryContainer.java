@@ -20,6 +20,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.util.Configurable;
 
 /**
@@ -46,6 +47,7 @@ import org.gradle.util.Configurable;
  * }
  * </pre>
  */
+@HiddenInDefinition
 public interface ArtifactRepositoryContainer extends NamedDomainObjectList<ArtifactRepository>, Configurable<ArtifactRepositoryContainer> {
     String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
     String DEFAULT_MAVEN_LOCAL_REPO_NAME = "MavenLocal";

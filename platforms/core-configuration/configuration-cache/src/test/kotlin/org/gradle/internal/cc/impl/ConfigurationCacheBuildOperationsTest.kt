@@ -16,10 +16,10 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.configurationcache.WorkGraphLoadResult
-import org.gradle.configurationcache.WorkGraphStoreResult
-import org.gradle.configurationcache.withWorkGraphLoadOperation
-import org.gradle.configurationcache.withWorkGraphStoreOperation
+import org.gradle.internal.cc.operations.WorkGraphLoadResult
+import org.gradle.internal.cc.operations.WorkGraphStoreResult
+import org.gradle.internal.cc.operations.withWorkGraphLoadOperation
+import org.gradle.internal.cc.operations.withWorkGraphStoreOperation
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.CallableBuildOperation

@@ -4,12 +4,6 @@ plugins {
 
 description = "Implementation of the Maven Publish Plugin that provides the ability to publish build artifacts to Maven repositories."
 
-errorprone {
-    disabledChecks.addAll(
-        "EqualsUnsafeCast", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
@@ -48,7 +42,7 @@ dependencies {
     testImplementation(projects.snapshots)
     testImplementation(projects.resourcesHttp)
 
-    testImplementation(libs.xmlunit)
+    testImplementation(testLibs.xmlunit)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.modelCore))

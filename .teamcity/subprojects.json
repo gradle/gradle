@@ -1,7 +1,14 @@
 [
   {
+    "name": "ant-worker",
+    "path": "platforms/jvm/ant-worker",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "antlr",
-    "path": "platforms/software/antlr",
+    "path": "platforms/jvm/antlr",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -23,6 +30,13 @@
   {
     "name": "base-asm",
     "path": "platforms/core-runtime/base-asm",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "base-compiler-worker",
+    "path": "platforms/software/base-compiler-worker",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -121,7 +135,7 @@
   {
     "name": "build-discovery",
     "path": "platforms/core-runtime/build-discovery",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -129,6 +143,13 @@
     "name": "build-discovery-impl",
     "path": "platforms/core-runtime/build-discovery-impl",
     "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "build-discovery-reporting",
+    "path": "platforms/core-runtime/build-discovery-reporting",
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -231,6 +252,20 @@
     "crossVersionTests": false
   },
   {
+    "name": "code-quality-workers",
+    "path": "platforms/jvm/code-quality-workers",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "collections",
+    "path": "platforms/core-runtime/collections",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "composite-builds",
     "path": "subprojects/composite-builds",
     "unitTests": true,
@@ -308,6 +343,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "daemon-logging",
+    "path": "platforms/core-runtime/daemon-logging",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "daemon-main",
     "path": "platforms/core-runtime/daemon-main",
     "unitTests": false,
@@ -360,13 +402,6 @@
     "name": "declarative-dsl-evaluator",
     "path": "platforms/core-configuration/declarative-dsl-evaluator",
     "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "declarative-dsl-internal-utils",
-    "path": "platforms/core-configuration/declarative-dsl-internal-utils",
-    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -598,7 +633,7 @@
     "name": "gradle-cli",
     "path": "platforms/core-runtime/gradle-cli",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -623,8 +658,22 @@
     "crossVersionTests": false
   },
   {
+    "name": "groovy-compiler-worker",
+    "path": "platforms/jvm/groovy-compiler-worker",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "groovy-loader",
     "path": "platforms/core-runtime/groovy-loader",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "groovydoc-worker",
+    "path": "platforms/jvm/groovydoc-worker",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -791,6 +840,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "jacoco-workers",
+    "path": "platforms/jvm/jacoco-workers",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "java-api-extractor",
     "path": "platforms/core-configuration/java-api-extractor",
     "unitTests": true,
@@ -805,6 +861,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "java-compiler-worker",
+    "path": "platforms/jvm/java-compiler-worker",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "java-platform",
     "path": "platforms/jvm/java-platform",
     "unitTests": false,
@@ -814,6 +877,13 @@
   {
     "name": "javadoc",
     "path": "platforms/jvm/javadoc",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "jvm-compiler-worker",
+    "path": "platforms/jvm/jvm-compiler-worker",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
@@ -1130,7 +1200,7 @@
     "name": "project-features",
     "path": "platforms/core-configuration/project-features",
     "unitTests": false,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -1236,6 +1306,20 @@
     "path": "platforms/jvm/scala",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "scala-compiler-worker",
+    "path": "platforms/jvm/scala-compiler-worker",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "scaladoc-worker",
+    "path": "platforms/jvm/scaladoc-worker",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -1493,7 +1577,7 @@
   {
     "name": "wrapper-main",
     "path": "platforms/core-runtime/wrapper-main",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },

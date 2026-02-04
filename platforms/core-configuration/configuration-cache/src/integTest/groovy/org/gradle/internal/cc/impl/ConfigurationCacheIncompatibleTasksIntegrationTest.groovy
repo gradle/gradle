@@ -477,6 +477,8 @@ class ConfigurationCacheIncompatibleTasksIntegrationTest extends AbstractConfigu
         fixture.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             loadsAfterStore = false
+
+            problem("Build file 'build.gradle': line 7: invocation of 'Task.project' at execution time is unsupported with the configuration cache.")
         }
     }
 

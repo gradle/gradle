@@ -32,6 +32,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.classes_not_written_i
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.inGradleInternalApiPackages;
 import static org.gradle.architecture.test.ArchUnitFixture.inGradlePublicApiPackages;
+import static org.gradle.architecture.test.ArchUnitFixture.notBeUnnecessarilyAnnotatedWithNullMarked;
 import static org.gradle.architecture.test.ArchUnitFixture.not_anonymous_classes;
 import static org.gradle.architecture.test.ArchUnitFixture.not_synthetic_classes;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
@@ -70,4 +71,12 @@ public class ApiNullabilityTest {
     public static final ArchRule public_api_methods_are_not_null_unmarked = freeze(methods()
         .that(are(public_api_methods))
         .should(not(beNullUnmarkedMethod())));
+
+    @ArchTest
+    public static final ArchRule classes_are_not_unnecessarily_null_marked = freeze(classes()
+        .that(are(inGradlePublicApiPackages()).or(inGradleInternalApiPackages()))
+        .and(classes_not_written_in_kotlin)
+        .and(not_synthetic_classes)
+        .and(not_anonymous_classes)
+        .should(notBeUnnecessarilyAnnotatedWithNullMarked()));
 }

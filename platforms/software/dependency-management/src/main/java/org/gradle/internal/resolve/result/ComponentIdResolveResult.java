@@ -25,6 +25,7 @@ import org.gradle.internal.resolve.RejectedVersion;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * The result of resolving a module version selector to a particular component id.
@@ -74,9 +75,9 @@ public interface ComponentIdResolveResult extends ResolveResult {
     boolean isRejected();
 
     /**
-     * @return the list of unmatched versions, that is to say versions which were listed but didn't match the selector
+     * @return the set of unmatched versions, that is to say versions which were listed but didn't match the selector
      */
-    Collection<String> getUnmatchedVersions();
+    Set<String> getUnmatchedVersions();
 
     /**
      * @return the list of versions which were considered for this module but rejected.

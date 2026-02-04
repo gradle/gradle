@@ -32,6 +32,7 @@ import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -198,8 +199,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     public InternalProblemBuilder contextualLabel(String contextualLabel) {
-        // TODO (donat) enforce contextual label to be a single line
-        this.contextualLabel = contextualLabel;
+        // enforce contextual label to be a single line
+        this.contextualLabel = TextUtil.replaceLineSeparatorsOf(contextualLabel, " ");
         return this;
     }
 

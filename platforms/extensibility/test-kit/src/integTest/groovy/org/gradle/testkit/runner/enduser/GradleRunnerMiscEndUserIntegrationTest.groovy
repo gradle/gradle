@@ -60,7 +60,8 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
         def jarsDir = file('jars').createDir()
 
         new File(distribution.gradleHomeDir, 'lib').eachFileRecurse(FileType.FILES) { f ->
-            if (f.name.contains("gradle-test-kit")
+            if (f.name.endsWith(".jar") && (
+                f.name.contains("gradle-test-kit")
                 || f.name.contains("commons-io")
                 || f.name.contains("guava")
                 || f.name.contains("gradle-base-services")
@@ -70,7 +71,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
                 || f.name.contains("gradle-tooling-api")
                 || f.name.contains("gradle-core")
                 || f.name.contains("gradle-build-process-services")
-            ) {
+            )) {
                 GFileUtils.copyFile(f, new File(jarsDir, f.name))
             }
         }
@@ -89,7 +90,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
             class Test extends Specification {
                 def "create GradleRunner"() {
                     expect:
-                    GradleRunner.create().withProjectDir(new File("foo")).build()
+                    GradleRunner.create().withProjectDir(new File("foo")).withDebug($embedded).build()
                 }
             }
         """)
@@ -137,7 +138,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
         when:
         buildFile << gradleTestKitDependency() << """
             test {
-                systemProperty '$DefaultGradleRunner.DEBUG_SYS_PROP', '$debug'
+                systemProperty '$DefaultGradleRunner.DEBUG_SYS_PROP', '$embedded'
             }
         """
 
@@ -148,7 +149,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
             class Test extends Specification {
                 def "default debug value is derived from system property"() {
                     expect:
-                    GradleRunner.create().debug == $debug
+                    GradleRunner.create().debug == $embedded
                 }
             }
         """)
@@ -192,7 +193,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir)
                         .withArguments('helloWorld')
-                        .withDebug($debug)
+                        .withDebug($embedded)
                         .build()
 
                     then:

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.util.internal.CollectionUtils.single
@@ -139,10 +140,14 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         given:
         withMaxEntriesPerKey 3
 
+        and:
+        // We need to force invalidate CC for the cache entry eviction to kick-in since just changing the option in `gradle.properties` won't
+        def recreateCC = "-D${StartParameterBuildOptions.ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
+
         when:
         2.times {
             settingsFile.text = "// branch $it"
-            configurationCacheRun 'help'
+            configurationCacheRun "help", recreateCC
         }
 
         then:
@@ -153,7 +158,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         settingsFile.text = "// branch 3"
 
         and:
-        configurationCacheRun 'help'
+        configurationCacheRun "help", recreateCC
 
         then:
         def allEntries = configurationCacheEntryDirs
@@ -166,7 +171,7 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
         settingsFile.text == "// branch 4"
 
         and:
-        configurationCacheRun 'help'
+        configurationCacheRun "help", recreateCC
 
         then: "only newly created and newest entries remain"
         def remainingEntries = configurationCacheEntryDirs
@@ -231,6 +236,6 @@ class ConfigurationCacheMultiEntriesPerKeyIntegrationTest extends AbstractConfig
     }
 
     private TestFile withMaxEntriesPerKey(int maxEntriesPerKey) {
-        file("gradle.properties") << "org.gradle.configuration-cache.entries-per-key=${maxEntriesPerKey}\n"
+        propertiesFile << "${StartParameterBuildOptions.ConfigurationCacheEntriesPerKeyOption.PROPERTY_NAME}=${maxEntriesPerKey}\n"
     }
 }

@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.gradle.api.Action
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.api.internal.tasks.testing.report.generic.TestPathExecutionResult
@@ -55,6 +56,16 @@ class HtmlTestExecutionResult implements TestExecutionResult {
         return delegate.executedTestPaths.findAll { isTestClass(it) }
             .collect { it.name }
             .toSet()
+    }
+
+    /**
+     * Assert that the elements returned by the CSS query are what would be expected.
+     *
+     * Assertions are performed in the given action.
+     */
+    TestExecutionResult assertHtml(String cssQuery, Action<Collection<?>> action) {
+        delegate.assertHtml(cssQuery, action)
+        return this
     }
 
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {

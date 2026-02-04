@@ -31,7 +31,6 @@ import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.cache.internal.TestDecompressionCoordinators;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
-import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.impl.DefaultDeleter;
@@ -40,8 +39,8 @@ import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.local.FileResourceConnector;
+import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.resource.local.FileResourceRepository;
-import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.time.Time;
@@ -95,7 +94,7 @@ public class TestFiles {
     }
 
     public static FileResourceRepository fileRepository() {
-        return new FileResourceConnector(FILE_SYSTEM, new DefaultListenerManager(Scope.Build.class));
+        return new FileResourceConnector(FILE_SYSTEM, FileResourceListener.NO_OP);
     }
 
     /**

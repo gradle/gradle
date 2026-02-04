@@ -16,8 +16,7 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
-import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -28,11 +27,9 @@ import org.junit.Test
 
 private
 class HasHiddenProperty {
-    @get:Restricted
     var x: Int = 0
 
-    @get:Restricted
-    @get:HiddenInDeclarativeDsl
+    @get:HiddenInDefinition
     var y: Int = 0
 }
 
@@ -43,7 +40,7 @@ class HiddenInDslTest {
     @Test
     fun `handles the hidden properties correctly`() {
         val aType = schema.dataClassTypesByFqName.getValue(DefaultFqName.parse(HasHiddenProperty::class.qualifiedName!!)) as DataClass
-        assertTrue { aType.properties.single { it.name == "y" }.isHiddenInDsl }
+        assertTrue { aType.properties.none { it.name == "y" } }
 
         val result = schema.resolve(
             """

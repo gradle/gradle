@@ -323,7 +323,8 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
 
         then:
         failure.assertHasCause("Test process encountered an unexpected problem.")
-        failure.assertHasCause("Could not execute test class 'com.example.Foo'.")
+        failure.assertHasCause("Could not execute test class 'com.example.Foo'")
+        failure.assertHasCause("Could not load test class 'com.example.Foo'.")
 
         testResults.testPathPreNormalized(':').onlyRoot()
             .assertHasResult(TestResult.ResultType.FAILURE)
@@ -348,10 +349,13 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec implements Verif
                 }
 
                 @Test
-                public void runFirst() {}
+                public void runFirst() {
+                    System.out.println("runFirst");
+                }
 
                 @Test(dependsOnMethods = "runFirst")
                 public void testGet2() {
+                    System.out.println("testGet2");
                     Assert.assertEquals(true, true);
                 }
 

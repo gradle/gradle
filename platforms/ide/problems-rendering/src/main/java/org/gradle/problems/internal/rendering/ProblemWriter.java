@@ -59,7 +59,7 @@ public abstract class ProblemWriter {
     public static ProblemWriter simple() {
         return new SimpleProblemWriter(
             ProblemWriterRegistry.INSTANCE,
-            new RenderOptions("Problem found: ", true)
+            new RenderOptions("Problem found: ", true, true)
         );
     }
 
@@ -70,7 +70,7 @@ public abstract class ProblemWriter {
     public static ProblemWriter grouping() {
         return new GroupingProblemWriter(
             ProblemWriterRegistry.INSTANCE,
-            new RenderOptions("", false));
+            new RenderOptions("", false, false));
     }
 
     /**

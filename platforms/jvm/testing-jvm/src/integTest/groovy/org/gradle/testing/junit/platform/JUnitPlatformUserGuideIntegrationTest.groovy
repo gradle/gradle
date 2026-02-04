@@ -16,8 +16,9 @@
 
 package org.gradle.testing.junit.platform
 
-import org.gradle.api.tasks.testing.TestResult
+
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.hamcrest.Matchers
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 import static org.hamcrest.CoreMatchers.containsString
@@ -38,6 +39,7 @@ class DisplayNameDemo {
     @Test
     @DisplayName("Custom test name containing spaces")
     void testWithDisplayNameContainingSpaces() {
+        System.out.println("stdout");
     }
 }
 '''
@@ -51,6 +53,7 @@ class DisplayNameDemo2 {
     @Test
     @DisplayName("╯°□°）╯")
     void testWithDisplayNameContainingSpecialCharacters() {
+        System.out.println("stdout");
     }
 }
 '''
@@ -58,17 +61,18 @@ class DisplayNameDemo2 {
         succeeds('test')
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecutedJudgementByHtml('org.gradle.DisplayNameDemo', 'org.gradle.DisplayNameDemo2')
-            .assertTestClassesExecutedJudgementByXml('A special test case', 'A special test case2')
-        result.testClassByHtml('org.gradle.DisplayNameDemo')
-            .assertDisplayName('A special test case')
-            .assertTestCount(1, 0)
-            .assertTestPassed('testWithDisplayNameContainingSpaces', 'Custom test name containing spaces')
-        result.testClassByHtml('org.gradle.DisplayNameDemo2')
-            .assertDisplayName('A special test case2')
-            .assertTestCount(1, 0)
-            .assertTestPassed('testWithDisplayNameContainingSpecialCharacters', '╯°□°）╯')
+        def result = resultsFor(testDirectory)
+        result.testPath('org.gradle.DisplayNameDemo').onlyRoot()
+            .assertDisplayName(Matchers.equalTo("A special test case"))
+            .assertChildCount(1, 0)
+            .assertChildrenExecuted('testWithDisplayNameContainingSpaces()')
+        result.testPath(':org.gradle.DisplayNameDemo:testWithDisplayNameContainingSpaces()').onlyRoot().assertDisplayName(Matchers.equalTo('Custom test name containing spaces'))
+
+        result.testPath('org.gradle.DisplayNameDemo2').onlyRoot()
+            .assertDisplayName(Matchers.equalTo("A special test case2"))
+            .assertChildCount(1, 0)
+            .assertChildrenExecuted('testWithDisplayNameContainingSpecialCharacters()')
+        result.testPath(':org.gradle.DisplayNameDemo2:testWithDisplayNameContainingSpecialCharacters()').onlyRoot().assertDisplayName(Matchers.equalTo('╯°□°）╯'))
     }
 
     def 'can change test instance lifecycle with #method'() {
@@ -199,8 +203,7 @@ class TestingAStackDemo {
             .assertChildrenExecuted('isEmpty()', 'throwsExceptionWhenPopped()')
         result.testPathPreNormalized(':org.gradle.TestingAStackDemo:org.gradle.TestingAStackDemo$WhenNew:org.gradle.TestingAStackDemo$WhenNew$AfterPushing').onlyRoot()
             .assertChildCount(1, 0)
-        result.testPathPreNormalized(':org.gradle.TestingAStackDemo:org.gradle.TestingAStackDemo$WhenNew:org.gradle.TestingAStackDemo$WhenNew$AfterPushing:isNotEmpty()').onlyRoot()
-            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertOnlyChildrenExecuted("isNotEmpty()")
 
         where:
         maxParallelForks << [1, 3]
@@ -249,10 +252,7 @@ class TestInfoDemo {
         def results = resultsFor(testDirectory)
         results.testPath('org.gradle.TestInfoDemo').onlyRoot()
             .assertChildCount(2, 0)
-        results.testPathPreNormalized(':org.gradle.TestInfoDemo:test2()').onlyRoot()
-            .assertHasResult(TestResult.ResultType.SUCCESS)
-        results.testPathPreNormalized(':org.gradle.TestInfoDemo:test1(TestInfo)').onlyRoot()
-            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertOnlyChildrenExecuted("test2()", "test1(TestInfo)")
     }
 
     def 'can use custom Extension'() {
@@ -328,10 +328,7 @@ public class Test implements TestInterfaceDynamicTestsDemo {
         results.testPathPreNormalized(':org.gradle.Test:dynamicTestsFromCollection()').onlyRoot()
             .assertChildCount(2, 0)
             .assertStdout(containsString('Invoked!'))
-        results.testPathPreNormalized(':org.gradle.Test:dynamicTestsFromCollection():dynamicTestsFromCollection()[1]').onlyRoot()
-            .assertHasResult(TestResult.ResultType.SUCCESS)
-        results.testPathPreNormalized(':org.gradle.Test:dynamicTestsFromCollection():dynamicTestsFromCollection()[2]').onlyRoot()
-            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertOnlyChildrenExecuted("dynamicTestsFromCollection()[1]", "dynamicTestsFromCollection()[2]")
     }
 
     def 'can support parameterized tests'() {
@@ -366,12 +363,7 @@ public class Test {
             .assertChildCount(1, 0)
         results.testPathPreNormalized(':org.gradle.Test:ok(String)').onlyRoot()
             .assertChildCount(3, 0)
-        results.testPathPreNormalized(':org.gradle.Test:ok(String):ok(String)[1]').onlyRoot()
-            .assertHasResult(TestResult.ResultType.SUCCESS)
-        results.testPathPreNormalized(':org.gradle.Test:ok(String):ok(String)[2]').onlyRoot()
-            .assertHasResult(TestResult.ResultType.SUCCESS)
-        results.testPathPreNormalized(':org.gradle.Test:ok(String):ok(String)[3]').onlyRoot()
-            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertOnlyChildrenExecuted("ok(String)[1]", "ok(String)[2]", "ok(String)[3]")
     }
 
     def 'can use test template'() {
@@ -440,9 +432,6 @@ public class TestTemplateTest {
             .assertChildCount(1, 0)
         results.testPathPreNormalized(':org.gradle.TestTemplateTest:testTemplate(String)').onlyRoot()
             .assertChildCount(2, 0)
-        results.testPathPreNormalized(':org.gradle.TestTemplateTest:testTemplate(String):testTemplate(String)[1]').onlyRoot()
-            .assertHasResult(TestResult.ResultType.SUCCESS)
-        results.testPathPreNormalized(':org.gradle.TestTemplateTest:testTemplate(String):testTemplate(String)[2]').onlyRoot()
-            .assertHasResult(TestResult.ResultType.SUCCESS)
+            .assertOnlyChildrenExecuted("testTemplate(String)[1]", "testTemplate(String)[2]")
     }
 }

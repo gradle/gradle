@@ -18,9 +18,54 @@ package promotion
 
 import common.VersionedSettingsBranch
 import jetbrains.buildServer.configs.kotlin.triggers.ScheduleTrigger
+import jetbrains.buildServer.configs.kotlin.triggers.ScheduleTrigger.SchedulingPolicy
 import jetbrains.buildServer.configs.kotlin.triggers.schedule
 
 const val NIGHTLY_SNAPSHOT_BUILD_ID = "Promotion_Nightly"
+
+/**
+ * 0~23.
+ * To avoid nightly promotion jobs running at the same time,
+ * we run each branch on different hours.
+ * master - 0:00
+ * release - 1:00
+ * release6x - 2:00
+ * release7x - 3:00
+ * ...
+ * releaseNx - (N-4):00
+ */
+fun VersionedSettingsBranch.determineNightlyPromotionTriggerHour(): Int? {
+    val oldReleasePattern = "release(\\d+)x".toRegex()
+    return when (branchName) {
+        "master" -> 0
+        "release" -> 1
+        else -> {
+            val matchResult = oldReleasePattern.find(branchName)
+            if (matchResult == null) {
+                null
+            } else {
+                (matchResult.groupValues[1].toInt() - 4).apply {
+                    require(this in 2..23)
+                }
+            }
+        }
+    }
+}
+
+fun ScheduleTrigger.scheduledTrigger(
+    branch: VersionedSettingsBranch,
+    policy: SchedulingPolicy,
+    pendingChangesOnly: Boolean,
+) {
+    schedulingPolicy = policy
+    triggerBuild = always()
+    withPendingChangesOnly = pendingChangesOnly
+    enabled = true
+    // https://www.jetbrains.com/help/teamcity/2022.04/configuring-schedule-triggers.html#general-syntax-1
+    // We want it to be triggered only when there're pending changes in the specific vcs root, i.e. GradleMaster/GradleRelease
+    triggerRules = "+:root=${branch.vcsRootId()}:."
+    branchFilter = "+:<default>"
+}
 
 class PublishNightlySnapshot(
     branch: VersionedSettingsBranch,
@@ -37,27 +82,39 @@ class PublishNightlySnapshot(
             "Promotes the latest successful changes on '${branch.branchName}' from Ready for Nightly as a new nightly snapshot"
 
         triggers {
-            branch.nightlyPromotionTriggerHour?.let { triggerHour ->
-                schedule {
-                    if (branch.isMainBranch) {
-                        schedulingPolicy =
-                            daily {
-                                this.hour = triggerHour
-                            }
-                    } else {
-                        schedulingPolicy =
-                            weekly {
-                                this.dayOfWeek = ScheduleTrigger.DAY.Saturday
-                                this.hour = triggerHour
-                            }
+            val triggerHour = branch.determineNightlyPromotionTriggerHour() ?: return@triggers
+            // for master/release branch, we trigger them on midnight (with pending change only, i.e. if there is no change, don't rigger it)
+            // for old release branches, we trigger them on midnight if there is change, or unconditionally on weekends
+            when {
+                branch.isMaster || branch.isRelease ->
+                    schedule {
+                        scheduledTrigger(
+                            branch,
+                            policy = daily { hour = triggerHour },
+                            pendingChangesOnly = true,
+                        )
                     }
-                    triggerBuild = always()
-                    withPendingChangesOnly = branch.isMainBranch
-                    enabled = branch.enableVcsTriggers
-                    // https://www.jetbrains.com/help/teamcity/2022.04/configuring-schedule-triggers.html#general-syntax-1
-                    // We want it to be triggered only when there're pending changes in the specific vcs root, i.e. GradleMaster/GradleRelease
-                    triggerRules = "+:root=${VersionedSettingsBranch.fromDslContext().vcsRootId()}:."
-                    branchFilter = "+:<default>"
+
+                else -> {
+                    schedule {
+                        scheduledTrigger(
+                            branch,
+                            policy = daily { hour = triggerHour },
+                            pendingChangesOnly = true,
+                        )
+                    }
+
+                    schedule {
+                        scheduledTrigger(
+                            branch,
+                            policy =
+                                weekly {
+                                    dayOfWeek = ScheduleTrigger.DAY.Saturday
+                                    hour = triggerHour
+                                },
+                            pendingChangesOnly = false,
+                        )
+                    }
                 }
             }
         }

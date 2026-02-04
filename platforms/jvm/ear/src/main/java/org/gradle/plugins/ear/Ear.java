@@ -66,6 +66,7 @@ public abstract class Ear extends Jar {
     private CopySpec lib;
     private final DirectoryProperty appDir;
 
+    @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public Ear() {
         getArchiveExtension().set(EAR_EXTENSION);
         setMetadataCharset("UTF-8");

@@ -5,19 +5,14 @@ plugins {
 description = """Contains some base and shared classes for JVM language support, like AbstractCompile class and BaseForkOptions classes,
 JVM-specific dependencies blocks and JVM test suite interfaces."""
 
-errorprone {
-    disabledChecks.addAll(
-        "OverridesJavaxInjectableMethod", // 1 occurrences
-    )
-}
-
 dependencies {
+    api(projects.baseCompilerWorker)
+    api(projects.jvmCompilerWorker)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
     api(projects.daemonServerWorker)
     api(projects.files)
-    api(projects.platformBase)
     api(projects.platformJvm)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
@@ -25,14 +20,12 @@ dependencies {
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jspecify)
 
-    implementation(projects.classloaders)
     implementation(projects.dependencyManagement)
     implementation(projects.logging)
+    implementation(projects.platformBase)
     implementation(projects.testSuitesBase)
 
-    implementation(libs.commonsLang)
     implementation(libs.guava)
 
     testImplementation(projects.native)

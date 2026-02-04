@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve.versions
 
+import org.gradle.api.attributes.Category
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
@@ -2588,5 +2589,68 @@ parentFirst
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/35207")
+    def "can deselect node that points to another node in its own component, after another component upgrades version"() {
+        // We have a component with one node that depends on the other node in the same component
+        def bar = mavenRepo.module("org", "bar", "1.0")
+        bar.withModuleMetadata()
+        bar.withoutDefaultVariants()
+        bar.variant("first", [(Category.CATEGORY_ATTRIBUTE.name): Category.LIBRARY]) {
+            dependsOn(bar) {
+                requestedCapability("second", "second", "1.0")
+            }
+        }
+        bar.variant("second", [(Category.CATEGORY_ATTRIBUTE.name): Category.LIBRARY]) {
+            capability("second", "second", "1.0")
+        }
+        bar.publish()
+
+        // We have another module with two versions, which depends on one node from the above component
+        mavenRepo.module("org", "foo", "1.0")
+            .dependsOn(bar)
+            .publish()
+
+        // This module then gets upgraded, causing the original two-node component to become deselected
+        mavenRepo.module("org", "delay2").dependsOn(
+            mavenRepo.module("org", "delay1")
+                .dependsOn(mavenRepo.module("org", "foo", "2.0").publish())
+                .publish()
+        ).publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${resolve.configureProject("runtimeClasspath")}
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org:foo:1.0")
+                implementation("org:delay2:1.0")
+            }
+
+            // Must use legacy ResolvedConfiguration API to trigger original bug
+            configurations.runtimeClasspath.resolvedConfiguration.firstLevelModuleDependencies
+        """
+
+        when:
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:1.0", "org:foo:2.0") {
+                    byReason("conflict resolution: between versions 2.0 and 1.0")
+                }
+                module("org:delay2:1.0") {
+                    module("org:delay1:1.0") {
+                        module("org:foo:2.0")
+                    }
+                }
+            }
+        }
+    }
 
 }

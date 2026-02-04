@@ -85,11 +85,6 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         getTargets().registerBinding(JvmTestSuiteTarget.class, DefaultJvmTestSuiteTarget.class);
 
-        configurations.named(sourceSet.getCompileOnlyConfigurationName(), compileOnly -> compileOnly.fromDependencyCollector(getDependencies().getCompileOnly()));
-        configurations.named(sourceSet.getImplementationConfigurationName(), implementation -> implementation.fromDependencyCollector(getDependencies().getImplementation()));
-        configurations.named(sourceSet.getRuntimeOnlyConfigurationName(), runtimeOnly -> runtimeOnly.fromDependencyCollector(getDependencies().getRuntimeOnly()));
-        configurations.named(sourceSet.getAnnotationProcessorConfigurationName(), annotationProcessor -> annotationProcessor.fromDependencyCollector(getDependencies().getAnnotationProcessor()));
-
         if (name.equals(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME)) {
             // for the built-in test suite, we don't express an opinion, so we will not add any dependencies
             // if a user explicitly calls useJUnit or useJUnitJupiter, the built-in test suite will behave like a custom one
@@ -101,11 +96,23 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
             toolchain.getParameters().getJupiterVersion().convention(JUnitJupiterTestToolchain.DEFAULT_VERSION);
         }
 
+        // Add test framework dependencies to the dependency collectors BEFORE wiring them to configurations.
+        // This ordering is critical because:
+        // 1. configurations.named() executes immediately when the configuration already exists
+        // 2. fromDependencyCollector() wires the collector to the configuration
+        // 3. If cross-project configuration accesses allDependencies, it can trigger finalization
+        //    of the collector's dependencies property (due to finalizeValueOnRead)
+        // 4. bundle() must be called before this happens, otherwise adding to a finalized property fails
+        addTestFrameworkDependenciesToDependencies();
+
+        configurations.named(sourceSet.getCompileOnlyConfigurationName(), compileOnly -> compileOnly.fromDependencyCollector(getDependencies().getCompileOnly()));
+        configurations.named(sourceSet.getImplementationConfigurationName(), implementation -> implementation.fromDependencyCollector(getDependencies().getImplementation()));
+        configurations.named(sourceSet.getRuntimeOnlyConfigurationName(), runtimeOnly -> runtimeOnly.fromDependencyCollector(getDependencies().getRuntimeOnly()));
+        configurations.named(sourceSet.getAnnotationProcessorConfigurationName(), annotationProcessor -> annotationProcessor.fromDependencyCollector(getDependencies().getAnnotationProcessor()));
+
         addDefaultTestTarget();
 
         getTargets().withType(JvmTestSuiteTarget.class).configureEach(target -> target.getTestTask().configure(this::initializeTestFramework));
-
-        addTestFrameworkDependenciesToDependencies();
     }
 
     private void addTestFrameworkDependenciesToDependencies() {
@@ -314,7 +321,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
         private <T extends JvmTestToolchainParameters> JvmTestToolchain<T> create(Class<? extends JvmTestToolchain<T>> type) {
             IsolationScheme<JvmTestToolchain<?>, JvmTestToolchainParameters> isolationScheme = new IsolationScheme<>(uncheckedCast(JvmTestToolchain.class), JvmTestToolchainParameters.class, JvmTestToolchainParameters.None.class);
-            Class<T> parametersType = isolationScheme.parameterTypeFor(type);
+            Class<T> parametersType = isolationScheme.parameterTypeForOrNull(type);
             T parameters = parametersType == null ? null : objectFactory.newInstance(parametersType);
             ServiceLookup lookup = isolationScheme.servicesForImplementation(parameters, parentServices, Collections.singleton(DependencyFactory.class));
             return new FrameworkCachingJvmTestToolchain<>(instantiatorFactory.decorate(lookup).newInstance(type));

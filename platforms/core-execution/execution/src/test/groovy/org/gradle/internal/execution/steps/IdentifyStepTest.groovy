@@ -18,27 +18,50 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.internal.execution.ImplementationVisitor
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.ValueSnapshot
+import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
 class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
     def delegateResult = Mock(Result)
     def inputFingerprinter = Mock(InputFingerprinter)
-    def step = new IdentifyStep<>(buildOperationRunner, delegate)
+    def classloaderHierarchyHasher = Stub(ClassLoaderHierarchyHasher) {
+        getClassLoaderHash(_ as ClassLoader) >> TestHashCodes.hashCodeFrom(1234)
+    }
 
+    interface MyWorkClass extends UnitOfWork {
+    }
 
-    def "delegates with assigned workspace"() {
+    def step = new IdentifyStep<>(buildOperationRunner, classloaderHierarchyHasher, delegate)
+
+    def "delegates with assigned identity"() {
         def inputSnapshot = Mock(ValueSnapshot)
         def inputFilesFingerprint = Mock(CurrentFileCollectionFingerprint)
+        def implementationType = MyWorkClass
+        def implementationSnapshot = ImplementationSnapshot.of(implementationType.name, TestHashCodes.hashCodeFrom(1234))
+        def additionalImplementations = [
+            ImplementationSnapshot.of("FirstAction", TestHashCodes.hashCodeFrom(2345)),
+            ImplementationSnapshot.of("SecondAction", TestHashCodes.hashCodeFrom(3456))
+        ]
 
         when:
         def result = step.execute(work, context)
 
         then:
         result == delegateResult
+        _ * work.visitImplementations(_) >> { ImplementationVisitor visitor ->
+            visitor.visitImplementation(implementationType)
+            additionalImplementations.each {
+                visitor.visitAdditionalImplementation(it)
+            }
+        }
+
         _ * work.getInputFingerprinter() >> inputFingerprinter
 
         1 * inputFingerprinter.fingerprintInputProperties(
@@ -59,6 +82,8 @@ class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
         1 * delegate.execute(work, _ as IdentityContext) >> { UnitOfWork work, IdentityContext delegateContext ->
             assert delegateContext.inputProperties as Map == ["input": inputSnapshot]
             assert delegateContext.inputFileProperties as Map == ["input-files": inputFilesFingerprint]
+            assert delegateContext.implementation == implementationSnapshot
+            assert delegateContext.additionalImplementations as List == additionalImplementations
             delegateResult
         }
     }

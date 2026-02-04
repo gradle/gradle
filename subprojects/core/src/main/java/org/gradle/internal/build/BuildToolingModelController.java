@@ -18,6 +18,7 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
 /**
@@ -29,7 +30,7 @@ public interface BuildToolingModelController {
      */
     GradleInternal getConfiguredModel();
 
-    ToolingModelScope locateBuilderForTarget(String modelName, boolean param);
+    ToolingModelScope locateBuilderForTarget(ToolingModelRequestContext toolingModelContext);
 
-    ToolingModelScope locateBuilderForTarget(ProjectState target, String modelName, boolean param);
+    ToolingModelScope locateBuilderForTarget(ProjectState target, ToolingModelRequestContext toolingModelContext);
 }

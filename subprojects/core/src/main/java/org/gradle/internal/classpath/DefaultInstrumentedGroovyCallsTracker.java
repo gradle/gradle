@@ -26,7 +26,6 @@ public class DefaultInstrumentedGroovyCallsTracker implements InstrumentedGroovy
 
     private final Stack<EntryPointCallSiteImpl> callSiteStack = new Stack<>();
 
-    @NullMarked
     private static class EntryPointCallSiteImpl implements EntryPointCallSite {
         private final String callableName;
         private final String callerClassName;

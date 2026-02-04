@@ -22,7 +22,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -33,9 +32,9 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
     private final boolean allowAccessToProjectState;
     private final WorkerLeaseService workerLeases;
-    private final Executor executor;
+    private final BuildOperationExecutionContext context;
     private final QueueWorker<T> queueWorker;
-    private @Nullable BuildOperationState parent;
+    private final @Nullable BuildOperationRef parent;
 
     private String logLocation;
 
@@ -52,13 +51,13 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     DefaultBuildOperationQueue(
         boolean allowAccessToProjectState,
         WorkerLeaseService workerLeases,
-        Executor executor,
+        BuildOperationExecutionContext context,
         QueueWorker<T> queueWorker,
-        @Nullable BuildOperationState parent
+        @Nullable BuildOperationRef parent
     ) {
         this.allowAccessToProjectState = allowAccessToProjectState;
         this.workerLeases = workerLeases;
-        this.executor = executor;
+        this.context = context;
         this.queueWorker = queueWorker;
         this.parent = parent;
     }
@@ -76,10 +75,13 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             workQueue.add(operation);
             pendingOperations++;
             workAvailable.signalAll();
-            if (workerCount == 0 || workerCount < workerLeases.getMaxWorkerCount() - 1) {
-                // `getMaxWorkerCount() - 1` because main thread executes work as well. See https://github.com/gradle/gradle/issues/3273
-                // TODO This could be more efficient, so that we only start a worker when there are none idle _and_ there is a worker lease available
-                executor.execute(new WorkerRunnable(parent));
+
+            // `context.getMaxConcurrency() - 1` because main thread executes work as well. See https://github.com/gradle/gradle/issues/3273
+            // TODO This could be more efficient, so that we only start a worker when there are none idle _and_ there is a worker lease available
+            int maxWorkerTasks = context.requiresWorkerLease() ? context.getMaxConcurrency() - 1 : context.getMaxConcurrency();
+
+            if (workerCount == 0 || workerCount < maxWorkerTasks) {
+                context.getExecutor().execute(new WorkerRunnable(parent));
                 workerCount++;
             }
         } finally {
@@ -107,11 +109,12 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     public void waitForCompletion() throws MultipleBuildOperationFailures {
         signalNoMoreWork();
 
-        // Use this thread to process any work - this allows work to be executed using the
-        // worker lease acquired by this thread even if the executor thread pool is full of
-        // workers from other queues.  In other words, it ensures that all worker leases
-        // are being utilized, regardless of the bounds of the thread pool.
-        new WorkerRunnable(parent).run();
+        // If our work requires worker leases, use this thread to process any work, as we already
+        // have a worker lease. This ensures that all worker leases are being utilized,
+        // regardless of the bounds of the thread pool.
+        if (context.requiresWorkerLease()) {
+            new WorkerRunnable(parent).run();
+        }
 
         waitForWorkToComplete();
     }
@@ -194,9 +197,9 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
     private class WorkerRunnable implements Runnable {
 
-        private final @Nullable BuildOperationState parent;
+        private final @Nullable BuildOperationRef parent;
 
-        public WorkerRunnable(@Nullable BuildOperationState parent) {
+        public WorkerRunnable(@Nullable BuildOperationRef parent) {
             this.parent = parent;
         }
 
@@ -236,31 +239,41 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
 
         private void runBatch(final T firstOperation) {
+            int operationsExecuted;
+            if (context.requiresWorkerLease()) {
+                operationsExecuted = workerLeases.runAsWorkerThread(() -> executePendingWork(firstOperation));
+            } else {
+                operationsExecuted = executePendingWork(firstOperation);
+            }
+
             // We need to update pending count outside of withLocks() so that we don't have a race
             // condition where the pending count is 0, but a child worker lease is still held when
             // the parent lease is released.
-            completeOperations(
-                // Run while holding worker lease.
-                workerLeases.runAsWorkerThread(() -> {
-                    if (allowAccessToProjectState) {
-                        return doRunBatch(firstOperation);
-                    } else {
-                        // Disallow this thread from making any changes to the project locks while it is running the work. This implies that this thread will not
-                        // block waiting for access to some other project, which means it can proceed even if some other thread is waiting for a project lock it
-                        // holds without causing a deadlock. This in turn implies that this thread does not need to release the project locks it holds while
-                        // blocking waiting for an operation to complete and does not need to deal with another thread stealing its project lock(s) while blocking.
-                        //
-                        // Eventually, this should become the default and only behaviour for all worker threads and changes to locks made only when starting or
-                        // finishing an execution node. Adding this constraint here means that we can make all build operation queue workers compliant with this
-                        // constraint and then gradually roll this out to other worker threads, such as task action workers.
-                        //
-                        // See {@link ProjectLeaseRegistry#whileDisallowingProjectLockChanges} for more details
-                        return workerLeases.whileDisallowingProjectLockChanges(() -> doRunBatch(firstOperation));
-                    }
-                })
-            );
+            completeOperations(operationsExecuted);
         }
 
+        private int executePendingWork(T firstOperation) {
+            if (allowAccessToProjectState) {
+                return doRunBatch(firstOperation);
+            } else {
+                // Disallow this thread from making any changes to the project locks while it is running the work. This implies that this thread will not
+                // block waiting for access to some other project, which means it can proceed even if some other thread is waiting for a project lock it
+                // holds without causing a deadlock. This in turn implies that this thread does not need to release the project locks it holds while
+                // blocking waiting for an operation to complete and does not need to deal with another thread stealing its project lock(s) while blocking.
+                //
+                // Eventually, this should become the default and only behaviour for all worker threads and changes to locks made only when starting or
+                // finishing an execution node. Adding this constraint here means that we can make all build operation queue workers compliant with this
+                // constraint and then gradually roll this out to other worker threads, such as task action workers.
+                //
+                // See {@link ProjectLeaseRegistry#whileDisallowingProjectLockChanges} for more details
+                return workerLeases.whileDisallowingProjectLockChanges(() -> doRunBatch(firstOperation));
+            }
+        }
+
+        /**
+         * Run as much work as possible until the queue is empty or the queue is cancelled.
+         * Then, we return and release the worker lease while we wait for more work to be added to the queue.
+         */
         private int doRunBatch(T firstOperation) {
             int operationCount = 0;
             T operation = firstOperation;

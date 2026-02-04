@@ -21,9 +21,12 @@ import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace
 
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 
 
 class PropertyTraceTest {
@@ -56,6 +59,37 @@ class PropertyTraceTest {
                     "input property `i` of " +
                     "task `:t` of type `${taskType.name}`"
             )
+        )
+    }
+
+    @Test
+    fun `toString representation takes the entire property trace chain account`() {
+        assertEquals(PropertyTrace.Unknown.toString(), "unknown location")
+        assertEquals(
+            PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).toString(),
+            "property usage `prop1` of unknown location",
+        )
+        assertEquals(
+            PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Project(":proj1", PropertyTrace.Unknown)).toString(),
+            "property usage `prop1` of project `:proj1` in unknown location",
+        )
+    }
+
+    @Test
+    fun `fullHash takes the entire property trace chain into account`() {
+        assertEquals(PropertyTrace.Unknown.fullHash, PropertyTrace.Unknown.fullHash)
+        assertNotEquals(PropertyTrace.Unknown.fullHash, PropertyTrace.Gradle.fullHash)
+        assertEquals(
+            PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).fullHash,
+            PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).fullHash
+        )
+        assertNotEquals(
+            PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).fullHash,
+            PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Gradle).fullHash
+        )
+        assertNotEquals(
+            PropertyTrace.Property(PropertyKind.PropertyUsage, "prop1", PropertyTrace.Unknown).fullHash,
+            PropertyTrace.Property(PropertyKind.PropertyUsage, "prop2", PropertyTrace.Unknown)
         )
     }
 }

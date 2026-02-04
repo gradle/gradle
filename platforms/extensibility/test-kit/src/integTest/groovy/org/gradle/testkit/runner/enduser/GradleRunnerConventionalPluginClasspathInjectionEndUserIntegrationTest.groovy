@@ -64,7 +64,7 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
                         .withProjectDir(testProjectDir)
                         .withArguments('helloWorld')
                         .withPluginClasspath()
-                        .withDebug($debug)
+                        .withDebug($embedded)
                         .build()
 
                     then:

@@ -16,39 +16,37 @@
 
 package org.gradle.internal.declarativedsl.common
 
+import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
+import org.gradle.internal.declarativedsl.schemaBuilder.SupertypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
-import kotlin.reflect.KClass
-import kotlin.reflect.KType
+import kotlin.reflect.full.isSubclassOf
 
 
-/**
- * Discovers all supertypes of a type that might be potentially declarative.
- * So, for `A : B` and `B : C`, if `A` is included in the schema, this component will also discover `B` and `C`.
- * This does not include the [Any] type.
- */
 internal
 class SupertypeTypeDiscovery : AnalysisSchemaComponent {
-    override fun typeDiscovery(): List<TypeDiscovery> = listOf(
-        object : TypeDiscovery {
-            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
-                withAllPotentiallyDeclarativeSupertypes(kClass)
-        }
-    )
-}
-
-
-internal
-fun withAllPotentiallyDeclarativeSupertypes(kClass: KClass<*>) = buildSet<KClass<*>> {
-    fun visit(type: KType) {
-        val classifier = type.classifier
-        if (classifier is KClass<*> && add(classifier)) {
-            classifier.supertypes.forEach(::visit)
-        }
-    }
-    add(kClass)
-    kClass.supertypes.forEach(::visit)
-
-    // No need to include Any, it only clutters the schema
-    remove(Any::class)
+    /**
+     * Collect the supertypes using [SupertypeDiscovery].
+     * Exclude the build model types to avoid bringing the build models into the schema (as they are likely to have non-declarative members)
+     * if they only appear in the supertype (as in Foo : Definition<FooBuildModel>).
+     *
+     * TODO: This is not a precise solution, as it will reject BuildModel subtypes discovered in the type hierarchy even if they are not used as type arguments to Definition<T>, e.g. in
+     *
+     * ```kotlin
+     * class SomeModel : BuildModel
+     * class Foo : Definition<FooModel>, UnrelatedUsage<SomeModel> // excludes SomeModel as well
+     * ```
+     *
+     * Properly detecting only types used as arguments to Definition<T> is more complex, especially in cases like:
+     *
+     * ```kotlin
+     * open class Foo<T> : Definition<T>
+     * class Bar : Foo<BarBuildModel>()
+     * ```
+     *
+     * ```kotlin
+     * open class Foo<T> : Definition<ParameterizedModel<T>>
+     * ```
+     */
+    override fun typeDiscovery(): List<TypeDiscovery> = listOf(SupertypeDiscovery { it.isSubclassOf(BuildModel::class) })
 }

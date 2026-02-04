@@ -1,5 +1,6 @@
 package org.gradle.internal.declarativedsl.mappingToJvm
 
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier
 import org.gradle.declarative.dsl.schema.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
@@ -140,7 +141,7 @@ class DeclarativeReflectionToObjectConverter(
     private
     sealed interface ObjectAccessKey {
         data class Identity(val id: OperationId) : ObjectAccessKey
-        data class CustomAccessor(val owner: ObjectOrigin, val accessorId: String) : ObjectAccessKey
+        data class CustomAccessor(val owner: ObjectOrigin, val accessorId: CustomAccessorIdentifier) : ObjectAccessKey
         data class ConfiguringLambda(val owner: ObjectOrigin, val function: SchemaFunction, val identityValues: List<Any?>) : ObjectAccessKey
     }
 
@@ -194,7 +195,7 @@ class DeclarativeReflectionToObjectConverter(
     private
     fun objectFromCustomAccessor(
         origin: ObjectOrigin.CustomConfigureAccessor
-    ): InstanceAndPublicType = objectByIdentity(ObjectAccessKey.CustomAccessor(origin.receiver, origin.accessor.customAccessorIdentifier)) {
+    ): InstanceAndPublicType = objectByIdentity(ObjectAccessKey.CustomAccessor(origin.receiver, origin.accessor.accessorIdentifier)) {
         val instanceAndPublicType = getObjectByResolvedOrigin(origin.receiver).validate { "receiver for custom accessor is null" }
         customAccessors.getObjectFromCustomAccessor(instanceAndPublicType.first, origin.accessor)
     }

@@ -19,6 +19,8 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.build.BuildToolingModelController
+import org.gradle.internal.buildtree.ToolingModelRequestContext
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.tooling.provider.model.internal.ToolingModelScope
 
@@ -30,12 +32,12 @@ class ConfigurationCacheAwareBuildToolingModelController(
 ) : BuildToolingModelController {
     override fun getConfiguredModel(): GradleInternal = delegate.configuredModel
 
-    override fun locateBuilderForTarget(modelName: String, param: Boolean): ToolingModelScope {
-        return wrap(delegate.locateBuilderForTarget(modelName, param))
+    override fun locateBuilderForTarget(toolingModelRequestContext: ToolingModelRequestContext): ToolingModelScope {
+        return wrap(delegate.locateBuilderForTarget(toolingModelRequestContext))
     }
 
-    override fun locateBuilderForTarget(target: ProjectState, modelName: String, param: Boolean): ToolingModelScope {
-        return wrap(delegate.locateBuilderForTarget(target, modelName, param))
+    override fun locateBuilderForTarget(target: ProjectState, toolingModelRequestContext: ToolingModelRequestContext): ToolingModelScope {
+        return wrap(delegate.locateBuilderForTarget(target, toolingModelRequestContext))
     }
 
     private
@@ -49,10 +51,9 @@ class ConfigurationCacheAwareBuildToolingModelController(
         private val cache: BuildTreeConfigurationCache
     ) : ToolingModelScope {
         override fun getTarget() = delegate.target
-
-        override fun getModel(modelName: String, parameter: ToolingModelParameterCarrier?): Any? {
-            return cache.loadOrCreateIntermediateModel(target?.identity, modelName, parameter) {
-                delegate.getModel(modelName, parameter)
+        override fun getModel(modelRequestContext: ToolingModelRequestContext, parameter: ToolingModelParameterCarrier?): ToolingModelBuilderResultInternal {
+            return cache.loadOrCreateIntermediateModel(target?.identity, modelRequestContext, parameter) {
+                delegate.getModel(modelRequestContext, parameter)
             }
         }
     }

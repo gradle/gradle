@@ -16,23 +16,20 @@
 
 package org.gradle.internal.execution.workspace.impl;
 
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 
 import java.io.File;
 
 public class NonLockingMutableWorkspaceProvider implements MutableWorkspaceProvider {
-    private final ExecutionHistoryStore executionHistoryStore;
     private final File baseDirectory;
 
-    public NonLockingMutableWorkspaceProvider(ExecutionHistoryStore executionHistoryStore, File baseDirectory) {
-        this.executionHistoryStore = executionHistoryStore;
+    public NonLockingMutableWorkspaceProvider(File baseDirectory) {
         this.baseDirectory = baseDirectory;
     }
 
     @Override
     public <T> T withWorkspace(String path, WorkspaceAction<T> action) {
         File workspace = new File(baseDirectory, path);
-        return action.executeInWorkspace(workspace, executionHistoryStore);
+        return action.executeInWorkspace(workspace);
     }
 }

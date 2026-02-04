@@ -33,13 +33,11 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.StartParameter;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.buildoption.DefaultInternalOptions;
 import org.gradle.internal.buildoption.InternalFlag;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
@@ -162,11 +160,10 @@ public class BuildOperationTrace implements Stoppable {
 
     private final BuildOperationListenerManager buildOperationListenerManager;
 
-    public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
+    public BuildOperationTrace(File userActionRootDir, InternalOptions internalOptions, BuildOperationListenerManager buildOperationListenerManager) {
         this.buildOperationListenerManager = buildOperationListenerManager;
 
-        InternalOptions internalOptions = new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
-        Path basePath = resolveBasePath(internalOptions, startParameter);
+        Path basePath = resolveBasePath(internalOptions, userActionRootDir);
         if (basePath == null) {
             this.outputTree = false;
             this.listener = null;
@@ -188,14 +185,14 @@ public class BuildOperationTrace implements Stoppable {
     }
 
     @Nullable
-    private static Path resolveBasePath(InternalOptions internalOptions, StartParameter startParameter) {
+    private static Path resolveBasePath(InternalOptions internalOptions, File userActionRootDir) {
         String basePath = internalOptions.getOption(TRACE_OPTION).get();
         if (basePath == null || basePath.equals("false")) {
             return null;
         }
 
-        Path currentDir = startParameter.getCurrentDir().getAbsoluteFile().toPath();
-        return basePath.isEmpty() ? currentDir.resolve("operations") : currentDir.resolve(basePath);
+        Path base = userActionRootDir.toPath();
+        return basePath.isEmpty() ? base.resolve("operations") : base.resolve(basePath);
     }
 
     @Nullable

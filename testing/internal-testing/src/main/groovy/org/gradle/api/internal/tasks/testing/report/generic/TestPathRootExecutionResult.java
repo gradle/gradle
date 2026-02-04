@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.tasks.testing.TestResult;
 import org.hamcrest.Matcher;
 
+import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +91,14 @@ public interface TestPathRootExecutionResult {
 
     TestPathRootExecutionResult assertFailureMessages(Matcher<? super String> matcher);
 
+    /**
+     * Asserts that there is only one duration recorded for the test path, and that it matches the given matcher.
+     *
+     * @param matcher the matcher to verify the duration
+     * @return {@code this}
+     */
+    TestPathRootExecutionResult assertThatSingleDuration(Matcher<? super Duration> matcher);
+
     String getFailureMessages();
 
     /**
@@ -125,4 +134,19 @@ public interface TestPathRootExecutionResult {
      * @return {@code this}
      */
     TestPathRootExecutionResult assertMetadata(List<Map.Entry<String, String>> metadata);
+
+    /**
+     * Flags to indicate how a file attachment should be rendered
+     */
+    enum ShowAs {
+        LINK, IMAGE, VIDEO;
+    }
+
+    /**
+     * Asserts that the given file attachments are shown as the given type in the report.
+     *
+     * @param expectedAttachments the expected file attachments
+     * @return {@code this}
+     */
+    TestPathRootExecutionResult assertFileAttachments(Map<String, ShowAs> expectedAttachments);
 }

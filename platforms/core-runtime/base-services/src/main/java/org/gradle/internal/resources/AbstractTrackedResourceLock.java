@@ -19,6 +19,8 @@ package org.gradle.internal.resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 public abstract class AbstractTrackedResourceLock implements ResourceLock {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTrackedResourceLock.class);
 
@@ -49,7 +51,7 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
                     releaseLock();
                     throw e;
                 }
-                coordinationService.getCurrent().registerLocked(this);
+                Objects.requireNonNull(coordinationService.getCurrent()).registerLocked(this);
                 return true;
             } else {
                 return false;
@@ -67,7 +69,7 @@ public abstract class AbstractTrackedResourceLock implements ResourceLock {
             try {
                 owner.lockReleased(this);
             } finally {
-                coordinationService.getCurrent().registerUnlocked(this);
+                Objects.requireNonNull(coordinationService.getCurrent()).registerUnlocked(this);
             }
         }
     }

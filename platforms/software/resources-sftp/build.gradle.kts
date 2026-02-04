@@ -26,7 +26,7 @@ dependencies {
     testImplementation(testFixtures(projects.maven))
 
     integTestImplementation(projects.logging)
-    integTestImplementation(libs.jetty)
+    integTestImplementation(testLibs.jetty)
     integTestImplementation(libs.sshdCore)
     integTestImplementation(libs.sshdScp)
     integTestImplementation(libs.sshdSftp)

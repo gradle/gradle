@@ -25,7 +25,7 @@ import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
-import org.gradle.internal.declarativedsl.common.dependencyCollectors
+import org.gradle.internal.declarativedsl.dependencycollectors.dependencyCollectors
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema

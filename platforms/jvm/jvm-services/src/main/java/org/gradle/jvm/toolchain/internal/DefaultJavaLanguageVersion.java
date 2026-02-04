@@ -34,6 +34,31 @@ public class DefaultJavaLanguageVersion implements JavaLanguageVersion, Serializ
         }
     }
 
+    /**
+     * A constant representing an unknown Java language version.
+     */
+    public static final JavaLanguageVersion UNKNOWN = new JavaLanguageVersion() {
+        @Override
+        public int asInt() {
+            return -1;
+        }
+
+        @Override
+        public boolean canCompileOrRun(JavaLanguageVersion other) {
+            return false;
+        }
+
+        @Override
+        public boolean canCompileOrRun(int otherVersion) {
+            return false;
+        }
+
+        @Override
+        public int compareTo(JavaLanguageVersion javaLanguageVersion) {
+            return Integer.compare(asInt(), javaLanguageVersion.asInt());
+        }
+    };
+
     public static JavaLanguageVersion of(int version) {
         if (version <= 0) {
             throw new IllegalArgumentException("JavaLanguageVersion must be a positive integer, not '" + version + "'");

@@ -89,7 +89,7 @@ class BuildLogicFunctionalTest extends Specification {
             .withProjectDir(testProjectDir.getRoot())
             .withArguments('testGroovyVersion', '--stacktrace', '--info')
             .withGradleInstallation(new File("${TextUtil.normaliseFileSeparators(buildContext.gradleHomeDir.absolutePath)}"))
-            .withDebug($debug)
+            .withDebug($embedded)
             .build()
 
         then:

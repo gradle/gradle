@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -42,6 +41,7 @@ import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.Copy;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
@@ -52,6 +52,9 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.buildoption.InternalFlag;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
+import org.gradle.internal.jvm.JpmsConfiguration;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
@@ -69,7 +72,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -91,6 +93,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
 
+    @Deprecated
     static final String API_CONFIGURATION = JvmConstants.API_CONFIGURATION_NAME;
     static final String JAR_TASK = "jar";
     static final String PROCESS_RESOURCES_TASK = "processResources";
@@ -99,7 +102,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String CLASSES_PATTERN = "**/*.class";
     static final String BAD_IMPL_CLASS_WARNING_MESSAGE = "%s: A valid plugin descriptor was found for %s but the implementation class %s was not found in the jar.";
     static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "%s: A plugin descriptor was found for %s but it was invalid.";
-    static final String NO_DESCRIPTOR_WARNING_MESSAGE = "%s: No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
+    static final String NO_DESCRIPTOR_WARNING_MESSAGE = "%s: No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS;
     static final String DECLARED_PLUGIN_MISSING_MESSAGE = "%s: Could not find plugin descriptor of %s at META-INF/" + GRADLE_PLUGINS + "/%s.properties";
     static final String DECLARATION_MISSING_ID_MESSAGE = "Missing id for %s";
     static final String DECLARATION_MISSING_IMPLEMENTATION_MESSAGE = "Missing implementationClass for %s";
@@ -162,7 +165,10 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
         ProjectInternal projectInternal = (ProjectInternal) project;
         ProjectPublicationRegistry registry = projectInternal.getServices().get(ProjectPublicationRegistry.class);
         ProjectIdentity projectIdentity = projectInternal.getProjectIdentity();
-        extension.getPlugins().all(pluginDeclaration -> registry.registerPublication(projectIdentity, new LocalPluginPublication(pluginDeclaration)));
+        extension.getPlugins().all(pluginDeclaration -> {
+            pluginDeclaration.setId(pluginDeclaration.getName());
+            registry.registerPublication(projectIdentity, new LocalPluginPublication(pluginDeclaration));
+        });
     }
 
     private static void applyDependencies(Project project) {
@@ -172,7 +178,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
             return;
         }
         DependencyHandler dependencies = project.getDependencies();
-        dependencies.add(API_CONFIGURATION, dependencies.gradleApi());
+        dependencies.add(JvmConstants.COMPILE_ONLY_API_CONFIGURATION_NAME, dependencies.gradleApi());
     }
 
     private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {
@@ -280,6 +286,16 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
             task.getClasspath().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getCompileClasspath());
         });
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, check -> check.dependsOn(validatorTask));
+
+        // Published plugins get stricter validation by default
+        project.getPluginManager().withPlugin("publishing", p -> enableStricterValidation(validatorTask));
+        project.getPluginManager().withPlugin("com.gradle.plugin-publish", p -> enableStricterValidation(validatorTask));
+    }
+
+    private static void enableStricterValidation(TaskProvider<ValidatePlugins> validatePlugins) {
+        validatePlugins.configure(task -> {
+            task.getEnableStricterValidation().convention(true);
+        });
     }
 
     private void configureDependencyGradlePluginsResolution(Project project) {
@@ -435,18 +451,26 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
             Set<SourceSet> testSourceSets = extension.getTestSourceSets();
             project.getNormalization().getRuntimeClasspath().ignore(PluginUnderTestMetadata.METADATA_FILE_NAME);
 
+            GradleInstallation gradleInstallation = ((ProjectInternal) project).getServices().get(CurrentGradleInstallation.class).getInstallation();
             project.getTasks().withType(Test.class).configureEach(test -> {
                 test.getInputs()
-                    .files(pluginClasspathTask.get().getPluginClasspath())
+                    .files(pluginClasspathTask.map(PluginUnderTestMetadata::getPluginClasspath))
                     .withPropertyName("pluginClasspath")
                     .withNormalizer(ClasspathNormalizer.class);
 
-                test.getJvmArgumentProviders().add(new AddOpensCommandLineArgumentProvider(test));
+                test.getJvmArgumentProviders().add(new GradleJvmCommandLineArgumentProvider(test));
+                if (gradleInstallation != null) {
+                    test.getInputs()
+                        .dir(gradleInstallation.getGradleHome())
+                        .withPathSensitivity(PathSensitivity.RELATIVE)
+                        .withPropertyName("gradleHome");
+                }
             });
 
             for (SourceSet testSourceSet : testSourceSets) {
                 String implementationConfigurationName = testSourceSet.getImplementationConfigurationName();
                 dependencies.add(implementationConfigurationName, dependencies.gradleTestKit());
+                dependencies.add(implementationConfigurationName, dependencies.gradleApi());
                 String runtimeOnlyConfigurationName = testSourceSet.getRuntimeOnlyConfigurationName();
                 dependencies.add(runtimeOnlyConfigurationName, project.getLayout().files(pluginClasspathTask));
             }
@@ -454,22 +478,20 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     /**
-     * Provides an {@code --add-opens} flag for {@code java.base/java.lang} if the JVM version
-     * a given test task is running does not allow reflection of JDK internals by default.
+     * Provides JVM argumensts necessary to to run a Gradle daemon depending on the Gradle version used.
      * Needed when using ProjectBuilder in tests.
      */
-    private static class AddOpensCommandLineArgumentProvider implements CommandLineArgumentProvider {
+    private static class GradleJvmCommandLineArgumentProvider implements CommandLineArgumentProvider {
         private final Test test;
 
-        private AddOpensCommandLineArgumentProvider(Test test) {
+        private GradleJvmCommandLineArgumentProvider(Test test) {
             this.test = test;
         }
 
         @Override
         public Iterable<String> asArguments() {
-            return test.getJavaVersion().isCompatibleWith(JavaVersion.VERSION_1_9)
-                ? Collections.singletonList("--add-opens=java.base/java.lang=ALL-UNNAMED")
-                : Collections.emptyList();
+            int majorVersion = Integer.parseInt(test.getJavaVersion().getMajorVersion());
+            return JpmsConfiguration.forDaemonProcesses(majorVersion, true);
         }
     }
 

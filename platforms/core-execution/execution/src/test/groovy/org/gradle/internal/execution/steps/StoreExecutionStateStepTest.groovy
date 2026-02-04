@@ -22,6 +22,7 @@ import org.gradle.caching.internal.SimpleBuildCacheKey
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
 import org.gradle.internal.execution.Execution
+import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.AfterExecutionState
 import org.gradle.internal.execution.history.BeforeExecutionState
@@ -31,7 +32,7 @@ import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
-class StoreExecutionStateStepTest extends StepSpec<IncrementalCachingContext> implements SnapshotterFixture {
+class StoreExecutionStateStepTest extends StepSpec<MutableCachingContext> implements SnapshotterFixture {
     def executionHistoryStore = Mock(ExecutionHistoryStore)
     def cacheKey = TestHashCodes.hashCodeFrom(1234)
 
@@ -46,12 +47,12 @@ class StoreExecutionStateStepTest extends StepSpec<IncrementalCachingContext> im
     def outputFile = file("output.txt").text = "output"
     def outputFilesProducedByWork = snapshotsOf(output: outputFile)
 
-    def step = new StoreExecutionStateStep<IncrementalCachingContext, AfterExecutionResult>(delegate)
+    def step = new StoreExecutionStateStep<MutableCachingContext, AfterExecutionResult>(delegate)
     def delegateResult = Mock(AfterExecutionResult)
-
+    def work = Stub(MutableUnitOfWork)
 
     def setup() {
-        _ * context.history >> Optional.of(executionHistoryStore)
+        _ * work.history >> Optional.of(executionHistoryStore)
         _ * context.cacheKey >> Optional.of(TestHashCodes.hashCodeFrom(1234))
     }
 

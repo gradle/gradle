@@ -113,6 +113,7 @@ As it currently has known problems, we disable it for now to simplify early adop
 ==== Additional APIs treated as incompatible with Isolated Projects
 
 The following two methods now emit IP violations when the requested task lives in a different project:
+
 - `TaskContainer#findByPath(String)`
 - `TaskContainer#getByPath(String)`
 

@@ -1,7 +1,6 @@
 package configurations
 
 import common.Os
-import common.VersionedSettingsBranch
 import common.applyDefaultSettings
 import common.toCapitalized
 import common.uuidPrefix
@@ -94,25 +93,8 @@ class StageTrigger(
             publishBuildStatusToGithub(model)
         }
 
-        // 2025-10-24: we are dogfooding DV Artifact Cache by triggering
-        // a QuickFeedbackLinux build in Xperimental pipeline upon push events of all branches
-        if (VersionedSettingsBranch.fromDslContext().isExperimental && stage.stageName == StageName.QUICK_FEEDBACK_LINUX_ONLY) {
-            triggers.vcsTrigger(listOf("*"))
-            triggers.schedule {
-                schedulingPolicy =
-                    daily {
-                        hour = 8
-                        minute = 0
-                    }
-                triggerBuild = always()
-                withPendingChangesOnly = true
-                param("revisionRule", "lastFinished")
-                branchFilter = determineBranchFilter(listOf("master"))
-            }
-        }
-
         if (generateTriggers) {
-            val enableTriggers = model.branch.enableVcsTriggers
+            val enableTriggers = model.branch.isMainBranch || model.branch.isLegacyRelease
             if (stage.trigger == Trigger.EACH_COMMIT) {
                 val effectiveTriggerBranches = mutableListOf(model.branch.branchName)
 

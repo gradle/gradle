@@ -105,9 +105,7 @@ implementation-class: SneakyPlugin
 
         private GradleRunner createRunner() {
             def runner = GradleRunner.create()
-            if (!IntegrationTestBuildContext.embedded) {
-                runner.withGradleInstallation(buildContext.gradleHomeDir)
-            }
+            runner.withGradleInstallation(buildContext.gradleHomeDir)
             runner.withTestKitDir(testKitDir)
             runner.withProjectDir(workingDir)
             def args = allArgs

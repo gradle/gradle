@@ -32,7 +32,7 @@ import java.util.List;
 
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE;
 
-public class SkipUpToDateStep<C extends IncrementalChangesContext> implements Step<C, UpToDateResult> {
+public class SkipUpToDateStep<C extends MutableChangesContext> implements Step<C, UpToDateResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipUpToDateStep.class);
 
     private final Step<? super C, ? extends AfterExecutionResult> delegate;

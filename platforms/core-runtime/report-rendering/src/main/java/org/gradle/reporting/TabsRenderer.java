@@ -25,7 +25,11 @@ public class TabsRenderer<T> extends ReportRenderer<T, SimpleHtmlWriter> {
     private final List<TabDefinition> tabs = new ArrayList<TabDefinition>();
 
     public void add(String title, ReportRenderer<T, SimpleHtmlWriter> contentRenderer) {
-        tabs.add(new TabDefinition(title, contentRenderer));
+        tabs.add(new TabDefinition(title, "", contentRenderer));
+    }
+
+    public void add(String title, String tabClass, ReportRenderer<T, SimpleHtmlWriter> contentRenderer) {
+        tabs.add(new TabDefinition(title, tabClass, contentRenderer));
     }
 
     public void clear() {
@@ -38,7 +42,7 @@ public class TabsRenderer<T> extends ReportRenderer<T, SimpleHtmlWriter> {
             htmlWriterWriter.startElement("ul").attribute("class", "tabLinks");
                 for (TabDefinition tab : this.tabs) {
                     htmlWriterWriter.startElement("li");
-                    htmlWriterWriter.startElement("a").attribute("href", "#").characters(tab.title).endElement();
+                    htmlWriterWriter.startElement("a").attribute("class", tab.tabClass).attribute("href", "#").characters(tab.title).endElement();
                     htmlWriterWriter.endElement();
                 }
             htmlWriterWriter.endElement();
@@ -54,10 +58,12 @@ public class TabsRenderer<T> extends ReportRenderer<T, SimpleHtmlWriter> {
 
     private class TabDefinition {
         final String title;
+        private final String tabClass;
         final ReportRenderer<T, SimpleHtmlWriter> renderer;
 
-        private TabDefinition(String title, ReportRenderer<T, SimpleHtmlWriter> renderer) {
+        private TabDefinition(String title, String tabClass, ReportRenderer<T, SimpleHtmlWriter> renderer) {
             this.title = title;
+            this.tabClass = tabClass;
             this.renderer = renderer;
         }
     }

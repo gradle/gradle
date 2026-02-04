@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
-import spock.lang.Unroll
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -199,18 +198,17 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
    Cannot select module with conflict on capability 'org:test:1.0' also provided by ['org:test:1.0' (api), 'org:test:1.0' (runtime)]""")
     }
 
-    @Unroll("can select distinct variants of the same component by using different attributes with capabilities (conflict=#conflict)")
     void "can select distinct variants of the same component by using different attributes with capabilities"() {
         given:
         repository {
-            'org:test:1.0' {
+            id('org:test:1.0') {
                 variant('api') {
                     attribute('custom', 'c1')
                     capability('org.test', 'cap', '1.0')
                 }
                 variant('runtime') {
                     attribute('custom', 'c2')
-                    capability('org.test', 'cap', conflict ? '1.0' : '1.1')
+                    capability('org.test', 'cap', '1.1')
                 }
             }
         }
@@ -237,27 +235,43 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
 
             configurations.conf.resolutionStrategy.capabilitiesResolution.all { selectHighestVersion() }
+
+            class CompatibilityRule implements AttributeCompatibilityRule<String> {
+                @Override
+                void execute(CompatibilityCheckDetails<String> details) {
+                    if (details.consumerValue == 'c1' && details.producerValue == 'c2') {
+                        details.compatible()
+                    }
+                }
+            }
+
+            dependencies {
+                attributesSchema {
+                    if (!$incompatibleVariants) {
+                        attribute(CUSTOM_ATTRIBUTE).compatibilityRules.add(CompatibilityRule)
+                    }
+                }
+            }
         """
 
         when:
         repositoryInteractions {
-            'org:test:1.0' {
+            id('org:test:1.0') {
                 expectGetMetadata()
-                if (!conflict) {
-                    expectGetArtifact()
-                }
+                expectGetArtifact()
             }
         }
-        if (conflict) {
-            fails 'checkDeps'
+        if (incompatibleVariants) {
+            fails(":checkDeps")
         } else {
-            succeeds 'checkDeps'
+            succeeds(":checkDeps")
         }
 
         then:
-        if (conflict) {
-            failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by ['org:test:1.0' (api), 'org:test:1.0' (runtime)]""")
+        if (incompatibleVariants) {
+            failure.assertHasCause("""No variants of org:test:1.0 match the consumer attributes:
+  - org:test:1.0 variant runtime:
+      - Incompatible because this component declares attribute 'custom' with value 'c2' and the consumer needed attribute 'custom' with value 'c1'""")
         } else {
             resolve.expectGraph {
                 root(":", ":test:") {
@@ -271,7 +285,56 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         }
 
         where:
-        conflict << [true, false]
+        incompatibleVariants << [true, false]
+    }
+
+    void "distinct variants of the same component may enter a capability conflict"() {
+        given:
+        repository {
+            id('org:test:1.0') {
+                variant('api') {
+                    attribute('custom', 'c1')
+                    capability('org.test', 'cap', '1.0')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                    capability('org.test', 'cap', '1.0')
+                }
+            }
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:test:1.0') {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, 'c1')
+                    }
+                    capabilities {
+                        requireCapability('org.test:cap')
+                    }
+                }
+                conf('org:test:1.0') {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, 'c2')
+                    }
+                    capabilities {
+                        requireCapability('org.test:cap')
+                    }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            id('org:test:1.0') {
+                expectGetMetadata()
+            }
+        }
+        fails(":checkDeps")
+
+        then:
+        failure.assertHasCause("""Module 'org:test' has been rejected:
+   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by ['org:test:1.0' (api), 'org:test:1.0' (runtime)]""")
     }
 
     def "selects 2 variants of the same component with transitive dependency if they have different capabilities"() {

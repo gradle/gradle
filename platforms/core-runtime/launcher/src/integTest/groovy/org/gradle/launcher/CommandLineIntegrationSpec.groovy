@@ -19,6 +19,7 @@ package org.gradle.launcher
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
+import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
@@ -64,6 +65,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "foo", " 1"]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/21695")
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
     def "can debug with org.gradle.debug=true"() {
         given:
@@ -78,7 +80,10 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
             // Connect, resume threads, and disconnect from VM
             jdwpClient.connect().dispose()
         }
-        gradle.waitForFinish()
+        def output = gradle.waitForFinish().getOutput();
+
+        expect:
+        output.contains(DaemonMessages.WAITING_FOR_DEBUGGER)
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18084')

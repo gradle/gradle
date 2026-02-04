@@ -41,6 +41,32 @@ class PerformanceReporter {
         this.fileOperations = fileOperations
     }
 
+    static class PerformanceReportExecOutputStream extends OutputStream {
+        private File profilingOutput;
+        private StringBuilder buffer = new StringBuilder()
+
+        PerformanceReportExecOutputStream(File profilingOutput) {
+            this.profilingOutput = profilingOutput
+        }
+
+        @Override
+        void write(int b) throws IOException {
+            char c = (char) b
+            if (c == ('\n' as char)) {
+                String line = buffer.toString()
+                String prefix = "[Profiling] "
+                if (line.startsWith(prefix)) {
+                    profilingOutput << line.substring(prefix.length()) << "\n"
+                }
+                println(line)
+
+                buffer.setLength(0) // Clear for next line
+            } else {
+                buffer.append(c)
+            }
+        }
+    }
+
     void report(
         String reportGeneratorClass,
         File reportDir,
@@ -56,9 +82,10 @@ class PerformanceReporter {
         boolean debugReportGeneration
     ) {
         fileOperations.delete {
-           it.delete(reportDir)
+            it.delete(reportDir)
         }
-        ByteArrayOutputStream output = new ByteArrayOutputStream()
+        reportDir.mkdirs()
+        OutputStream output = new PerformanceReportExecOutputStream(new File(reportDir, "profiling.txt"))
 
         ExecResult result = execOperations.javaexec(new Action<JavaExecSpec>() {
             void execute(JavaExecSpec spec) {
@@ -84,18 +111,8 @@ class PerformanceReporter {
             }
         })
 
-        String message = output.toString().readLines().findAll { line ->
-            ! [
-                // WARNING: All illegal access operations will be denied in a future release
-                "WARNING",
-                // SLF4J: Class path contains multiple SLF4J bindings.
-                "SLF4J"
-            ].any { line.contains(it) }
-        }.join("\n")
-
-        println(message)
         if (result.exitValue != 0) {
-            throw new GradleException("Performance test failed: " + message)
+            throw new GradleException("Performance test failed")
         }
     }
 }

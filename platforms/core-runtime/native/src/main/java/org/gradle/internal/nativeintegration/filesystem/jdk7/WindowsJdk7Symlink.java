@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
 /**
@@ -30,6 +31,32 @@ import java.nio.file.attribute.BasicFileAttributes;
  * have permission to use them.
  */
 public class WindowsJdk7Symlink extends Jdk7Symlink {
+
+    /**
+     * Determine if the file indicated by {@code suspectPath} is some form of link
+     * (symbolic link or junction).
+     *
+     * @param suspectPath the path to check
+     * @return {@code true} if the path is a link, {@code false} otherwise
+     */
+    private static boolean modifiesRealPath(Path suspectPath) {
+        Path parent = suspectPath.getParent();
+        if (parent == null) {
+            return false;
+        }
+        try {
+            // Remove any symbolic links or junctions from the parent path
+            // This prevents false positives when an ancestor is a link
+            Path realParent = parent.toRealPath();
+            Path suspectWithRealParent = realParent.resolve(suspectPath.getFileName());
+            // If the suspect is a link, converting it to a real path will change the path
+            Path realSuspect = suspectPath.toRealPath();
+            return !suspectWithRealParent.equals(realSuspect);
+        } catch (IOException ignored) {
+            // Ignore IOException like Files.isSymbolicLink does
+            return false;
+        }
+    }
 
     public WindowsJdk7Symlink() {
         super(false);
@@ -43,10 +70,13 @@ public class WindowsJdk7Symlink extends Jdk7Symlink {
     @Override
     public boolean isSymlink(File suspect) {
         try {
-            BasicFileAttributes attrs = Files.readAttributes(suspect.toPath(), BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
-            boolean isJunction = attrs.isDirectory() && attrs.isOther();
-            // Handles both junctions and real symlinks (https://www.2brightsparks.com/resources/articles/NTFS-Hard-Links-Junctions-and-Symbolic-Links.pdf)
-            return isJunction || super.isSymlink(suspect);
+            Path suspectPath = suspect.toPath();
+            BasicFileAttributes attrs = Files.readAttributes(suspectPath, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+            if (attrs.isOther()) {
+                // For cross-version compatibility, do a full check for junctions using path resolution logic
+                return modifiesRealPath(suspectPath);
+            }
+            return super.isSymlink(suspect);
         } catch (IOException e) {
             return super.isSymlink(suspect);
         }

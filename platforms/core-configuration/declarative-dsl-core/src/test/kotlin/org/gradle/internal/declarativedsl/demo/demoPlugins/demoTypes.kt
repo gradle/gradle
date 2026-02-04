@@ -2,16 +2,14 @@ package org.gradle.internal.declarativedsl.demo.demoPlugins
 
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Builder
-import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.HasDefaultValue
-import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 
 
 class TopLevelScope {
-    @get:Restricted
     val plugins = PluginsBlock()
 
-    @Configuring
+    @HiddenInDefinition
     fun plugins(configure: PluginsBlock.() -> Unit) {
         configure(plugins)
     }
@@ -28,8 +26,7 @@ class PluginsBlock {
 }
 
 
-class PluginDefinition(@get:Restricted val id: String) {
-    @get:Restricted
+class PluginDefinition(val id: String) {
     var version: String = ""
 
     @get:HasDefaultValue

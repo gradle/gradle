@@ -338,7 +338,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCache.configurationCacheBuildOperations.assertStorePhaseSuccessful()
         configurationCache.configurationCacheBuildOperations.assertLoadPhaseSkipped()
         problems.assertResultHasProblems(result) {
-            withProblemsWithStackTraceCount(2)
+            problemsWithStackTraceCount = 2
             withProblem("Build file 'build.gradle': line 11: invocation of 'Task.project' at execution time is unsupported with the configuration cache.")
             withProblem("Build file 'build.gradle': line 4: execution of task ':offender' caused invocation of 'Task.project' in other task at execution time which is unsupported with the configuration cache.")
         }

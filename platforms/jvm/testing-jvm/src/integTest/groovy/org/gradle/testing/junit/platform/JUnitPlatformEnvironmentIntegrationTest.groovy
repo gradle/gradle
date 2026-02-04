@@ -81,7 +81,8 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec im
 
         then:
         failureDescriptionContains("Execution failed for task ':test'.")
-        failureHasCause(~/Could not start Gradle Test Executor \d+: Cannot create Launcher without at least one TestEngine; consider adding an engine implementation JAR to the classpath/)
+        failureHasCause(~/Could not start Gradle Test Executor \d+\./)
+        failureHasCause("Cannot create Launcher without at least one TestEngine; consider adding an engine implementation JAR to the classpath")
 
         and: "No test class results created"
         new DefaultTestExecutionResult(testDirectory).testClassDoesNotExist("ExampleTest")

@@ -46,7 +46,7 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
 
     @Override
     public String toString() {
-        return "{ \"exclude-rule\" : { \"moduleId\": \""  + moduleId + "\", \"artifact\" : \"" + ivyArtifactName.getDisplayName() + "\", \"matcher\": \"" + matcher.getName() + "\"} }";
+        return "{ \"exclude-rule\" : { \"moduleId\": \""  + moduleId + "\", \"artifact\" : \"" + (ivyArtifactName != null ? ivyArtifactName.getDisplayName() : "") + "\", \"matcher\": \"" + matcher.getName() + "\"} }";
     }
 
     @Override

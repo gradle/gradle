@@ -113,7 +113,7 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
     }
 
     private void killDaemons(String version) {
-        if (!debug) {
+        if (!embedded) {
             testKitDaemons(GradleVersion.version(version)).killAll()
         }
     }

@@ -35,7 +35,6 @@ public interface OsMemoryStatusAspect extends Named {
     /**
      * Represents available memory information.
      */
-    @NullMarked
     interface Available extends OsMemoryStatusAspect {
         /**
          * Get the total memory of this category in bytes.
@@ -60,6 +59,5 @@ public interface OsMemoryStatusAspect extends Named {
      * For example, we do not track virtual memory on Linux.
      * </p>
      */
-    @NullMarked
     interface Unavailable extends OsMemoryStatusAspect {}
 }

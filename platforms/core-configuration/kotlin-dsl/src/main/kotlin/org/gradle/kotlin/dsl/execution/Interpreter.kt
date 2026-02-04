@@ -30,6 +30,10 @@ import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.operations.BuildOperationContext
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
@@ -51,7 +55,8 @@ import java.lang.reflect.InvocationTargetException
  * a script body? etc), target object and context (top-level or not).
  *
  * The specialized program is then cached via a cheap cache key based on the original,
- * unprocessed contents of the script, the target object type and parent `ClassLoader`.
+ * unprocessed contents of the script, script file name, class name, target object type
+ * and parent `ClassLoader`.
  *
  * Because each program is specialized to a given script structure, a lot of work is
  * avoided. For example, a top-level script containing a `plugins` block but no body
@@ -67,7 +72,7 @@ import java.lang.reflect.InvocationTargetException
  * @see ResidualProgramCompiler
  */
 internal
-class Interpreter(val host: Host) {
+class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner) {
 
     interface Host {
 
@@ -176,6 +181,8 @@ class Interpreter(val host: Host) {
         val programId =
             ProgramId(
                 templateId,
+                scriptSource.fileName,
+                scriptSource.className,
                 sourceHash,
                 parentClassLoader,
                 compilerOptions = host.compilerOptions
@@ -273,7 +280,8 @@ class Interpreter(val host: Host) {
             programTarget,
             host.compilationClassPathOf(targetScope.parent),
             stage1BlocksAccessorsClassPath,
-            scriptHost.temporaryFileProvider
+            scriptHost.temporaryFileProvider,
+            scriptHost.metadataCompatibilityChecker
         )
 
         return loadClassInChildScopeOf(
@@ -297,7 +305,8 @@ class Interpreter(val host: Host) {
         programTarget: ProgramTarget,
         compilationClassPath: ClassPath,
         stage1BlocksAccessorsClassPath: ClassPath,
-        temporaryFileProvider: TemporaryFileProvider
+        temporaryFileProvider: TemporaryFileProvider,
+        metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker
     ): File = host.cachedDirFor(
         scriptHost,
         programId,
@@ -331,6 +340,7 @@ class Interpreter(val host: Host) {
                     implicitImports = host.implicitImports,
                     logger = interpreterLogger,
                     temporaryFileProvider = temporaryFileProvider,
+                    metadataCompatibilityChecker = metadataCompatibilityChecker,
                     compileBuildOperationRunner = host::runCompileBuildOperation,
                     stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
                     packageName = residualProgram.packageName,
@@ -416,6 +426,8 @@ class Interpreter(val host: Host) {
 
             val programId = ProgramId(
                 scriptTemplateId,
+                scriptHost.scriptSource.fileName,
+                scriptHost.scriptSource.className,
                 sourceHash,
                 parentClassLoader,
                 host.hashOf(accessorsClassPath),
@@ -489,6 +501,7 @@ class Interpreter(val host: Host) {
                                     host.implicitImports,
                                     interpreterLogger,
                                     scriptHost.temporaryFileProvider,
+                                    scriptHost.metadataCompatibilityChecker,
                                     host::runCompileBuildOperation
                                 ).emitStage2ProgramFor(
                                     scriptFile,
@@ -510,11 +523,19 @@ class Interpreter(val host: Host) {
         }
 
         fun eval(compiledScript: CompiledScript, scriptHost: KotlinScriptHost<*>) {
-            val program = load(compiledScript, scriptHost)
-            withContextClassLoader(program.classLoader) {
-                host.onScriptClassLoaded(scriptHost.scriptSource, program)
-                instantiate(program).execute(this, scriptHost)
-            }
+            buildOperationRunner.run(object : RunnableBuildOperation {
+                override fun run(context: BuildOperationContext) {
+                    val program = load(compiledScript, scriptHost)
+                    withContextClassLoader(program.classLoader) {
+                        host.onScriptClassLoaded(scriptHost.scriptSource, program)
+                        instantiate(program).execute(this@ProgramHost, scriptHost)
+                    }
+                }
+
+                override fun description(): BuildOperationDescriptor.Builder {
+                    return BuildOperationDescriptor.displayName("Evaluate ${scriptHost.scriptSource.shortDisplayName.displayName}")
+                }
+            })
         }
 
         private

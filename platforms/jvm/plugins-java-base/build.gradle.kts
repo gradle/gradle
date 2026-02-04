@@ -25,6 +25,7 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.dependencyManagement)
+    api(projects.jvmCompilerWorker)
     api(projects.languageJava)
     api(projects.languageJvm)
     api(projects.modelCore)
@@ -39,6 +40,7 @@ dependencies {
 
     implementation(projects.fileCollections)
     implementation(projects.fileOperations)
+    implementation(projects.javaCompilerWorker)
     implementation(projects.javadoc)
     implementation(projects.jvmServices)
     implementation(projects.logging)

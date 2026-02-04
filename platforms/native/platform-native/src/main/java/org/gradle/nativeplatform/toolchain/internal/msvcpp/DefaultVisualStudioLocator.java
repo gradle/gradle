@@ -123,6 +123,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         }
     }
 
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private boolean addInstallIfValid(VisualStudioInstallCandidate install, String source) {
         File visualCppDir = install.getVisualCppDir();
         File visualStudioDir = install.getInstallDir();

@@ -24,7 +24,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class DefaultRuleActionValidator implements RuleActionValidator {
+    @SuppressWarnings("InlineFormatString")
     private static final String VALID_NO_TYPES = "Rule may not have an input parameter of type: %s.";
+    @SuppressWarnings("InlineFormatString")
     private static final String VALID_MULTIPLE_TYPES = "Rule may not have an input parameter of type: %s. Second parameter must be of type: %s.";
 
     private final List<Class<?>> validInputType;

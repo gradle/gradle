@@ -19,6 +19,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
@@ -29,6 +30,7 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private ConsoleOutput consoleOutput = ConsoleOutput.Auto;
+    private ConsoleUnicodeSupport consoleUnicodeSupport = ConsoleUnicodeSupport.Auto;
     private WarningMode warningMode =  WarningMode.Summary;
 
     @Override
@@ -57,8 +59,18 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     }
 
     @Override
+    public ConsoleUnicodeSupport getConsoleUnicodeSupport() {
+        return consoleUnicodeSupport;
+    }
+
+    @Override
     public void setConsoleOutput(ConsoleOutput consoleOutput) {
         this.consoleOutput = consoleOutput;
+    }
+
+    @Override
+    public void setConsoleUnicodeSupport(ConsoleUnicodeSupport consoleUnicodeSupport) {
+        this.consoleUnicodeSupport = consoleUnicodeSupport;
     }
 
     @Override

@@ -48,10 +48,10 @@ public abstract class AbstractDaemonCompiler<T extends CompileSpec> implements C
 
     protected abstract DaemonForkOptions toDaemonForkOptions(T spec);
 
-    protected abstract CompilerWorkerExecutor.CompilerParameters getCompilerParameters(T spec);
+    protected abstract CompilerParameters getCompilerParameters(T spec);
 
     /**
-     * Additional services required by {@link CompilerWorkerExecutor.CompilerParameters#getCompilerClassName()} which
+     * Additional services required by {@link CompilerParameters#getCompilerClassName()} which
      * are not already permitted for injection in worker actions.
      */
     protected abstract Set<Class<?>> getAdditionalCompilerServices();

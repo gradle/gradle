@@ -79,7 +79,7 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
             def result = GradleRunner.create()
                 .withProjectDir(testProjectDir)
                 .withArguments('$DUMMY_TASK_NAME')
-                .withDebug($debug)
+                .withDebug($embedded)
                 .withStandardInput(stdin)
                 .forwardStdOutput(stdout)
                 .build()
@@ -102,7 +102,7 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
             def result = GradleRunner.create()
                 .withProjectDir(testProjectDir)
                 .withArguments('$DUMMY_TASK_NAME')
-                .withDebug($debug)
+                .withDebug($embedded)
                 .build()
 
             then:

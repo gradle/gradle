@@ -16,8 +16,11 @@
 
 package org.gradle.internal.execution;
 
+import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.MutableWorkspaceProvider;
 import org.gradle.internal.properties.InputBehavior;
+
+import java.util.Optional;
 
 /**
  * A unit of work that can be executed multiple times in the same workspace.
@@ -28,6 +31,11 @@ public interface MutableUnitOfWork extends UnitOfWork {
      * Returns the {@link MutableWorkspaceProvider} to allocate a workspace to execution this work in.
      */
     MutableWorkspaceProvider getWorkspaceProvider();
+
+    /**
+     * The store for previous execution states if we are to keep track.
+     */
+    Optional<ExecutionHistoryStore> getHistory();
 
     /**
      * Whether the work should be executed incrementally (if possible) or not.

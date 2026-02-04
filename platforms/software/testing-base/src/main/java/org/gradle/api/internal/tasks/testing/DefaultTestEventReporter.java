@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.results.DefaultTestResult;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
+import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.jspecify.annotations.NullMarked;
@@ -28,7 +29,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -70,22 +71,26 @@ class DefaultTestEventReporter implements TestEventReporterInternal {
     }
 
     @Override
-    public void metadata(Instant logTime, String key, Object value) {
+    public void metadata(Instant logTime, String key, String value) {
         Preconditions.checkNotNull(logTime, "logTime can not be null!");
         Preconditions.checkNotNull(key, "Metadata key can not be null!");
         Preconditions.checkNotNull(value, "Metadata value can not be null!");
-        Map<String, Object> values = new HashMap<>();
-        values.put(key, value);
-        listener.metadata(testDescriptor, new DefaultTestMetadataEvent(logTime.toEpochMilli(), values));
+        listener.metadata(testDescriptor, new DefaultTestKeyValueDataEvent(logTime, Collections.singletonMap(key, value)));
     }
 
     @Override
-    public void metadata(Instant logTime, Map<String, Object> values) {
+    public void metadata(Instant logTime, Map<String, String> values) {
         Preconditions.checkNotNull(logTime, "logTime can not be null!");
         Preconditions.checkNotNull(values, "Metadata can not be null!");
         Preconditions.checkArgument(!values.isEmpty(), "Metadata can not be empty!");
-        listener.metadata(testDescriptor, new DefaultTestMetadataEvent(logTime.toEpochMilli(), values));
-}
+
+        listener.metadata(testDescriptor, new DefaultTestKeyValueDataEvent(logTime, new LinkedHashMap<>(values)));
+    }
+
+    @Override
+    public void metadata(TestMetadataEvent metadataEvent) {
+        listener.metadata(testDescriptor, metadataEvent);
+    }
 
     @Override
     public void succeeded(Instant endTime) {

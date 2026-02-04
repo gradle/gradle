@@ -28,6 +28,10 @@ abstract class AbstractGradleBuildIsolatedProjectsSmokeTest extends AbstractGrad
     }
 
     void isolatedProjectsRun(List<String> tasks, int daemonId = 0) {
+        run(isolatedProjectsRunner(tasks, daemonId))
+    }
+
+    SmokeTestGradleRunner isolatedProjectsRunner(List<String> tasks, int daemonId = 0) {
         def ipOptions = [
             "-D${StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME}=true",
             // caching is not stable enough
@@ -37,6 +41,6 @@ abstract class AbstractGradleBuildIsolatedProjectsSmokeTest extends AbstractGrad
             // we do not expect execution-time issues, so save some build time
             "--dry-run",
         ]
-        configurationCacheRun(tasks + ipOptions, daemonId)
+        return configurationCacheRunner(tasks + ipOptions, daemonId)
     }
 }

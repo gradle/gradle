@@ -108,6 +108,13 @@ public interface ExecutionFailure extends ExecutionResult {
     ExecutionFailure assertHasResolution(String resolution);
 
     /**
+     * Asserts that the reported failure has a documentation link in the resolution section.
+     *
+     * @param pageWithAnchor {@code <page>.html#<anchor>} part of the documentation link, assumed to be under https://docs.gradle.org/current/userguide/
+     */
+    ExecutionFailure assertHasDocumentationInResolutions(String pageWithAnchor);
+
+    /**
      * Asserts that there is no exception that <em>contains</em> the given description.
      */
     ExecutionFailure assertHasNoCause(String description);

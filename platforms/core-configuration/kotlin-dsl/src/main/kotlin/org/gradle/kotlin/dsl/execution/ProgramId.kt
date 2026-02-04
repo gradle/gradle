@@ -23,6 +23,8 @@ import java.lang.ref.WeakReference
 
 class ProgramId(
     val templateId: String,
+    val scriptFileName: String,
+    val className: String,
     val sourceHash: HashCode,
     parentClassLoader: ClassLoader,
     private val accessorsClassPathHash: HashCode? = null,
@@ -42,6 +44,8 @@ class ProgramId(
         return thisParentLoader != null
             && thisParentLoader == that.parentClassLoader.get()
             && templateId == that.templateId
+            && scriptFileName == that.scriptFileName
+            && className == that.className
             && sourceHash == that.sourceHash
             && accessorsClassPathHash == that.accessorsClassPathHash
             && classPathHash == that.classPathHash
@@ -50,6 +54,8 @@ class ProgramId(
 
     override fun hashCode(): Int {
         var result = templateId.hashCode()
+        result = 31 * result + scriptFileName.hashCode()
+        result = 31 * result + className.hashCode()
         result = 31 * result + sourceHash.hashCode()
         parentClassLoader.get()?.let { loader ->
             result = 31 * result + loader.hashCode()

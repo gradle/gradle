@@ -23,20 +23,21 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
-import org.gradle.configurationcache.EntrySearchResult
-import org.gradle.configurationcache.ModelStoreResult
-import org.gradle.configurationcache.WorkGraphLoadResult
-import org.gradle.configurationcache.WorkGraphStoreResult
-import org.gradle.configurationcache.withFingerprintCheckOperations
-import org.gradle.configurationcache.withModelLoadOperation
-import org.gradle.configurationcache.withModelStoreOperation
-import org.gradle.configurationcache.withWorkGraphLoadOperation
-import org.gradle.configurationcache.withWorkGraphStoreOperation
+import org.gradle.internal.cc.operations.EntrySearchResult
+import org.gradle.internal.cc.operations.ModelStoreResult
+import org.gradle.internal.cc.operations.WorkGraphLoadResult
+import org.gradle.internal.cc.operations.WorkGraphStoreResult
+import org.gradle.internal.cc.operations.withFingerprintCheckOperations
+import org.gradle.internal.cc.operations.withModelLoadOperation
+import org.gradle.internal.cc.operations.withModelStoreOperation
+import org.gradle.internal.cc.operations.withWorkGraphLoadOperation
+import org.gradle.internal.cc.operations.withWorkGraphStoreOperation
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
+import org.gradle.internal.buildtree.ToolingModelRequestContext
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.base.serialize.IsolateOwners
@@ -74,6 +75,7 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.withIsolate
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
 import org.gradle.util.Path
 import java.io.File
@@ -251,6 +253,7 @@ class DefaultConfigurationCache internal constructor(
                     entryDiscarded = false
                 )
             }
+
             SkipStore -> {
                 // build work graph without contributing to a cache entry
                 val finalizedGraph = runAtConfigurationTime {
@@ -265,6 +268,7 @@ class DefaultConfigurationCache internal constructor(
                     entryDiscarded = true
                 )
             }
+
             Store, is Update -> {
                 runWorkThatContributesToCacheEntry {
                     val finalizedGraph = scheduler(graph)
@@ -323,8 +327,13 @@ class DefaultConfigurationCache internal constructor(
         }
     }
 
-    override fun <T> loadOrCreateIntermediateModel(project: ProjectIdentity?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T? {
-        return intermediateModels.loadOrCreateIntermediateModel(project, modelName, parameter, creator)
+    override fun loadOrCreateIntermediateModel(
+        project: ProjectIdentity?,
+        modelRequestContext: ToolingModelRequestContext,
+        parameter: ToolingModelParameterCarrier?,
+        creator: () -> ToolingModelBuilderResultInternal
+    ): ToolingModelBuilderResultInternal {
+        return intermediateModels.loadOrCreateIntermediateModel(project, modelRequestContext, parameter, creator)
     }
 
     // TODO:configuration - split the component state, such that information for dependency resolution does not have to go through the store
@@ -342,10 +351,12 @@ class DefaultConfigurationCache internal constructor(
                 // nothing to do
                 require(!cacheEntryRequiresCommit)
             }
+
             problems.shouldDiscardEntry -> {
                 discardEntry()
                 cacheEntryRequiresCommit = false
             }
+
             cacheEntryRequiresCommit -> {
                 val projectUsage = collectProjectUsage()
                 commitCacheEntry(projectUsage.reused)

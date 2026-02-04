@@ -21,6 +21,16 @@ import java.util.List;
 
 @SuppressWarnings({"unused", "checkstyle:LeftCurly"})
 public class AllowedMethodTypesClass {
+    public String validFieldType;
+    public File invalidFieldType;
+    public AllowedMethodTypesClass(String arg1) {
+
+    }
+
+    public AllowedMethodTypesClass(File arg2) {
+
+    }
+
     public void validMethod(String arg1, String arg2) {
 
     }

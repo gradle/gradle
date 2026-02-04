@@ -14,3 +14,7 @@ dependencies {
 
     testImplementation(testFixtures(projects.core))
 }
+
+errorprone {
+    nullawayEnabled = true
+}

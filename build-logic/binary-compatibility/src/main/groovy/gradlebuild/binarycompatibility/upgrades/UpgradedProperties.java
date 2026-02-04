@@ -22,6 +22,8 @@ import com.google.gson.reflect.TypeToken;
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.AccessorKey;
 import gradlebuild.binarycompatibility.upgrades.UpgradedProperty.ReplacedAccessor;
 import japicmp.model.JApiCompatibility;
+import japicmp.model.JApiCompatibilityChange;
+import japicmp.model.JApiCompatibilityChangeType;
 import japicmp.model.JApiMethod;
 import me.champeau.gradle.japicmp.report.Violation;
 import me.champeau.gradle.japicmp.report.ViolationCheckContext;
@@ -37,11 +39,11 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static gradlebuild.binarycompatibility.rules.SinceAnnotationRule.SINCE_ERROR_MESSAGE;
-import static japicmp.model.JApiCompatibilityChange.METHOD_ADDED_TO_INTERFACE;
-import static japicmp.model.JApiCompatibilityChange.METHOD_ADDED_TO_PUBLIC_CLASS;
-import static japicmp.model.JApiCompatibilityChange.METHOD_NEW_DEFAULT;
-import static japicmp.model.JApiCompatibilityChange.METHOD_REMOVED;
-import static japicmp.model.JApiCompatibilityChange.METHOD_RETURN_TYPE_CHANGED;
+import static japicmp.model.JApiCompatibilityChangeType.METHOD_ADDED_TO_INTERFACE;
+import static japicmp.model.JApiCompatibilityChangeType.METHOD_ADDED_TO_PUBLIC_CLASS;
+import static japicmp.model.JApiCompatibilityChangeType.METHOD_NEW_DEFAULT;
+import static japicmp.model.JApiCompatibilityChangeType.METHOD_REMOVED;
+import static japicmp.model.JApiCompatibilityChangeType.METHOD_RETURN_TYPE_CHANGED;
 
 public class UpgradedProperties {
 
@@ -88,16 +90,18 @@ public class UpgradedProperties {
             return isCurrentGetterThatReplacesBooleanIsGetter(jApiMethod, currentAccessors) || isKotlinBooleanSourceCompatibilityMethod(jApiMethod, currentAccessors);
         }
 
-        if (jApiMethod.getCompatibilityChanges().contains(METHOD_NEW_DEFAULT) && isKotlinBooleanSourceCompatibilityMethod(jApiMethod, currentAccessors)) {
+        List<JApiCompatibilityChangeType> changeTypes = jApiMethod.getCompatibilityChanges().stream().map(JApiCompatibilityChange::getType).collect(ImmutableList.toImmutableList());
+
+        if (changeTypes.contains(METHOD_NEW_DEFAULT) && isKotlinBooleanSourceCompatibilityMethod(jApiMethod, currentAccessors)) {
             // Accept also default `getIsX` methods added to interface that are added for Kotlin source compatibility
             return true;
         }
 
-        if (jApiMethod.getCompatibilityChanges().contains(METHOD_REMOVED)) {
+        if (changeTypes.contains(METHOD_REMOVED)) {
             return isOldSetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors) || isOldGetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors) || isOldBooleanGetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors);
-        } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_ADDED_TO_PUBLIC_CLASS) || jApiMethod.getCompatibilityChanges().contains(METHOD_ADDED_TO_INTERFACE)) {
+        } else if (changeTypes.contains(METHOD_ADDED_TO_PUBLIC_CLASS) || changeTypes.contains(METHOD_ADDED_TO_INTERFACE)) {
             return isCurrentGetterOfUpgradedProperty(jApiMethod, currentAccessors) || isKotlinBooleanSourceCompatibilityMethod(jApiMethod, currentAccessors);
-        } else if (jApiMethod.getCompatibilityChanges().contains(METHOD_RETURN_TYPE_CHANGED)) {
+        } else if (changeTypes.contains(METHOD_RETURN_TYPE_CHANGED)) {
             return isCurrentGetterOfUpgradedProperty(jApiMethod, currentAccessors) && isOldGetterOfUpgradedProperty(jApiMethod, oldRemovedAccessors);
         }
 
@@ -160,7 +164,7 @@ public class UpgradedProperties {
     }
 
     public static Optional<AccessorKey> maybeGetKeyOfOldAccessorOfUpgradedProperty(JApiCompatibility jApiCompatibility, ViolationCheckContext context) {
-        if (!(jApiCompatibility instanceof JApiMethod) || !((JApiMethod) jApiCompatibility).getOldMethod().isPresent()) {
+        if (!(jApiCompatibility instanceof JApiMethod) || ((JApiMethod) jApiCompatibility).getOldMethod().isEmpty()) {
             return Optional.empty();
         }
         JApiMethod jApiMethod = (JApiMethod) jApiCompatibility;

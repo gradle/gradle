@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -54,9 +53,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         when:
         def runner = GradleRunner.create()
         runner.withJvmArguments("-javaagent:${agentJar}")
-        if (!IntegrationTestBuildContext.embedded) {
-            runner.withGradleInstallation(buildContext.gradleHomeDir)
-        }
+        runner.withGradleInstallation(buildContext.gradleHomeDir)
         runner.withArguments("--configuration-cache")
         runner.forwardOutput()
         runner.withProjectDir(testDirectory)
@@ -70,9 +67,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         when:
         runner = GradleRunner.create()
         runner.withJvmArguments("-javaagent:${agentJar}")
-        if (!IntegrationTestBuildContext.embedded) {
-            runner.withGradleInstallation(buildContext.gradleHomeDir)
-        }
+        runner.withGradleInstallation(buildContext.gradleHomeDir)
         runner.forwardOutput()
         runner.withProjectDir(testDirectory)
         runner.withPluginClasspath([new File("some-dir")])
@@ -117,9 +112,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
             .withArguments("--configuration-cache", "-Dmy.property=my.value", "-i")
             .forwardOutput()
             .withProjectDir(testDirectory)
-        if (!IntegrationTestBuildContext.embedded) {
-            runner.withGradleInstallation(buildContext.gradleHomeDir)
-        }
+            .withGradleInstallation(buildContext.gradleHomeDir)
         def result = runner.build()
 
         then:

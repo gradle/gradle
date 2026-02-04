@@ -36,3 +36,7 @@ dependencies {
 
     compileOnly(libs.jspecify)
 }
+
+errorprone {
+    nullawayEnabled = true
+}

@@ -169,7 +169,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
 
     @Override
     public String toString() {
-        return "GradleDependencyMetadata: " + selector.toString();
+        return selector.toString();
     }
 
     @Override

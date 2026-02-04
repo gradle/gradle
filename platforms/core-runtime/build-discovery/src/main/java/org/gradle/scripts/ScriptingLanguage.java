@@ -15,6 +15,8 @@
  */
 package org.gradle.scripts;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Scripting language provider metadata.
  *
@@ -32,6 +34,5 @@ public interface ScriptingLanguage {
      *
      * Implementations can benefit from injection using {@link javax.inject.Inject}.
      */
-    String getProvider();
-
+    @Nullable String getProvider();
 }

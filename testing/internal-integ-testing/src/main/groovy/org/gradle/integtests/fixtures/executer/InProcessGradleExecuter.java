@@ -24,7 +24,6 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.logging.configuration.ConsoleOutput;
@@ -39,9 +38,7 @@ import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.integtests.fixtures.FileSystemWatchingHelper;
 import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
-import org.gradle.internal.Factory;
 import org.gradle.internal.InternalListener;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildprocess.BuildProcessState;
@@ -52,14 +49,12 @@ import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
-import org.gradle.internal.instrumentation.agent.AgentUtils;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Time;
 import org.gradle.launcher.cli.BuildEnvironmentConfigurationConverter;
@@ -69,8 +64,6 @@ import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.process.internal.BaseExecHandleBuilder;
-import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
@@ -86,12 +79,8 @@ import org.gradle.util.internal.IncubationLogger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -101,14 +90,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.jar.Attributes;
-import java.util.jar.JarEntry;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
-import java.util.stream.Collectors;
 
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.flattenTaskPaths;
-import static org.gradle.internal.hash.Hashing.hashString;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.not;
@@ -129,7 +112,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     protected static final ServiceRegistry GLOBAL_SERVICES = new BuildProcessState(
         true,
         AgentStatus.of(isAgentInstrumentationEnabled()),
-        ClassPath.EMPTY,
         getCurrentInstallation(),
         newCommandLineProcessLogging(),
         NativeServicesTestFixture.getInstance(),
@@ -158,10 +140,10 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
     private static CurrentGradleInstallation getCurrentInstallation() {
         TestFile gradleHomeDir = IntegrationTestBuildContext.INSTANCE.getGradleHomeDir();
-        if (gradleHomeDir != null) {
-            return new CurrentGradleInstallation(new GradleInstallation(gradleHomeDir));
+        if (gradleHomeDir == null) {
+            throw new IllegalStateException("Cannot run integration tests without a distribution.");
         }
-        return new CurrentGradleInstallation(null);
+        return new CurrentGradleInstallation(new GradleInstallation(gradleHomeDir));
     }
 
     private static ServiceRegistry newCommandLineProcessLogging() {
@@ -278,67 +260,6 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     protected GradleHandle createGradleHandle() {
         configureConsoleCommandLineArgs();
         return super.createGradleHandle();
-    }
-
-    @Override
-    protected Factory<BaseExecHandleBuilder> getExecHandleFactory() {
-        return () -> {
-            NativeServicesTestFixture.initialize();
-            GradleInvocation invocation = buildInvocation();
-            JavaExecHandleBuilder builder = TestFiles.execFactory().newJavaExec();
-            builder.setWorkingDir(getWorkingDir());
-            builder.setExecutable(new File(getJavaHomeLocation(), "bin/java"));
-            builder.classpath(getExecHandleFactoryClasspath());
-            builder.jvmArgs(invocation.launcherJvmArgs);
-            // Apply the agent to the newly created daemon. The feature flag decides if it is going to be used.
-            for (File agent : GLOBAL_SERVICES.get(ModuleRegistry.class).getModule(AgentUtils.AGENT_MODULE_NAME).getClasspath().getAsFiles()) {
-                builder.jvmArgs("-javaagent:" + agent.getAbsolutePath());
-            }
-            builder.environment(invocation.environmentVars);
-
-            builder.getMainClass().set("org.gradle.launcher.Main");
-            builder.args(invocation.args);
-            builder.setStandardInput(connectStdIn());
-
-            return builder;
-        };
-    }
-
-    private Collection<File> getExecHandleFactoryClasspath() {
-        ModuleRegistry moduleRegistry = GLOBAL_SERVICES.get(ModuleRegistry.class);
-        Collection<File> classpath = moduleRegistry.getModule("gradle-gradle-cli").getAllRequiredModulesClasspath().getAsFiles();
-        if (!OperatingSystem.current().isWindows()) {
-            return classpath;
-        }
-        // Use a Class-Path manifest JAR to circumvent too long command line issues on Windows (cap 8191)
-        // Classpath is huge here because it's the test runtime classpath
-        return Collections.singleton(getClasspathManifestJarFor(classpath));
-    }
-
-    private File getClasspathManifestJarFor(Collection<File> classpath) {
-        String cpString = classpath.stream()
-            .map(File::toURI)
-            .map(Object::toString)
-            .collect(Collectors.joining(" "));
-        File cpJar = new File(getDefaultTmpDir(), "daemon-classpath-manifest-" + hashString(cpString).toCompactString() + ".jar");
-        if (!cpJar.isFile()) {
-            // Make sure the parent exists or the jar creation might fail
-            cpJar.getParentFile().mkdirs();
-            Manifest manifest = new Manifest();
-            manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-            manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, cpString);
-            JarOutputStream output = null;
-            try {
-                output = new JarOutputStream(new FileOutputStream(cpJar), manifest);
-                output.putNextEntry(new JarEntry("META-INF/"));
-                output.closeEntry();
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            } finally {
-                IoActions.closeQuietly(output);
-            }
-        }
-        return cpJar;
     }
 
     private BuildResult doRun(OutputStream outputStream, OutputStream errorStream, BuildListenerImpl listener) {

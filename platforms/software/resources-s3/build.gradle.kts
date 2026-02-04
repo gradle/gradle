@@ -36,8 +36,8 @@ dependencies {
     integTestImplementation(projects.logging)
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.groovyXml)
-    integTestImplementation(libs.littleproxy)
-    integTestImplementation(libs.jetty)
+    integTestImplementation(testLibs.littleproxy)
+    integTestImplementation(testLibs.jetty)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
 }

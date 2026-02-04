@@ -17,16 +17,22 @@
 package org.gradle.internal.declarativedsl.schemaBuidler
 
 import org.gradle.api.provider.ListProperty
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
+import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition
+import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationException
 import org.gradle.internal.declarativedsl.assertFailsWith
+import org.gradle.internal.declarativedsl.schemaBuilder.DeclarativeDslSchemaBuildingException
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaFailureReporter
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.core.IsEqual.equalTo
+import org.gradle.internal.declarativedsl.schemaUtils.findFunctionFor
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
+import org.junit.jupiter.api.assertNotNull
+import org.junit.jupiter.api.assertNull
+import org.junit.jupiter.api.assertThrows
 
 
 class SchemeExtractionErrorTest {
@@ -38,18 +44,17 @@ class SchemeExtractionErrorTest {
         )
         assertEquals(
             "Illegal 'IN' variance\n" +
-                "  in type argument 'in kotlin.String?'\n" +
-                "  in return value type 'kotlin.collections.MutableList<in kotlin.String?>?'\n" +
-                "  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverGetterReturn<T>.getList(): kotlin.collections.MutableList<in kotlin.String?>?'\n" +
+                "  in type argument 'in kotlin.String'\n" +
+                "  in return value type 'kotlin.collections.List<in kotlin.String>'\n" +
+                "  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverGetterReturn.getList(): kotlin.collections.MutableList<in kotlin.String>'\n" +
                 "  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverGetterReturn'",
             exception.message
         )
     }
 
     @Suppress("unused")
-    abstract class ReceiverGetterReturn<T> {
-        @Restricted
-        abstract fun getList(): MutableList<in String?>?
+    abstract class ReceiverGetterReturn {
+        abstract fun getList(): MutableList<in String>
     }
 
     @Test
@@ -60,7 +65,7 @@ class SchemeExtractionErrorTest {
         assertEquals(
             "Illegal 'OUT' variance\n" +
                 "  in type argument 'out kotlin.String'\n" +
-                "  in return value type 'kotlin.collections.MutableList<out kotlin.String>'\n" +
+                "  in return value type 'kotlin.collections.List<out kotlin.String>'\n" + // (List instead of MutableList because type.classifier is lossy in collection mutability)
                 "  in member 'var org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverPropertyReturn.x: kotlin.collections.MutableList<out kotlin.String>'\n" +
                 "  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverPropertyReturn'",
             exception.message,
@@ -69,7 +74,6 @@ class SchemeExtractionErrorTest {
 
     abstract class ReceiverPropertyReturn {
 
-        @get:Restricted
         var x: MutableList<out String> = mutableListOf()
     }
 
@@ -79,7 +83,7 @@ class SchemeExtractionErrorTest {
             block = {
                 schemaFromTypes(
                     ReceiverFunctionParam::class,
-                    listOf(ListProperty::class, ReceiverFunctionParam::class)
+                    listOf(ListProperty::class, ReceiverFunctionParam::class),
                 )
             }
         )
@@ -94,7 +98,6 @@ class SchemeExtractionErrorTest {
     }
 
     abstract class ReceiverFunctionParam {
-        @Restricted
         abstract fun size(list: ListProperty<in String>): Int
     }
 
@@ -104,7 +107,7 @@ class SchemeExtractionErrorTest {
             block = {
                 schemaFromTypes(
                     ReceiverFunctionReturn::class,
-                    listOf(ListProperty::class, ReceiverFunctionReturn::class)
+                    listOf(ListProperty::class, ReceiverFunctionReturn::class),
                 )
             }
         )
@@ -118,36 +121,78 @@ class SchemeExtractionErrorTest {
         )
     }
 
-    @Suppress("unused")
-    abstract class ReceiverFunctionReturn {
-
-        @Restricted
-        abstract fun mood(): ListProperty<in String>
+    @Test
+    fun `schema builder passes multiple failures from different stages to the reporter`() {
+        assertThrows<DeclarativeDslSchemaBuildingException> { schemaFromTypes(MultipleInvalidMembers::class) }
+            .run {
+                assertEquals(
+                    """
+                    |Multiple failures in building the declarative schema:
+                    |
+                    |* Conflicting annotations: @VisibleInDefinition and @HiddenInDefinition are present
+                    |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.VisibleAndHidden'
+                    |
+                    |* Conflicting annotations: @VisibleInDefinition and @HiddenInDefinition are present
+                    |  in member 'var org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers.s: kotlin.String'
+                    |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers'
+                    |
+                    |* Unsupported property declaration: nullable read-only property
+                    |  in member 'val org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers.y: kotlin.Int?'
+                    |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers'
+                    |
+                    |* Illegal 'IN' variance
+                    |  in type argument 'in kotlin.String'
+                    |  in parameter 'x'
+                    |  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers.f(org.gradle.api.provider.ListProperty<in kotlin.String>): kotlin.Int'
+                    |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers'
+                    """.trimMargin(),
+                    message
+                )
+            }
     }
 
     @Test
-    fun `type used not in schema scope`() {
-        val exception = assertFailsWith<DeclarativeDslInterpretationException>(
-            block = {
-                schemaFromTypes(
-                    UsageOfTypeOutsideSchema::class,
-                    listOf(UsageOfTypeOutsideSchema::class)
-                )
+    fun `schema builder passes the partial schema to the reporter`() {
+        var schema: AnalysisSchema? = null
+
+        val reporter = object : SchemaFailureReporter {
+            override fun report(partialSchema: AnalysisSchema, failures: List<SchemaResult.Failure>) {
+                schema = partialSchema
+                assertTrue(failures.isNotEmpty())
             }
-        )
-        assertThat(
-            exception.message,
-            equalTo(
-                "Type 'File' is not in the schema\n" +
-                    "  in configured type 'File'\n" +
-                    "  in schema function 'configure(): Unit'\n" +
-                    "  in schema type 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.UsageOfTypeOutsideSchema'"
-            )
-        )
+        }
+
+        schemaFromTypes(MultipleInvalidMembers::class, failureReporter = reporter)
+
+        assertNotNull(schema)
+        assertNotNull(schema.findFunctionFor(MultipleInvalidMembers::thisOneIsValid))
+        assertNull(schema.findFunctionFor(MultipleInvalidMembers::f))
     }
 
-    interface UsageOfTypeOutsideSchema {
-        @Configuring
-        fun configure(fn: File.() -> Unit)
+
+    @Suppress("unused")
+    abstract class ReceiverFunctionReturn {
+
+        abstract fun mood(): ListProperty<in String>
+    }
+
+    interface MultipleInvalidMembers {
+        fun f(x: ListProperty<in String>): Int
+
+        val y: Int?
+
+        @get:HiddenInDefinition
+        @get:VisibleInDefinition
+        var s: String
+
+        val visibleAndHidden: VisibleAndHidden
+
+        fun thisOneIsValid(): Int
+    }
+
+    @VisibleInDefinition
+    @HiddenInDefinition
+    interface VisibleAndHidden {
+        var x: Int
     }
 }

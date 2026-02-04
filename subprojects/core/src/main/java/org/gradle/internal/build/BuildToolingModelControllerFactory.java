@@ -21,5 +21,5 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildToolingModelControllerFactory {
-    BuildToolingModelController createController(BuildState owner, BuildLifecycleController controller);
+    BuildToolingModelController createController(BuildState owner, BuildLifecycleController controller, boolean inResilientContext);
 }

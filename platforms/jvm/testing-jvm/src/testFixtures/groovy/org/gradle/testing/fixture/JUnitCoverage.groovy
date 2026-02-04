@@ -23,7 +23,7 @@ package org.gradle.testing.fixture
 class JUnitCoverage {
     final static String LATEST_JUNIT3_VERSION = '3.8.2'
     final static String LATEST_JUNIT4_VERSION = '4.13.2'
-    final static String LATEST_JUNIT5_VERSION = '5.12.2'
+    final static String LATEST_JUNIT5_VERSION = '5.13.2'
     final static String LATEST_JUPITER_VERSION = LATEST_JUNIT5_VERSION
     final static String LATEST_VINTAGE_VERSION = LATEST_JUNIT5_VERSION
     final static String LATEST_PLATFORM_VERSION = '1.12.2'

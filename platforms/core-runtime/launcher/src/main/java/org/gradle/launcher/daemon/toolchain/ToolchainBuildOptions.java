@@ -17,9 +17,11 @@
 package org.gradle.launcher.daemon.toolchain;
 
 import org.gradle.StartParameter;
+import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.BuildOptionSet;
+import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
@@ -81,31 +83,31 @@ public class ToolchainBuildOptions {
                 new JavaInstallationPathsOption<StartParameter>() {
                     @Override
                     public void applyTo(String value, StartParameter settings, Origin origin) {
-                        settings.getProjectProperties().putIfAbsent(getProperty(), value);
+                        putProjectPropertyIfAbsent(settings, this, value);
                     }
                 },
                 new JavaInstallationEnvironmentPathsOption<StartParameter>() {
                     @Override
                     public void applyTo(String value, StartParameter settings, Origin origin) {
-                        settings.getProjectProperties().putIfAbsent(getProperty(), value);
+                        putProjectPropertyIfAbsent(settings, this, value);
                     }
                 },
                 new AutoDetectionOption<StartParameter>() {
                     @Override
                     public void applyTo(boolean value, StartParameter settings, Origin origin) {
-                        settings.getProjectProperties().putIfAbsent(getProperty(), Boolean.toString(value));
+                        putProjectPropertyIfAbsent(settings, this, Boolean.toString(value));
                     }
                 },
                 new AutoDownloadOption<StartParameter>() {
                     @Override
                     public void applyTo(boolean value, StartParameter settings, Origin origin) {
-                        settings.getProjectProperties().putIfAbsent(getProperty(), Boolean.toString(value));
+                        putProjectPropertyIfAbsent(settings, this, Boolean.toString(value));
                     }
                 },
                 new IntellijJdkBuildOption<StartParameter>() {
                     @Override
                     public void applyTo(String value, StartParameter settings, Origin origin) {
-                        settings.getProjectProperties().putIfAbsent(getProperty(), value);
+                        putProjectPropertyIfAbsent(settings, this, value);
                     }
                 }
             );
@@ -115,6 +117,16 @@ public class ToolchainBuildOptions {
                 return options;
             }
         };
+    }
+
+    private static <K, V extends CommandLineOptionConfiguration> void putProjectPropertyIfAbsent(
+        StartParameter settings,
+        AbstractBuildOption<K, V> option,
+        String value
+    ) {
+        String property = option.getProperty();
+        assert property != null;
+        settings.getProjectProperties().putIfAbsent(property, value);
     }
 
     private abstract static class JavaInstallationPathsOption<T> extends StringBuildOption<T> {
@@ -140,6 +152,7 @@ public class ToolchainBuildOptions {
             super(GRADLE_PROPERTY);
         }
     }
+
     private abstract static class AutoDownloadOption<T> extends BooleanBuildOption<T> {
         private static final String GRADLE_PROPERTY = AutoInstalledInstallationSupplier.AUTO_DOWNLOAD;
 

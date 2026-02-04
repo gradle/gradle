@@ -127,8 +127,8 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
             missingTaskDependencyDetector
         );
         executer = new ProblemsTaskPathTrackingTaskExecuter(executer);
-        executer = new FinalizePropertiesTaskExecuter(executer);
         executer = new ResolveTaskExecutionModeExecuter(repository, executer);
+        executer = new FinalizePropertiesTaskExecuter(executer);
         executer = new SkipTaskWithNoActionsExecuter(taskExecutionGraph, executer);
         executer = new SkipOnlyIfTaskExecuter(executer);
         executer = new CatchExceptionTaskExecuter(executer);

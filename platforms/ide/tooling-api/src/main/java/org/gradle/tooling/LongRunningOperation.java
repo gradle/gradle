@@ -251,6 +251,16 @@ public interface LongRunningOperation {
      * If you want to get hold of this information you can ask tooling API to build this model.
      * <p>
      * If not configured or null is passed, then the reasonable default will be used.
+     * * <p>
+     * Note: When this method is called, the provided map completely replaces the environment variables for the operation.
+     * To add custom environment variables while preserving system environment variables, first copy the current environment
+     * and then add custom values:
+     * <pre>
+     *  Map&lt;String, String&gt; env = new HashMap&lt;&gt;(System.getenv());
+     *  env.put("MY_VAR", "my_value");
+     *  operation.setEnvironmentVariables(env);
+     *  </pre>
+     * This is particularly important on Windows, where omitting essential system environment variables may cause the operation to fail.
      *
      * @param envVariables environment variables
      * @return this

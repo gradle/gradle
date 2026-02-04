@@ -37,7 +37,6 @@ import org.gradle.api.NonExtensible;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.model.ManagedType;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.HasMultipleValues;
@@ -106,8 +105,7 @@ import static org.gradle.api.internal.GeneratedSubclasses.unpack;
 abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static final ImmutableSet<Class<? extends Annotation>> NESTED_ANNOTATION_TYPES = ImmutableSet.of(
-        Nested.class,
-        SoftwareType.class
+        Nested.class
     );
 
     private static final Object[] NO_PARAMS = new Object[0];

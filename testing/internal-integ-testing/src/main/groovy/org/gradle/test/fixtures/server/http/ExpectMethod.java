@@ -103,6 +103,12 @@ class ExpectMethod implements ResourceHandler, BuildableExpectedRequest, Resourc
     }
 
     @Override
+    public BuildableExpectedRequest unauthorized() {
+        replaceBody(new SendFixedContent(401, "unauthorized"), null);
+        return this;
+    }
+
+    @Override
     public BuildableExpectedRequest send(String content) {
         replaceBody(new SendFixedContent(200, content), null);
         return this;

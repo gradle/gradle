@@ -173,6 +173,12 @@ public class TestFile extends File {
         return this;
     }
 
+    /**
+     * Appends the given content to this file, creating parent directories if necessary.
+     * <p>
+     * This is support for Groovy's left-shift operator.
+     */
+    @SuppressWarnings("unused")
     public TestFile leftShift(Object content) {
         getParentFile().mkdirs();
         try {

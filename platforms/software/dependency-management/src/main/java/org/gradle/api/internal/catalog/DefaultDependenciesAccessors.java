@@ -433,10 +433,6 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             visitor.visitInputProperty(IN_VERSIONS, model::getVersionAliases);
             visitor.visitInputProperty(IN_PLUGINS, model::getPluginAliases);
             visitor.visitInputProperty(IN_MODEL_NAME, model::getName);
-        }
-
-        @Override
-        public void visitMutableInputs(InputVisitor visitor) {
             visitor.visitInputFileProperty(IN_CLASSPATH, InputBehavior.NON_INCREMENTAL,
                 new InputVisitor.InputFileValueSupplier(
                     classPath,

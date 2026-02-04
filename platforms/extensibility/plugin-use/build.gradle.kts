@@ -14,10 +14,9 @@ dependencies {
     api(projects.logging)
     api(projects.messaging)
     api(projects.modelCore)
-    api(projects.modelReflect)
     api(projects.problemsApi)
-    api(projects.projectFeaturesApi)
     api(projects.projectFeatures)
+    api(projects.projectFeaturesApi)
 
     api(libs.guava)
     api(libs.inject)
@@ -25,6 +24,7 @@ dependencies {
 
     implementation(projects.functional)
     implementation(projects.jvmServices)
+    implementation(projects.modelReflect)
 
     implementation(libs.slf4jApi)
 
@@ -33,7 +33,7 @@ dependencies {
 
     integTestImplementation(projects.baseServicesGroovy)
     integTestImplementation(libs.jetbrainsAnnotations)
-    integTestImplementation(libs.groovyTest)
+    integTestImplementation(testLibs.groovyTest)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics) {
         because("Requires test-kit: 'java-gradle-plugin' is used in integration tests which always adds the test-kit dependency.")

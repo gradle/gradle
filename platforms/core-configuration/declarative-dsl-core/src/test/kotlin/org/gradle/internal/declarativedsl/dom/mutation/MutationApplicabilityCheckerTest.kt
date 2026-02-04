@@ -17,8 +17,6 @@
 package org.gradle.internal.declarativedsl.dom.mutation
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutation.AddConfiguringBlockIfAbsent
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
@@ -265,19 +263,16 @@ val addCIfAbsentThenAddF = object : MutationDefinition {
 
 internal
 interface TopLevel {
-    @Configuring
     fun nested(configure: Nested.() -> Unit)
 }
 
 
 internal
 interface Nested {
-    @get:Restricted
     var x: Int
 
     @Adding
     fun f(configure: Nested.() -> Unit): Nested
 
-    @Configuring
     fun c(configure: Nested.() -> Unit): Nested
 }

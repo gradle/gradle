@@ -58,7 +58,8 @@ public abstract class AbstractConditionalExecution<T> implements ConditionalExec
         } catch (InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } catch (ExecutionException e) {
-            throw UncheckedException.throwAsUncheckedException(e.getCause());
+            Throwable cause = e.getCause();
+            throw UncheckedException.throwAsUncheckedException(cause != null ? cause : e);
         }
     }
 

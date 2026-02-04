@@ -16,19 +16,16 @@
 
 package org.gradle.internal.execution.workspace;
 
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.jspecify.annotations.Nullable;
-
 import java.io.File;
 
 public interface MutableWorkspaceProvider {
     /**
-     * Provides a persistent workspace and execution history store for executing the given action in.
+     * Provides a persistent workspace for executing the given action in.
      */
     <T> T withWorkspace(String path, WorkspaceAction<T> action);
 
     @FunctionalInterface
     interface WorkspaceAction<T> {
-        T executeInWorkspace(File workspace, @Nullable ExecutionHistoryStore history);
+        T executeInWorkspace(File workspace);
     }
 }
