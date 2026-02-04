@@ -51,17 +51,17 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
         executionDataProvider.getReportScenarios()
             .forEach(scenario -> {
                 if (scenario.isBuildFailed()) {
-                    failureCollector.scenarioFailed();
+                    failureCollector.scenarioFailed(scenario);
                 } else if (scenario.isRegressed()) {
                     Set<PerformanceFlakinessDataProvider.ScenarioRegressionResult> regressionResults = scenario.getCurrentExecutions().stream()
                         .map(execution -> flakinessDataProvider.getScenarioRegressionResult(scenario.getPerformanceExperiment(), execution))
                         .collect(Collectors.toSet());
                     if (regressionResults.contains(STABLE_REGRESSION)) {
-                        failureCollector.scenarioRegressed();
+                        failureCollector.scenarioRegressed(scenario);
                     } else if (regressionResults.stream().allMatch(BIG_FLAKY_REGRESSION::equals)) {
-                        failureCollector.flakyScenarioWithBigRegression();
+                        failureCollector.flakyScenarioWithBigRegression(scenario);
                     } else {
-                        failureCollector.flakyScenarioWithSmallRegression();
+                        failureCollector.flakyScenarioWithSmallRegression(scenario);
                     }
                 }
             });
