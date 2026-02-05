@@ -19,7 +19,7 @@ This release significantly improves [test reporting and execution](#test-reporti
 There are notable [command-line interface and problem reporting](#cli-logging-and-problem-reporting) refinements, including high-resolution progress bars with native terminal integration, a more intuitive Problems HTML report, and expanded output formats for the PMD plugin.
 
 This version also enhances [build authoring](#build-authoring) with simplified APIs, improves [Configuration Cache](#configuration-cache) debugging with clearer attribution for closures and lambdas, and adds [security improvements](#security-and-infrastructure), including Bearer token authentication for the Gradle Wrapper and automatic cleanup of daemon logs. 
-[Plugin authoring](#core-plugin-and-plugin-authoring) is refined with default plugin IDs and stricter validation for published plugins.
+We've refined [plugin authoring](#core-plugin-and-plugin-authoring) by adding default plugin IDs and stricter validation for published plugins.
 
 Finally, [tooling integration](#tooling-and-ide-integration) improvements provide new Tooling API models plus granular control over Tooling API parallelism.
 
