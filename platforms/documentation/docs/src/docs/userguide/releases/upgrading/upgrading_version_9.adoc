@@ -36,6 +36,24 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.5.0]]
+== Upgrading from 9.4.0 and earlier
+
+=== Potential breaking changes
+
+==== Concurrency synchronization primitives can no longer be serialized by the configuration cache
+
+Configuration cache serialization now emits a proper problem when attempting to serialize most of Java's standard concurrency synchronization primitives.
+This includes classes and interfaces in `java.util.concurrent` and `java.util.concurrent.locks` packages, such as `ReentrantLock`, `CountDownLatch`, `SynchronousQueue`, etc.
+Due to the isolation between tasks imposed by the configuration cache it is impossible to use those correctly for cross-task synchronization:
+each task uses its own instance of, for example, a lock, and no synchronization occurs.
+
+Prior to that, you may have seen `java.lang.reflect.InaccessibleObjectException` being thrown when attempting to serialize those classes.
+
+Consider using <<build_services.adoc#build_services, shared build services>> to wrap the shared state when extra synchronization is required.
+
+You can find more information about types unsupported by configuration cache in the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types, documentation>>.
+
 [[changes_9.4.0]]
 == Upgrading from 9.3.0 and earlier
 
