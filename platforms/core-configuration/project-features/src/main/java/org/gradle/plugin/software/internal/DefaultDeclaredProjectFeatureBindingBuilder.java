@@ -42,6 +42,7 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
     @Nullable private Class<?> dslImplementationType;
     @Nullable private Class<?> buildModelImplementationType;
     private ProjectFeatureBindingDeclaration.Safety definitionSafety = ProjectFeatureBindingDeclaration.Safety.SAFE;
+    private ProjectFeatureBindingDeclaration.Safety applyActionSafety = ProjectFeatureBindingDeclaration.Safety.SAFE;
 
     public DefaultDeclaredProjectFeatureBindingBuilder(
         Class<T> definitionType,
@@ -61,6 +62,7 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
         Class<T> definitionType,
         @Nullable Class<? extends T> definitionImplementationType,
         ProjectFeatureBindingDeclaration.Safety definitionSafety,
+        ProjectFeatureBindingDeclaration.Safety applyActionSafety,
         Path path,
         TargetTypeInformation<?> targetDefinitionType,
         Class<V> buildModelType,
@@ -86,6 +88,11 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
             @Override
             public Safety getDefinitionSafety() {
                 return definitionSafety;
+            }
+
+            @Override
+            public Safety getApplyActionSafety() {
+                return applyActionSafety;
             }
 
             @Override
@@ -129,6 +136,12 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
     }
 
     @Override
+    public DeclaredProjectFeatureBindingBuilder<T, V> withUnsafeApplyAction() {
+        this.applyActionSafety = ProjectFeatureBindingDeclaration.Safety.UNSAFE;
+        return this;
+    }
+
+    @Override
     public ProjectFeatureBindingDeclaration<T, V> build() {
         if (dslImplementationType != null && !dslType.isAssignableFrom(dslImplementationType)) {
             throw new IllegalArgumentException("Implementation type " + dslImplementationType + " is not a subtype of dsl type " + dslType);
@@ -142,6 +155,7 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
             dslType,
             Cast.uncheckedCast(dslImplementationType),
             definitionSafety,
+            applyActionSafety,
             path,
             targetDefinitionType,
             buildModelType,
