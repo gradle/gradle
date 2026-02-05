@@ -66,17 +66,21 @@ operator fun PropertyExtractor.plus(other: PropertyExtractor): CompositeProperty
     include(other)
 })
 
-class DefaultPropertyExtractor : PropertyExtractor {
+class DefaultPropertyExtractor(
+    val includePredicate: (owner: KClass<*>, callable: SupportedCallable) -> Boolean = { _, _ -> true }
+) : PropertyExtractor {
     override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<PropertyExtractionResult> =
         propertiesFromAccessorsOf(host, kClass, propertyNamePredicate) + memberPropertiesOf(host, kClass, propertyNamePredicate)
 
     private
     fun propertiesFromAccessorsOf(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<PropertyExtractionResult> {
-        val functions = host.classMembers(kClass).declarativeMembers.filter { it.kind == MemberKind.FUNCTION }
+        val functions = host.classMembers(kClass).declarativeMembers.filter { it.kind == MemberKind.FUNCTION && includePredicate(kClass, it) }
+
         val functionsByName = functions.groupBy { it.name }
 
-        val getters = functionsByName
-            .filterKeys { it.startsWith("get") && it.substringAfter("get").firstOrNull()?.isUpperCase() == true }
+        val getters = functions
+            .filter { it.isJavaBeanGetter }
+            .groupBy { it.name }
             .mapValues { (_, functions) -> functions.singleOrNull { fn -> fn.parameters.isEmpty() } }
             .filterValues { it != null && it.returnType.classifier.isValidPropertyType }
         return getters.mapNotNull { (name, getter) ->
@@ -124,7 +128,7 @@ class DefaultPropertyExtractor : PropertyExtractor {
     private
     fun memberPropertiesOf(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<PropertyExtractionResult> =
         host.classMembers(kClass).declarativeMembers.filter { it.kind.isProperty }.filter { property ->
-            propertyNamePredicate(property.name) && property.returnType.classifier.isValidPropertyType
+            propertyNamePredicate(property.name) && includePredicate(kClass, property) && property.returnType.classifier.isValidPropertyType
         }.map { property ->
             host.inContextOfModelMember(property.kCallable) { kPropertyInformation(host, property) }
         }

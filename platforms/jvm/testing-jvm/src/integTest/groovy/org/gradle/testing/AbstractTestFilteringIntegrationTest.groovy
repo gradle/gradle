@@ -479,7 +479,7 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         createTestABC()
 
         when:
-        succeedsWithTestTaskArguments('test', '--info')
+        succeedsWithTestTaskArguments('test')
 
         then:
         executedAndNotSkipped(":test")

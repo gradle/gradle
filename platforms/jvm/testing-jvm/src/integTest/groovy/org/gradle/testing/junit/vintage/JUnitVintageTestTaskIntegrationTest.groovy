@@ -19,8 +19,8 @@ package org.gradle.testing.junit.vintage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.junit.junit4.AbstractJUnit4TestTaskIntegrationTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_VINTAGE
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
 @TargetCoverage({ JUNIT_VINTAGE })
-class JUnitVintageTestTaskIntegrationTest extends AbstractJUnit4TestTaskIntegrationTest implements JUnitVintageMultiVersionTest {
+class JUnitVintageTestTaskIntegrationTest extends AbstractJUnit4TestTaskIntegrationTest implements JUnitVintageMultiVersionTest, IgnoresJUnit6VintageDeprecationWarning {
 }

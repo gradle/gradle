@@ -24,10 +24,16 @@ import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Issue
 
+import static org.gradle.testing.fixture.JUnitCoverage.getLATEST_JUPITER_VERSION
 import static org.gradle.testing.fixture.JUnitCoverage.getLATEST_PLATFORM_VERSION
 
 
 class JUnitPlatformParameterizedTestIntegrationTest extends JUnitPlatformIntegrationSpec implements JUnitPlatformTestFixture {
+    @Override
+    String getJupiterVersion() {
+        return LATEST_JUPITER_VERSION
+    }
+
     @Override
     TestFile getProjectDir() {
         return testDirectory

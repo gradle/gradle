@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.junit.vintage
+package org.gradle.internal.declarativedsl;
 
-import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.testing.AbstractTestJavaVersionIntegrationTest
+import org.gradle.api.artifacts.dsl.Dependencies;
+import org.gradle.api.artifacts.dsl.DependencyCollector;
 
-import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_VINTAGE
+public class DependencyCollectorsComponentTestJava {
 
-/**
- * Tests support for different JUnit Vintage versions across different Java versions.
- */
-@TargetCoverage({ JUNIT_VINTAGE })
-class JUnitVintageJavaVersionIntegrationTest extends AbstractTestJavaVersionIntegrationTest implements JUnitVintageMultiVersionTest {
+    @SuppressWarnings("unused")
+    interface TestReceiver extends Dependencies {
+        DependencyCollector getApi();
+        DependencyCollector getImplementation();
+    }
 }
