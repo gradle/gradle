@@ -16,6 +16,7 @@
 
 import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeJarClasspath
+import org.gradle.kotlin.dsl.support.serviceOf
 
 plugins {
     id("gradlebuild.dependency-modules")
@@ -55,7 +56,7 @@ val distributionClasspath = configurations.resolvable("distributionClasspath") {
     configureAsRuntimeJarClasspath(objects)
 }
 
-val task = tasks.register<Jar>("jarGradleApi") {
+val apiJarTask = tasks.register<Jar>("jarGradleApi") {
     // We use the resolvable configuration, but leverage withVariantReselection to obtain the subset of api stubs artifacts
     // Some projects simply don't have one, which excludes them
     from(distributionClasspath.map { configuration ->
@@ -81,8 +82,28 @@ val task = tasks.register<Jar>("jarGradleApi") {
 // and its external dependencies.
 val gradleApiElements = configurations.consumable("gradleApiElements") {
     extendsFrom(externalApi.get())
-    outgoing.artifact(task)
+    outgoing.artifact(apiJarTask)
     configureAsApiElements(objects)
+}
+
+val sourcesJarTask = tasks.register<Jar>("sourcesJar") {
+    val archiveOperations = project.serviceOf<ArchiveOperations>()
+    // We use the resolvable configuration, but leverage withVariantReselection to obtain the subset of sources
+    from({ distributionClasspath.map { configuration ->
+        configuration.incoming.artifactView {
+            withVariantReselection()
+            attributes {
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named("documentation"))
+                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("sources"))
+            }
+            lenient(true)
+            componentFilter { componentId -> componentId is ProjectComponentIdentifier }
+        }.files.elements.map { it.stream().map { archiveOperations.zipTree(it.asFile) }.toList() }
+    }})
+    archiveClassifier.set("sources")
+    destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api-src")
+    // This is needed because of the duplicate package-info.class files
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 // TODO: SoftwareComponentFactoryProvider can be replaced with PublishingExtension#getSoftwareComponentFactory()
