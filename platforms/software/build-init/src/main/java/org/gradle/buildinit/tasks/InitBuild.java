@@ -90,9 +90,6 @@ public abstract class InitBuild extends DefaultTask {
     private static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 7;
     private static final int DEFAULT_JAVA_VERSION = 21;
 
-    // To be exposed as property, see https://github.com/gradle/gradle/issues/22625
-    private final Directory projectDir = getProject().getLayout().getProjectDirectory();
-
     private final Provider<List<String>> availableBuildTypes = getProviderFactory().provider(getProjectLayoutRegistry()::getAllTypes);
     private final Provider<List<String>> availableDSLs = getProviderFactory().provider(BuildInitDsl::listSupported);
     private final Provider<List<String>> availableTestFrameworks = getProviderFactory().provider(BuildInitTestFramework::listSupported);
@@ -547,7 +544,7 @@ public abstract class InitBuild extends DefaultTask {
             if (getProjectName().isPresent()) {
                 return getProjectName().get();
             } else {
-                return userQuestions.askQuestion("Project name", projectDir.getAsFile().getName());
+                return userQuestions.askQuestion("Project name", getProjectDirectory().getAsFile().get().getName());
             }
         } else if (getProjectName().isPresent()) {
             throw new GradleException("Project name is not supported for '" + initializer.getId() + "' build type.");
