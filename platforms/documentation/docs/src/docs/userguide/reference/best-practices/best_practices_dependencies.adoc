@@ -52,7 +52,7 @@ Avoid misusing version catalogs for unrelated concerns:
 Use a centralized `libs.versions.toml` file in your `gradle/` directory:
 
 ====
-include::sample[dir="snippets/bestPractices/useVersionCatalogs-do/kotlin",files="gradle/libs.versions.toml[]"]
+include::sample[dir="snippets/bestPractices/useVersionCatalogs-do/common",files="gradle/libs.versions.toml[]"]
 ====
 
 ++++
@@ -124,7 +124,7 @@ Example: For `org.owasp:dependency-check-gradle`, use `dependency-check-plugin`
 === Example
 
 ====
-include::sample[dir="snippets/bestPractices/versionCatalogNaming-do/kotlin",files="gradle/libs.versions.toml[]"]
+include::sample[dir="snippets/bestPractices/versionCatalogNaming-do/common",files="gradle/libs.versions.toml[]"]
 ====
 
 ++++

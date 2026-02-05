@@ -73,8 +73,8 @@ public class PlatformSupport {
         });
     }
 
-    public <T> void addPlatformAttribute(HasConfigurableAttributes<T> dependency, final Category category) {
-        dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, category));
+    public <T> void addPlatformAttribute(HasConfigurableAttributes<T> dependency, final String category) {
+        dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, attributeContainer.named(Category.class, category)));
     }
 
     /**

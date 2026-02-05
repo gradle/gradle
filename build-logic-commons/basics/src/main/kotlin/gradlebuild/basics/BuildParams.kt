@@ -366,15 +366,19 @@ val Project.testSplitOnlyTestGradleVersion: String
 
 
 val Project.predictiveTestSelectionEnabled: Provider<Boolean>
-    get() = systemProperty(PREDICTIVE_TEST_SELECTION_ENABLED)
-        .map { it.toBoolean() }
-        .orElse(
-            buildBranch.zip(buildRunningOnCi) { branch, ci ->
-                ci && !listOf("master", "release", "gh-readonly-queue/").any { branch.startsWith(it) }
+    get() = provider {
+        if (rerunAllTests.orElse(false).get()) {
+            return@provider false
+        } else if (systemProperty(PREDICTIVE_TEST_SELECTION_ENABLED).isPresent) {
+            return@provider systemProperty(PREDICTIVE_TEST_SELECTION_ENABLED).get().toBoolean()
+        } else {
+            val isOnCi = buildRunningOnCi.getOrElse(false)
+            val isMasterReleaseOrMergeQueueBranch = buildBranch.getOrElse("").let { branch ->
+                listOf("master", "release", "gh-readonly-queue/").any { prefix -> branch.startsWith(prefix) }
             }
-        ).zip(project.rerunAllTests) { enabled, rerunAllTests ->
-            enabled && !rerunAllTests
+            return@provider isOnCi && !isMasterReleaseOrMergeQueueBranch
         }
+    }
 
 val Project.testDistributionDogfoodingTag: Provider<String>
     get() = gradleProperty(TEST_DISTRIBUTION_DOGFOODING_TAG)

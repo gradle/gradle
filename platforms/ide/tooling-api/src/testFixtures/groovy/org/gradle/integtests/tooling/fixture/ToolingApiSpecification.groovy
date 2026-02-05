@@ -120,9 +120,10 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
     }
 
     // reflectively invoked by ToolingApiExecution
-    void setTargetDist(GradleDistribution targetDist) {
-        targetGradleDistribution = targetDist
-        toolingApi.setDist(targetGradleDistribution)
+    void setTargetDistAndToolingApiVersion(GradleDistribution targetDist, GradleVersion toolingApiVersion) {
+        this.targetGradleDistribution = targetDist
+        this.toolingApi.setDist(targetGradleDistribution)
+        this.toolingApi.setToolingApiVersion(toolingApiVersion)
     }
 
     GradleDistribution getTargetDist() {
@@ -532,6 +533,7 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
         new ResultAssertion(
                 expectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
             maybeExpectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
+            Collections.emptyList(),
             !stackTraceChecksOn,
             shouldCheckForDeprecationWarnings(),
             true

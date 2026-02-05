@@ -1114,4 +1114,31 @@ testRuntimeClasspath
         expect:
         succeeds("resolve")
     }
+
+    def "capabilities on variant always return same instance"() {
+        mavenRepo.module("org", "foo", "1.0").publish()
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("org:foo:1.0")
+            }
+
+            tasks.register("resolve") {
+                def rootComponent = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+                doLast {
+                    def variant = rootComponent.get().dependencies.first().resolvedVariant
+                    assert variant.capabilities.is(variant.capabilities)
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
 }

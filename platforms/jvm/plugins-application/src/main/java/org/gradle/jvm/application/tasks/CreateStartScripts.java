@@ -18,6 +18,7 @@ package org.gradle.jvm.application.tasks;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.plugins.AppEntryPoint;
@@ -98,6 +99,7 @@ import java.util.stream.Collectors;
  * to parse the template, with the following variables available:
  * <ul>
  * <li>{@code applicationName} - See {@link JavaAppStartScriptGenerationDetails#getApplicationName()}.</li>
+ * <li>{@code gitRef} - See {@link JavaAppStartScriptGenerationDetails#getGitRef()}.</li>
  * <li>{@code optsEnvironmentVar} - See {@link JavaAppStartScriptGenerationDetails#getOptsEnvironmentVar()}.</li>
  * <li>{@code exitEnvironmentVar} - See {@link JavaAppStartScriptGenerationDetails#getExitEnvironmentVar()}.</li>
  * <li>{@code moduleEntryPoint} - The module entry point, or {@code null} if none. Will also include the main class name if present, in the form {@code [moduleName]/[className]}.</li>
@@ -141,6 +143,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     public CreateStartScripts() {
         this.mainModule = getObjectFactory().property(String.class);
         this.mainClass = getObjectFactory().property(String.class);
+        getGitRef().convention("HEAD");
         this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
     }
 
@@ -291,6 +294,16 @@ public abstract class CreateStartScripts extends ConventionTask {
         this.applicationName = applicationName;
     }
 
+    /**
+     * The Git revision or tag.
+     *
+     * @since 9.4.0
+     */
+    @Incubating
+    @Optional
+    @Input
+    public abstract Property<String> getGitRef();
+
     public void setOptsEnvironmentVar(@Nullable String optsEnvironmentVar) {
         this.optsEnvironmentVar = optsEnvironmentVar;
     }
@@ -357,6 +370,7 @@ public abstract class CreateStartScripts extends ConventionTask {
         StartScriptGenerator generator = new StartScriptGenerator(unixStartScriptGenerator, windowsStartScriptGenerator);
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         generator.setApplicationName(getApplicationName());
+        generator.setGitRef(getGitRef().get());
         generator.setEntryPoint(getEntryPoint());
         generator.setDefaultJvmOpts(getDefaultJvmOpts());
         generator.setOptsEnvironmentVar(getOptsEnvironmentVar());

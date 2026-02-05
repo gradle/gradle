@@ -78,7 +78,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         expect:
         //TODO: fix dependency resolution results usage in this test and remove this flag
-        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        executer.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
 
         fails "validate"
         outputContains("evaluating:") // ensure the failure happens when querying the resolved configuration
@@ -140,7 +140,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         expect:
         //TODO: fix dependency resolution results usage in this test and remove this flag
-        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        executer.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
 
         fails "validate"
         outputContains("evaluating:") // ensure the failure happens when querying the resolved configuration
@@ -208,7 +208,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         expect:
         //TODO: fix dependency resolution results usage in this test and remove this flag
-        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        executer.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -281,7 +281,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         expect:
         //TODO: fix dependency resolution results usage in this test and remove this flag
-        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        executer.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -343,7 +343,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         expect:
         //TODO: fix dependency resolution results usage in this test and remove this flag
-        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        executer.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -394,7 +394,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         expect:
         //TODO: fix dependency resolution results usage in this test and remove this flag
-        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        executer.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -441,7 +441,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
         expect:
         //TODO: fix dependency resolution results usage in this test and remove this flag
-        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        executer.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 

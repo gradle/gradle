@@ -15,13 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.result;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.Artifact;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.external.model.ImmutableCapabilities;
 
 import java.io.File;
 
@@ -33,7 +34,7 @@ public class DefaultResolvedArtifactResult implements ResolvedArtifactResult {
 
     public DefaultResolvedArtifactResult(ComponentArtifactIdentifier identifier,
                                          AttributeContainer variantAttributes,
-                                         ImmutableCapabilities capabilities,
+                                         ImmutableList<Capability> capabilities,
                                          DisplayName variantDisplayName,
                                          Class<? extends Artifact> type,
                                          File file) {

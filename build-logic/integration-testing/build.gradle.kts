@@ -28,5 +28,5 @@ dependencies {
     implementation(projects.dependencyModules)
     implementation(projects.jvm)
 
-    testImplementation("junit:junit")
+    testImplementation(testLibs.junit)
 }

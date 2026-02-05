@@ -161,22 +161,22 @@ Gradle CLI output shows detailed information from the reported problem:
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':sample-project:myFailingTask'.
-> Message from runtime exception
+Execution failed for task ':myFailingTask'.
+> FailingTask execution problem  // <1>
+    This happened because ProblemReporter.throwing() was called  // <2>
+      This is a demonstration of how to add  // <3>
+      detailed information to a build failure
 
-  This happened because ProblemReporter.throwing() was called
-  This is a demonstration of how to add detailed information to a build failure
-
-* Try:
+* Try:  // <4>
 > Remove the Problems.throwing() method call from the task action
-> Run with --scan to get full insights from a Build Scan (powered by Develocity).
-
-BUILD FAILED in 0ms
+> Run with --scan to generate a Build Scan (powered by Develocity).
+BUILD FAILED in 0ms  // <5>
 ----
-
-Notes:
-- `AdditionalData` is not shown in CLI output.
-- Solutions or recommended actions in the report will appear in the “Try:” section.
+<1> The display name of the problem ID.
+<2> The contextual label (or the supplied exception's message if the contextual label is missing).
+<3> The content of the `details` property.
+<4> The solutions or recommended actions.
+<5> The `AdditionalData` is not shown in CLI output.
 
 === Tooling API Clients
 

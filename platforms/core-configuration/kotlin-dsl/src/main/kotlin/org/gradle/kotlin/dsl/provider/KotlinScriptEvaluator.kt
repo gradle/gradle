@@ -162,8 +162,8 @@ class StandardKotlinScriptEvaluator(
     private
     val interpreter by lazy {
         when (propertyUpgradeReportConfig.isEnabled) {
-            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradleProperties))
-            false -> Interpreter(InterpreterHost(gradleProperties))
+            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradleProperties), buildOperationRunner)
+            false -> Interpreter(InterpreterHost(gradleProperties), buildOperationRunner)
         }
     }
 
@@ -416,6 +416,9 @@ class StandardKotlinScriptEvaluator(
         override fun getDisplayName(): String =
             "Kotlin DSL script compilation (${programId.templateId})"
 
+        override fun getBuildOperationWorkType(): Optional<String> {
+            return Optional.of("COMPILE_KOTLIN_SCRIPT")
+        }
 
         override fun shouldDisableCaching(detectedOverlappingOutputs: OverlappingOutputs?): Optional<CachingDisabledReason> {
             if (cachingDisabledByProperty) {

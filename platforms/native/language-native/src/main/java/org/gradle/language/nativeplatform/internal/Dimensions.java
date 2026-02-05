@@ -24,7 +24,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.component.DefaultSoftwareComponentVariant;
 import org.gradle.api.internal.component.UsageContext;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.language.cpp.internal.NativeVariantIdentity;
@@ -69,7 +68,7 @@ public class Dimensions {
     }
 
     public static void unitTestVariants(Provider<String> baseName, SetProperty<TargetMachine> declaredTargetMachines, @Nullable SetProperty<TargetMachine> declaredTargetMachinesOfTestedComponent,
-                                        ObjectFactory objectFactory, AttributesFactory attributesFactory,
+                                        AttributesFactory attributesFactory,
                                         Provider<String> group, Provider<String> version,
                                         Action<NativeVariantIdentity> action) {
         Collection<TargetMachine> targetMachines = extractAndValidate("target machine", "unit test", declaredTargetMachines);
@@ -77,26 +76,26 @@ public class Dimensions {
             Collection<TargetMachine> targetMachinesOfTestedComponent = extractAndValidate("target machine", "component under test", declaredTargetMachinesOfTestedComponent);
             validateTargetMachines(targetMachines, targetMachinesOfTestedComponent);
         }
-        variants(baseName, Arrays.asList(BuildType.DEBUG), targetMachines, objectFactory, attributesFactory, group, version, action);
+        variants(baseName, Arrays.asList(BuildType.DEBUG), targetMachines, attributesFactory, group, version, action);
     }
 
     public static void applicationVariants(Provider<String> baseName, SetProperty<TargetMachine> declaredTargetMachines,
-                                       ObjectFactory objectFactory, AttributesFactory attributesFactory,
+                                       AttributesFactory attributesFactory,
                                        Provider<String> group, Provider<String> version,
                                        Action<NativeVariantIdentity> action) {
         Collection<BuildType> buildTypes = BuildType.DEFAULT_BUILD_TYPES;
         Collection<TargetMachine> targetMachines = extractAndValidate("target machine", "application", declaredTargetMachines);
-        variants(baseName, buildTypes, targetMachines, objectFactory, attributesFactory, group, version, action);
+        variants(baseName, buildTypes, targetMachines, attributesFactory, group, version, action);
     }
 
     public static void libraryVariants(Provider<String> baseName, SetProperty<Linkage> declaredLinkages, SetProperty<TargetMachine> declaredTargetMachines,
-                                           ObjectFactory objectFactory, AttributesFactory attributesFactory,
+                                           AttributesFactory attributesFactory,
                                            Provider<String> group, Provider<String> version,
                                            Action<NativeVariantIdentity> action) {
         Collection<BuildType> buildTypes = BuildType.DEFAULT_BUILD_TYPES;
         Collection<Linkage> linkages = extractAndValidate("linkage", "library", declaredLinkages);
         Collection<TargetMachine> targetMachines = extractAndValidate("target machine", "library", declaredTargetMachines);
-        variants(baseName, buildTypes, linkages, targetMachines, objectFactory, attributesFactory, group, version, action);
+        variants(baseName, buildTypes, linkages, targetMachines, attributesFactory, group, version, action);
     }
 
     private static <T> Collection<T> extractAndValidate(String propertyName, String componentName, SetProperty<T> declared) {
@@ -121,15 +120,13 @@ public class Dimensions {
     }
 
     private static void variants(Provider<String> baseName, Collection<BuildType> buildTypes, Collection<Linkage> linkages, Collection<TargetMachine> targetMachines,
-                                 ObjectFactory objectFactory, AttributesFactory attributesFactory,
+                                 AttributesFactory attributesFactory,
                                  // TODO: These should come from somewhere else, probably
                                  Provider<String> group, Provider<String> version,
                                  Action<NativeVariantIdentity> action) {
         for (BuildType buildType : buildTypes) {
             for (Linkage linkage : linkages) {
                 for (TargetMachine targetMachine : targetMachines) {
-                    Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
-                    Usage linkUsage = objectFactory.named(Usage.class, Usage.NATIVE_LINK);
 
                     List<String> variantNameToken = new ArrayList<>();
                     // FIXME: Always build type name to keep parity with previous Gradle version in tooling API
@@ -141,14 +138,14 @@ public class Dimensions {
                     String variantName = StringUtils.uncapitalize(String.join("", variantNameToken));
 
                     AttributeContainer runtimeAttributes = attributesFactory.mutable();
-                    runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
+                    runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeAttributes.named(Usage.class, Usage.NATIVE_RUNTIME));
                     addCommonAttributes(buildType, targetMachine, runtimeAttributes);
                     runtimeAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
 
                     UsageContext runtimeVariant = new DefaultSoftwareComponentVariant(variantName + "Runtime", runtimeAttributes);
 
                     AttributeContainer linkAttributes = attributesFactory.mutable();
-                    linkAttributes.attribute(Usage.USAGE_ATTRIBUTE, linkUsage);
+                    linkAttributes.attribute(Usage.USAGE_ATTRIBUTE, linkAttributes.named(Usage.class, Usage.NATIVE_LINK));
                     addCommonAttributes(buildType, targetMachine, linkAttributes);
                     linkAttributes.attribute(LINKAGE_ATTRIBUTE, linkage);
                     UsageContext linkVariant = new DefaultSoftwareComponentVariant(variantName + "Link", linkAttributes);
@@ -162,13 +159,12 @@ public class Dimensions {
     }
 
     private static void variants(Provider<String> baseName, Collection<BuildType> buildTypes, Collection<TargetMachine> targetMachines,
-                                 ObjectFactory objectFactory, AttributesFactory attributesFactory,
+                                 AttributesFactory attributesFactory,
                                  // TODO: These should come from somewhere else, probably
                                  Provider<String> group, Provider<String> version,
                                  Action<NativeVariantIdentity> action) {
         for (BuildType buildType : buildTypes) {
             for (TargetMachine targetMachine : targetMachines) {
-                Usage runtimeUsage = objectFactory.named(Usage.class, Usage.NATIVE_RUNTIME);
 
                 List<String> variantNameToken = new ArrayList<>();
                 // FIXME: Always build type name to keep parity with previous Gradle version in tooling API
@@ -179,7 +175,7 @@ public class Dimensions {
                 String variantName = StringUtils.uncapitalize(String.join("", variantNameToken));
 
                 AttributeContainer runtimeAttributes = attributesFactory.mutable();
-                runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage);
+                runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeAttributes.named(Usage.class, Usage.NATIVE_RUNTIME));
                 addCommonAttributes(buildType, targetMachine, runtimeAttributes);
 
                 UsageContext runtimeVariant = new DefaultSoftwareComponentVariant(variantName + "Runtime", runtimeAttributes);

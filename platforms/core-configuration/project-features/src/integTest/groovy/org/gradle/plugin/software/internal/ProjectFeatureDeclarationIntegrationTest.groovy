@@ -263,7 +263,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         failure.assertHasCause("Type 'org.gradle.test.NotAProjectFeaturePlugin' is registered as a project feature plugin but does not expose a project feature.")
     }
 
-    def 'sensible error when two plugins register features with the same name'() {
+    def 'sensible error when two plugins register features with the same name and binding target'() {
         given:
         PluginBuilder pluginBuilder = withTwoProjectFeaturesThatHaveTheSameName()
         pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
@@ -279,12 +279,29 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         then:
         assertDescriptionOrCause(failure,
             "Project feature 'feature' is registered by multiple plugins:\n" +
-            "  - Project feature 'feature' is registered by both 'org.gradle.test.AnotherProjectFeatureImplPlugin' and 'org.gradle.test.ProjectFeatureImplPlugin'.\n" +
-            "    \n" +
-            "    Reason: A project feature or type with a given name can only be registered by a single plugin.\n" +
-            "    \n" +
-            "    Possible solution: Remove one of the plugins from the build."
+                "  - Project feature 'feature' is registered by both 'org.gradle.test.AnotherProjectFeatureImplPlugin' and 'org.gradle.test.ProjectFeatureImplPlugin' but their bindings have overlapping target types.\n" +
+                "    \n" +
+                "    Reason: A project feature or type with a given name must bind to a unique target type.\n" +
+                "    \n" +
+                "    Possible solution: Remove one of the plugins from the build."
         )
+    }
+
+    def 'can have two plugins that register features with the same name but different bindings'() {
+        given:
+        PluginBuilder pluginBuilder = withTwoProjectFeaturesThatHaveTheSameNameButDifferentBindings()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        succeeds(":printProjectTypeDefinitionConfiguration", ":printFeatureDefinitionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
     }
 
     def 'can declare and configure a custom project feature that binds to a build model'() {

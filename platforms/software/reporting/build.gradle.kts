@@ -1,16 +1,8 @@
-import gradlebuild.basics.googleApisJs
-
 plugins {
     id("gradlebuild.distribution.api-java")
 }
 
 description = "Report type classes and plugins for reporting (build dashboard, report container)"
-
-val implementationResources: Configuration by configurations.creating
-
-repositories {
-    googleApisJs()
-}
 
 dependencies {
     api(projects.baseServices)
@@ -29,8 +21,6 @@ dependencies {
 
     implementation(libs.guava)
     implementation(libs.jatl)
-
-    implementationResources("jquery:jquery.min:3.5.1@js")
 
     testImplementation(projects.processServices)
     testImplementation(projects.baseServicesGroovy)
@@ -54,14 +44,6 @@ packageCycles {
     excludePatterns.add("org/gradle/api/reporting/internal/**")
 }
 
-val reportResources = tasks.register<Copy>("reportResources") {
-    from(implementationResources)
-    into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/reporting"))
-}
-
-sourceSets.main {
-    output.dir(reportResources.map { it.destinationDir.parentFile.parentFile.parentFile })
-}
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

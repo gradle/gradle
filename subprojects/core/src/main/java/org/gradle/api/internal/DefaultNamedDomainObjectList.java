@@ -159,6 +159,7 @@ public class DefaultNamedDomainObjectList<T> extends DefaultNamedDomainObjectCol
     }
 
     @Override
+    @Deprecated
     public List<T> findAll(Closure cl) {
         return findAll(cl, new ArrayList<T>());
     }

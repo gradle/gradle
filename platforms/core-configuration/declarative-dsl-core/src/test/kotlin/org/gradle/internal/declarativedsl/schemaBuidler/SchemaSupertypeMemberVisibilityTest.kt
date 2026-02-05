@@ -53,12 +53,19 @@ class SchemaSupertypeMemberVisibilityTest {
 
     @Test
     fun `annotating a type as both visible and hidden leads to an error`() {
-        val error = Assert.assertThrows(IllegalStateException::class.java) { schemaFromTypes(VisibleHidden::class, listOf(VisibleHidden::class)) }
+        val error = Assert.assertThrows(DeclarativeDslSchemaBuildingException::class.java) { schemaFromTypes(VisibleHiddenSub::class) }
 
-        Assert.assertTrue(
-            error.message!!.contains(VisibleInDefinition::class.simpleName!!)
-                && error.message!!.contains(HiddenInDefinition::class.simpleName!!)
-                && error.message!!.contains(VisibleHidden::class.qualifiedName!!)
+        Assert.assertEquals(
+            """
+            |Multiple failures in building the declarative schema:
+            |
+            |* Conflicting annotations: @VisibleInDefinition and @HiddenInDefinition are present
+            |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.VisibleHidden'
+            |
+            |* Conflicting annotations: @VisibleInDefinition and @HiddenInDefinition are present
+            |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.AnotherVisibleHiddenSub'
+            """.trimMargin(),
+            error.message
         )
     }
 
@@ -87,8 +94,47 @@ class SchemaSupertypeMemberVisibilityTest {
         Assert.assertNotNull(schema.typeFor<OtherSub>().memberFunctions.find { it.simpleName == OtherSub::otherSub.name })
         Assert.assertNull(schema.typeFor<OtherSub>().memberFunctions.find { it.simpleName == OtherSub::hiddenInOtherSub.name })
     }
+
+    @Test
+    fun `directly using a hidden type is not allowed`() {
+        val exception = Assert.assertThrows(DeclarativeDslSchemaBuildingException::class.java) {
+            schemaFromTypes(UsesHiddenType::class)
+        }
+
+        Assert.assertEquals("""
+            |Type '${HiddenSup::class.qualifiedName}' is a hidden type and cannot be directly used.
+            |  Appears as hidden:
+            |    - type '${HiddenSup::class.qualifiedName}' is annotated as hidden
+            |  Illegal usages:
+            |    - referenced from member '${UsesHiddenType::hidden}'
+            |    - referenced from member '${UsesHiddenType::boxOfHidden}'
+            |    - referenced from member '${UsesHiddenType::moreHidden}'
+            |    - in the supertypes of '${UsesHiddenType::class.qualifiedName}'
+        """.trimMargin(), exception.message)
+    }
+
+    @Test
+    fun `using a type that appears as a hidden supertype is not allowed`() {
+        val exception = Assert.assertThrows(DeclarativeDslSchemaBuildingException::class.java) {
+            schemaFromTypes(UsesHiddenUnannotatedSupertypeType::class)
+        }
+
+        Assert.assertEquals("""
+            |Type '${UnannotatedSupSupSup::class.qualifiedName}' is a hidden type and cannot be directly used.
+            |  Appears as hidden:
+            |    - in the supertypes of '${OtherSub::class.qualifiedName}'
+            |    - in the supertypes of '${Sub::class.qualifiedName}'
+            |  Illegal usages:
+            |    - referenced from member '${UsesHiddenUnannotatedSupertypeType::unannotatedSupSupSup}'
+            |    - in the supertypes of '${UnannotatedBoxOfSupSup::class.qualifiedName}'
+            |    - in the supertypes of '${UnannotatedSupSup::class.qualifiedName}'
+        """.trimMargin(), exception.message)
+    }
 }
 
+interface UnannotatedSupSupSup
+interface UnannotatedSupSup : UnannotatedSupSupSup
+interface UnannotatedBoxOfSupSup : Box<UnannotatedSupSupSup>
 
 @HiddenInDefinition
 interface HiddenSupSup {
@@ -100,7 +146,7 @@ interface SupSup {
 }
 
 @HiddenInDefinition
-open class HiddenSup {
+open class HiddenSup : UnannotatedSupSupSup {
     fun hiddenSup(): String = "".reversed()
 
     @VisibleInDefinition
@@ -132,10 +178,34 @@ class SubWithVisibleOtherSup : HiddenSupWithVisibleOtherSup
 
 @HiddenInDefinition
 @VisibleInDefinition
-class VisibleHidden
+interface VisibleHidden
+
+interface VisibleHiddenSub : VisibleHidden {
+    fun another(): AnotherVisibleHiddenSub
+}
+
+@HiddenInDefinition
+@VisibleInDefinition
+interface AnotherVisibleHiddenSub : VisibleHidden
 
 class VisibleHiddenMember {
     @HiddenInDefinition
     @VisibleInDefinition
     fun visibleHiddenMember(): String = "".reversed()
+}
+
+interface Box<T>
+
+abstract class UsesHiddenType : HiddenSup() {
+    abstract val hidden: HiddenSup
+    abstract fun moreHidden(h: HiddenSup): HiddenSup
+    abstract fun boxOfHidden(): Box<HiddenSup>
+}
+
+interface UsesHiddenUnannotatedSupertypeType {
+    val unannotatedSupSupSup: UnannotatedSupSupSup
+    val unannotatedSupSup: UnannotatedSupSup
+    val unannotatedBoxOfSupSup: UnannotatedBoxOfSupSup
+    val sub: Sub
+    val otherSub: OtherSub
 }

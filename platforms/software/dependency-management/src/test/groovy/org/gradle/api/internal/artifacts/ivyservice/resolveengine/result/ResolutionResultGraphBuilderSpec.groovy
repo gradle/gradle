@@ -255,12 +255,20 @@ class ResolutionResultGraphBuilderSpec extends Specification {
 
     private ResolvedGraphDependency dep(String requested, Exception failure = null, String selected = requested) {
         def selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("x", requested), DefaultImmutableVersionConstraint.of("1"))
-        failure = failure == null ? null : new ModuleVersionResolveException(selector, failure)
-        return Stub(ResolvedGraphDependency) {
-            getRequested() >> selector
-            getSelected() >> id(selected)
-            getSelectedVariant() >> id(selected)
-            getFailure() >> failure
+        if (failure == null) {
+            return Stub(ResolvedGraphDependency) {
+                getRequested() >> selector
+                getTargetComponentId() >> id(selected)
+                getTargetVariantId() >> id(selected)
+                getFailure() >> null
+                getReason() >> null
+            }
+        } else {
+            return Stub(ResolvedGraphDependency) {
+                getRequested() >> selector
+                getFailure() >> new ModuleVersionResolveException(selector, failure)
+                getReason() >> ComponentSelectionReasons.of(ComponentSelectionReasons.REQUESTED)
+            }
         }
     }
 

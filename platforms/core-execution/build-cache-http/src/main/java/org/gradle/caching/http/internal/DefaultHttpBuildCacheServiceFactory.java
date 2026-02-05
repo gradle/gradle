@@ -27,7 +27,8 @@ import org.gradle.caching.http.HttpBuildCacheCredentials;
 import org.gradle.internal.authentication.DefaultBasicAuthentication;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
-import org.gradle.internal.resource.transport.http.HttpClientHelper;
+import org.gradle.internal.resource.transport.http.HttpClient;
+import org.gradle.internal.resource.transport.http.HttpClientFactory;
 import org.gradle.internal.resource.transport.http.HttpSettings;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
@@ -48,14 +49,14 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
 
     private final SslContextFactory sslContextFactory;
     private final HttpBuildCacheRequestCustomizer requestCustomizer;
-    private final HttpClientHelper.Factory httpClientHelperFactory;
+    private final HttpClientFactory httpClientFactory;
     private final ObjectFactory objectFactory;
 
     @Inject
-    public DefaultHttpBuildCacheServiceFactory(ObjectFactory objectFactory, SslContextFactory sslContextFactory, HttpBuildCacheRequestCustomizer requestCustomizer, HttpClientHelper.Factory httpClientHelperFactory) {
+    public DefaultHttpBuildCacheServiceFactory(ObjectFactory objectFactory, SslContextFactory sslContextFactory, HttpBuildCacheRequestCustomizer requestCustomizer, HttpClientFactory httpClientFactory) {
         this.sslContextFactory = sslContextFactory;
         this.requestCustomizer = requestCustomizer;
-        this.httpClientHelperFactory = httpClientHelperFactory;
+        this.httpClientFactory = httpClientFactory;
         this.objectFactory = objectFactory;
     }
 
@@ -99,7 +100,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
             builder.withSslContextFactory(sslContextFactory);
         }
 
-        HttpClientHelper httpClientHelper = httpClientHelperFactory.create(builder.build());
+        HttpClient client = httpClientFactory.createClient(builder.build());
 
         describer.type("HTTP")
             .config("url", noUserInfoUrl.toASCIIString())
@@ -108,7 +109,7 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
             .config("allowInsecureProtocol", Boolean.toString(allowInsecureProtocol))
             .config("useExpectContinue", Boolean.toString(useExpectContinue));
 
-        return new HttpBuildCacheService(httpClientHelper, noUserInfoUrl, requestCustomizer, useExpectContinue);
+        return new HttpBuildCacheService(client, noUserInfoUrl, requestCustomizer, useExpectContinue);
     }
 
     private HttpRedirectVerifier createRedirectVerifier(URI url, boolean allowInsecureProtocol) {

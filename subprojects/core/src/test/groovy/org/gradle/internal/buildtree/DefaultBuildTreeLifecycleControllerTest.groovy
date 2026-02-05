@@ -174,6 +174,7 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
 
     def "collects failure to create model"() {
         def failure = new RuntimeException()
+        List<Throwable> collectedFailures = []
 
         when:
         controller.fromBuildModel(false, Stub(BuildTreeModelAction))
@@ -186,7 +187,14 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
         1 * modelCreator.fromBuildModel(_) >> { throw failure }
 
         and:
-        1 * finishExecutor.finishBuildTree([failure]) >> reportableFailure
+        1 * finishExecutor.finishBuildTree(_) >> { arguments ->
+            collectedFailures = arguments[0]
+            reportableFailure
+        }
+        collectedFailures.size() == 1
+        def collectedFailure = collectedFailures[0]
+        collectedFailure instanceof DefaultBuildTreeLifecycleController.BuildActionExecutionException
+        collectedFailure.cause == failure
     }
 
     def "can run action against model prior to invoking build"() {
@@ -217,12 +225,14 @@ class DefaultBuildTreeLifecycleControllerTest extends Specification {
             throw args[0][0]
         }
 
-        thrown(IllegalStateException)
+        def e = thrown(DefaultBuildTreeLifecycleController.BuildActionExecutionException)
+        e.cause instanceof IllegalStateException
 
         when:
         controller.beforeBuild(action)
 
         then:
-        thrown(IllegalStateException)
+        e = thrown(DefaultBuildTreeLifecycleController.BuildActionExecutionException)
+        e.cause instanceof IllegalStateException
     }
 }

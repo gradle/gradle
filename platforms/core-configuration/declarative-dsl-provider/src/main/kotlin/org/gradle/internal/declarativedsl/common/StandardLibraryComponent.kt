@@ -44,11 +44,16 @@ import org.gradle.internal.declarativedsl.schemaBuilder.CompositeTopLevelFunctio
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultImportsProvider
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.LossySchemaBuildingOperation
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.TopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.Special
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelMember
-import org.gradle.internal.declarativedsl.schemaBuilder.parameterTypeToRefOrError
+import org.gradle.internal.declarativedsl.schemaBuilder.orError
+import org.gradle.internal.declarativedsl.schemaBuilder.parameterTypeToRef
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaResult
 import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.javaMethod
 import kotlin.reflect.jvm.kotlinFunction
@@ -58,7 +63,7 @@ import kotlin.reflect.jvm.kotlinFunction
  * Ensures that they get proper runtime resolution.
  */
 object StandardLibraryComponent : AnalysisSchemaComponent, ObjectConversionComponent {
-    override fun typeDiscovery(): List<TypeDiscovery> = listOf(FixedTypeDiscovery(null, listOf(Pair::class)))
+    override fun typeDiscovery(): List<TypeDiscovery> = listOf(FixedTypeDiscovery(null, listOf(TypeDiscovery.DiscoveredClass(Pair::class, listOf(Special("standard library type"))))))
 
     override fun topLevelFunctionDiscovery(): List<TopLevelFunctionDiscovery> = listOf(
         object : TopLevelFunctionDiscovery {
@@ -85,15 +90,16 @@ object StandardLibraryComponent : AnalysisSchemaComponent, ObjectConversionCompo
          * This function extractor needs to run before the default one, so this one takes priority and handles the [to] function.
          */
         object : FunctionExtractor {
+            @OptIn(LossySchemaBuildingOperation::class) // referencing a predefined type is safe
             override fun topLevelFunction(
                 host: SchemaBuildingHost,
                 function: KFunction<*>,
                 preIndex: DataSchemaBuilder.PreIndex
-            ): DataTopLevelFunction? = when (function) {
+            ): SchemaResult<DataTopLevelFunction>? = when (function) {
                 kotlinTo -> host.inContextOfModelMember(kotlinTo) {
-                    val typeA = host.modelTypeRef(kotlinTo.parameters[0].type)
-                    val typeB = host.modelTypeRef(kotlinTo.parameters[1].type)
-                    val returnType = host.modelTypeRef(kotlinTo.returnType)
+                    val typeA = host.modelTypeRef(kotlinTo.parameters[0].type).orError()
+                    val typeB = host.modelTypeRef(kotlinTo.parameters[1].type).orError()
+                    val returnType = host.modelTypeRef(kotlinTo.returnType).orError()
 
                     DefaultDataTopLevelFunction(
                         packageName = "kotlin",
@@ -105,11 +111,11 @@ object StandardLibraryComponent : AnalysisSchemaComponent, ObjectConversionCompo
                             DefaultDataParameter("second", typeB, false, ParameterSemanticsInternal.DefaultUnknown)
                         ),
                         FunctionSemanticsInternal.DefaultPure(returnType)
-                    )
+                    ).let(::schemaResult)
                 }
 
                 kotlinCollectionsMapOf -> host.inContextOfModelMember(kotlinCollectionsMapOf) {
-                    val returnType = host.modelTypeRef(kotlinCollectionsMapOf.returnType)
+                    val returnType = host.modelTypeRef(kotlinCollectionsMapOf.returnType).orError()
 
                     DefaultDataTopLevelFunction(
                         packageName = "kotlin.collections",
@@ -117,10 +123,15 @@ object StandardLibraryComponent : AnalysisSchemaComponent, ObjectConversionCompo
                         ownerJvmTypeName = gradleRuntimeIntrinsicsKClass.java.name,
                         simpleName = "mapOf",
                         listOf(
-                            DefaultVarargParameter("pairs", kotlinCollectionsMapOf.parameters.last().parameterTypeToRefOrError(host), isDefault = false, ParameterSemanticsInternal.DefaultUnknown)
+                            DefaultVarargParameter(
+                                "pairs",
+                                kotlinCollectionsMapOf.parameters.last().parameterTypeToRef(host).orError(),
+                                isDefault = false,
+                                ParameterSemanticsInternal.DefaultUnknown
+                            )
                         ),
                         FunctionSemanticsInternal.DefaultPure(returnType)
-                    )
+                    ).let(::schemaResult)
                 }
 
                 else -> null
@@ -151,7 +162,8 @@ object StandardLibraryComponent : AnalysisSchemaComponent, ObjectConversionCompo
                 return mapOf(
                     DefaultFqName.parse(List::class.qualifiedName!!) to listOf(
                         host.inContextOfModelMember(listSignatureFunction) {
-                            val listOfTType = host.modelTypeRef(listSignatureFunction.parameters.last().type)
+                            @OptIn(LossySchemaBuildingOperation::class) // referencing a predefined type is safe
+                            val listOfTType = host.modelTypeRef(listSignatureFunction.parameters.last().type).orError()
 
                             DefaultAssignmentAugmentation(
                                 AssignmentAugmentationKindInternal.DefaultPlus,
@@ -170,7 +182,8 @@ object StandardLibraryComponent : AnalysisSchemaComponent, ObjectConversionCompo
 
                     DefaultFqName.parse(Map::class.qualifiedName!!) to listOf(
                         host.inContextOfModelMember(mapSignatureFunction) {
-                            val mapOfKvType = host.modelTypeRef(mapSignatureFunction.parameters.last().type)
+                            @OptIn(LossySchemaBuildingOperation::class) // referencing a predefined type is safe
+                            val mapOfKvType = host.modelTypeRef(mapSignatureFunction.parameters.last().type).orError()
 
                             DefaultAssignmentAugmentation(
                                 AssignmentAugmentationKindInternal.DefaultPlus,

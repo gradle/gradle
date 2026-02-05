@@ -16,10 +16,11 @@
 
 package gradlebuild.binarycompatibility;
 
-import gradlebuild.modules.extension.ExternalModulesExtension;
 import me.champeau.gradle.japicmp.JapicmpTask;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.VersionCatalog;
+import org.gradle.api.artifacts.VersionCatalogsExtension;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.tasks.CacheableTask;
@@ -50,9 +51,9 @@ public abstract class JapicmpTaskWithKotlin extends JapicmpTask {
     private Configuration resolveKotlinCompilerEmbeddable() {
         Project project = getProject();
         DependencyHandler dependencies = project.getDependencies();
-        String kotlinVersion = new ExternalModulesExtension(4) {}.getKotlinVersion();
+        VersionCatalog libs = project.getExtensions().getByType(VersionCatalogsExtension.class).named("libs");
         return project.getConfigurations().detachedConfiguration(
-            dependencies.create("org.jetbrains.kotlin:kotlin-compiler-embeddable:" + kotlinVersion)
+            dependencies.create(libs.findLibrary("kotlinCompilerEmbeddable").get().get())
         );
     }
 

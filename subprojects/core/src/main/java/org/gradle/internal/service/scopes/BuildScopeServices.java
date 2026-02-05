@@ -312,6 +312,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(ScriptClassPathResolver.class, DefaultScriptClassPathResolver.class);
         registration.add(ScriptHandlerFactory.class, DefaultScriptHandlerFactory.class);
         registration.add(BuildOutputCleanupRegistry.class, HoldsProjectState.class, DefaultBuildOutputCleanupRegistry.class);
+        registration.add(BuildLogicBuilder.class, DefaultBuildLogicBuilder.class);
 
         for (GradleModuleServices services : serviceProviders) {
             services.registerBuildServices(registration);
@@ -456,16 +457,18 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected ValueSourceProviderFactory createValueSourceProviderFactory(
+        ValueSourceProviderFactory.ValueListener valueListener,
+        ValueSourceProviderFactory.ComputationListener computationListener,
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
         ServiceRegistry services,
         GradleProperties gradleProperties,
         ExecFactory execFactory,
-        ListenerManager listenerManager,
         CalculatedValueFactory calculatedValueFactory
     ) {
         return new DefaultValueSourceProviderFactory(
-            listenerManager,
+            valueListener,
+            computationListener,
             instantiatorFactory,
             isolatableFactory,
             gradleProperties,
@@ -590,7 +593,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         CompileOperationFactory compileOperationFactory,
         BuildOperationRunner buildOperationRunner,
         UserCodeApplicationContext userCodeApplicationContext,
-        ListenerManager listenerManager
+        ScriptSourceListener scriptSourceListener
     ) {
         ScriptPluginFactorySelector.ProviderInstantiator instantiator = ScriptPluginFactorySelector.defaultProviderInstantiatorFor(instantiatorFactory.inject(buildScopedServices));
         DefaultScriptPluginFactory defaultScriptPluginFactory = new DefaultScriptPluginFactory(
@@ -601,7 +604,13 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             pluginRequestApplicator,
             compileOperationFactory
         );
-        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, instantiator, buildOperationRunner, userCodeApplicationContext, listenerManager.getBroadcaster(ScriptSourceListener.class));
+        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(
+            defaultScriptPluginFactory,
+            instantiator,
+            buildOperationRunner,
+            userCodeApplicationContext,
+            scriptSourceListener
+        );
         defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
         return scriptPluginFactorySelector;
     }
@@ -627,15 +636,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             buildRegistry,
             publicBuildPath,
             buildQueue);
-    }
-
-    @Provides
-    protected BuildLogicBuilder createBuildLogicBuilder(
-        BuildState currentBuild,
-        ScriptClassPathResolver scriptClassPathResolver,
-        BuildLogicBuildQueue buildQueue
-    ) {
-        return new DefaultBuildLogicBuilder(currentBuild, scriptClassPathResolver, buildQueue);
     }
 
     @Provides
@@ -794,9 +794,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         BuildOperationExecutor buildOperationExecutor,
         BuildModelParameters buildModelParameters,
         ToolingModelParameterCarrier.Factory parameterCarrierFactory,
-        ListenerManager listenerManager
+        ToolingModelProjectDependencyListener projectDependencyListener
     ) {
-        ToolingModelProjectDependencyListener projectDependencyListener = listenerManager.getBroadcaster(ToolingModelProjectDependencyListener.class);
         IntermediateBuildActionRunner runner = new IntermediateBuildActionRunner(buildOperationExecutor, buildModelParameters, "Tooling API intermediate model");
         return new DefaultIntermediateToolingModelProvider(runner, parameterCarrierFactory, projectDependencyListener);
     }
@@ -817,8 +816,10 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected ScriptRunnerFactory createScriptRunnerFactory(ListenerManager listenerManager, InstantiatorFactory instantiatorFactory) {
-        ScriptExecutionListener scriptExecutionListener = listenerManager.getBroadcaster(ScriptExecutionListener.class);
+    protected ScriptRunnerFactory createScriptRunnerFactory(
+        ScriptExecutionListener scriptExecutionListener,
+        InstantiatorFactory instantiatorFactory
+    ) {
         return new DefaultScriptRunnerFactory(
             scriptExecutionListener,
             instantiatorFactory.inject()

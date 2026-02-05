@@ -245,6 +245,9 @@ include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/g
 
 The plugin version in this case is defined in the dependency declaration.
 
+The `version "..."` and `apply false` syntax are not supported in precompiled script plugins. The version for the plugin is determined by the version declared in the plugin's build file.
+If a plugin needs to be on the classpath but not applied, it can be left out of the `plugins {}` block and only added as a dependency in the plugin's build file.
+
 [[project_pre_compiled_plugins]]
 == Example of a precompiled script plugin in the `Project` scope
 

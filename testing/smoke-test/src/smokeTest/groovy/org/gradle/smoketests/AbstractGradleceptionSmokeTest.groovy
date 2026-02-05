@@ -37,7 +37,8 @@ import java.text.SimpleDateFormat
 abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
     public static final String TEST_BUILD_TIMESTAMP = "-PbuildTimestamp=" + newTimestamp()
-    private static final List<String> GRADLE_BUILD_TEST_ARGS = [TEST_BUILD_TIMESTAMP]
+    private static final String DISABLE_IP = "-Dorg.gradle.unsafe.isolated-projects=false"
+    private static final List<String> GRADLE_BUILD_TEST_ARGS = [DISABLE_IP, TEST_BUILD_TIMESTAMP]
 
     private SmokeTestGradleRunner.SmokeTestBuildResult result
 
@@ -74,11 +75,15 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
         result = runner.buildAndFail()
     }
 
+    SmokeTestGradleRunner runner(String... tasks) {
+        List<String> args = GRADLE_BUILD_TEST_ARGS + (tasks as List<String>);
+        return super.runner(*args)
+    }
+
     protected SmokeTestGradleRunner runnerFor(List<String> tasks, File testKitDir) {
-        List<String> gradleArgs = tasks + GRADLE_BUILD_TEST_ARGS
         def runner = testKitDir != null
-            ? runnerWithTestKitDir(testKitDir, gradleArgs)
-            : runner(*gradleArgs)
+            ? runnerWithTestKitDir(testKitDir, tasks)
+            : runner(*tasks)
 
         runner.ignoreDeprecationWarnings("Gradleception smoke tests don't check for deprecation warnings; TODO: we should add expected deprecations for each task being called")
         runner.withJdkWarningChecksDisabled() // The Gradle build somehow still emits these warnings

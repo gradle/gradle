@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.junit4
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_LARGE_COVERAGE
@@ -56,30 +57,22 @@ class JUnit4FilteringIntegrationTest extends AbstractJUnit4FilteringIntegrationT
                 filter {
                     includeTestsMatching "$pattern"
                 }
-                afterSuite { descriptor, result ->
-                    println descriptor
-                }
             }
         """
 
         when:
-        if (successful) {
-            succeeds('test')
-        } else {
-            fails('test')
-        }
+        succeeds('test')
 
         then:
-        includedClasses.every { output.contains(it) }
-        excludedClasses.every { !output.contains(it) }
+        GenericTestExecutionResult testResult = resultsFor("tests/test", testFramework)
+        testResult.assertTestPathsExecuted(*includedClasses)
 
         where:
-        pattern             | includedClasses                               | excludedClasses                                                      | successful
-        'FooTest'           | ['org.gradle.FooTest', 'com.gradle.FooTest']  | ['org.gradle.BarTest']                                               | true
-        'FooTest.notATest'  | []                                            | ['org.gradle.FooTest', 'com.gradle.FooTest', 'org.gradle.BarTest']   | false
-        'FooTest.otherTest' | ['com.gradle.FooTest']                        | ['org.gradle.FooTest', 'org.gradle.BarTest']                         | true
-        'org.gradle.*'      | ['org.gradle.FooTest', 'org.gradle.BarTest']  | ['com.gradle.FooTest']                                               | true
-        '*FooTest'          | ['org.gradle.FooTest', 'com.gradle.FooTest']  | ['org.gradle.BarTest']                                               | true
-        'org*'              | ['org.gradle.FooTest', 'org.gradle.BarTest']  | ['com.gradle.FooTest']                                               | true
+        pattern             | includedClasses
+        'FooTest'           | [':org.gradle.FooTest:test', ':com.gradle.FooTest:test', ':com.gradle.FooTest:otherTest']
+        'FooTest.otherTest' | [':com.gradle.FooTest:otherTest']
+        'org.gradle.*'      | [':org.gradle.FooTest:test', ':org.gradle.BarTest:test']
+        '*FooTest'          | [':org.gradle.FooTest:test', ':com.gradle.FooTest:test', ':com.gradle.FooTest:otherTest']
+        'org*'              | [':org.gradle.FooTest:test', ':org.gradle.BarTest:test']
     }
 }

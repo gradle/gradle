@@ -42,7 +42,11 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     private static final String DEFAULT_TOKEN = "token"
 
     private String getDefaultBaseUrl() {
-        "http://$HOST:${server.port}"
+        return getDefaultBaseUrl(false);
+    }
+
+    private String getDefaultBaseUrl(boolean uppercaseHost) {
+        "http://${uppercaseHost ? HOST.toUpperCase(Locale.ROOT) : HOST}:${server.port}"
     }
 
     private String getDefaultAuthenticatedBaseUrl(String user = USER, String password = PASSWORD) {
@@ -57,7 +61,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
                     println 'hello'
                 }
             }
-        
+
             task echoProperty {
                 doLast {
                     println "fooD=" + project.findProperty("fooD")
@@ -76,7 +80,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         if (!userHomeDists.exists() || !userHomeDists.isDirectory()) {
             return false
         }
-        
+
         // Check if there's an actual distribution file (zip or extracted directory with marker)
         def foundDistribution = false
         userHomeDists.eachFileRecurse { file ->
@@ -382,7 +386,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         """.stripIndent()
         server.withBearerAuthentication(DEFAULT_TOKEN)
         server.expect(server.head("/$TEST_DISTRIBUTION_URL"))
-        prepareWrapper(getDefaultBaseUrl()).run()
+        prepareWrapper(getDefaultBaseUrl(uppercaseHost)).run()
         server.expect(server.get("/$TEST_DISTRIBUTION_URL").sendFile(distribution.binDistribution))
 
         when:
@@ -390,6 +394,9 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         assertThat(result.output, containsString('hello'))
+
+        where:
+        uppercaseHost << [false, true]
     }
 
     def "downloads wrapper from basic authenticated server using credentials from gradle.properties"() {

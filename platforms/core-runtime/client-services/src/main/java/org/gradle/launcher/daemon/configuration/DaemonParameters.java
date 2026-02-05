@@ -37,6 +37,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.launcher.daemon.logging.DaemonLogConstants.DAEMON_LOG_DIR;
+
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     public static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 10 * 1000;
@@ -53,7 +55,7 @@ public class DaemonParameters {
     private final JvmOptions jvmOptions;
     private boolean applyInstrumentationAgent = true;
     private NativeServicesMode nativeServicesMode = NativeServicesMode.ENABLED;
-    private Map<String, String> envVariables;
+    private final Map<String, String> envVariables;
     private boolean enabled = true;
     private boolean foreground;
     private boolean stop;
@@ -77,7 +79,7 @@ public class DaemonParameters {
         }
         jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
         this.gradleUserHomeDir = gradleUserHomeDir;
-        this.baseDir = new File(gradleUserHomeDir, "daemon");
+        this.baseDir = new File(gradleUserHomeDir, DAEMON_LOG_DIR);
         this.envVariables = environmentVariables == null ? new HashMap<>(System.getenv()) : environmentVariables;
         toolchainConfiguration = new DefaultToolchainConfiguration(this.envVariables);
     }
@@ -130,7 +132,7 @@ public class DaemonParameters {
         this.requestedJvmCriteria = requestedJvmCriteria;
     }
 
-    public void setRequestedJvmCriteriaFromMap(@Nullable Map<String, String> daemonJvmProperties) {
+    public void setRequestedJvmCriteriaFromMap(Map<String, String> daemonJvmProperties) {
         DaemonJvmPropertiesAccessor daemonJvmAccessor = new DaemonJvmPropertiesAccessor(daemonJvmProperties);
         JavaLanguageVersion requestedVersion = daemonJvmAccessor.getVersion();
         if (requestedVersion != null) {
@@ -141,13 +143,13 @@ public class DaemonParameters {
     }
 
     public Map<String, String> getSystemProperties() {
-        Map<String, String> systemProperties = new HashMap<String, String>();
+        Map<String, String> systemProperties = new HashMap<>();
         GUtil.addToMap(systemProperties, jvmOptions.getMutableSystemProperties());
         return systemProperties;
     }
 
     public Map<String, String> getEffectiveSystemProperties() {
-        Map<String, String> systemProperties = new HashMap<String, String>();
+        Map<String, String> systemProperties = new HashMap<>();
         GUtil.addToMap(systemProperties, System.getProperties());
         GUtil.addToMap(systemProperties, jvmOptions.getMutableSystemProperties());
         GUtil.addToMap(systemProperties, jvmOptions.getImmutableSystemProperties());
@@ -155,7 +157,7 @@ public class DaemonParameters {
     }
 
     public Map<String, String> getMutableAndImmutableSystemProperties() {
-        Map<String, String> systemProperties = new HashMap<String, String>();
+        Map<String, String> systemProperties = new HashMap<>();
         GUtil.addToMap(systemProperties, jvmOptions.getMutableSystemProperties());
         GUtil.addToMap(systemProperties, jvmOptions.getImmutableSystemProperties());
         return systemProperties;

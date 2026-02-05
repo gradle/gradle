@@ -25,6 +25,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Declarations of project features implemented by plugins.
@@ -41,7 +42,7 @@ public interface ProjectFeatureDeclarations {
      * Returns a map of available project features, along with their types and associated plugins, keyed by project feature name.  Note that once
      * method is called, calling {@link #addDeclaration(String, Class, Class)} will result in an error.
      */
-    Map<String, ProjectFeatureImplementation<?, ?>> getProjectFeatureImplementations();
+    Map<String, Set<ProjectFeatureImplementation<?, ?>>> getProjectFeatureImplementations();
 
     /**
      * Returns the schema for the declared project features.

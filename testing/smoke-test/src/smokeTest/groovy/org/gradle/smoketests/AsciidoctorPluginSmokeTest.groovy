@@ -91,6 +91,8 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                     "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested",
                 "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/751"
             )
+            // Asciidoc plugin currently triggers an --enable-native-access warning on Java 24+
+            runner.withJdkWarningChecksDisabled()
         }
     }
 }

@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
+import static org.gradle.internal.collect.PersistentArrayTrie.indexOutOfBounds;
+
 /// A small [PersistentArray] holding at least 2 elements and at most [32][PersistentArrayTrie#WIDTH] elements.
 ///
 final class PersistentArraySmall<T> implements PersistentArray<T> {
@@ -54,6 +56,14 @@ final class PersistentArraySmall<T> implements PersistentArray<T> {
     @Override
     public T get(int index) {
         return (T) array[index];
+    }
+
+    @Override
+    public PersistentArray<T> set(int index, T value) {
+        if (index < 0 || index >= array.length) {
+            throw indexOutOfBounds(index);
+        }
+        return new PersistentArraySmall<>(ArrayCopy.replaceAt(index, array, value));
     }
 
     @SuppressWarnings("unchecked")

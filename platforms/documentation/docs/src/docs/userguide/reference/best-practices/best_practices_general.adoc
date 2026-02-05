@@ -566,7 +566,7 @@ This relies on person running the build to remember to set this property, which 
 .gradle.properties
 [source,properties]
 ----
-include::{snippetsPath}/bestPractices/useTheGradlePropertiesFile-do/kotlin/gradle.properties[tag=do-this]
+include::{snippetsPath}/bestPractices/useTheGradlePropertiesFile-do/common/gradle.properties[tag=do-this]
 ----
 
 This build sets the `org.gradle.continue` property in the `gradle.properties` file.
@@ -699,7 +699,7 @@ If you need to apply properties across *multiple subprojects*, extract the confi
 =====
 
 ====
-include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-avoid/kotlin/app",files="gradle.properties[]"]
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-avoid/common/app",files="gradle.properties[]"]
 ====
 
 ====
@@ -708,7 +708,7 @@ include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-a
 ====
 
 ====
-include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-avoid/kotlin/util",files="gradle.properties[]"]
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-avoid/common/util",files="gradle.properties[]"]
 ====
 
 ====
@@ -768,7 +768,7 @@ This structure requires duplicating properties that are shared between subprojec
 =====
 
 ====
-include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-do/kotlin",files="gradle.properties[]"]
+include::sample[dir="snippets/bestPractices/avoidGradlePropertiesInSubProjects-do/common",files="gradle.properties[]"]
 ====
 
 ====

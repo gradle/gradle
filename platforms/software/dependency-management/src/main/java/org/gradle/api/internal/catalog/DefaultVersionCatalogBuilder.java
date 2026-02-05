@@ -274,8 +274,8 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         return ((RoleBasedConfigurationContainerInternal) drs.getConfigurationContainer()).resolvableDependencyScopeLocked(confName, conf -> {
             conf.getResolutionStrategy().activateDependencyLocking();
             conf.attributes(attrs -> {
-                attrs.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.REGULAR_PLATFORM));
-                attrs.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.VERSION_CATALOG));
+                attrs.attribute(Category.CATEGORY_ATTRIBUTE, attrs.named(Category.class, Category.REGULAR_PLATFORM));
+                attrs.attribute(Usage.USAGE_ATTRIBUTE, attrs.named(Usage.class, Usage.VERSION_CATALOG));
             });
         });
     }

@@ -42,7 +42,7 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
         ),
         // https://github.com/gradle/develocity-bamboo-plugin/releases
         BAMBOO(
-            "develocity-bamboo-plugin-3.0.3",
+            "develocity-bamboo-plugin-3.0.4",
             "https://raw.githubusercontent.com/gradle/develocity-bamboo-plugin/refs/tags/%s/src/main/resources/develocity/gradle/develocity-init-script.gradle"
         );
 
@@ -160,7 +160,9 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
         "4.2",
         "4.2.1",
         "4.2.2",
-        "4.3"
+        "4.3",
+        "4.3.1",
+        "4.3.2"
     ]
 
     // Current injection scripts support Develocity plugin 3.6.4 and above

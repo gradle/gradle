@@ -16,174 +16,137 @@
 
 package org.gradle.internal.execution.steps
 
-import com.google.common.collect.ImmutableListMultimap
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.api.internal.file.TestFiles
+import org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy
+import org.gradle.cache.FineGrainedPersistentCache
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
 import org.gradle.internal.execution.Execution
 import org.gradle.internal.execution.ImmutableUnitOfWork
+import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.history.ImmutableWorkspaceMetadata
 import org.gradle.internal.execution.history.ImmutableWorkspaceMetadataStore
 import org.gradle.internal.execution.history.impl.DefaultExecutionOutputState
-import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
-import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
+import org.gradle.internal.execution.workspace.impl.CacheBasedImmutableWorkspaceProvider
+import org.gradle.internal.file.Deleter
+import org.gradle.internal.file.FileType
+import org.gradle.internal.file.impl.SingleDepthFileAccessTracker
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
 
 import java.time.Duration
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import java.util.function.BiFunction
-import java.util.function.Supplier
 
-import static org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep.LockingStrategy
-import static org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider.AtomicMoveImmutableWorkspace.TemporaryWorkspaceAction
+import static org.gradle.cache.FineGrainedMarkAndSweepCacheCleanupStrategy.FineGrainedCacheEntrySoftDeleter
 
 class AssignImmutableWorkspaceStepConcurrencyTest extends StepSpecBase<IdentityContext> {
+
     def workspacesRoot = temporaryFolder.file("workspaces").createDir()
-    def immutableWorkspace = workspacesRoot.file("immutable-workspace")
-    def delegate = new MockStep()
-
-    def deleter = TestFiles.deleter()
-    def fileSystemAccess = TestFiles.fileSystemAccess()
-    def immutableWorkspaceMetadataStore = Stub(ImmutableWorkspaceMetadataStore) {
-        def workspaceMetadata = Stub(ImmutableWorkspaceMetadata) {
-            getOriginMetadata() >> Stub(OriginMetadata)
-            getOutputPropertyHashes() >> ImmutableListMultimap.of()
-        }
-        loadWorkspaceMetadata(_ as File) >> Optional.of(workspaceMetadata)
+    def deleter = Stub(Deleter)
+    def filesystemLocation = Stub(FileSystemLocationSnapshot) {
+        getType() >> FileType.Missing
     }
-    def outputSnapshotter = new DefaultOutputSnapshotter(TestFiles.fileCollectionSnapshotter())
-
-
-    def temporaryWorkspace1 = workspacesRoot.file("temporary-workspace-1")
-    def temporaryWorkspace2 = workspacesRoot.file("temporary-workspace-2")
-    def immutableWorkspaceProvider = new StubImmutableWorkspaceProvider(temporaryWorkspace1, temporaryWorkspace2)
+    def fileSystemAccess = Stub(FileSystemAccess) {
+        read(_ as String) >> filesystemLocation
+    }
+    def immutableWorkspaceMetadataStore = Stub(ImmutableWorkspaceMetadataStore) {
+        loadWorkspaceMetadata(_ as File) >> Optional.empty()
+    }
+    def outputSnapshotter = Stub(OutputSnapshotter)
+    def softDeleter = Stub(FineGrainedCacheEntrySoftDeleter)
+    // Don't mock cache since any await() call in withFile {} blocks other mocks
+    def cache = new TestInMemoryCacheFactory().openFineGrained(workspacesRoot, "", null)
+    def cleanupStrategy = Stub(FineGrainedMarkAndSweepCacheCleanupStrategy) {
+        getSoftDeleter(_ as FineGrainedPersistentCache) >> softDeleter
+    }
+    def immutableWorkspaceProvider = new CacheBasedImmutableWorkspaceProvider(
+        Stub(SingleDepthFileAccessTracker),
+        cache,
+        cleanupStrategy
+    )
     def work = Stub(ImmutableUnitOfWork) {
         getWorkspaceProvider() >> immutableWorkspaceProvider
     }
     def originMetadata = Stub(OriginMetadata)
     def delegateResult = Stub(CachingResult) {
         getDuration() >> Duration.ofSeconds(1)
-        getExecution() >> Try.successful(Stub(Execution))
+        getExecution() >> Try.successful(Stub(Execution) {
+            getOutcome() >> Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+        })
         getAfterExecutionOutputState() >> Optional.of(new DefaultExecutionOutputState(true, ImmutableSortedMap.of(), originMetadata, false))
     }
 
+    Map<Thread, Throwable> exceptions = [:]
+    Thread.UncaughtExceptionHandler exceptionHandler = { thread, exception ->
+        exceptions.put(thread, exception)
+        exception.printStackTrace()
+    } as Thread.UncaughtExceptionHandler
+
     def work1Started = new CountDownLatch(1)
-    def work1Finished = new CountDownLatch(1)
     def work2Started = new CountDownLatch(1)
 
-    def "atomic move strategy handles race condition by returning earlier execution as up-to-date and discarding temporary workspace of the later one"() {
-        def step = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate, LockingStrategy.ATOMIC_MOVE)
-        Map<Thread, Throwable> exceptions = [:]
-        def exceptionHandler = { thread, exception ->
-            exceptions.put(thread, exception)
-            exception.printStackTrace()
-        } as Thread.UncaughtExceptionHandler
+    def "only one thread executes work concurrently"() {
+        def delegateCalls = new AtomicInteger()
+        def thread1Result = new AtomicReference<WorkspaceResult>()
+        def delegate1 = new MockStep({ UnitOfWork work, WorkspaceContext context ->
 
-        when:
-        def thread1 = new Thread({
-            println "Work 1 started"
-            step.execute(work, context)
-            println "Work 1 finished"
-            work1Finished.countDown()
-        }, "test-thread-1")
-        thread1.uncaughtExceptionHandler = exceptionHandler
-        delegate.expectCall = { UnitOfWork work, WorkspaceContext context ->
+            delegateCalls.incrementAndGet()
             work1Started.countDown()
             work2Started.await()
-            new File(context.workspace, "work.txt").text = "work1"
+            Thread.sleep(1500)
             return delegateResult
-        }
-        thread1.start()
-        work1Started.await()
+        })
+        def step1 = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate1)
+        def thread1 = new Thread({
+            thread1Result.set(step1.execute(work, context))
+        }, "test-thread-1")
+        thread1.uncaughtExceptionHandler = exceptionHandler
 
-        then:
-        0 * _
-
-        when:
+        def thread2Result = new AtomicReference<WorkspaceResult>()
+        def delegate2 = new MockStep( { UnitOfWork work, WorkspaceContext context ->
+            delegateCalls.incrementAndGet()
+            return delegateResult
+        })
+        def step2 = new AssignImmutableWorkspaceStep(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, delegate2)
         def thread2 = new Thread({
-            println "Work 2 started"
             work1Started.await()
-            step.execute(work, context)
-            println "Work 2 finished"
+            work2Started.countDown()
+            thread2Result.set(step2.execute(work, context))
         }, "test-thread-2")
         thread2.uncaughtExceptionHandler = exceptionHandler
-        delegate.expectCall = { UnitOfWork work, WorkspaceContext context ->
-            work2Started.countDown()
-            work1Finished.await()
-            new File(context.workspace, "work.txt").text = "work2"
-            return delegateResult
-        }
-        thread2.start()
-
-        then:
-        0 * _
 
         when:
-        thread1.join()
-        thread2.join()
+        thread1.start()
+        thread2.start()
+        thread1.join(20000)
+        thread2.join(20000)
 
         then:
+        !thread1.isAlive()
+        !thread2.isAlive()
         exceptions.isEmpty()
-        immutableWorkspace.assertIsDir()
-        temporaryWorkspace1.assertDoesNotExist()
-        temporaryWorkspace2.assertDoesNotExist()
-        immutableWorkspace.file("work.txt").text == "work1"
-        0 * _
+
+        and:
+        delegateCalls.get() == 1
+        thread1Result.get().execution.get().outcome == Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+        thread2Result.get().execution.get().outcome == Execution.ExecutionOutcome.UP_TO_DATE
     }
 
     // We need custom mock classes because Spock does not support multi-threaded mocks
-
     private static class MockStep implements Step<WorkspaceContext, CachingResult> {
-        BiFunction<UnitOfWork, WorkspaceContext, CachingResult> expectCall
+        final BiFunction<UnitOfWork, WorkspaceContext, CachingResult> expectCall
+
+        MockStep(BiFunction<UnitOfWork, WorkspaceContext, CachingResult> expectCall) {
+            this.expectCall = expectCall
+        }
 
         @Override
         CachingResult execute(UnitOfWork work, WorkspaceContext context) {
-            def call = expectCall
-            expectCall = null
-            return call.apply(work, context)
-        }
-    }
-
-    private class StubImmutableWorkspaceProvider implements ImmutableWorkspaceProvider {
-        private final List<File> temporaryWorkspaces
-
-        StubImmutableWorkspaceProvider(File... temporaryWorkspaces) {
-            this.temporaryWorkspaces = temporaryWorkspaces
-        }
-
-        @Override
-        AtomicMoveImmutableWorkspace getAtomicMoveWorkspace(String path) {
-            def temporaryWorkspace = temporaryWorkspaces.pop()
-            return new AtomicMoveImmutableWorkspace() {
-                @Override
-                File getImmutableLocation() {
-                    return immutableWorkspace
-                }
-
-                @Override
-                <T> T withTemporaryWorkspace(TemporaryWorkspaceAction<T> action) {
-                    temporaryWorkspace.mkdirs()
-                    return action.executeInTemporaryWorkspace(temporaryWorkspace)
-                }
-            }
-        }
-
-        @Override
-        LockingImmutableWorkspace getLockingWorkspace(String path) {
-            return new LockingImmutableWorkspace() {
-                @Override
-                File getImmutableLocation() {
-                    return new File(immutableWorkspace, "workspace")
-                }
-
-                @Override
-                <T> T withWorkspaceLock(Supplier<T> supplier) {
-                    immutableWorkspace.mkdirs()
-                    immutableWorkspace.file(immutableWorkspace.name + ".lock").createFile()
-                    return null
-                }
-            }
+            return expectCall.apply(work, context)
         }
     }
 }

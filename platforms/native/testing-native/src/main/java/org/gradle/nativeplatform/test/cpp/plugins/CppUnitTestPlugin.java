@@ -23,7 +23,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.TaskContainer;
@@ -70,15 +69,13 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildO
 public abstract class CppUnitTestPlugin implements Plugin<Project> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
-    private final ObjectFactory objectFactory;
     private final AttributesFactory attributesFactory;
     private final TargetMachineFactory targetMachineFactory;
 
     @Inject
-    public CppUnitTestPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, ObjectFactory objectFactory, AttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
+    public CppUnitTestPlugin(NativeComponentFactory componentFactory, ToolChainSelector toolChainSelector, AttributesFactory attributesFactory, TargetMachineFactory targetMachineFactory) {
         this.componentFactory = componentFactory;
         this.toolChainSelector = toolChainSelector;
-        this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
         this.targetMachineFactory = targetMachineFactory;
     }
@@ -159,7 +156,7 @@ public abstract class CppUnitTestPlugin implements Plugin<Project> {
             final CppComponent mainComponent = testComponent.getTestedComponent().getOrNull();
             final SetProperty<TargetMachine> mainTargetMachines = mainComponent != null ? mainComponent.getTargetMachines() : null;
             Dimensions.unitTestVariants(testComponent.getBaseName(), testComponent.getTargetMachines(), mainTargetMachines,
-                    objectFactory, attributesFactory,
+                attributesFactory,
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
