@@ -16,10 +16,10 @@ Gradle now supports [Java 26](#support-for-java-26).
 
 This release significantly improves [test reporting and execution](#test-reporting-and-execution) by introducing support for non-class-based tests, enabling direct execution of Cucumber features and custom test engines, and capturing richer test metadata directly into HTML reports.
 
-There are notable [reporting](#error-warning-and-problem-reporting) refinements, including high-resolution progress bars with native terminal integration, a more intuitive Problems HTML report, and expanded output formats for the PMD plugin.
+There are notable [command-line interface and problem reporting](#cli-logging-and-problem-reporting) refinements, including high-resolution progress bars with native terminal integration, a more intuitive Problems HTML report, and expanded output formats for the PMD plugin.
 
-This version also enhances [build authoring](#build-authoring) with simplified APIs, improves [Configuration Cache](#configuration-cache) debugging with clearer attribution for closures and lambdas, and adds [security improvements](#security-and-infrastructure), including Bearer token authentication for the Gradle Wrapper and automatic cleanup of old daemon logs. 
-[Plugin authoring](#core-plugin-and-plugin-authoring) is streamlined with default plugin IDs and stricter validation for published plugins.
+This version also enhances [build authoring](#build-authoring) with simplified APIs, improves [Configuration Cache](#configuration-cache) debugging with clearer attribution for closures and lambdas, and adds [security improvements](#security-and-infrastructure), including Bearer token authentication for the Gradle Wrapper and automatic cleanup of daemon logs. 
+[Plugin authoring](#core-plugin-and-plugin-authoring) is refined with default plugin IDs and stricter validation for published plugins.
 
 Finally, [tooling integration](#tooling-and-ide-integration) improvements provide new Tooling API models plus granular control over Tooling API parallelism.
 
@@ -78,7 +78,7 @@ Gradle provides a [set of features and abstractions](userguide/java_testing.html
 
 When testing using [JUnit Platform](https://junit.org/), Gradle can now discover and execute tests that are not defined in classes.
 
-JUnit Platform [`TestEngine`s](https://docs.junit.org/current/user-guide/#test-engines) can discover and execute tests in arbitrary formats, extending testing beyond the confines of JVM classes.
+JUnit Platform [`TestEngine`s](https://docs.junit.org/current/advanced-topics/engines.html) can discover and execute tests in arbitrary formats, extending testing beyond the confines of JVM classes.
 In this release, tests can be defined in any format supported by the configured `TestEngine`.
 Gradle no longer requires a test class to be present to “unlock” test execution.
 
@@ -146,7 +146,7 @@ testing.suites.named("test", JvmTestSuite::class) {
 
 #### Additional test data capture
 
-During test execution, JUnit Platform tests can emit additional data such as file attachments or arbitrary key–value pairs using the [TestReporter API](javadoc/org/gradle/api/tasks/testing/TestReport.html).
+During test execution, JUnit Platform tests can emit additional data such as file attachments or arbitrary key–value pairs using the [TestReporter API](https://docs.junit.org/current/api/org.junit.jupiter.api/org/junit/jupiter/api/TestReporter.html).
 
 This data can include metadata about the tests or their environment, or files used or generated during testing, such as screenshots.
 
@@ -204,9 +204,9 @@ This addition enables fuller support for advanced JUnit Platform features.
 It allows tests to communicate structured information back to the build process, providing a cleaner and more reliable alternative to parsing standard output or error streams.
 For example, you can use the listener to automatically copy the failure screenshots (from the previous section) to a dedicated CI artifacts directory, upload them to cloud storage for team access, or compress and archive them with timestamp-based naming.
 
-### Error, warning, and problem reporting
+### CLI, logging, and problem reporting
 
-Gradle provides structured [error and warning messages](userguide/logging.html) to help developers quickly identify, understand, and resolve issues within their build scripts.
+Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html) that helps developers quickly identify and resolve build issues.
 
 #### Enhanced terminal progress bars
 
@@ -232,10 +232,10 @@ To help you find relevant information faster, the report's structure and readabi
 - **Improved Formatting:** Problem details use a monospaced font, ensuring that multi-line messages and stack traces maintain their intended alignment.
 - **Reduced Noise:** Duplicate information has been removed across the report, and the overall file size has been reduced for faster loading.
 
+![new-problems-report.png](release-notes-assets/new-problems-report.png)
+
 You can now influence whether a link to the report is printed at the end of a build via the `org.gradle.warning.mode` property.
 If set to `none`, the report is still generated in the background, but the link is omitted from the build output to keep your console clean.
-
-![new-problems-report.png](release-notes-assets/new-problems-report.png)
 
 #### Support for CSV, Code Climate, and SARIF reports in the PMD plugin
 
@@ -267,6 +267,31 @@ tasks.pmdMain {
 ```
 
 For more information on configuring static analysis, see the [PMD plugin documentation](/userguide/pmd_plugin.html#sec:pmd_configuration).
+
+### Security and infrastructure
+
+Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
+
+#### Bearer token authentication for wrapper download
+
+The [Gradle Wrapper](userguide/gradle_wrapper.html) now supports Bearer token authentication for downloading Gradle distributions from authenticated backends.
+This provides a modern, secure alternative to Basic authentication (username and password), which was the only method supported in previous versions:
+
+* **Authentication Priority:** Bearer tokens can be specified via system properties and take precedence over Basic authentication if both are configured.
+* **Per-Host Configuration:** To prevent credential leakage, both Basic and Bearer authentication can now be configured on a per-host basis. This ensures your credentials are only sent to the specific hosts you authorize, rather than being broadcast globally.
+
+While these authentication methods are supported over both HTTP and HTTPS, using a secure HTTPS backend is strongly preferred.
+
+For more details on setup, see the [Wrapper documentation](userguide/gradle_wrapper.html#sec:authenticated_download).
+
+#### Daemon logging improvements
+
+The [Gradle Daemon](userguide/gradle_daemon.html) is a long-lived, persistent process that runs in the background and hosts Gradle’s execution engine.
+It dramatically reduces build times using caching, runtime optimizations, and eliminating JVM startup overhead.
+
+Gradle Daemon logs older than 14 days are now automatically cleaned up when the daemon shuts down, eliminating the need for manual cleanup.
+
+See the [Daemon documentation](userguide/gradle_daemon.html#sec:daemon_log_cleanup) for more details.
 
 ### Build authoring
 
@@ -323,31 +348,6 @@ This provides the necessary context to pinpoint and fix the violation immediatel
 
 ![action-attribution-in-cc-report.png](release-notes-assets/action-attribution-in-cc-report.png)
 
-### Security and infrastructure
-
-Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
-
-#### Bearer token authentication for wrapper download
-
-The [Gradle Wrapper](userguide/gradle_wrapper.html) now supports Bearer token authentication for downloading Gradle distributions from authenticated backends.
-This provides a modern, secure alternative to Basic authentication (username and password), which was the only method supported in previous versions:
-
-* **Authentication Priority:** Bearer tokens can be specified via system properties and take precedence over Basic authentication if both are configured.
-* **Per-Host Configuration:** To prevent credential leakage, both Basic and Bearer authentication can now be configured on a per-host basis. This ensures your credentials are only sent to the specific hosts you authorize, rather than being broadcast globally.
-
-While these authentication methods are supported over both HTTP and HTTPS, using a secure HTTPS backend is strongly preferred.
-
-For more details on setup, see the [Wrapper documentation](userguide/gradle_wrapper.html#sec:authenticated_download).
-
-#### Daemon logging improvements
-
-The [Gradle Daemon](userguide/gradle_daemon.html) is a long-lived, persistent process that runs in the background and hosts Gradle’s execution engine.
-It dramatically reduces build times using caching, runtime optimizations, and eliminating JVM startup overhead.
-
-Gradle Daemon logs older than 14 days are now automatically cleaned up when the daemon shuts down, eliminating the need for manual cleanup.
-
-See the [Daemon documentation](userguide/gradle_daemon.html#sec:daemon_log_cleanup) for more details.
-
 ### Core plugin and plugin authoring
 
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
@@ -394,7 +394,27 @@ tasks.validatePlugins {
 
 ### Tooling and IDE integration
 
-Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html) and [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
+Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
+
+#### New property for Tooling API parallelism control
+
+Gradle now provides granular control over how [Tooling API](/userguide/tooling_api.html) clients interact with your build in parallel using a new `org.gradle.tooling.parallel` [property](userguide/build_environment.html#sec:gradle_configuration_properties).
+
+Previously, parallelism for Tooling API actions was tied directly to the `org.gradle.parallel` property.
+This meant that if you wanted to enable parallel task execution, you were forced to also enable parallel IDE actions, and vice versa.
+
+The new property decouples these two behaviors.
+This is particularly relevant for the IDE Sync scenarios, where IDEs can take advantage of the parallelism to improve performance (independently of your task execution strategy):
+
+```text
+# gradle.properties
+
+// Controls parallelism for Tooling API clients (e.g., IDE Sync)
+org.gradle.tooling.parallel=true
+
+// Controls parallelism for task execution (e.g., build/test)
+org.gradle.parallel=false
+```
 
 #### Tooling integration improvements
 
@@ -420,26 +440,6 @@ void main() {
         System.out.println("--help:\n" + conn.getModel(Help.class).getRenderedText());
     }
 }
-```
-
-#### New property for Tooling API parallelism control
-
-Gradle now provides granular control over how [Tooling API](/userguide/tooling_api.html) clients interact with your build in parallel using a new `org.gradle.tooling.parallel` [property](userguide/build_environment.html#sec:gradle_configuration_properties).
-
-Previously, parallelism for Tooling API actions was tied directly to the `org.gradle.parallel` property.
-This meant that if you wanted to enable parallel task execution, you were forced to also enable parallel IDE actions, and vice versa.
-
-The new property decouples these two behaviors.
-This is particularly relevant for the IDE Sync scenarios, where IDEs can take advantage of the parallelism to improve performance (independently of your task execution strategy):
-
-```text
-# gradle.properties
-
-// Controls parallelism for Tooling API clients (e.g., IDE Sync)
-org.gradle.tooling.parallel=true
-
-// Controls parallelism for task execution (e.g., build/test)
-org.gradle.parallel=false
 ```
 
 ## Promoted features
