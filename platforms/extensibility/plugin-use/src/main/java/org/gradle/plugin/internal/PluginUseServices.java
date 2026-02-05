@@ -17,8 +17,6 @@
 package org.gradle.plugin.internal;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
@@ -26,14 +24,11 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
-import org.gradle.api.internal.model.ObjectFactoryFactory;
 import org.gradle.api.internal.plugins.PluginInspector;
-import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildIncluder;
@@ -195,28 +190,15 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     private static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
         ProjectFeatureApplicator createProjectFeatureApplicator(
-            ProjectFeatureDeclarations projectFeatureDeclarations,
-            ModelDefaultsApplicator modelDefaultsApplicator,
-            PluginManagerInternal pluginManager,
+            InstantiatorFactory instantiatorFactory,
             ProjectInternal project,
-            ObjectFactoryFactory objectFactoryFactory,
-            TaskContainer taskContainer,
-            ProjectLayout projectLayout,
-            ConfigurationContainer configurationContainer,
-            InternalProblems problemService,
+            InternalProblems problems,
             ServiceRegistry services
         ) {
-            return new DefaultProjectFeatureApplicator(
-                projectFeatureDeclarations,
-                modelDefaultsApplicator,
-                pluginManager,
+            return instantiatorFactory.inject(services).newInstance(DefaultProjectFeatureApplicator.class,
                 project.getClassLoaderScope(),
                 project.getObjects(),
-                objectFactoryFactory,
-                taskContainer,
-                projectLayout,
-                configurationContainer,
-                problemService.getInternalReporter(),
+                problems.getInternalReporter(),
                 services
             );
         }

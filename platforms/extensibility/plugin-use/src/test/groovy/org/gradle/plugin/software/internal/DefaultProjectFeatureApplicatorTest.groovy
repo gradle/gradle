@@ -32,10 +32,17 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.internal.Cast
 import org.gradle.internal.extensibility.ExtensibleDynamicObject
 import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.service.ServiceLookup
+import org.gradle.internal.service.ServiceLookupException
+import org.gradle.internal.service.UnknownServiceException
+import org.gradle.util.TestUtil
 import spock.lang.Specification
+
+import java.lang.annotation.Annotation
+import java.lang.reflect.Type
 
 class DefaultProjectFeatureApplicatorTest extends Specification {
     def targetChildrenDefinitions = new LinkedHashMap()
@@ -73,7 +80,8 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
     def internalProblemReporter = Mock(InternalProblemReporter)
     def services = Mock(ServiceLookup)
     def projectFeatureRegistry = Mock(ProjectFeatureDeclarations)
-    def applicator = new DefaultProjectFeatureApplicator(projectFeatureRegistry, modelDefaultsApplicator, pluginManager, classLoaderScope, objectFactory, objectFactoryFactory, taskContainer, projectLayout, configurationContainer, internalProblemReporter, services)
+    def instantiator = TestUtil.instantiatorFactory().inject(new Services())
+    def applicator = instantiator.newInstance(DefaultProjectFeatureApplicator.class, classLoaderScope, objectFactory, internalProblemReporter, services)
     def plugin = Mock(Plugin)
     def plugins = Mock(PluginContainer)
     def boundProjectTypeImplementation = Mock(BoundProjectFeatureImplementation)
@@ -140,4 +148,39 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
     private interface DynamicAwareProjectMockType extends ProjectInternal, DynamicObjectAware {}
     private interface Foo extends Definition<Bar>, DynamicObjectAware {}
     private static class Bar implements BuildModel {}
+
+    private class Services implements ServiceLookup {
+        private final Map<Class<?>, Object> services = [
+            (ObjectFactoryFactory): objectFactoryFactory,
+            (PluginManagerInternal): pluginManager,
+            (ModelDefaultsApplicator): modelDefaultsApplicator,
+            (ProjectFeatureDeclarations): projectFeatureRegistry,
+            (ProjectLayout): projectLayout,
+            (TaskContainer): taskContainer,
+            (ConfigurationContainer): configurationContainer
+        ]
+
+        @Override
+        Object find(Type serviceType) throws ServiceLookupException {
+            if (serviceType instanceof Class) {
+                return services.get(Cast.uncheckedCast(serviceType))
+            }
+
+            return null
+        }
+
+        @Override
+        Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
+            Object found = find(serviceType)
+            if (found == null) {
+                throw new UnknownServiceException("No service of type $serviceType found.")
+            }
+            return found
+        }
+
+        @Override
+        Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
+            throw new UnsupportedOperationException()
+        }
+    }
 }

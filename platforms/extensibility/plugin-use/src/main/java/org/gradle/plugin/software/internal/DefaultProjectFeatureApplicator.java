@@ -66,41 +66,21 @@ import java.util.Set;
  * are applied only once per target object and always return the same public model object for a given target/feature
  * combination.
  */
-public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator {
-    private final ProjectFeatureDeclarations projectFeatureDeclarations;
-    private final ModelDefaultsApplicator modelDefaultsApplicator;
-    private final PluginManagerInternal pluginManager;
+abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator {
     private final ClassLoaderScope classLoaderScope;
     private final ObjectFactory projectObjectFactory;
-    private final ObjectFactoryFactory objectFactoryFactory;
-    private final TaskContainer taskContainer;
-    private final ProjectLayout projectLayout;
-    private final ConfigurationContainer configurationContainer;
     private final InternalProblemReporter problemReporter;
     private final ServiceLookup allServices;
 
+    @Inject
     public DefaultProjectFeatureApplicator(
-        ProjectFeatureDeclarations projectFeatureDeclarations,
-        ModelDefaultsApplicator modelDefaultsApplicator,
-        PluginManagerInternal pluginManager,
         ClassLoaderScope classLoaderScope,
         ObjectFactory projectObjectFactory,
-        ObjectFactoryFactory objectFactoryFactory,
-        TaskContainer taskContainer,
-        ProjectLayout projectLayout,
-        ConfigurationContainer configurationContainer,
         InternalProblemReporter problemReporter,
         ServiceLookup allServices
     ) {
-        this.projectFeatureDeclarations = projectFeatureDeclarations;
-        this.modelDefaultsApplicator = modelDefaultsApplicator;
-        this.pluginManager = pluginManager;
         this.classLoaderScope = classLoaderScope;
         this.projectObjectFactory = projectObjectFactory;
-        this.objectFactoryFactory = objectFactoryFactory;
-        this.taskContainer = taskContainer;
-        this.projectLayout = projectLayout;
-        this.configurationContainer = configurationContainer;
         this.problemReporter = problemReporter;
         this.allServices = allServices;
     }
@@ -114,7 +94,7 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
                 checkSingleProjectTypeApplication(parentDefinitionContext, projectFeature);
             }
 
-            pluginManager.apply(projectFeature.getPluginClass());
+            getPluginManager().apply(projectFeature.getPluginClass());
 
             Object definition = instantiateBoundFeatureObjectsAndApply(parentDefinition, projectFeature);
 
@@ -122,8 +102,8 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         });
 
         if (result.isNew) {
-            Plugin<Project> plugin = pluginManager.getPluginContainer().getPlugin(projectFeature.getPluginClass());
-            modelDefaultsApplicator.applyDefaultsTo(parentDefinition, result.definition, new ClassLoaderContextFromScope(classLoaderScope), plugin, projectFeature);
+            Plugin<Project> plugin = getPluginManager().getPluginContainer().getPlugin(projectFeature.getPluginClass());
+            getModelDefaultsApplicator().applyDefaultsTo(parentDefinition, result.definition, new ClassLoaderContextFromScope(classLoaderScope), plugin, projectFeature);
         }
 
         return Cast.uncheckedNonnullCast(result.definition);
@@ -143,31 +123,59 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
 
     private <T extends Definition<V>, V extends BuildModel> T instantiateBoundFeatureObjectsAndApply(Object parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
         // Context-specific services for this feature binding
-        TaskRegistrar taskRegistrar = new DefaultTaskRegistrar(taskContainer);
-        ProjectFeatureLayout projectFeatureLayout = new DefaultProjectFeatureLayout(projectLayout);
-        ConfigurationRegistrar configurationRegistrar = new DefaultConfigurationRegistrar(configurationContainer);
+        ServiceLookup featureServices = getContextSpecificServiceLookup(projectFeature);
+        ObjectFactory featureObjectFactory = getObjectFactoryFactory().createObjectFactory(featureServices);
 
-        // Construct an object factory that provides the appropriate services during apply action execution
-        ServiceLookup objectFactoryServiceLookup = projectFeature.getApplyActionSafety() == ProjectFeatureBindingDeclaration.Safety.SAFE
-            ? new SafeServicesForApplyAction(allServices, taskRegistrar, projectFeatureLayout, configurationRegistrar, projectFeature.getFeatureName(), problemReporter)
-            : new UnsafeServicesForApplyAction(allServices, taskRegistrar, projectFeatureLayout, configurationRegistrar, projectFeature.getFeatureName(), problemReporter);
-        ObjectFactory featureObjectFactory = objectFactoryFactory.createObjectFactory(objectFactoryServiceLookup);
-
+        // Instantiate the definition and build model objects with the feature-specific object factory
         T definition = instantiateDefinitionObject(featureObjectFactory, projectFeature);
         V buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(featureObjectFactory, projectFeature);
-        ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, projectFeatureDeclarations, featureObjectFactory);
+        ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, getProjectFeatureDeclarations(), featureObjectFactory);
 
+        // Construct an apply action context with the feature-specific object factory
         ProjectFeatureApplicationContext applyActionContext =
             projectObjectFactory.newInstance(DefaultProjectFeatureApplicationContextInternal.class, featureObjectFactory);
 
+        // Invoke the feature's binding transform
         projectFeature.getBindingTransform().transform(applyActionContext, definition, buildModelInstance, Cast.uncheckedCast(parentDefinition));
 
         return definition;
     }
 
+    private <T extends Definition<V>, V extends BuildModel> ServiceLookup getContextSpecificServiceLookup(ProjectFeatureImplementation<T, V> projectFeature) {
+        TaskRegistrar taskRegistrar = new DefaultTaskRegistrar(getTaskContainer());
+        ProjectFeatureLayout projectFeatureLayout = new DefaultProjectFeatureLayout(getProjectLayout());
+        ConfigurationRegistrar configurationRegistrar = new DefaultConfigurationRegistrar(getConfigurationContainer());
+
+        // Construct an object factory that provides the appropriate services during apply action execution
+        return projectFeature.getApplyActionSafety() == ProjectFeatureBindingDeclaration.Safety.SAFE
+            ? new SafeServicesForApplyAction(allServices, taskRegistrar, projectFeatureLayout, configurationRegistrar, projectFeature.getFeatureName(), problemReporter)
+            : new UnsafeServicesForApplyAction(allServices, taskRegistrar, projectFeatureLayout, configurationRegistrar, projectFeature.getFeatureName(), problemReporter);
+    }
+
     private <T extends Definition<V>, V extends BuildModel> T instantiateDefinitionObject(ObjectFactory featureObjectFactory, ProjectFeatureImplementation<T, V> projectFeature) {
         return featureObjectFactory.newInstance(projectFeature.getDefinitionImplementationType());
     }
+
+    @Inject
+    abstract protected TaskContainer getTaskContainer();
+
+    @Inject
+    abstract protected ProjectLayout getProjectLayout();
+
+    @Inject
+    abstract protected ConfigurationContainer getConfigurationContainer();
+
+    @Inject
+    abstract protected PluginManagerInternal getPluginManager();
+
+    @Inject
+    abstract protected ModelDefaultsApplicator getModelDefaultsApplicator();
+
+    @Inject
+    abstract protected ObjectFactoryFactory getObjectFactoryFactory();
+
+    @Inject
+    abstract protected ProjectFeatureDeclarations getProjectFeatureDeclarations();
 
     /**
      * The internal implementation of the context passed to project feature apply actions, exposing an object factory
@@ -206,6 +214,9 @@ public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator
         }
     }
 
+    /**
+     * The set of services that are considered safe for use during safe apply actions.
+     */
     private static final Set<Class<?>> SAFE_APPLY_ACTION_SERVICES = ImmutableSet.of(
         TaskRegistrar.class,
         ProjectFeatureLayout.class,
