@@ -51,7 +51,7 @@ class KotlinDslDeclarativeNestedModelIntegrationTest : AbstractDeclarativeKotlin
                 import ${ProjectTypeBindingBuilder::class.java.name}
                 import ${Definition::class.java.name}
                 import ${BuildModel::class.java.name}
-                import org.gradle.api.internal.plugins.features.dsl.bindProjectType
+                import org.gradle.features.dsl.bindProjectType
 
                 @${BindsProjectType::class.java.simpleName}(MyPlugin.Binding::class)
                 abstract class MyPlugin @Inject constructor(private val project: Project) : Plugin<Project> {

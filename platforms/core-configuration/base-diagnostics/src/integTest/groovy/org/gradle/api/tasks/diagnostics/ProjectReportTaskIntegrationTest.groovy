@@ -339,7 +339,6 @@ Root project 'my-root-project'
 
             import org.gradle.api.Plugin;
             import org.gradle.api.initialization.Settings;
-            import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
             import ${ RegistersProjectFeatures.class.name};
 
             @${RegistersProjectFeatures.class.simpleName}({ LibraryPlugin.class, ApplicationPlugin.class, UtilityPlugin.class })
