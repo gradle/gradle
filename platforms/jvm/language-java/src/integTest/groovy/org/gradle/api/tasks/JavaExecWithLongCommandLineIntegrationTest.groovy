@@ -103,7 +103,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
                 "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
         }
-        fails taskName
+        fails(taskName, "-s")
 
         then:
         failure.assertThatCause(containsText("could not be started because the command line exceed operating system limits."))
