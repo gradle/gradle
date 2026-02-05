@@ -17,7 +17,6 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 
@@ -25,7 +24,6 @@ class BuildSrcSourceDependenciesIntegrationTest extends AbstractIntegrationSpec 
     @Rule
     GitFileRepository first = new GitFileRepository('first', testDirectory)
 
-    @ToBeFixedForConfigurationCache(because = "source dependency VCS mappings are defined")
     def "can build with a source dependency that has a buildSrc directory"() {
         buildTestFixture.withBuildInSubDir()
         vcsMapping('org.test:first', first)
@@ -40,7 +38,7 @@ class BuildSrcSourceDependenciesIntegrationTest extends AbstractIntegrationSpec 
         }
         first.commit("initial commit")
 
-        buildFile << """
+        buildFile """
             configurations {
                 foo
             }
@@ -50,8 +48,10 @@ class BuildSrcSourceDependenciesIntegrationTest extends AbstractIntegrationSpec 
             }
 
             task resolve {
+                FileCollection toResolve = configurations.foo
+                inputs.files(toResolve)
                 doLast {
-                    println configurations.foo.files.collect { it.name }
+                    println toResolve.files.collect { it.name }
                 }
             }
         """
