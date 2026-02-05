@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,20 @@
 package org.gradle.testing.junit.vintage
 
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.junit.AbstractJUnitTestExecutionIntegrationTest
 
-import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUNIT4_VERSION
-
-@TargetCoverage({ JUNIT_VINTAGE })
+@TargetCoverage({ JUnitCoverage.JUNIT_VINTAGE })
 class JUnitVintageTestExecutionIntegrationTest extends AbstractJUnitTestExecutionIntegrationTest implements JUnitVintageMultiVersionTest {
     @Override
     String getJUnitVersionAssertion() {
-        return "assertEquals(\"${LATEST_JUNIT4_VERSION}\", new org.junit.runner.JUnitCore().getVersion());"
+        return "assertEquals(\"${JUnitCoverage.LATEST_JUNIT4_VERSION}\", new org.junit.runner.JUnitCore().getVersion());"
     }
 
     @Override
     String getStableEnvironmentDependencies() {
         return super.getStableEnvironmentDependencies() + """
-            testImplementation 'junit:junit:${LATEST_JUNIT4_VERSION}'
+            testImplementation 'junit:junit:${JUnitCoverage.LATEST_JUNIT4_VERSION}'
         """
     }
 }
