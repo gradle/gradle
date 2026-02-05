@@ -27,7 +27,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 /**
  * Tests support for different JUnit Jupiter versions across different Java versions.
  */
-@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
+@TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterJavaVersionIntegrationTest extends AbstractTestJavaVersionIntegrationTest implements JUnitJupiterMultiVersionTest {
     @Override
     List<Jvm> getSupportedJvms() {

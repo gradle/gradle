@@ -34,6 +34,9 @@ abstract class AbstractTestJavaVersionIntegrationTest extends AbstractTestingMul
 
     def "can run test on java #jdk.javaVersionMajor"() {
         Assume.assumeTrue(supportsJavaVersion(jdk.javaVersionMajor))
+        if (version.startsWith("6.")) {
+            Assume.assumeTrue(jdk.javaVersionMajor >= 17) // JUnit 6.x requires Java 17+
+        }
 
         given:
         file("src/test/java/SomeTest.java") << """
