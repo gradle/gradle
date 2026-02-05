@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Gradle, Inc.
+// Copyright (C) 2025 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -76,8 +76,6 @@ For example, the checksum entry for `trusty-lib-1.0.jar` might look like this:
     <sha256 value="5e87d84077de0c60d9ff4eedbc9fac1506693019eb6f55652afc9e1ff235bd15"/>
 </artifact>
 ----
-
-TIP: Checksum calculation can use different hash algorithms. `SHA-256` is currently considered secure for general use. `SHA-1` has known collisions and is considered weak. `MD5` should not be used.
 
 [[signatures]]
 === Signatures
@@ -206,6 +204,8 @@ What this does:
 2. It calculates the `SHA-256` checksum for each.
 3. It creates a file located at `gradle/verification-metadata.xml`.
 
+Gradle supports `MD5`, `SHA1`, `SHA-256`, and `SHA-512` checksums. However, only `SHA-256` and `SHA-512` are considered secure for modern use. `SHA-1` has known collisions and `MD5` should not be used.
+
 === Generating Checksums and Signatures
 
 To generate both checksums and signatures (recommended when signatures are available), run:
@@ -235,7 +235,7 @@ Executing this command will cause Gradle to:
 * Compute the requested checksums and possibly verify signatures depending on what you asked
 * At the end of the build, generate the configuration file which will contain the inferred _verification metadata_
 
-=== Verification Metadata File Example
+=== Example Verification Metadata File
 
 A snippet of the resulting `verification-metadata.xml` looks like this:
 
@@ -344,6 +344,90 @@ WARNING: There are dependencies that Gradle _cannot_ discover automatically. In 
 
 Add the new `<component>` entry to the XML file manually with the checksum provided by the library author.
 
+==== Adding Checksums for an Artifact
+
+External components are identified by GAV coordinates (group, artifact name, version), and each artifact by its file name.
+
+For example, to add verification for https://pdfbox.apache.org[Apache PDFBox] with GAV coordinates:
+
+- group: `org.apache.pdfbox`
+- name: `pdfbox`
+- version: `2.0.17`
+
+Using this dependency triggers the download of two files:
+
+- `pdfbox-2.0.17.jar` - the main artifact
+- `pdfbox-2.0.17.pom` - the metadata file
+
+You need to declare checksums for both (unless you <<sec:disabling-metadata-verification,disabled metadata verification>>):
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+   </configuration>
+   <components>
+      <component group="org.apache.pdfbox" name="pdfbox" version="2.0.17">
+         <artifact name="pdfbox-2.0.17.jar">
+            <sha512 value="7e11e54a21c395d461e59552e88b0de0ebaf1bf9d9bcacadf17b240d9bbc29bf6beb8e36896c186fe405d287f5d517b02c89381aa0fcc5e0aa5814e44f0ab331" origin="PDFBox Official site (https://pdfbox.apache.org/download.cgi)"/>
+         </artifact>
+         <artifact name="pdfbox-2.0.17.pom">
+            <sha512 value="82de436b38faf6121d8d2e71dda06e79296fc0f7bc7aba0766728c8d306fd1b0684b5379c18808ca724bf91707277eba81eb4fe19518e99e8f2a56459b79742f" origin="Verified"/>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>
+----
+
+===== Where to Get Checksums
+
+Checksums are generally published alongside artifacts on public repositories. However, if a dependency is compromised in a repository, its checksum likely is too.
+
+It's a good practice to get checksums from a different source than where artifacts are hosted—typically the library's official website.
+It's much harder to compromise both the repository and the official website simultaneously.
+
+In the example above, the checksum for the JAR was found on the official PDFBox website, while the POM checksum was verified manually. The `origin` attribute documents where the checksum came from, helping others understand how trustworthy the verification is.
+
+===== Using Multiple Checksums
+
+You can declare multiple checksums for the same artifact. Gradle will verify _all_ of them and fail if _any_ verification fails.
+
+[source,xml]
+----
+<component group="org.apache.pdfbox" name="pdfbox" version="2.0.17">
+   <artifact name="pdfbox-2.0.17.jar">
+      <md5 value="c713a8e252d0add65e9282b151adf6b4" origin="official site"/>
+      <sha1 value="b5c8dff799bd967c70ccae75e6972327ae640d35" origin="official site"/>
+   </artifact>
+</component>
+----
+
+Use multiple checksums when:
+
+* The official site only publishes insecure checksums (MD5, SHA-1). While each can be faked individually, faking multiple checksums for the same artifact is harder.
+* You want to add generated checksums alongside manually verified ones for extra validation.
+* You're upgrading to more secure checksums but don't want to remove existing ones yet.
+
+===== Handling Transitive Dependencies
+
+Using a dependency like `pdfbox` will bring in transitive dependencies. If your verification file only includes checksums for direct dependencies, the build will fail:
+
+[source,text]
+----
+Execution failed for task ':compileJava'.
+> Dependency verification failed for configuration ':compileClasspath':
+    - On artifact commons-logging-1.2.jar (commons-logging:commons-logging:1.2) in repository 'MavenRepo': checksum is missing from verification metadata.
+    - On artifact commons-logging-1.2.pom (commons-logging:commons-logging:1.2) in repository 'MavenRepo': checksum is missing from verification metadata.
+----
+
+This indicates you need to add checksums for `commons-logging` and all other transitive dependencies.
+See <<#sec:troubleshooting-verification>> for more details.
+
 [[sec:verification-dry-mode]]
 == Using Dry Mode
 
@@ -384,6 +468,8 @@ To disable metadata verification, set the `<verify-metadata>` flag to `false`:
 </verification-metadata>
 ----
 
+WARNING: Disabling metadata verification reduces security. Compromised metadata files could introduce malicious transitive dependencies into your build.
+
 [[sec:verification-console-output]]
 == Configuring the Console Output
 
@@ -393,7 +479,6 @@ If your environment prevents you from reading this HTML report file (for example
 
 Add this Gradle property to your `gradle.properties` file:
 
-[source,properties]
 ----
 org.gradle.dependency.verification.console=verbose
 ----
