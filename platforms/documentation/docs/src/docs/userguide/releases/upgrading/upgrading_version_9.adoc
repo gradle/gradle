@@ -43,9 +43,12 @@ The previous step will help you identify potential problems by issuing deprecati
 
 ==== The `java-gradle-plugin` plugin now adds the `gradleApi()` dependency to the `compileOnlyApi` scope
 
-The dependency on `gradleApi()` added by the `java-gradle-plugin` will be added to the `compileOnlyApi` scope instead of `api`.
+The `java-gradle-plugin` now attaches the `gradleApi()` dependency to the `compileOnlyApi` scope instead of the `api` scope.
 
-For most plugin projects, this change should be transparent and without any side effects.
+For most plugin projects, this change should be transparent and without any side effects:
+
+- Your plugin still has full access to Gradle types (like `Project`, `Task`, etc.) during build time.
+- Gradle will no longer leak its own API as a transitive runtime dependency of your plugin.
 
 ==== Stricter validation for published plugins
 
@@ -62,17 +65,18 @@ tasks.validatePlugins {
 }
 ----
 
-
 ==== CodeNarc compilation classpath is set by default
 
-Some of the rulesets included with CodeNarc make use of link:https://codenarc.org/codenarc-enhanced-classpath-rules.html[enhanced classpath rules], which require additional dependencies to be present on the CodeNarc task's compilation classpath.
-Previously, this had to be configured explicitly, but the CodeNarc plugin now adds the compile classpath of a source set to its CodeNarc task `compilationClasspath` by default.
-If your build relies on a custom configuration for the `compilationClasspath` of a CodeNarc task, you will need to continue explicitly setting it to override the new default behavior.
+The CodeNarc plugin now automatically populates the `compilationClasspath` of a `CodeNarc` task with the compile classpath of its associated source set.
 
-A side effect of this change is that there is now a task dependency between the CodeNarc task and the associated source set's compile task.
-Previously, these tasks could run in parallel, but now the CodeNarc task will wait for the compile task to complete first so that it can add the compiled classes to its classpath.
-In some cases, this may lead to longer build times if CodeNarc tasks were previously running in parallel with compile tasks.
-If you are not using any enhanced classpath rules, you can avoid this task dependency by setting an empty `compilationClasspath` for the CodeNarc task:
+CodeNarc offers link:https://codenarc.org/codenarc-enhanced-classpath-rules.html[Enhanced Classpath Rules] (like `UnusedImport` or `DuplicateImport`) that require the project's compiled classes and dependencies to be analyzed for full accuracy.
+Previously, you had to wire this up manually.
+Now, it works out of the box.
+
+This change introduces a task dependency.
+The `CodeNarc` task must now wait for the `compile` task to finish so it can access the compiled classes.
+
+If you do not use enhanced rules and want to restore parallel execution, you can manually empty the `compilationClasspath`:
 
 .build.gradle.kts
 [source,kotlin]
@@ -88,14 +92,22 @@ tasks.withType<CodeNarc>().configureEach {
 }
 ----
 
-==== System property priority for wrapper execution has changed
+If your build relies on a custom configuration for the `compilationClasspath` of a `CodeNarc` task, you will need to continue explicitly setting it to override the new default behavior.
 
-System properties can be defined for a build at multiple places: on the command line, in the Gradle user home and in the `gradle.properties` file of a project.
-In previous Gradle versions, the priority of these options was not following the documented order: command-line options were potentially overridden by properties defined by entries in `gradle.properties` files.
-From this version onwards, the priority of system properties follows the documented order:
-- Command-line options (highest priority).
-- Properties defined in the Gradle user home `gradle.properties` file.
-- Properties defined in `gradle.properties` files. (lowest priority).
+==== System property priority for Wrapper execution has changed
+
+The priority of <<build_environment.adoc#sec:gradle_system_properties,system properties>> passed to the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> now correctly follows the documented order of precedence.
+In previous versions, properties defined in `gradle.properties` files could unexpectedly override those passed via the command line.
+
+If a property is defined in multiple locations, Gradle now strictly honors the following hierarchy (from highest to lowest):
+
+[cols="1,2,3", options="header"]
+|===
+| Priority | Source | Example
+| 1 (Highest) | <<command_line_interface.adoc#command_line_interface,Command Line Option>> | `./gradlew build -Dproperty.name=value`
+| 2 | <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home>> | `~/.gradle/gradle.properties`
+| 3 (Lowest) | <<directory_layout.adoc#dir:project_root,Project Directory>> | `[project-root]/gradle.properties`
+|===
 
 For more details see the link:https://github.com/gradle/gradle/issues/36189[related issue].
 
@@ -112,15 +124,26 @@ Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.12.0[1.12.0
 [[findAll_removal]]
 ==== Deprecation of `DomainObjectCollection.findAll(Closure)`
 
-`DomainObjectCollection.findAll(Closure)` has been deprecated. This API relies on a Groovy type and eagerly evaluates the contents of the container.
+The `findAll(Closure)` method on Gradle collections is now deprecated and scheduled for removal in Gradle 10.0.0.
 
-This API will be removed in Gradle 10 with no direct replacement.
-`DomainObjectCollection.matching(Spec)` is a similar API for selecting elements without evaluating the contents of the container immediately.
+This method relies specifically on Groovy types and eagerly evaluates the contents of the container.
+
+To fix this, use the similar `DomainObjectCollection.matching(Spec)`.
+While not a direct replacement for `findAll`, `matching` is lazy, it returns a new collection that only filters elements as they are actually needed by the build:
+
+[source,groovy]
+----
+// Deprecated:
+def checkTasks = tasks.findAll { it.name.startsWith("check") }
+
+// Recommended:
+def checkTasks = tasks.matching { it.name.startsWith("check") }
+----
 
 [[deprecated_test_methods]]
 ==== Deprecation of methods taking `Closure` on `Test` tasks
 
-The following APIs have been deprecated and will be removed in Gradle 10.0.0:
+The following APIs are deprecated and will be removed in Gradle 10.0.0:
 
 - `AbstractTestTask.onOutput(Closure)` can be replaced with `AbstractTestTask.addTestOutputListener(TestOutputListener)`
 - `AbstractTestTask.beforeTest(Closure)` can be replaced with `AbstractTestTask.addTestListener(TestListener)`
@@ -131,37 +154,50 @@ The following APIs have been deprecated and will be removed in Gradle 10.0.0:
 
 [[deprecate_apply_false_in_precompiled_script_plugins]]
 ==== Deprecation of `apply false` in precompiled script plugins
-The use of `apply false` in <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins, precompiled script plugins>> has been deprecated and will become an error in Gradle 10.0.0.
 
-Using `apply false` does not have any effect in precompiled script plugins (the plugin is still applied), and it can lead to confusion for users who expect it to prevent the plugin from being applied.
-Plugins used in precompiled script plugins are already available on the classpath, so using `apply false` would do nothing.
+The use of `apply false` within <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins, precompiled script plugins>> is now deprecated and will result in an error in Gradle 10.0.0.
 
-To fix this deprecation, remove the plugin declaration from the precompiled script plugin:
+In a precompiled script, the `plugins {}` block behaves differently than in a standard build script.
+Currently, if you write `apply false`, Gradle applies the plugin anyway.
+This creates confusion because the syntax suggests you are merely adding a plugin to the classpath without activating it, which is not what actually happens.
+
+The fix depends on whether you actually want the plugin to be active in your precompiled script:
+
+- If you want to use the plugin: Remove the `apply false` statement.
+- If you do NOT want to use the plugin: Delete the line entirely.
+
 .my-plugin.gradle.kts
 [source,kotlin]
 ----
 plugins {
-    // Delete the following line to remove the deprecation warning:
+    // Deprecated (and misleading, as it is still applied)
     id("org.gradle.test-retry") apply false
-    // The plugin will still be on the classpath, but it will not be applied as part of this precompiled script plugin.
+    // The plugin will still be on the classpath,
+    // but it will not be applied as part of this precompiled script plugin.
+
+    // Recommended: Either remove 'apply false' to keep using it,
+    // or delete the line to stop using it.
+    id("org.gradle.test-retry")
 }
 ----
 
 [[deprecate_version_in_precompiled_settings_script_plugins]]
-==== Deprecation of `version` in precompiled settings script plugins
-The use of `version` in <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins, precompiled script plugins>> has been deprecated and will become an error in Gradle 10.0.0.
+==== Deprecation of `version` in precompiled Settings script plugins
 
-Using `version` does not have any effect in precompiled script plugins and can lead to confusion for users who expect it to change the version of the plugin being applied.
-Plugins used in precompiled script plugins are already available on the classpath and have their versions determined by the precompiled script plugin's build file.
+The use of `version` within <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins, precompiled script plugins>> is now deprecated and will become an error in Gradle 10.0.0.
 
-To fix this deprecation, remove the `version` call for the plugin declaration in the precompiled script plugin:
-.my-plugin.gradle.kts
+In precompiled Settings scripts, `version` has no effect.
+The plugin version is already fixed by the script's own build file; declaring it again inside the script is ignored and causes confusion about which version is actually in use.
+
+To fix this, remove the `.version()` or `version "..."` call from the `plugins {}` block:
+
+.my-settings-plugin.gradle.kts
 [source,kotlin]
 ----
 plugins {
-    // Before:
+    // Deprecated:
     id("org.gradle.test-retry") version "x.y.z"
-    // After:
+    // Recommended:
     id("org.gradle.test-retry")
 }
 ----
