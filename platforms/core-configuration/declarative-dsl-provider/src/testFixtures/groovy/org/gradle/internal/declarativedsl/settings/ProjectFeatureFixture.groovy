@@ -561,7 +561,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${BindsProjectFeature.class.name}
                 import ${ProjectFeatureBindingBuilder.class.name}
                 import ${ProjectFeatureBinding.class.name}
-                import org.gradle.features.internal.dsl.bindProjectFeatureToDefinition
+                import org.gradle.features.dsl.bindProjectFeatureToDefinition
                 import org.gradle.test.${bindingTypeClassName}
 
                 @${BindsProjectFeature.class.simpleName}(${projectFeaturePluginClassName}.Binding::class)
@@ -628,7 +628,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${BindsProjectFeature.class.name}
                 import ${ProjectFeatureBindingBuilder.class.name}
                 import ${ProjectFeatureBinding.class.name}
-                import org.gradle.features.internal.dsl.bindProjectFeature
+                import org.gradle.features.dsl.bindProjectFeature
 
                 @${BindsProjectFeature.class.simpleName}(${projectFeaturePluginClassName}.Binding::class)
                 class ${projectFeaturePluginClassName} : Plugin<Project> {

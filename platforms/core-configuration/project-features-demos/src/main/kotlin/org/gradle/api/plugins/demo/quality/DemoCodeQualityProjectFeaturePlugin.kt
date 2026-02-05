@@ -23,11 +23,13 @@ import org.gradle.api.Project
 import org.gradle.features.annotations.BindsProjectFeature
 import org.gradle.features.binding.ProjectFeatureBindingBuilder
 import org.gradle.features.binding.ProjectFeatureBinding
-import org.gradle.features.internal.dsl.bindProjectFeatureToBuildModel
-import org.gradle.features.internal.dsl.bindProjectFeatureToDefinition
+import org.gradle.features.dsl.bindProjectFeatureToBuildModel
+import org.gradle.features.dsl.bindProjectFeatureToDefinition
 import org.gradle.api.plugins.java.HasSources
 import org.gradle.api.plugins.java.JvmOutputs
 import org.gradle.api.plugins.quality.Checkstyle
+import org.gradle.features.dsl.bindProjectFeatureToBuildModel
+import org.gradle.features.dsl.bindProjectFeatureToDefinition
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import javax.inject.Inject

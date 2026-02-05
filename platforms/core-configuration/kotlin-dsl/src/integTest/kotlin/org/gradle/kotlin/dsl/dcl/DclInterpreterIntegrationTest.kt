@@ -132,9 +132,9 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                 import ${ProjectTypeBindingBuilder::class.qualifiedName}
                 import ${ProjectFeatureBinding::class.qualifiedName}
                 import ${ProjectFeatureBindingBuilder::class.qualifiedName}
-                import org.gradle.features.internal.dsl.bindProjectType
-                import org.gradle.features.internal.dsl.bindProjectFeatureToDefinition
-                import org.gradle.features.internal.dsl.bindProjectFeatureToBuildModel
+                import org.gradle.features.dsl.bindProjectType
+                import org.gradle.features.dsl.bindProjectFeatureToDefinition
+                import org.gradle.features.dsl.bindProjectFeatureToBuildModel
 
                 @${BindsProjectType::class.simpleName}(MyPlugin.Binding::class)
                 @${BindsProjectFeature::class.simpleName}(MyPlugin.FeatureBinding::class)

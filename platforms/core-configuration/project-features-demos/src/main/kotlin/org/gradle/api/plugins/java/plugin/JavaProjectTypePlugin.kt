@@ -22,12 +22,13 @@ import org.gradle.api.Project
 import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.binding.ProjectTypeBinding
-import org.gradle.features.internal.dsl.bindProjectType
+import org.gradle.features.dsl.bindProjectType
 import org.gradle.api.plugins.internal.java.DefaultJavaProjectType
 import org.gradle.api.plugins.java.JavaClasses.DefaultJavaClasses
 import org.gradle.api.plugins.java.JavaProjectType
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.features.dsl.bindProjectType
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import javax.inject.Inject
 

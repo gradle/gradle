@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.features.internal.dsl
+package org.gradle.features.dsl
 
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.DeclaredProjectFeatureBindingBuilder
@@ -40,7 +40,7 @@ import kotlin.reflect.full.allSupertypes
  *
  * @param name The name of the project feature.
  * @param block The project feature transform that maps the target definition to the build model and implements the feature logic.
- * @return A [DeclaredProjectFeatureBindingBuilder] for further configuration if needed.
+ * @return A [org.gradle.features.binding.DeclaredProjectFeatureBindingBuilder] for further configuration if needed.
  * @param Definition The type of the project feature definition.
  * @param TargetDefinition The type of the target definition to bind to.
  * @param OwnBuildModel The type of the build model associated with the project feature definition.
@@ -50,7 +50,7 @@ inline fun <
     reified TargetDefinition : org.gradle.features.binding.Definition<*>,
     reified OwnBuildModel : BuildModel
     >
-    ProjectFeatureBindingBuilder.bindProjectFeature(
+        ProjectFeatureBindingBuilder.bindProjectFeature(
         name: String,
         noinline block: ProjectFeatureApplicationContext.(Definition, OwnBuildModel, TargetDefinition) -> Unit
     ): DeclaredProjectFeatureBindingBuilder<Definition, OwnBuildModel> =
@@ -85,11 +85,11 @@ fun <
     TargetDefinition : Definition<out TargetBuildModel>,
     TargetBuildModel : BuildModel,
     >
-    ProjectFeatureBindingBuilder.bindProjectFeatureToDefinition(
-        name: String,
-        ownDefinitionType: KClass<OwnDefinition>,
-        targetDefinitionType: KClass<TargetDefinition>,
-        block: ProjectFeatureApplicationContext.(OwnDefinition, OwnBuildModel, TargetDefinition) -> Unit
+        ProjectFeatureBindingBuilder.bindProjectFeatureToDefinition(
+    name: String,
+    ownDefinitionType: KClass<OwnDefinition>,
+    targetDefinitionType: KClass<TargetDefinition>,
+    block: ProjectFeatureApplicationContext.(OwnDefinition, OwnBuildModel, TargetDefinition) -> Unit
     ): DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> =
         bindProjectFeature(
             name,
@@ -122,7 +122,7 @@ fun <
     OwnBuildModel : BuildModel,
     TargetBuildModel : BuildModel,
     >
-    ProjectFeatureBindingBuilder.bindProjectFeatureToBuildModel(
+        ProjectFeatureBindingBuilder.bindProjectFeatureToBuildModel(
         name: String,
         ownDefinitionType: KClass<OwnDefinition>,
         targetBuildModelType: KClass<TargetBuildModel>,
@@ -180,4 +180,3 @@ internal fun <OwnDefinition : Definition<OwnBuildModel>, TargetDefinition : Defi
 internal fun <OwnDefinition : Definition<OwnBuildModel>, TargetBuildModel : BuildModel, OwnBuildModel : BuildModel>
     bindingToTargetBuildModel(definitionType: DefinitionType<OwnDefinition, OwnBuildModel>, targetBuildModel: Class<TargetBuildModel>) =
     ProjectFeatureBindingBuilder.bindingToTargetBuildModel(definitionType.definition, targetBuildModel)
-

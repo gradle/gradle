@@ -170,7 +170,7 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 import ${ProjectTypeBindingBuilder::class.java.name}
                 import ${Definition::class.java.name}
                 import ${BuildModel::class.java.name}
-                import org.gradle.features.internal.dsl.bindProjectType
+                import org.gradle.features.dsl.bindProjectType
 
                 @RequiresOptIn("Some Experimental API", RequiresOptIn.Level.ERROR)
                 annotation class SomeExperimentalApi
