@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.compatibility.MultiVersionTest
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.JavaGarbageCollector
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy
 
 import static org.gradle.api.JavaVersion.VERSION_14
@@ -84,11 +83,6 @@ ${COMMON_HINT}""")
 
     def "expires daemon immediately when garbage collector is thrashing"() {
         given:
-        if (JavaVersion.current().isJava9Compatible() && GradleContextualExecuter.isConfigCache()) {
-            // For java.util.concurrent.CountDownLatch being serialized reflectively by configuration cache
-            executer.withArgument('-Dorg.gradle.jvmargs=--add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.util.concurrent.locks=ALL-UNNAMED')
-        }
-
         configureGarbageCollectionHeapEventsFor(256, 512, 100, garbageCollector.monitoringStrategy.thrashingThreshold + 0.2)
         waitForImmediateDaemonExpiration()
 
@@ -247,7 +241,7 @@ ${COMMON_HINT}""")
     }
 
     void waitForImmediateDaemonExpiration() {
-        buildFile << """
+        buildFile """
             import org.gradle.internal.event.ListenerManager
             import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener
             import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
@@ -261,11 +255,14 @@ ${COMMON_HINT}""")
                 }
             })
 
-            injectEvents.doLast {
-                // Wait for a daemon expiration event to occur
-                latch.await(6, TimeUnit.SECONDS)
-                // Give the monitor a chance to stop the daemon abruptly
-                sleep 6000
+            tasks.named("injectEvents") {
+                notCompatibleWithConfigurationCache("Uses CountDownLatch to sync with the task")
+                doLast {
+                    // Wait for a daemon expiration event to occur
+                    latch.await(6, TimeUnit.SECONDS)
+                    // Give the monitor a chance to stop the daemon abruptly
+                    sleep 6000
+                }
             }
         """
     }

@@ -16,10 +16,9 @@
 
 package org.gradle.launcher.daemon.server.scaninfo
 
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -97,7 +96,6 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         """
 
         when:
-        openJpmsModulesForConfigurationCache()
         if (continuous) {
             executer.withArgument('waitForExpiration')
             executer.withArgument('--continuous')
@@ -127,7 +125,6 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         """
 
         when:
-        openJpmsModulesForConfigurationCache()
         executer.withArgument('waitForExpiration').run()
 
         then:
@@ -140,7 +137,6 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
            ${imports()}
            ${waitForExpirationTask()}
         """
-        openJpmsModulesForConfigurationCache()
         executer.withArgument('waitForExpiration').run()
 
         then:
@@ -161,7 +157,6 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
         when:
         startAForegroundDaemon()
-        openJpmsModulesForConfigurationCache()
         executer.withTasks('waitForExpiration').run()
 
         then:
@@ -274,12 +269,4 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         import org.gradle.launcher.daemon.server.expiry.*
         """
     }
-
-    private void openJpmsModulesForConfigurationCache() {
-        if (JavaVersion.current().isJava9Compatible() && GradleContextualExecuter.isConfigCache()) {
-            // For java.util.concurrent.CountDownLatch being serialized reflectively by configuration cache
-            executer.withArgument('-Dorg.gradle.jvmargs=--add-opens java.base/java.util.concurrent=ALL-UNNAMED --add-opens java.base/java.util.concurrent.locks=ALL-UNNAMED')
-        }
-    }
-
 }
