@@ -18,6 +18,12 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class ScalaPluginGoodBehaviourTest extends WellBehavedPluginTest {
+    def setup() {
+        buildFile """
+            ${mavenCentralRepository()}
+        """
+    }
+
     @Override
     String getMainTask() {
         return "build"
