@@ -74,7 +74,7 @@ See the [compatibility documentation](userguide/compatibility.html#java_runtime)
 
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 
-#### Non-Class based testing
+#### Non-class-based testing
 
 When testing using [JUnit Platform](https://junit.org/), Gradle can now discover and execute tests that are not defined in classes.
 
