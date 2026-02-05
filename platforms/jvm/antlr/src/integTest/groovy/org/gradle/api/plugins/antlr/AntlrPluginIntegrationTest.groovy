@@ -19,10 +19,15 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
 
-import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
 class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
+    def setup() {
+        buildFile """
+            ${mavenCentralRepository()}
+        """
+    }
+
     @Override
     String getMainTask() {
         return "build"
@@ -33,8 +38,6 @@ class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             apply plugin: "java"
             apply plugin: "antlr"
-
-            ${mavenCentralRepository()}
         """
         and:
 
@@ -57,8 +60,6 @@ class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
             apply plugin: "java"
             apply plugin: "antlr"
 
-            ${mavenCentralRepository(GROOVY)}
-
             sourceSets.main {
                 antlr {}
             }
@@ -73,6 +74,7 @@ class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
 
     def "can configure antlr source set extension in Kotlin scripts"() {
         given:
+        buildFile.delete()
         buildKotlinFile << """
             plugins {
                 java
@@ -102,8 +104,6 @@ class AntlrPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             apply plugin: "java"
             apply plugin: "antlr"
-
-            ${mavenCentralRepository()}
 
             java {
                 withSourcesJar()
