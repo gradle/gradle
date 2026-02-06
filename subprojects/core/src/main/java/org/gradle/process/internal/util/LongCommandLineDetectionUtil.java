@@ -28,7 +28,7 @@ public class LongCommandLineDetectionUtil {
     // Dervied from MAX_ARG_STRLEN as per http://man7.org/linux/man-pages/man2/execve.2.html
     public static final int MAX_COMMAND_LINE_LENGTH_NIX = 131072;
     private static final String WINDOWS_LONG_COMMAND_EXCEPTION_MESSAGE = "The filename or extension is too long";
-    private static final String NIX_LONG_COMMAND_EXCEPTION_MESSAGE = "error=7, Argument list too long";
+    private static final String NIX_LONG_COMMAND_EXCEPTION_MESSAGE = "Argument list too long";
 
     public static boolean hasCommandLineExceedMaxLength(String command, List<String> arguments) {
         int commandLineLength = command.length() + arguments.stream().map(String::length).reduce(Integer::sum).orElse(0) + arguments.size();
@@ -49,7 +49,8 @@ public class LongCommandLineDetectionUtil {
     public static boolean hasCommandLineExceedMaxLengthException(Throwable failureCause) {
         Throwable cause = failureCause;
         do {
-            if (cause.getMessage().contains(WINDOWS_LONG_COMMAND_EXCEPTION_MESSAGE) || cause.getMessage().contains(NIX_LONG_COMMAND_EXCEPTION_MESSAGE)) {
+            String message = cause.getMessage();
+            if (message != null && (message.contains(WINDOWS_LONG_COMMAND_EXCEPTION_MESSAGE) || message.contains(NIX_LONG_COMMAND_EXCEPTION_MESSAGE))) {
                 return true;
             }
         } while ((cause = cause.getCause()) != null);
