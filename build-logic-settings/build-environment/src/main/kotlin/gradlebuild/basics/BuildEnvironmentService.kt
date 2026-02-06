@@ -29,11 +29,12 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.os.OperatingSystem
 import javax.inject.Inject
+
 /**
  * Used to import assign for Gradle 9.0
  * TODO: Remove once with Gradle 9.0
  */
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.assign
 
 
 abstract class BuildEnvironmentService : BuildService<BuildEnvironmentService.Parameters> {
@@ -55,14 +56,10 @@ abstract class BuildEnvironmentService : BuildService<BuildEnvironmentService.Pa
         val projectDir = parameters.rootProjectDir.asFile.get()
         val execOutput = providers.exec {
             workingDir = projectDir
-            DeprecationLogger.whileDisabled {
-                isIgnoreExitValue = true
-            }
-            val commandLine = listOf("git", *args)
+            isIgnoreExitValue = true
+            commandLine(listOf("git", *args))
             if (OperatingSystem.current().isWindows) {
-                commandLine(listOf("cmd.exe", "/d", "/c") + commandLine)
-            } else {
-                commandLine(commandLine)
+                commandLine(listOf("cmd.exe", "/d", "/c", "git", *args))
             }
         }
         return execOutput.result.zip(execOutput.standardOutput.asText) { result, outputText ->
