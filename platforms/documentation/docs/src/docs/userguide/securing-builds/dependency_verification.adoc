@@ -235,6 +235,9 @@ Executing this command will cause Gradle to:
 * Compute the requested checksums and possibly verify signatures depending on what you asked
 * At the end of the build, generate the configuration file which will contain the inferred _verification metadata_
 
+Gradle only supports verification of signatures published as ASCII-armored PGP files (`.asc`) on remote repositories.
+Not all artifacts are published with signatures, and signature verification doesn't guarantee the signatory was legitimate—only that the artifact was signed by a specific key.
+
 === Example Verification Metadata File
 
 A snippet of the resulting `verification-metadata.xml` looks like this:
@@ -428,6 +431,95 @@ Execution failed for task ':compileJava'.
 This indicates you need to add checksums for `commons-logging` and all other transitive dependencies.
 See <<#sec:troubleshooting-verification>> for more details.
 
+==== Adding Keys for an Artifact
+
+To trust a key for signature verification, add a `pgp` entry to your verification metadata:
+
+[source,xml]
+----
+<component group="com.github.javaparser" name="javaparser-core" version="3.6.11">
+   <artifact name="javaparser-core-3.6.11.jar">
+      <pgp value="8756c4f765c9ac3cb6b85d62379ce192d401ab61"/>
+   </artifact>
+</component>
+----
+
+This means you trust `com.github.javaparser:javaparser-core:3.6.11` if it's signed with key `8756c4f765c9ac3cb6b85d62379ce192d401ab61`.
+
+Without trusted keys configured, the build will fail:
+
+[source,text]
+----
+> Dependency verification failed for configuration ':compileClasspath':
+    - On artifact javaparser-core-3.6.11.jar (com.github.javaparser:javaparser-core:3.6.11) in repository 'MavenRepo': Artifact was signed with key '8756c4f765c9ac3cb6b85d62379ce192d401ab61' (Bintray (by JFrog) <****>) and passed verification but the key isn't in your trusted keys list.
+----
+
+WARNING: Gradle requires full fingerprint IDs (40 characters, e.g., `b801e2f8ef035068ec1139cc29579f18fa8fd93b`) for `pgp` and `trusted-key` elements, not short or long IDs. This minimizes the risk of collision attacks. For `ignored-key` elements, you can use either fingerprints or long (64-bit) IDs.
+
+NOTE: The key IDs shown in error messages are from the signature file itself. This doesn't necessarily mean you should trust them—if a malicious entity signed the artifact, Gradle won't detect that. Always verify keys against official sources.
+
+== Understanding Signature Verification
+
+Once signature verification is enabled, Gradle follows this workflow for each artifact:
+
+1. Attempts to download the corresponding `.asc` signature file
+2. If the signature file exists:
+* Automatically downloads the public keys needed for verification
+* Verifies the artifact using the downloaded keys
+* If signature verification passes, performs any additional checksum verification you configured
+3. If the signature file is absent, falls back to checksum verification
+
+This means Gradle's verification is stronger with signatures enabled than with checksums alone:
+
+* If an artifact is signed with multiple keys, all of them must pass validation or the build fails
+* If an artifact passes signature verification, any additional checksums configured for that artifact will also be checked
+
+However, passing signature verification doesn't automatically mean you can trust the artifact—you must explicitly trust the keys by adding them to your verification metadata as shown in <<#sec:manual-checking-dependency,Adding Keys for an Artifact>>.
+
+=== Trusting Keys Globally
+
+Signature verification can be simplified by trusting keys at the group level instead of declaring them for each individual artifact. This is useful when the same key signs multiple artifacts from the same publisher.
+
+You can move trusted keys from the artifact level to a global configuration block:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>true</verify-signatures>
+      <trusted-keys>
+         <trusted-key id="8756c4f765c9ac3cb6b85d62379ce192d401ab61" group="com.github.javaparser"/>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+----
+
+This configuration trusts any artifact in the `com.github.javaparser` group if it's signed with key `8756c4f765c9ac3cb6b85d62379ce192d401ab61`.
+
+The `trusted-key` element supports these attributes:
+
+* `group` - the group of the artifact to trust
+* `name` - the name of the artifact to trust
+* `version` - the version of the artifact to trust
+* `file` - the name of the artifact file to trust
+* `regex` - whether to interpret the other attributes as regular expressions (defaults to `false`)
+
+==== Security Considerations
+
+Be careful when trusting keys globally:
+
+* A valid key may have been used to sign artifact `A` which you trust
+* Later, the key could be stolen and used to sign malicious artifact `B`
+
+This means you should limit trust to appropriate groups or artifacts, and avoid trusting keys too broadly.
+
+IMPORTANT: Anyone can put an arbitrary name when generating a PGP key. Never trust a key solely based on its name. Always verify the key is listed on the official project website. For example, Apache projects typically provide a `KEYS.txt` file.
+
 [[sec:verification-dry-mode]]
 == Using Dry Mode
 
@@ -479,6 +571,7 @@ If your environment prevents you from reading this HTML report file (for example
 
 Add this Gradle property to your `gradle.properties` file:
 
+[source,properties]
 ----
 org.gradle.dependency.verification.console=verbose
 ----
@@ -600,6 +693,8 @@ There are several options when you encounter a signature verification failure:
 
 The right approach here is to go to the official site of the dependency and see if they publish signatures for their artifacts.
 If they do, verify that the signature that Gradle downloaded matches the one published.
+
+NOTE: Artifacts are often signed with expired keys, which is not a problem for verification. Key expiry is meant to prevent signing with stolen keys. If an artifact was signed before the key expired, the signature is still valid.
 
 If you have checked that the dependency is _not_ compromised and that it's "only" the signature which is wrong, you should declare an _artifact level key exclusion_:
 
