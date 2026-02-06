@@ -19,7 +19,6 @@ package org.gradle.features.internal.binding;
 import org.gradle.features.binding.BuildModel;
 import org.gradle.features.binding.DeclaredProjectFeatureBindingBuilder;
 import org.gradle.features.binding.Definition;
-import org.gradle.features.binding.ProjectFeatureApplyAction;
 import org.gradle.features.binding.TargetTypeInformation;
 import org.gradle.internal.Cast;
 import org.gradle.util.Path;
@@ -30,12 +29,12 @@ import java.util.Objects;
 import java.util.Optional;
 
 @NullMarked
-public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>, V extends BuildModel> implements DeclaredProjectFeatureBindingBuilderInternal<T, V> {
-    private final Class<T> dslType;
+public class DefaultDeclaredProjectFeatureBindingBuilder<OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel, TargetDefinition> implements DeclaredProjectFeatureBindingBuilderInternal<OwnDefinition, OwnBuildModel> {
+    private final Class<OwnDefinition> dslType;
     private final TargetTypeInformation<?> targetDefinitionType;
-    private final Class<V> buildModelType;
+    private final Class<OwnBuildModel> buildModelType;
     private final Path path;
-    private final ProjectFeatureApplyAction<?, ?, ?> transform;
+    private final ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, ?> applyActionFactory;
 
     @Nullable private Class<?> dslImplementationType;
     @Nullable private Class<?> buildModelImplementationType;
@@ -43,43 +42,43 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
     private ProjectFeatureBindingDeclaration.Safety applyActionSafety = ProjectFeatureBindingDeclaration.Safety.SAFE;
 
     public DefaultDeclaredProjectFeatureBindingBuilder(
-        Class<T> definitionType,
-        Class<V> buildModelType,
+        Class<OwnDefinition> definitionType,
+        Class<OwnBuildModel> buildModelType,
         TargetTypeInformation<?> targetDefinitionType,
         Path path,
-        ProjectFeatureApplyAction<T, V, ?> transform
+        ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, TargetDefinition> applyActionFactory
     ) {
         this.targetDefinitionType = targetDefinitionType;
         this.dslType = definitionType;
         this.buildModelType = buildModelType;
         this.path = path;
-        this.transform = transform;
+        this.applyActionFactory = applyActionFactory;
     }
 
-    private static <T extends Definition<V>, V extends BuildModel> ProjectFeatureBindingDeclaration<T, V> bindingOf(
-        Class<T> definitionType,
-        @Nullable Class<? extends T> definitionImplementationType,
+    private static <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> ProjectFeatureBindingDeclaration<OwnDefinition, OwnBuildModel> bindingOf(
+        Class<OwnDefinition> definitionType,
+        @Nullable Class<? extends OwnDefinition> definitionImplementationType,
         ProjectFeatureBindingDeclaration.Safety definitionSafety,
         ProjectFeatureBindingDeclaration.Safety applyActionSafety,
         Path path,
         TargetTypeInformation<?> targetDefinitionType,
-        Class<V> buildModelType,
-        @Nullable Class<? extends V> buildModelImplementationType,
-        ProjectFeatureApplyAction<T, ?, V> transform
+        Class<OwnBuildModel> buildModelType,
+        @Nullable Class<? extends OwnBuildModel> buildModelImplementationType,
+        ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, ?> projectFeatureApplyActionFactory
     ) {
-        return new ProjectFeatureBindingDeclaration<T, V>() {
+        return new ProjectFeatureBindingDeclaration<OwnDefinition, OwnBuildModel>() {
             @Override
             public TargetTypeInformation<?> targetDefinitionType() {
                 return targetDefinitionType;
             }
 
             @Override
-            public Class<T> getDefinitionType() {
+            public Class<OwnDefinition> getDefinitionType() {
                 return definitionType;
             }
 
             @Override
-            public Optional<Class<? extends T>> getDefinitionImplementationType() {
+            public Optional<Class<? extends OwnDefinition>> getDefinitionImplementationType() {
                 return Optional.ofNullable(definitionImplementationType);
             }
 
@@ -94,17 +93,17 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
             }
 
             @Override
-            public ProjectFeatureApplyAction<T, ?, V> getTransform() {
-                return transform;
+            public ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, ?> getApplyActionFactory() {
+                return projectFeatureApplyActionFactory;
             }
 
             @Override
-            public Class<V> getBuildModelType() {
+            public Class<OwnBuildModel> getBuildModelType() {
                 return buildModelType;
             }
 
             @Override
-            public Optional<Class<? extends V>> getBuildModelImplementationType() {
+            public Optional<Class<? extends OwnBuildModel>> getBuildModelImplementationType() {
                 return Optional.ofNullable(buildModelImplementationType);
             }
 
@@ -116,31 +115,31 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
     }
 
     @Override
-    public DeclaredProjectFeatureBindingBuilder<T, V> withUnsafeDefinitionImplementationType(Class<? extends T> implementationType) {
+    public DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withUnsafeDefinitionImplementationType(Class<? extends OwnDefinition> implementationType) {
         this.dslImplementationType = implementationType;
         return withUnsafeDefinition();
     }
 
     @Override
-    public DeclaredProjectFeatureBindingBuilder<T, V> withBuildModelImplementationType(Class<? extends V> implementationType) {
+    public DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withBuildModelImplementationType(Class<? extends OwnBuildModel> implementationType) {
         this.buildModelImplementationType = implementationType;
         return this;
     }
 
     @Override
-    public DeclaredProjectFeatureBindingBuilder<T, V> withUnsafeDefinition() {
+    public DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withUnsafeDefinition() {
         this.definitionSafety = ProjectFeatureBindingDeclaration.Safety.UNSAFE;
         return this;
     }
 
     @Override
-    public DeclaredProjectFeatureBindingBuilder<T, V> withUnsafeApplyAction() {
+    public DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> withUnsafeApplyAction() {
         this.applyActionSafety = ProjectFeatureBindingDeclaration.Safety.UNSAFE;
         return this;
     }
 
     @Override
-    public ProjectFeatureBindingDeclaration<T, V> build() {
+    public ProjectFeatureBindingDeclaration<OwnDefinition, OwnBuildModel> build() {
         if (dslImplementationType != null && !dslType.isAssignableFrom(dslImplementationType)) {
             throw new IllegalArgumentException("Implementation type " + dslImplementationType + " is not a subtype of dsl type " + dslType);
         }
@@ -158,7 +157,7 @@ public class DefaultDeclaredProjectFeatureBindingBuilder<T extends Definition<V>
             targetDefinitionType,
             buildModelType,
             Cast.uncheckedCast(buildModelImplementationType),
-            Cast.uncheckedCast(transform)
+            applyActionFactory
         );
     }
 }

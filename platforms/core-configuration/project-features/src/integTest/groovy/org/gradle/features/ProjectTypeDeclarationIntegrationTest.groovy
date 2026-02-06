@@ -322,6 +322,24 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         )
     }
 
+    def 'can declare and configure a custom project type using an action class'() {
+        given:
+        withProjectTypeThatBindsWithClass().prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType
+
+        when:
+        run(":printTestProjectTypeDefinitionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+
+        and:
+        outputContains("Applying ProjectTypeImplPlugin")
+    }
+
     static String getDeclarativeScriptThatConfiguresOnlyTestProjectType() {
         return """
             testProjectType {

@@ -513,6 +513,28 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("Binding FeatureDefinition")
     }
 
+    def 'can declare and configure a custom project feature using an action class'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeatureThatBindsWithClass()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printProjectTypeDefinitionConfiguration",":printFeatureDefinitionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+
+        and:
+        outputContains("Applying ProjectTypeImplPlugin")
+        outputContains("Binding TestProjectTypeDefinition")
+        outputContains("Binding FeatureDefinition")
+    }
+
     private String getPluginBuildScriptForJava() {
         return """
 

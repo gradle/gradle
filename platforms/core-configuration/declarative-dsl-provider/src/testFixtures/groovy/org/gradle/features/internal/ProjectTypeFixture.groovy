@@ -20,6 +20,8 @@ import groovy.transform.SelfType
 import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectTypeApplyAction
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.annotations.RegistersProjectFeatures
@@ -329,6 +331,19 @@ trait ProjectTypeFixture {
         )
     }
 
+    PluginBuilder withProjectTypeThatBindsWithClass() {
+        def definition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypeThatBindsWithClassBuilder(definition)
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+
+        return withProjectType(
+            definition,
+            projectType,
+            settingsBuilder
+        )
+    }
+
     static class ProjectTypePluginClassBuilder {
         final ProjectTypeDefinitionClassBuilder definition
         String projectTypePluginClassName = "ProjectTypeImplPlugin"
@@ -573,6 +588,78 @@ trait ProjectTypeFixture {
                 }
 
                 interface UnknownService extends ${TaskRegistrar.class.name} { }
+            """
+        }
+    }
+
+    static class ProjectTypeThatBindsWithClassBuilder extends ProjectTypePluginClassBuilder {
+        ProjectTypeThatBindsWithClassBuilder(ProjectTypeDefinitionClassBuilder definition) {
+            super(definition)
+        }
+
+        @Override
+        protected String getClassContent() {
+            return """
+                package org.gradle.test;
+
+                import org.gradle.api.DefaultTask;
+                import org.gradle.api.Plugin;
+                import org.gradle.api.Project;
+                import org.gradle.api.provider.ListProperty;
+                import org.gradle.api.provider.Property;
+                import org.gradle.api.tasks.Nested;
+                import ${ProjectTypeApplyAction.class.name};
+                import ${ProjectFeatureApplicationContext.class.name};
+                import ${ProjectTypeBinding.class.name};
+                import ${BindsProjectType.class.name};
+                import ${ProjectTypeBindingBuilder.class.name};
+                import javax.inject.Inject;
+
+                @${BindsProjectType.class.simpleName}(${projectTypePluginClassName}.Binding.class)
+                abstract public class ${projectTypePluginClassName} implements Plugin<Project> {
+
+                    static class Binding implements ${ProjectTypeBinding.class.simpleName} {
+                        public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
+                            builder.bindProjectType("${name}", ${definition.publicTypeClassName}.class, ${projectTypePluginClassName}.ApplyAction.class)
+                            ${maybeDeclareDefinitionImplementationType()}
+                            ${maybeDeclareBindingModifiers()};
+                        }
+                    }
+
+                    static abstract class ApplyAction implements ${ProjectTypeApplyAction.class.simpleName}<${definition.publicTypeClassName}, ${definition.fullyQualifiedBuildModelClassName}> {
+                        @javax.inject.Inject
+                        public ApplyAction() { }
+
+                        ${serviceInjections}
+
+                        @Override
+                        public void apply(${ProjectFeatureApplicationContext.class.simpleName} context, ${definition.publicTypeClassName} definition, ${definition.fullyQualifiedBuildModelClassName} model) {
+                            System.out.println("Binding " + ${definition.publicTypeClassName}.class.getSimpleName());
+                            ${conventions == null ? "" : conventions}
+
+                            ${definition.buildModelMapping}
+
+                            getTaskRegistrar().register("print${definition.publicTypeClassName}Configuration", DefaultTask.class, task -> {
+                                task.doLast("print restricted extension content", t -> {
+                                    ${definition.displayDefinitionPropertyValues()}
+                                    ${definition.displayModelPropertyValues()}
+                                });
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void apply(Project target) {
+                        System.out.println("Applying " + getClass().getSimpleName());
+                    }
+                }
+            """
+        }
+
+        String getServiceInjections() {
+            return """
+                @javax.inject.Inject
+                abstract protected ${TaskRegistrar.class.name} getTaskRegistrar();
             """
         }
     }

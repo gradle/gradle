@@ -85,6 +85,7 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
     def plugin = Mock(Plugin)
     def plugins = Mock(PluginContainer)
     def boundProjectTypeImplementation = Mock(BoundProjectFeatureImplementation)
+    def applyActionFactory = Mock(ProjectFeatureApplyActionFactory)
     def foo = Mock(Foo) {
         _ * it.asDynamicObject >> Mock(ExtensibleDynamicObject)
     }
@@ -97,7 +98,8 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         _ * boundProjectTypeImplementation.pluginClass >> plugin.class
         _ * boundProjectTypeImplementation.definitionImplementationType >> Foo
         _ * boundProjectTypeImplementation.buildModelImplementationType >> Bar
-        _ * boundProjectTypeImplementation.bindingTransform >> Mock(ProjectFeatureApplyAction)
+        _ * boundProjectTypeImplementation.applyActionFactory >> applyActionFactory
+        _ * applyActionFactory.create(_) >> Mock(ProjectFeatureApplyAction)
         _ * pluginManager.pluginContainer >> plugins
         _ * plugins.getPlugin(plugin.class) >> plugin
         1 * pluginManager.apply(plugin.class)
@@ -126,7 +128,8 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
         _ * boundProjectTypeImplementation.pluginClass >> plugin.class
         _ * boundProjectTypeImplementation.definitionImplementationType >> Foo
         _ * boundProjectTypeImplementation.buildModelImplementationType >> Bar
-        _ * boundProjectTypeImplementation.bindingTransform >> Mock(ProjectFeatureApplyAction)
+        _ * boundProjectTypeImplementation.applyActionFactory >> applyActionFactory
+        _ * applyActionFactory.create(_) >> Mock(ProjectFeatureApplyAction)
         _ * pluginManager.pluginContainer >> plugins
         _ * plugins.getPlugin(plugin.class) >> plugin
         1 * pluginManager.apply(plugin.class)

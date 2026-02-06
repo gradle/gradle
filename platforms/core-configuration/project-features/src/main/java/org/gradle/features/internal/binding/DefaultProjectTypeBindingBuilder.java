@@ -18,6 +18,7 @@ package org.gradle.features.internal.binding;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.features.binding.BuildModel;
 import org.gradle.features.binding.DeclaredProjectFeatureBindingBuilder;
 import org.gradle.features.binding.Definition;
@@ -34,21 +35,65 @@ import java.util.List;
 public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuilderInternal {
     private final List<DeclaredProjectFeatureBindingBuilderInternal<?, ?>> bindings = new ArrayList<>();
 
-    private <T extends Definition<V>, V extends BuildModel> DeclaredProjectFeatureBindingBuilder<T, V> bindProjectType(String name, Class<T> definitionClass, Class<V> buildModelClass, ProjectTypeApplyAction<T, V> transform) {
+    private <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel>
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectType(
+        String name,
+        Class<OwnDefinition> definitionClass,
+        Class<OwnBuildModel> buildModelClass,
+        ProjectTypeApplyAction<OwnDefinition, OwnBuildModel> transform
+    ) {
         // This needs to be an anonymous class for configuration cache compatibility
-        ProjectFeatureApplyAction<T, V, ?> featureTransform = new ProjectFeatureApplyAction<T, V, Object>() {
+        ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, Object> applyActionFactory = new ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, Object>() {
             @Override
-            public void transform(ProjectFeatureApplicationContext context, T definition, V buildModel, Object parentDefinition) {
-                transform.transform(context, definition, buildModel);
+            public ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, Object> create(ObjectFactory objectFactory) {
+                return new ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, Object>() {
+                    @Override
+                    public void apply(ProjectFeatureApplicationContext context, OwnDefinition definition, OwnBuildModel buildModel, Object parentDefinition) {
+                        transform.apply(context, definition, buildModel);
+                    }
+                };
             }
         };
 
-        DeclaredProjectFeatureBindingBuilderInternal<T, V> builder = new DefaultDeclaredProjectFeatureBindingBuilder<>(
+        return declaredProjectFeatureBindingBuilder(name, definitionClass, buildModelClass, applyActionFactory);
+    }
+
+    private <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel>
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectType(
+        String name,
+        Class<OwnDefinition> definitionClass,
+        Class<OwnBuildModel> buildModelClass,
+        Class<? extends ProjectTypeApplyAction<OwnDefinition, OwnBuildModel>> transformClass
+    ) {
+        // This needs to be an anonymous class for configuration cache compatibility
+        ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, Object> featureTransformFactory = new ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, Object>() {
+            @Override
+            public ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, Object> create(ObjectFactory objectFactory) {
+                return new ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, Object>() {
+                    @Override
+                    public void apply(ProjectFeatureApplicationContext context, OwnDefinition definition, OwnBuildModel buildModel, Object parentDefinition) {
+                        objectFactory.newInstance(transformClass).apply(context, definition, buildModel);
+                    }
+                };
+            }
+        };
+
+        return declaredProjectFeatureBindingBuilder(name, definitionClass, buildModelClass, featureTransformFactory);
+    }
+
+    private <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel>
+    DeclaredProjectFeatureBindingBuilderInternal<OwnDefinition, OwnBuildModel> declaredProjectFeatureBindingBuilder(
+        String name,
+        Class<OwnDefinition> definitionClass,
+        Class<OwnBuildModel> buildModelClass,
+        ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, Object> featureTransformFactory
+    ) {
+        DeclaredProjectFeatureBindingBuilderInternal<OwnDefinition, OwnBuildModel> builder = new DefaultDeclaredProjectFeatureBindingBuilder<>(
             definitionClass,
             buildModelClass,
             new TargetTypeInformation.DefinitionTargetTypeInformation<>(Project.class),
             Path.path(name),
-            featureTransform
+            featureTransformFactory
         );
 
         bindings.add(builder);
@@ -56,8 +101,23 @@ public class DefaultProjectTypeBindingBuilder implements ProjectTypeBindingBuild
     }
 
     @Override
-    public <T extends Definition<V>, V extends BuildModel> DeclaredProjectFeatureBindingBuilder<T, V> bindProjectType(String name, Class<T> definitionClass, ProjectTypeApplyAction<T, V> transform) {
+    public <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel>
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectType(
+        String name,
+        Class<OwnDefinition> definitionClass,
+        ProjectTypeApplyAction<OwnDefinition, OwnBuildModel> transform
+    ) {
         return bindProjectType(name, definitionClass, ModelTypeUtils.getBuildModelClass(definitionClass), transform);
+    }
+
+    @Override
+    public <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel>
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectType(
+        String name,
+        Class<OwnDefinition> ownDefinitionClass,
+        Class<? extends ProjectTypeApplyAction<OwnDefinition, OwnBuildModel>> transformClass
+    ) {
+        return bindProjectType(name, ownDefinitionClass, ModelTypeUtils.getBuildModelClass(ownDefinitionClass), transformClass);
     }
 
     public ProjectTypeBindingBuilder apply(Action<ProjectTypeBindingBuilder> configuration) {

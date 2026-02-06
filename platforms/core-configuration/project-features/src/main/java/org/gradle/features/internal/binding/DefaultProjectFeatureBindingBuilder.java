@@ -43,12 +43,39 @@ public class DefaultProjectFeatureBindingBuilder implements ProjectFeatureBindin
         ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
         ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition> transform
     ) {
+        return declaredProjectFeatureBindingBuilder(name, bindingTypeInformation, objectFactory -> transform);
+    }
+
+    @Override
+    public <
+        OwnDefinition extends Definition<OwnBuildModel>,
+        OwnBuildModel extends BuildModel,
+        TargetDefinition extends Definition<?>
+        >
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeature(
+        String name,
+        ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
+        Class<? extends ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition>> transformClass
+    ) {
+        return declaredProjectFeatureBindingBuilder(name, bindingTypeInformation, objectFactory -> objectFactory.newInstance(transformClass));
+    }
+
+    private <
+        OwnDefinition extends Definition<OwnBuildModel>,
+        OwnBuildModel extends BuildModel,
+        TargetDefinition extends Definition<?>
+        >
+    DeclaredProjectFeatureBindingBuilderInternal<OwnDefinition, OwnBuildModel> declaredProjectFeatureBindingBuilder(
+        String name,
+        ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
+        ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, TargetDefinition> transformFactory
+    ) {
         DeclaredProjectFeatureBindingBuilderInternal<OwnDefinition, OwnBuildModel> builder = new DefaultDeclaredProjectFeatureBindingBuilder<>(
             bindingTypeInformation.getDefinitionType(),
             getBuildModelClass(bindingTypeInformation.getDefinitionType()),
             bindingTypeInformation.getTargetType(),
             Path.path(name),
-            transform
+            transformFactory
         );
         bindings.add(builder);
         return builder;

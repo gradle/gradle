@@ -44,4 +44,23 @@ public interface ProjectTypeBindingBuilder {
         Class<OwnDefinition> definitionClass,
         ProjectTypeApplyAction<OwnDefinition, OwnBuildModel> transform
     );
+
+    /**
+     * Create a binding for a project type definition object in the DSL with the provided name.
+     * The supplied transform is used to implement the build logic associated with the binding.
+     *
+     * @param name the name of the binding.  This is how it will be referenced in the DSL.
+     * @param definitionClass the class of the project type definition object
+     * @param transformClass the transform that maps the definition to the build model and implements the build logic associated with the feature
+     * @return a {@link DeclaredProjectFeatureBindingBuilder} that can be used to further configure the binding
+     * @param <OwnDefinition> the type of the project type definition object
+     * @param <OwnBuildModel> the type of the build model object for this project type
+     *
+     * @since 9.5.0
+     */
+    <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectType(
+        String name,
+        Class<OwnDefinition> definitionClass,
+        Class<? extends ProjectTypeApplyAction<OwnDefinition, OwnBuildModel>> transformClass
+    );
 }

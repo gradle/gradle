@@ -18,7 +18,6 @@ package org.gradle.features.internal.binding;
 
 import org.gradle.features.binding.BuildModel;
 import org.gradle.features.binding.Definition;
-import org.gradle.features.binding.ProjectFeatureApplyAction;
 import org.gradle.features.binding.TargetTypeInformation;
 
 import java.util.Optional;
@@ -26,7 +25,7 @@ import java.util.Optional;
 /**
  * Represents a declaration of a binding between a project feature DSL type, a build model type and an apply action.
  */
-public interface ProjectFeatureBindingDeclaration<T extends Definition<V>, V extends BuildModel> {
+public interface ProjectFeatureBindingDeclaration<OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> {
     /**
      * The target definition type that the feature binds to.
      */
@@ -35,24 +34,24 @@ public interface ProjectFeatureBindingDeclaration<T extends Definition<V>, V ext
     /**
      * The definition type that the feature is configured by.
      */
-    Class<T> getDefinitionType();
+    Class<OwnDefinition> getDefinitionType();
 
     /**
      * The implementation type of the definition, if any.  This it the concrete class that will be instantiated
      * when the feature is configured in the DSL.
      */
-    Optional<Class<? extends T>> getDefinitionImplementationType();
+    Optional<Class<? extends OwnDefinition>> getDefinitionImplementationType();
 
     /**
      * The build model type that the definition is bound to.
      */
-    Class<V> getBuildModelType();
+    Class<OwnBuildModel> getBuildModelType();
 
     /**
      * The implementation type of the build model, if any.  This is the concrete class that will be instantiated
      * to represent the build model for the feature.
      */
-    Optional<Class<? extends V>> getBuildModelImplementationType();
+    Optional<Class<? extends OwnBuildModel>> getBuildModelImplementationType();
 
     /**
      * The name of the feature binding.  This is the name used in the DSL to configure the feature.
@@ -63,7 +62,7 @@ public interface ProjectFeatureBindingDeclaration<T extends Definition<V>, V ext
      * The action that applies the feature configuration to the build model and configures any build logic when the
      * feature is referenced.
      */
-    ProjectFeatureApplyAction<T, ?, V> getTransform();
+    ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, ?> getApplyActionFactory();
 
     /**
      * Whether the definition of this binding is considered safe or unsafe.
