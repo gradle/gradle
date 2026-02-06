@@ -240,9 +240,9 @@ detached.resolutionStrategy.disableDependencyVerification()
 [[sec:skipping-javadocs]]
 === Skipping Javadocs and Sources
 
-By default, Gradle verifies all artifacts including javadoc and source JARs. For many projects, verifying these artifacts adds significant overhead without much security benefit, since they're not executed during the build.
+By default, Gradle verifies all downloaded artifacts, including javadocs and sources. This can cause issues with IDEs that automatically download them during import—if you haven't set checksums for those, importing would fail.
 
-You can configure Gradle to skip verification of javadoc and source artifacts:
+To avoid this, you can configure Gradle to automatically trust all javadocs and sources:
 
 [source,xml]
 ----
@@ -251,19 +251,17 @@ You can configure Gradle to skip verification of javadoc and source artifacts:
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
    <configuration>
-      <verify-metadata>true</verify-metadata>
-      <verify-signatures>false</verify-signatures>
+      <trusted-artifacts>
+         <trust file=".*-javadoc[.]jar" regex="true"/>
+         <trust file=".*-sources[.]jar" regex="true"/>
+      </trusted-artifacts>
    </configuration>
-   <ignored-artifacts>
-      <ignore-artifact regex="true" name=".*-javadoc\.jar"/>
-      <ignore-artifact regex="true" name=".*-sources\.jar"/>
-   </ignored-artifacts>
 </verification-metadata>
 ----
 
-The `<ignored-artifacts>` section uses regular expressions to match artifact filenames. Any artifacts matching these patterns will not be verified.
+The `<trusted-artifacts>` section uses regular expressions to match artifact filenames. Any artifacts matching these patterns will be automatically trusted without verification.
 
-NOTE: Skipping verification of javadoc and source artifacts reduces the size of your verification metadata file and speeds up bootstrapping, but means these artifacts could be tampered with without detection.
+NOTE: Trusting javadoc and source artifacts means they could be tampered with without detection.
 
 [[sec:verification-modes]]
 == Verification Modes
@@ -646,6 +644,56 @@ Be careful when trusting keys globally:
 This means you should limit trust to appropriate groups or artifacts, and avoid trusting keys too broadly.
 
 IMPORTANT: Anyone can put an arbitrary name when generating a PGP key. Never trust a key solely based on its name. Always verify the key is listed on the official project website. For example, Apache projects typically provide a `KEYS.txt` file.
+
+[[sec:trusting-artifacts]]
+==== Adding Trusted Artifacts
+
+You might want to trust some artifacts more than others. For example, it's legitimate to think that artifacts produced in your company and found in your internal repository are safe, but you want to check every external component.
+
+NOTE: This is a typical company policy. However, nothing prevents your internal repository from being compromised, so it's a good idea to check your internal artifacts too!
+
+You can automatically trust all artifacts in a group by adding this to your configuration:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+   <configuration>
+      <trusted-artifacts>
+         <trust group="com.mycompany" reason="We trust mycompany artifacts"/>
+      </trusted-artifacts>
+   </configuration>
+</verification-metadata>
+----
+
+This means all components with group `com.mycompany` will be automatically trusted. Trusted means Gradle will not perform any verification whatsoever.
+
+The `trust` element accepts these attributes:
+
+* `group` - the group of the artifact to trust
+* `name` - the name of the artifact to trust
+* `version` - the version of the artifact to trust
+* `file` - the name of the artifact file to trust
+* `regex` - whether to interpret the `group`, `name`, `version`, and `file` attributes as regular expressions (defaults to `false`)
+* `reason` - an optional reason why matched artifacts are trusted
+
+In the example above, this trusts artifacts in `com.mycompany` but not `com.mycompany.other`. To trust all artifacts in `com.mycompany` and all subgroups, you can use:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+   <configuration>
+      <trusted-artifacts>
+         <trust group="^com[.]mycompany($|([.].*))" regex="true" reason="We trust all mycompany artifacts"/>
+      </trusted-artifacts>
+   </configuration>
+</verification-metadata>
+----
 
 [[sec:ignoring-keys]]
 === Configuring Key Servers, Keyrings, and Keys
