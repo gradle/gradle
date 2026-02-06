@@ -20,7 +20,6 @@ import okhttp3.HttpUrl
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
@@ -308,19 +307,18 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @UnsupportedWithConfigurationCache(because = "buildFinished")
-    fun `can use Closure only APIs`() {
+    fun `can use Closure APIs`() {
 
         withBuildScript(
             """
-            gradle.buildFinished(closureOf<org.gradle.BuildResult> {
-                println("*" + action + "*") // <- BuildResult.getAction()
+            gradle.taskGraph.whenReady(closureOf<org.gradle.api.execution.TaskExecutionGraph> {
+                println("*" + tasks.isEmpty() + "*") // <- TaskExecutionGraph.getTasks()
             })
             """
         )
 
         assert(
-            build("build").output.contains("*Build*")
+            build("build").output.contains("*false*")
         )
     }
 
