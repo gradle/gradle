@@ -30,14 +30,12 @@ import org.gradle.kotlin.dsl.fixtures.ZeroThought
 import org.gradle.kotlin.dsl.fixtures.clickableUrlFor
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
-import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
@@ -1140,44 +1138,6 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                 containsString("Hello!")
             )
         }
-    }
-
-    @Test
-    @UnsupportedWithConfigurationCache(because = "TAPI shouldn't be used this way; if it is, then it genuinely needs a Project instance, which is not supported by the CC")
-    fun `can query KotlinBuildScriptModel`() {
-
-        // TODO: why does this test exist? why isn't it a proper Toolin API test? what's the point of it being here? Why build TAPI models in a task?
-
-        // This test breaks encapsulation a bit in the interest of ensuring Gradle Kotlin DSL use
-        // of internal APIs is not broken by refactorings on the Gradle side
-        withBuildScript(
-            """
-            import ${KotlinBuildScriptModel::class.qualifiedName}
-            import ${ToolingModelBuilderRegistry::class.qualifiedName}
-
-            abstract class DumpModelTask : DefaultTask() {
-                @get:Inject
-                abstract val builderRegistry: ToolingModelBuilderRegistry
-
-                @TaskAction
-                fun action() {
-                    val modelName = KotlinBuildScriptModel::class.qualifiedName!!
-                    val builder = builderRegistry.getBuilder(modelName)
-                    val model = builder.buildAll(modelName, project) as KotlinBuildScriptModel
-                    if (model.classPath.any { it.name.startsWith("gradle-kotlin-dsl") }) {
-                        println("gradle-kotlin-dsl!")
-                    }
-                }
-            }
-
-            tasks.register<DumpModelTask>("dumpKotlinBuildScriptModelClassPath")
-            """
-        )
-
-        assertThat(
-            build("-q", "dumpKotlinBuildScriptModelClassPath").output,
-            containsString("gradle-kotlin-dsl!")
-        )
     }
 
     @Test
