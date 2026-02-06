@@ -31,6 +31,11 @@ import org.gradle.util.GradleVersion
 import java.io.StringReader
 import java.util.Properties
 
+/**
+ * TODO: Remove once with Gradle 9.0
+ */
+import org.gradle.kotlin.dsl.assign
+
 
 abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
 
@@ -103,6 +108,10 @@ abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
     }
 
     class IncludeTestClassProvider(private val includeTestClasses: Map<String, List<String>>) : BuildBucketProvider {
+        /**
+         * TODO: Remove once with Gradle 9.0
+         */
+        @Suppress("DEPRECATION")
         override fun configureTest(testTask: Test, sourceSetName: String) {
             // TODO: Fix for Gradle 10, use failOnNoMatchingTests instead
             @Suppress("DEPRECATION")
@@ -118,6 +127,10 @@ abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
     }
 
     class ExcludeTestClassProvider(private val excludeTestClasses: Map<String, List<String>>) : BuildBucketProvider {
+        /**
+         * TODO: Remove once with Gradle 9.0
+         */
+        @Suppress("DEPRECATION")
         override fun configureTest(testTask: Test, sourceSetName: String) {
             // TODO: Fix for Gradle 10, use failOnNoMatchingTests instead
             @Suppress("DEPRECATION")
