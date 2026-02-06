@@ -25,7 +25,7 @@ image::trusty-lib-attack.png[]
 
 To mitigate these risks and avoid integrating compromised artifacts, Gradle provides *dependency verification*.
 
-Dependency verification is, by nature, an inconvenient feature to use: *So why keep it on?*
+Dependency verification adds overhead: *So why keep it on?*
 
 Because dependency verification is about *trust*: trust that what you download is what you think it is, and that what you ship is what you intended.
 
@@ -50,6 +50,13 @@ Gradle provides two complementary mechanisms for dependency verification:
 2. *Signatures* – Verify the *provenance* of the artifact (who published it)
 
 Used together, they help ensure you get the right library or plugin from a trustworthy author.
+Checksums alone verify integrity but not authenticity. Signatures alone verify authenticity but may use weak hashes.
+You can use signatures whenever they are available, and fall back to checksums when artifacts are not signed.
+**But for the strongest security, use both.**
+
+WARNING: Signatures can also be used to assess integrity like checksums, but signatures are signatures of the _hash_ of artifacts, not artifacts themselves.
+If the signature uses an unsafe hash (even `SHA-1`), you're not correctly assessing file integrity.
+For this reason, if you care about both integrity and authenticity, you need to add both signatures _and_ checksums to your verification metadata.
 
 [[sec:checksum-verification]]
 === Checksums
@@ -87,7 +94,7 @@ To produce a signature, the author uses their *private key* to create a digital 
 With *signatures*, you verify *who* produced the artifact, not just that it hasn't changed:
 
 * The author signs the artifact's checksum using their private key.
-* Your build tool trusts a set of public keys.
+* You verify and add trusted public keys to your verification metadata.
 * When the artifact is downloaded, the build verifies the signature against the trusted public key.
 * If the signature is missing, invalid, or signed by an untrusted key, the build fails.
 
@@ -102,12 +109,10 @@ For `trusty-lib-1.0.jar`, a combined checksum and signature entry might look lik
 </artifact>
 ----
 
-NOTE: The strongest security posture is to use *both* signatures and checksums. Checksums verify *what* you downloaded (content integrity), while signatures verify *who* produced it (publisher authenticity). Use signatures whenever they are available, and fall back to checksums when artifacts are not signed.
-
 [[trusted-keys]]
 === Trusted Keys and Key Servers
 
-Because public keys are part of the verification process, Gradle also records trusted public keys in `verification-metadata.xml` on a group-level basis:
+Because public keys are part of the verification process, Gradle records trusted public key IDs in `verification-metadata.xml` on a group-level basis:
 
 [source,xml]
 .verification-metadata.xml
@@ -130,6 +135,9 @@ Gradle uses these trusted keys plus the checksum/signature data in `verification
 
 [[sub:enabling-verification]]
 == Enabling Dependency Verification
+
+To enable dependency verification, you need to create a verification metadata file that tells Gradle which checksums and signatures to verify.
+Once this file exists, Gradle automatically verifies all dependencies during every build.
 
 [[sub:verification-metadata]]
 === The Verification Metadata File
@@ -308,7 +316,14 @@ org.gradle.dependency.verification=lenient
 [[sec:bootstrapping-verification]]
 == Bootstrapping and Generating Verification Metadata
 
-IMPORTANT: While Gradle can generate a dependency verification file for you, you should always check whatever Gradle generated because your build may _already_ contain compromised dependencies without you knowing about it.
+Gradle can automatically generate a dependency verification file by downloading all your dependencies and recording their checksums or signatures.
+This is called *bootstrapping*.
+
+However, bootstrapping has a critical security limitation: **it trusts whatever is currently in your repositories**.
+If a malicious dependency has already been introduced into your build (or into a repository you use), Gradle will record the compromised artifact's checksum or signature.
+
+This is why you must **review the generated verification file**.
+Bootstrapping is convenient for getting started or updating your verification file, but it's not a substitute for manual verification of critical dependencies.
 
 === Generating Checksums Only
 
@@ -406,7 +421,7 @@ A snippet of the resulting `verification-metadata.xml` looks like this:
 ----
 
 [[sec:verification-dry-mode]]
-=== Using Dry Mode
+=== Dry-Run Mode
 
 By default, bootstrapping is incremental, which means that if you run it multiple times, information is _added_ to the file.
 You can rely on your version control system to check the diffs between runs.
@@ -795,6 +810,9 @@ NOTE: If Gradle cannot download a key while bootstrapping, it will automatically
 
 [[sec:verification-metadata-hygiene]]
 == Maintaining Verification Metadata
+
+Once you've set up dependency verification, you'll need to maintain the verification metadata file and keyring files over time.
+This includes cleaning up old entries, refreshing keys, and managing your local keyring for better performance.
 
 === Cleaning Up the Verification File
 

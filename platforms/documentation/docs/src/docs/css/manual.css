@@ -4233,6 +4233,14 @@ body.dark-theme {
 		padding-left: 9px;
 	}
 
+    #header #toc .sectlevel1 a {
+        font-size: 0.9rem;
+    }
+
+    #header #toc .sectlevel2 a {
+        font-size: 0.85rem;
+    }
+
 	.site-footer__navigation {
 		flex-wrap: wrap;
 		margin-left: auto;
