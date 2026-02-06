@@ -51,7 +51,7 @@ Gradle provides two complementary mechanisms for dependency verification:
 
 Used together, they help ensure you get the right library or plugin from a trustworthy author.
 
-[[checksums]]
+[[sec:checksum-verification]]
 === Checksums
 
 A checksum is a short *fingerprint* of a file's contents.
@@ -77,7 +77,7 @@ For example, the checksum entry for `trusty-lib-1.0.jar` might look like this:
 </artifact>
 ----
 
-[[signatures]]
+[[sec:signature-verification]]
 === Signatures
 
 A signature is a cryptographic *stamp* that proves authenticity.
