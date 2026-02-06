@@ -205,6 +205,34 @@ To disable metadata verification, set the `<verify-metadata>` flag to `false`:
 
 WARNING: Disabling metadata verification reduces security. Compromised metadata files could introduce malicious transitive dependencies into your build.
 
+[[sec:skipping-javadocs]]
+=== Skipping Javadocs and Sources
+
+By default, Gradle verifies all artifacts including javadoc and source JARs. For many projects, verifying these artifacts adds significant overhead without much security benefit, since they're not executed during the build.
+
+You can configure Gradle to skip verification of javadoc and source artifacts:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+   </configuration>
+   <ignored-artifacts>
+      <ignore-artifact regex="true" name=".*-javadoc\.jar"/>
+      <ignore-artifact regex="true" name=".*-sources\.jar"/>
+   </ignored-artifacts>
+</verification-metadata>
+----
+
+The `<ignored-artifacts>` section uses regular expressions to match artifact filenames. Any artifacts matching these patterns will not be verified.
+
+NOTE: Skipping verification of javadoc and source artifacts reduces the size of your verification metadata file and speeds up bootstrapping, but means these artifacts could be tampered with without detection.
+
 [[sec:bootstrapping-verification]]
 == Bootstrapping and Generating Verification Metadata
 
@@ -331,6 +359,7 @@ When you add a new library or update a version, the build will fail because the 
 
 You have two options for updating the verification metadata: auto-update or manual update.
 
+[[sec:auto-update-metadata]]
 === Auto-update Verification Metadata
 
 Run the `--write-verification-metadata` command again to append the new hashes:
@@ -383,6 +412,7 @@ IMPORTANT: Gradle cannot automatically determine that an entry is outdated. Remo
 
 WARNING: There are dependencies that Gradle _cannot_ discover automatically. In particular, dependencies that are only resolved during task execution or in custom dependency resolution logic may not be included in the generated file. You may need to add these manually.
 
+[[sec:manual-update-metadata]]
 === Manually Update Verification Metadata
 
 Add the new `<component>` entry to the XML file manually with the checksum provided by the library author.
@@ -498,6 +528,7 @@ WARNING: Gradle requires full fingerprint IDs (40 characters, e.g., `b801e2f8ef0
 
 NOTE: The key IDs shown in error messages are from the signature file itself. This doesn't necessarily mean you should trust them—if a malicious entity signed the artifact, Gradle won't detect that. Always verify keys against official sources.
 
+[[sec:trusting-keys-globally]]
 ==== Adding Global Keys
 
 Signature verification can be simplified by trusting keys at the group level instead of declaring them for each individual artifact. This is useful when the same key signs multiple artifacts from the same publisher.
@@ -542,6 +573,7 @@ This means you should limit trust to appropriate groups or artifacts, and avoid 
 
 IMPORTANT: Anyone can put an arbitrary name when generating a PGP key. Never trust a key solely based on its name. Always verify the key is listed on the official project website. For example, Apache projects typically provide a `KEYS.txt` file.
 
+[[sec:ignoring-keys]]
 === Specifying Key Servers and Ignoring Keys
 
 Gradle automatically downloads public keys from well-known key servers. You can configure custom key servers by adding them to your verification metadata:
@@ -613,6 +645,7 @@ If you want to retry immediately, you can run with the `--refresh-keys` CLI flag
 ./gradlew build --refresh-keys
 ----
 
+[[sec:local-keyring]]
 === Exporting Keys for Faster Verification
 
 Gradle automatically downloads public keys from key servers, but this can be slow and requires everyone to download the same keys repeatedly. To avoid this, you can export keys to a local keyring file that can be committed to version control.
@@ -677,6 +710,7 @@ If you use the binary format with Git, add this to your `.gitattributes` file to
 
 NOTE: Only public key packets and a single userId per key are stored. All other information (user attributes, signatures, etc.) is stripped from exported keys.
 
+[[sec:add-manual-keyring]]
 === Adding Keys to the Keyring
 
 If you have a public key that Gradle cannot download from key servers, you can manually add it to the keyring file. This is useful when a key is not published to public key servers or when you want to avoid downloading keys repeatedly.
@@ -717,6 +751,7 @@ gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 8
 
 NOTE: Remember to use full 40-character fingerprint IDs when working with keys, not short or long IDs.
 
+[[sec:understanding-signature-verification]]
 == Understanding Signature Verification
 
 Once signature verification is enabled, Gradle follows this workflow for each artifact:
@@ -735,6 +770,7 @@ This means Gradle's verification is stronger with signatures enabled than with c
 
 However, passing signature verification doesn't automatically mean you can trust the artifact—you must explicitly trust the keys by adding them to your verification metadata as shown in <<#sec:manual-checking-dependency,Adding Keys for an Artifact>>.
 
+[[sec:bootstrapping-signature-verification]]
 === Bootstrapping with Signatures
 
 When you bootstrap with signature verification enabled using `--write-verification-metadata pgp,sha256`, Gradle takes an _optimistic approach_ and assumes signature verification is sufficient. However, you must still provide a fallback checksum algorithm (like `sha256`) because not all artifacts are signed.
