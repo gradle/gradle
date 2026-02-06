@@ -405,6 +405,7 @@ A snippet of the resulting `verification-metadata.xml` looks like this:
 </verification-metadata>
 ----
 
+[[sec:verification-dry-mode]]
 === Using Dry Mode
 
 By default, bootstrapping is incremental, which means that if you run it multiple times, information is _added_ to the file.
@@ -431,7 +432,7 @@ When you add a new library or update a version, the build will fail because the 
 
 You have two options for updating the verification metadata: auto-update or manual update.
 
-[[sec:auto-update-metadata]]
+[[sec:verification-update]]
 === Auto-update Verification Metadata
 
 Run the `--write-verification-metadata` command again to append the new hashes:
@@ -571,7 +572,7 @@ Execution failed for task ':compileJava'.
 ----
 
 This indicates you need to add checksums for `commons-logging` and all other transitive dependencies.
-See <<#sec:troubleshooting-verification>> for more details.
+See <<#sec:dealing-verification-failure>> for more details.
 
 [[sec:trusting-several-checksums]]
 ===== Trusting Multiple Checksums
@@ -743,6 +744,7 @@ Gradle automatically downloads public keys from well-known key servers. You can 
 </verification-metadata>
 ----
 
+[[sec:local-keyring-only]]
 ==== Using Local Keyrings Only
 
 The local keyring files (`.gpg` or `.keys`) can be used to avoid reaching out to key servers whenever a key is required. However, if the local keyring doesn't contain a key, Gradle would normally use key servers to fetch the missing key.
@@ -974,7 +976,7 @@ Add this Gradle property to your `gradle.properties` file:
 org.gradle.dependency.verification.console=verbose
 ----
 
-[[sec:troubleshooting-verification]]
+[[sec:dealing-verification-failure]]
 == Troubleshooting Verification Failures
 
 Dependency verification can fail in different ways. This section explains how to deal with various cases.
