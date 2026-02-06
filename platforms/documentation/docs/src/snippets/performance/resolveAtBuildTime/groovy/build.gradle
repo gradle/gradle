@@ -10,6 +10,12 @@ dependencies {
     implementation 'org.apache.commons:commons-lang3:3.11'
 }
 
+configurations.all {
+    incoming.beforeResolve {
+        println ">> Resolving configuration: ${name}"
+    }
+}
+
 // tag::copy[]
 tasks.register('copyFiles', Copy) {
     into(layout.buildDirectory.dir('output'))
