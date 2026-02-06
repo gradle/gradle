@@ -53,7 +53,7 @@ class StageTriggers(
 // https://github.com/gradle/gradle-private/issues/4528
 // Trigger ReadyForNightly and ReadyForRelease for provider-api-migration/public-api-changes branch
 // TODO: remove this after the branch is merged
-const val PROVIDER_API_MIGRATION_BRANCH = "provider-api-migration/public-api-changes"
+const val PROVIDER_API_MIGRATION_BRANCH = "gradle10/provider-api-migration"
 const val BOT_DAILY_UPGRADLE_WRAPPER_BRANCH = "devprod/upgrade-to-latest-wrapper"
 
 const val DEPENDABOT_BRANCH_PATTERN = "dependabot/*"
