@@ -235,8 +235,7 @@ Executing this command will cause Gradle to:
 * Compute the requested checksums and possibly verify signatures depending on what you asked
 * At the end of the build, generate the configuration file which will contain the inferred _verification metadata_
 
-Gradle only supports verification of signatures published as ASCII-armored PGP files (`.asc`) on remote repositories.
-Not all artifacts are published with signatures, and signature verification doesn't guarantee the signatory was legitimate—only that the artifact was signed by a specific key.
+Gradle only supports verification of signatures published as ASCII-armored PGP files (`.asc`) on remote repositories. Not all artifacts are published with signatures, and signature verification doesn't guarantee the signatory was legitimate—only that the artifact was signed by a specific key.
 
 === Example Verification Metadata File
 
@@ -457,6 +456,51 @@ Without trusted keys configured, the build will fail:
 WARNING: Gradle requires full fingerprint IDs (40 characters, e.g., `b801e2f8ef035068ec1139cc29579f18fa8fd93b`) for `pgp` and `trusted-key` elements, not short or long IDs. This minimizes the risk of collision attacks. For `ignored-key` elements, you can use either fingerprints or long (64-bit) IDs.
 
 NOTE: The key IDs shown in error messages are from the signature file itself. This doesn't necessarily mean you should trust them—if a malicious entity signed the artifact, Gradle won't detect that. Always verify keys against official sources.
+
+=== Specifying Key Servers and Ignoring Keys
+
+Gradle automatically downloads public keys from well-known key servers. You can configure custom key servers by adding them to your verification metadata:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>true</verify-signatures>
+      <key-servers>
+         <key-server uri="hkp://my-key-server.org"/>
+         <key-server uri="https://my-other-key-server.org"/>
+      </key-servers>
+   </configuration>
+</verification-metadata>
+----
+
+==== Ignoring Unavailable Keys
+
+Sometimes a key is not available because it wasn't published to a public key server or was lost. In these cases, you can ignore the key:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>true</verify-signatures>
+      <ignored-keys>
+         <ignored-key id="abcdef1234567890" reason="Key is not available in any key server"/>
+      </ignored-keys>
+   </configuration>
+</verification-metadata>
+----
+
+Once a key is ignored, it will not be used for verification even if the signature file mentions it. However, if the signature cannot be verified with at least one other key, Gradle will require you to provide a checksum.
+
+NOTE: If Gradle cannot download a key while bootstrapping, it will automatically mark it as ignored. If you can find the key but Gradle cannot, you can manually add it to the keyring file.
 
 == Understanding Signature Verification
 
