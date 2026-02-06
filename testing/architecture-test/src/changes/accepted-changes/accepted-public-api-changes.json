@@ -3,9 +3,9 @@
         {
             "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getProjectFeatureDeclarations()",
-            "acceptation": "Moving internal service to better package name",
+            "acceptation": "Removing unused internal service getter",
             "changes": [
-                "Method return type has changed"
+                "Method has been removed"
             ]
         }
     ]

@@ -28,7 +28,6 @@ import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.features.internal.binding.ProjectFeatureImplementation;
 import org.gradle.features.internal.binding.ProjectFeatureSupportInternal;
 import org.gradle.util.Path;
@@ -67,9 +66,6 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
     @Inject
     public abstract BuildStateRegistry getBuildStateRegistry();
-
-    @Inject
-    protected abstract ProjectFeatureDeclarations getProjectFeatureDeclarations();
 
     /**
      * Report model.
