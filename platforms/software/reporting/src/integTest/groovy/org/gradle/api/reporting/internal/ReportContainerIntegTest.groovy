@@ -17,14 +17,10 @@
 package org.gradle.api.reporting.internal
 
 import org.gradle.api.Describable
-import org.gradle.api.Task
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.reporting.Report
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.Describables
-import org.gradle.internal.state.ModelObject
-import org.gradle.internal.state.OwnerAware
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 

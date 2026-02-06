@@ -21,6 +21,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.reporting.DirectoryReport;
+import org.gradle.internal.Describables;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
@@ -41,7 +42,7 @@ public abstract class SingleDirectoryReport extends SimpleReport implements Dire
      */
     @Inject
     public SingleDirectoryReport(String name, Describable owner, @Nullable String relativeEntryPath) {
-        super(name, owner, OutputType.DIRECTORY);
+        super(name, Describables.of(name, "report for", owner), OutputType.DIRECTORY);
         this.relativeEntryPath = relativeEntryPath;
         getOutputLocation().convention(getProjectLayout().dir(new DefaultProvider<>(() -> {
             return (File) ((IConventionAware) SingleDirectoryReport.this).getConventionMapping().getConventionValue(null, "destination", false);
