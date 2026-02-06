@@ -182,6 +182,29 @@ When using an included build, the following rules apply:
 
 Because this configuration is global and strict, the most efficient way to begin is by generating a baseline configuration for your existing build.
 
+[[sec:disabling-verification]]
+== Disabling Dependency Verification
+
+By default, Gradle verifies both artifacts (JARs, ZIPs, etc.) and their metadata files (POM files, Ivy descriptors, Gradle Module Metadata).
+Metadata verification can significantly increase the size of your configuration file.
+
+To disable metadata verification, set the `<verify-metadata>` flag to `false`:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+   <configuration>
+      <verify-metadata>false</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+    </configuration>
+</verification-metadata>
+----
+
+WARNING: Disabling metadata verification reduces security. Compromised metadata files could introduce malicious transitive dependencies into your build.
+
 [[sec:bootstrapping-verification]]
 == Bootstrapping and Generating Verification Metadata
 
@@ -281,6 +304,24 @@ A snippet of the resulting `verification-metadata.xml` looks like this:
     </components>
 </verification-metadata>
 ----
+
+=== Using Dry Mode
+
+By default, bootstrapping is incremental, which means that if you run it multiple times, information is _added_ to the file.
+You can rely on your version control system to check the diffs between runs.
+
+There are situations where you want to preview what the generated verification metadata file would look like without actually changing or overwriting the existing one.
+
+To preview changes, add the `--dry-run` flag:
+
+[source,bash]
+----
+./gradlew --write-verification-metadata sha256 help --dry-run
+----
+
+Instead of generating the `verification-metadata.xml` file, Gradle will create a new file called `verification-metadata.dryrun.xml` that you can review.
+
+NOTE: Because `--dry-run` doesn't execute tasks, it runs much faster but will miss any dependency resolution that happens at task execution time.
 
 == Updating Verification Metadata
 
@@ -457,6 +498,50 @@ WARNING: Gradle requires full fingerprint IDs (40 characters, e.g., `b801e2f8ef0
 
 NOTE: The key IDs shown in error messages are from the signature file itself. This doesn't necessarily mean you should trust them—if a malicious entity signed the artifact, Gradle won't detect that. Always verify keys against official sources.
 
+==== Adding Global Keys
+
+Signature verification can be simplified by trusting keys at the group level instead of declaring them for each individual artifact. This is useful when the same key signs multiple artifacts from the same publisher.
+
+You can add trusted keys to a global configuration block:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>true</verify-signatures>
+      <trusted-keys>
+         <trusted-key id="8756c4f765c9ac3cb6b85d62379ce192d401ab61" group="com.github.javaparser"/>
+      </trusted-keys>
+   </configuration>
+   <components/>
+</verification-metadata>
+----
+
+This configuration trusts any artifact in the `com.github.javaparser` group if it's signed with key `8756c4f765c9ac3cb6b85d62379ce192d401ab61`.
+
+The `trusted-key` element supports these attributes:
+
+* `group` - the group of the artifact to trust
+* `name` - the name of the artifact to trust
+* `version` - the version of the artifact to trust
+* `file` - the name of the artifact file to trust
+* `regex` - whether to interpret the other attributes as regular expressions (defaults to `false`)
+
+===== Security Considerations
+
+Be careful when trusting keys globally:
+
+* A valid key may have been used to sign artifact `A` which you trust
+* Later, the key could be stolen and used to sign malicious artifact `B`
+
+This means you should limit trust to appropriate groups or artifacts, and avoid trusting keys too broadly.
+
+IMPORTANT: Anyone can put an arbitrary name when generating a PGP key. Never trust a key solely based on its name. Always verify the key is listed on the official project website. For example, Apache projects typically provide a `KEYS.txt` file.
+
 === Specifying Key Servers and Ignoring Keys
 
 Gradle automatically downloads public keys from well-known key servers. You can configure custom key servers by adding them to your verification metadata:
@@ -502,6 +587,96 @@ Once a key is ignored, it will not be used for verification even if the signatur
 
 NOTE: If Gradle cannot download a key while bootstrapping, it will automatically mark it as ignored. If you can find the key but Gradle cannot, you can manually add it to the keyring file.
 
+[[sec:verification-metadata-hygiene]]
+== Maintaining Verification Metadata
+
+=== Cleaning Up the Verification File
+
+If you do nothing, the dependency verification metadata will grow over time as you add new dependencies or change versions: Gradle will not automatically remove _unused_ entries from this file.
+The reason is that there's no way for Gradle to know upfront if a dependency will effectively be used during the build or not.
+
+As a consequence, adding dependencies or changing dependency versions can easily lead to more entries in the file while leaving unnecessary entries.
+
+One option to clean up the file is to move the existing `verification-metadata.xml` file to a different location and call Gradle with the `--dry-run` mode: while not perfect (it will not notice dependencies only resolved at configuration time), it generates _a new file_ that you can compare with the existing one.
+
+We need to move the existing file because both the bootstrapping mode and the dry-run mode are incremental: they copy information from the existing metadata verification file (in particular, trusted keys).
+
+[[sec:refreshing-missing-keys]]
+=== Refreshing Missing Keys
+
+Gradle caches missing keys for 24 hours, meaning it will not attempt to re-download the missing keys for 24 hours after failing.
+
+If you want to retry immediately, you can run with the `--refresh-keys` CLI flag:
+
+[source,bash]
+----
+./gradlew build --refresh-keys
+----
+
+=== Exporting Keys for Faster Verification
+
+Gradle automatically downloads public keys from key servers, but this can be slow and requires everyone to download the same keys repeatedly. To avoid this, you can export keys to a local keyring file that can be committed to version control.
+
+==== Keyring File Formats
+
+Gradle supports two keyring formats:
+
+* **Binary format** (`.gpg`) - Compact and can be updated via GPG commands, but not human-readable
+* **ASCII-armored format** (`.keys`) - Human-readable, easy to edit manually, and produces readable diffs for code reviews
+
+You can configure which format to use:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>true</verify-signatures>
+      <keyring-format>armored</keyring-format>
+   </configuration>
+</verification-metadata>
+----
+
+Available options are `armored` and `binary`.
+
+Without `keyring-format` specified, if `gradle/verification-keyring.gpg` or `gradle/verification-keyring.keys` exists, Gradle will use it. The binary version (`.gpg`) takes precedence if both exist.
+
+==== Exporting Keys
+
+To export all keys used during verification to the keyring file, run:
+
+[source,bash]
+----
+./gradlew --write-verification-metadata pgp,sha256 --export-keys
+----
+
+Unless `keyring-format` is specified, this generates both the binary and ASCII-armored files. You should only commit one format to your project.
+
+You can also export keys without updating the verification metadata:
+
+[source,bash]
+----
+./gradlew --export-keys
+----
+
+NOTE: This command will not report verification errors, only export keys.
+
+==== Committing Keyring Files
+
+It's a good idea to commit the keyring file to version control (as long as you trust your VCS).
+
+If you use the binary format with Git, add this to your `.gitattributes` file to ensure it's treated as binary:
+
+[source,text]
+----
+*.gpg           binary
+----
+
+NOTE: Only public key packets and a single userId per key are stored. All other information (user attributes, signatures, etc.) is stripped from exported keys.
+
 == Understanding Signature Verification
 
 Once signature verification is enabled, Gradle follows this workflow for each artifact:
@@ -519,92 +694,6 @@ This means Gradle's verification is stronger with signatures enabled than with c
 * If an artifact passes signature verification, any additional checksums configured for that artifact will also be checked
 
 However, passing signature verification doesn't automatically mean you can trust the artifact—you must explicitly trust the keys by adding them to your verification metadata as shown in <<#sec:manual-checking-dependency,Adding Keys for an Artifact>>.
-
-=== Trusting Keys Globally
-
-Signature verification can be simplified by trusting keys at the group level instead of declaring them for each individual artifact. This is useful when the same key signs multiple artifacts from the same publisher.
-
-You can move trusted keys from the artifact level to a global configuration block:
-
-[source,xml]
-----
-<?xml version="1.0" encoding="UTF-8"?>
-<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
-   <configuration>
-      <verify-metadata>true</verify-metadata>
-      <verify-signatures>true</verify-signatures>
-      <trusted-keys>
-         <trusted-key id="8756c4f765c9ac3cb6b85d62379ce192d401ab61" group="com.github.javaparser"/>
-      </trusted-keys>
-   </configuration>
-   <components/>
-</verification-metadata>
-----
-
-This configuration trusts any artifact in the `com.github.javaparser` group if it's signed with key `8756c4f765c9ac3cb6b85d62379ce192d401ab61`.
-
-The `trusted-key` element supports these attributes:
-
-* `group` - the group of the artifact to trust
-* `name` - the name of the artifact to trust
-* `version` - the version of the artifact to trust
-* `file` - the name of the artifact file to trust
-* `regex` - whether to interpret the other attributes as regular expressions (defaults to `false`)
-
-==== Security Considerations
-
-Be careful when trusting keys globally:
-
-* A valid key may have been used to sign artifact `A` which you trust
-* Later, the key could be stolen and used to sign malicious artifact `B`
-
-This means you should limit trust to appropriate groups or artifacts, and avoid trusting keys too broadly.
-
-IMPORTANT: Anyone can put an arbitrary name when generating a PGP key. Never trust a key solely based on its name. Always verify the key is listed on the official project website. For example, Apache projects typically provide a `KEYS.txt` file.
-
-[[sec:verification-dry-mode]]
-== Using Dry Mode
-
-By default, bootstrapping is incremental, which means that if you run it multiple times, information is _added_ to the file.
-You can rely on your version control system to check the diffs between runs.
-
-There are situations where you want to preview what the generated verification metadata file would look like without actually changing or overwriting the existing one.
-
-To preview changes, add the `--dry-run` flag:
-
-[source,bash]
-----
-./gradlew --write-verification-metadata sha256 help --dry-run
-----
-
-Instead of generating the `verification-metadata.xml` file, Gradle will create a new file called `verification-metadata.dryrun.xml` that you can review.
-
-NOTE: Because `--dry-run` doesn't execute tasks, it runs much faster but will miss any dependency resolution that happens at task execution time.
-
-[[sec:disabling-verification]]
-== Disabling Metadata Verification
-
-By default, Gradle verifies both artifacts (JARs, ZIPs, etc.) and their metadata files (POM files, Ivy descriptors, Gradle Module Metadata).
-Metadata verification can significantly increase the size of your configuration file.
-
-To disable metadata verification, set the `<verify-metadata>` flag to `false`:
-
-[source,xml]
-----
-<?xml version="1.0" encoding="UTF-8"?>
-<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
-   <configuration>
-      <verify-metadata>false</verify-metadata>
-      <verify-signatures>false</verify-signatures>
-    </configuration>
-</verification-metadata>
-----
-
-WARNING: Disabling metadata verification reduces security. Compromised metadata files could introduce malicious transitive dependencies into your build.
 
 [[sec:verification-console-output]]
 == Configuring the Console Output
@@ -769,30 +858,4 @@ However, if you only do so, Gradle will still fail because all keys for this art
           </artifact>
        </component>
    </components>
-----
-
-[[sec:verification-metadata-hygiene]]
-== Maintaining Verification Metadata
-
-=== Cleaning Up the Verification File
-
-If you do nothing, the dependency verification metadata will grow over time as you add new dependencies or change versions: Gradle will not automatically remove _unused_ entries from this file.
-The reason is that there's no way for Gradle to know upfront if a dependency will effectively be used during the build or not.
-
-As a consequence, adding dependencies or changing dependency versions can easily lead to more entries in the file while leaving unnecessary entries.
-
-One option to clean up the file is to move the existing `verification-metadata.xml` file to a different location and call Gradle with the `--dry-run` mode: while not perfect (it will not notice dependencies only resolved at configuration time), it generates _a new file_ that you can compare with the existing one.
-
-We need to move the existing file because both the bootstrapping mode and the dry-run mode are incremental: they copy information from the existing metadata verification file (in particular, trusted keys).
-
-[[sec:refreshing-missing-keys]]
-=== Refreshing Missing Keys
-
-Gradle caches missing keys for 24 hours, meaning it will not attempt to re-download the missing keys for 24 hours after failing.
-
-If you want to retry immediately, you can run with the `--refresh-keys` CLI flag:
-
-[source,bash]
-----
-./gradlew build --refresh-keys
 ----
