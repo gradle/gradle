@@ -118,7 +118,7 @@ This feature works both with and without using [JvmTestSuites](userguide/jvm_tes
 
 We recommend storing non-class test definitions in the conventional location `src/<TEST_TASK_NAME>/definitions` to keep builds using this feature structured similarly; however, any location can be used.
 
-For more information, see the section on [Non-Class-Based Testing](userguide/java_testing.html) in the User Manual.
+For more information, see the section on [Non-Class-Based Testing](userguide/java_testing.html#sec:non-class-based-testing) in the User Manual.
 
 ##### Improved Cucumber support
 
@@ -161,7 +161,7 @@ void someTestMethod(TestReporter testReporter) {
 }
 ```
 
-Gradle now captures this metadata and integrates it directly into both the [HTML test report](userguide/java_testing.html#test_reporting) and the [XML test results](userguide/java_testing.html#test_reporting).
+Gradle now captures this metadata and integrates it directly into both the HTML test report and the [XML test results](userguide/java_testing.html#test_reporting).
 
 When a test publishes data, the HTML report now features two additional tabs alongside the standard `stdout` and `stderr`:
 
@@ -206,7 +206,7 @@ For example, you can use the listener to automatically copy the failure screensh
 
 ### CLI, logging, and problem reporting
 
-Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html) that helps developers quickly identify and resolve build issues.
+Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
 #### Enhanced terminal progress bars
 
@@ -266,7 +266,7 @@ tasks.pmdMain {
 }
 ```
 
-For more information on configuring static analysis, see the [PMD plugin documentation](/userguide/pmd_plugin.html#sec:pmd_configuration).
+For more information on configuring static analysis, see the [PMD plugin documentation](userguide/pmd_plugin.html#sec:pmd_configuration).
 
 ### Security and infrastructure
 
@@ -323,7 +323,7 @@ Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that
 Identifying the source of [Configuration Cache violations](userguide/configuration_cache_debugging.html) can be challenging when a task contains multiple lambdas or closures.
 Common examples include task actions like `doFirst`/`doLast`, or task predicates such as `onlyIf`, `upToDateWhen`, and `cacheIf`/`doNotCacheIf`.
 
-Previously, if one of these closures captured an unsupported type (such as a reference to the enclosing script), the [problem report](userguide/reporting_problems.html#sec:generated_html_report) was often ambiguous:
+Previously, if one of these closures captured an unsupported type (such as a reference to the enclosing script), the [problem report](userguide/configuration_cache_debugging.html#config_cache:troubleshooting) was often ambiguous:
 
 ```kotlin
 fun myFalse() = false
@@ -398,7 +398,7 @@ Gradle provides [Tooling APIs](userguide/third_party_integration.html) that faci
 
 #### New property for Tooling API parallelism control
 
-Gradle now provides granular control over how [Tooling API](/userguide/tooling_api.html) clients interact with your build in parallel using a new `org.gradle.tooling.parallel` [property](userguide/build_environment.html#sec:gradle_configuration_properties).
+Gradle now provides granular control over how [Tooling API](userguide/tooling_api.html) clients interact with your build in parallel using a new `org.gradle.tooling.parallel` [property](userguide/build_environment.html#sec:gradle_configuration_properties).
 
 Previously, parallelism for Tooling API actions was tied directly to the `org.gradle.parallel` property.
 This meant that if you wanted to enable parallel task execution, you were forced to also enable parallel IDE actions, and vice versa.
@@ -418,7 +418,7 @@ org.gradle.parallel=false
 
 #### Tooling integration improvements
 
-This release adds a few enhancements to the built-in [Tooling API](/userguide/tooling_api.html) models:
+This release adds a few enhancements to the built-in [Tooling API](userguide/tooling_api.html) models:
 
 - **Instant Version Info:** Clients can now access the exact output of `gradle --version` without starting a daemon, via the new [`BuildEnvironment.getVersionInfo()`](javadoc/org/gradle/tooling/model/build/BuildEnvironment.html#getVersionInfo()) property.
 - **Built-in Help Model:** A new [`Help`](javadoc/org/gradle/tooling/model/build/Help.html) model exposes the output of the `gradle --help` command-line build invocation.
