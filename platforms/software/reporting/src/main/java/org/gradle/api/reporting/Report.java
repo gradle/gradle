@@ -23,6 +23,8 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.util.Configurable;
 
+import java.util.Optional;
+
 /**
  * A file based report to be created.
  * <p>
@@ -33,7 +35,8 @@ public interface Report extends Configurable<Report> {
     Namer<Report> NAMER = new Namer<Report>() {
         @Override
         public String determineName(Report report) {
-            return report.getName();
+            //noinspection OptionalOfNullableMisuse
+            return Optional.ofNullable(report.getName()).orElse("unnamed");
         }
     };
 
