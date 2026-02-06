@@ -182,7 +182,7 @@ When using an included build, the following rules apply:
 
 Because this configuration is global and strict, the most efficient way to begin is by generating a baseline configuration for your existing build.
 
-[[sec:disabling-verification]]
+[[sec:disabling-metadata-verification]]
 == Disabling Dependency Verification
 
 By default, Gradle verifies both artifacts (JARs, ZIPs, etc.) and their metadata files (POM files, Ivy descriptors, Gradle Module Metadata).
@@ -263,7 +263,7 @@ The `<trusted-artifacts>` section uses regular expressions to match artifact fil
 
 NOTE: Trusting javadoc and source artifacts means they could be tampered with without detection.
 
-[[sec:verification-modes]]
+[[sec:disabling-verification]]
 == Verification Modes
 
 Dependency verification can be expensive, or sometimes verification gets in the way of day-to-day development (frequent dependency upgrades, for example). You might want to enable verification on CI servers but not on local machines.
@@ -573,6 +573,30 @@ Execution failed for task ':compileJava'.
 This indicates you need to add checksums for `commons-logging` and all other transitive dependencies.
 See <<#sec:troubleshooting-verification>> for more details.
 
+[[sec:trusting-several-checksums]]
+===== Trusting Multiple Checksums
+
+It's common to have different checksums for the same artifact in different repositories. This can happen because:
+
+* Developers publish to Maven Central and another repository separately using different builds
+* Metadata files differ slightly (different timestamps, additional whitespace, etc.)
+* Your build uses multiple repositories or repository mirrors
+
+Despite progress, this is often not malicious. In general, you should verify the artifact is correct, then declare the additional checksums using `also-trust`:
+
+[source,xml]
+----
+<component group="org.apache" name="apache" version="13">
+   <artifact name="apache-13.pom">
+      <sha256 value="2fafa38abefe1b40283016f506ba9e844bfcf18713497284264166a5dbf4b95e">
+         <also-trust value="ff513db0361fd41237bef4784968bc15aae478d4ec0a9496f811072ccaf3841d"/>
+      </sha256>
+   </artifact>
+</component>
+----
+
+You can have as many `also-trust` entries as needed, though typically you shouldn't need more than two.
+
 ==== Adding Keys for an Artifact
 
 To trust a key for signature verification, add a `pgp` entry to your verification metadata:
@@ -863,6 +887,7 @@ NOTE: Only public key packets and a single userId per key are stored. All other 
 
 If you have a public key that Gradle cannot download from key servers, you can manually add it to the keyring file. This is useful when a key is not published to public key servers or when you want to avoid downloading keys repeatedly.
 
+[[sec:add-ascii-keyring]]
 ==== For ASCII-Armored Format (.keys)
 
 If you're using the ASCII-armored keyring format, you can add keys directly by appending them to the `gradle/verification-keyring.keys` file.
@@ -881,6 +906,7 @@ Then append the key to your keyring file:
 cat key.asc >> gradle/verification-keyring.keys
 ----
 
+[[sec:add-binary-keyring]]
 ==== For Binary Format (.gpg)
 
 If you're using the binary keyring format, use GPG to import the key:
