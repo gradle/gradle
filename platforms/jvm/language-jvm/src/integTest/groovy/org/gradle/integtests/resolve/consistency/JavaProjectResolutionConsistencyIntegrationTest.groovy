@@ -219,7 +219,6 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "resolves configuration at execution time")
     def "can declare a configuration which extends from a resolvable configuration which uses consistency"() {
         withRuntimeClasspathAsReference()
         def foo = mavenHttpRepo.module('org', 'foo', '1.0').publish()
@@ -238,11 +237,22 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         """
 
         buildFile << """
+            configurations.all {
+                incoming.beforeResolve {
+                    println("Resolving configuration: " + name)
+                }
+            }
+
             tasks.named('checkDeps') {
+                def myCompileClasspathDeps = configurations.myCompileClasspath
+                inputs.files myCompileClasspathDeps
+
+                // in order to trigger the bug, we need to resolve the configuration
+                // which extends from a resolvable configuration first
+                configurations.myCompileClasspath.resolve()
+
                 doFirst {
-                    // in order to trigger the bug, we need to resolve the configuration
-                    // which extends from a resolvable configuration first
-                    configurations.myCompileClasspath.resolve()
+                    println "myCompileClasspath dependencies: " + myCompileClasspathDeps.files
                 }
             }
         """
@@ -263,6 +273,9 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
                 constraint("org:foo:{strictly 1.0}", "org:foo:1.0")
             }
         }
+
+        and: "the configuration which extends from the resolvable configuration is resolved first"
+        output.indexOf("Resolving configuration: myCompileClasspath") < output.indexOf("Resolving configuration: compileClasspath")
     }
 
 
