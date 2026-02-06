@@ -82,7 +82,7 @@
                     </main>
                     <div class="site-footer-secondary">
                         <div class="site-footer-secondary__contents">
-                            <div class="site-footer__copy">© <a href="https://gradle.com">Gradle Inc. </a>
+                            <div class="site-footer__copy">© <a href="https://gradle.com">Gradle, Inc. </a>
                                 <time>2021</time>
                                 All rights reserved.
                             </div>
