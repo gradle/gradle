@@ -617,12 +617,12 @@ class DataSchemaBuilder(
             fun visit(type: KClass<*>) {
                 if (add(type)) {
                     val discoveriesToVisitNext = typeDiscovery.getClassesToVisitFrom(typeDiscoveryServices, type)
-                    allTypeDiscoveries.addAll(discoveriesToVisitNext.filterIsInstance<SchemaResult.Result<DiscoveredClass>>().map { it.result })
 
+                    allTypeDiscoveries.addAll(discoveriesToVisitNext.filterIsInstance<SchemaResult.Result<DiscoveredClass>>().map { it.result })
                     discoveriesToVisitNext.filterIsInstance<SchemaResult.Failure>().forEach(host::recordTypeFailure)
 
                     discoveriesToVisitNext.forEach {
-                        if (it is SchemaResult.Result  && !it.result.isHidden) {
+                        if (it is SchemaResult.Result && !it.result.isHidden) {
                             visit(it.result.kClass)
                         }
                     }
@@ -658,18 +658,17 @@ class DataSchemaBuilder(
         host: SchemaBuildingHost,
         allDiscoveries: Set<DiscoveredClass>
     ): List<SchemaResult.Failure> =
-        allDiscoveries.groupBy { it.kClass }.entries.flatMap { (kClass, discoveries) ->
+        allDiscoveries.groupBy { it.kClass }.entries.mapNotNull { (kClass, discoveries) ->
             if (!isIgnoredInVisibilityChecks(kClass) && discoveries.any { it.isHidden } && discoveries.any { !it.isHidden }) {
                 val hiddenBecause = discoveries.filter { it.isHidden }
-                    .flatMap { it.discoveryTags }
+                    .map { it.discoveryTag }
 
                 val illegalUsages = discoveries.filterNot { it.isHidden }
-                    .flatMap { it.discoveryTags }
+                    .map { it.discoveryTag }
                     .filter { it !is Supertype || it.ofType != kClass } // Filter out the self-appearance in the type hierarchy
 
-
-                listOf(host.schemaBuildingFailure(SchemaBuildingIssue.HiddenTypeUsedInDeclaration(kClass, hiddenBecause, illegalUsages)))
-            } else emptyList()
+                host.schemaBuildingFailure(SchemaBuildingIssue.HiddenTypeUsedInDeclaration(kClass, hiddenBecause, illegalUsages))
+            } else null
         }
 
     /**
