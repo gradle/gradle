@@ -190,7 +190,7 @@ The conversion process has the following features:
 * Supports packaging of sources, tests, and javadocs
 * Supports TestNG runner
 * Generates global exclusions from Maven enforcer plugin settings
-* Generates dependency excludes from Maven `exclusions`
+* Generates <<#sec:dependency_exclusion,dependency excludes>> from Maven `exclusions`
 * Provides <<build_init_plugin.adoc#sec:allow_insecure,an option for handling Maven repositories located at URLs using `http`>>
 
 NOTE: Due to fundamental differences between Maven and Gradle, not all features of a Maven build can be converted to Gradle. For example, Maven exclusions work differently from Gradle exclusions. The generated Gradle build should be considered a starting point for further refinement.
@@ -246,9 +246,10 @@ Alternative test framework can be specified by supplying a `--test-framework` ar
 
 When creating a java project you must set the java version. You can do that by supplying *the major version* of java you wish to use:
 
-```bash
+[source,bash]
+----
 gradle init --type java-application  --java-version 11 --dsl kotlin # and other parameters
-```
+----
 
 [[sec:java_library]]
 === `java-library` build type
@@ -424,3 +425,38 @@ It has the following features:
 The "`basic`" build type is useful for creating a new Gradle build. It creates sample settings and build files, with comments and links to help get started.
 
 This type is used when no type was explicitly specified, and no type could be inferred.
+
+[[sec:dependency_exclusion]]
+=== POM exclusion importing
+
+When generating a Gradle build from an existing Maven project, dependency exclusions in the `pom.xml` are translated into the equivalent Gradle syntax:
+
+[source,xml]
+----
+<dependencies>
+    <dependency>
+        <groupId>sample.Project</groupId>
+        <artifactId>Project</artifactId>
+        <version>1.0</version>
+        <exclusions>
+            <exclusion>
+                <groupId>excluded.group</groupId>
+                <artifactId>excluded-artifact</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+</dependencies>
+----
+
+Because Maven and Gradle handle dependency resolution and exclusions differently, a direct translation may not always be perfectly equivalent.
+To ensure build integrity, generated exclusions include a `TODO` comment for manual verification:
+
+[source,kotlin]
+----
+dependencies {
+    implementation("some.group:some-artifact:1.0") {
+        // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent
+        exclude(group = "excluded.group", module = "excluded-artifact")
+    }
+}
+----
