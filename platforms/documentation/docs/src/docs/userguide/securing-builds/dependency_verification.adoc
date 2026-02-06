@@ -205,6 +205,38 @@ To disable metadata verification, set the `<verify-metadata>` flag to `false`:
 
 WARNING: Disabling metadata verification reduces security. Compromised metadata files could introduce malicious transitive dependencies into your build.
 
+[[sub:disabling-specific-verification]]
+=== Disabling Verification for Specific Configurations
+
+Dependency verification is enabled globally to provide the strongest security level possible. However, plugins may need to resolve additional dependencies where verification doesn't make sense.
+
+For example, a plugin might check for newer versions of a library. It doesn't make sense to require checksums for versions you don't know about yet. In these cases, you can disable verification for specific configurations using the API.
+
+WARNING: Disabling dependency verification reduces security. This API exists for cases where verification doesn't make sense. Gradle will print a warning whenever verification has been disabled for a specific configuration.
+
+To disable verification for a configuration, use the `ResolutionStrategy#disableDependencyVerification` method:
+
+.Disabling verification for a configuration
+[source,kotlin]
+----
+configurations {
+    myConfiguration {
+        resolutionStrategy {
+            disableDependencyVerification()
+        }
+    }
+}
+----
+
+You can also disable verification on detached configurations:
+
+.Disabling verification for a detached configuration
+[source,kotlin]
+----
+val detached = configurations.detachedConfiguration(dependencies.create("group:name:1.0"))
+detached.resolutionStrategy.disableDependencyVerification()
+----
+
 [[sec:skipping-javadocs]]
 === Skipping Javadocs and Sources
 
@@ -616,7 +648,9 @@ This means you should limit trust to appropriate groups or artifacts, and avoid 
 IMPORTANT: Anyone can put an arbitrary name when generating a PGP key. Never trust a key solely based on its name. Always verify the key is listed on the official project website. For example, Apache projects typically provide a `KEYS.txt` file.
 
 [[sec:ignoring-keys]]
-=== Specifying Key Servers and Ignoring Keys
+=== Configuring Key Servers, Keyrings, and Keys
+
+==== Specifying Key Servers
 
 Gradle automatically downloads public keys from well-known key servers. You can configure custom key servers by adding them to your verification metadata:
 
@@ -636,6 +670,30 @@ Gradle automatically downloads public keys from well-known key servers. You can 
    </configuration>
 </verification-metadata>
 ----
+
+==== Using Local Keyrings Only
+
+The local keyring files (`.gpg` or `.keys`) can be used to avoid reaching out to key servers whenever a key is required. However, if the local keyring doesn't contain a key, Gradle would normally use key servers to fetch the missing key.
+
+If the local keyring file isn't regularly updated, your CI builds (especially with disposable containers) might reach out to key servers too often.
+
+To avoid this, you can disable key servers entirely. Only the local keyring file will be used, and if a key is missing, the build will fail.
+
+To enable this mode, disable key servers in the configuration file:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.3.xsd">
+   <configuration>
+      <key-servers enabled="false"/>
+   </configuration>
+</verification-metadata>
+----
+
+NOTE: If you are asking Gradle to generate verification metadata and an existing file sets `enabled` to `false`, this flag will be ignored so that potentially missing keys can be downloaded.
 
 ==== Ignoring Unavailable Keys
 
