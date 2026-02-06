@@ -16,6 +16,9 @@
 
 import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeJarClasspath
+import gradlebuild.packaging.support.ArtifactViewHelper.lenientProjectArtifactReselection
+import gradlebuild.packaging.support.FileLinesValueSource
+import gradlebuild.packaging.tasks.PathPrefixLister
 import org.gradle.kotlin.dsl.support.serviceOf
 
 plugins {
@@ -59,16 +62,12 @@ val distributionClasspath = configurations.resolvable("distributionClasspath") {
 val apiJarTask = tasks.register<Jar>("jarGradleApi") {
     // We use the resolvable configuration, but leverage withVariantReselection to obtain the subset of api stubs artifacts
     // Some projects simply don't have one, which excludes them
-    from(distributionClasspath.map { configuration ->
-        configuration.incoming.artifactView {
-            withVariantReselection()
-            attributes {
+    from(lenientProjectArtifactReselection<FileCollection>(
+        distributionClasspath,
+        {
                 attribute(Category.CATEGORY_ATTRIBUTE, objects.named("api-stubs"))
             }
-            lenient(true)
-            componentFilter { componentId -> componentId is ProjectComponentIdentifier }
-        }.files
-    }) {
+    )) {
         // TODO Use better filtering
         include("**/*.class")
         include("META-INF/*.kotlin_module")
@@ -86,49 +85,6 @@ val gradleApiElements = configurations.consumable("gradleApiElements") {
     configureAsApiElements(objects)
 }
 
-@CacheableTask
-abstract class PathPrefixLister @Inject constructor(private val archiveOperations: ArchiveOperations): DefaultTask() {
-    @get:InputFile
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val apiJar: RegularFileProperty
-
-    @get:OutputFile
-    abstract val pathPrefixFile: RegularFileProperty
-
-    @TaskAction
-    fun generatePackageList() {
-        val packageSet = mutableSetOf<String>()
-        archiveOperations.zipTree(apiJar.get().asFile).matching {
-            include("**/*.class")
-        }.visit(object: EmptyFileVisitor() {
-            override fun visitFile(details: FileVisitDetails) {
-                val parentPath = details.relativePath.parent
-                if (parentPath != null) {
-                    packageSet.add(parentPath.pathString)
-                }
-            }
-        })
-
-        pathPrefixFile.get().asFile.bufferedWriter().use { writer ->
-            packageSet.sorted().forEach { packageName ->
-                writer.write(packageName)
-                writer.newLine()
-            }
-        }
-    }
-}
-
-interface FileParameters : ValueSourceParameters {
-    val inputFile: RegularFileProperty
-}
-
-abstract class FileLinesValueSource : ValueSource<List<String>, FileParameters> {
-    override fun obtain(): List<String> {
-        println("Constructing path prefixes")
-        return parameters.inputFile.map { it.asFile.readLines() }.get()
-    }
-}
-
 val pathPrefixListTask = tasks.register<PathPrefixLister>("generateGradleApiPathPrefixList") {
     apiJar.set(apiJarTask.flatMap { it.archiveFile} )
     pathPrefixFile.set(layout.buildDirectory.file("public-api/path-prefix-list.txt"))
@@ -141,17 +97,14 @@ val sourceJarTask = tasks.register<Jar>("sourcesJar") {
 
     val archiveOperations = project.serviceOf<ArchiveOperations>()
     // We use the resolvable configuration, but leverage withVariantReselection to obtain the subset of sources
-    from({ distributionClasspath.map { configuration ->
-        configuration.incoming.artifactView {
-            withVariantReselection()
-            attributes {
+    from(lenientProjectArtifactReselection(
+        distributionClasspath,
+        {
                 attribute(Category.CATEGORY_ATTRIBUTE, objects.named("documentation"))
                 attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("sources"))
-            }
-            lenient(true)
-            componentFilter { componentId -> componentId is ProjectComponentIdentifier }
-        }.files.elements.map { set -> set.map { file -> archiveOperations.zipTree(file.asFile) } }
-    }}) {
+            },
+        { fileCollection -> fileCollection.elements.map { set -> set.map { file -> archiveOperations.zipTree(file.asFile) } }}
+    )) {
         include { element ->
             val parent = element.relativePath.parent
             if (parent == null) false
@@ -159,7 +112,7 @@ val sourceJarTask = tasks.register<Jar>("sourcesJar") {
         }
     }
 
-    inputs.files(pathPrefixListTask.flatMap { it.pathPrefixFile }).withPropertyName("pathPrefixList").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.files(pathPrefixListTask.flatMap { it.pathPrefixFile }).withPropertyName("pathPrefixList").withPathSensitivity(PathSensitivity.NONE)
     archiveClassifier.set("sources")
     destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api")
     // This is needed because of the duplicate package-info.class files
