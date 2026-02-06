@@ -26,35 +26,48 @@ import java.lang.reflect.Method;
  */
 public class Gradle10PropertyUpgradeSupport {
 
-    public static  <T> void setProperty(Object task, String setterName, T value) {
-        if (GradleVersion.current().compareTo(GradleVersion.version("10.0")) < 0) {
-            setPropertyPreGradle10(task, setterName, value);
-        } else {
-            setPropertyPostGradle10(task, setterName, value);
+    public static <T> void setProperty(Object task, String setterName, T value) {
+        // If both invocations fail...
+        if (!setPropertyPostGradle10(task, setterName, value) && !setPropertyPreGradle10(task, setterName, value)) {
+            // ... we throw an exception because the property could not be set.
+            throw new UnsupportedOperationException(
+                String.format("Failed to set property using setter '%s' on task of type %s for Gradle %s",
+                    setterName,
+                    task.getClass().getName(),
+                    GradleVersion.current()
+                )
+            );
         }
     }
 
-    private static void setPropertyPostGradle10(Object task, String setterName, Object value) {
+    private static boolean setPropertyPostGradle10(Object task, String setterName, Object value) {
         try {
             // Task is Task_Decorated, so it has set<Property>(Object) setter
             task.getClass().getMethod(setterName, Object.class).invoke(task, value);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new RuntimeException(e);
+        } catch (Exception ex) {
+            // We couldn't set the property
+            return false;
         }
+
+        // We could set the property
+        return true;
     }
 
-    private static void setPropertyPreGradle10(Object task, String setterName, Object value) {
+    private static boolean setPropertyPreGradle10(Object task, String setterName, Object value) {
         try {
             for (Method method : task.getClass().getMethods()) {
                 if (method.getParameters().length == 1
                     && method.getName().equals(setterName)
                     && method.getParameters()[0].getType().isAssignableFrom(value.getClass())) {
                     method.invoke(task, value);
-                    return;
                 }
             }
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+        } catch (Exception ex) {
+            // We couldn't set the property
+            return false;
         }
+
+        // We could set the property
+        return true;
     }
 }

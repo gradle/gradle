@@ -7,9 +7,15 @@ wrapperUpdateTask("nightly", "nightly")
 wrapperUpdateTask("rc", "release-candidate")
 wrapperUpdateTask("current", "current")
 
+/**
+ * TODO: Remove once with Gradle 9.0
+ */
 private
 fun Provider<RegularFile>.writeText(text: String, charset: Charset = Charsets.UTF_8) = this.get().asFile.writeText(text, charset)
 
+/**
+ * TODO: Remove once with Gradle 9.0
+ */
 private
 fun Provider<RegularFile>.readText(charset: Charset = Charsets.UTF_8) = this.get().asFile.readText(charset)
 

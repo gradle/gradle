@@ -32,6 +32,11 @@ import java.io.File
 import javax.inject.Inject
 import org.gradle.work.DisableCachingByDefault
 
+/**
+ * TODO: Remove once with Gradle 9.0
+ */
+import org.gradle.kotlin.dsl.assign
+
 @DisableCachingByDefault(because = "Must not cache because it modifies global Android home")
 abstract class AndroidHomeWarmupTask : DefaultTask() {
 
@@ -145,6 +150,10 @@ abstract class AndroidHomeWarmupTask : DefaultTask() {
             |</manifest>
         """.trimMargin()
 
+    /**
+     * TODO: Remove once with Gradle 9.0
+     */
+    @Suppress("DEPRECATION")
     private fun buildProject(projectDir: File) {
         val wrapperName = if (OperatingSystem.current().isWindows) "gradlew.bat" else "gradlew"
         val gradleExecutable = rootProjectDir.file(wrapperName).get().asFile.absolutePath
@@ -163,4 +172,3 @@ abstract class AndroidHomeWarmupTask : DefaultTask() {
         }
     }
 }
-
