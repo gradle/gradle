@@ -93,6 +93,11 @@ configurations {
             capability(gradleModule.identity.baseName.map { "$group:$it-internal:$version" })
         }
     }
+    sourcesElements {
+        outgoing {
+            capability(gradleModule.identity.baseName.map { "$group:$it-internal:$version" })
+        }
+    }
 }
 
 val testRepoElements = configurations.consumable("testRepoElements") {

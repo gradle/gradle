@@ -173,6 +173,20 @@ val gradleApiComponent = softwareComponentFactory.adhoc("gradleApi")
 components.add(gradleApiComponent)
 
 // Published component containing the public Gradle API
-gradleApiComponent.addVariantsFromConfiguration(gradleApiElements.get()) {
+gradleApiComponent.addVariantsFromConfiguration(gradleApiElements) {
     mapToMavenScope("compile")
+}
+
+val sourcesElements = configurations.consumable("sourcesElements") {
+    outgoing.artifact(sourceJarTask)
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, named(Category.DOCUMENTATION))
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, named(DocsType.SOURCES))
+        attribute(Bundling.BUNDLING_ATTRIBUTE, named(Bundling.EXTERNAL))
+        attribute(Usage.USAGE_ATTRIBUTE, named(Usage.JAVA_RUNTIME))
+    }
+}
+
+gradleApiComponent.addVariantsFromConfiguration(sourcesElements) {
+    mapToOptional()
 }
