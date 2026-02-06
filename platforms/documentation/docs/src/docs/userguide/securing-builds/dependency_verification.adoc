@@ -695,6 +695,21 @@ This means Gradle's verification is stronger with signatures enabled than with c
 
 However, passing signature verification doesn't automatically mean you can trust the artifact—you must explicitly trust the keys by adding them to your verification metadata as shown in <<#sec:manual-checking-dependency,Adding Keys for an Artifact>>.
 
+=== Bootstrapping with Signatures
+
+When you bootstrap with signature verification enabled using `--write-verification-metadata pgp,sha256`, Gradle takes an _optimistic approach_ and assumes signature verification is sufficient. However, you must still provide a fallback checksum algorithm (like `sha256`) because not all artifacts are signed.
+
+Gradle performs optimistic verification during bootstrapping and automatically:
+
+* **Auto-adds trusted keys** - When signature verification passes, Gradle adds the key to the trusted keys list
+* **Auto-adds ignored keys** - When a key cannot be downloaded from public key servers, Gradle marks it as ignored in the configuration
+* **Auto-generates checksums** - For artifacts without signatures or with ignored keys, Gradle generates checksums using the fallback algorithm
+* **Auto-groups keys** - Gradle attempts to group keys at the group level (in `<trusted-keys>`) rather than per-artifact to minimize configuration file size
+
+WARNING: Bootstrapping takes an optimistic point of view that signature verification is enough. If you also care about integrity, you should first bootstrap using checksum verification, then re-bootstrap with signature verification. This ensures you have checksums for all artifacts before adding signatures.
+
+If signature verification fails during bootstrapping, Gradle will automatically generate an ignored key entry but will warn you to investigate. This commonly happens when POM files differ between repositories in non-meaningful ways.
+
 [[sec:verification-console-output]]
 == Configuring the Console Output
 
