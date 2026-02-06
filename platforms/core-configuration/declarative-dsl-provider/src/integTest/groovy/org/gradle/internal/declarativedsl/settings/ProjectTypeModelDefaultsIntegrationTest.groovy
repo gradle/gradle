@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.settings
 
 import groovy.test.NotYetImplemented
+import org.gradle.features.internal.ProjectTypeFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest

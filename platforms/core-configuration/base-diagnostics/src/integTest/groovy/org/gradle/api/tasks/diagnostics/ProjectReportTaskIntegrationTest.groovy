@@ -23,7 +23,7 @@ import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.annotations.RegistersProjectFeatures
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
-import org.gradle.internal.declarativedsl.settings.ProjectTypeFixture
+import org.gradle.features.internal.ProjectTypeFixture
 import org.gradle.util.internal.TextUtil
 
 /**
