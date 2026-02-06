@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.consistency
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDependencyResolutionTest {
