@@ -677,6 +677,46 @@ If you use the binary format with Git, add this to your `.gitattributes` file to
 
 NOTE: Only public key packets and a single userId per key are stored. All other information (user attributes, signatures, etc.) is stripped from exported keys.
 
+=== Adding Keys to the Keyring
+
+If you have a public key that Gradle cannot download from key servers, you can manually add it to the keyring file. This is useful when a key is not published to public key servers or when you want to avoid downloading keys repeatedly.
+
+==== For ASCII-Armored Format (.keys)
+
+If you're using the ASCII-armored keyring format, you can add keys directly by appending them to the `gradle/verification-keyring.keys` file.
+
+First, export the public key to a file:
+
+[source,bash]
+----
+gpg --export --armor 8756C4F765C9AC3CB6B85D62379CE192D401AB61 > key.asc
+----
+
+Then append the key to your keyring file:
+
+[source,bash]
+----
+cat key.asc >> gradle/verification-keyring.keys
+----
+
+==== For Binary Format (.gpg)
+
+If you're using the binary keyring format, use GPG to import the key:
+
+[source,bash]
+----
+gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --import key.asc
+----
+
+Or import directly from a key server to the keyring:
+
+[source,bash]
+----
+gpg --no-default-keyring --keyring gradle/verification-keyring.gpg --recv-keys 8756C4F765C9AC3CB6B85D62379CE192D401AB61
+----
+
+NOTE: Remember to use full 40-character fingerprint IDs when working with keys, not short or long IDs.
+
 == Understanding Signature Verification
 
 Once signature verification is enabled, Gradle follows this workflow for each artifact:
