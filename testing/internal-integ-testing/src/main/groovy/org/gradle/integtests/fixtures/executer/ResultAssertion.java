@@ -40,6 +40,17 @@ import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionRes
 public class ResultAssertion implements Action<ExecutionResult> {
     private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings;
     private final List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings;
+
+    /**
+     * These lines cause false positives for our deprecation detection, and because of their nature
+     * are not easily admitted into the normal expected deprecation warnings mechanism.  They come
+     * from frameworks like JUnit and there's nothing Gradle can do about them.  So we'll
+     * just always ignore them.
+     *
+     * For example: (1) [INFO] The JUnit Vintage engine is deprecated and should only be used temporarily while migrating tests to JUnit Jupiter or another testing framework with native JUnit Platform support.
+     */
+    private final List<String> ignoredLines;
+
     private final boolean expectStackTraces;
     private final boolean checkDeprecations;
     private final boolean checkJdkWarnings;
@@ -55,6 +66,7 @@ public class ResultAssertion implements Action<ExecutionResult> {
     public ResultAssertion(
         List<ExpectedDeprecationWarning> expectedDeprecationWarnings,
         List<ExpectedDeprecationWarning> maybeExpectedDeprecationWarnings,
+        List<String> ignoredLines,
         boolean expectStackTraces,
         boolean checkDeprecations,
         boolean checkJdkWarnings
@@ -63,6 +75,7 @@ public class ResultAssertion implements Action<ExecutionResult> {
 
         this.expectedDeprecationWarnings = new ArrayList<>(expectedDeprecationWarnings);
         this.maybeExpectedDeprecationWarnings = new ArrayList<>(maybeExpectedDeprecationWarnings);
+        this.ignoredLines = new ArrayList<>(ignoredLines);
         this.expectStackTraces = expectStackTraces;
         this.checkDeprecations = checkDeprecations;
         this.checkJdkWarnings = checkJdkWarnings;
@@ -171,7 +184,7 @@ public class ResultAssertion implements Action<ExecutionResult> {
                     throw new AssertionError(String.format("%s line %d contains unexpected JDK warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                 }
                 i++;
-            } else if (line.matches(".*\\s+deprecated.*")) {
+            } else if (line.matches(".*\\s+deprecated.*") && !shouldBeIgnored(line)) {
                 if (checkDeprecations) {
                     StringBuilder message = new StringBuilder(String.format("%s line %d contains an unexpected deprecation warning:%n - %s", displayName, i + 1, line));
                     if (expectedDeprecationWarnings.isEmpty() && maybeExpectedDeprecationWarnings.isEmpty()) {
@@ -194,6 +207,10 @@ public class ResultAssertion implements Action<ExecutionResult> {
                 i++;
             }
         }
+    }
+
+    private boolean shouldBeIgnored(String line) {
+        return ignoredLines.stream().anyMatch(line::contains);
     }
 
     private static final Pattern DAEMON_LOG_HEADER_PATTERN = Pattern.compile("----- Last (\\d+) lines from daemon log file - .* -----");

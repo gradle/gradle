@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing.detection;
 
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestDefinitionProcessor;
 import org.gradle.api.internal.tasks.testing.TestDefinition;
@@ -101,7 +100,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
                 new RunPreviousFailedFirstTestDefinitionProcessor<>(testExecutionSpec.getPreviousFailedTestClasses(), Collections.emptySet(),
                     new MaxNParallelTestDefinitionProcessor<>(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
 
-        final FileTree testClassFiles = testExecutionSpec.isScanForTestClasses() ? testExecutionSpec.getCandidateClassFiles() : FileCollectionFactory.emptyTree();
+        final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
         final Set<File> testDefinitionDirs = testExecutionSpec.getCandidateTestDefinitionDirs();
 
         if (testFramework.getDetector() != null) {

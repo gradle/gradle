@@ -21,6 +21,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * When applied to a member, makes the member visible in declarative definition if the type itself is hidden or is a hidden supertype.
+ * The hidden member, therefore, appears in the subtypes of the declaring type. If the member is overridden elsewhere, it might be hidden again according to that declaration.
+ * <p>
+ * When applied to a type that gets hidden in the type hierarchy of another type (annotated as {@link HiddenInDefinition}), makes
+ * the type annotated with {@link VisibleInDefinition} a visible type, making it available for use in declarative definitions again.
+ */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface VisibleInDefinition {}

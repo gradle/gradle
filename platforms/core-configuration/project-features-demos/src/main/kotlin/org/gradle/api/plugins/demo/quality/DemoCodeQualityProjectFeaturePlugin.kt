@@ -28,7 +28,9 @@ import org.gradle.api.internal.plugins.features.dsl.bindProjectFeatureToDefiniti
 import org.gradle.api.plugins.java.HasSources
 import org.gradle.api.plugins.java.JvmOutputs
 import org.gradle.api.plugins.quality.Checkstyle
+import org.gradle.features.registration.TaskRegistrar
 import org.gradle.language.base.plugins.LifecycleBasePlugin
+import javax.inject.Inject
 
 @BindsProjectFeature(DemoCodeQualityProjectFeaturePlugin.Binding::class)
 class DemoCodeQualityProjectFeaturePlugin : Plugin<Project> {
@@ -62,7 +64,8 @@ class DemoCodeQualityProjectFeaturePlugin : Plugin<Project> {
                 DemoCodeQualityDefinition::class,
                 HasSources.Sources::class
             ) { _, buildModel, target ->
-                val codeQualityTask = project.tasks.register("check" + StringUtils.capitalize(target.name) + "DemoSourceQuality", Checkstyle::class.java) { task ->
+                val services = objectFactory.newInstance(Services::class.java)
+                val codeQualityTask = services.taskRegistrar.register("check" + StringUtils.capitalize(target.name) + "DemoSourceQuality", Checkstyle::class.java) { task ->
                     task.group = LifecycleBasePlugin.VERIFICATION_GROUP
                     task.description = "Runs DemoCodeQuality on the ${target.name} source set."
                     task.source(target.sourceDirectories)
@@ -76,14 +79,20 @@ class DemoCodeQualityProjectFeaturePlugin : Plugin<Project> {
                 DemoCodeQualityDefinition::class,
                 JvmOutputs::class
             ) { _, _, target ->
+                val services = objectFactory.newInstance(Services::class.java)
                 val targetModel = getBuildModel(target)
 
-                project.tasks.register("check" + StringUtils.capitalize(targetModel.name) + "DemoBytecodeQuality", DefaultTask::class.java) { task ->
+                services.taskRegistrar.register("check" + StringUtils.capitalize(targetModel.name) + "DemoBytecodeQuality", DefaultTask::class.java) { task ->
                     task.group = LifecycleBasePlugin.VERIFICATION_GROUP
                     task.description = "Runs DemoCodeQuality on ${targetModel.name} resulting bytecode."
                 }
             }
 
+        }
+
+        interface Services {
+            @get:Inject
+            val taskRegistrar: TaskRegistrar
         }
     }
 

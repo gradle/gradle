@@ -16,8 +16,10 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
@@ -97,11 +99,11 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
             .collect(Collectors.toList());
     }
 
-    private ImmutableCapabilities capabilitiesFor(ImmutableCapabilities capabilities) {
+    private ImmutableList<Capability> capabilitiesFor(ImmutableCapabilities capabilities) {
         if (capabilities.asSet().isEmpty()) {
-            return ImmutableCapabilities.of(DefaultImmutableCapability.defaultCapabilityForComponent(getMetadata().getModuleVersionId()));
+            return ImmutableList.of(DefaultImmutableCapability.defaultCapabilityForComponent(getMetadata().getModuleVersionId()));
         } else {
-            return capabilities;
+            return ImmutableList.copyOf(capabilities.asSet());
         }
     }
 

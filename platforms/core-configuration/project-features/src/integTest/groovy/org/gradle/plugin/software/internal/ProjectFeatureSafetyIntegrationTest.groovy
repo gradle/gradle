@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.internal.declarativedsl.DeclarativeTestUtils
 import org.gradle.internal.declarativedsl.settings.ProjectFeatureFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.test.fixtures.plugin.PluginBuilder
 
 @PolyglotDslTest
 class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implements ProjectFeatureFixture, PolyglotTestFixture {
@@ -61,7 +62,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure,
+        assertUnsafeDefinitionHasDescriptionOrCause(failure,
             "Project feature 'feature' has a definition type which was declared safe but has the following issues:\n" +
             "  - Project feature 'feature' has a definition with type 'FeatureDefinition' which was declared safe but is not an interface.\n" +
             "    \n" +
@@ -87,7 +88,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure,
+        assertUnsafeDefinitionHasDescriptionOrCause(failure,
             "Project feature 'feature' has a definition type which was declared safe but has the following issues:\n" +
             "  - The definition type has @Inject annotated property 'objects' in type 'FeatureDefinition'.\n" +
             "    \n" +
@@ -113,7 +114,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure,
+        assertUnsafeDefinitionHasDescriptionOrCause(failure,
             "Project feature 'feature' has a definition type which was declared safe but has the following issues:\n" +
             "  - The definition type has @Inject annotated property 'objects' in type 'Fizz'.\n" +
             "    \n" +
@@ -139,7 +140,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure,
+        assertUnsafeDefinitionHasDescriptionOrCause(failure,
             "Project feature 'feature' has a definition type which was declared safe but has the following issues:\n" +
             "  - The definition type has @Inject annotated property 'objects' in type 'Fizz'.\n" +
             "    \n" +
@@ -172,7 +173,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure,
+        assertUnsafeDefinitionHasDescriptionOrCause(failure,
             "Project feature 'feature' has a definition type which was declared safe but has the following issues:\n" +
             "  - The definition type has @Inject annotated property 'objects' in type 'FeatureDefinition'.\n" +
             "    \n" +
@@ -198,7 +199,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertDescriptionOrCause(failure,
+        assertUnsafeDefinitionHasDescriptionOrCause(failure,
             "Project feature 'feature' has a definition type which was declared safe but has the following issues:\n" +
             "  - Project feature 'feature' has a definition with type 'FeatureDefinition' which was declared safe but is not an interface.\n" +
             "    \n" +
@@ -217,6 +218,82 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         )
     }
 
+    def 'can declare and configure a custom project feature with an unsafe apply action'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeatureWithUnsafeApplyActionDeclaredUnsafe()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printProjectTypeDefinitionConfiguration",":printFeatureDefinitionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+
+        and:
+        outputContains("Applying ProjectTypeImplPlugin")
+        outputContains("Binding TestProjectTypeDefinition")
+        outputContains("Binding FeatureDefinition")
+    }
+
+    def 'sensible error when project feature with an unsafe apply action is declared safe'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeatureWithUnsafeApplyActionDeclaredSafe()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        fails(":printProjectTypeDefinitionConfiguration",":printFeatureDefinitionConfiguration")
+
+        then:
+        assertUnsafeApplyActionHasDescriptionOrCause(failure,
+            "Project feature 'feature' has a safe apply action that attempts to inject an unsafe service with type 'org.gradle.api.Project'.\n" +
+            "\n" +
+            "Reason: Only the following services are available in safe apply actions:\n" +
+            "  - TaskRegistrar\n" +
+            "  - ProjectFeatureLayout\n" +
+            "  - ConfigurationRegistrar\n" +
+            "  - ObjectFactory\n" +
+            "  - ProviderFactory\n" +
+            "  - DependencyFactory.\n" +
+            "\n" +
+            "Possible solutions:\n" +
+            "  1. Mark the apply action as unsafe.\n" +
+            "  2. Remove the 'org.gradle.api.Project' injection from the apply action."
+        )
+    }
+
+    def 'sensible error when project feature with an unsafe apply action attempts to use an unknown service'() {
+        given:
+        PluginBuilder pluginBuilder = withProjectFeatureWithUnsafeApplyActionInjectingUnknownService()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        fails(":printProjectTypeDefinitionConfiguration",":printFeatureDefinitionConfiguration")
+
+        then:
+        assertUnsafeApplyActionHasDescriptionOrCause(failure,
+            "Project feature 'feature' has an apply action that attempts to inject an unknown service with type 'org.gradle.test.ProjectFeatureImplPlugin\$Binding\$UnknownService'.\n" +
+            "\n" +
+            "Reason: Services of type org.gradle.test.ProjectFeatureImplPlugin\$Binding\$UnknownService are not available for injection into project feature apply actions.\n" +
+            "\n" +
+            "Possible solution: Remove the 'org.gradle.test.ProjectFeatureImplPlugin\$Binding\$UnknownService' injection from the apply action."
+        )
+    }
+
     static String getDeclarativeScriptThatConfiguresOnlyTestProjectFeature() {
         return """
             testProjectType {
@@ -228,6 +305,10 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
 
                 feature {
                     text = "foo"
+
+                    fizz {
+                        buzz = "baz"
+                    }
                 }
             }
         """
@@ -245,7 +326,9 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
                 feature {
                     text = "foo"
 
-                    fizz { }
+                    fizz {
+                        buzz = "baz"
+                    }
                 }
             }
         """
@@ -266,8 +349,16 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         """
     }
 
-    void assertDescriptionOrCause(ExecutionFailure failure, String expectedMessage) {
+    void assertUnsafeDefinitionHasDescriptionOrCause(ExecutionFailure failure, String expectedMessage) {
         if (currentDsl() == GradleDsl.DECLARATIVE) {
+            failure.assertHasDescription(expectedMessage)
+        } else {
+            failure.assertHasCause(expectedMessage)
+        }
+    }
+
+    void assertUnsafeApplyActionHasDescriptionOrCause(ExecutionFailure failure, String expectedMessage) {
+        if (currentDsl() == GradleDsl.KOTLIN) {
             failure.assertHasDescription(expectedMessage)
         } else {
             failure.assertHasCause(expectedMessage)

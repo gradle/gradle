@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor
-import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
 import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
@@ -30,7 +29,6 @@ import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Path
@@ -213,6 +211,8 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
     def "can use #type as task input"() {
         given:
+        mavenHttpRepo.module("org", "foo").allowAll().publish()
+        mavenHttpRepo.module("org", "bar").allowAll().publish()
         buildFile << """
             import ${DefaultModuleIdentifier.name}
             import ${DefaultModuleVersionIdentifier.name}
@@ -223,8 +223,6 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             import ${DefaultImmutableCapability.name}
             import ${DefaultModuleComponentArtifactIdentifier.name}
             import ${AttributesFactory.name}
-            import ${DefaultResolvedVariantResult.name}
-            import ${ImmutableCapabilities.name}
             import ${Describables.name}
             import ${DefaultComponentSelectionDescriptor.name}
             import ${ComponentSelectionReasons.name}
@@ -277,10 +275,9 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         "ModuleComponentIdentifier"    | "new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0')"
         "ProjectComponentIdentifier"   | "new DefaultProjectComponentIdentifier(ProjectIdentity.forRootProject(Path.ROOT, System.getProperty('n')))"
         "ComponentArtifactIdentifier"  | "new DefaultModuleComponentArtifactIdentifier(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')),'1.0'), System.getProperty('n') + '-1.0.jar', 'jar', null)"
-        "ResolvedVariantResult"        | "new DefaultResolvedVariantResult(new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', System.getProperty('n')), '1.0'), Describables.of('variantName'), services.get(AttributesFactory).of(Attribute.of('some', String.class), System.getProperty('n')), ImmutableCapabilities.of(new DefaultImmutableCapability('group', System.getProperty('n'), '1.0')), null)"
-        // For ResolvedComponentResult
+        "ResolvedVariantResult"        | "configurations.create('foo'){ it.dependencies.add(project.dependencyFactory.create(\"org:\${System.getProperty('n')}:1.0\")) }.incoming.resolutionResult.rootComponent.get().dependencies.first().resolvedVariant"
+        "ResolvedComponentResult"      | "configurations.create('foo'){ it.dependencies.add(project.dependencyFactory.create(\"org:\${System.getProperty('n')}:1.0\")) }.incoming.resolutionResult.rootComponent.get().dependencies.first().selected"
         "ModuleVersionIdentifier"      | "DefaultModuleVersionIdentifier.newId('group', System.getProperty('n'), '1.0')"
-//        "ResolvedComponentResult"      | "null"
 //        "DependencyResult"             | "null"
         "ComponentSelector"            | "new DefaultLibraryComponentSelector(':sub', System.getProperty('n'))"
         "ComponentSelectionReason"     | "ComponentSelectionReasons.of(ComponentSelectionReasons.REQUESTED.withDescription(Describables.of('csd-' + System.getProperty('n'))))"

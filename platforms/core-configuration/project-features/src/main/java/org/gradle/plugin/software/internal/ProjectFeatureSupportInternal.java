@@ -199,7 +199,7 @@ public class ProjectFeatureSupportInternal {
     ) {
         ((ExtensibleDynamicObject) dslObjectToInitialize.getAsDynamicObject()).addObject(
             objectFactory.newInstance(ProjectFeaturesDynamicObject.class, dslObjectToInitialize, context),
-            ExtensibleDynamicObject.Location.BeforeConvention
+            ExtensibleDynamicObject.Location.BeforeConventionNotInherited
         );
     }
 }

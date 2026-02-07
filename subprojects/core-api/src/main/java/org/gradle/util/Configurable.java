@@ -17,12 +17,14 @@
 package org.gradle.util;
 
 import groovy.lang.Closure;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 
 /**
  * An object that can be configured with a Groovy closure.
  *
  * @param <T> the closure return type.
  */
+@HiddenInDefinition
 public interface Configurable<T> {
     T configure(Closure cl);
 }

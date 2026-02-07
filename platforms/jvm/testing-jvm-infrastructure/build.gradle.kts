@@ -44,16 +44,16 @@ dependencies {
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
-    compileOnly(libs.junit) {
+    compileOnly(providedLibs.junit) {
         because("The actual version is provided by the user on the testRuntimeClasspath")
     }
-    compileOnly(libs.testng) {
+    compileOnly(providedLibs.testng) {
         because("The actual version is provided by the user on the testRuntimeClasspath")
     }
-    compileOnly(libs.junitPlatform) {
+    compileOnly(providedLibs.junitPlatform) {
         because("The actual version is provided by the user on the testRuntimeClasspath")
     }
-    compileOnly(libs.junitPlatformEngine) {
+    compileOnly(providedLibs.junitPlatformEngine) {
         because("The actual version is provided by the user on the testRuntimeClasspath")
     }
 
@@ -61,31 +61,27 @@ dependencies {
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.time))
 
-    testImplementation(libs.assertj) {
+    testImplementation(testLibs.assertj) {
         because("We test assertion errors coming from AssertJ")
     }
-    testImplementation("org.opentest4j:opentest4j") {
-        version {
-            // MultipleFailuresError appears only since 1.3.0-RC2
-            require("1.3.0")
-        }
+    testImplementation(testLibs.opentest4j) {
         because("We test assertion errors coming from OpenTest4J")
     }
-    testImplementation(libs.junit) {
+    testImplementation(providedLibs.junit) {
         because("To provide an implementation during testing")
     }
-    testImplementation(libs.junitPlatform) {
+    testImplementation(providedLibs.junitPlatform) {
         because("Platform types are used in tests")
     }
-    testImplementation(libs.testng) {
+    testImplementation(providedLibs.testng) {
         because("To provide an implementation during testing")
     }
-    testRuntimeOnly(libs.guice) {
+    testRuntimeOnly(testLibs.guice) {
         because("Used by TestNG")
     }
 
     testFixturesImplementation(projects.testingBase)
-    testFixturesImplementation(libs.junit)
-    testFixturesImplementation(libs.testng)
+    testFixturesImplementation(testLibs.junit)
+    testFixturesImplementation(providedLibs.testng)
 
 }

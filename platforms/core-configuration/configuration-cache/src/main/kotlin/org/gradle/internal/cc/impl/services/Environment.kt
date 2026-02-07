@@ -19,18 +19,14 @@ package org.gradle.internal.cc.impl.services
 import org.gradle.initialization.Environment
 import org.gradle.internal.extensions.stdlib.filterKeysByPrefix
 import org.gradle.internal.extensions.stdlib.uncheckedCast
-import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.util.internal.GUtil
-import java.io.File
 
 
 /**
  * Augments the [DefaultEnvironment] to track access to properties files, environment variables and system properties.
  **/
 class ConfigurationCacheEnvironment(
-    private val fileResourceListener: FileResourceListener,
     private val listener: Listener
 ) : DefaultEnvironment() {
 
@@ -44,11 +40,6 @@ class ConfigurationCacheEnvironment(
         fun systemProperty(name: String, value: String?)
         fun envVariablesPrefixedBy(prefix: String, snapshot: Map<String, String?>)
         fun envVariable(name: String, value: String?)
-    }
-
-    override fun propertiesFile(propertiesFile: File): Map<String, String>? {
-        fileResourceListener.fileObserved(propertiesFile)
-        return super.propertiesFile(propertiesFile)
     }
 
     override fun getSystemProperties(): Environment.Properties =
@@ -88,11 +79,6 @@ class ConfigurationCacheEnvironment(
  * Gives direct access to system resources.
  */
 open class DefaultEnvironment : Environment {
-
-    override fun propertiesFile(propertiesFile: File): Map<String, String>? = when {
-        propertiesFile.isFile -> GUtil.loadProperties(propertiesFile).uncheckedCast()
-        else -> null
-    }
 
     override fun getSystemProperties(): Environment.Properties =
         DefaultProperties(System.getProperties().uncheckedCast())

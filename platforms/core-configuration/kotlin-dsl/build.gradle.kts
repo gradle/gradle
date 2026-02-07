@@ -7,7 +7,7 @@ plugins {
     id("gradlebuild.kotlin-dsl-dependencies-embedded")
     id("gradlebuild.kotlin-dsl-sam-with-receiver")
     id("gradlebuild.kotlin-dsl-plugin-bundle-integ-tests")
-    id("com.gradleup.shadow").version("9.1.0")
+    alias(buildLibs.plugins.shadow)
 }
 
 description = "Kotlin DSL Provider"
@@ -72,30 +72,30 @@ dependencies {
 
     compileOnly(libs.jspecify)
 
-    api(libs.futureKotlin("script-runtime"))
+    api(libs.kotlinScriptRuntime)
 
-    api(libs.futureKotlin("scripting-common")) {
+    api(libs.kotlinScriptingCommon) {
         isTransitive = false
     }
-    implementation(libs.futureKotlin("scripting-jvm")) {
+    implementation(libs.kotlinScriptingJvm) {
         isTransitive = false
     }
-    implementation(libs.futureKotlin("scripting-jvm-host")) {
+    implementation(libs.kotlinScriptingJvmHost) {
         isTransitive = false
     }
-    implementation(libs.futureKotlin("scripting-compiler-embeddable")) {
+    implementation(libs.kotlinScriptingCompilerEmbeddable) {
         isTransitive = false
     }
-    api(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
+    api(libs.kotlinScriptingCompilerImplEmbeddable) {
         isTransitive = false
     }
-    implementation(libs.futureKotlin("sam-with-receiver-compiler-plugin")) {
+    implementation(libs.kotlinSamWithReceiverCompilerPlugin) {
         isTransitive = false
     }
-    implementation(libs.futureKotlin("assignment-compiler-plugin-embeddable")) {
+    implementation(libs.kotlinAssignmentCompilerEmbeddable) {
         isTransitive = false
     }
-    shadow(libs.futureKotlin("metadata-jvm")) {
+    shadow(libs.kotlinMetadataJvm) {
         isTransitive = false
     }
 
@@ -114,11 +114,12 @@ dependencies {
     testImplementation(projects.versionControl)
     testImplementation(testFixtures(projects.core))
     testImplementation(libs.ant)
-    testImplementation(libs.mockitoKotlin)
-    testImplementation(libs.jacksonKotlin)
-    testImplementation(libs.archunit)
-    testImplementation(libs.kotlinCoroutines)
-    testImplementation(libs.awaitility)
+    testImplementation(testLibs.mockitoCore)
+    testImplementation(testLibs.mockitoKotlin)
+    testImplementation(testLibs.jacksonKotlin)
+    testImplementation(testLibs.archunit)
+    testImplementation(libs.kotlinxCoroutinesJvm)
+    testImplementation(testLibs.awaitility)
 
     integTestImplementation(projects.buildOption) {
         because("KotlinSettingsScriptIntegrationTest makes uses of FeatureFlag")
@@ -127,7 +128,7 @@ dependencies {
         because("ClassBytesRepositoryTest makes use of Groovydoc task.")
     }
     integTestImplementation(projects.internalTesting)
-    integTestImplementation(libs.mockitoKotlin)
+    integTestImplementation(testLibs.mockitoKotlin)
 
     testRuntimeOnly(projects.distributionsNative) {
         because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt) and BuildType from platform-native is used in ProjectAccessorsClassPathTest.")
@@ -146,12 +147,13 @@ dependencies {
     testFixturesImplementation(projects.serviceRegistryImpl)
 
     testFixturesImplementation(testFixtures(projects.hashing))
+    testFixturesImplementation(testFixtures(projects.buildOperations))
 
     testFixturesImplementation(libs.kotlinCompilerEmbeddable)
 
-    testFixturesImplementation(libs.junit)
-    testFixturesImplementation(libs.mockitoKotlin)
-    testFixturesImplementation(libs.jacksonKotlin)
+    testFixturesImplementation(testLibs.junit)
+    testFixturesImplementation(testLibs.mockitoKotlin)
+    testFixturesImplementation(testLibs.jacksonKotlin)
     testFixturesImplementation(libs.asm)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)

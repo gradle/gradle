@@ -16,10 +16,14 @@
 
 package org.gradle.internal.declarativedsl.settings
 
+import org.gradle.features.file.ProjectFeatureLayout
 import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.Definition
 import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
 import org.gradle.api.internal.plugins.ProjectFeatureBinding
+import org.gradle.features.registration.TaskRegistrar
+import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.tasks.TaskContainer
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.api.internal.plugins.BindsProjectFeature
@@ -174,6 +178,38 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         return pluginBuilder
     }
 
+    PluginBuilder withTwoProjectFeaturesThatHaveTheSameNameButDifferentBindings() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
+        def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
+        def projectFeature = new ProjectFeaturePluginClassBuilder(projectFeatureDefinition)
+
+        def anotherProjectTypeDefinition = new AnotherProjectTypeDefinitionClassBuilder()
+        def anotherProjectType = new ProjectTypePluginClassBuilder(anotherProjectTypeDefinition)
+            .name("anotherProjectType")
+            .projectTypePluginClassName("AnotherProjectTypePlugin")
+            .withoutConventions()
+        def anotherFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
+            .withPublicClassName("AnotherFeatureDefinition")
+        def anotherProjectFeature = new ProjectFeaturePluginClassBuilder(anotherFeatureDefinition)
+            .bindingTypeClassName(anotherProjectTypeDefinition.publicTypeClassName)
+            .projectFeaturePluginClassName("AnotherProjectFeatureImplPlugin")
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectType(anotherProjectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+            .registersProjectFeature(anotherProjectFeature.projectFeaturePluginClassName)
+
+        def pluginBuilder = withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+
+        anotherProjectType.build(pluginBuilder)
+        anotherProjectTypeDefinition.build(pluginBuilder)
+        anotherProjectFeature.build(pluginBuilder)
+        anotherFeatureDefinition.build(pluginBuilder)
+
+        return pluginBuilder
+    }
+
     PluginBuilder withProjectFeatureDefinitionThatHasPublicAndImplementationTypes() {
         def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
@@ -294,6 +330,39 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
+    PluginBuilder withProjectFeatureWithUnsafeApplyActionDeclaredSafe() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
+        def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
+        def projectFeature = new ProjectFeaturePluginThatUsesUnsafeServicesClassBuilder(projectFeatureDefinition)
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
+    PluginBuilder withProjectFeatureWithUnsafeApplyActionDeclaredUnsafe() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
+        def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
+        def projectFeature = new ProjectFeaturePluginThatUsesUnsafeServicesClassBuilder(projectFeatureDefinition).withUnsafeApplyAction()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
+    PluginBuilder withProjectFeatureWithUnsafeApplyActionInjectingUnknownService() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
+        def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
+        def projectFeature = new ProjectFeaturePluginThatInjectsUnknownServiceClassBuilder(projectFeatureDefinition).withUnsafeApplyAction()
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
     PluginBuilder withKotlinProjectFeaturePlugins() {
         def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
@@ -353,6 +422,11 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
             return this
         }
 
+        ProjectFeaturePluginClassBuilder withUnsafeApplyAction() {
+            this.bindingModifiers.add("withUnsafeApplyAction()")
+            return this
+        }
+
         ProjectFeaturePluginClassBuilder bindingTypeClassName(String className) {
             this.bindingTypeClassName = className
             return this
@@ -383,14 +457,14 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                                 ${definition.publicTypeClassName}.class,
                                 ${bindingTypeClassName}.class,
                                 (context, definition, model, parent) -> {
-                                    String projectName = context.getProject().getName();
+                                    Services services = context.getObjectFactory().newInstance(Services.class);
                                     System.out.println("Binding ${definition.publicTypeClassName}");
                                     System.out.println("${name} model class: " + model.getClass().getSimpleName());
                                     System.out.println("${name} parent model class: " + context.getBuildModel(parent).getClass().getSimpleName());
 
                                     ${definition.buildModelMapping}
 
-                                    context.getProject().getTasks().register("print${definition.publicTypeClassName}Configuration", task -> {
+                                    services.getTaskRegistrar().register("print${definition.publicTypeClassName}Configuration", task -> {
                                         task.doLast(t -> {
                                             ${definition.displayDefinitionPropertyValues()}
                                             ${definition.displayModelPropertyValues()}
@@ -402,6 +476,8 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                             ${maybeDeclareBuildModelImplementationType()}
                             ${maybeDeclareBindingModifiers()};
                         }
+
+                        ${servicesInterface}
                     }
 
                     @Override
@@ -422,6 +498,21 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
         String maybeDeclareBindingModifiers() {
             return bindingModifiers.isEmpty() ? "" : bindingModifiers.collect { ".${it}" }.join("")
+        }
+
+        String getServicesInterface() {
+            return """
+                interface Services {
+                    @javax.inject.Inject
+                    ${TaskRegistrar.class.name} getTaskRegistrar();
+
+                    @javax.inject.Inject
+                    ${ProjectFeatureLayout.class.name} getProjectFeatureLayout();
+
+                    @javax.inject.Inject
+                    ${ProviderFactory.class.name} getProviderFactory();
+                }
+            """
         }
     }
 
@@ -479,10 +570,10 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                     class Binding : ${ProjectFeatureBinding.class.simpleName} {
                         override fun bind(builder: ${ProjectFeatureBindingBuilder.class.simpleName}) {
                             builder.bindProjectFeatureToDefinition("${name}", ${definition.publicTypeClassName}::class, ${bindingTypeClassName}::class) { definition, model, parent  ->
+                                val services = objectFactory.newInstance(Services::class.java)
                                 println("Binding ${definition.publicTypeClassName}")
-                                ${definition.buildModelMapping.replaceAll(';', '')}
-                                val projectName = project.name
-                                getProject().getTasks().register("print${definition.publicTypeClassName}Configuration") { task: Task ->
+                                ${convertToKotlin(definition.buildModelMapping)}
+                                services.taskRegistrar.register("print${definition.publicTypeClassName}Configuration") { task: Task ->
                                     task.doLast { _: Task ->
                                         ${definition.displayDefinitionPropertyValues().replaceAll(';', '')}
                                         ${definition.displayModelPropertyValues().replaceAll(';', '')}
@@ -490,6 +581,8 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                                 }
                             }
                         }
+
+                        ${servicesInterface}
                     }
 
                     override fun apply(project: Project) {
@@ -497,6 +590,25 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 }
             """
             return content
+        }
+
+        String convertToKotlin(String content) {
+            return content.replaceAll(';', '')
+                .replaceAll("getProjectFeatureLayout\\Q()\\E", 'projectFeatureLayout')
+
+        }
+
+        @Override
+        String getServicesInterface() {
+            return """
+                interface Services {
+                    @get:javax.inject.Inject
+                    val taskRegistrar: ${TaskRegistrar.class.name}
+
+                    @get:javax.inject.Inject
+                    val projectFeatureLayout: ${ProjectFeatureLayout.class.name}
+                }
+            """
         }
     }
 
@@ -528,12 +640,12 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                                 ${bindingTypeClassName},
                                 ${definition.buildModelFullPublicClassName}
                             >("${name}") { definition, model, parent  ->
+                                val services = objectFactory.newInstance(Services::class.java)
                                 println("Binding ${definition.publicTypeClassName}")
                                 println("${name} model class: " + model::class.java.getSimpleName())
                                 println("${name} parent model class: " + getBuildModel(parent)::class.java.getSimpleName())
-                                ${definition.buildModelMapping.replaceAll(';', '')}
-                                val projectName = project.name
-                                getProject().getTasks().register("print${definition.publicTypeClassName}Configuration") { task: Task ->
+                                ${convertToKotlin(definition.buildModelMapping)}
+                                services.taskRegistrar.register("print${definition.publicTypeClassName}Configuration") { task: Task ->
                                     task.doLast { _: Task ->
                                         ${definition.displayDefinitionPropertyValues().replaceAll(';', '')}
                                         ${definition.displayModelPropertyValues().replaceAll(';', '')}
@@ -541,6 +653,8 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                                 }
                             }
                         }
+
+                        ${servicesInterface}
                     }
 
                     override fun apply(project: Project) {
@@ -593,6 +707,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${ProjectFeatureBindingBuilder.class.name};
                 import static ${ProjectFeatureBindingBuilder.class.name}.bindingToTargetDefinition;
                 import ${ProjectFeatureBinding.class.name};
+                import ${TaskRegistrar.class.name};
 
                 @${BindsProjectFeature.class.simpleName}(${projectFeaturePluginClassName}.Binding.class)
                 public class ${projectFeaturePluginClassName} implements Plugin<Project> {
@@ -621,6 +736,60 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
                     }
                 }
+            """
+        }
+    }
+
+    static class ProjectFeaturePluginThatUsesUnsafeServicesClassBuilder extends ProjectFeaturePluginClassBuilder {
+        ProjectFeaturePluginThatUsesUnsafeServicesClassBuilder(ProjectFeatureDefinitionClassBuilder definition) {
+            super(definition)
+        }
+
+        @Override
+        String getServicesInterface() {
+            return """
+                interface Services {
+                    @javax.inject.Inject
+                    ${ProjectFeatureLayout.class.name} getProjectFeatureLayout();
+
+                    @javax.inject.Inject
+                    ${ProviderFactory.class.name} getProviderFactory();
+
+                    @javax.inject.Inject
+                    Project getProject(); // Unsafe Service
+
+                    default ${TaskContainer.class.name} getTaskRegistrar() {
+                        return getProject().getTasks();
+                    }
+                }
+            """
+        }
+    }
+
+    static class ProjectFeaturePluginThatInjectsUnknownServiceClassBuilder extends ProjectFeaturePluginThatUsesUnsafeServicesClassBuilder {
+        ProjectFeaturePluginThatInjectsUnknownServiceClassBuilder(ProjectFeatureDefinitionClassBuilder definition) {
+            super(definition)
+        }
+
+        @Override
+        String getServicesInterface() {
+            return """
+                interface Services {
+                    @javax.inject.Inject
+                    ${ProjectFeatureLayout.class.name} getProjectFeatureLayout();
+
+                    @javax.inject.Inject
+                    ${ProviderFactory.class.name} getProviderFactory();
+
+                    default ${TaskRegistrar.class.name} getTaskRegistrar() {
+                        return getUnknownService();
+                    }
+
+                    @javax.inject.Inject
+                    UnknownService getUnknownService();
+                }
+
+                interface UnknownService extends ${TaskRegistrar.class.name} { }
             """
         }
     }
@@ -688,6 +857,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${Definition.class.name};
                 import ${BuildModel.class.name};
                 import org.gradle.api.provider.Property;
+                import org.gradle.api.file.DirectoryProperty;
                 import ${HiddenInDefinition.class.name};
                 import org.gradle.api.Action;
                 import org.gradle.api.tasks.Nested;
@@ -709,6 +879,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
                     interface ${buildModelPublicTypeClassName} extends BuildModel {
                         Property<String> getText();
+                        DirectoryProperty getDir();
                     }
 
                     interface Fizz {
@@ -722,6 +893,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         String getBuildModelMapping() {
             return """
                 model.getText().set(definition.getText());
+                model.getDir().set(services.getProjectFeatureLayout().getProjectDirectory().dir(definition.getText()));
             """
         }
 
@@ -735,6 +907,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         String displayModelPropertyValues() {
             return """
                 ${displayProperty("model", "text", "model.getText().get()")}
+                ${displayProperty("model", "dir", "model.getDir().get().getAsFile().getAbsolutePath()")}
             """
         }
 
@@ -761,10 +934,8 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         }
 
         static String displayProperty(String objectType, String propertyName, String propertyValueExpression) {
-            // Note that this assumes that "projectName" variable has been set in some outer scope in order to avoid
-            // accessing the project object at execution time.
             return """
-                System.out.println(projectName + ": ${objectType} ${propertyName} = " + ${propertyValueExpression});
+                System.out.println("${objectType} ${propertyName} = " + ${propertyValueExpression});
             """
         }
     }
@@ -773,7 +944,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         @Override
         String getBuildModelMapping() {
             return super.getBuildModelMapping() + """
-                model.getText().set(context.getProject().provider(() -> definition.getText().get() + " " + context.getBuildModel(parent).getBarProcessed().get()));
+                model.getText().set(services.getProviderFactory().provider(() -> definition.getText().get() + " " + context.getBuildModel(parent).getBarProcessed().get()));
             """
         }
     }
@@ -859,6 +1030,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import ${Definition.class.name};
                 import ${BuildModel.class.name};
                 import org.gradle.api.provider.Property;
+                import org.gradle.api.file.DirectoryProperty;
                 import org.gradle.api.model.ObjectFactory;
                 import org.gradle.api.Action;
                 import org.gradle.api.tasks.Nested;
@@ -885,6 +1057,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
 
                     public interface FeatureModel extends BuildModel {
                         Property<String> getText();
+                        DirectoryProperty getDir();
                     }
                 }
             """

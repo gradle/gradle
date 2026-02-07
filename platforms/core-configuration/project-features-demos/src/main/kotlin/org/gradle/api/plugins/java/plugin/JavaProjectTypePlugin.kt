@@ -26,8 +26,10 @@ import org.gradle.api.internal.plugins.features.dsl.bindProjectType
 import org.gradle.api.plugins.internal.java.DefaultJavaProjectType
 import org.gradle.api.plugins.java.JavaClasses.DefaultJavaClasses
 import org.gradle.api.plugins.java.JavaProjectType
+import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.language.base.plugins.LifecycleBasePlugin
+import javax.inject.Inject
 
 @BindsProjectType(JavaProjectTypePlugin.Binding::class)
 class JavaProjectTypePlugin : Plugin<Project> {
@@ -43,12 +45,13 @@ class JavaProjectTypePlugin : Plugin<Project> {
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
             builder.bindProjectType("javaLibrary") { definition: JavaProjectType, model ->
+                val services = objectFactory.newInstance(Services::class.java)
                 definition.sources.register("main")
                 definition.sources.register("test")
 
                 definition.sources.all { source ->
                     // Should be TaskRegistrar with some sort of an implicit namer for the context
-                    val compileTask = project.tasks.register(
+                    val compileTask = services.taskRegistrar.register(
                         "compile" + capitalize(source.name) + "Java",
                         JavaCompile::class.java
                     ) { task ->
@@ -57,7 +60,7 @@ class JavaProjectTypePlugin : Plugin<Project> {
                         task.source(source.sourceDirectories.asFileTree)
                     }
 
-                    val processResourcesTask = registerResourcesProcessing(source)
+                    val processResourcesTask = registerResourcesProcessing(source, services.taskRegistrar)
 
                     // Creates an extension on javaSources containing its classes object
                     model.classes.add(registerBuildModel(source, DefaultJavaClasses::class.java).apply {
@@ -69,9 +72,14 @@ class JavaProjectTypePlugin : Plugin<Project> {
                 }
 
                 val mainClasses = model.classes.named("main")
-                registerJar(mainClasses, model)
+                registerJar(mainClasses, model, services.taskRegistrar)
             }
             .withUnsafeDefinitionImplementationType(DefaultJavaProjectType::class.java)
+        }
+
+        interface Services {
+            @get:Inject
+            val taskRegistrar: TaskRegistrar
         }
     }
 

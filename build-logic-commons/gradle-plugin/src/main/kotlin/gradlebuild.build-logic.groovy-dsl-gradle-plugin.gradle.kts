@@ -23,16 +23,18 @@ plugins {
     id("gradlebuild.private-javadoc")
 }
 
+val testLibs = project.versionCatalogs.named("testLibs")
+
 dependencies {
     api(platform("gradlebuild:build-platform"))
     implementation("gradlebuild:gradle-plugin")
 
     implementation(localGroovy())
-    testImplementation("org.spockframework:spock-core")
-    testImplementation("net.bytebuddy:byte-buddy")
-    testImplementation("org.objenesis:objenesis")
+    testImplementation(testLibs.findLibrary("spock").get())
+    testImplementation(testLibs.findLibrary("bytebuddy").get())
+    testImplementation(testLibs.findLibrary("objenesis").get())
 
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly(testLibs.findLibrary("junitPlatform").get())
 }
 
 tasks.withType<GroovyCompile>().configureEach {

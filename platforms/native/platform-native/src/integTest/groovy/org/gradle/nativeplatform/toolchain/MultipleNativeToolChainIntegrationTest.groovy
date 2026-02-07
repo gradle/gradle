@@ -46,7 +46,7 @@ plugins { id 'cpp' }
                 AvailableToolChains.getToolChain(ToolChainRequirement.CLANG)
         AvailableToolChains.InstalledToolChain sparcToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.GCC)
 
-        // This is a Junit class, but works in Spock too.
+        // This is a JUnit class, but works in Spock too.
         Assume.assumeNotNull(x86ToolChain?.buildScriptConfig, sparcToolChain?.buildScriptConfig)
 
         when:

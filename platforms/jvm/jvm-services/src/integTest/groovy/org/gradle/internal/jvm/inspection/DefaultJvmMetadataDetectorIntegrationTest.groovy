@@ -37,7 +37,7 @@ class DefaultJvmMetadataDetectorIntegrationTest extends AbstractIntegrationSpec 
             DefaultClientExecHandleBuilderFactory.of(TestFiles.pathToFileResolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken()),
             TestFiles.tmpDirTemporaryFileProvider(new File(SystemProperties.getInstance().getJavaIoTmpDir()))
         )
-        Jvm jvm = AvailableJavaHomes.differentJdk //the detector has special handling for the current JVM
+        Jvm jvm = AvailableJavaHomes.differentVersion //the detector has special handling for the current JVM
         def javaHome = InstallationLocation.userDefined(jvm.getJavaHome(), "test")
         def metadata = detector.getMetadata(javaHome)
 

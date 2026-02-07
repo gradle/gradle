@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.evaluator.defaults
 
 import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ProjectFeatureIdentifier
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.evaluator.features.ResolutionResultHandler
 import java.io.Serializable
@@ -37,5 +38,5 @@ class ModelDefaultsDefinitionCollector(private val defaultsRegistrar: ModelDefau
 
 
 interface ModelDefaultsDefinitionRegistrar {
-    fun registerDefaults(modelDefaultsByProjectFeature: Map<String, ModelDefaultsResolutionResults>)
+    fun registerDefaults(modelDefaultsByProjectFeatureId: Map<ProjectFeatureIdentifier, ModelDefaultsResolutionResults>)
 }

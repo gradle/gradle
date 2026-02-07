@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.buildtree.NestedBuildTree;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistry;
 import org.jspecify.annotations.Nullable;
@@ -30,14 +31,14 @@ public class NestedRootBuildRunner {
         return services.get(StartParameter.class).newBuild();
     }
 
-    public static void runNestedRootBuild(String buildName, StartParameterInternal startParameter, ServiceRegistry services) {
-        createNestedBuildTree(buildName, startParameter, services).run(buildController -> {
+    public static void runNestedRootBuild(String buildName, StartParameterInternal startParameter, ServiceRegistry services, ClassPath injectedPluginClassPath) {
+        createNestedBuildTree(buildName, startParameter, services, injectedPluginClassPath).run(buildController -> {
             buildController.scheduleAndRunTasks();
             return null;
         });
     }
 
-    public static NestedBuildTree createNestedBuildTree(@Nullable String buildName, StartParameterInternal startParameter, ServiceRegistry services) {
+    public static NestedBuildTree createNestedBuildTree(@Nullable String buildName, StartParameterInternal startParameter, ServiceRegistry services, ClassPath injectedPluginClasspath) {
         BuildInvocationScopeId buildInvocationScopeId = services.get(BuildInvocationScopeId.class);
         PublicBuildPath fromBuild = services.get(PublicBuildPath.class);
         BuildDefinition buildDefinition = BuildDefinition.fromStartParameter(startParameter, fromBuild);
@@ -45,6 +46,6 @@ public class NestedRootBuildRunner {
         BuildState currentBuild = services.get(BuildState.class);
 
         BuildStateRegistry buildStateRegistry = services.get(BuildStateRegistry.class);
-        return buildStateRegistry.addNestedBuildTree(buildInvocationScopeId, buildDefinition, currentBuild, buildName);
+        return buildStateRegistry.addNestedBuildTree(buildInvocationScopeId, buildDefinition, currentBuild, buildName, injectedPluginClasspath);
     }
 }

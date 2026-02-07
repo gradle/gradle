@@ -254,16 +254,16 @@ class BaseDirFileResolverTest {
     }
 
     @Test public void testResolveUriStringToUri() {
-        assertEquals(new URI("http://www.gradle.org"), baseDirConverter.resolveUri("http://www.gradle.org"))
+        assertEquals(new URI("https://www.gradle.org"), baseDirConverter.resolveUri("https://www.gradle.org"))
     }
 
     @Test public void testResolveUriObjectToUri() {
-        URI uri = new URI("http://www.gradle.org")
+        URI uri = new URI("https://www.gradle.org")
         assertEquals(uri, baseDirConverter.resolveUri(uri))
     }
 
     @Test public void testResolveUrlObjectToUri() {
-        assertEquals(new URI("http://www.gradle.org"), baseDirConverter.resolveUri(new URL("http://www.gradle.org")))
+        assertEquals(new URI("https://www.gradle.org"), baseDirConverter.resolveUri(new URL("https://www.gradle.org")))
     }
 
     @Test public void testResolveAbsolutePathWithReservedCharsToUri() {
@@ -272,7 +272,7 @@ class BaseDirFileResolverTest {
     }
 
     @Test public void testResolveUriStringWithEncodedCharsToUri() {
-        assertEquals(new URI("http://www.gradle.org/white%20space"), baseDirConverter.resolveUri("http://www.gradle.org/white%20space"))
+        assertEquals(new URI("https://www.gradle.org/white%20space"), baseDirConverter.resolveUri("https://www.gradle.org/white%20space"))
     }
 
     @Test public void testResolveRelativePathToRelativePath() {

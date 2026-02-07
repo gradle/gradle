@@ -66,6 +66,11 @@ public interface ProjectFeatureBindingDeclaration<T extends Definition<V>, V ext
     Safety getDefinitionSafety();
 
     /**
+     * Whether the apply action for this binding is considered safe or unsafe.
+     */
+    Safety getApplyActionSafety();
+
+    /**
      * Represents the safety of some aspect of the binding.
      */
     enum Safety {
