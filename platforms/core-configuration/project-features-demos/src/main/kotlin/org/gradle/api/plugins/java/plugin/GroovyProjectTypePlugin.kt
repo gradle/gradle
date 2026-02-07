@@ -26,8 +26,10 @@ import org.gradle.api.internal.plugins.features.dsl.bindProjectType
 import org.gradle.api.plugins.internal.java.DefaultGroovyProjectType
 import org.gradle.api.plugins.java.GroovyClasses
 import org.gradle.api.plugins.java.GroovyProjectType
+import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.language.base.plugins.LifecycleBasePlugin
+import javax.inject.Inject
 
 @BindsProjectType(GroovyProjectTypePlugin.Binding::class)
 class GroovyProjectTypePlugin : Plugin<Project> {
@@ -43,11 +45,13 @@ class GroovyProjectTypePlugin : Plugin<Project> {
     class Binding : ProjectTypeBinding {
         override fun bind(builder: ProjectTypeBindingBuilder) {
             builder.bindProjectType("groovyLibrary") { definition: GroovyProjectType, model ->
+                val services = objectFactory.newInstance(Services::class.java)
+
                 definition.sources.register("main")
                 definition.sources.register("test")
 
                 definition.sources.all { source ->
-                    val compileTask = project.tasks.register(
+                    val compileTask = services.taskRegistrar.register(
                         "compile" + capitalize(source.name) + "Groovy",
                         GroovyCompile::class.java
                     ) { task ->
@@ -56,7 +60,7 @@ class GroovyProjectTypePlugin : Plugin<Project> {
                         task.source(source.sourceDirectories.asFileTree)
                     }
 
-                    val processResourcesTask = registerResourcesProcessing(source)
+                    val processResourcesTask = registerResourcesProcessing(source, services.taskRegistrar)
 
                     model.classes.add(registerBuildModel(source, GroovyClasses.DefaultGroovyClasses::class.java).apply {
                         name = source.name
@@ -66,9 +70,14 @@ class GroovyProjectTypePlugin : Plugin<Project> {
                     })
                 }
 
-                registerJar(model.classes.named("main"), model)
+                registerJar(model.classes.named("main"), model, services.taskRegistrar)
             }
             .withUnsafeDefinitionImplementationType(DefaultGroovyProjectType::class.java)
+        }
+
+        interface Services {
+            @get:Inject
+            val taskRegistrar: TaskRegistrar
         }
     }
 
