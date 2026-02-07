@@ -750,6 +750,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
                 SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION - 1
             ));
         }
+        // TODO: JUnit6 requires Java 17+
+        // Gradle should produce a better error message when using JUnit 6 with incompatible JVMs.
 
         verifyAppropriateFilterConfiguration();
 

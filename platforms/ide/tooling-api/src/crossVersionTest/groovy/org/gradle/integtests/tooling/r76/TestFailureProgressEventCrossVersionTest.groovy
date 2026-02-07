@@ -42,7 +42,7 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         progressEventCollector = new ProgressEventCollector()
     }
 
-    def "Emits test failure events for Junit 3 tests"() {
+    def "Emits test failure events for JUnit 3 tests"() {
         setup:
         buildFile << """
             plugins {
@@ -88,7 +88,7 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         assertionFailures[0].actual == "bar"
     }
 
-    def "Emits test failure events for Junit 4 tests"() {
+    def "Emits test failure events for JUnit 4 tests"() {
         setup:
         buildFile << """
             plugins {
@@ -181,7 +181,7 @@ class TestFailureProgressEventCrossVersionTest extends ToolingApiSpecification {
         frameworkFailures[0].stacktrace == frameworkFailures[0].description
     }
 
-    def "Emits test failure events for Junit 5 tests"() {
+    def "Emits test failure events for JUnit 5 tests"() {
         setup:
         buildFile << """
             plugins {
