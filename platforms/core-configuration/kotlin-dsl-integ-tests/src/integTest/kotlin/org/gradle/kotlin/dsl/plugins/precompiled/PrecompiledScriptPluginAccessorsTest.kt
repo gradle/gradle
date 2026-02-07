@@ -267,7 +267,9 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                 "Remove 'version' from the plugin request for 'a.plugin' in 'src/main/kotlin/invalid-plugin.settings.gradle.kts'. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_version_in_precompiled_settings_script_plugins"
         )
-        build("assemble")
+        buildAndFail("assemble").assertHasErrorOutput(
+            "Plugin [id: 'a.plugin'] was not found in any of the following sources:"
+        )
     }
 
     @Issue("https://github.com/gradle/gradle/issues/14437")

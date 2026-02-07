@@ -35,6 +35,7 @@ import org.gradle.api.internal.properties.GradlePropertiesController;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.api.problems.Problems;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
@@ -106,7 +107,14 @@ public class ProjectBuilderImpl {
 
         projectDir = (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name);
         // Descriptor is added to registry as a side effect
-        ProjectDescriptorInternal projectDescriptor = new DefaultProjectDescriptor(parentDescriptor, name, projectDir, descriptorRegistry, parentProject.getServices().get(FileResolver.class));
+        ProjectDescriptorInternal projectDescriptor = new DefaultProjectDescriptor(
+            parentDescriptor,
+            name,
+            projectDir,
+            descriptorRegistry,
+            parentProject.getServices().get(FileResolver.class),
+            parentProject.getServices().get(Problems.class).getReporter()
+        );
 
         ProjectState projectState = parentProject.getServices().get(ProjectStateRegistry.class).registerProject(parentProject.getServices().get(BuildState.class), projectDescriptor);
         projectState.createMutableModel(parentProject.getClassLoaderScope().createChild("project-" + name, null), parentProject.getBaseClassLoaderScope());
@@ -191,8 +199,17 @@ public class ProjectBuilderImpl {
         gradlePropertiesController.loadGradleProperties(build.getBuildIdentifier(), build.getBuildRootDir(), false);
 
         ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
+        FileResolver fileResolver = buildServices.get(FileResolver.class);
+        Problems problems = buildServices.get(Problems.class);
+
         // Registers project as a side effect
-        ProjectDescriptorInternal projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, projectDescriptorRegistry, buildServices.get(FileResolver.class));
+        ProjectDescriptorInternal projectDescriptor = new DefaultProjectDescriptor(null,
+            name,
+            projectDir,
+            projectDescriptorRegistry,
+            fileResolver,
+            problems.getReporter()
+        );
 
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project", null);

@@ -21,7 +21,7 @@ plugins {
 description = "Public API classes used by project features"
 
 dependencies {
-    api(libs.inject)
+    api(projects.baseServices)
     api(projects.coreApi)
     api(projects.stdlibJavaExtensions)
 }

@@ -21,15 +21,14 @@ import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.internal.declarativedsl.assertFailsWith
-import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.Test
-import org.junit.jupiter.api.assertThrows
 import org.gradle.internal.declarativedsl.assertIs
 import org.gradle.internal.declarativedsl.schemaBuilder.DeclarativeDslSchemaBuildingException
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaUtils.singleFunctionNamed
 import org.gradle.internal.declarativedsl.schemaUtils.typeFor
 import org.junit.Assert
+import org.junit.Test
+import org.junit.jupiter.api.assertThrows
 
 
 class FunctionExtractorTest {
@@ -43,10 +42,15 @@ class FunctionExtractorTest {
 
     @Test
     fun `adding function may not have a configuring lambda if it returns Unit`() {
-        val exception = assertThrows<IllegalStateException> {
+        assertThrows<DeclarativeDslSchemaBuildingException> {
             schemaFromTypes(ReceiverTwo::class, listOf(ReceiverTwo::class))
+        }.run {
+            Assert.assertEquals("""
+                |An @Adding function with a Unit return type may not accept configuring lambdas
+                |  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.ReceiverTwo.adding((org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.ReceiverTwo) -> kotlin.Unit): kotlin.Unit'
+                |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.ReceiverTwo'
+            """.trimMargin("|"), message)
         }
-        assertTrue { exception.message!!.contains("@Adding") }
     }
 
     @Test
@@ -104,7 +108,7 @@ class FunctionExtractorTest {
         assertFailsWith<DeclarativeDslSchemaBuildingException> { schemaFromTypes(HasPairFactory::class, listOf(HasPairFactory::class)) }.run {
             Assert.assertEquals(
                 """
-                    |Illegal type 'kotlin.Pair<kotlin.String, kotlin.String>': functions returning Pair are not supported
+                    |Illegal type 'kotlin.Pair<kotlin.String, kotlin.String>': functions returning Pair types are not supported
                     |  in return value type 'kotlin.Pair<kotlin.String, kotlin.String>'
                     |  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.HasPairFactory.pair(): kotlin.Pair<kotlin.String, kotlin.String>'
                     |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.FunctionExtractorTest.HasPairFactory'

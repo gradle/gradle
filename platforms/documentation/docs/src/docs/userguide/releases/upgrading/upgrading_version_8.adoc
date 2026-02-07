@@ -466,7 +466,7 @@ The method was deprecated because it was not intended for public use in build sc
 [[reporting-base-dir]]
 ==== ReportingExtension.baseDir
 
-`ReportingExtension.getBaseDir()`, ``ReportingExtension.setBaseDir(File)`, and `ReportingExtension.setBaseDir(Object)` were deprecated.
+`ReportingExtension.getBaseDir()`, `ReportingExtension.setBaseDir(File)`, and `ReportingExtension.setBaseDir(Object)` were deprecated.
 They should be replaced with `ReportingExtension.getBaseDirectory()` property.
 
 [[changes_8.11]]
@@ -512,9 +512,9 @@ This change impacts:
 === Deprecations
 
 [[deprecated_fork_options_java_home]]
-==== Deprecated JavaHome property of ForkOptions
+==== Deprecated javaHome property of ForkOptions
 
-The link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getJavaHome()-[JavaHome] property of the `ForkOptions` type has been deprecated and will be removed in Gradle 9.0.0.
+The link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getJavaHome()-[javaHome] property of the `ForkOptions` type has been deprecated and will be removed in Gradle 9.0.0.
 
 Use <<toolchains.adoc#sec:consuming,JVM Toolchains>>, or the link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getExecutable()-[executable] property instead.
 
@@ -603,7 +603,7 @@ To discover details about all projects that were included in a resolution, inspe
 Project dependencies are exposed in the link:{javadocPath}/org/gradle/api/artifacts/result/DependencyResult.html[DependencyResult].
 See the user guide section on <<graph_resolution.adoc#dependency-graph-resolution,programmatic dependency resolution>> for more details on this API.
 This is the only reliable way to find all projects that are used in a resolution.
-Inspecting only the declared `ProjectDependency`s may miss transitive or substituted project dependencies.
+Inspecting only the declared ``ProjectDependency``s may miss transitive or substituted project dependencies.
 
 To get the identity of the target project, use the new Isolated Projects safe project path method: link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getPath()[`ProjectDependency#getPath()`].
 
@@ -1306,7 +1306,7 @@ To fix a deprecation warning, invalid URLs that require the legacy behavior shou
 | `file:relative/path%21` | `relative/path!` | Without a scheme, the path is taken as-is, without decoding.
 | `https://example.com/my folder/` | `https://example.com/my%20folder/` | Spaces are not valid in URLs.
 | `https://example.com/my%%badly%encoded%path` | `https://example.com/my%25%25badly%25encoded%25path` | `%` must be encoded as `%25` in URLs, and no `%`-escapes should be invalid.
-| file::somepath | somepath | URIs should be hierarchical.
+| `file::somepath` | `somepath` | URIs should be hierarchical.
 |===
 
 [[deprecate_self_resolving_dependency]]

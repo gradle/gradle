@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.SubstitutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
@@ -652,10 +653,19 @@ public class NodeState implements DependencyGraphNode {
         if (excludeSpec == moduleExclusions.nothing()) {
             return false;
         }
-        ModuleIdentifier targetModuleId = edgeState.getDependencyState().getModuleIdentifier(resolveState.getComponentSelectorConverter());
+
+        ComponentSelectorConverter componentSelectorConverter = resolveState.getComponentSelectorConverter();
+        ModuleIdentifier targetModuleId = edgeState.getDependencyState().getModuleIdentifier(componentSelectorConverter);
+
         if (excludeSpec.excludes(targetModuleId)) {
             LOGGER.debug("{} is excluded from {} by {}.", targetModuleId, this, excludeSpec);
             return true;
+        }
+
+        // If we were substituted, apply the exclusion to the original selector as well.
+        ComponentSelector requestedSelector = edgeState.getDependencyState().getRequested();
+        if (requestedSelector != edgeState.getDependencyState().getDependency().getSelector()) {
+            return excludeSpec.excludes(componentSelectorConverter.getModuleVersionId(requestedSelector).getModule());
         }
 
         return false;

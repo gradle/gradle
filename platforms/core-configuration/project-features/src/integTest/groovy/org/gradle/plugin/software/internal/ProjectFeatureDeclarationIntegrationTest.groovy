@@ -600,6 +600,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("definition fizz.buzz = baz")
         outputContains("model id = test")
         outputContains("model text = foo")
+        outputContains("model dir = ${testDirectory.file("foo").absolutePath}")
     }
 
     void assertDescriptionOrCause(ExecutionFailure failure, String expectedMessage) {

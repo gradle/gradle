@@ -59,6 +59,8 @@ The `gradlePlugin {}` block defines the plugins being built by the project.
 The plugin `id` is set from the registration name, here `org.gradle.sample.simple-plugin`.
 Then, you define the `implementationClass` of the plugin, here `org.gradle.sample.SimplePlugin`.
 
+You can override the plugin `id` by explicitly setting the `id` property such as `id = "convention-plugin"`.
+
 From this data about the plugins being developed, Gradle can automatically:
 
 * Generate the plugin descriptor in the `jar` file's `META-INF` directory.

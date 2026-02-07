@@ -30,6 +30,7 @@ import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
 import org.gradle.tooling.model.Element
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.util.GradleVersion
 import spock.lang.Specification
 
 class ParameterAwareBuildControllerAdapterTest extends Specification {
@@ -45,7 +46,7 @@ class ParameterAwareBuildControllerAdapterTest extends Specification {
         }
     }
     def delegate = Mock(InternalBuildControllerVersion2)
-    def controller = new ParameterAwareBuildControllerAdapter(delegate, adapter, mapping, Stub(VersionDetails), new File("root"))
+    def controller = new ParameterAwareBuildControllerAdapter(delegate, adapter, mapping, VersionDetails.from(GradleVersion.current()), new File("root"))
 
     def "unpacks unsupported model exception"() {
         def failure = new RuntimeException()

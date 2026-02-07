@@ -75,6 +75,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -182,6 +183,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
     private boolean jdkWarningChecksOn = false;
+    private final List<String> ignoredLines = new ArrayList<>();
 
     private final MutableActionSet<GradleExecuter> beforeExecute = new MutableActionSet<>();
     private ImmutableActionSet<GradleExecuter> afterExecute = ImmutableActionSet.empty();
@@ -298,6 +300,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public TestDirectoryProvider getTestDirectoryProvider() {
         return testDirectoryProvider;
+    }
+
+    @Override
+    public IntegrationTestBuildContext getBuildContext() {
+        return buildContext;
     }
 
     @Override
@@ -590,18 +597,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             gradleInvocation.implicitLauncherJvmArgs.add(debugLauncher.toDebugArgument());
         }
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
-
-        // Note: it's possible we shouldn't calculate _any_ implicit JVM args when requested to use only the specified ones, but to preserve behavior I only excluded the new flag here
-        if (useOnlyRequestedJvmOpts) {
-            return;
-        }
-
-        JavaVersion javaVersion = getJavaVersionFromJavaHome();
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
-            // Remove known warning that occurs in the launcher. This can be fixed by refactoring the bin/gradle start script to pass the flag or by adding the flag to the launcher JAR
-            // and refactoring the start script to use that JAR instead of a main class.
-            gradleInvocation.implicitLauncherJvmArgs.add("--enable-native-access=ALL-UNNAMED");
-        }
     }
 
     protected static String joinAndQuoteJvmArgs(List<String> buildJvmArgs) {
@@ -1382,6 +1377,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return new ResultAssertion(
             expectedDeprecationWarnings,
             maybeExpectedDeprecationWarnings,
+            ignoredLines,
             !stackTraceChecksOn,
             shouldCheckDeprecations,
             jdkWarningChecksOn
@@ -1409,6 +1405,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
         return expectExternalDeprecatedMessage(normalizeDocumentationLink(warning));
+    }
+
+    @Override
+    public GradleExecuter ignoreLines(List<String> lines) {
+        this.ignoredLines.addAll(lines);
+        return this;
+    }
+
+    public List<String> getIgnoredLines() {
+        return Collections.unmodifiableList(ignoredLines);
     }
 
     private String normalizeDocumentationLink(String warning) {

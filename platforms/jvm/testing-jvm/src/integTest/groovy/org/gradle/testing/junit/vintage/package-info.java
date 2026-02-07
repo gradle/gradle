@@ -17,5 +17,11 @@
 /**
  * This package contains tests that should be specific to the JUnit Vintage engine.  Many classes
  * may extend from abstract classes in the junit4 package.
+ * <p>
+ * Vintage began to be supported with JUnit 5, it is deprecated in JUnit 6.
+ * <p>
+ * These tests should be applicable to any version of JUnit >= 5.  They may only run against the latest major
+ * version, however.  Major version specific tests should be located in the {@code org.gradle.testing.junitX.vintage}
+ * package.
  */
 package org.gradle.testing.junit.vintage;

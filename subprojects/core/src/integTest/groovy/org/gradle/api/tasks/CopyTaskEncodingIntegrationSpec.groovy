@@ -17,28 +17,27 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
-
 @DoesNotSupportNonAsciiPaths(reason = "Uses non-Unicode default charset")
 class CopyTaskEncodingIntegrationSpec extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2181")
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires explicit encoding")
-    def "can copy files with unicode characters in name with non-unicode platform encoding"() {
+    @UnsupportedWithConfigurationCache(iterationMatchers = [".*using copy method"], because = "legacy Project.copy at execution time")
+    def "can copy files with unicode characters in name with non-unicode platform encoding using #copyMethod method"() {
         given:
         def nonAsciiFileName = "القيادة والسيطرة - الإدارة.lnk"
 
         buildFile << """
+            ${FsOpsFixture.injectFsOps()}
             task copyFiles {
                 doLast {
-                    copy {
+                    ${copyMethod} {
                         from 'res'
                         into 'build/resources'
                     }
@@ -54,6 +53,9 @@ class CopyTaskEncodingIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         file("build/resources", nonAsciiFileName).exists()
+
+        where:
+        copyMethod << ['copy', 'fsOps.copy']
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2181")

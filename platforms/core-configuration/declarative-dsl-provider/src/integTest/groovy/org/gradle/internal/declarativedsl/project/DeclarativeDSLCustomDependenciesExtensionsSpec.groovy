@@ -25,6 +25,8 @@ import org.gradle.api.internal.plugins.BuildModel
 import org.gradle.api.internal.plugins.ProjectTypeBinding
 import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.features.registration.ConfigurationRegistrar
+import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -137,8 +139,10 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                 static class Binding implements ${ProjectTypeBinding.class.simpleName} {
                     public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
                         builder.bindProjectType("library",  LibraryExtension.class, (context, definition, model) -> {
+                            Services services = context.getObjectFactory().newInstance(Services.class);
+
                             // no plugin application, must create configurations manually
-                            DependencyScopeConfiguration conf = context.getProject().getConfigurations().dependencyScope("conf").get();
+                            DependencyScopeConfiguration conf = services.getConfigurationRegistrar().dependencyScope("conf").get();
 
                             // Add the dependency scopes to the model
                             model.setApi(conf);
@@ -147,6 +151,11 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             model.getApi().fromDependencyCollector(definition.getSub().getConf());
                         })
                         .withUnsafeDefinition();
+                    }
+
+                    interface Services {
+                        @javax.inject.Inject
+                        ${ConfigurationRegistrar.class.name} getConfigurationRegistrar();
                     }
                 }
 
@@ -208,9 +217,11 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                 static class Binding implements ${ProjectTypeBinding.class.simpleName} {
                     public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
                         builder.bindProjectType("library",  LibraryExtension.class, (context, definition, model) -> {
+                            Services services = context.getObjectFactory().newInstance(Services.class);
+
                             // no plugin application, must create configurations manually
-                            DependencyScopeConfiguration myConf = context.getProject().getConfigurations().dependencyScope("myConf").get();
-                            DependencyScopeConfiguration myOtherConf = context.getProject().getConfigurations().dependencyScope("myOtherConf").get();
+                            DependencyScopeConfiguration myConf = services.getConfigurationRegistrar().dependencyScope("myConf").get();
+                            DependencyScopeConfiguration myOtherConf = services.getConfigurationRegistrar().dependencyScope("myOtherConf").get();
 
                             // Add the dependency scopes to the model
                             model.setApi(myConf);
@@ -221,6 +232,11 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             model.getImplementation().fromDependencyCollector(definition.getDependencies().getSomethingElse());
                         })
                         .withUnsafeDefinition();
+                    }
+
+                    interface Services {
+                        @javax.inject.Inject
+                        ${ConfigurationRegistrar.class.name} getConfigurationRegistrar();
                     }
                 }
 
@@ -615,9 +631,11 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                 static class Binding implements ${ProjectTypeBinding.class.simpleName} {
                     public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
                         builder.bindProjectType("library",  LibraryExtension.class, (context, definition, model) -> {
+                            Services services = context.getObjectFactory().newInstance(Services.class);
+
                             // no plugin application, must create configurations manually
-                            DependencyScopeConfiguration api = context.getProject().getConfigurations().dependencyScope("api").get();
-                            DependencyScopeConfiguration implementation = context.getProject().getConfigurations().dependencyScope("implementation").get();
+                            DependencyScopeConfiguration api = services.getConfigurationRegistrar().dependencyScope("api").get();
+                            DependencyScopeConfiguration implementation = services.getConfigurationRegistrar().dependencyScope("implementation").get();
 
                             // Add the dependency scopes to the model
                             model.setApi(api);
@@ -628,21 +646,29 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             model.getImplementation().fromDependencyCollector(definition.getDependencies().getImplementation());
 
                             // and create and wire a configuration that can resolve that one
-                            NamedDomainObjectProvider<ResolvableConfiguration> resolveApi = context.getProject().getConfigurations().resolvable("resolveApi");
+                            NamedDomainObjectProvider<ResolvableConfiguration> resolveApi = services.getConfigurationRegistrar().resolvable("resolveApi");
                             resolveApi.get().extendsFrom(api);
 
-                            context.getProject().getTasks().register("resolveApi", ResolveTask.class, task -> {
+                            services.getTaskRegistrar().register("resolveApi", ResolveTask.class, task -> {
                                 task.getResolvedFiles().from(resolveApi);
                             });
 
-                            NamedDomainObjectProvider<ResolvableConfiguration> resolveImplementation = context.getProject().getConfigurations().resolvable("resolveImplementation");
+                            NamedDomainObjectProvider<ResolvableConfiguration> resolveImplementation = services.getConfigurationRegistrar().resolvable("resolveImplementation");
                             resolveImplementation.get().extendsFrom(implementation);
 
-                            context.getProject().getTasks().register("resolveImplementation", ResolveTask.class, task -> {
+                            services.getTaskRegistrar().register("resolveImplementation", ResolveTask.class, task -> {
                                 task.getResolvedFiles().from(resolveImplementation);
                             });
                         })
                         .withUnsafeDefinition();
+                    }
+
+                    interface Services {
+                        @javax.inject.Inject
+                        ${ConfigurationRegistrar.class.name} getConfigurationRegistrar();
+
+                        @javax.inject.Inject
+                        ${TaskRegistrar.class.name} getTaskRegistrar();
                     }
                 }
 
@@ -669,9 +695,11 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                 class Binding : ${ProjectTypeBinding.class.simpleName} {
                     override fun bind(builder: ${ProjectTypeBindingBuilder.class.simpleName}) {
                         builder.bindProjectType("library",  LibraryExtension::class.java) { context, definition, model ->
+                            val services = context.objectFactory.newInstance(Services::class.java)
+
                             // no plugin application, must create configurations manually
-                            val api: DependencyScopeConfiguration = context.getProject().getConfigurations().dependencyScope("api").get()
-                            val implementation: DependencyScopeConfiguration = context.getProject().getConfigurations().dependencyScope("implementation").get()
+                            val api: DependencyScopeConfiguration = services.configurationRegistrar.dependencyScope("api").get()
+                            val implementation: DependencyScopeConfiguration = services.configurationRegistrar.dependencyScope("implementation").get()
 
                             // Add the dependency scopes to the model
                             model.api = api
@@ -682,6 +710,11 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                             model.implementation!!.fromDependencyCollector(definition.dependencies.implementation)
                         }
                         .withUnsafeDefinition()
+                    }
+
+                    interface Services {
+                        @get:javax.inject.Inject
+                        val configurationRegistrar: ${ConfigurationRegistrar.class.name}
                     }
                 }
 

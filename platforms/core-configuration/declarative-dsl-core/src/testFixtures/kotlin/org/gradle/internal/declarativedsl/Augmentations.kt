@@ -26,8 +26,10 @@ import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
 import org.gradle.internal.declarativedsl.schemaBuilder.AugmentationsProvider
+import org.gradle.internal.declarativedsl.schemaBuilder.LossySchemaBuildingOperation
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelMember
+import org.gradle.internal.declarativedsl.schemaBuilder.orError
 import kotlin.reflect.full.functions
 
 fun fakeListAugmentationProvider(): AugmentationsProvider =
@@ -35,7 +37,8 @@ fun fakeListAugmentationProvider(): AugmentationsProvider =
         override fun augmentations(host: SchemaBuildingHost): Map<FqName, List<AssignmentAugmentation>> {
             val listSignatureFunction = this::class.functions.single { it.name == "listSignature" }
             return host.inContextOfModelMember(listSignatureFunction) {
-                val listOfTType = host.modelTypeRef(listSignatureFunction.parameters.last().type)
+                @OptIn(LossySchemaBuildingOperation::class) // referencing a predefined type is safe
+                val listOfTType = host.modelTypeRef(listSignatureFunction.parameters.last().type).orError()
                 mapOf(
                     DefaultFqName.parse(List::class.qualifiedName!!) to listOf(
                         DefaultAssignmentAugmentation(

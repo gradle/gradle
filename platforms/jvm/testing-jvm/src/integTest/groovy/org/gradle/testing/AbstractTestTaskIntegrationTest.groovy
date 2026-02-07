@@ -17,7 +17,9 @@
 package org.gradle.testing
 
 import com.google.common.base.Utf8
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
@@ -73,8 +75,8 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
 
         and:
         // 255 is the filesystem limit on many systems, so we limit to that.
-        def htmlReportName = buildSafeFileName("__", "-39OAC63KMJT6O") + "/index.html"
-        def xmlReportName = buildSafeFileName("__TEST-", "-VDVVE6CE3E5C8.xml")
+        def htmlReportName = buildSafeFileName("", "-39OAC63KMJT6O") + "/index.html"
+        def xmlReportName = buildSafeFileName("TEST-", "-5KFS1VR5035J6.xml")
         // These do an `any` check to give a better error message on failure
         file("build/reports/tests/test/").assertContainsDescendants(htmlReportName)
         file("build/test-results/test/").assertContainsDescendants(xmlReportName)
@@ -118,10 +120,10 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
         result.assertTaskSkipped(":test")
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
-    def "compiles and executes a Java 9 test suite"() {
+    def "compiles and executes a Java test above Gradle's minimum Java version"() {
         given:
-        buildFile << java9Build()
+        buildFile << buildRequestingNewerJavaVersion()
+        assert SupportedJavaVersions.MINIMUM_WORKER_JAVA_VERSION < 17 : "Gradle requires a higher Java version, raise this check"
 
         file('src/test/java/MyTest.java') << standaloneTestClass
 
@@ -132,14 +134,13 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
         noExceptionThrown()
 
         and:
-        classFormat(classFile('java', 'test', 'MyTest.class')) == 53
+        classFormat(classFile('java', 'test', 'MyTest.class')) == JavaVersion.VERSION_17
 
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
-    def "compiles and executes a Java 9 test suite even if a module descriptor is on classpath"() {
+    def "compiles and executes a Java test even if a module descriptor is on classpath"() {
         given:
-        buildFile << java9Build()
+        buildFile << buildRequestingNewerJavaVersion()
 
         file('src/test/java/MyTest.java') << standaloneTestClass
         file('src/main/java/com/acme/Foo.java') << '''package com.acme;
@@ -156,8 +157,8 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
         noExceptionThrown()
 
         and:
-        classFormat(javaClassFile('module-info.class')) == 53
-        classFormat(classFile('java', 'test', 'MyTest.class')) == 53
+        classFormat(javaClassFile('module-info.class')) == JavaVersion.VERSION_17
+        classFormat(classFile('java', 'test', 'MyTest.class')) == JavaVersion.VERSION_17
     }
 
     def "test task does not hang if maxParallelForks is greater than max-workers (#maxWorkers)"() {
@@ -396,16 +397,16 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
         "after"  | afterClassAnnotation
     }
 
-    private String java9Build() {
+    private String buildRequestingNewerJavaVersion() {
         """
             java {
-                sourceCompatibility = 1.9
-                targetCompatibility = 1.9
+                sourceCompatibility = 17
+                targetCompatibility = 17
             }
         """
     }
 
-    private static int classFormat(TestFile path) {
-        path.bytes[7] & 0xFF
+    private static JavaVersion classFormat(TestFile path) {
+        JavaVersion.forClassVersion(path.bytes[7] & 0xFF)
     }
 }

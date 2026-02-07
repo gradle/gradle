@@ -52,9 +52,9 @@ testing {
             }
 
             dependencies {
-                implementation(project.dependencies.create(project))
+                implementation(project())
                 notForAccessorGeneration {
-                    implementation(project.dependencies.platform(project(":distributions-dependencies")))
+                    implementation(platform(project(":distributions-dependencies")))
                     implementation(project(":internal-architecture-testing"))
                 }
             }

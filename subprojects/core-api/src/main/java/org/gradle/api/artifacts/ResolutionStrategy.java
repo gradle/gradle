@@ -17,7 +17,10 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderConvertible;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -183,10 +186,14 @@ public interface ResolutionStrategy {
      * Allows forcing certain versions of dependencies, including transitive dependencies.
      * <b>Appends</b> new forced modules to be considered when resolving dependencies.
      * <p>
-     * It accepts following notations:
+     * It accepts the following notations:
      * <ul>
      *   <li>String in a format of: 'group:name:version', for example: 'org.gradle:gradle-core:1.0'</li>
-     *   <li>instance of {@link ModuleVersionSelector}</li>
+     *   <li>Map with keys 'group', 'name' and 'version'; for example: [group: 'org.gradle', name: 'gradle-core', version: '1.0']</li>
+     *   <li>{@link Provider} and {@link ProviderConvertible} of {@link MinimalExternalModuleDependency}</li>
+     *   <li>instance of {@link ExternalDependency}</li>
+     *   <li>instance of {@link ModuleComponentSelector}</li>
+     *   <li>instance of {@link ModuleVersionSelector} (deprecated)</li>
      *   <li>any collection or array of above will be automatically flattened</li>
      * </ul>
      * Example:
@@ -200,11 +207,11 @@ public interface ResolutionStrategy {
      * }
      * </pre>
      *
-     * @param moduleVersionSelectorNotations typically group:name:version notations to append
+     * @param notations typically group:name:version notations to append
      * @return this ResolutionStrategy instance
      * @since 1.0-milestone-7
      */
-    ResolutionStrategy force(Object... moduleVersionSelectorNotations);
+    ResolutionStrategy force(Object... notations);
 
     /**
      * Allows forcing certain versions of dependencies, including transitive dependencies.

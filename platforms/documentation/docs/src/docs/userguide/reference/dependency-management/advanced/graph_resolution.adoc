@@ -351,13 +351,13 @@ B. **Resolving module dependencies for a specific version**: Gradle retrieves th
 
 === A. Determining existing versions for dynamic dependencies
 
-When faced with a dynamic version, Gradle must identify the available concrete versions through the following steps:
+When faced with a dynamic version, Gradle must identify the available concrete versions.
+To do that, Gradle checks each defined repository in the order they were added.
+It doesn't stop at the first one that returns metadata but continues through all available repositories.
 
-1. **Inspecting repositories**: Gradle checks each defined repository in the order they were added. It doesn't stop at the first one that returns metadata but continues through all available repositories.
+For **Maven repositories**, Gradle retrieves version information from the `maven-metadata.xml` file, which lists available versions.
 
-2. **Maven repositories**: Gradle retrieves version information from the `maven-metadata.xml` file, which lists available versions.
-
-3. **Ivy repositories**: Gradle resorts to a directory listing to gather available versions.
+For **Ivy repositories**, Gradle resorts to a directory listing to gather available versions.
 
 The result is a list of candidate versions that Gradle evaluates and matches to the dynamic version.
 Gradle <<dependency_caching.adoc#sec:controlling-dynamic-version-caching,caches>> this information to optimize future resolution.

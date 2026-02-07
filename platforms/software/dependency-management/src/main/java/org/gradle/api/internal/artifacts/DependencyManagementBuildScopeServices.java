@@ -194,7 +194,8 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
             capabilityNotationParser,
             objectFactory,
             projectDependencyFactory,
-            attributesFactory
+            attributesFactory,
+            null
         );
     }
 
