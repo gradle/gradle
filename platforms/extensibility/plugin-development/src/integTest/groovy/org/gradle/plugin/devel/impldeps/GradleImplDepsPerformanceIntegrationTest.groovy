@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.devel.impldeps
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.testing.internal.util.RetryUtil
@@ -24,7 +23,6 @@ import org.gradle.testing.internal.util.RetryUtil
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // Gradle API and TestKit JARs are not generated when running embedded
 class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
-    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FLAKY)
     def "Gradle API JAR is generated in an acceptable time frame"() {
         buildFile << """
             configurations {
@@ -44,7 +42,6 @@ class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegra
         }
     }
 
-    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FLAKY)
     def "TestKit JAR is generated in an acceptable time frame"() {
         buildFile << """
             configurations {
@@ -67,9 +64,10 @@ class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegra
     static String resolveDependencies(long maxMillis) {
         """
             task resolveDependencies {
+                def depsConf = configurations.named("deps").map { it.resolve() }
                 doLast {
                     def timeStart = new Date()
-                    configurations.deps.resolve()
+                    depsConf.get()
                     def timeStop = new Date()
                     def duration = groovy.time.TimeCategory.minus(timeStop, timeStart)
                     assert duration.toMilliseconds() < $maxMillis
