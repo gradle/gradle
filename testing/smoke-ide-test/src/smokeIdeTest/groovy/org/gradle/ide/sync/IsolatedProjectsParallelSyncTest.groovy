@@ -36,7 +36,7 @@ class IsolatedProjectsParallelSyncTest extends AbstractIdeSyncTest {
         server.expectConcurrent("configure-a", "configure-b")
 
         expect:
-        ideaSync(IDEA_COMMUNITY_VERSION)
+        ideaSync(IDEA_VERSION)
     }
 
     private void simpleProject() {
