@@ -208,7 +208,7 @@ public class GraphVariantSelector {
      * attribute matching ensures selected variants are compatible with the requested attributes.
      */
     private void validateVariantAttributes(
-        VariantGraphResolveState conf,
+        VariantGraphResolveState resolvedConf,
         ImmutableAttributes consumerAttributes,
         ComponentGraphResolveState targetComponentState,
         ImmutableAttributesSchema consumerSchema
@@ -216,10 +216,17 @@ public class GraphVariantSelector {
         ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
         AttributeMatcher attributeMatcher = attributeSchemaServices.getMatcher(consumerSchema, targetComponent.getAttributesSchema());
 
-        if (!consumerAttributes.isEmpty() && !conf.getAttributes().isEmpty()) {
+        if (!consumerAttributes.isEmpty() && !resolvedConf.getAttributes().isEmpty()) {
             // Need to validate that the selected configuration still matches the consumer attributes
-            if (!attributeMatcher.isMatchingCandidate(conf.getAttributes(), consumerAttributes)) {
-                throw failureHandler.configurationNotCompatibleFailure(attributeMatcher, targetComponentState, conf, consumerAttributes, conf.getCapabilities());
+            if (!attributeMatcher.isMatchingCandidate(resolvedConf.getAttributes(), consumerAttributes)) {
+                throw failureHandler.configurationNotCompatibleFailure(attributeMatcher, targetComponentState, resolvedConf, consumerAttributes, resolvedConf.getCapabilities());
+            }
+        } else {
+            if (resolvedConf.getAttributes().isEmpty()) {
+                DeprecationLogger.deprecateBehaviour("Variant: '" + resolvedConf.getName() + "' has no attributes and has been consumed.")
+                    .willBecomeAnErrorInNextMajorGradleVersion()
+                    .withUpgradeGuideSection(9, "attributeless-configurations")
+                    .nagUser();
             }
         }
     }
