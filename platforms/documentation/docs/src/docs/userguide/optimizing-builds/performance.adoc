@@ -173,6 +173,7 @@ By adjusting the build configuration to run these two slow tasks earlier and in 
 
 image::performance/parallel-task-fast.png[title="Optimized parallel execution"]
 
+[[sec:configure_tooling_api_actions_parallelism]]
 === Configure Tooling API actions parallelism
 
 By enabling Parallel Execution, you also allow parallelism for Tooling API actions.
