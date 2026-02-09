@@ -186,7 +186,7 @@ plugins {
 
 The use of `version` within <<implementing_gradle_plugins_precompiled.adoc#settings_pre_compiled_plugins, precompiled Settings script plugins>> is now deprecated and will become an error in Gradle 10.0.0.
 
-In precompiled Settings scripts, `version` has no effect.
+In precompiled scripts, `version` has no effect.
 The plugin version is already fixed by the script's own build file; declaring it again inside the script is ignored and causes confusion about which version is actually in use.
 
 To fix this, remove the `.version()` or `version "..."` call from the `plugins {}` block:
