@@ -403,7 +403,7 @@ Gradle now provides granular control over how [Tooling API](userguide/tooling_ap
 Previously, parallelism for Tooling API actions was tied directly to the `org.gradle.parallel` property.
 This meant that if you wanted to enable parallel task execution, you were forced to also enable parallel IDE actions, and vice versa.
 
-The new property decouples these two behaviors.
+The new property allows decoupling these two aspects.
 This is particularly relevant for the IDE Sync scenarios, where IDEs can take advantage of the parallelism to improve performance (independently of your task execution strategy):
 
 ```text
@@ -415,6 +415,9 @@ org.gradle.tooling.parallel=true
 // Controls parallelism for task execution (e.g., build/test)
 org.gradle.parallel=false
 ```
+
+When `org.gradle.tooling.parallel` is not specified, it defaults to the value of `org.gradle.parallel`, preserving the existing performance expectations.
+See [userguide](userguide/performance.html#sec:configure_tooling_api_actions_parallelism) for additional details.
 
 #### Tooling integration improvements
 
