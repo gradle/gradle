@@ -22,7 +22,7 @@ import org.junit.runners.model.Statement
 
 class PerformanceTestIdProvider implements TestRule {
 
-    private testSpec
+    private PerformanceTestRunner testSpec
     private String methodName
     private String className
 
@@ -36,20 +36,18 @@ class PerformanceTestIdProvider implements TestRule {
         return base
     }
 
-    void setTestSpec(testSpec) {
+    void setTestSpec(PerformanceTestRunner testSpec) {
         this.testSpec = testSpec
         updateId()
     }
 
     def updateId() {
         if (methodName != null && testSpec != null) {
-            if (testSpec.hasProperty('testId') && testSpec.testId == null) {
+            if (testSpec.testId == null) {
                 testSpec.testId = methodName
-            } else if (testSpec.hasProperty('displayName') && testSpec.displayName == null) {
-                testSpec.displayName = methodName
             }
 
-            if(testSpec.hasProperty('testClassName') && testSpec.testClassName == null) {
+            if (testSpec.testClassName == null) {
                 testSpec.testClassName = className
             }
         }

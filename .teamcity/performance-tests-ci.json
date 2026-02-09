@@ -37,6 +37,14 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.ip.IsolatedProjectsAndroidSyncPerformanceComparisonTest.run Android Studio sync",
+    "groups" : [ {
+      "testProject" : "android500Kts",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.abi change",
     "groups" : [ {
       "testProject" : "nowInAndroidBuild",
@@ -496,6 +504,14 @@
       "testProject" : "mediumMonolithicJavaProject",
       "coverage" : {
         "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.ip.IsolatedProjectsAndroidSyncPerformanceRegressionTest.run Android Studio sync",
+    "groups" : [ {
+      "testProject" : "android500Kts",
+      "coverage" : {
+        "per_commit" : [ "linux" ]
       }
     } ]
   }, {
