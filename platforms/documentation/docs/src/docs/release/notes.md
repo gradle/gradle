@@ -417,7 +417,7 @@ org.gradle.parallel=false
 ```
 
 When `org.gradle.tooling.parallel` is not specified, it defaults to the value of `org.gradle.parallel`, preserving the existing performance expectations.
-See [userguide](userguide/performance.html#sec:configure_tooling_api_actions_parallelism) for additional details.
+For more information, see the [Tooling API parallelism configuration](userguide/performance.html#sec:configure_tooling_api_actions_parallelism) section of the user guide.
 
 #### Tooling integration improvements
 
