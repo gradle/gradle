@@ -72,4 +72,53 @@ trait FlowActionsFixture {
         }
         """
     }
+
+    /**
+     * Builds a {@link org.gradle.api.invocation.Gradle#buildFinished(groovy.lang.Closure)} callback implementation.
+     * To make the implementation compatible with FlowAction, wraps the result into {@link BuildWorkResult}
+     * This method builds Groovy DSL code.
+     *
+     * @param buildFinished the implementation of the callback
+     * @param resultVar the variable in which {@link BuildWorkResult} is stored
+     * @return the Groovy DSL snippet that registers a callback
+     */
+    String legacyBuildFinishedCallback(@GroovyBuildScriptLanguage buildFinished, String resultVar = "result") {
+        """
+        gradle.buildFinished { originalResult ->
+            def $resultVar = new ${BuildWorkResult.name}() {
+                @Override
+                ${Optional.name}<Throwable> getFailure() { ${Optional.name}.ofNullable(originalResult.failure) }
+            }
+
+            ${buildFinished}
+        }
+        """
+    }
+
+    enum BuildFinishCallbackType {
+        FLOW_ACTION,
+        BUILD_FINISHED
+    }
+
+    static List<BuildFinishCallbackType> buildFinishCallbackTypes() {
+        return BuildFinishCallbackType.values()
+    }
+
+    /**
+     * Helper that builds an appropriate snippet with {@link #buildFinishedFlowAction(java.lang.Object)} or {@link #legacyBuildFinishedCallback(java.lang.Object)}
+     * depending on the provided callback type enum.
+     * This method builds Groovy DSL code.
+     *
+     * @param callbackType the type of the callback
+     * @param buildFinished the implementation of the callback
+     * @param resultVar the variable in which {@link BuildWorkResult} is stored
+     * @return the Groovy DSL snippet that registers a callback
+     */
+    String buildFinishCallback(BuildFinishCallbackType callbackType, @GroovyBuildScriptLanguage buildFinished, String resultVar = "result") {
+        switch (callbackType) {
+            case BuildFinishCallbackType.FLOW_ACTION -> buildFinishedFlowAction(buildFinished)
+            case BuildFinishCallbackType.BUILD_FINISHED -> legacyBuildFinishedCallback(buildFinished)
+            default -> throw new IllegalArgumentException("Unexpected callback type $callbackType")
+        }
+    }
 }

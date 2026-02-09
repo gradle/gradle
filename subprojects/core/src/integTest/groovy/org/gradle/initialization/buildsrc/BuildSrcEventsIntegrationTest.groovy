@@ -18,19 +18,21 @@ package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.flow.FlowActionsFixture
 
-class BuildSrcEventsIntegrationTest extends AbstractIntegrationSpec {
-    @UnsupportedWithConfigurationCache(because = "uses buildFinished")
-    def "buildSrc build finished hook is executed after running main tasks and before root build build finished hook"() {
-        file("buildSrc/build.gradle") << """
+class BuildSrcEventsIntegrationTest extends AbstractIntegrationSpec implements FlowActionsFixture {
+    @UnsupportedWithConfigurationCache(iterationMatchers = ".*BUILD_FINISHED hook.*", because = "gradle.buildFinished")
+    def "buildSrc build finished hook is executed after running main tasks and before root build #callback hook"() {
+        buildFile("buildSrc/build.gradle", """
             System.clearProperty("buildsrc")
 
-            gradle.buildFinished {
+            ${buildFinishCallback callback, """
                 println "buildSrc finished"
                 System.setProperty("buildsrc", "done")
-            }
-        """
-        file("build.gradle") << """
+            """}
+        """)
+
+        buildFile """
             task thing {
                 doLast {
                     println("running task")
@@ -38,10 +40,10 @@ class BuildSrcEventsIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            gradle.buildFinished {
+            ${buildFinishCallback callback, """
                 println "root build finished"
                 assert System.getProperty("buildsrc") == "done"
-            }
+            """}
         """
 
         when:
@@ -50,21 +52,25 @@ class BuildSrcEventsIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.indexOf("running tasks") < output.indexOf("buildSrc finished")
         output.indexOf("buildSrc finished") < output.indexOf("root build finished")
+
+        where:
+        callback << buildFinishCallbackTypes()
     }
 
-    @UnsupportedWithConfigurationCache(because = "uses buildFinished")
-    def "buildSrc build finished failure is visible to root build build finished hook"() {
-        file("buildSrc/build.gradle") << """
-            gradle.buildFinished {
+    @UnsupportedWithConfigurationCache(iterationMatchers = ".*BUILD_FINISHED hook.*", because = "gradle.buildFinished")
+    def "buildSrc build finished failure is visible to root build #callback hook"() {
+        buildFile("buildSrc/build.gradle", """
+            ${buildFinishCallback callback, """
                 println "buildSrc finished"
                 throw new RuntimeException("broken")
-            }
-        """
-        buildFile << """
-            gradle.buildFinished { result ->
+            """}
+        """)
+
+        buildFile """
+            ${buildFinishCallback callback, """
                 println "root build finished"
-                assert result.failure != null
-            }
+                assert result.failure.present
+            """}
         """
 
         when:
@@ -73,22 +79,25 @@ class BuildSrcEventsIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("root build finished")
         failure.assertHasDescription("broken")
+
+        where:
+        callback << buildFinishCallbackTypes()
     }
 
-    @UnsupportedWithConfigurationCache(because = "uses buildFinished")
-    def "buildSrc build finished failure is not lost when root build finished hook fails"() {
-        file("buildSrc/build.gradle") << """
-            gradle.buildFinished {
+    @UnsupportedWithConfigurationCache(iterationMatchers = ".*BUILD_FINISHED hook.*", because = "gradle.buildFinished")
+    def "buildSrc build finished failure is not lost when root #callback hook fails"() {
+        buildFile("buildSrc/build.gradle", """
+            ${buildFinishCallback callback, """
                 println "buildSrc finished"
                 throw new RuntimeException("buildSrc")
-            }
-        """
-        buildFile << """
-            gradle.buildFinished { result ->
+            """}
+        """)
+        buildFile """
+            ${buildFinishCallback callback, """
                 println "root build finished"
-                assert result.failure != null
+                assert result.failure.present
                 throw new RuntimeException("root build")
-            }
+            """}
         """
 
         when:
@@ -98,5 +107,8 @@ class BuildSrcEventsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("root build finished")
         failure.assertHasDescription("buildSrc")
         failure.assertHasDescription("root build")
+
+        where:
+        callback << buildFinishCallbackTypes()
     }
 }
