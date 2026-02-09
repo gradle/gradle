@@ -20,17 +20,25 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.AbstractTestJavaVersionIntegrationTest
-import org.gradle.testing.fixture.JUnitCoverage
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 
 /**
  * Tests support for different JUnit Jupiter versions across different Java versions.
  */
-@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
+@TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterJavaVersionIntegrationTest extends AbstractTestJavaVersionIntegrationTest implements JUnitJupiterMultiVersionTest {
     @Override
     List<Jvm> getSupportedJvms() {
         return AvailableJavaHomes.supportedWorkerJdks
+    }
+
+    @Override
+    boolean testFrameworkSupportsJavaVersion(int javaVersion) {
+        if (getVersionNumber().major >= 6) {
+            return javaVersion >= 17 // JUnit Jupiter 6 requires Java 17+
+        } else {
+            return javaVersion >= 8 // JUnit Jupiter 5 requires Java 8+
+        }
     }
 }
