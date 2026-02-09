@@ -17,9 +17,9 @@
 package org.gradle.internal.declarativedsl.project
 
 import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.annotations.RegistersProjectFeatures
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
-import org.gradle.features.annotations.RegistersSoftwareTypes
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.intellij.lang.annotations.Language
@@ -466,9 +466,9 @@ secondaryAccess { three, true, true}"""
         import org.gradle.api.Plugin;
         import org.gradle.api.initialization.Settings;
         import org.gradle.api.internal.SettingsInternal;
-        import ${RegistersSoftwareTypes.class.name};
+        import ${RegistersProjectFeatures.class.name};
 
-        @RegistersSoftwareTypes({ RestrictedPlugin.class })
+        @${RegistersProjectFeatures.class.simpleName}({ RestrictedPlugin.class })
         abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
             @Override
             public void apply(Settings target) {

@@ -28,7 +28,6 @@ import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.features.annotations.BindsProjectFeature
 import org.gradle.features.annotations.RegistersProjectFeatures
-import org.gradle.features.annotations.RegistersSoftwareTypes
 
 trait ProjectFeatureFixture extends ProjectTypeFixture {
     PluginBuilder withProjectFeature(ProjectTypeDefinitionClassBuilder projectTypeDefinition, ProjectTypePluginClassBuilder projectType, ProjectFeatureDefinitionClassBuilder projectFeatureDefinition, ProjectFeaturePluginClassBuilder projectFeature, SettingsPluginClassBuilder settingsBuilder) {
@@ -679,10 +678,8 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 import org.gradle.api.Plugin
                 import org.gradle.api.initialization.Settings
                 import ${RegistersProjectFeatures.class.name}
-                import ${RegistersSoftwareTypes.class.name}
 
-                @RegistersSoftwareTypes(${projectTypePluginClasses.collect { it + "::class" }.join(", ")})
-                @${RegistersProjectFeatures.class.simpleName}(${projectFeaturePluginClasses.collect { it + "::class" }.join(", ")})
+                @${RegistersProjectFeatures.class.simpleName}(${(projectTypePluginClasses + projectFeaturePluginClasses).collect { it + "::class" }.join(", ")})
                 class ${pluginClassName} : Plugin<Settings> {
                     override fun apply(settings: Settings) {
                     }

@@ -28,7 +28,6 @@ import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.features.annotations.BindsProjectFeature;
 import org.gradle.features.annotations.BindsProjectType;
 import org.gradle.features.annotations.RegistersProjectFeatures;
-import org.gradle.features.annotations.RegistersSoftwareTypes;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
@@ -169,7 +168,6 @@ public class ExecutionGlobalServices implements ServiceRegistrationProvider {
                 CacheableTransform.class,
                 DisableCachingByDefault.class,
                 UntrackedTask.class,
-                RegistersSoftwareTypes.class,
                 RegistersProjectFeatures.class,
                 BindsProjectType.class,
                 BindsProjectFeature.class

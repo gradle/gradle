@@ -20,11 +20,11 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.annotations.RegistersProjectFeatures
 import org.gradle.features.binding.Definition
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
-import org.gradle.features.annotations.RegistersSoftwareTypes
 import org.gradle.features.registration.ConfigurationRegistrar
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.tasks.InputFiles
@@ -567,9 +567,9 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import org.gradle.api.Plugin;
             import org.gradle.api.initialization.Settings;
             import org.gradle.api.internal.SettingsInternal;
-            import ${RegistersSoftwareTypes.class.name};
+            import ${RegistersProjectFeatures.class.name};
 
-            @RegistersSoftwareTypes({ RestrictedPlugin.class })
+            @${RegistersProjectFeatures.class.simpleName}({ RestrictedPlugin.class })
             abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
                 @Override
                 public void apply(Settings target) {

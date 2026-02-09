@@ -23,7 +23,6 @@ import org.gradle.features.binding.Definition
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.annotations.RegistersProjectFeatures
-import org.gradle.features.annotations.RegistersSoftwareTypes
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.declarative.dsl.model.annotations.Adding
@@ -601,11 +600,9 @@ trait ProjectTypeFixture {
                 import org.gradle.api.Plugin;
                 import org.gradle.api.initialization.Settings;
                 import org.gradle.api.internal.SettingsInternal;
-                import ${RegistersSoftwareTypes.class.name};
                 import ${RegistersProjectFeatures.class.name};
 
-                @RegistersSoftwareTypes({ ${projectTypePluginClasses.collect { it + ".class" }.join(", ")} })
-                @${RegistersProjectFeatures.class.simpleName}({ ${projectFeaturePluginClasses.collect { it + ".class" }.join(", ")} })
+                @${RegistersProjectFeatures.class.simpleName}({ ${(projectTypePluginClasses + projectFeaturePluginClasses).collect { it + ".class" }.join(", ")} })
                 abstract public class ${pluginClassName} implements Plugin<Settings> {
                     @Override
                     public void apply(Settings target) { }
@@ -631,11 +628,9 @@ trait ProjectTypeFixture {
                 import org.gradle.api.Plugin;
                 import org.gradle.api.initialization.Settings;
                 import org.gradle.api.internal.SettingsInternal;
-                import ${RegistersSoftwareTypes.class.name};
                 import ${RegistersProjectFeatures.class.name};
 
-                @RegistersSoftwareTypes({ ${projectFeaturePluginClasses.collect { it + ".class" }.join(", ")} })
-                @${RegistersProjectFeatures.class.simpleName}({ ${projectFeaturePluginClasses.collect { it + ".class" }.join(", ")} })
+                @${RegistersProjectFeatures.class.simpleName}({ ${(projectTypePluginClasses + projectFeaturePluginClasses).collect { it + ".class" }.join(", ")} })
                 abstract public class ${pluginClassName} implements Plugin<Settings> {
                     @Override
                     public void apply(Settings target) {

@@ -24,7 +24,7 @@ import org.gradle.declarative.dsl.tooling.builders.AbstractDeclarativeDslTooling
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.features.annotations.BindsProjectFeature
 import org.gradle.features.annotations.BindsProjectType
-import org.gradle.features.annotations.RegistersSoftwareTypes
+import org.gradle.features.annotations.RegistersProjectFeatures
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 import org.gradle.features.binding.ProjectFeatureBinding
@@ -418,10 +418,10 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import org.gradle.api.Plugin;
             import org.gradle.api.initialization.Settings;
             import org.gradle.api.internal.SettingsInternal;
-            import ${RegistersSoftwareTypes.class.name};
+            import ${RegistersProjectFeatures.class.name};
 
             @SuppressWarnings("UnstableApiUsage")
-            @${RegistersSoftwareTypes.class.simpleName}({SoftwareTypeImplPlugin.class, AnotherSoftwareTypeImplPlugin.class})
+            @${RegistersProjectFeatures.class.simpleName}({SoftwareTypeImplPlugin.class, AnotherSoftwareTypeImplPlugin.class})
             abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
                 @Override
                 public void apply(Settings target) {

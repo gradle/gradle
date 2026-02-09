@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.dcl
 
 import org.gradle.features.annotations.BindsProjectType
-import org.gradle.features.annotations.RegistersSoftwareTypes
+import org.gradle.features.annotations.RegistersProjectFeatures
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 import org.gradle.features.binding.ProjectTypeBinding
@@ -80,9 +80,9 @@ class DeprecationInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest()
 
                 import org.gradle.api.Plugin
                 import org.gradle.api.initialization.Settings
-                import ${RegistersSoftwareTypes::class.qualifiedName}
+                import ${RegistersProjectFeatures::class.qualifiedName}
 
-                @${RegistersSoftwareTypes::class.simpleName}(MyPlugin::class)
+                @${RegistersProjectFeatures::class.simpleName}(MyPlugin::class)
                 class MyEcosystemPlugin : Plugin<Settings> {
                     override fun apply(settings: Settings) = Unit
                 }
