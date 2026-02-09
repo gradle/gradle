@@ -45,6 +45,22 @@ Live JVM state types (e.g., `ClassLoader`, `Thread`, `OutputStream`, `Socket`) a
 
 The only exceptions are standard streams (`System.in`, `System.out`, `System.err`), which can be used, for example, as parameters for link:{groovyDslPath}/org.gradle.api.tasks.Exec.html[`Exec`] and link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[`JavaExec`] tasks.
 
+==== Concurrency and synchronization primitives
+
+Common synchronization primitives from the JDK must not be referenced by task fields or captured in task actions. These types represent live state that cannot be safely serialized.
+
+Prohibited types include classes and interfaces from the `java.util.concurrent` and `java.util.concurrent.locks` packages, such as:
+
+* `Lock`, `ReentrantLock`, `ReadWriteLock`
+* `CountDownLatch`, `CyclicBarrier`, `Phaser`, `Semaphore`
+* `Exchanger`, `SynchronousQueue`
+
+Using these for cross-task synchronization will not work because the configuration cache isolates tasks: each task instance receives its own independent object, and no global synchronization occurs.
+
+To share or coordinate state between tasks, use <<build_services.adoc#build_services, shared build services>> or declare explicit task inputs/outputs and use providers or task outputs.
+
+See the <<releases/upgrading/upgrading_version_9.adoc#changes_9.5.0, upgrading notes for this release>> for a short note about this change.
+
 [[config_cache:requirements:gradle_model_types]]
 === Gradle Model Types
 
