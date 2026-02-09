@@ -17,8 +17,8 @@
 package org.gradle.integtests.composite
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
@@ -680,7 +680,6 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
     }
 
     public static final REPOSITORY_HINT = repositoryHint("Maven POM")
-    @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "includes build identifier in error message on failure to resolve dependencies of included build"() {
         def m = mavenRepo.module("org.test", "test", "1.2")
 
@@ -745,7 +744,15 @@ Required by:
         checkDependenciesFails()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':buildC:buildOutputs'.")
+        failure.assertHasDescription(
+                {
+                    if (GradleContextualExecuter.isConfigCache()) {
+                        'Configuration cache state could not be cached: input property `\$1` of task `:buildC:buildOutputs` of type `org.gradle.api.DefaultTask`: error writing value of type \'org.gradle.api.internal.artifacts.configurations.DefaultLegacyConfiguration\''
+                    } else {
+                        "Execution failed for task ':buildC:buildOutputs'."
+                    }
+                }()
+        ) // TODO: messages should become consistent again once https://github.com/gradle/gradle/issues/34745 is addressed
         failure.assertHasCause("Could not resolve all files for configuration ':buildC:buildInputs'.")
         failure.assertHasCause("Could not find test-1.2.jar (org.test:test:1.2).")
     }
