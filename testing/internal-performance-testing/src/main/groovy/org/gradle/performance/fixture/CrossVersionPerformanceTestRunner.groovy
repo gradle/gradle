@@ -38,8 +38,6 @@ import org.gradle.profiler.buildops.BuildOperationMeasurementKind
 import org.gradle.profiler.gradle.GradleInvoker
 import org.gradle.profiler.gradle.GradleInvokerBuildAction
 import org.gradle.profiler.gradle.ToolingApiGradleClient
-import org.gradle.profiler.studio.AndroidStudioSyncAction
-import org.gradle.profiler.studio.tools.AndroidStudioFinder
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
@@ -55,7 +53,7 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
 /**
  * Runs cross version performance tests using Gradle profiler.
  */
-class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
+class CrossVersionPerformanceTestRunner implements PerformanceTestRunner<CrossVersionPerformanceResults> {
 
     private final IntegrationTestBuildContext buildContext
     private final DataReporter<CrossVersionPerformanceResults> reporter
@@ -66,29 +64,32 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     GradleDistribution current
 
+    String testId
+    String testClassName
+    Integer runs
+    Integer warmUpRuns
     String testProject
     File workingDir
     boolean useDaemon = true
     boolean useToolingApi = false
-    boolean useAndroidStudio = false
-    List<String> studioJvmArgs = []
-    List<String> studioIdeaProperties = []
-    File studioInstallDir
 
     List<String> tasksToRun = []
     List<String> cleanTasks = []
     List<String> args = []
     List<String> gradleOpts = []
     List<String> previousTestIds = []
-
     List<String> targetVersions = []
+
     /**
      * Minimum base version to be used. For example, a 6.0-nightly target version is OK if minimumBaseVersion is 6.0.
      */
     String minimumBaseVersion
     boolean measureGarbageCollection = true
+
+    private final List<ExecutionInterceptor> interceptors = []
     private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
     private final List<BuildOperationMeasurement> measuredBuildOperations = []
+
     private BuildAction buildAction
 
     CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
@@ -99,6 +100,12 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         this.testProject = TestScenarioSelector.loadConfiguredTestProject()
     }
 
+    @Override
+    void addInterceptor(ExecutionInterceptor interceptor) {
+        interceptors.add(interceptor)
+    }
+
+    @Override
     void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
         buildMutators.add(buildMutator)
     }
@@ -128,6 +135,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         measuredBuildOperations << new BuildOperationMeasurement(operationType, kind)
     }
 
+    @Override
     CrossVersionPerformanceResults run() {
         assumeShouldRun()
 
@@ -193,10 +201,6 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         return cleanOrCreate(perVersion)
     }
 
-    private File perVersionStudioSandboxDirectory(File workingDir) {
-        File studioSandboxDir = new File(workingDir, "studio-sandbox")
-        return cleanOrCreate(studioSandboxDir)
-    }
 
     private static File cleanOrCreate(File directory) {
         if (!directory.exists()) {
@@ -212,7 +216,6 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     private void runVersion(String displayName, GradleDistribution dist, File workingDir, MeasuredOperationList results) {
-        File studioSandboxDirAsFile = perVersionStudioSandboxDirectory(workingDir)
         def gradleOptsInUse = resolveGradleOpts()
         def builder = GradleBuildExperimentSpec.builder()
             .projectName(testProject)
@@ -226,8 +229,8 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .invocation {
                 workingDirectory(workingDir)
                 distribution(new PerformanceTestGradleDistribution(dist, workingDir))
-                tasksToRun(this.tasksToRun as String[])
-                cleanTasks(this.cleanTasks as String[])
+                tasksToRun(this.tasksToRun)
+                cleanTasks(this.cleanTasks)
 
                 if (RepoScriptBlockUtil.isMirrorEnabled()) {
                     args((this.args + ['--stacktrace', '-I', RepoScriptBlockUtil.createMirrorInitScript().absolutePath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString()]) as String[])
@@ -237,20 +240,17 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 jvmArgs(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
                 useToolingApi(this.useToolingApi)
-                useAndroidStudio(this.useAndroidStudio)
-                studioJvmArgs(this.studioJvmArgs)
-                studioIdeaProperties(this.studioIdeaProperties)
-                studioInstallDir(this.studioInstallDir)
-                studioSandboxDir(studioSandboxDirAsFile)
                 buildAction(this.buildAction)
             }
         builder.workingDirectory = workingDir
+
+        interceptors.each { it.intercept(builder) }
         def spec = builder.build()
 
         try {
             experimentRunner.run(testId, spec, results)
         } catch (Exception e) {
-            maybePrintAndroidStudioLogs(studioSandboxDirAsFile)
+            interceptors.each { it.handleFailure(e, spec) }
             throw e
         }
     }
@@ -266,22 +266,6 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         return tapiAction
     }
 
-    def setupAndroidStudioSync() {
-        useAndroidStudio = true
-        buildAction = new AndroidStudioSyncAction()
-        studioInstallDir = AndroidStudioFinder.findStudioHome()
-        studioJvmArgs = System.getProperty("studioJvmArgs") != null
-            ? System.getProperty("studioJvmArgs").split(",").collect()
-            : []
-    }
-
-    def maybePrintAndroidStudioLogs(File studioSandboxDirAsFile) {
-        if (useAndroidStudio) {
-            File logFile = new File(studioSandboxDirAsFile, "/logs/idea.log")
-            String message = logFile.exists() ? "\n${logFile.text}" : "Android Studio log file '${logFile}' doesn't exist, nothing to print."
-            println("[ANDROID STUDIO LOGS] $message")
-        }
-    }
 }
 
 class ToolingApiAction<T extends LongRunningOperation> extends GradleInvokerBuildAction {

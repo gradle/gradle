@@ -16,15 +16,12 @@
 
 package org.gradle.performance.regression.android
 
-import org.apache.commons.io.FilenameUtils
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
+import org.gradle.performance.AndroidSyncPerformanceTestFixture
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
-import org.gradle.profiler.BuildMutator
-import org.gradle.profiler.InvocationSettings
-import org.gradle.profiler.ScenarioContext
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -32,7 +29,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor(
     @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "nowInAndroidBuild"])
 )
-class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerformanceTest implements AndroidPerformanceTestFixture {
+class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerformanceTest  {
 
     /**
      * To run this test locally you should have Android Studio installed in /Applications/Android Studio.*.app folder,
@@ -54,8 +51,7 @@ class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerforman
 
         runner.warmUpRuns = 20
         runner.runs = 20
-        runner.setupAndroidStudioSync()
-        configureLocalProperties()
+        AndroidSyncPerformanceTestFixture.configureStudio(runner)
 
         when:
         def result = runner.run()
@@ -64,25 +60,4 @@ class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerforman
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    void configureLocalProperties() {
-        assert System.getenv("ANDROID_SDK_ROOT") != null
-        String androidSdkRootPath = System.getenv("ANDROID_SDK_ROOT")
-        runner.addBuildMutator { invocation -> new LocalPropertiesMutator(invocation, FilenameUtils.separatorsToUnix(androidSdkRootPath)) }
-    }
-
-    static class LocalPropertiesMutator implements BuildMutator {
-        private final String androidSdkRootPath
-        private final InvocationSettings invocation
-
-        LocalPropertiesMutator(InvocationSettings invocation, String androidSdkRootPath) {
-            this.invocation = invocation
-            this.androidSdkRootPath = androidSdkRootPath
-        }
-
-        @Override
-        void beforeScenario(ScenarioContext context) {
-            def localProperties = new File(invocation.projectDir, "local.properties")
-            localProperties << "\nsdk.dir=$androidSdkRootPath\n"
-        }
-    }
 }
