@@ -403,7 +403,7 @@ Gradle now provides granular control over how [Tooling API](userguide/tooling_ap
 Previously, parallelism for Tooling API actions was tied directly to the `org.gradle.parallel` property.
 This meant that if you wanted to enable parallel task execution, you were forced to also enable parallel IDE actions, and vice versa.
 
-The new property allows decoupling these two aspects.
+The new property decouples these two behaviors.
 This is particularly relevant for the IDE Sync scenarios, where IDEs can take advantage of the parallelism to improve performance (independently of your task execution strategy):
 
 ```text
