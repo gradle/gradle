@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import gradlebuild.testcleanup.TestFilesCleanupRootPlugin
+import gradlebuild.testcleanup.TestFilesCleanupProjectState
+import gradlebuild.testcleanup.TestFilesCleanupService
 import gradlebuild.testcleanup.extension.TestFileCleanUpExtension
-import gradlebuild.testcleanup.extension.TestFilesCleanupBuildServiceRootExtension
-import gradlebuild.testcleanup.extension.TestFilesCleanupProjectState
+import org.gradle.kotlin.dsl.create
+import org.gradle.kotlin.dsl.support.serviceOf
 
 /**
  * When run from a Continuous Integration environment, we only want to archive a subset of reports, mostly for
@@ -25,21 +26,42 @@ import gradlebuild.testcleanup.extension.TestFilesCleanupProjectState
  * artifact publishing by reducing the artifacts and packaging reports that consist of multiple files.
  *
  * Reducing the number of reports also makes it easier to find the important ones when analysing a failed build in
- * Team City.
+ * TeamCity.
  */
-
-val testFilesCleanup = extensions.create<TestFileCleanUpExtension>("testFilesCleanup").apply {
+val testFileCleanUpExtension = project.extensions.create<TestFileCleanUpExtension>("testFilesCleanup").apply {
     reportOnly.convention(false)
 }
 
 if ("CI" in System.getenv() && project.name != "gradle-kotlin-dsl-accessors") {
-    rootProject.plugins.apply(TestFilesCleanupRootPlugin::class.java)
-    val globalExtension = rootProject.extensions.getByType<TestFilesCleanupBuildServiceRootExtension>()
+    val testFilesCleanupService = project.gradle.sharedServices.registerIfAbsent("testFilesCleanupBuildService", TestFilesCleanupService::class.java) {
+        require(project.path == ":") { "Must be applied to root project first, now: ${project.path}" }
+        parameters.taskPathToReports.set(mutableMapOf<String, List<File>>())
+        parameters.testPathToBinaryResultsDirs.set(mutableMapOf<String, File>())
+        parameters.rootBuildDir.set(project.layout.buildDirectory)
+    }
+    project.gradle.serviceOf<BuildEventsListenerRegistry>().onTaskCompletion(testFilesCleanupService)
+    testFilesCleanupService.get().parameters.projectStates.put(project.path, TestFilesCleanupProjectState(project.path, project.layout.buildDirectory.get().asFile, testFileCleanUpExtension.reportOnly))
 
-    val projectState = objects.newInstance(TestFilesCleanupProjectState::class.java)
+    val taskPathToReports = testFilesCleanupService.get().parameters.taskPathToReports
+    val testPathToBinaryResultsDirs = testFilesCleanupService.get().parameters.testPathToBinaryResultsDirs
 
-    globalExtension.projectStates.put(path, projectState)
-    projectState.projectBuildDir = layout.buildDirectory
-    projectState.projectPath = path
-    projectState.reportOnly = testFilesCleanup.reportOnly
+    project.tasks.withType<Test>().configureEach {
+        testPathToBinaryResultsDirs.put(path, binaryResultsDirectory.asFile)
+    }
+
+    project.tasks.configureEach {
+        val reports = mutableListOf<Any>()
+        if (this is Test) {
+            reports.add(traceJson())
+        }
+        if (this is Reporting<*>) {
+            reports.add(genericHtmlReports())
+        }
+        val existingReports: List<Any> = taskPathToReports.getting(path).orElse(emptyList()).get()
+        taskPathToReports.put(path, reports + existingReports)
+    }
 }
+// e.g. build/test-results/embeddedIntegTest/trace.json
+fun Test.traceJson() = project.layout.buildDirectory.file("test-results/$name/trace.json").get().asFile
+
+fun Reporting<*>.genericHtmlReports() = reports["html"].outputLocation
