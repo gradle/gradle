@@ -69,6 +69,7 @@ testing {
                         classpath += sourceSets["main"].output.classesDirs
                         val excludePatterns = packageCyclesExtension.excludePatterns
                         doFirst {
+                            // workaround for https://github.com/gradle/gradle/issues/12247
                             systemProperty("package.cycle.exclude.patterns", excludePatterns.get().joinToString(","))
                         }
                         extensions.findByType<DevelocityTestConfiguration>()?.apply {

@@ -48,7 +48,6 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 import kotlin.collections.Collection
-import kotlin.collections.Iterable
 import kotlin.collections.List
 import kotlin.collections.Map
 
@@ -84,13 +83,12 @@ abstract class TestFilesCleanupService @Inject constructor(
         testPathToBinaryResultsDir.put(testTaskPath, binaryResultsDir)
     }
 
-    fun addTaskReports(taskPath: String, reports: Iterable<Any>) {
+    fun addTaskReports(taskPath: String, reports: Collection<Any>) {
         safeAdd(taskPathToReports, taskPath, reports)
     }
 
-    private fun <K, V> safeAdd(map: ConcurrentHashMap<K, MutableSet<V>>, key: K, values: Iterable<V>) {
-        val valuesInMap = map.computeIfAbsent(key, { k -> Collections.synchronizedSet<V>(HashSet<V>()) })
-        values.forEach { valuesInMap.add(it) }
+    private fun <K, V> safeAdd(map: ConcurrentHashMap<K, MutableSet<V>>, key: K, values: Collection<V>) {
+        map.computeIfAbsent(key, { k -> Collections.synchronizedSet<V>(HashSet<V>()) }).addAll(values)
     }
 
     private
