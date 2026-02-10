@@ -242,7 +242,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
     @Issue("https://github.com/gradle/gradle/issues/17246")
     @Test
-    fun `fails the build with help message for plugin spec with version in settings plugin`() {
+    fun `fails the build with help message for a usage of an invalid plugin spec with version in settings plugin`() {
 
         withDefaultSettings().appendText(
             """
@@ -271,6 +271,55 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             "Plugin [id: 'a.plugin'] was not found in any of the following sources:"
         )
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/17246")
+    @Test
+    fun `raises a deprecation warning with help message for a valid plugin spec with version in settings plugin`() {
+
+        withFolders {
+            "settings-plugin" {
+                withDefaultSettingsIn(relativePath)
+                withKotlinDslPlugin()
+
+                withFile("src/main/kotlin/valid.plugin.settings.gradle.kts").appendText("println(\"applying valid.plugin\")")
+            }
+        }
+
+        withDefaultSettings().appendText(
+            """
+            rootProject.name = "valid-plugin-with-version"
+
+            includeBuild("settings-plugin")
+            """
+        )
+
+        withFile("build.gradle.kts").appendText("""
+            ${scriptWithKotlinDslPlugin()}
+
+            dependencies {
+                implementation(project(":settings-plugin"))
+            }
+        """.trimIndent())
+
+        withPrecompiledKotlinScript(
+            "valid-plugin-with-version.settings.gradle.kts",
+            """
+            plugins {
+                id("valid.plugin") version "1.0"
+            }
+            """
+        )
+
+        executer.expectDocumentedDeprecationWarning(
+            "Using 'version' in precompiled settings script plugins has been deprecated. This will fail with an error in Gradle 10. " +
+                "The version of the plugin is determined by the dependency in the precompiled script plugin's build file. " +
+                "Remove 'version' from the plugin request for 'valid.plugin' in 'src/main/kotlin/valid-plugin-with-version.settings.gradle.kts'. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_version_in_precompiled_settings_script_plugins"
+        )
+
+        build("assemble").assertNotOutput("applying valid.plugin")
+    }
+
 
     @Issue("https://github.com/gradle/gradle/issues/14437")
     @Test

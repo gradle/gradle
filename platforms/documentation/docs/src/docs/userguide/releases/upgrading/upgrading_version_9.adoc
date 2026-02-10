@@ -36,6 +36,33 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.5.0]]
+== Upgrading from 9.4.0 and earlier
+
+=== Potential breaking changes
+
+==== Plugins requested by precompiled settings plugins are now resolved in the build that compiles them
+
+When a precompiled settings plugin (`*.settings.gradle.kts`) declares a plugin in a `plugins {}` block, that
+plugin request is now resolved against the dependencies of the build that compiles the plugin.
+
+Previously, if a precompiled settings plugin was never applied, it could contain an invalid plugin request
+without being detected:
+
+.buildSrc/src/main/kotlin/my-precompiled-plugin.settings.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id("com.example.invalid.plugin") // a plugin that does not exist in the dependencies
+}
+----
+
+If such a plugin was published, the invalid request would only fail later, when the plugin was used by a
+consuming build. Gradle now validates these plugin requests during compilation and fails the build if the
+requested plugin cannot be resolved. This behavior now matches that of precompiled script plugins targeting `Project`.
+
+Avoid invalid plugin requests in unused precompiled settings plugins.
+
 [[changes_9.4.0]]
 == Upgrading from 9.3.0 and earlier
 
