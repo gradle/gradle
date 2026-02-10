@@ -41,8 +41,8 @@ tasks {
 // tag::checkstyle[]
 checkstyle {
     config = resources.text.fromFile("checkstyle.xml", "UTF-8")
-    isShowViolations = true
-    isIgnoreFailures = false
+    showViolations = true
+    ignoreFailures = false
 }
 // end::checkstyle[]
 

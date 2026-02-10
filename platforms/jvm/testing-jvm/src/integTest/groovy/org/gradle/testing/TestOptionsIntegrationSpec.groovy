@@ -351,7 +351,7 @@ public class SomeIntegTestClass {
                     excludeTags = ["Slow"]
                 }
                 doFirst {
-                    assert options.excludeTags.contains("Slow")
+                    assert options.excludeTags.get().contains("Slow")
                 }
             }
 
@@ -393,7 +393,7 @@ public class SomeIntegTestClass {
                     excludeTags = ["Slow"]
                 }
                 doFirst {
-                    assert options.excludeTags.contains("Slow")
+                    assert options.excludeTags.get().contains("Slow")
                 }
             }
 
@@ -420,7 +420,7 @@ public class SomeIntegTestClass {
                     excludeTags = ["Slow"]
                 }
                 doFirst {
-                    assert options.excludeTags.contains("Slow")
+                    assert options.excludeTags.get().contains("Slow")
                 }
             }
 

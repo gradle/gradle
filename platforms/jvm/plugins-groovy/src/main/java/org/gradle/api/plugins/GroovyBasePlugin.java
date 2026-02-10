@@ -167,15 +167,15 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
 
     private void configureGroovydoc(Project project, GroovyRuntime groovyRuntime) {
         project.getTasks().withType(Groovydoc.class).configureEach(groovydoc -> {
-            groovydoc.getConventionMapping().map("groovyClasspath", () -> {
+            groovydoc.getGroovyClasspath().convention(project.provider(() -> {
                 FileCollection groovyClasspath = groovyRuntime.inferGroovyClasspath(groovydoc.getClasspath());
                 // Jansi is required to log errors when generating Groovydoc
                 ConfigurableFileCollection jansi = project.getObjects().fileCollection().from(moduleRegistry.getModule("jansi").getImplementationClasspath().getAsFiles());
                 return groovyClasspath.plus(jansi);
-            });
-            groovydoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension(project).getDocsDir().dir("groovydoc").get().getAsFile());
-            groovydoc.getConventionMapping().map("docTitle", () -> ReportUtilities.getApiDocTitleFor(project));
-            groovydoc.getConventionMapping().map("windowTitle", () -> ReportUtilities.getApiDocTitleFor(project));
+            }));
+            groovydoc.getDestinationDir().convention(javaPluginExtension(project).getDocsDir().dir("groovydoc"));
+            groovydoc.getDocTitle().convention(project.getProviders().provider(() -> ReportUtilities.getApiDocTitleFor(project)));
+            groovydoc.getWindowTitle().convention(project.getProviders().provider(() -> ReportUtilities.getApiDocTitleFor(project)));
             groovydoc.getAccess().convention(GroovydocAccess.PROTECTED);
             groovydoc.getIncludeAuthor().convention(false);
             groovydoc.getProcessScripts().convention(true);

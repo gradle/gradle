@@ -16,15 +16,20 @@
 
 package gradlebuild.docs;
 
+import gradlebuild.basics.Gradle10PropertyUpgradeSupport;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.api.plugins.quality.CheckstyleExtension;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.PathSensitivity;
@@ -91,15 +96,15 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.setDescription("Generate Javadocs for all API classes");
 
             // TODO: This breaks if version is changed later
-            task.setTitle("Gradle API " + project.getVersion());
+            new JavadocSupport(task).setTitle("Gradle API " + project.getVersion());
 
             StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
-            options.setEncoding("utf-8");
-            options.setDocEncoding("utf-8");
-            options.setCharSet("utf-8");
+            options.encoding("utf-8");
+            options.docEncoding("utf-8");
+            options.charSet("utf-8");
 
             options.addBooleanOption("-allow-script-in-comments", true);
-            options.setHeader("<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/stackoverflow-light.min.css\">" +
+            options.header("<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/stackoverflow-light.min.css\">" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js\"></script>" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js\"></script>" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/groovy.min.js\"></script>" +
@@ -113,8 +118,8 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             // TODO: This would be better to model as separate options
             options.addStringOption("Xdoclint:syntax,html", "-quiet");
             // TODO: This breaks the provider
-            options.addStringOption("-add-stylesheet", javadocs.getJavadocCss().get().getAsFile().getAbsolutePath());
-            options.addStringOption("source", "8");
+            options.stylesheetFile(javadocs.getJavadocCss().get().getAsFile());
+            options.source("8");
             options.tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:");
             // TODO: This breaks the provider
             task.getInputs().dir(javadocs.getJavaPackageListLoc());
@@ -134,7 +139,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
                 .filter(new DeduplicatePackageInfoFiles())
             );
 
-            task.setClasspath(extension.getClasspath());
+            new JavadocSupport(task).setClasspath(extension.getClasspath());
 
             // TODO: This should be in Javadoc task
             DirectoryProperty generatedJavadocDirectory = project.getObjects().directoryProperty();
@@ -142,20 +147,78 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.getOutputs().dir(generatedJavadocDirectory);
             task.getExtensions().getExtraProperties().set("destinationDirectory", generatedJavadocDirectory);
             // TODO: This breaks the provider
-            task.setDestinationDir(generatedJavadocDirectory.get().getAsFile());
+            new JavadocSupport(task).setDestinationDir(generatedJavadocDirectory.get().getAsFile());
         });
 
         // TODO: destinationDirectory should be part of Javadoc
         javadocs.getRenderedDocumentation().from(javadocAll.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
 
         CheckstyleExtension checkstyle = project.getExtensions().getByType(CheckstyleExtension.class);
+        ObjectFactory objects = project.getObjects();
         tasks.register("checkstyleApi", Checkstyle.class, task -> {
             task.source(extension.getDocumentedSource());
             // TODO: This is ugly
             task.setConfig(project.getResources().getText().fromFile(checkstyle.getConfigDirectory().file("checkstyle-api.xml")));
-            task.setClasspath(layout.files());
-            task.getReports().getXml().getOutputLocation().set(new File(checkstyle.getReportsDir(), "checkstyle-api.xml"));
+            new CheckstyleSupport(task).setClasspath(layout.files());
+            task.getReports().getXml().getOutputLocation().set(getCheckstyleOutputLocation(checkstyle, objects));
         });
+    }
+
+    /**
+     * TODO: Remove this workaround after Gradle 10
+     */
+    @SuppressWarnings({"ConstantValue", "CastCanBeRemovedNarrowingVariableType"})
+    private static Provider<RegularFile> getCheckstyleOutputLocation(CheckstyleExtension checkstyle, ObjectFactory objects) {
+        Object reportsDir = checkstyle.getReportsDir();
+        if (reportsDir instanceof File) {
+            return objects.fileProperty().fileValue(new File((File) reportsDir, "checkstyle-api.xml"));
+        } else {
+            return ((DirectoryProperty) reportsDir).file("checkstyle-api.xml");
+        }
+    }
+
+    /**
+     * Used to bridge Gradle 9 and Gradle 10 APIs for Gradleception.
+     *
+     * TODO: Remove this workaround after Gradle 10
+     */
+
+    @Deprecated
+    private static class JavadocSupport {
+
+        private final Javadoc javadoc;
+
+        public JavadocSupport(Javadoc javadoc) {
+            this.javadoc = javadoc;
+        }
+
+        public void setTitle(String title) {
+            Gradle10PropertyUpgradeSupport.setProperty(javadoc, "setTitle", title);
+        }
+
+        public void setClasspath(FileCollection classpath) {
+            Gradle10PropertyUpgradeSupport.setProperty(javadoc, "setClasspath", classpath);
+        }
+
+        public void setDestinationDir(File destinationDir) {
+            Gradle10PropertyUpgradeSupport.setProperty(javadoc, "setDestinationDir", destinationDir);
+        }
+    }
+
+    /**
+     * TODO: Remove this workaround after Gradle 9
+     */
+    @Deprecated
+    private static class CheckstyleSupport {
+        private final Checkstyle checkstyle;
+
+        public CheckstyleSupport(Checkstyle checkstyle) {
+            this.checkstyle = checkstyle;
+        }
+
+        public void setClasspath(FileCollection classpath) {
+            Gradle10PropertyUpgradeSupport.setProperty(checkstyle, "setClasspath", classpath);
+        }
     }
 
     private static class DeduplicatePackageInfoFiles implements Spec<File> {

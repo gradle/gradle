@@ -63,6 +63,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.Strings.nullToEmpty;
@@ -155,28 +156,25 @@ public class IvyComponentParser {
     public Set<IvyArtifact> parseArtifacts(SoftwareComponentInternal component) {
         Set<IvyArtifact> artifacts = new LinkedHashSet<>();
 
-        Map<String, IvyArtifact> seenArtifacts = new HashMap<>();
+        Map<ArtifactKey, IvyArtifact> seenArtifacts = new HashMap<>();
         for (SoftwareComponentVariant variant : component.getUsages()) {
             String conf = mapVariantNameToIvyConfiguration(variant.getName());
             for (PublishArtifact publishArtifact : variant.getArtifacts()) {
-                String key = artifactKey(publishArtifact);
+                ArtifactKey key = new ArtifactKey(publishArtifact);
                 IvyArtifact ivyArtifact = seenArtifacts.get(key);
                 if (ivyArtifact == null) {
                     ivyArtifact = ivyArtifactParser.parseNotation(publishArtifact);
-                    ivyArtifact.setConf(conf);
+                    ivyArtifact.getConf().set(conf);
                     seenArtifacts.put(key, ivyArtifact);
                     artifacts.add(ivyArtifact);
                 } else {
-                    ivyArtifact.setConf(ivyArtifact.getConf() + "," + conf);
+                    String oldValue = ivyArtifact.getConf().get();
+                    ivyArtifact.getConf().set(oldValue + "," + conf);
                 }
             }
         }
 
         return artifacts;
-    }
-
-    private static String artifactKey(PublishArtifact publishArtifact) {
-        return publishArtifact.getName() + ":" + publishArtifact.getType() + ":" + publishArtifact.getExtension() + ":" + publishArtifact.getClassifier();
     }
 
     public Provider<ParsedDependencyResult> parseDependencies(SoftwareComponentInternal component, VersionMappingStrategyInternal versionMappingStrategy) {
@@ -401,6 +399,39 @@ public class IvyComponentParser {
             this.name = name;
             this.dependencies = dependencies;
             this.warnings = warnings;
+        }
+    }
+
+    private static class ArtifactKey {
+
+        private final String name;
+        private final String extension;
+        private final String type;
+        @Nullable
+        private final String classifier;
+
+        public ArtifactKey(PublishArtifact artifact) {
+            this.name = artifact.getName();
+            this.extension = artifact.getExtension();
+            this.type = artifact.getType();
+            this.classifier = artifact.getClassifier();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ArtifactKey that = (ArtifactKey) o;
+            return Objects.equals(name, that.name) && Objects.equals(extension, that.extension) && Objects.equals(type, that.type) && Objects.equals(classifier, that.classifier);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name, extension, type, classifier);
         }
     }
 }

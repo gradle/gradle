@@ -24,15 +24,15 @@ import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
+import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.EffectiveJavaForkOptions.ReadOnlyJvmOptions;
-import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -43,7 +43,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.Attributes;
@@ -55,19 +54,19 @@ import java.util.zip.ZipEntry;
 import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasCommandLineExceedMaxLength;
 
 /**
- * Use {@link JavaExecHandleFactory} instead.
+ * Low level JavaExecHandle Builder API. Normally you should use {@link JavaExecAction} or {@link JavaExecSpec} instead.
  */
 @NullMarked
-public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
+public class JavaExecHandleBuilder implements BaseExecHandleBuilder {
 
     private static final Logger LOGGER = Logging.getLogger(JavaExecHandleBuilder.class);
 
     private final FileCollectionFactory fileCollectionFactory;
     private final TemporaryFileProvider temporaryFileProvider;
+    @Nullable
     private final JavaModuleDetector javaModuleDetector;
     private final Property<String> mainModule;
     private final Property<String> mainClass;
-    private final ListProperty<String> jvmArguments;
     private final ClientExecHandleBuilder execHandleBuilder;
     private ConfigurableFileCollection classpath;
     private final JavaForkOptionsInternal javaOptions;
@@ -87,11 +86,9 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         this.classpath = fileCollectionFactory.configurableFiles("classpath");
         this.mainModule = objectFactory.property(String.class);
         this.mainClass = objectFactory.property(String.class);
-        this.jvmArguments = objectFactory.listProperty(String.class);
         this.javaOptions = javaOptions;
         this.modularity = new DefaultModularitySpec(objectFactory);
         this.execHandleBuilder = execHandleBuilder;
-        setExecutable(javaOptions.getExecutable());
     }
 
     public List<String> getAllJvmArgs() {
@@ -99,68 +96,19 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     }
 
     private List<String> getAllJvmArgs(FileCollection realClasspath) {
-        List<String> allArgs = new ArrayList<>(javaOptions.getAllJvmArgs());
-        boolean runAsModule = modularity.getInferModulePath().get() && mainModule.isPresent();
-
-        if (runAsModule) {
-            addModularJavaRunArgs(realClasspath, allArgs);
-        } else {
-            addClassicJavaRunArgs(realClasspath, allArgs);
-        }
-
-        return allArgs;
+        return ExecHandleCommandLineCombiner.getAllJvmArgs(
+            javaOptions.getAllJvmArgs().get(),
+            realClasspath,
+            mainClass,
+            mainModule,
+            modularity,
+            javaModuleDetector
+        );
     }
 
-    private void addClassicJavaRunArgs(FileCollection classpath, List<String> allArgs) {
-        if (!mainClass.isPresent()) {
-            if (classpath != null && classpath.getFiles().size() == 1) {
-                allArgs.add("-jar");
-                allArgs.add(classpath.getSingleFile().getAbsolutePath());
-            } else {
-                throw new IllegalStateException("No main class specified and classpath is not an executable jar.");
-            }
-        } else {
-            if (classpath != null && !classpath.isEmpty()) {
-                allArgs.add("-cp");
-                allArgs.add(CollectionUtils.join(File.pathSeparator, classpath));
-            }
-            allArgs.add(mainClass.get());
-        }
-    }
-
-    private void addModularJavaRunArgs(FileCollection classpath, List<String> allArgs) {
-        if (javaModuleDetector == null) {
-            throw new IllegalStateException("Running a Java module is not supported in this context.");
-        }
-        FileCollection rtModulePath = javaModuleDetector.inferModulePath(modularity.getInferModulePath().get(), classpath);
-        FileCollection rtClasspath = javaModuleDetector.inferClasspath(modularity.getInferModulePath().get(), classpath);
-
-        if (rtClasspath != null && !rtClasspath.isEmpty()) {
-            allArgs.add("-cp");
-            allArgs.add(CollectionUtils.join(File.pathSeparator, rtClasspath));
-        }
-        if (rtModulePath != null && !rtModulePath.isEmpty()) {
-            allArgs.add("--module-path");
-            allArgs.add(CollectionUtils.join(File.pathSeparator, rtModulePath));
-        }
-        allArgs.add("--module");
-        if (!mainClass.isPresent()) {
-            allArgs.add(mainModule.get());
-        } else {
-            allArgs.add(mainModule.get() + "/" + mainClass.get());
-        }
-    }
-
-    public List<String> getJvmArgs() {
-        return javaOptions.getJvmArgs();
-    }
-
-    public void setJvmArgs(List<String> arguments) {
-        javaOptions.setJvmArgs(arguments);
-    }
-
-    public void setJvmArgs(Iterable<?> arguments) {
-        javaOptions.setJvmArgs(arguments);
+    public JavaExecHandleBuilder setExtraJvmArgs(Iterable<?> jvmArgs) {
+        javaOptions.setExtraJvmArgs(jvmArgs);
+        return this;
     }
 
     public JavaExecHandleBuilder jvmArgs(Iterable<?> arguments) {
@@ -173,16 +121,12 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return this;
     }
 
-    public ListProperty<String> getJvmArguments() {
-        return jvmArguments;
-    }
-
     public Map<String, @Nullable Object> getSystemProperties() {
-        return javaOptions.getSystemProperties();
+        return javaOptions.getSystemProperties().get();
     }
 
     public void setSystemProperties(Map<String, ? extends @Nullable Object> properties) {
-        javaOptions.setSystemProperties(properties);
+        javaOptions.getSystemProperties().set(properties);
     }
 
     public JavaExecHandleBuilder systemProperties(Map<String, ? extends @Nullable Object> properties) {
@@ -195,12 +139,13 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return this;
     }
 
-    public FileCollection getBootstrapClasspath() {
+    public ConfigurableFileCollection getBootstrapClasspath() {
         return javaOptions.getBootstrapClasspath();
     }
 
+
     public void setBootstrapClasspath(FileCollection classpath) {
-        javaOptions.setBootstrapClasspath(classpath);
+        javaOptions.getBootstrapClasspath().setFrom(classpath);
     }
 
     public JavaExecHandleBuilder bootstrapClasspath(Object... classpath) {
@@ -208,88 +153,58 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return this;
     }
 
-    public String getMinHeapSize() {
-        return javaOptions.getMinHeapSize();
-    }
-
     public void setMinHeapSize(String heapSize) {
-        javaOptions.setMinHeapSize(heapSize);
-    }
-
-    public String getDefaultCharacterEncoding() {
-        return javaOptions.getDefaultCharacterEncoding();
+        javaOptions.getMinHeapSize().set(heapSize);
     }
 
     public void setDefaultCharacterEncoding(String defaultCharacterEncoding) {
-        javaOptions.setDefaultCharacterEncoding(defaultCharacterEncoding);
+        javaOptions.getDefaultCharacterEncoding().set(defaultCharacterEncoding);
     }
 
+    @Nullable
     public String getMaxHeapSize() {
-        return javaOptions.getMaxHeapSize();
+        return javaOptions.getMaxHeapSize().getOrNull();
     }
 
-    public void setMaxHeapSize(String heapSize) {
-        javaOptions.setMaxHeapSize(heapSize);
-    }
-
-    public boolean getEnableAssertions() {
-        return javaOptions.getEnableAssertions();
+    public void setMaxHeapSize(@Nullable String heapSize) {
+        javaOptions.getMaxHeapSize().set(heapSize);
     }
 
     public void setEnableAssertions(boolean enabled) {
-        javaOptions.setEnableAssertions(enabled);
-    }
-
-    public boolean getDebug() {
-        return javaOptions.getDebug();
+        javaOptions.getEnableAssertions().set(enabled);
     }
 
     public void setDebug(boolean enabled) {
-        javaOptions.setDebug(enabled);
-    }
-
-    public JavaDebugOptions getDebugOptions() {
-        return javaOptions.getDebugOptions();
+        javaOptions.getDebug().set(enabled);
     }
 
     public void debugOptions(Action<JavaDebugOptions> action) {
         javaOptions.debugOptions(action);
     }
 
-
-    @Override
     public String getExecutable() {
-        return javaOptions.getExecutable();
+        return javaOptions.getExecutable().get();
+    }
+
+    public void setExecutable(File executable) {
+        setExecutable(executable.getAbsolutePath());
     }
 
     @Override
-    public void setExecutable(Object executable) {
-        javaOptions.setExecutable(executable);
+    public JavaExecHandleBuilder setExecutable(String executable) {
+        javaOptions.getExecutable().set(executable);
+        return this;
     }
 
-    public void setExecutable(String executable) {
-        javaOptions.setExecutable(executable);
+    @Override
+    public JavaExecHandleBuilder setWorkingDir(@Nullable File dir) {
+        javaOptions.getWorkingDir().set(dir);
+        return this;
     }
 
-    @Nullable
-    public File getWorkingDir() {
-        return javaOptions.getWorkingDir();
-    }
-
-    public void setWorkingDir(@Nullable Object dir) {
-        javaOptions.setWorkingDir(dir);
-    }
-
-    public void setWorkingDir(@Nullable File dir) {
-        javaOptions.setWorkingDir(dir);
-    }
-
-    public Map<String, Object> getEnvironment() {
-        return javaOptions.getEnvironment();
-    }
-
-    public JavaExecHandleBuilder setEnvironment(Map<String, ?> environmentVariables) {
-        javaOptions.setEnvironment(environmentVariables);
+    @Override
+    public JavaExecHandleBuilder setEnvironment(Map<String, Object> environmentVariables) {
+        javaOptions.getEnvironment().set(environmentVariables);
         return this;
     }
 
@@ -340,6 +255,11 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return execHandleBuilder.getArgumentProviders();
     }
 
+    public JavaExecHandleBuilder setArgumentProviders(List<CommandLineArgumentProvider> argumentProviders) {
+        execHandleBuilder.setArgumentProviders(argumentProviders);
+        return this;
+    }
+
     public JavaExecHandleBuilder setClasspath(FileCollection classpath) {
         // we need to create a new file collection container to avoid cycles. See: https://github.com/gradle/gradle/issues/8755
         ConfigurableFileCollection newClasspath = fileCollectionFactory.configurableFiles("classpath");
@@ -366,17 +286,13 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     }
 
     private List<String> getAllArguments(FileCollection realClasspath) {
-        List<String> arguments = new ArrayList<>(getAllJvmArgs(realClasspath));
-        arguments.addAll(execHandleBuilder.getAllArguments());
-        return arguments;
+        return ExecHandleCommandLineCombiner.getAllArgs(getAllJvmArgs(realClasspath), getArgs(), getArgumentProviders());
     }
 
-    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
-        return javaOptions.getJvmArgumentProviders();
-    }
-
-    public void setStandardInput(InputStream inputStream) {
+    @Override
+    public JavaExecHandleBuilder setStandardInput(InputStream inputStream) {
         execHandleBuilder.setStandardInput(inputStream);
+        return this;
     }
 
     public InputStream getStandardInput() {
@@ -404,10 +320,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
     }
 
     public List<String> getCommandLine() {
-        List<String> commandLine = new ArrayList<>();
-        commandLine.add(getExecutable());
-        commandLine.addAll(getAllArguments());
-        return commandLine;
+        return ExecHandleCommandLineCombiner.getCommandLine(getExecutable(), getAllArguments());
     }
 
     @Override
@@ -472,13 +385,30 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         source.copyTo(javaOptions);
     }
 
+    @Nullable
+    JavaModuleDetector getJavaModuleDetector() {
+        return javaModuleDetector;
+    }
+
+    JavaExecHandleBuilder configureFrom(JavaExecSpec spec) {
+        configureFrom((BaseExecSpec) spec);
+        getMainModule().set(spec.getMainModule());
+        getMainClass().set(spec.getMainClass());
+        getModularity().getInferModulePath().set(spec.getModularity().getInferModulePath());
+        classpath(spec.getClasspath());
+        setArgs(spec.getArgs().get());
+        setArgumentProviders(spec.getArgumentProviders().get());
+        copyJavaForkOptions(spec);
+        return this;
+    }
+
     @Override
     public ExecHandle build() {
         // We delegate properties that are also on ProcessForkOptions interface to JavaForkOptions
         // to support copy from JavaOptions, and thus we have to copy them to execHandleBuilder here
-        execHandleBuilder.setExecutable(getExecutable());
-        execHandleBuilder.setWorkingDir(getWorkingDir());
-        execHandleBuilder.setEnvironment(getEnvironment());
+        execHandleBuilder.setExecutable(javaOptions.getExecutable().get());
+        execHandleBuilder.setWorkingDir(javaOptions.getWorkingDir().getAsFile().get());
+        execHandleBuilder.setEnvironment(javaOptions.getEnvironment().get());
         return execHandleBuilder.buildWithEffectiveArguments(getEffectiveArguments());
     }
 }

@@ -73,12 +73,12 @@ class Person {
         }
     }
 
-    def "can assign #value to additional parameters"() {
+    def "can assign #description to additional parameters"() {
         file("src/main/scala/ScalaHall.scala") << "class ScalaHall(name: String)"
 
         buildFile << """
             tasks.withType(ScalaCompile) {
-              scalaCompileOptions.additionalParameters = $expression
+              scalaCompileOptions.additionalParameters$expression
             }
         """
 
@@ -90,10 +90,10 @@ class Person {
         JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
 
         where:
-        value            | expression
-        "null"           | "null"
-        "mutable list"   | "[]"
-        "immutable list" | "[].asImmutable()"
+        description             | expression
+        "unset value"           | ".unset()"
+        "assign mutable list"   | " = []"
+        "assign immutable list" | " = [].asImmutable()"
     }
 
     @Requires(UnitTestPreconditions.Jdk11OrLater)

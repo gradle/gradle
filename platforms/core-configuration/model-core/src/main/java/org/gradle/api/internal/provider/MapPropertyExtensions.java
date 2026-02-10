@@ -19,7 +19,12 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 
-public class MapPropertyExtensions {
+import java.util.Map;
+
+@SuppressWarnings("unused") // registered as Groovy extension in ExtensionModule
+public final class MapPropertyExtensions {
+
+    private MapPropertyExtensions() {}
 
     /**
      * Returns a provider that resolves to the value of the mapping of the given key. It will have no value
@@ -78,5 +83,48 @@ public class MapPropertyExtensions {
      */
     public static <V> void propertyMissing(MapProperty<String, V> self, String key, Object value) {
         putAt(self, key, value);
+    }
+
+    /**
+     * Adds map entries to the property value.
+     *
+     * <p>Extension method to support the left shift operator in Groovy.</p>
+     *
+     * @param self the {@link MapProperty}
+     * @param entries the entries
+     * @return self
+     */
+    public static <K, V> MapProperty<K, V> leftShift(MapProperty<K, V> self, Map<? extends K, ? extends V> entries) {
+        self.putAll(entries);
+        return self;
+    }
+
+    /**
+     * Adds a provider of the map entries to the property value.
+     *
+     * <p>Extension method to support the left shift operator in Groovy.</p>
+     *
+     * @param self the {@link MapProperty}
+     * @param provider the entries
+     * @return self
+     */
+    public static <K, V> MapProperty<K, V> leftShift(MapProperty<K, V> self, Provider<? extends Map<? extends K, ? extends V>> provider) {
+        self.putAll(provider);
+        return self;
+    }
+
+    /**
+     * Creates a stand-in of {@link MapProperty} to be used as a left-hand side operand of {@code +=}.
+     * <p>
+     * The AST transformer knows the name of this method.
+     *
+     * @param lhs the property
+     * @param <K> the type of map keys, to help the static type checker
+     * @param <V> the type of map values, to help the static type checker
+     * @return the stand-in object to call {@code plus} on
+     * @see org.gradle.api.internal.groovy.support.CompoundAssignmentTransformer
+     */
+    public static <K, V> MapPropertyCompoundAssignmentStandIn<K, V> forCompoundAssignment(MapProperty<K, V> lhs) {
+        return ((DefaultMapProperty<K, V>) lhs).forCompoundAssignment();
     }
 }

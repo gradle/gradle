@@ -52,7 +52,7 @@ class BuildCacheBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
     void register(String className, String loadBody, String storeBody) {
         settingsFile << """
-            class ${className} extends AbstractBuildCache {}
+            abstract class ${className} extends AbstractBuildCache {}
             class ${className}ServiceFactory implements BuildCacheServiceFactory<${className}> {
                 ${className}Service createBuildCacheService(${className} configuration, Describer describer) {
                     return new ${className}Service(configuration)

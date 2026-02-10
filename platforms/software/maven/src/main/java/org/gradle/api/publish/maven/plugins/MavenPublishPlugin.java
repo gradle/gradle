@@ -30,6 +30,7 @@ import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.versionmapping.DefaultVersionMappingStrategy;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
@@ -70,16 +71,19 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final FileResolver fileResolver;
+    private final ProviderFactory providerFactory;
     private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
     public MavenPublishPlugin(InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider,
                               FileResolver fileResolver,
+                              ProviderFactory providerFactory,
                               TaskDependencyFactory taskDependencyFactory) {
         this.instantiatorFactory = instantiatorFactory;
         this.objectFactory = objectFactory;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
+        this.providerFactory = providerFactory;
         this.taskDependencyFactory = taskDependencyFactory;
     }
 
@@ -173,9 +177,9 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
             generatePomTask.setDescription("Generates the Maven POM file for publication '" + publicationName + "'.");
             generatePomTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
             generatePomTask.setPom(publication.getPom());
-            if (generatePomTask.getDestination() == null) {
-                generatePomTask.setDestination(buildDir.file("publications/" + publication.getName() + "/pom-default.xml"));
-            }
+            generatePomTask.getDestination().convention(
+                buildDir.file("publications/" + publication.getName() + "/pom-default.xml")
+            );
         });
         publication.setPomGenerator(generatorTask);
     }
@@ -208,7 +212,7 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
 
         @Override
         public MavenPublication create(final String name) {
-            NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver, taskDependencyFactory).create();
+            NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver, taskDependencyFactory, objectFactory, providerFactory).create();
             VersionMappingStrategyInternal versionMappingStrategy = objectFactory.newInstance(DefaultVersionMappingStrategy.class);
             return objectFactory.newInstance(
                     DefaultMavenPublication.class,

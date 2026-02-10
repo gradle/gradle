@@ -49,7 +49,7 @@ class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
                                             minGranularity = 2
                                             maxGranularity = -1
                                             displayGranularity = 3
-                                            exceptionFormat = "full"
+                                            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
                                             stackTraceFilters("truncate", "groovy")
                                         }
                                     }
@@ -208,7 +208,7 @@ Gradle test > org.gradle.TestNGStandardOutputTest.printTest STANDARD_OUT
                                     }
                                     testLogging {
                                         minGranularity = 1
-                                        exceptionFormat = "FULL"
+                                        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
                                     }
                                 }
                             }

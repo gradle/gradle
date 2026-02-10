@@ -181,7 +181,7 @@ public class JavaCompilerArgumentsBuilder {
             args.add(compileOptions.getEncoding());
         }
         String bootClasspath = compileOptions.getBootClasspath();
-        if (bootClasspath != null) { //TODO: move bootclasspath to platform
+        if (bootClasspath != null && !bootClasspath.isEmpty()) { //TODO: move bootclasspath to platform
             args.add("-bootclasspath");
             args.add(bootClasspath);
         }
@@ -195,8 +195,8 @@ public class JavaCompilerArgumentsBuilder {
         }
 
         if (compileOptions.isDebug()) {
-            if (compileOptions.getDebugOptions().getDebugLevel() != null) {
-                args.add("-g:" + compileOptions.getDebugOptions().getDebugLevel().trim());
+            if (compileOptions.getDebugLevel() != null) {
+                args.add("-g:" + compileOptions.getDebugLevel().trim());
             } else {
                 args.add("-g");
             }

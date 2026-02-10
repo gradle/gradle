@@ -672,6 +672,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "groovy-support",
+    "path": "platforms/core-configuration/groovy-support",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "groovydoc-worker",
     "path": "platforms/jvm/groovydoc-worker",
     "unitTests": false,
@@ -884,7 +891,7 @@
   {
     "name": "jvm-compiler-worker",
     "path": "platforms/jvm/jvm-compiler-worker",
-    "unitTests": true,
+    "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },

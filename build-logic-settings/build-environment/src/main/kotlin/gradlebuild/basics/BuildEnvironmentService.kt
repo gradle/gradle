@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+/**
+ * TODO: Remove once with Gradle 9.0, used so org.gradle.kotlin.dsl.* is kept
+ */
+@file:Suppress("UnusedImport")
+
 package gradlebuild.basics
 
 import org.gradle.api.file.DirectoryProperty
@@ -21,8 +26,15 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.os.OperatingSystem
 import javax.inject.Inject
+
+/**
+ * Used to import assign for Gradle 9.0
+ * TODO: Remove once with Gradle 9.0
+ */
+import org.gradle.kotlin.dsl.assign
 
 
 abstract class BuildEnvironmentService : BuildService<BuildEnvironmentService.Parameters> {
@@ -45,9 +57,9 @@ abstract class BuildEnvironmentService : BuildService<BuildEnvironmentService.Pa
         val execOutput = providers.exec {
             workingDir = projectDir
             isIgnoreExitValue = true
-            commandLine = listOf("git", *args)
+            commandLine(listOf("git", *args))
             if (OperatingSystem.current().isWindows) {
-                commandLine = listOf("cmd.exe", "/d", "/c") + commandLine
+                commandLine(listOf("cmd.exe", "/d", "/c", "git", *args))
             }
         }
         return execOutput.result.zip(execOutput.standardOutput.asText) { result, outputText ->

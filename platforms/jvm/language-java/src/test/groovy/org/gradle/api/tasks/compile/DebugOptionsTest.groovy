@@ -24,6 +24,6 @@ class DebugOptionsTest {
 
     @Test
     void testDebugOptions() {
-        assert debugOptions.debugLevel == null
+        assert !debugOptions.debugLevel.isPresent()
     }
 }

@@ -1,0 +1,85 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.get(org.gradle.api.provider.MapProperty,java.lang.Object)",
+            "acceptation": "New += API",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssign(org.gradle.api.provider.HasMultipleValues,java.lang.Object)",
+            "acceptation": "New += API",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssign(org.gradle.api.provider.HasMultipleValues,java.lang.Object[])",
+            "acceptation": "New += API",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssignElementProvider(org.gradle.api.provider.HasMultipleValues,org.gradle.api.provider.Provider)",
+            "acceptation": "New += API",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssignElementProvider(org.gradle.api.provider.MapProperty,org.gradle.api.provider.Provider)",
+            "acceptation": "New += API",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssignElementsProvider(org.gradle.api.provider.HasMultipleValues,org.gradle.api.provider.Provider)",
+            "acceptation": "New += API",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.plusAssignElementsProvider(org.gradle.api.provider.MapProperty,org.gradle.api.provider.Provider)",
+            "acceptation": "New += API",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.set(org.gradle.api.provider.MapProperty,java.lang.Object,java.lang.Object)",
+            "acceptation": "New += API",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyExtensionsKt.set(org.gradle.api.provider.MapProperty,java.lang.Object,org.gradle.api.provider.Provider)",
+            "acceptation": "New += API",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        }
+    ]
+}

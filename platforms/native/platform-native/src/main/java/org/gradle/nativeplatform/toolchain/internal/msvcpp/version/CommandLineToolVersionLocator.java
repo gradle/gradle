@@ -76,12 +76,12 @@ public class CommandLineToolVersionLocator extends AbstractVisualStudioVersionLo
         ExecAction exec = execActionFactory.newExecAction();
         exec.args(args);
         exec.executable(vswhereBinary.getAbsolutePath());
-        exec.setWorkingDir(vswhereBinary.getParentFile());
+        exec.getWorkingDir().set(vswhereBinary.getParentFile());
 
         StreamByteBuffer buffer = new StreamByteBuffer();
-        exec.setStandardOutput(buffer.getOutputStream());
-        exec.setErrorOutput(NullOutputStream.INSTANCE);
-        exec.setIgnoreExitValue(true);
+        exec.getStandardOutput().set(buffer.getOutputStream());
+        exec.getErrorOutput().set(NullOutputStream.INSTANCE);
+        exec.getIgnoreExitValue().set(true);
         ExecResult result = exec.execute();
 
         int exitValue = result.getExitValue();

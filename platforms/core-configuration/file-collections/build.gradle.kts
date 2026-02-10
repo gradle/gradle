@@ -18,8 +18,9 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.io)
     implementation(projects.baseServicesGroovy)
+    implementation(projects.groovySupport)
+    implementation(projects.io)
 
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
@@ -31,6 +32,7 @@ dependencies {
     testImplementation(projects.snapshots)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.coreApi))
+    testImplementation(testFixtures(projects.groovySupport))
     testImplementation(testFixtures(projects.modelCore))
     testImplementation(testFixtures(projects.modelReflect))
     testImplementation(libs.groovyDateUtil)

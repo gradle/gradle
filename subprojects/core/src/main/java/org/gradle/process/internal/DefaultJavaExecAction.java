@@ -17,11 +17,13 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.process.BaseExecSpec;
+import org.gradle.api.provider.Provider;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
@@ -30,7 +32,7 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
+import javax.inject.Inject;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
@@ -43,18 +45,29 @@ import java.util.Map;
  */
 public class DefaultJavaExecAction implements JavaExecAction {
 
+    private final DefaultJavaExecSpec javaExecSpec;
     private final JavaExecHandleBuilder javaExecHandleBuilder;
-    private boolean ignoreExitValue;
 
-    public DefaultJavaExecAction(JavaExecHandleBuilder javaExecHandleBuilder) {
+    @Inject
+    public DefaultJavaExecAction(
+        DefaultJavaExecSpec javaExecSpec,
+        JavaExecHandleBuilder javaExecHandleBuilder
+    ) {
+        this.javaExecSpec = javaExecSpec;
         this.javaExecHandleBuilder = javaExecHandleBuilder;
+        // JavaExecHandleBuilder has default java executable set
+        getExecutable().set(javaExecHandleBuilder.getExecutable());
     }
 
     @Override
     public ExecResult execute() {
-        ExecHandle execHandle = javaExecHandleBuilder.build();
+        ExecHandle execHandle = javaExecHandleBuilder
+            // TODO: Get rid of extraJvmArgs
+            .setExtraJvmArgs(javaExecSpec.getExtraJvmArgs())
+            .configureFrom(this)
+            .build();
         ExecResult execResult = execHandle.start().waitForFinish();
-        if (!ignoreExitValue) {
+        if (!getIgnoreExitValue().get()) {
             execResult.assertNormalExitValue();
         }
         return execResult;
@@ -62,335 +75,213 @@ public class DefaultJavaExecAction implements JavaExecAction {
 
     @Override
     public ListProperty<String> getJvmArguments() {
-        return javaExecHandleBuilder.getJvmArguments();
+        return javaExecSpec.getJvmArguments();
     }
 
     @Override
     public Property<String> getMainModule() {
-        return javaExecHandleBuilder.getMainModule();
+        return javaExecSpec.getMainModule();
     }
 
     @Override
     public Property<String> getMainClass() {
-        return javaExecHandleBuilder.getMainClass();
+        return javaExecSpec.getMainClass();
     }
 
+    public void setExtraJvmArgs(List<String> jvmArgs) {
+        javaExecSpec.setExtraJvmArgs(jvmArgs);
+    }
+
+    @Nullable
     @Override
-    public List<String> getArgs() {
-        return javaExecHandleBuilder.getArgs();
+    public ListProperty<String> getArgs() {
+        return javaExecSpec.getArgs();
     }
 
     @Override
     public JavaExecSpec args(Object... args) {
-        javaExecHandleBuilder.args(args);
+        javaExecSpec.args(args);
         return this;
     }
 
     @Override
     public JavaExecSpec args(Iterable<?> args) {
-        javaExecHandleBuilder.args(args);
+        javaExecSpec.args(args);
         return this;
     }
 
     @Override
-    public JavaExecSpec setArgs(List<String> args) {
-        javaExecHandleBuilder.setArgs(args);
-        return this;
-    }
-
-    @Override
-    public JavaExecSpec setArgs(Iterable<?> args) {
-        javaExecHandleBuilder.setArgs(args);
-        return this;
-    }
-
-    @Override
-    public List<CommandLineArgumentProvider> getArgumentProviders() {
-        return javaExecHandleBuilder.getArgumentProviders();
+    public ListProperty<CommandLineArgumentProvider> getArgumentProviders() {
+        return javaExecSpec.getArgumentProviders();
     }
 
     @Override
     public JavaExecSpec classpath(Object... paths) {
-        javaExecHandleBuilder.classpath(paths);
+        javaExecSpec.classpath(paths);
         return this;
     }
 
     @Override
-    public FileCollection getClasspath() {
-        return javaExecHandleBuilder.getClasspath();
-    }
-
-    @Override
-    public JavaExecSpec setClasspath(FileCollection classpath) {
-        javaExecHandleBuilder.setClasspath(classpath);
-        return this;
+    public ConfigurableFileCollection getClasspath() {
+        return javaExecSpec.getClasspath();
     }
 
     @Override
     public ModularitySpec getModularity() {
-        return javaExecHandleBuilder.getModularity();
+        return javaExecSpec.getModularity();
     }
 
     @Override
-    public BaseExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
-        return this;
+    public Provider<List<String>> getCommandLine() {
+        return javaExecSpec.getCommandLine();
     }
 
     @Override
-    public boolean isIgnoreExitValue() {
-        return ignoreExitValue;
-    }
-
-    @Override
-    public BaseExecSpec setStandardInput(InputStream inputStream) {
-        javaExecHandleBuilder.setStandardInput(inputStream);
-        return this;
-    }
-
-    @Override
-    public InputStream getStandardInput() {
-        return javaExecHandleBuilder.getStandardInput();
-    }
-
-    @Override
-    public BaseExecSpec setStandardOutput(OutputStream outputStream) {
-        javaExecHandleBuilder.setStandardOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getStandardOutput() {
-        return javaExecHandleBuilder.getStandardOutput();
-    }
-
-    @Override
-    public BaseExecSpec setErrorOutput(OutputStream outputStream) {
-        javaExecHandleBuilder.setErrorOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getErrorOutput() {
-        return javaExecHandleBuilder.getErrorOutput();
-    }
-
-    @Override
-    public List<String> getCommandLine() {
-        return javaExecHandleBuilder.getCommandLine();
-    }
-
-    @Override
-    public Map<String, @Nullable Object> getSystemProperties() {
-        return javaExecHandleBuilder.getSystemProperties();
-    }
-
-    @Override
-    public void setSystemProperties(Map<String, ? extends @Nullable Object> properties) {
-        javaExecHandleBuilder.setSystemProperties(properties);
+    public MapProperty<String, Object> getSystemProperties() {
+        return javaExecSpec.getSystemProperties();
     }
 
     @Override
     public JavaForkOptions systemProperties(Map<String, ? extends @Nullable Object> properties) {
-        javaExecHandleBuilder.systemProperties(properties);
+        javaExecSpec.systemProperties(properties);
         return this;
     }
 
     @Override
     public JavaForkOptions systemProperty(String name, @Nullable Object value) {
-        javaExecHandleBuilder.systemProperty(name, value);
+        javaExecSpec.systemProperty(name, value);
         return this;
     }
 
-    @Nullable
     @Override
-    public String getDefaultCharacterEncoding() {
-        return javaExecHandleBuilder.getDefaultCharacterEncoding();
+    public Property<String> getDefaultCharacterEncoding() {
+        return javaExecSpec.getDefaultCharacterEncoding();
     }
 
     @Override
-    public void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding) {
-        javaExecHandleBuilder.setDefaultCharacterEncoding(defaultCharacterEncoding);
-    }
-
-    @Nullable
-    @Override
-    public String getMinHeapSize() {
-        return javaExecHandleBuilder.getMinHeapSize();
+    public Property<String> getMinHeapSize() {
+        return javaExecSpec.getMinHeapSize();
     }
 
     @Override
-    public void setMinHeapSize(@Nullable String heapSize) {
-        javaExecHandleBuilder.setMinHeapSize(heapSize);
-    }
-
-    @Nullable
-    @Override
-    public String getMaxHeapSize() {
-        return javaExecHandleBuilder.getMaxHeapSize();
+    public Property<String> getMaxHeapSize() {
+        return javaExecSpec.getMaxHeapSize();
     }
 
     @Override
-    public void setMaxHeapSize(@Nullable String heapSize) {
-        javaExecHandleBuilder.setMaxHeapSize(heapSize);
-    }
-
-    @Override
-    public List<String> getJvmArgs() {
-        return javaExecHandleBuilder.getJvmArgs();
-    }
-
-    @Override
-    public void setJvmArgs(List<String> arguments) {
-        javaExecHandleBuilder.setJvmArgs(arguments);
-    }
-
-    @Override
-    public void setJvmArgs(Iterable<?> arguments) {
-        javaExecHandleBuilder.setJvmArgs(arguments);
+    public ListProperty<String> getJvmArgs() {
+        return javaExecSpec.getJvmArgs();
     }
 
     @Override
     public JavaForkOptions jvmArgs(Iterable<?> arguments) {
-        javaExecHandleBuilder.jvmArgs(arguments);
+        javaExecSpec.jvmArgs(arguments);
         return this;
     }
 
     @Override
     public JavaForkOptions jvmArgs(Object... arguments) {
-        javaExecHandleBuilder.jvmArgs(arguments);
+        javaExecSpec.jvmArgs(arguments);
         return this;
     }
 
     @Override
-    public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
-        return javaExecHandleBuilder.getJvmArgumentProviders();
+    public ListProperty<CommandLineArgumentProvider> getJvmArgumentProviders() {
+        return javaExecSpec.getJvmArgumentProviders();
     }
 
     @Override
-    public FileCollection getBootstrapClasspath() {
-        return javaExecHandleBuilder.getBootstrapClasspath();
-    }
-
-    @Override
-    public void setBootstrapClasspath(FileCollection classpath) {
-        javaExecHandleBuilder.setBootstrapClasspath(classpath);
+    public ConfigurableFileCollection getBootstrapClasspath() {
+        return javaExecSpec.getBootstrapClasspath();
     }
 
     @Override
     public JavaForkOptions bootstrapClasspath(Object... classpath) {
-        javaExecHandleBuilder.bootstrapClasspath(classpath);
+        javaExecSpec.bootstrapClasspath(classpath);
         return this;
     }
 
     @Override
-    public boolean getEnableAssertions() {
-        return javaExecHandleBuilder.getEnableAssertions();
+    public Property<Boolean> getEnableAssertions() {
+        return javaExecSpec.getEnableAssertions();
     }
 
     @Override
-    public void setEnableAssertions(boolean enabled) {
-        javaExecHandleBuilder.setEnableAssertions(enabled);
-    }
-
-    @Override
-    public boolean getDebug() {
-        return javaExecHandleBuilder.getDebug();
-    }
-
-    @Override
-    public void setDebug(boolean enabled) {
-        javaExecHandleBuilder.setDebug(enabled);
+    public Property<Boolean> getDebug() {
+        return javaExecSpec.getDebug();
     }
 
     @Override
     public JavaDebugOptions getDebugOptions() {
-        return javaExecHandleBuilder.getDebugOptions();
+        return javaExecSpec.getDebugOptions();
     }
 
     @Override
     public void debugOptions(Action<JavaDebugOptions> action) {
-        javaExecHandleBuilder.debugOptions(action);
+        javaExecSpec.debugOptions(action);
     }
 
     @Override
-    public List<String> getAllJvmArgs() {
-        return javaExecHandleBuilder.getAllJvmArgs();
+    public Provider<List<String>> getAllJvmArgs() {
+        return javaExecSpec.getAllJvmArgs();
     }
 
     @Override
-    @Deprecated
-    public void setAllJvmArgs(List<String> arguments) {
-        throw new UnsupportedOperationException();
+    public Property<Boolean> getIgnoreExitValue() {
+        return javaExecSpec.getIgnoreExitValue();
     }
 
     @Override
-    @Deprecated
-    public void setAllJvmArgs(Iterable<?> arguments) {
-        throw new UnsupportedOperationException();
+    public Property<InputStream> getStandardInput() {
+        return javaExecSpec.getStandardInput();
     }
 
     @Override
-    public String getExecutable() {
-        return javaExecHandleBuilder.getExecutable();
+    public Property<OutputStream> getStandardOutput() {
+        return javaExecSpec.getStandardOutput();
     }
 
     @Override
-    public void setExecutable(String executable) {
-        javaExecHandleBuilder.setExecutable(executable);
+    public Property<OutputStream> getErrorOutput() {
+        return javaExecSpec.getErrorOutput();
     }
 
     @Override
-    public void setExecutable(Object executable) {
-        javaExecHandleBuilder.setExecutable(executable);
+    public Property<String> getExecutable() {
+        return javaExecSpec.getExecutable();
     }
 
     @Override
     public ProcessForkOptions executable(Object executable) {
-        javaExecHandleBuilder.setExecutable(executable);
+        javaExecSpec.executable(executable);
         return this;
     }
 
     @Override
-    public File getWorkingDir() {
-        return javaExecHandleBuilder.getWorkingDir();
-    }
-
-    @Override
-    public void setWorkingDir(File dir) {
-        javaExecHandleBuilder.setWorkingDir(dir);
-    }
-
-    @Override
-    public void setWorkingDir(Object dir) {
-        javaExecHandleBuilder.setWorkingDir(dir);
+    public DirectoryProperty getWorkingDir() {
+        return javaExecSpec.getWorkingDir();
     }
 
     @Override
     public ProcessForkOptions workingDir(Object dir) {
-        javaExecHandleBuilder.setWorkingDir(dir);
+        javaExecSpec.workingDir(dir);
         return this;
     }
 
     @Override
-    public Map<String, Object> getEnvironment() {
-        return javaExecHandleBuilder.getEnvironment();
-    }
-
-    @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
-        javaExecHandleBuilder.setEnvironment(environmentVariables);
+    public MapProperty<String, Object> getEnvironment() {
+        return javaExecSpec.getEnvironment();
     }
 
     @Override
     public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
-        javaExecHandleBuilder.environment(environmentVariables);
+        javaExecSpec.environment(environmentVariables);
         return this;
     }
 
     @Override
     public ProcessForkOptions environment(String name, Object value) {
-        javaExecHandleBuilder.environment(name, value);
+        javaExecSpec.environment(name, value);
         return this;
     }
 
@@ -400,13 +291,16 @@ public class DefaultJavaExecAction implements JavaExecAction {
         return this;
     }
 
+
     @Override
     public ProcessForkOptions copyTo(ProcessForkOptions options) {
-        throw new UnsupportedOperationException();
+        javaExecSpec.copyTo(options);
+        return this;
     }
 
     @Override
     public JavaForkOptions copyTo(JavaForkOptions options) {
-        throw new UnsupportedOperationException();
+        javaExecSpec.copyTo(options);
+        return this;
     }
 }

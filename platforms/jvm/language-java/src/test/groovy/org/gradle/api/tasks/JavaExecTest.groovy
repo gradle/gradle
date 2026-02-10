@@ -29,8 +29,7 @@ class JavaExecTest extends AbstractProjectBuilderSpec {
         def task = project.tasks.create("run", JavaExec)
 
         then:
-        task.jvmArgs != null
-        task.jvmArgs.isEmpty()
+        task.jvmArgs.get().isEmpty()
     }
 
     def 'fails if custom executable does not exist'() {
@@ -38,7 +37,7 @@ class JavaExecTest extends AbstractProjectBuilderSpec {
         def invalidExecutable = temporaryFolder.file("invalid")
 
         when:
-        task.executable = invalidExecutable
+        task.executable = invalidExecutable.absolutePath
         execute(task)
 
         then:

@@ -654,9 +654,17 @@ tasks.named<Test>("docsTest") {
     // For unknown reason, this is set to 'sourceSet.getRuntimeClasspath()' in the 'org.gradle.samples' plugin
     testClassesDirs = sourceSets.docsTest.get().output.classesDirs
     // 'integTest.samplesdir' is set to an absolute path by the 'org.gradle.samples' plugin
-    systemProperties.clear()
+    systemProperties = emptyMap<String, Any>()
 
     filter {
+        // TODO: Delete after Gradle 10.0, used just to pass Gradleception tests
+        fun Provider<JavaVersion>.isCompatibleWith(version: JavaVersion) =
+            get().isCompatibleWith(version)
+
+        // workaround for https://github.com/gradle/dotcom/issues/5958
+        // TODO: Fix for Gradle 10, use failOnNoMatchingTests instead
+        @Suppress("DEPRECATION")
+        isFailOnNoMatchingTests = false
         // Only execute C++ sample tests on Linux because it is the configured target
         if (!OperatingSystem.current().isLinux) {
             excludeTestsMatching("org.gradle.docs.samples.*.building-cpp-*")
@@ -666,7 +674,7 @@ tasks.named<Test>("docsTest") {
             excludeTestsMatching("org.gradle.docs.samples.*.building-swift-*")
         }
         // Only execute Groovy sample tests on Java < 9 to avoid warnings in output
-        if (javaVersion.isJava9Compatible) {
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)) {
             excludeTestsMatching("org.gradle.docs.samples.*.building-groovy-*")
         }
 
@@ -676,7 +684,7 @@ tasks.named<Test>("docsTest") {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-model-rules-basic-rule-source-plugin_*_basicRuleSourcePlugin-model-task")
         }
 
-        if (!javaVersion.isJava11Compatible) {
+        if (!javaVersion.isCompatibleWith(JavaVersion.VERSION_11)) {
             // This test sets source and target compatibility to 11
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-kotlin-dsl-accessors_*")
         }

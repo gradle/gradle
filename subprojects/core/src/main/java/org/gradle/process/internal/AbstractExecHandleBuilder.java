@@ -15,12 +15,12 @@
  */
 package org.gradle.process.internal;
 
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.process.BaseExecSpec;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Deprecated. Will be removed in Gradle 10. Kept for now it's subclass is used by the Kotlin plugin.
@@ -28,70 +28,50 @@ import java.util.List;
 @Deprecated
 public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
 
-    protected final ClientExecHandleBuilder delegate;
-    private boolean ignoreExitValue;
+    protected final ExecAction delegate;
 
-    AbstractExecHandleBuilder(ClientExecHandleBuilder delegate) {
-        this.delegate = delegate;
-    }
-
-    public abstract List<String> getAllArguments();
-
-    @Override
-    public List<String> getCommandLine() {
-        List<String> commandLine = new ArrayList<>();
-        commandLine.add(getExecutable());
-        commandLine.addAll(getAllArguments());
-        return commandLine;
+    AbstractExecHandleBuilder(ExecAction execAction) {
+        this.delegate = execAction;
     }
 
     @Override
-    public AbstractExecHandleBuilder setStandardInput(InputStream inputStream) {
-        delegate.setStandardInput(inputStream);
+    public Property<String> getExecutable() {
+        return delegate.getExecutable();
+    }
+
+    @Override
+    public AbstractExecHandleBuilder executable(Object executable) {
+        delegate.executable(executable);
         return this;
     }
 
     @Override
-    public InputStream getStandardInput() {
+    public MapProperty<String, Object> getEnvironment() {
+        return delegate.getEnvironment();
+    }
+
+    @Override
+    public Property<InputStream> getStandardInput() {
         return delegate.getStandardInput();
     }
 
     @Override
-    public AbstractExecHandleBuilder setStandardOutput(OutputStream outputStream) {
-        delegate.setStandardOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getStandardOutput() {
+    public Property<OutputStream> getStandardOutput() {
         return delegate.getStandardOutput();
     }
 
     @Override
-    public AbstractExecHandleBuilder setErrorOutput(OutputStream outputStream) {
-        delegate.setErrorOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getErrorOutput() {
+    public Property<OutputStream> getErrorOutput() {
         return delegate.getErrorOutput();
     }
 
     @Override
-    public boolean isIgnoreExitValue() {
-        return ignoreExitValue;
-    }
-
-    @Override
-    public AbstractExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
-        return this;
+    public Property<Boolean> getIgnoreExitValue() {
+        return delegate.getIgnoreExitValue();
     }
 
     public AbstractExecHandleBuilder setDisplayName(String displayName) {
-        delegate.setDisplayName(displayName);
-        return this;
+        throw new UnsupportedOperationException("setTimeout() is not supported");
     }
 
     public AbstractExecHandleBuilder listener(ExecHandleListener listener) {
@@ -100,24 +80,21 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
     }
 
     public AbstractExecHandleBuilder streamsHandler(StreamsHandler streamsHandler) {
-        delegate.streamsHandler(streamsHandler);
-        return this;
+        throw new UnsupportedOperationException("streamsHandler() is not supported");
     }
 
     /**
      * Merge the process' error stream into its output stream
      */
     public AbstractExecHandleBuilder redirectErrorStream() {
-        delegate.redirectErrorStream();
-        return this;
+        throw new UnsupportedOperationException("redirectErrorStream() is not supported");
     }
 
     public AbstractExecHandleBuilder setTimeout(int timeoutMillis) {
-        delegate.setTimeout(timeoutMillis);
-        return this;
+        throw new UnsupportedOperationException("setTimeout() is not supported");
     }
 
     public ExecHandle build() {
-        return delegate.build();
+        return delegate.buildHandle();
     }
 }

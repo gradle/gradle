@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
+@file:Suppress("UnusedImport", "UnusedImports")
+
 package gradlebuild
 
+/**
+ * TODO: Remove Suppress("UnusedImport") with Gradle 9.0
+ */
+import org.gradle.kotlin.dsl.assign
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.os.OperatingSystem
-
+import org.gradle.kotlin.dsl.assign
 
 val propagatedEnvironmentVariables = listOf(
     // Obviously necessary
@@ -110,13 +116,9 @@ val credentialsKeywords = listOf(
 
 fun Test.filterEnvironmentVariables(inheritDevelocityAccessToken: Boolean) {
     environment = makePropagatedEnvironment()
-    environment.forEach { (key, _) ->
-        require(credentialsKeywords.none { key.contains(it, true) }) { "Found sensitive data in filtered environment variables: $key" }
-    }
-
     if (inheritDevelocityAccessToken) {
         System.getenv("DEVELOCITY_ACCESS_KEY")?.let {
-            environment["DEVELOCITY_ACCESS_KEY"] = it
+            environment("DEVELOCITY_ACCESS_KEY", it)
         }
     }
 }
@@ -131,5 +133,10 @@ fun makePropagatedEnvironment(): MutableMap<String, String> {
             result[key] = value
         }
     }
+
+    result.forEach { (key, _) ->
+        require(credentialsKeywords.none { key.contains(it, true) }) { "Found sensitive data in filtered environment variables: $key" }
+    }
+
     return result
 }

@@ -48,7 +48,7 @@ class GradleRunnerMiscEndUserIntegrationTest extends BaseTestKitEndUserIntegrati
             }
 
             test {
-                testLogging.exceptionFormat = 'full'
+                testLogging.exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
             }
         """
     }

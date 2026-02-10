@@ -20,32 +20,29 @@ import org.gradle.api.Project;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaApplication;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
-
-import java.util.ArrayList;
 
 public class DefaultJavaApplication implements JavaApplication {
     private final Property<String> mainModule;
-    private String applicationName;
-    private Property<String> mainClass;
-    private Iterable<String> applicationDefaultJvmArgs = new ArrayList<String>();
-    private String executableDirectory = "bin";
+    private final Property<String> mainClass;
+    private final Property<String> executableDir;
+    private final Property<String> applicationName;
+    private final ListProperty<String> applicationDefaultJvmArgs;
     private CopySpec applicationDistribution;
 
     public DefaultJavaApplication(ObjectFactory objectFactory, Project project) {
         this.mainModule = objectFactory.property(String.class);
         this.mainClass = objectFactory.property(String.class);
+        this.executableDir = objectFactory.property(String.class).convention("bin");
+        this.applicationName = objectFactory.property(String.class);
+        this.applicationDefaultJvmArgs = objectFactory.listProperty(String.class);
         this.applicationDistribution = project.copySpec();
     }
 
     @Override
-    public String getApplicationName() {
+    public Property<String> getApplicationName() {
         return applicationName;
-    }
-
-    @Override
-    public void setApplicationName(String applicationName) {
-        this.applicationName = applicationName;
     }
 
     @Override
@@ -59,23 +56,13 @@ public class DefaultJavaApplication implements JavaApplication {
     }
 
     @Override
-    public Iterable<String> getApplicationDefaultJvmArgs() {
+    public ListProperty<String> getApplicationDefaultJvmArgs() {
         return applicationDefaultJvmArgs;
     }
 
     @Override
-    public void setApplicationDefaultJvmArgs(Iterable<String> applicationDefaultJvmArgs) {
-        this.applicationDefaultJvmArgs = applicationDefaultJvmArgs;
-    }
-
-    @Override
-    public String getExecutableDir() {
-        return executableDirectory;
-    }
-
-    @Override
-    public void setExecutableDir(String executableDir) {
-        this.executableDirectory = executableDir;
+    public Property<String> getExecutableDir() {
+        return executableDir;
     }
 
     @Override

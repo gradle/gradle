@@ -15,89 +15,44 @@
  */
 package org.gradle.api.tasks.compile;
 
-import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.jspecify.annotations.Nullable;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Fork options for compilation. Only take effect if {@code fork}
  * is {@code true}.
  */
-public class BaseForkOptions implements Serializable {
+public abstract class BaseForkOptions implements Serializable {
     private static final long serialVersionUID = 0;
-
-    private String memoryInitialSize;
-
-    private String memoryMaximumSize;
-
-    private List<String> jvmArgs = new ArrayList<>();
 
     /**
      * Returns the initial heap size for the compiler process.
      * Defaults to {@code null}, in which case the JVM's default will be used.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public String getMemoryInitialSize() {
-        return memoryInitialSize;
-    }
-
-    /**
-     * Sets the initial heap size for the compiler process.
-     * Defaults to {@code null}, in which case the JVM's default will be used.
-     */
-    public void setMemoryInitialSize(String memoryInitialSize) {
-        this.memoryInitialSize = memoryInitialSize;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getMemoryInitialSize();
 
     /**
      * Returns the maximum heap size for the compiler process.
      * Defaults to {@code null}, in which case the JVM's default will be used.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public String getMemoryMaximumSize() {
-        return memoryMaximumSize;
-    }
-
-    /**
-     * Sets the maximum heap size for the compiler process.
-     * Defaults to {@code null}, in which case the JVM's default will be used.
-     */
-    public void setMemoryMaximumSize(String memoryMaximumSize) {
-        this.memoryMaximumSize = memoryMaximumSize;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getMemoryMaximumSize();
 
     /**
      * Returns any additional JVM arguments for the compiler process.
      * Defaults to the empty list.
      */
-    @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public List<String> getJvmArgs() {
-        return jvmArgs;
-    }
-
-    /**
-     * Sets any additional JVM arguments for the compiler process.
-     * Defaults to the empty list. Empty or null arguments are filtered out because they cause
-     * JVM Launch to fail.
-     */
-    public void setJvmArgs(@Nullable List<String> jvmArgs) {
-        this.jvmArgs = jvmArgs == null ? null : jvmArgs.stream()
-            .filter(Objects::nonNull)
-            .filter(string -> !StringUtils.isBlank(string))
-            .collect(Collectors.toList());
-    }
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getJvmArgs();
 }
