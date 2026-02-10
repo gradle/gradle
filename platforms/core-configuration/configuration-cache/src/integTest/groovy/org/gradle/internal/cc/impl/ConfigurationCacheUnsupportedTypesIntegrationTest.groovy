@@ -109,6 +109,16 @@ import spock.lang.Shared
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors.DefaultThreadFactory
 import java.util.concurrent.ThreadFactory
+import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReadWriteLock
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.Phaser
+import java.util.concurrent.Semaphore
+import java.util.concurrent.Exchanger
+import java.util.concurrent.SynchronousQueue
 
 class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -264,6 +274,15 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         Thread                                | Thread                         | "Thread.currentThread()"
         DefaultThreadFactory                  | ThreadFactory                  | "java.util.concurrent.Executors.defaultThreadFactory()"
         executorServiceTypeOnCurrentJvm()     | Executor                       | "java.util.concurrent.Executors.newSingleThreadExecutor().tap { shutdown() }"
+        // Concurrency primitives
+        ReentrantLock                         | Lock                           | "new java.util.concurrent.locks.ReentrantLock()"
+        ReentrantReadWriteLock                | ReadWriteLock                  | "new java.util.concurrent.locks.ReentrantReadWriteLock()"
+        CountDownLatch                        | CountDownLatch                 | "new java.util.concurrent.CountDownLatch(1)"
+        CyclicBarrier                         | CyclicBarrier                  | "new java.util.concurrent.CyclicBarrier(1)"
+        Phaser                                | Phaser                         | "new java.util.concurrent.Phaser()"
+        Semaphore                             | Semaphore                      | "new java.util.concurrent.Semaphore(1)"
+        Exchanger                             | Exchanger                      | "new java.util.concurrent.Exchanger()"
+        SynchronousQueue                      | SynchronousQueue               | "new java.util.concurrent.SynchronousQueue()"
         ByteArrayInputStream                  | InputStream                    | "new java.io.ByteArrayInputStream([] as byte[])"
         ByteArrayOutputStream                 | OutputStream                   | "new java.io.ByteArrayOutputStream()"
         FileDescriptor                        | FileDescriptor                 | "FileDescriptor.in"
