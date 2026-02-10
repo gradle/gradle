@@ -43,11 +43,11 @@ The previous step will help you identify potential problems by issuing deprecati
 
 ==== Plugins requested by precompiled settings plugins are now resolved in the build that compiles them
 
-If a precompiled settings plugin (`*.settings.gradle.kts`) requests a plugin in the `plugins { }` block, the
-plugin request is now going to be checked against the dependencies in the build that compiles the plugin.
+When a precompiled settings plugin (`*.settings.gradle.kts`) declares a plugin in a `plugins {}` block, that
+plugin request is now resolved against the dependencies of the build that compiles the plugin.
 
-Previously, if a precompiled settings plugin was never applied in the build, it could contain an invalid
-plugin request that was not validated:
+Previously, if a precompiled settings plugin was never applied, it could contain an invalid plugin request
+without being detected:
 
 .buildSrc/src/main/kotlin/my-precompiled-plugin.settings.gradle.kts
 [source,kotlin]
@@ -57,9 +57,9 @@ plugins {
 }
 ----
 
-If such a precompiled settings plugin was published, the invalid plugin request would only cause a failure
-in the consuming build. Now it will be validated in the build that compiles the plugin, failing if the request
-is not satisfied. This behavior is now the same as that of `Project`-targeting precompiled script plugins.
+If such a plugin was published, the invalid request would only fail later, when the plugin was used by a
+consuming build. Gradle now validates these plugin requests during compilation and fails the build if the
+requested plugin cannot be resolved. This behavior now matches that of precompiled script plugins targeting `Project`.
 
 Avoid invalid plugin requests in unused precompiled settings plugins.
 
