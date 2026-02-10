@@ -16,14 +16,11 @@
 
 package gradlebuild.testcleanup
 
+import gradlebuild.basics.FileLocationProvider
 import org.gradle.api.GradleException
-import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.FileSystemLocation
-import org.gradle.api.file.FileSystemLocationProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
@@ -40,25 +37,34 @@ import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.LinkOption
-import java.util.Collections
-import java.util.HashSet
 import java.util.concurrent.ConcurrentHashMap
 import java.util.stream.Collectors
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
-import kotlin.collections.Collection
-import kotlin.collections.List
-import kotlin.collections.Map
 
 
 typealias LeftoverFiles = Map<File, List<String>>
 
-class TestFilesCleanupProjectState(val projectPath: String, val projectBuildDir: File, val reportOnly: Property<Boolean>)
+class TestFilesCleanupProjectState(
+    val projectPath: String,
+    val projectBuildDir: Provider<File>,
+    val reportOnly: Provider<Boolean>
+)
+
+private class ConcurrentMultiMap<K, V> {
+    private val map = ConcurrentHashMap<K, MutableSet<V>>()
+
+    fun add(key: K, value: V) =
+        map.computeIfAbsent(key, { k -> ConcurrentHashMap.newKeySet() }).add(value)
+
+    fun getOrEmpty(key: K): Set<V> = map[key] ?: emptySet()
+}
 
 abstract class TestFilesCleanupService @Inject constructor(
     private val fileSystemOperations: FileSystemOperations,
 ) : BuildService<TestFilesCleanupService.Params>, AutoCloseable, OperationCompletionListener {
+
     interface Params : BuildServiceParameters {
         val rootBuildDir: DirectoryProperty
     }
@@ -68,38 +74,30 @@ abstract class TestFilesCleanupService @Inject constructor(
     /**
      * Key is the path of a task, value is the possible report dirs it generates.
      */
-    private val taskPathToReports: ConcurrentHashMap<String, MutableSet<Any>> = ConcurrentHashMap()
+    private val taskPathToReports: ConcurrentHashMap<String, List<FileLocationProvider>> = ConcurrentHashMap()
 
     /**
      * Key is the path of the test, value is Test.binaryResultsDir
      */
-    private val testPathToBinaryResultsDir: ConcurrentHashMap<String, Any> = ConcurrentHashMap()
+    private val testTaskPathToBinaryResultsDir: ConcurrentHashMap<String, Provider<File>> = ConcurrentHashMap()
 
-    fun addProjectState(project: Project, reportOnly: Property<Boolean>) {
-        projectStates.put(project.path, TestFilesCleanupProjectState(project.path, project.layout.buildDirectory.get().asFile, reportOnly))
+    private val projectPathToExecutedTaskPaths: ConcurrentMultiMap<String, String> = ConcurrentMultiMap()
+    private val projectPathToFailedTaskPaths: ConcurrentMultiMap<String, String> = ConcurrentMultiMap()
+
+    fun addProjectState(projectPath: String, projectBuildDir: Provider<File>, reportOnly: Provider<Boolean>) {
+        require(projectPath !in projectStates.keys) { "Project state already added for $projectPath" }
+        projectStates[projectPath] = TestFilesCleanupProjectState(projectPath, projectBuildDir, reportOnly)
     }
 
     fun addTestBinaryResultsDir(testTaskPath: String, binaryResultsDir: Provider<File>) {
-        testPathToBinaryResultsDir.put(testTaskPath, binaryResultsDir)
+        testTaskPathToBinaryResultsDir[testTaskPath] = binaryResultsDir
     }
 
-    fun addTaskReports(taskPath: String, reports: Collection<Any>) {
-        safeAdd(taskPathToReports, taskPath, reports)
+    fun addTaskReports(taskPath: String, reports: Collection<FileLocationProvider>) {
+        taskPathToReports.merge(taskPath, reports.toList(), { prev, next -> prev + next })
     }
 
-    private fun <K, V> safeAdd(map: ConcurrentHashMap<K, MutableSet<V>>, key: K, values: Collection<V>) {
-        map.computeIfAbsent(key, { k -> Collections.synchronizedSet<V>(HashSet<V>()) }).addAll(values)
-    }
-
-    private
-    val projectPathToFailedTaskPaths: ConcurrentHashMap<String, MutableSet<String>> = ConcurrentHashMap()
-
-    private
-    val projectPathToExecutedTaskPaths: ConcurrentHashMap<String, MutableSet<String>> = ConcurrentHashMap()
-
-    private
-    val rootBuildDir: File
-        get() = parameters.rootBuildDir.get().asFile
+    private val rootBuildDir: File get() = parameters.rootBuildDir.get().asFile
 
     override fun onFinish(event: FinishEvent) {
         if (event is TaskFinishEvent && taskPathToReports.containsKey(event.descriptor.taskPath)) {
@@ -111,10 +109,12 @@ abstract class TestFilesCleanupService @Inject constructor(
                         addFailedTaskPath(taskPath)
                     }
                 }
+
                 is TaskFailureResult -> {
                     addExecutedTaskPath(taskPath)
                     addFailedTaskPath(taskPath)
                 }
+
                 else -> {
                 }
             }
@@ -123,24 +123,24 @@ abstract class TestFilesCleanupService @Inject constructor(
 
     private
     fun containsFailedTest(taskPath: String): Boolean {
-        return testPathToBinaryResultsDir[taskPath]?.let { containsFailedTest(resolve(it as Any)) } == true
+        return testTaskPathToBinaryResultsDir[taskPath]?.let { containsFailedTest(it.get()) } == true
     }
 
     private
     fun addExecutedTaskPath(taskPath: String) {
-        safeAdd(projectPathToExecutedTaskPaths, taskPathToProjectPath(taskPath), listOf(taskPath))
+        projectPathToExecutedTaskPaths.add(taskPathToProjectPath(taskPath), taskPath)
     }
 
     private
     fun addFailedTaskPath(taskPath: String) {
-        safeAdd(projectPathToFailedTaskPaths, taskPathToProjectPath(taskPath), listOf(taskPath))
+        projectPathToFailedTaskPaths.add(taskPathToProjectPath(taskPath), taskPath)
     }
 
     private
-    fun getFailedTaskPaths(projectPath: String) = projectPathToFailedTaskPaths.getOrDefault(projectPath, emptySet())
+    fun getFailedTaskPaths(projectPath: String) = projectPathToFailedTaskPaths.getOrEmpty(projectPath)
 
     private
-    fun getExecutedTaskPaths(projectPath: String) = projectPathToExecutedTaskPaths.getOrDefault(projectPath, emptySet())
+    fun getExecutedTaskPaths(projectPath: String) = projectPathToExecutedTaskPaths.getOrEmpty(projectPath)
 
     override fun close() {
         val projectPathToLeftoverFiles = mutableMapOf<String, LeftoverFiles>()
@@ -181,7 +181,7 @@ abstract class TestFilesCleanupService @Inject constructor(
     }
 
     private
-    fun isPathForTestTask(taskPath: String) = testPathToBinaryResultsDir.containsKey(taskPath)
+    fun isPathForTestTask(taskPath: String) = testTaskPathToBinaryResultsDir.containsKey(taskPath)
 
     private
     fun isAnyTestTaskFailed(projectPath: String) = getFailedTaskPaths(projectPath).any { isPathForTestTask(it) }
@@ -210,7 +210,7 @@ abstract class TestFilesCleanupService @Inject constructor(
      * Returns non-empty directories: the mapping of directory to at most 4 leftover files' relative path in the directory.
      */
     private
-    fun TestFilesCleanupProjectState.tmpTestFiles(): LeftoverFiles = projectBuildDir.resolve("tmp/teŝt files")
+    fun TestFilesCleanupProjectState.tmpTestFiles(): LeftoverFiles = projectBuildDir.get().resolve("tmp/teŝt files")
         .listFiles()
         ?.associateWith { dir ->
             val dirPath = dir.toPath()
@@ -230,7 +230,7 @@ abstract class TestFilesCleanupService @Inject constructor(
      * These directories will be created as siblings of the randomly assigned test root directories, with the fixed name {@code tmp-extracted-resources}.
      */
     private
-    fun TestFilesCleanupProjectState.tmpExtractedResourcesDirs() = projectBuildDir.resolve("tmp/teŝt files")
+    fun TestFilesCleanupProjectState.tmpExtractedResourcesDirs() = projectBuildDir.get().resolve("tmp/teŝt files")
         .listFiles()
         ?.filter { it.isDirectory }
         ?.map { it.resolve("tmp-extracted-resources") }
@@ -239,12 +239,14 @@ abstract class TestFilesCleanupService @Inject constructor(
 
     private
     fun TestFilesCleanupProjectState.prepareReportsForCiPublishing(executedTaskPaths: Set<String>, tmpTestFiles: Collection<File>) {
-        val reports = executedTaskPaths
-            .flatMap { taskPathToReports.getOrDefault(it, emptySet()) }
+        val reports: List<File> = executedTaskPaths.asSequence()
+            .flatMap { taskPathToReports.getOrDefault(it, emptyList()) }
+            .map { it.get().asFile }
+            .toList()
         if (isAnyTestTaskFailed(projectPath) || tmpTestFiles.isNotEmpty()) {
-            prepareReportForCiPublishing(resolve(tmpTestFiles + reports))
+            prepareReportForCiPublishing(tmpTestFiles + reports)
         } else {
-            prepareReportForCiPublishing(resolve(reports))
+            prepareReportForCiPublishing(reports)
         }
     }
 
@@ -279,21 +281,10 @@ abstract class TestFilesCleanupService @Inject constructor(
         }
     }
 
-    fun resolve(file: Any): File = when (file) {
-        is File -> file
-        is FileSystemLocation -> file.asFile
-        is FileSystemLocationProperty<*> -> file.asFile.get()
-        is Provider<*> -> resolve(file.get())
-        else -> throw RuntimeException("Can't resolve $file")
-    }
-
-    private
-    fun resolve(files: List<Any>): List<File> = files.map { resolve(it) }
-
     private
     fun TestFilesCleanupProjectState.prepareReportForCiPublishing(reports: List<File>) {
         val projectPathName = projectPath.replace(':', '-')
-        val projectBuildDirPath = projectBuildDir.toPath()
+        val projectBuildDirPath = projectBuildDir.get().toPath()
 
         reports.filter { it.isDirectory }.forEach {
             val destFile = rootBuildDir.resolve("report$projectPathName-${it.name}.zip")

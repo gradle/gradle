@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-import gradlebuild.testcleanup.TestFilesCleanupProjectState
+import gradlebuild.basics.FileLocationProvider
 import gradlebuild.testcleanup.TestFilesCleanupService
 import gradlebuild.testcleanup.extension.TestFileCleanUpExtension
-import org.gradle.internal.declarativedsl.intrinsics.listOf
 import org.gradle.kotlin.dsl.support.serviceOf
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * When run from a Continuous Integration environment, we only want to archive a subset of reports, mostly for
@@ -33,30 +31,30 @@ val testFilesCleanup = project.extensions.create<TestFileCleanUpExtension>("test
     reportOnly.convention(false)
 }
 
+// TODO:isolated:incremental the service won't track up-to-date projects (project configuration skipped) that still run tests
 if ("CI" in System.getenv() && project.name != "gradle-kotlin-dsl-accessors") {
-    val testFilesCleanupService = project.gradle.sharedServices.registerIfAbsent("testFilesCleanupBuildService", TestFilesCleanupService::class.java) {
+    val testFilesCleanupServiceProvider = project.gradle.sharedServices.registerIfAbsent("testFilesCleanupBuildService", TestFilesCleanupService::class.java) {
         require(project.path == ":") { "Must be applied to root project first, now: ${project.path}" }
         parameters.rootBuildDir.set(project.layout.buildDirectory)
     }
     if (project.path == ":") {
-        project.gradle.serviceOf<BuildEventsListenerRegistry>().onTaskCompletion(testFilesCleanupService)
+        project.gradle.serviceOf<BuildEventsListenerRegistry>().onTaskCompletion(testFilesCleanupServiceProvider)
     }
-    testFilesCleanupService.get().addProjectState(project, testFilesCleanup.reportOnly)
-
-    project.tasks.withType<Test>().configureEach {
-        testFilesCleanupService.get().addTestBinaryResultsDir(path, binaryResultsDirectory.asFile)
-    }
+    val testFilesCleanupService = testFilesCleanupServiceProvider.get()
+    testFilesCleanupService.addProjectState(project.path, project.layout.buildDirectory.asFile, testFilesCleanup.reportOnly)
 
     project.tasks.configureEach {
         if (this is Test) {
-            testFilesCleanupService.get().addTaskReports(path, traceJson())
+            testFilesCleanupService.addTestBinaryResultsDir(path, binaryResultsDirectory.asFile)
+            testFilesCleanupService.addTaskReports(path, traceJson())
         }
         if (this is Reporting<*>) {
-            testFilesCleanupService.get().addTaskReports(path, genericHtmlReports())
+            testFilesCleanupService.addTaskReports(path, genericHtmlReports())
         }
     }
 }
-// e.g. build/test-results/embeddedIntegTest/trace.json
-fun Test.traceJson() = listOf(project.layout.buildDirectory.file("test-results/$name/trace.json"))
 
-fun Reporting<*>.genericHtmlReports() = listOfNotNull(reports.findByName("html")?.outputLocation)
+// e.g. build/test-results/embeddedIntegTest/trace.json
+fun Test.traceJson(): List<FileLocationProvider> = listOf(project.layout.buildDirectory.file("test-results/$name/trace.json"))
+
+fun Reporting<*>.genericHtmlReports(): List<FileLocationProvider> = listOfNotNull(reports.findByName("html")?.outputLocation)
