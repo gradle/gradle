@@ -22,7 +22,6 @@ import org.gradle.internal.io.IoConsumer;
 import java.io.Closeable;
 import java.io.File;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.function.Consumer;
 
 public interface LocalBuildCache extends Closeable {
@@ -30,7 +29,7 @@ public interface LocalBuildCache extends Closeable {
 
     void loadLocally(HashCode key, Consumer<? super File> reader);
 
-    void store(HashCode key, IoConsumer<OutputStream> result);
+    void store(HashCode key, InputStream entry);
 
     void storeLocally(HashCode key, File file);
 }

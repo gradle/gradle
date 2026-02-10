@@ -24,7 +24,6 @@ import org.jspecify.annotations.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 
 /**
@@ -60,14 +59,7 @@ public interface HttpClient extends Closeable {
      * additional processing of the response like mapping status codes to exceptions
      * or closing the response body when unsuccessful responses are received.
      */
-    Response performRawPut(URI uri, ReadableContent resource) throws IOException;
-
-    /**
-     * Performs a PUT request to the given URI with the given headers, avoiding any
-     * additional processing of the response like mapping status codes to exceptions
-     * or closing the response body when unsuccessful responses are received.
-     */
-    Response performRawPut(URI uri, ImmutableMap<String, String> headers, WritableContent resource) throws IOException;
+    Response performRawPut(URI uri, ImmutableMap<String, String> headers, ReadableContent resource) throws IOException;
 
     /**
      * A response to an HTTP request.
@@ -124,23 +116,6 @@ public interface HttpClient extends Closeable {
          */
         @Override
         void close();
-
-    }
-
-    /**
-     * Content that may be used as the body of a PUT request.
-     */
-    interface WritableContent {
-
-        /**
-         * Writes the content to the given output stream.
-         */
-        void writeTo(OutputStream outputStream) throws IOException;
-
-        /**
-         * Returns the size of the content in bytes.
-         */
-        long getSize();
 
     }
 
