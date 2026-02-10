@@ -17,8 +17,9 @@
 import gradlebuild.testcleanup.TestFilesCleanupProjectState
 import gradlebuild.testcleanup.TestFilesCleanupService
 import gradlebuild.testcleanup.extension.TestFileCleanUpExtension
-import org.gradle.kotlin.dsl.create
+import org.gradle.internal.declarativedsl.intrinsics.listOf
 import org.gradle.kotlin.dsl.support.serviceOf
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * When run from a Continuous Integration environment, we only want to archive a subset of reports, mostly for
@@ -28,40 +29,34 @@ import org.gradle.kotlin.dsl.support.serviceOf
  * Reducing the number of reports also makes it easier to find the important ones when analysing a failed build in
  * TeamCity.
  */
-val testFileCleanUpExtension = project.extensions.create<TestFileCleanUpExtension>("testFilesCleanup").apply {
+val testFilesCleanup = project.extensions.create<TestFileCleanUpExtension>("testFilesCleanup").apply {
     reportOnly.convention(false)
 }
 
 if ("CI" in System.getenv() && project.name != "gradle-kotlin-dsl-accessors") {
     val testFilesCleanupService = project.gradle.sharedServices.registerIfAbsent("testFilesCleanupBuildService", TestFilesCleanupService::class.java) {
         require(project.path == ":") { "Must be applied to root project first, now: ${project.path}" }
-        parameters.taskPathToReports.set(mutableMapOf<String, List<File>>())
-        parameters.testPathToBinaryResultsDirs.set(mutableMapOf<String, File>())
         parameters.rootBuildDir.set(project.layout.buildDirectory)
     }
-    project.gradle.serviceOf<BuildEventsListenerRegistry>().onTaskCompletion(testFilesCleanupService)
-    testFilesCleanupService.get().parameters.projectStates.put(project.path, TestFilesCleanupProjectState(project.path, project.layout.buildDirectory.get().asFile, testFileCleanUpExtension.reportOnly))
-
-    val taskPathToReports = testFilesCleanupService.get().parameters.taskPathToReports
-    val testPathToBinaryResultsDirs = testFilesCleanupService.get().parameters.testPathToBinaryResultsDirs
+    if (project.path == ":") {
+        project.gradle.serviceOf<BuildEventsListenerRegistry>().onTaskCompletion(testFilesCleanupService)
+    }
+    testFilesCleanupService.get().addProjectState(project, testFilesCleanup.reportOnly)
 
     project.tasks.withType<Test>().configureEach {
-        testPathToBinaryResultsDirs.put(path, binaryResultsDirectory.asFile)
+        testFilesCleanupService.get().addTestBinaryResultsDir(path, binaryResultsDirectory.asFile)
     }
 
     project.tasks.configureEach {
-        val reports = mutableListOf<Any>()
         if (this is Test) {
-            reports.add(traceJson())
+            testFilesCleanupService.get().addTaskReports(path, traceJson())
         }
         if (this is Reporting<*>) {
-            reports.add(genericHtmlReports())
+            testFilesCleanupService.get().addTaskReports(path, genericHtmlReports())
         }
-        val existingReports: List<Any> = taskPathToReports.getting(path).orElse(emptyList()).get()
-        taskPathToReports.put(path, reports + existingReports)
     }
 }
 // e.g. build/test-results/embeddedIntegTest/trace.json
-fun Test.traceJson() = project.layout.buildDirectory.file("test-results/$name/trace.json").get().asFile
+fun Test.traceJson() = listOf(project.layout.buildDirectory.file("test-results/$name/trace.json"))
 
-fun Reporting<*>.genericHtmlReports() = reports["html"].outputLocation
+fun Reporting<*>.genericHtmlReports() = listOfNotNull(reports.findByName("html")?.outputLocation)

@@ -167,23 +167,23 @@ class TestFilesCleanupServiceTest {
         .withProjectDir(projectDir)
         .withTestKitDir(testKitDir)
         .withPluginClasspath()
-        .withDebug(true)
         .forwardOutput()
-        // with daemon, the test keeps writing to dir
         /*
+        This is a workaround to use `--no-daemon` with TestKit.
+        Without this, daemon may keep writing to project dir after the test finishes, resulting in errors like:
+
         org.junit.platform.commons.JUnitException: Failed to close extension context
-	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
-	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
-Caused by: java.io.IOException: Failed to delete temp directory /var/folders/_2/vxp7qn2x7qzd0zqqm8p128lh0000gq/T/junit-4205933054320696172.
-	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	        at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	        at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+        Caused by: java.io.IOException: Failed to delete temp directory /var/folders/_2/vxp7qn2x7qzd0zqqm8p128lh0000gq/T/junit-4205933054320696172.
+	        at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
          */
+        .withDebug(true)
         .withArguments(*args, "--stacktrace", "--no-watch-fs")
 
     private
     fun assertArchivedFilesSeen(vararg archiveFileNames: String) {
         val rootDirFiles = projectDir.resolve("build").walk().toList()
-
-        println("Build files seen: $rootDirFiles")
 
         archiveFileNames.forEach { fileName ->
             assertTrue(rootDirFiles.any { it.name == fileName }, "File $fileName does not exist")
