@@ -54,6 +54,6 @@ fun DistributionTest.distributionReports(): List<FileLocationProvider> = listOf(
     gradleInstallationForTest.daemonRegistry,
 )
 
-fun JapicmpTask.japicmpReports(): List<FileLocationProvider> = listOf(richReport.flatMap { it.destinationDir.file(it.reportName) })
+fun JapicmpTask.japicmpReports(): List<FileLocationProvider> = listOfNotNull(richReport.orNull?.destinationDir?.flatMap { it.file(richReport.get().reportName) })
 
 fun PerformanceTest.performanceTestReports(): List<FileLocationProvider> = listOf(layout.file(provider { reportDir.parentFile }))

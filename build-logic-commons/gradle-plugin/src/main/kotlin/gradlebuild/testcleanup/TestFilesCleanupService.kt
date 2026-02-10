@@ -241,6 +241,7 @@ abstract class TestFilesCleanupService @Inject constructor(
     fun TestFilesCleanupProjectState.prepareReportsForCiPublishing(executedTaskPaths: Set<String>, tmpTestFiles: Collection<File>) {
         val reports: List<File> = executedTaskPaths.asSequence()
             .flatMap { taskPathToReports.getOrDefault(it, emptyList()) }
+            .filter { it.isPresent }
             .map { it.get().asFile }
             .toList()
         if (isAnyTestTaskFailed(projectPath) || tmpTestFiles.isNotEmpty()) {
