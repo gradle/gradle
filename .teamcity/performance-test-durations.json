@@ -772,4 +772,16 @@
     "testProject" : "largeMonolithicJavaProject",
     "linux" : 136
   } ]
+}, {
+    "scenario" : "org.gradle.performance.ip.IsolatedProjectsAndroidSyncPerformanceComparisonTest.sync with build logic abi change",
+    "durations" : [ {
+        "testProject" : "android500Kts",
+        "linux" : 1
+    } ]
+}, {
+    "scenario" : "org.gradle.performance.regression.ip.IsolatedProjectsAndroidSyncPerformanceRegressionTest.sync with build logic abi change",
+    "durations" : [ {
+        "testProject" : "android500Kts",
+        "linux" : 1
+    } ]
 } ]
