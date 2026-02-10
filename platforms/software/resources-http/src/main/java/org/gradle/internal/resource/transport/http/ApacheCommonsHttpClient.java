@@ -25,7 +25,6 @@ import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -42,8 +41,6 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -129,45 +126,12 @@ public class ApacheCommonsHttpClient implements HttpClient {
     }
 
     @Override
-    public Response performRawPut(URI uri, ReadableContent resource) throws IOException {
+    public Response performRawPut(URI uri, ImmutableMap<String, String> headers, ReadableContent resource) throws IOException {
         HttpPut method = new HttpPut(uri);
+        addHeaders(method, headers);
         final RepeatableInputStreamEntity entity = new RepeatableInputStreamEntity(resource, ContentType.APPLICATION_OCTET_STREAM);
         method.setEntity(entity);
         return performRawRequest(method);
-    }
-
-    @Override
-    public Response performRawPut(URI uri, ImmutableMap<String, String> headers, WritableContent resource) throws IOException {
-        HttpPut httpPut = new HttpPut(uri);
-        addHeaders(httpPut, headers);
-        httpPut.setEntity(new AbstractHttpEntity() {
-            @Override
-            public boolean isRepeatable() {
-                return true;
-            }
-
-            @Override
-            public long getContentLength() {
-                return resource.getSize();
-            }
-
-            @Override
-            public InputStream getContent() {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public void writeTo(OutputStream outstream) throws IOException {
-                resource.writeTo(outstream);
-            }
-
-            @Override
-            public boolean isStreaming() {
-                return false;
-            }
-        });
-
-        return performRawRequest(httpPut);
     }
 
     private Response performRequest(HttpRequestBase request) {
