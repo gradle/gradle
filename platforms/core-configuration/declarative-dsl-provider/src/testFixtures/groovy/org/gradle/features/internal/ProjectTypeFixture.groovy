@@ -344,6 +344,19 @@ trait ProjectTypeFixture {
         )
     }
 
+    PluginBuilder withKotlinProjectTypeThatBindsWithClass() {
+        def definition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new KotlinProjectTypeThatBindsWithClassBuilder(definition)
+        def settingsBuilder = new KotlinSettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+
+        return withProjectType(
+            definition,
+            projectType,
+            settingsBuilder
+        )
+    }
+
     static class ProjectTypePluginClassBuilder {
         final ProjectTypeDefinitionClassBuilder definition
         String projectTypePluginClassName = "ProjectTypeImplPlugin"
@@ -664,6 +677,85 @@ trait ProjectTypeFixture {
         }
     }
 
+    static class KotlinProjectTypeThatBindsWithClassBuilder extends ProjectTypePluginClassBuilder {
+        KotlinProjectTypeThatBindsWithClassBuilder(ProjectTypeDefinitionClassBuilder definition) {
+            super(definition)
+        }
+
+        @Override
+        void build(PluginBuilder pluginBuilder) {
+            pluginBuilder.file("src/main/kotlin/org/gradle/test/${projectTypePluginClassName}.kt") << getClassContent()
+        }
+
+        @Override
+        protected String getClassContent() {
+            return """
+                package org.gradle.test
+
+                import org.gradle.api.Task
+                import org.gradle.api.Plugin
+                import org.gradle.api.Project
+                import org.gradle.api.provider.ListProperty
+                import org.gradle.api.provider.Property
+                import org.gradle.api.tasks.Nested
+                import ${ProjectTypeBinding.class.name}
+                import ${BindsProjectType.class.name}
+                import ${ProjectTypeBindingBuilder.class.name}
+                import ${ProjectTypeApplyAction.class.name}
+                import javax.inject.Inject
+                import org.gradle.features.dsl.bindProjectType
+
+                @${BindsProjectType.class.simpleName}(${projectTypePluginClassName}.Binding::class)
+                class ${projectTypePluginClassName} : Plugin<Project> {
+
+                    class Binding : ${ProjectTypeBinding.class.simpleName} {
+                        override fun bind(builder: ${ProjectTypeBindingBuilder.class.simpleName}) {
+                            builder.bindProjectType("${name}", ApplyAction::class)
+                            ${maybeDeclareDefinitionImplementationType()}
+                            ${maybeDeclareBindingModifiers()}
+                        }
+                    }
+
+                    abstract class ApplyAction : ${ProjectTypeApplyAction.class.simpleName}<${definition.publicTypeClassName}, ${definition.fullyQualifiedBuildModelClassName}> {
+                        @javax.inject.Inject
+                        constructor()
+
+                        ${injectedServices}
+
+                        override fun apply(context: ${ProjectFeatureApplicationContext.class.name}, definition: ${definition.publicTypeClassName}, model: ${definition.fullyQualifiedBuildModelClassName}) {
+                            println("Binding " + ${definition.publicTypeClassName}::class.simpleName)
+                            ${conventions == null ? "" : convertToKotlin(conventions)}
+
+                            ${convertToKotlin(definition.buildModelMapping)}
+
+                            taskRegistrar.register("print${definition.publicTypeClassName}Configuration") { task: Task ->
+                                task.doLast { _: Task ->
+                                    ${convertToKotlin(definition.displayDefinitionPropertyValues())}
+                                    ${convertToKotlin(definition.displayModelPropertyValues())}
+                                }
+                            }
+                        }
+                    }
+
+                    override fun apply(project: Project) {
+                        println("Applying " + this::class.java.simpleName)
+                    }
+                }
+            """
+        }
+
+        String getInjectedServices() {
+            return """
+                @get:javax.inject.Inject
+                abstract val taskRegistrar: ${TaskRegistrar.class.name}
+            """
+        }
+
+        String convertToKotlin(String content) {
+            return content.replaceAll(';', '')
+        }
+    }
+
     static class SettingsPluginClassBuilder {
         String pluginClassName = "ProjectTypeRegistrationPlugin"
         List<String> projectTypePluginClasses = []
@@ -724,6 +816,30 @@ trait ProjectTypeFixture {
                         ${definitionImplementationTypeClassName} convention = (${definitionImplementationTypeClassName}) target.getExtensions().getByName("testProjectType");
                         convention.getId().convention("plugin");
                         convention.getFoo().getBar().convention("plugin");
+                    }
+                }
+            """
+        }
+    }
+
+    static class KotlinSettingsPluginClassBuilder extends SettingsPluginClassBuilder {
+
+        KotlinSettingsPluginClassBuilder() {
+            this.pluginClassName = "ProjectFeatureRegistrationPlugin"
+        }
+
+        @Override
+        void build(PluginBuilder pluginBuilder) {
+            pluginBuilder.file("src/main/kotlin/org/gradle/test/${pluginClassName}.kt") << """
+                package org.gradle.test
+
+                import org.gradle.api.Plugin
+                import org.gradle.api.initialization.Settings
+                import ${RegistersProjectFeatures.class.name}
+
+                @${RegistersProjectFeatures.class.simpleName}(${(projectTypePluginClasses + projectFeaturePluginClasses).collect { it + "::class" }.join(", ")})
+                class ${pluginClassName} : Plugin<Settings> {
+                    override fun apply(settings: Settings) {
                     }
                 }
             """
@@ -1285,6 +1401,34 @@ trait ProjectTypeFixture {
             plugins {
                 id("com.example.test-software-ecosystem")
             }
+        """
+    }
+
+    static String getPluginBuildScriptForJava() {
+        return """
+
+            tasks.withType(JavaCompile).configureEach {
+                sourceCompatibility = "1.8"
+                targetCompatibility = "1.8"
+            }
+        """
+    }
+
+    static String getPluginBuildScriptForKotlin() {
+        return """
+            import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+            repositories {
+                mavenCentral()
+            }
+
+            kotlin {
+                compilerOptions {
+                    jvmTarget = JvmTarget.JVM_1_8
+                }
+            }
+
+            ${pluginBuildScriptForJava}
         """
     }
 }

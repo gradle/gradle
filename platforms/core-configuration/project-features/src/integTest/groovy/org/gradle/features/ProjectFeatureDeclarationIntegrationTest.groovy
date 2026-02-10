@@ -131,7 +131,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
 
     @Requires(UnitTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
     def "can declare and configure a custom project feature in Kotlin"() {
-        PluginBuilder pluginBuilder = withKotlinProjectFeaturePlugins()
+        PluginBuilder pluginBuilder = withKotlinProjectFeaturePlugin()
         pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", new KotlinGradlePluginVersions().getLatestStableOrRC())
         pluginBuilder.addBuildScriptContent pluginBuildScriptForKotlin
         pluginBuilder.prepareToExecute()
@@ -535,32 +535,27 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("Binding FeatureDefinition")
     }
 
-    private String getPluginBuildScriptForJava() {
-        return """
+    @Requires(UnitTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
+    def "can declare and configure a custom project feature in Kotlin using an action class"() {
+        PluginBuilder pluginBuilder = withKotlinProjectFeaturePluginThatBindsWithClass()
+        pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", new KotlinGradlePluginVersions().getLatestStableOrRC())
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForKotlin
+        pluginBuilder.prepareToExecute()
 
-            tasks.withType(JavaCompile).configureEach {
-                sourceCompatibility = "1.8"
-                targetCompatibility = "1.8"
-            }
-        """
-    }
+        settingsFile() << pluginsFromIncludedBuild
 
-    private String getPluginBuildScriptForKotlin() {
-        return """
-            import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectFeature << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
-            repositories {
-                mavenCentral()
-            }
+        when:
+        run(":printProjectTypeDefinitionConfiguration",":printFeatureDefinitionConfiguration")
 
-            kotlin {
-                compilerOptions {
-                    jvmTarget = JvmTarget.JVM_1_8
-                }
-            }
+        then:
+        assertThatDeclaredValuesAreSetProperly()
 
-            ${pluginBuildScriptForJava}
-        """
+        and:
+        outputContains("Applying ProjectTypeImplPlugin")
+        outputContains("Binding TestProjectTypeDefinition")
+        outputContains("Binding FeatureDefinition")
     }
 
     static String getDeclarativeScriptThatConfiguresOnlyTestProjectFeature() {
