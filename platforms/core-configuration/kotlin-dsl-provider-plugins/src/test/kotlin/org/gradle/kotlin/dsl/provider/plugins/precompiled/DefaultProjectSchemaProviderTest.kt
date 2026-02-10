@@ -30,7 +30,7 @@ import org.gradle.kotlin.dsl.provider.plugins.DefaultProjectSchemaProvider
 import org.gradle.kotlin.dsl.provider.plugins.KotlinDslDclSchemaCollector
 import org.gradle.kotlin.dsl.provider.plugins.NestedModels
 import org.gradle.kotlin.dsl.provider.plugins.typeOf
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test

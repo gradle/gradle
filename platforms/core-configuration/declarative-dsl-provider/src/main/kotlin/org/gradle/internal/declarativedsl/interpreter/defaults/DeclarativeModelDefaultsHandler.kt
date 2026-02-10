@@ -45,9 +45,9 @@ import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
 import org.gradle.internal.declarativedsl.project.PROJECT_INTERPRETATION_SEQUENCE_STEP_KEY
-import org.gradle.plugin.software.internal.ModelDefaultsApplicator.ClassLoaderContext
-import org.gradle.plugin.software.internal.ModelDefaultsHandler
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ModelDefaultsApplicator.ClassLoaderContext
+import org.gradle.features.internal.binding.ModelDefaultsHandler
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 import javax.inject.Inject
 
 

@@ -16,13 +16,13 @@
 
 package org.gradle.internal.declarativedsl
 
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.Definition
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
-import org.gradle.internal.declarativedsl.settings.ProjectTypeFixture
+import org.gradle.features.internal.ProjectTypeFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 @PolyglotDslTest

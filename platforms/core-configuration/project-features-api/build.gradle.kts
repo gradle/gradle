@@ -16,6 +16,7 @@
 
 plugins {
     id("gradlebuild.distribution.api-java")
+    id("gradlebuild.kotlin-library")
 }
 
 description = "Public API classes used by project features"
@@ -24,4 +25,8 @@ dependencies {
     api(projects.baseServices)
     api(projects.coreApi)
     api(projects.stdlibJavaExtensions)
+
+    api(libs.kotlinStdlib)
+
+    implementation(libs.kotlinReflect)
 }

@@ -20,11 +20,11 @@ import org.gradle.api.Namer
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.plugins.BindsProjectType
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.Definition
-import org.gradle.api.internal.plugins.ProjectTypeBinding
-import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectTypeBinding
+import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.internal.reflect.Instantiator
 import org.junit.Test
 
@@ -112,7 +112,7 @@ class KotlinDslContainerElementFactoryIntegrationTest : AbstractDeclarativeKotli
                 import ${ProjectTypeBindingBuilder::class.java.name}
                 import ${Definition::class.java.name}
                 import ${BuildModel::class.java.name}
-                import org.gradle.api.internal.plugins.features.dsl.bindProjectType
+                import org.gradle.features.dsl.bindProjectType
 
                 @${BindsProjectType::class.java.simpleName}(MyPlugin.Binding::class)
                 abstract class MyPlugin @Inject constructor(private val project: Project) : Plugin<Project> {
