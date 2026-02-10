@@ -21,6 +21,8 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.tasks.TaskShadowingRegistry;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -82,6 +84,13 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
 
     @Override
     protected void configureTaskDefaults(Checkstyle task, final String baseName) {
+        TaskShadowingRegistry shadowingRegistry = project.getServices().get(TaskShadowingRegistry.class);
+        ObjectFactory objectFactory = project.getObjects();
+        shadowingRegistry.registerShadowing(
+            org.gradle.api.plugins.quality.Checkstyle.class,
+            org.gradle.api.plugins.quality.v2.Checkstyle.class,
+            (t, r) -> objectFactory.newInstance(Checkstyle.class, t)
+        );
         Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);

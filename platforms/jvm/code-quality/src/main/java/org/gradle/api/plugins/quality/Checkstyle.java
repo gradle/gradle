@@ -51,6 +51,7 @@ import java.util.Map;
 /**
  * Runs Checkstyle against some source files.
  */
+@SuppressWarnings("unused")
 @CacheableTask
 public abstract class Checkstyle extends AbstractCodeQualityTask implements Reporting<CheckstyleReports> {
     private final org.gradle.api.plugins.quality.v2.Checkstyle delegate;

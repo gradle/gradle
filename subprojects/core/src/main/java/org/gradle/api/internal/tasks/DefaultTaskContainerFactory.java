@@ -64,6 +64,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     private final BuildOperationRunner buildOperationRunner;
     private final CrossProjectConfigurator crossProjectConfigurator;
     private final CrossProjectModelAccess crossProjectModelAccess;
+    private final TaskShadowingRegistry taskShadowingRegistry;
 
     public DefaultTaskContainerFactory(
         Instantiator instantiator,
@@ -74,7 +75,8 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
         CollectionCallbackActionDecorator callbackDecorator,
-        CrossProjectModelAccess crossProjectModelAccess
+        CrossProjectModelAccess crossProjectModelAccess,
+        TaskShadowingRegistry taskShadowingRegistry
     ) {
         this.instantiator = instantiator;
         this.taskIdentityFactory = taskIdentityFactory;
@@ -85,6 +87,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         this.crossProjectConfigurator = crossProjectConfigurator;
         this.callbackDecorator = callbackDecorator;
         this.crossProjectModelAccess = crossProjectModelAccess;
+        this.taskShadowingRegistry = taskShadowingRegistry;
     }
 
     @Override
@@ -99,7 +102,8 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
             buildOperationRunner,
             crossProjectConfigurator,
             callbackDecorator,
-            crossProjectModelAccess
+            crossProjectModelAccess,
+            taskShadowingRegistry
         );
         bridgeIntoSoftwareModelWhenNeeded(tasks);
         return tasks;

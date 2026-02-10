@@ -66,7 +66,9 @@ import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
+import org.gradle.api.internal.tasks.DefaultTaskShadowingRegistry;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.TaskShadowingRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.api.internal.tasks.TaskResolver;
@@ -279,6 +281,11 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
+    protected TaskShadowingRegistry createTaskShadowingRegistry() {
+        return new DefaultTaskShadowingRegistry();
+    }
+
+    @Provides
     protected TaskContainerInternal createTaskContainerInternal(
         Instantiator instantiator,
         TaskIdentityFactory taskIdentityFactory,
@@ -287,7 +294,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         BuildOperationRunner buildOperationRunner,
         CrossProjectConfigurator crossProjectConfigurator,
         CollectionCallbackActionDecorator decorator,
-        CrossProjectModelAccess crossProjectModelAccess
+        CrossProjectModelAccess crossProjectModelAccess,
+        TaskShadowingRegistry taskShadowingRegistry
     ) {
         return new DefaultTaskContainerFactory(
             instantiator,
@@ -298,7 +306,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             buildOperationRunner,
             crossProjectConfigurator,
             decorator,
-            crossProjectModelAccess
+            crossProjectModelAccess,
+            taskShadowingRegistry
         ).create();
     }
 
