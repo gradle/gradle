@@ -220,6 +220,22 @@ $binFile.text
         outputContains('Hello World!')
     }
 
+    @Requires(UnitTestPreconditions.Windows)
+    def "start script does not leak CLASSPATH on Windows"() {
+        given:
+        generateMainClass("""
+System.out.println("CLASSPATH: " + System.getenv("CLASSPATH"));
+""")
+
+        when:
+        succeeds('installDist')
+        runViaStartScript()
+
+        then:
+        // Should be empty string, so just the space and newline
+        outputContains('CLASSPATH: \n')
+    }
+
     ExecutionResult runViaUnixStartScript(TestFile startScriptDir) {
         buildFile << """
 task execStartScript(type: Exec) {
