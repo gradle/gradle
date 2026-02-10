@@ -38,6 +38,7 @@ Class 'org.gradle.caching.http.internal.DefaultHttpBuildCacheServiceFactory' fro
 Class 'org.gradle.caching.http.internal.DefaultHttpBuildCacheServiceFactory' from platform 'core' imports class 'org.gradle.internal.resource.transport.http.HttpClientFactory' from a forbidden platform 'software'
 Class 'org.gradle.caching.http.internal.DefaultHttpBuildCacheServiceFactory' from platform 'core' imports class 'org.gradle.internal.resource.transport.http.HttpSettings$RedirectMethodHandlingStrategy' from a forbidden platform 'software'
 Class 'org.gradle.caching.http.internal.DefaultHttpBuildCacheServiceFactory' from platform 'core' imports class 'org.gradle.internal.verifier.HttpRedirectVerifierFactory' from a forbidden platform 'software'
+Class 'org.gradle.caching.http.internal.HttpBuildCacheService$1' from platform 'core' imports class 'org.gradle.api.resources.ResourceException' from a forbidden platform 'software'
 Class 'org.gradle.caching.http.internal.HttpBuildCacheService' from platform 'core' imports class 'org.gradle.internal.resource.transport.http.HttpClient$Response' from a forbidden platform 'software'
 Class 'org.gradle.caching.http.internal.HttpBuildCacheService' from platform 'core' imports class 'org.gradle.internal.resource.transport.http.HttpClient' from a forbidden platform 'software'
 Class 'org.gradle.internal.buildconfiguration.DaemonJvmPropertiesConfigurator' from platform 'core' imports class 'org.gradle.jvm.toolchain.JavaLanguageVersion' from a forbidden platform 'jvm'
