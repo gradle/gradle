@@ -218,6 +218,12 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
         }
     }
 
+    /**
+     * This test relies on resolution at configuration time - THIS BEHAVIOR SHOULD NOT BE DUPLICATED, in
+     * general, build authors should not force configurations to be resolved at configuration time.
+     * <p>
+     * For more details, see https://github.com/gradle/gradle/pull/36641.
+     */
     def "can declare a configuration which extends from a resolvable configuration which uses consistency"() {
         withRuntimeClasspathAsReference()
         def foo = mavenHttpRepo.module('org', 'foo', '1.0').publish()
