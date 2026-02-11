@@ -6,8 +6,5 @@ kotlinBuildLogic {
         implementation(project(":basics"))
         implementation(project(":module-identity"))
         implementation(catalog("buildLibs.publishPlugin"))
-        //        implementation(projects.basics)
-        //        implementation(projects.moduleIdentity)
-        //        implementation(buildLibs.publishPlugin)
     }
 }
