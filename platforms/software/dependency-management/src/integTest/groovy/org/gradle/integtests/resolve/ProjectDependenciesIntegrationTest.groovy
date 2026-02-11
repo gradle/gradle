@@ -19,7 +19,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
 
