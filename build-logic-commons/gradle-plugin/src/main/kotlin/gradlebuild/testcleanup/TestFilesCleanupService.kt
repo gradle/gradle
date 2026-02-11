@@ -57,7 +57,7 @@ private class ConcurrentMultiMap<K, V> {
     private val map = ConcurrentHashMap<K, MutableSet<V>>()
 
     fun add(key: K, value: V) =
-        map.computeIfAbsent(key, { k -> ConcurrentHashMap.newKeySet() }).add(value)
+        map.computeIfAbsent(key, { _ -> ConcurrentHashMap.newKeySet() }).add(value)
 
     fun getOrEmpty(key: K): Set<V> = map[key] ?: emptySet()
 }
@@ -75,14 +75,13 @@ abstract class TestFilesCleanupService @Inject constructor(
     /**
      * Key is the path of a task, value is the possible report dirs it generates.
      */
+    private val taskPathToReports: ConcurrentHashMap<String, List<ReportLocation>> = ConcurrentHashMap()
+
+    /**
+     * @see ReportLocation.resolve
+     */
     @Volatile
-    private var taskPathToReports: Reports = Reports.Collecting()
-    private val resolvedTaskPathToReports: Map<String, List<File>> get() = taskPathToReports.let {
-        when (it) {
-            is Reports.Resolved -> it.taskPathToReports
-            is Reports.Collecting -> error("Expected resolved reports")
-        }
-    }
+    private var resolveReportLocationsOnAdd: Boolean = false
 
     /**
      * Key is the path of the test, value is Test.binaryResultsDir
@@ -102,31 +101,24 @@ abstract class TestFilesCleanupService @Inject constructor(
     }
 
     fun addTaskReports(taskPath: String, reports: Collection<FileLocationProvider>) {
-        taskPathToReports.let {
-            when (it) {
-                is Reports.Collecting -> it.add(taskPath, reports)
-                is Reports.Resolved -> error("Adding reports after realized")
-            }
+        val reportLocations = reports.map(::ReportLocation)
+        if (resolveReportLocationsOnAdd) {
+            reportLocations.forEach { it.resolve() }
         }
+        taskPathToReports.merge(taskPath, reportLocations, { prev, next -> prev + next })
     }
 
     fun onTaskGraphReady() {
-        // Some providers for the report files (Japicmp) are not memoizable internally and require project services to be resolved.
-        // That's why we have to manually resolve them at this point in time and explicitly memoize the results
-        val resolved = taskPathToReports.let {
-            when (it) {
-                is Reports.Collecting -> it.resolve()
-                is Reports.Resolved -> error("Adding reports after realized")
-            }
-        }
-
-        taskPathToReports = resolved
+        resolveReportLocationsOnAdd = true
+        taskPathToReports.values.asSequence()
+            .flatMap { it }
+            .forEach { it.resolve() }
     }
 
     private val rootBuildDir: File get() = parameters.rootBuildDir.get().asFile
 
     override fun onFinish(event: FinishEvent) {
-        if (event is TaskFinishEvent && taskPathToReports.hasReportsFrom(event.descriptor.taskPath)) {
+        if (event is TaskFinishEvent && taskPathToReports.containsKey(event.descriptor.taskPath)) {
             val taskPath = event.descriptor.taskPath
             when (event.result) {
                 is TaskSuccessResult -> {
@@ -266,9 +258,9 @@ abstract class TestFilesCleanupService @Inject constructor(
 
     private
     fun TestFilesCleanupProjectState.prepareReportsForCiPublishing(executedTaskPaths: Set<String>, tmpTestFiles: Collection<File>) {
-        val resolvedTaskPathToReports = resolvedTaskPathToReports
         val reports: List<File> = executedTaskPaths.asSequence()
-            .flatMap { resolvedTaskPathToReports.getOrDefault(it, emptyList()) }
+            .flatMap { taskPathToReports.getOrDefault(it, emptyList()) }
+            .map { it.file }
             .toList()
         if (isAnyTestTaskFailed(projectPath) || tmpTestFiles.isNotEmpty()) {
             prepareReportForCiPublishing(tmpTestFiles + reports)
@@ -377,26 +369,16 @@ abstract class TestFilesCleanupService @Inject constructor(
         return taskPath.substringBeforeLast(":").ifEmpty { ":" }
     }
 
-    private sealed interface Reports {
-
-        fun hasReportsFrom(taskPath: String): Boolean
-
-        class Collecting : Reports {
-            private val taskPathToReports: ConcurrentHashMap<String, List<FileLocationProvider>> = ConcurrentHashMap()
-
-            override fun hasReportsFrom(taskPath: String) = taskPathToReports.containsKey(taskPath)
-
-            fun add(taskPath: String, reports: Collection<FileLocationProvider>) {
-                taskPathToReports.merge(taskPath, reports.toList(), { prev, next -> prev + next })
-            }
-
-            fun resolve(): Resolved = Resolved(taskPathToReports.mapValues { it.value.map { it.get().asFile } })
+    private class ReportLocation(provider: FileLocationProvider) {
+        val file: File by lazy(LazyThreadSafetyMode.NONE) {
+            provider.get().asFile
         }
 
-        class Resolved(
-            val taskPathToReports: Map<String, List<File>>
-        ) : Reports {
-            override fun hasReportsFrom(taskPath: String) = taskPathToReports.containsKey(taskPath)
+        // Some providers for the report files (Japicmp) are not memoizable internally and require project services to be resolved.
+        // That's why we have to manually resolve them at the right point in time and explicitly memoize the results
+        fun resolve() {
+            // This makes `lazy` store the resolved value
+            file
         }
     }
 }
