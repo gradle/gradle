@@ -20,7 +20,6 @@ import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.accessors.kotlinMainSourceSet
-import gradlebuild.basics.buildRunningOnCi
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionLocalExecutors
