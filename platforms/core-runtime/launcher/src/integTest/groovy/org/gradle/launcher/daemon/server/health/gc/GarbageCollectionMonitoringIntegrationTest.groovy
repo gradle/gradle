@@ -112,21 +112,21 @@ The currently configured max heap space is '512 MiB' and the configured max meta
 ${COMMON_HINT}""")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
     def "expires daemon when heap leaks while daemon is idle"() {
         def initial = 256
         def max = 512
         def events = eventsFor(initial, max, 35, garbageCollector.monitoringStrategy.gcRateThreshold + 0.2)
         def initScript = file("init.gradle")
         initScript << """
-            ${injectionImports}
-
-            gradle.buildFinished {
-                ${eventInjectionConfiguration("heap", events, initial, max)}
-            }
+            ${eventInjectionService("heap", events, initial, max)}
 
             gradle.rootProject {
-                tasks.create("startLeakAfterBuild")
+                tasks.create("startLeakAfterBuild") {
+                    usesService(eventsService)
+                    doFirst {
+                        eventsService.get() // Force service to be created at execution time.
+                    }
+                }
             }
         """
         executer.usingInitScript(initScript)
@@ -232,6 +232,41 @@ ${COMMON_HINT}""")
             import org.gradle.internal.time.Clock
             import org.gradle.internal.time.Time
             import java.lang.management.MemoryUsage
+        """
+    }
+
+    String eventInjectionService(String type, Collection<Map> events, long initial, long max, String serviceVar = "eventsService") {
+        buildScriptSnippet """
+            import org.gradle.api.services.BuildService
+            import org.gradle.api.services.BuildServiceParameters
+            import javax.inject.Inject
+            import java.io.Closeable
+            ${injectionImports}
+
+            abstract class EventInjectionService implements BuildService<BuildServiceParameters.None>, Closeable {
+                @Inject abstract ObjectFactory getObjects()
+
+                interface StatsGetter {
+                    @Inject abstract DaemonHealthStats getStats()
+                }
+
+                void injectEvents() {
+                    // We can't inject DaemonHealthStats into BuildService directly, but it works through ObjectFactory
+                    DaemonHealthStats stats = objects.newInstance(StatsGetter).stats
+                    GarbageCollectionMonitor monitor = stats.getGcMonitor()
+                    long startTime = Time.clock().getCurrentTime()
+                    ${injectEvents("monitor.get${type.capitalize()}Events()", events, initial, max)}
+                    println "GC rate: " + stats.get${type.capitalize()}Stats().getGcRate()
+                    println " % used: " + stats.get${type.capitalize()}Stats().getUsedPercent() + "%"
+                }
+
+                @Override
+                void close() {
+                    injectEvents()
+                }
+            }
+
+            def $serviceVar = gradle.sharedServices.registerIfAbsent("eventsService", EventInjectionService)
         """
     }
 
