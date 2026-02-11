@@ -63,8 +63,15 @@ requested plugin cannot be resolved. This behavior now matches that of precompil
 
 Avoid invalid plugin requests in unused precompiled settings plugins.
 
+==== Calling `.values()` on environment variables or system properties now tracked by Configuration Cache
+
+Gradle <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars, tracks>> accesses to environment variables and system properties during configuration time to record them as inputs to the Configuration Cache, so the cache entry is invalidated when those variables change.
+
+Starting with Gradle 9.5.0, calling `.values()` on the maps returned from `System.getenv()` or `System.getProperties()` records **all** environment variables or system properties respectively as inputs to the Configuration Cache, similarly to how `.forEach()` calls are tracked in previous versions.
+If your build configuration uses `System.getenv().values()` or `System.getProperties().values()`, you may experience more frequent Configuration Cache invalidations.
+
 [[changes_9.4.0]]
-== Upgrading from 9.3.0 and earlier
+== Upgrading from 9.3.1 and earlier
 
 === Potential breaking changes
 

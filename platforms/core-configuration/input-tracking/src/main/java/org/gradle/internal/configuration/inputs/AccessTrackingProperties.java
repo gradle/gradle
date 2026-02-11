@@ -146,6 +146,7 @@ public class AccessTrackingProperties extends Properties {
 
     @Override
     public Collection<Object> values() {
+        reportAggregatingAccess();
         return delegate.values();
     }
 
