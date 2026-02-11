@@ -21,7 +21,6 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.features.binding.BuildModel;
 import org.gradle.features.binding.Definition;
-import org.gradle.features.binding.ProjectFeatureApplyAction;
 import org.gradle.features.binding.TargetTypeInformation;
 import org.jspecify.annotations.Nullable;
 
@@ -33,35 +32,35 @@ import java.util.Objects;
  * Represents a resolved project type implementation.  Used by declarative DSL to understand which model types should be exposed for
  * which project types.
  */
-public class DefaultProjectFeatureImplementation<T extends Definition<V>, V extends BuildModel> implements ProjectFeatureImplementation<T, V> {
+public class DefaultProjectFeatureImplementation<OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> implements ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> {
     private final String featureName;
-    private final Class<T> definitionPublicType;
-    private final Class<? extends T> definitionImplementationType;
+    private final Class<OwnDefinition> definitionPublicType;
+    private final Class<? extends OwnDefinition> definitionImplementationType;
     private final ProjectFeatureBindingDeclaration.Safety definitionSafety;
     private final ProjectFeatureBindingDeclaration.Safety applyActionSafety;
     private final TargetTypeInformation<?> targetDefinitionType;
-    private final Class<V> buildModelType;
-    private final Class<? extends V> buildModelImplementationType;
+    private final Class<OwnBuildModel> buildModelType;
+    private final Class<? extends OwnBuildModel> buildModelImplementationType;
     private final Class<? extends Plugin<Project>> pluginClass;
     private final Class<? extends Plugin<Settings>> registeringPluginClass;
     private final List<ModelDefault<?>> defaults = new ArrayList<>();
     @Nullable
     private final String registeringPluginId;
-    private final ProjectFeatureApplyAction<T, V, ?> bindingTransform;
+    private final ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, ?> applyActionFactory;
 
     public DefaultProjectFeatureImplementation(
         String featureName,
-        Class<T> definitionPublicType,
-        Class<? extends T> definitionImplementationType,
+        Class<OwnDefinition> definitionPublicType,
+        Class<? extends OwnDefinition> definitionImplementationType,
         ProjectFeatureBindingDeclaration.Safety definitionSafety,
         ProjectFeatureBindingDeclaration.Safety applyActionSafety,
         TargetTypeInformation<?> targetDefinitionType,
-        Class<V> buildModelType,
-        Class<? extends V> buildModelImplementationType,
+        Class<OwnBuildModel> buildModelType,
+        Class<? extends OwnBuildModel> buildModelImplementationType,
         Class<? extends Plugin<Project>> pluginClass,
         Class<? extends Plugin<Settings>> registeringPluginClass,
         @Nullable String registeringPluginId,
-        ProjectFeatureApplyAction<T, V, ?> bindingTransform
+        ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, ?> applyActionFactory
     ) {
         this.featureName = featureName;
         this.definitionPublicType = definitionPublicType;
@@ -74,7 +73,7 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
         this.pluginClass = pluginClass;
         this.registeringPluginClass = registeringPluginClass;
         this.registeringPluginId = registeringPluginId;
-        this.bindingTransform = bindingTransform;
+        this.applyActionFactory = applyActionFactory;
     }
 
     @Override
@@ -83,12 +82,12 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
     }
 
     @Override
-    public Class<T> getDefinitionPublicType() {
+    public Class<OwnDefinition> getDefinitionPublicType() {
         return definitionPublicType;
     }
 
     @Override
-    public Class<? extends T> getDefinitionImplementationType() {
+    public Class<? extends OwnDefinition> getDefinitionImplementationType() {
         return definitionImplementationType;
     }
 
@@ -103,12 +102,12 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
     }
 
     @Override
-    public Class<V> getBuildModelType() {
+    public Class<OwnBuildModel> getBuildModelType() {
         return buildModelType;
     }
 
     @Override
-    public Class<? extends V> getBuildModelImplementationType() {
+    public Class<? extends OwnBuildModel> getBuildModelImplementationType() {
         return buildModelImplementationType;
     }
 
@@ -134,8 +133,8 @@ public class DefaultProjectFeatureImplementation<T extends Definition<V>, V exte
     }
 
     @Override
-    public ProjectFeatureApplyAction<T, V, ?> getBindingTransform() {
-        return bindingTransform;
+    public ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, ?> getApplyActionFactory() {
+        return applyActionFactory;
     }
 
     @Override

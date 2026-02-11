@@ -16,6 +16,8 @@
 
 package org.gradle.features.internal
 
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectFeatureApplyAction
 import org.gradle.features.file.ProjectFeatureLayout
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
@@ -27,7 +29,6 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.features.annotations.BindsProjectFeature
-import org.gradle.features.annotations.RegistersProjectFeatures
 
 trait ProjectFeatureFixture extends ProjectTypeFixture {
     PluginBuilder withProjectFeature(ProjectTypeDefinitionClassBuilder projectTypeDefinition, ProjectTypePluginClassBuilder projectType, ProjectFeatureDefinitionClassBuilder projectFeatureDefinition, ProjectFeaturePluginClassBuilder projectFeature, SettingsPluginClassBuilder settingsBuilder) {
@@ -362,7 +363,18 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
-    PluginBuilder withKotlinProjectFeaturePlugins() {
+    PluginBuilder withProjectFeatureThatBindsWithClass() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypeThatBindsWithClassBuilder(projectTypeDefinition)
+        def projectFeatureDefinition = new ProjectFeatureDefinitionThatUsesClassInjectedMethods()
+        def projectFeature = new ProjectFeatureThatBindsWithClassBuilder(projectFeatureDefinition)
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
+    PluginBuilder withKotlinProjectFeaturePlugin() {
         def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
         def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
         def projectFeatureDefinition = new ProjectFeatureDefinitionClassBuilder()
@@ -378,6 +390,17 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
         def projectFeatureDefinition = new ProjectFeatureDefinitionWithNoBuildModelClassBuilder()
         def projectFeature = new KotlinReifiedProjectFeaturePluginClassBuilder(projectFeatureDefinition)
+        def settingsBuilder = new KotlinSettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
+    }
+
+    PluginBuilder withKotlinProjectFeaturePluginThatBindsWithClass() {
+        def projectTypeDefinition = new ProjectTypeDefinitionClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
+        def projectFeatureDefinition = new ProjectFeatureDefinitionThatUsesClassInjectedMethods()
+        def projectFeature = new KotlinProjectFeaturePluginClassThatBindsWithClassBuilder(projectFeatureDefinition)
         def settingsBuilder = new KotlinSettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
@@ -579,6 +602,9 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                                     }
                                 }
                             }
+                            ${maybeDeclareDefinitionImplementationType()}
+                            ${maybeDeclareBuildModelImplementationType()}
+                            ${maybeDeclareBindingModifiers()}
                         }
 
                         ${servicesInterface}
@@ -594,7 +620,6 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         String convertToKotlin(String content) {
             return content.replaceAll(';', '')
                 .replaceAll("getProjectFeatureLayout\\Q()\\E", 'projectFeatureLayout')
-
         }
 
         @Override
@@ -651,6 +676,9 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                                     }
                                 }
                             }
+                            ${maybeDeclareDefinitionImplementationType()}
+                            ${maybeDeclareBuildModelImplementationType()}
+                            ${maybeDeclareBindingModifiers()}
                         }
 
                         ${servicesInterface}
@@ -664,26 +692,71 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         }
     }
 
-    static class KotlinSettingsPluginClassBuilder extends ProjectTypeFixture.SettingsPluginClassBuilder {
-
-        KotlinSettingsPluginClassBuilder() {
-            this.pluginClassName = "ProjectFeatureRegistrationPlugin"
+    static class KotlinProjectFeaturePluginClassThatBindsWithClassBuilder extends KotlinProjectFeaturePluginClassBuilder {
+        KotlinProjectFeaturePluginClassThatBindsWithClassBuilder(ProjectFeatureDefinitionClassBuilder definition) {
+            super(definition)
         }
 
         @Override
-        void build(PluginBuilder pluginBuilder) {
-            pluginBuilder.file("src/main/kotlin/org/gradle/test/${pluginClassName}.kt") << """
+        protected String getClassContent() {
+            String content = """
                 package org.gradle.test
 
                 import org.gradle.api.Plugin
-                import org.gradle.api.initialization.Settings
-                import ${RegistersProjectFeatures.class.name}
+                import org.gradle.api.Project
+                import org.gradle.api.Task
+                import ${BindsProjectFeature.class.name}
+                import ${ProjectFeatureBindingBuilder.class.name}
+                import ${ProjectFeatureBinding.class.name}
+                import ${ProjectFeatureApplyAction.class.name}
+                import org.gradle.features.dsl.bindProjectFeature
 
-                @${RegistersProjectFeatures.class.simpleName}(${(projectTypePluginClasses + projectFeaturePluginClasses).collect { it + "::class" }.join(", ")})
-                class ${pluginClassName} : Plugin<Settings> {
-                    override fun apply(settings: Settings) {
+                @${BindsProjectFeature.class.simpleName}(${projectFeaturePluginClassName}.Binding::class)
+                class ${projectFeaturePluginClassName} : Plugin<Project> {
+
+                    class Binding : ${ProjectFeatureBinding.class.simpleName} {
+                        override fun bind(builder: ${ProjectFeatureBindingBuilder.class.simpleName}) {
+                            builder.bindProjectFeature("${name}", ApplyAction::class)
+                        }
+                        ${maybeDeclareDefinitionImplementationType()}
+                        ${maybeDeclareBuildModelImplementationType()}
+                        ${maybeDeclareBindingModifiers()}
+                    }
+
+                    abstract class ApplyAction : ${ProjectFeatureApplyAction.class.simpleName}<${definition.publicTypeClassName}, ${definition.buildModelFullPublicClassName}, ${bindingTypeClassName}> {
+                        @javax.inject.Inject
+                        constructor()
+
+                        ${injectedServices}
+
+                        override fun apply(context: ${ProjectFeatureApplicationContext.class.name}, definition: ${definition.publicTypeClassName}, model: ${definition.buildModelFullPublicClassName}, parent: ${bindingTypeClassName}) {
+                            println("Binding ${definition.publicTypeClassName}")
+                            println("${name} model class: " + model::class.java.getSimpleName())
+                            println("${name} parent model class: " + context.getBuildModel(parent)::class.java.getSimpleName())
+                            ${convertToKotlin(definition.buildModelMapping)}
+                            taskRegistrar.register("print${definition.publicTypeClassName}Configuration") { task: Task ->
+                                task.doLast { _: Task ->
+                                    ${convertToKotlin(definition.displayDefinitionPropertyValues())}
+                                    ${convertToKotlin(definition.displayModelPropertyValues())}
+                                }
+                            }
+                        }
+                    }
+
+                    override fun apply(project: Project) {
                     }
                 }
+            """
+            return content
+        }
+
+        String getInjectedServices() {
+            return """
+                @get:javax.inject.Inject
+                abstract val projectFeatureLayout: ${ProjectFeatureLayout.class.name}
+
+                @get:javax.inject.Inject
+                abstract val taskRegistrar: ${TaskRegistrar.class.name}
             """
         }
     }
@@ -787,6 +860,85 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
                 }
 
                 interface UnknownService extends ${TaskRegistrar.class.name} { }
+            """
+        }
+    }
+
+    static class ProjectFeatureThatBindsWithClassBuilder extends ProjectFeaturePluginClassBuilder {
+        ProjectFeatureThatBindsWithClassBuilder(ProjectFeatureDefinitionClassBuilder definition) {
+            super(definition)
+        }
+
+        @Override
+        protected String getClassContent() {
+            return """
+                package org.gradle.test;
+
+                import org.gradle.api.Plugin;
+                import org.gradle.api.Project;
+                import ${BindsProjectFeature.class.name};
+                import ${ProjectFeatureBindingBuilder.class.name};
+                import static ${ProjectFeatureBindingBuilder.class.name}.bindingToTargetDefinition;
+                import ${ProjectFeatureBinding.class.name};
+                import ${ProjectFeatureApplyAction.class.name};
+                import ${ProjectFeatureApplicationContext.class.name};
+
+                @${BindsProjectFeature.class.simpleName}(${projectFeaturePluginClassName}.Binding.class)
+                public class ${projectFeaturePluginClassName} implements Plugin<Project> {
+
+                    static class Binding implements ${ProjectFeatureBinding.class.simpleName} {
+                        @Override public void bind(${ProjectFeatureBindingBuilder.class.simpleName} builder) {
+                            builder.${bindingMethodName}(
+                                "${name}",
+                                ${definition.publicTypeClassName}.class,
+                                ${bindingTypeClassName}.class,
+                                ${projectFeaturePluginClassName}.ApplyAction.class
+                            )
+                            ${maybeDeclareDefinitionImplementationType()}
+                            ${maybeDeclareBuildModelImplementationType()}
+                            ${maybeDeclareBindingModifiers()};
+                        }
+                    }
+
+                    static abstract class ApplyAction implements ${ProjectFeatureApplyAction.class.name}<${definition.publicTypeClassName}, ${definition.getBuildModelFullPublicClassName()}, ${bindingTypeClassName}> {
+                        @javax.inject.Inject
+                        public ApplyAction() { }
+
+                        ${servicesInjection}
+
+                        public void apply(${ProjectFeatureApplicationContext.class.name} context, ${definition.publicTypeClassName} definition, ${definition.getBuildModelFullPublicClassName()} model, ${bindingTypeClassName} parent) {
+                            System.out.println("Binding ${definition.publicTypeClassName}");
+                            System.out.println("${name} model class: " + model.getClass().getSimpleName());
+                            System.out.println("${name} parent model class: " + context.getBuildModel(parent).getClass().getSimpleName());
+
+                            ${definition.buildModelMapping}
+
+                            getTaskRegistrar().register("print${definition.publicTypeClassName}Configuration", task -> {
+                                task.doLast(t -> {
+                                    ${definition.displayDefinitionPropertyValues()}
+                                    ${definition.displayModelPropertyValues()}
+                                });
+                            });
+                        }
+                    }
+                    @Override
+                    public void apply(Project project) {
+
+                    }
+                }
+            """
+        }
+
+        String getServicesInjection() {
+            return """
+                @javax.inject.Inject
+                abstract protected ${TaskRegistrar.class.name} getTaskRegistrar();
+
+                @javax.inject.Inject
+                abstract protected ${ProjectFeatureLayout.class.name} getProjectFeatureLayout();
+
+                @javax.inject.Inject
+                abstract protected ${ProviderFactory.class.name} getProviderFactory();
             """
         }
     }
@@ -1177,6 +1329,16 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         String getBuildModelMapping() {
             return super.getBuildModelMapping() + """
                 model.getText().set(parent.getText().map(text -> text + " " + definition.getText().get()));
+            """
+        }
+    }
+
+    static class ProjectFeatureDefinitionThatUsesClassInjectedMethods extends ProjectFeatureDefinitionClassBuilder {
+        @Override
+        String getBuildModelMapping() {
+            return """
+                model.getText().set(definition.getText());
+                model.getDir().set(getProjectFeatureLayout().getProjectDirectory().dir(definition.getText()));
             """
         }
     }

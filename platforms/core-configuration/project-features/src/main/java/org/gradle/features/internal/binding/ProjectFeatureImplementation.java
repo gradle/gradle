@@ -21,7 +21,6 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.features.binding.BuildModel;
 import org.gradle.features.binding.Definition;
-import org.gradle.features.binding.ProjectFeatureApplyAction;
 import org.gradle.features.binding.TargetTypeInformation;
 import org.jspecify.annotations.Nullable;
 
@@ -33,12 +32,12 @@ import org.jspecify.annotations.Nullable;
  * Therefore, it can be used for project features with any definition and model types.
  *
  */
-public interface ProjectFeatureImplementation<T extends Definition<V>, V extends BuildModel> {
+public interface ProjectFeatureImplementation<OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> {
     String getFeatureName();
 
-    Class<T> getDefinitionPublicType();
+    Class<OwnDefinition> getDefinitionPublicType();
 
-    Class<? extends T> getDefinitionImplementationType();
+    Class<? extends OwnDefinition> getDefinitionImplementationType();
 
     ProjectFeatureBindingDeclaration.Safety getDefinitionSafety();
 
@@ -46,9 +45,9 @@ public interface ProjectFeatureImplementation<T extends Definition<V>, V extends
 
     TargetTypeInformation<?> getTargetDefinitionType();
 
-    Class<V> getBuildModelType();
+    Class<OwnBuildModel> getBuildModelType();
 
-    Class<? extends V> getBuildModelImplementationType();
+    Class<? extends OwnBuildModel> getBuildModelImplementationType();
 
     Class<? extends Plugin<Project>> getPluginClass();
 
@@ -56,7 +55,7 @@ public interface ProjectFeatureImplementation<T extends Definition<V>, V extends
 
     @Nullable String getRegisteringPluginId();
 
-    ProjectFeatureApplyAction<T, V, ?> getBindingTransform();
+    ProjectFeatureApplyActionFactory<OwnDefinition, OwnBuildModel, ?> getApplyActionFactory();
 
     void addModelDefault(ModelDefault<?> modelDefault);
 

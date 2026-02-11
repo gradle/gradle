@@ -31,11 +31,11 @@ import org.gradle.features.binding.TargetTypeInformation.DefinitionTargetTypeInf
 public interface ProjectFeatureBindingBuilder {
     /**
      * Create a binding between a project feature definition object and a parent definition object.
-     * The supplied transform is used to implement the build logic associated with the binding.
+     * The supplied apply action is used to implement the build logic associated with the binding.
      *
      * @param name the name of the binding.  This is how it will be referenced in the DSL.
      * @param bindingTypeInformation type information about the parent object the feature can be bound to
-     * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
+     * @param transform the action that maps the definition to the build model and implements the build logic associated with the feature
      * @return a {@link DeclaredProjectFeatureBindingBuilder} that can be used to further configure the binding
      * @param <OwnDefinition> the type of the definition object for this feature
      * @param <OwnBuildModel> the type of the build model object for this feature
@@ -55,13 +55,38 @@ public interface ProjectFeatureBindingBuilder {
     );
 
     /**
+     * Create a binding between a project feature definition object and a parent definition object.
+     * The supplied apply action is used to implement the build logic associated with the binding.
+     *
+     * @param name the name of the binding.  This is how it will be referenced in the DSL.
+     * @param bindingTypeInformation type information about the parent object the feature can be bound to
+     * @param transformClass the action that maps the definition to the build model and implements the build logic associated with the feature
+     * @return a {@link DeclaredProjectFeatureBindingBuilder} that can be used to further configure the binding
+     * @param <OwnDefinition> the type of the definition object for this feature
+     * @param <OwnBuildModel> the type of the build model object for this feature
+     * @param <TargetDefinition> the type of the parent definition object this feature can be bound to
+     *
+     * @since 9.5.0
+     */
+    <
+        OwnDefinition extends Definition<OwnBuildModel>,
+        OwnBuildModel extends BuildModel,
+        TargetDefinition extends Definition<?>
+        >
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeature(
+        String name,
+        ModelBindingTypeInformation<OwnDefinition, OwnBuildModel, TargetDefinition> bindingTypeInformation,
+        Class<? extends ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition>> transformClass
+    );
+
+    /**
      * A convenience method for creating a binding between a project feature definition object
      * and a parent definition object.
      *
      * @param name the name of the binding.  This is how it will be referenced in the DSL.
      * @param definitionClass the class of the project feature definition object
      * @param targetDefinitionClass the class of the parent definition object this feature can be bound to
-     * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
+     * @param transform the action that maps the definition to the build model and implements the build logic associated with the feature
      * @return a {@link DeclaredProjectFeatureBindingBuilder} that can be used to further configure the binding
      * @param <OwnDefinition> the type of the definition object for this feature
      * @param <OwnBuildModel> the type of the build model object for this feature
@@ -85,12 +110,41 @@ public interface ProjectFeatureBindingBuilder {
 
     /**
      * A convenience method for creating a binding between a project feature definition object
+     * and a parent definition object.
+     *
+     * @param name the name of the binding.  This is how it will be referenced in the DSL.
+     * @param definitionClass the class of the project feature definition object
+     * @param targetDefinitionClass the class of the parent definition object this feature can be bound to
+     * @param transformClass the action that maps the definition to the build model and implements the build logic associated with the feature
+     * @return a {@link DeclaredProjectFeatureBindingBuilder} that can be used to further configure the binding
+     * @param <OwnDefinition> the type of the definition object for this feature
+     * @param <OwnBuildModel> the type of the build model object for this feature
+     * @param <TargetDefinition> the type of the parent definition object this feature can be bound to
+     *
+     * @since 9.5.0
+     */
+    default <
+        OwnDefinition extends Definition<OwnBuildModel>,
+        OwnBuildModel extends BuildModel,
+        TargetDefinition extends Definition<?>
+        >
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeatureToDefinition(
+        String name,
+        Class<OwnDefinition> definitionClass,
+        Class<TargetDefinition> targetDefinitionClass,
+        Class<? extends ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, TargetDefinition>> transformClass
+    ) {
+        return bindProjectFeature(name, bindingToTargetDefinition(definitionClass, targetDefinitionClass), transformClass);
+    }
+
+    /**
+     * A convenience method for creating a binding between a project feature definition object
      * and a parent definition object that has a specific build model type.
      *
      * @param name the name of the binding.  This is how it will be referenced in the DSL.
      * @param definitionClass the class of the project feature definition object
      * @param targetBuildModelClass the class of the build model type of the parent definition object this feature can be bound to
-     * @param transform the transform that maps the definition to the build model and implements the build logic associated with the feature
+     * @param transform the action that maps the definition to the build model and implements the build logic associated with the feature
      * @return a {@link DeclaredProjectFeatureBindingBuilder} that can be used to further configure the binding
      * @param <OwnDefinition> the type of the definition object for this feature
      * @param <OwnBuildModel> the type of the build model object for this feature
@@ -110,6 +164,35 @@ public interface ProjectFeatureBindingBuilder {
         ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, Definition<TargetBuildModel>> transform
     ) {
         return bindProjectFeature(name, bindingToTargetBuildModel(definitionClass, targetBuildModelClass), transform);
+    }
+
+    /**
+     * A convenience method for creating a binding between a project feature definition object
+     * and a parent definition object that has a specific build model type.
+     *
+     * @param name the name of the binding.  This is how it will be referenced in the DSL.
+     * @param definitionClass the class of the project feature definition object
+     * @param targetBuildModelClass the class of the build model type of the parent definition object this feature can be bound to
+     * @param transformClass the action that maps the definition to the build model and implements the build logic associated with the feature
+     * @return a {@link DeclaredProjectFeatureBindingBuilder} that can be used to further configure the binding
+     * @param <OwnDefinition> the type of the definition object for this feature
+     * @param <OwnBuildModel> the type of the build model object for this feature
+     * @param <TargetBuildModel> the type of the build model type of the parent definition object this feature can be bound to
+     *
+     * @since 9.5.0
+     */
+    default <
+        OwnDefinition extends Definition<OwnBuildModel>,
+        OwnBuildModel extends BuildModel,
+        TargetBuildModel extends BuildModel
+        >
+    DeclaredProjectFeatureBindingBuilder<OwnDefinition, OwnBuildModel> bindProjectFeatureToBuildModel(
+        String name,
+        Class<OwnDefinition> definitionClass,
+        Class<TargetBuildModel> targetBuildModelClass,
+        Class<? extends ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, Definition<TargetBuildModel>>> transformClass
+    ) {
+        return bindProjectFeature(name, bindingToTargetBuildModel(definitionClass, targetBuildModelClass), transformClass);
     }
 
     /**

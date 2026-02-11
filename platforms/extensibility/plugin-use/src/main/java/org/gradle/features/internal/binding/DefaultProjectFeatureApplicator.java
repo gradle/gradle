@@ -120,14 +120,14 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
         });
     }
 
-    private <T extends Definition<V>, V extends BuildModel> T instantiateBoundFeatureObjectsAndApply(Object parentDefinition, ProjectFeatureImplementation<T, V> projectFeature) {
+    private <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> OwnDefinition instantiateBoundFeatureObjectsAndApply(Object parentDefinition, ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature) {
         // Context-specific services for this feature binding
         ServiceLookup featureServices = getContextSpecificServiceLookup(projectFeature);
         ObjectFactory featureObjectFactory = getObjectFactoryFactory().createObjectFactory(featureServices);
 
         // Instantiate the definition and build model objects with the feature-specific object factory
-        T definition = instantiateDefinitionObject(featureObjectFactory, projectFeature);
-        V buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(featureObjectFactory, projectFeature);
+        OwnDefinition definition = instantiateDefinitionObject(featureObjectFactory, projectFeature);
+        OwnBuildModel buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(featureObjectFactory, projectFeature);
         ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, getProjectFeatureDeclarations(), featureObjectFactory);
 
         // Construct an apply action context with the feature-specific object factory
@@ -135,7 +135,9 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
             projectObjectFactory.newInstance(DefaultProjectFeatureApplicationContextInternal.class, featureObjectFactory);
 
         // Invoke the feature's binding transform
-        projectFeature.getBindingTransform().transform(applyActionContext, definition, buildModelInstance, Cast.uncheckedCast(parentDefinition));
+        projectFeature.getApplyActionFactory()
+            .create(featureObjectFactory)
+            .apply(applyActionContext, definition, buildModelInstance, Cast.uncheckedCast(parentDefinition));
 
         return definition;
     }

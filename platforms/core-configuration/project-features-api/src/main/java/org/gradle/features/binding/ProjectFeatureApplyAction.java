@@ -28,7 +28,7 @@ import org.gradle.api.Incubating;
  * @since 9.5.0
  */
 @Incubating
-public interface ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, ParentDefinition> {
+public interface ProjectFeatureApplyAction<OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel, ParentDefinition> {
     /**
      * Apply configuration from the project feature definition to its build model and execute any necessary build logic.
      *
@@ -39,5 +39,5 @@ public interface ProjectFeatureApplyAction<OwnDefinition, OwnBuildModel, ParentD
      *
      * @since 9.5.0
      */
-    void transform(ProjectFeatureApplicationContext context, OwnDefinition definition, OwnBuildModel buildModel, ParentDefinition parentDefinition);
+    void apply(ProjectFeatureApplicationContext context, OwnDefinition definition, OwnBuildModel buildModel, ParentDefinition parentDefinition);
 }
