@@ -56,12 +56,12 @@ fun createQuickFeedbackTasks() {
         val taskName = "$executer${prefix.capitalize()}Test"
         val testTask = createTestTask(taskName, executer, sourceSet, testType) {
             this.setSystemPropertiesOfTestJVM("latest")
-            this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
-            this.systemProperties["org.gradle.integtest.crossVersion.lowestTestedVersion"] = releasedVersions?.lowestTestedVersion?.version
+            systemProperty("org.gradle.integtest.crossVersion", "true")
+            systemProperty("org.gradle.integtest.crossVersion.lowestTestedVersion", releasedVersions?.lowestTestedVersion?.version)
 
             // We should always be using JUnitPlatform at this point, so don't call useJUnitPlatform(), else this will
             // discard existing options configuration and add a deprecation warning.  Just set the existing options.
-            (this.testFramework.options as JUnitPlatformOptions).includeEngines("cross-version-test-engine")
+            (this.testFramework.get().options as JUnitPlatformOptions).includeEngines("cross-version-test-engine")
         }
         if (executer == defaultExecuter) {
             // The test task with the default executer runs with 'check'

@@ -42,7 +42,7 @@ import java.io.File
 import java.io.OutputStream
 import java.util.Properties
 import javax.inject.Inject
-
+import org.gradle.kotlin.dsl.assign
 
 // 5.1-commit-1a2b3c4d5e
 private

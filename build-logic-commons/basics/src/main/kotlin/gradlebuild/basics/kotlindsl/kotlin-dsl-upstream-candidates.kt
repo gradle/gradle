@@ -5,6 +5,7 @@ package gradlebuild.basics.kotlindsl
 import org.gradle.process.ExecOperations
 import java.io.ByteArrayOutputStream
 import java.io.File
+import org.gradle.kotlin.dsl.assign
 
 
 /**

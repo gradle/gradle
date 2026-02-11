@@ -91,15 +91,15 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.setDescription("Generate Javadocs for all API classes");
 
             // TODO: This breaks if version is changed later
-            task.setTitle("Gradle API " + project.getVersion());
+            task.getTitle().set("Gradle API " + project.getVersion());
 
             StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
-            options.setEncoding("utf-8");
-            options.setDocEncoding("utf-8");
-            options.setCharSet("utf-8");
+            options.getEncoding().set("utf-8");
+            options.getDocEncoding().set("utf-8");
+            options.getCharSet().set("utf-8");
 
             options.addBooleanOption("-allow-script-in-comments", true);
-            options.setHeader("<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/stackoverflow-light.min.css\">" +
+            options.getHeader().set("<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/stackoverflow-light.min.css\">" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js\"></script>" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js\"></script>" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/groovy.min.js\"></script>" +
@@ -134,7 +134,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
                 .filter(new DeduplicatePackageInfoFiles())
             );
 
-            task.setClasspath(extension.getClasspath());
+            task.getClasspath().setFrom(extension.getClasspath());
 
             // TODO: This should be in Javadoc task
             DirectoryProperty generatedJavadocDirectory = project.getObjects().directoryProperty();
@@ -142,7 +142,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.getOutputs().dir(generatedJavadocDirectory);
             task.getExtensions().getExtraProperties().set("destinationDirectory", generatedJavadocDirectory);
             // TODO: This breaks the provider
-            task.setDestinationDir(generatedJavadocDirectory.get().getAsFile());
+            task.getDestinationDir().set(generatedJavadocDirectory);
         });
 
         // TODO: destinationDirectory should be part of Javadoc
@@ -153,8 +153,8 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.source(extension.getDocumentedSource());
             // TODO: This is ugly
             task.setConfig(project.getResources().getText().fromFile(checkstyle.getConfigDirectory().file("checkstyle-api.xml")));
-            task.setClasspath(layout.files());
-            task.getReports().getXml().getOutputLocation().set(new File(checkstyle.getReportsDir(), "checkstyle-api.xml"));
+            task.getClasspath().setFrom(layout.files());
+            task.getReports().getXml().getOutputLocation().set(checkstyle.getReportsDir().file("checkstyle-api.xml"));
         });
     }
 

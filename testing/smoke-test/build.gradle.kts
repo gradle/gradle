@@ -123,7 +123,7 @@ tasks {
         }
         useJUnitPlatform {
             filter {
-                isFailOnNoMatchingTests = (flakyTestStrategy != FlakyTestStrategy.ONLY)
+                failOnNoMatchingTests = (flakyTestStrategy != FlakyTestStrategy.ONLY)
                 includes.forEach { includeTestsMatching(it) }
                 excludes.forEach { excludeTestsMatching(it) }
             }

@@ -46,7 +46,7 @@ dependencies {
 }
 
 tasks.named<Test>("test").configure {
-    if (!javaVersion.isJava9Compatible) {
+    if (!javaVersion.get().isJava9Compatible) {
         // For Java8 tools.jar is needed for com.google.testing.compile:compile-testing
         classpath += javaLauncher.get().metadata.installationPath.files("lib/tools.jar")
     } else {

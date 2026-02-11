@@ -16,12 +16,23 @@
 
 package gradlebuild.basics.testing
 
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.tasks.testing.Test
+import java.util.function.BiFunction
 
 
 enum class TestType(val prefix: String, val executers: List<String>) {
     INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel", "configCache", "isolatedProjects")),
     CROSSVERSION("crossVersion", listOf("embedded", "forking"))
+}
+
+
+private
+fun MapProperty<String, Any>.compute(key: String, remappingFunction: BiFunction<in String, in Any?, out Any?>): Any? {
+    val map = this.get().toMutableMap()
+    val v = map.compute(key, remappingFunction)
+    this.set(map)
+    return v
 }
 
 

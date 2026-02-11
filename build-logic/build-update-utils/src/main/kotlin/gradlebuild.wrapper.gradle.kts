@@ -11,8 +11,8 @@ tasks.withType<Wrapper>().configureEach {
     inputs.property("jvmOpts", jvmOpts)
     doLast {
         val optsEnvVar = "DEFAULT_JVM_OPTS"
-        scriptFile.writeText(scriptFile.readText().replace("$optsEnvVar='", "$optsEnvVar='$jvmOpts "))
-        batchScript.writeText(batchScript.readText().replace("set $optsEnvVar=", "set $optsEnvVar=$jvmOpts "))
+        scriptFile.get().asFile.writeText(scriptFile.get().asFile.readText().replace("$optsEnvVar='", "$optsEnvVar='$jvmOpts "))
+        batchScript.get().asFile.writeText(batchScript.get().asFile.readText().replace("set $optsEnvVar=", "set $optsEnvVar=$jvmOpts "))
     }
 }
 

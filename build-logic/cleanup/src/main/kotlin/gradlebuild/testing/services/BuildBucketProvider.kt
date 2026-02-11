@@ -24,6 +24,7 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.util.GradleVersion
 import java.io.StringReader
 import java.util.Properties
+import org.gradle.kotlin.dsl.assign
 
 
 abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
@@ -98,7 +99,7 @@ abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
 
     class IncludeTestClassProvider(private val includeTestClasses: Map<String, List<String>>) : BuildBucketProvider {
         override fun configureTest(testTask: Test, sourceSetName: String) {
-            testTask.filter.isFailOnNoMatchingTests = false
+            testTask.filter.failOnNoMatchingTests = false
             val classesForSourceSet = includeTestClasses[sourceSetName]
             if (classesForSourceSet == null) {
                 // No classes included, disable
@@ -111,7 +112,7 @@ abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {
 
     class ExcludeTestClassProvider(private val excludeTestClasses: Map<String, List<String>>) : BuildBucketProvider {
         override fun configureTest(testTask: Test, sourceSetName: String) {
-            testTask.filter.isFailOnNoMatchingTests = false
+            testTask.filter.failOnNoMatchingTests = false
             excludeTestClasses[sourceSetName]?.apply { testTask.filter.excludePatterns.addAll(this) }
         }
     }

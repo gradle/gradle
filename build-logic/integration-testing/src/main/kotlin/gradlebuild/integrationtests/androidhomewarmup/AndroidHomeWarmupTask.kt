@@ -31,6 +31,7 @@ import org.gradle.process.ExecResult
 import java.io.File
 import javax.inject.Inject
 import org.gradle.work.DisableCachingByDefault
+import org.gradle.kotlin.dsl.assign
 
 @DisableCachingByDefault(because = "Must not cache because it modifies global Android home")
 abstract class AndroidHomeWarmupTask : DefaultTask() {
@@ -155,7 +156,7 @@ abstract class AndroidHomeWarmupTask : DefaultTask() {
             workingDir = projectDir
             executable = gradleExecutable
             args = listOf("build", "--no-daemon", "--quiet", "-x", "lint", "-x", "lintDebug", "-x", "lintRelease")
-            isIgnoreExitValue = false
+            ignoreExitValue = false
         }
 
         if (result.exitValue != 0) {

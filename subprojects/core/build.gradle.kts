@@ -289,11 +289,11 @@ packageCycles {
 }
 
 tasks.test {
-    setForkEvery(200)
+    forkEvery = 200
 }
 
 tasks.compileTestGroovy {
-    groovyOptions.isFork = true
+    groovyOptions.fork = true
     groovyOptions.forkOptions.run {
         memoryInitialSize = "128M"
         memoryMaximumSize = "1G"
