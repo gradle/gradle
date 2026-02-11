@@ -14,30 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.fixture
+package org.gradle.integtests.tooling.fixture;
 
-import org.gradle.tooling.ToolingModelContract
-
-@ToolingModelContract(subTypes = [ShallowChildModel.class, DeepChildModel.class])
-interface BaseModel {
-}
-
-@ToolingModelContract(subTypes = [VeryDeepChildModel.class])
-interface DeepChildModel extends BaseModel {
-    String getDeepMessage()
-}
-
-interface VeryDeepChildModel extends DeepChildModel {
-    String getVeryDeepMessage()
-}
-
-interface ShallowChildModel extends BaseModel {
-    String getShallowMessage()
-}
-
-interface SideModel extends BaseModel {
-}
-
-interface CompositeModel {
-    BaseModel getNested()
+public interface SideModel extends BaseModel {
 }

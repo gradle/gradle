@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class UseGradleBuildToFetchProjectModel implements BuildAction<Map<String, CustomModel>> {
+    @Override
     public Map<String, CustomModel> execute(BuildController controller) {
         GradleBuild gradleBuild = controller.getBuildModel();
         Map<String, CustomModel> projects = new HashMap<String, CustomModel>();

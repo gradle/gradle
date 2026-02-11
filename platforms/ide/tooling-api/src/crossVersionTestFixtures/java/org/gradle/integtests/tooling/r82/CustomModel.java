@@ -14,21 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r82
+package org.gradle.integtests.tooling.r82;
 
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
-import org.gradle.tooling.model.gradle.GradleBuild
-
-class FetchProjectsCustomModelsAction implements BuildAction<Void> {
-
-    @Override
-    Void execute(BuildController controller) {
-        def projects = controller.getModel(GradleBuild).projects
-        projects.forEach { project ->
-            controller.getModel(project, CustomModel)
-        }
-
-        return null
-    }
+interface CustomModel {
 }

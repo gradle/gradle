@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r940
+package org.gradle.integtests.tooling.r940;
 
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
-import org.gradle.tooling.model.build.BuildEnvironment
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
+import org.gradle.tooling.model.build.BuildEnvironment;
 
 class FetchBuildEnvironmentVersionInfoAction implements BuildAction<String> {
     @Override
-    String execute(BuildController controller) {
-        controller.getModel(BuildEnvironment).versionInfo
+    public String execute(BuildController controller) {
+        return controller.getModel(BuildEnvironment.class).getVersionInfo();
     }
 }
