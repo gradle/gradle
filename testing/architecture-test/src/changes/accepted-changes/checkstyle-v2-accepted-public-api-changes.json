@@ -15,8 +15,8 @@
             "changes": []
         },
         {
-            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
-            "member": "Class org.gradle.api.plugins.quality.v2.CheckstyleV2",
+            "type": "org.gradle.api.plugins.quality.CheckstyleV2",
+            "member": "Class org.gradle.api.plugins.quality.CheckstyleV2",
             "acceptation": "Testing checkstyleV2",
             "changes": [
                 "Interface has been added",
@@ -24,14 +24,14 @@
             ]
         },
         {
-            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
-            "member": "Constructor org.gradle.api.plugins.quality.v2.CheckstyleV2()",
+            "type": "org.gradle.api.plugins.quality.CheckstyleV2",
+            "member": "Constructor org.gradle.api.plugins.quality.CheckstyleV2()",
             "acceptation": "Testing checkstyleV2",
             "changes": []
         },
         {
-            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
-            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getCheckstyleClasspath()",
+            "type": "org.gradle.api.plugins.quality.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleV2.getCheckstyleClasspath()",
             "acceptation": "Testing checkstyleV2",
             "changes": [
                 "Method added to public class",
@@ -39,8 +39,8 @@
             ]
         },
         {
-            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
-            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getClasspath()",
+            "type": "org.gradle.api.plugins.quality.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleV2.getClasspath()",
             "acceptation": "Testing checkstyleV2",
             "changes": [
                 "Method added to public class",
@@ -48,8 +48,8 @@
             ]
         },
         {
-            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
-            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getConfigDirectory()",
+            "type": "org.gradle.api.plugins.quality.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleV2.getConfigDirectory()",
             "acceptation": "Testing checkstyleV2",
             "changes": [
                 "Method added to public class",
@@ -57,8 +57,8 @@
             ]
         },
         {
-            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
-            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getConfigFile()",
+            "type": "org.gradle.api.plugins.quality.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleV2.getConfigFile()",
             "acceptation": "Testing checkstyleV2",
             "changes": [
                 "Method added to public class",
@@ -66,8 +66,8 @@
             ]
         },
         {
-            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
-            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getConfigProperties()",
+            "type": "org.gradle.api.plugins.quality.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleV2.getConfigProperties()",
             "acceptation": "Testing checkstyleV2",
             "changes": [
                 "Method added to public class",
@@ -75,8 +75,8 @@
             ]
         },
         {
-            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
-            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getEnableExternalDtdLoad()",
+            "type": "org.gradle.api.plugins.quality.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleV2.getEnableExternalDtdLoad()",
             "acceptation": "Testing checkstyleV2",
             "changes": [
                 "Method added to public class",
@@ -84,8 +84,8 @@
             ]
         },
         {
-            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
-            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getMaxErrors()",
+            "type": "org.gradle.api.plugins.quality.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleV2.getMaxErrors()",
             "acceptation": "Testing checkstyleV2",
             "changes": [
                 "Method added to public class",
@@ -93,8 +93,8 @@
             ]
         },
         {
-            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
-            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getMaxWarnings()",
+            "type": "org.gradle.api.plugins.quality.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleV2.getMaxWarnings()",
             "acceptation": "Testing checkstyleV2",
             "changes": [
                 "Method added to public class",
@@ -102,8 +102,8 @@
             ]
         },
         {
-            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
-            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getShowViolations()",
+            "type": "org.gradle.api.plugins.quality.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleV2.getShowViolations()",
             "acceptation": "Testing checkstyleV2",
             "changes": [
                 "Method added to public class",
@@ -111,8 +111,8 @@
             ]
         },
         {
-            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
-            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.run()",
+            "type": "org.gradle.api.plugins.quality.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.CheckstyleV2.run()",
             "acceptation": "Testing checkstyleV2",
             "changes": [
                 "Method added to public class",

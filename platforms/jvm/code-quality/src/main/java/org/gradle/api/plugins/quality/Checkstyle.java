@@ -26,7 +26,6 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
-import org.gradle.api.plugins.quality.v2.CheckstyleV2;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;

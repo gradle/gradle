@@ -27,12 +27,14 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskShadowingRegistry;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.api.plugins.quality.CodeQualityExtension;
-import org.gradle.api.plugins.quality.v2.CheckstyleV2;
+import org.gradle.api.plugins.quality.CheckstyleV2;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -156,6 +158,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
 
     @SuppressWarnings("unchecked")
     private void configureTaskRule() {
+        TaskShadowingRegistry taskShadowingRegistry = project.getServices().get(TaskShadowingRegistry.class);
         project.getTasks().withType(getCastedTaskType()).configureEach(new Action<Task>() {
             @Override
             public void execute(Task task) {
@@ -165,7 +168,9 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
                 }
                 prunedName = ("" + prunedName.charAt(0)).toLowerCase(Locale.ROOT) + prunedName.substring(1);
                 if (task instanceof CheckstyleV2) {
-                    configureTaskDefaults((CheckstyleV2) task, prunedName);
+                    // Needed, since withType is not implemented yet
+                    T wrapped = (T) taskShadowingRegistry.maybeWrap(task, Checkstyle.class);
+                    configureTaskDefaults(wrapped, prunedName);
                 } else {
                     configureTaskDefaults((T) task, prunedName);
                 }
@@ -174,9 +179,6 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     }
 
     protected void configureTaskDefaults(T task, String baseName) {
-    }
-
-    protected void configureTaskDefaults(CheckstyleV2 task, String baseName) {
     }
 
     @SuppressWarnings("rawtypes")

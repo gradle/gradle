@@ -81,7 +81,7 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
                 maxHeapSize.set("255m")
             }
 
-            tasks.named('checkstyleMain', org.gradle.api.plugins.quality.v2.CheckstyleV2).configure {
+            tasks.named('checkstyleMain', org.gradle.api.plugins.quality.CheckstyleV2).configure {
                 doLast {
                     // We register do doLast on CheckstyleV2, since we don't have translations for doLast yet
                     assert services.get(WorkerDaemonClientsManager).idleClients.find {
@@ -94,7 +94,7 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
                 }
             }
 
-            tasks.named('checkstyleTest', org.gradle.api.plugins.quality.v2.CheckstyleV2).configure {
+            tasks.named('checkstyleTest', org.gradle.api.plugins.quality.CheckstyleV2).configure {
                 minHeapSize.set("256m")
                 maxHeapSize.set("355m")
 

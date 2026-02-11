@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.quality.v2;
+package org.gradle.api.plugins.quality;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
@@ -22,8 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.plugins.quality.AbstractCodeQualityTask;
-import org.gradle.api.plugins.quality.CheckstyleReports;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;

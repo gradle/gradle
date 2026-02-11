@@ -58,12 +58,12 @@ public class DefaultTaskShadowingRegistry implements TaskShadowingRegistry {
     }
 
     @Override
-    public <T extends Task> T maybeWrap(T task, Class<T> requestedType) {
+    public <T extends Task> T maybeWrap(Object task, Class<T> requestedType) {
         BiFunction<Object, Class<?>, Object> wrapper = wrappers.get(requestedType);
         if (wrapper != null) {
             return Cast.uncheckedCast(wrapper.apply(task, requestedType));
         }
-        return task;
+        return Cast.uncheckedCast(task);
     }
 
     @Override

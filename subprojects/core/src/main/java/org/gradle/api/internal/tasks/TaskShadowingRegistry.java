@@ -29,7 +29,7 @@ import java.util.function.BiFunction;
 public interface TaskShadowingRegistry {
     <T extends Task> Class<T> getShadowType(Class<T> type);
 
-    <T extends Task> T maybeWrap(T task, Class<T> requestedType);
+    <T extends Task> T maybeWrap(Object task, Class<T> requestedType);
 
     <T extends Task> TaskProvider<T> maybeWrapProvider(TaskProvider<T> provider, Class<T> requestedType);
 

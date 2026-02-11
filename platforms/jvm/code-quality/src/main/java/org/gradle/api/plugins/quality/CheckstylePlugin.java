@@ -23,7 +23,6 @@ import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskShadowingRegistry;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
-import org.gradle.api.plugins.quality.v2.CheckstyleV2;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.TextResource;
@@ -93,12 +92,6 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     @Override
     protected void configureConfiguration(Configuration configuration) {
         configureDefaultDependencies(configuration);
-    }
-
-    @Override
-    protected void configureTaskDefaults(CheckstyleV2 task, final String baseName) {
-        TaskInstantiator taskInstantiator = project.getServices().get(TaskInstantiator.class);
-        configureTaskDefaults(taskInstantiator.create(task.getName(), Checkstyle.class, new Object[]{task}), baseName);
     }
 
     @Override
