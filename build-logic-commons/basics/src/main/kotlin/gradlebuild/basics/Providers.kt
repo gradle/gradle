@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-package gradlebuild.testcleanup.extension
+package gradlebuild.basics
 
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.provider.Property
+import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.provider.Provider
 
 
-/**
- * Works with {@see TestFilesCleanupService} and {@see TestFilesCleanupServiceRootExtension}.
- * It collects states to be used in the build service for each project.
- */
-interface TestFilesCleanupProjectState : TestFileCleanUpExtension {
-    val projectPath: Property<String>
-    val projectBuildDir: DirectoryProperty
-}
+typealias FileLocationProvider = Provider<out FileSystemLocation>
