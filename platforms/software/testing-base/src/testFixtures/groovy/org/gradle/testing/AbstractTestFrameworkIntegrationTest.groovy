@@ -243,6 +243,70 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         failure.assertHasCause("No tests found for given includes: [${testSuite('SomeTest')}.missingMethod](filter.includeTestsMatching)")
     }
 
+    def "can disable fail on no matching tests via task property"() {
+        given:
+        createPassingFailingTest()
+        buildFile << """
+            tasks.withType(AbstractTestTask) {
+                failOnNoMatchingTests = false
+            }
+        """
+
+        when:
+        run(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod")
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can disable fail on no matching tests via CLI"() {
+        given:
+        createPassingFailingTest()
+
+        when:
+        run(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod", "--no-fail-on-no-matching-tests")
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "task property takes precedence over filter property for failOnNoMatchingTests: #scenario"() {
+        given:
+        createPassingFailingTest()
+        buildFile << """
+            tasks.withType(AbstractTestTask) {
+                ${taskPropertyConfig}
+                ${filterPropertyConfig}
+            }
+        """
+
+        when:
+        if (shouldFail) {
+            fails(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod")
+        } else {
+            run(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod")
+        }
+
+        then:
+        if (shouldFail) {
+            failure.assertHasCause("No tests found for given includes:")
+        } else {
+            // All good
+        }
+
+        where:
+        scenario                    | taskPropertyConfig                | filterPropertyConfig                     | shouldFail
+        "task=false, filter=true"   | "failOnNoMatchingTests = false"   | "filter.failOnNoMatchingTests = true"    | false
+        "task=true, filter=false"   | "failOnNoMatchingTests = true"    | "filter.failOnNoMatchingTests = false"   | true
+        "task=false, filter=false"  | "failOnNoMatchingTests = false"   | "filter.failOnNoMatchingTests = false"   | false
+        "task=true, filter=true"    | "failOnNoMatchingTests = true"    | "filter.failOnNoMatchingTests = true"    | true
+        "task=false, filter unset"  | "failOnNoMatchingTests = false"   | "// filter not configured"               | false
+        "task=true, filter unset"   | "failOnNoMatchingTests = true"    | "// filter not configured"               | true
+        "task unset, filter=false"  | "// task property not configured" | "filter.failOnNoMatchingTests = false"   | false
+        "task unset, filter=true"   | "// task property not configured" | "filter.failOnNoMatchingTests = true"    | true
+        "task unset, filter unset"  | "// task property not configured" | "// filter not configured"               | true
+    }
+
     def "task is out of date when --tests argument changes"() {
         given:
         createPassingFailingTest()
