@@ -18,9 +18,10 @@ package org.gradle.api.plugins.quality.v2;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.plugins.quality.AbstractCodeQualityTask;
 import org.gradle.api.plugins.quality.CheckstyleReports;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
@@ -28,15 +29,13 @@ import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.Reporting;
-import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
@@ -45,24 +44,23 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Describables;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
-import org.gradle.api.Incubating;
 
 /**
  * New Checkstyle task implementation that uses Gradle lazy properties.
  * All execution logic resides here. Legacy {@link org.gradle.api.plugins.quality.Checkstyle} delegates to this implementation.
  */
 @CacheableTask
-public abstract class Checkstyle extends AbstractCodeQualityTask implements Reporting<CheckstyleReports> {
+public abstract class CheckstyleV2 extends AbstractCodeQualityTask implements Reporting<CheckstyleReports> {
 
     private final CheckstyleReports reports;
 
-    public Checkstyle() {
+    public CheckstyleV2() {
         super();
         this.reports = getObjectFactory().newInstance(CheckstyleReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
-        getEnableExternalDtdLoadProperty().convention(false);
-        getShowViolationsProperty().convention(true);
-        getMaxWarningsProperty().convention(Integer.MAX_VALUE);
-        getMaxErrorsProperty().convention(0);
+        getEnableExternalDtdLoad().convention(false);
+        getShowViolations().convention(true);
+        getMaxWarnings().convention(Integer.MAX_VALUE);
+        getMaxErrors().convention(0);
     }
 
     /**
@@ -80,23 +78,17 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     /**
      * The Checkstyle configuration to use.
      */
-    @Nested
-    public abstract Property<TextResource> getConfigProperty();
-
-    /**
-     * Resolved configuration file derived from {@link #getConfigProperty()}.
-     */
-    @Internal
-    public Provider<RegularFile> getConfigFile() {
-        return getProject().getLayout().file(getConfigProperty().map(TextResource::asFile));
-    }
+    @Optional
+    @InputFile
+    @PathSensitive(PathSensitivity.NONE)
+    public abstract RegularFileProperty getConfigFile();
 
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
      */
     @Optional
     @Input
-    public abstract MapProperty<String, Object> getConfigPropertiesProperty();
+    public abstract MapProperty<String, Object> getConfigProperties();
 
     /**
      * Path to other Checkstyle configuration files. Exposed as variable {@code config_loc} in Checkstyle configs.
@@ -118,26 +110,26 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * The maximum number of errors tolerated before failing the task.
      */
     @Input
-    public abstract Property<Integer> getMaxErrorsProperty();
+    public abstract Property<Integer> getMaxErrors();
 
     /**
      * The maximum number of warnings tolerated before failing the task.
      */
     @Input
-    public abstract Property<Integer> getMaxWarningsProperty();
+    public abstract Property<Integer> getMaxWarnings();
 
     /**
      * Whether to show violations on the console.
      */
     @Console
-    public abstract Property<Boolean> getShowViolationsProperty();
+    public abstract Property<Boolean> getShowViolations();
 
     /**
      * Whether to enable external DTD loading for Checkstyle.
      */
     @Incubating
     @Input
-    public abstract Property<Boolean> getEnableExternalDtdLoadProperty();
+    public abstract Property<Boolean> getEnableExternalDtdLoad();
 
     // Reports configuration bridge
     @Override
@@ -157,20 +149,19 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     public void run() {
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
             configureForkOptions(spec.getForkOptions());
-            spec.getForkOptions().getSystemProperties().put("checkstyle.enableExternalDtdLoad", getEnableExternalDtdLoadProperty().get().toString());
+            spec.getForkOptions().getSystemProperties().put("checkstyle.enableExternalDtdLoad", getEnableExternalDtdLoad().get().toString());
         });
         workQueue.submit(CheckstyleAction.class, this::setupParameters);
     }
 
     private void setupParameters(CheckstyleActionParameters parameters) {
         parameters.getAntLibraryClasspath().setFrom(getCheckstyleClasspath());
-        Provider<RegularFile> configFile = getConfigFile();
-        parameters.getConfig().set(configFile);
-        parameters.getMaxErrors().set(getMaxErrorsProperty());
-        parameters.getMaxWarnings().set(getMaxWarningsProperty());
+        parameters.getConfig().set(getConfigFile().get().getAsFile());
+        parameters.getMaxErrors().set(getMaxErrors());
+        parameters.getMaxWarnings().set(getMaxWarnings());
         parameters.getIgnoreFailures().set(getIgnoreFailuresProperty());
         parameters.getConfigDirectory().set(getConfigDirectory());
-        parameters.getShowViolations().set(getShowViolationsProperty());
+        parameters.getShowViolations().set(getShowViolations());
         parameters.getSource().setFrom(getSource());
         parameters.getIsHtmlRequired().set(getReports().getHtml().getRequired());
         parameters.getIsXmlRequired().set(getReports().getXml().getRequired());
@@ -179,7 +170,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
         parameters.getHtmlOutputLocation().set(getReports().getHtml().getOutputLocation());
         parameters.getSarifOutputLocation().set(getReports().getSarif().getOutputLocation());
         parameters.getTemporaryDir().set(getTemporaryDir());
-        parameters.getConfigProperties().set(getConfigPropertiesProperty());
+        parameters.getConfigProperties().set(getConfigProperties());
         if (getReports().getHtml().getStylesheet() != null) {
             parameters.getStylesheetString().set(getReports().getHtml().getStylesheet().asString());
         }

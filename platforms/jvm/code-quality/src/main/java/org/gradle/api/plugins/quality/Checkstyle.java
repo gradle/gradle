@@ -23,8 +23,10 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
+import org.gradle.api.plugins.quality.v2.CheckstyleV2;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
@@ -40,10 +42,12 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
@@ -54,9 +58,10 @@ import java.util.Map;
 @SuppressWarnings("unused")
 @CacheableTask
 public abstract class Checkstyle extends AbstractCodeQualityTask implements Reporting<CheckstyleReports> {
-    private final org.gradle.api.plugins.quality.v2.Checkstyle delegate;
+    public final CheckstyleV2 delegate;
 
-    public Checkstyle(org.gradle.api.plugins.quality.v2.Checkstyle delegate) {
+    @Inject
+    public Checkstyle(CheckstyleV2 delegate) {
         this.delegate = delegate;
     }
 
@@ -133,7 +138,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     private void runWithProcessIsolation() {
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
             configureForkOptions(spec.getForkOptions());
-            spec.getForkOptions().getSystemProperties().put("checkstyle.enableExternalDtdLoad", delegate.getEnableExternalDtdLoadProperty().get().toString());
+            spec.getForkOptions().getSystemProperties().put("checkstyle.enableExternalDtdLoad", delegate.getEnableExternalDtdLoad().get().toString());
         });
         workQueue.submit(CheckstyleAction.class, this::setupParameters);
     }
@@ -174,7 +179,17 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @ToBeReplacedByLazyProperty
     @PathSensitive(PathSensitivity.RELATIVE)
     public FileTree getSource() {
-        return super.getSource();
+        return delegate.getSource();
+    }
+
+    @Override
+    public void setSource(Object source) {
+        delegate.setSource(source);
+    }
+
+    @Override
+    public void setSource(FileTree source) {
+        delegate.setSource(source);
     }
 
     /**
@@ -216,7 +231,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      */
     @Nested
     public TextResource getConfig() {
-        return delegate.getConfigProperty().getOrNull();
+        return getProject().getResources().getText().fromFile(getConfigFile());
     }
 
     /**
@@ -225,7 +240,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @since 2.2
      */
     public void setConfig(TextResource config) {
-        delegate.getConfigProperty().set(config);
+        delegate.getConfigFile().set(Providers.of(config::asFile));
     }
 
     /**
@@ -236,7 +251,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Input
     @ToBeReplacedByLazyProperty
     public Map<String, Object> getConfigProperties() {
-        return delegate.getConfigPropertiesProperty().getOrElse(Collections.emptyMap());
+        return delegate.getConfigProperties().getOrElse(Collections.emptyMap());
     }
 
     /**
@@ -244,9 +259,9 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      */
     public void setConfigProperties(@Nullable Map<String, Object> configProperties) {
         if (configProperties == null) {
-            delegate.getConfigPropertiesProperty().set(Collections.emptyMap());
+            delegate.getConfigProperties().set(Collections.emptyMap());
         } else {
-            delegate.getConfigPropertiesProperty().set(configProperties);
+            delegate.getConfigProperties().set(configProperties);
         }
     }
 
@@ -284,7 +299,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Input
     @ToBeReplacedByLazyProperty
     public int getMaxErrors() {
-        return delegate.getMaxErrorsProperty().getOrElse(0);
+        return delegate.getMaxErrors().getOrElse(0);
     }
 
     /**
@@ -294,7 +309,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @since 3.4
      */
     public void setMaxErrors(int maxErrors) {
-        delegate.getMaxErrorsProperty().set(maxErrors);
+        delegate.getMaxErrors().set(maxErrors);
     }
 
     /**
@@ -307,7 +322,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Input
     @ToBeReplacedByLazyProperty
     public int getMaxWarnings() {
-        return delegate.getMaxWarningsProperty().getOrElse(Integer.MAX_VALUE);
+        return delegate.getMaxWarnings().getOrElse(Integer.MAX_VALUE);
     }
 
     /**
@@ -317,7 +332,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @since 3.4
      */
     public void setMaxWarnings(int maxWarnings) {
-        delegate.getMaxWarningsProperty().set(maxWarnings);
+        delegate.getMaxWarnings().set(maxWarnings);
     }
 
     /**
@@ -328,14 +343,14 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Console
     @ToBeReplacedByLazyProperty
     public boolean isShowViolations() {
-        return delegate.getShowViolationsProperty().getOrElse(true);
+        return delegate.getShowViolations().getOrElse(true);
     }
 
     /**
      * Whether rule violations are to be displayed on the console.
      */
     public void setShowViolations(boolean showViolations) {
-        delegate.getShowViolationsProperty().set(showViolations);
+        delegate.getShowViolations().set(showViolations);
     }
 
     /**
@@ -350,7 +365,7 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Incubating
     @Input
     public Property<Boolean> getEnableExternalDtdLoad() {
-        return delegate.getEnableExternalDtdLoadProperty();
+        return delegate.getEnableExternalDtdLoad();
     }
 
     /**
@@ -362,5 +377,25 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @ToBeReplacedByLazyProperty
     public boolean isIgnoreFailures() {
         return getIgnoreFailures();
+    }
+
+    @Override
+    protected Property<Boolean> getIgnoreFailuresProperty() {
+        return delegate.getIgnoreFailuresProperty();
+    }
+
+    @Override
+    public Property<JavaLauncher> getJavaLauncher() {
+        return delegate.getJavaLauncher();
+    }
+
+    @Override
+    public Property<String> getMinHeapSize() {
+        return delegate.getMinHeapSize();
+    }
+
+    @Override
+    public Property<String> getMaxHeapSize() {
+        return delegate.getMaxHeapSize();
     }
 }

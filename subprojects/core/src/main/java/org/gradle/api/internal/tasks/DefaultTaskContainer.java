@@ -403,7 +403,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public TaskProvider<Task> register(String name, Action<? super Task> configurationAction) throws InvalidUserDataException {
         assertCanMutate("register(String, Action)");
-        return named(name, configurationAction);
+        return Cast.uncheckedCast(register(name, DefaultTask.class, configurationAction));
     }
 
     @Override
@@ -423,7 +423,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     @Override
     public TaskProvider<Task> register(String name) throws InvalidUserDataException {
         assertCanMutate("register(String)");
-        return named(name);
+        return Cast.uncheckedCast(register(name, DefaultTask.class));
     }
 
     @Override

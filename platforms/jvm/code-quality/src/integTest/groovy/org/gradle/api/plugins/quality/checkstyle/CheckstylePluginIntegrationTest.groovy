@@ -59,4 +59,77 @@ class CheckstylePluginIntegrationTest extends WellBehavedPluginTest {
         then:
         executedAndNotSkipped ':checkstyleMain'
     }
+
+    def "can configure checkstyle via both facades"() {
+        goodCode()
+        writeDummyConfig()
+        buildFile.text = """
+            import org.gradle.workers.internal.WorkerDaemonClientsManager
+            import org.gradle.internal.jvm.Jvm
+
+            plugins {
+                id("java")
+                id("checkstyle")
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+
+            tasks.named('checkstyleMain', Checkstyle).configure {
+                minHeapSize.set("122m")
+                maxHeapSize.set("255m")
+            }
+
+            tasks.named('checkstyleMain', org.gradle.api.plugins.quality.v2.CheckstyleV2).configure {
+                doLast {
+                    // We register do doLast on CheckstyleV2, since we don't have translations for doLast yet
+                    assert services.get(WorkerDaemonClientsManager).idleClients.find {
+                        println("checkstyleMain.forkOptions.jvmOptions.minHeapSize == \${it.forkOptions.jvmOptions.minHeapSize}")
+                        println("checkstyleMain.forkOptions.jvmOptions.maxHeapSize == \${it.forkOptions.jvmOptions.maxHeapSize}")
+                        new File(it.forkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
+                        it.forkOptions.jvmOptions.minHeapSize == "122m" &&
+                        it.forkOptions.jvmOptions.maxHeapSize == "255m"
+                    }
+                }
+            }
+
+            tasks.named('checkstyleTest', org.gradle.api.plugins.quality.v2.CheckstyleV2).configure {
+                minHeapSize.set("256m")
+                maxHeapSize.set("355m")
+
+                doLast {
+                    assert services.get(WorkerDaemonClientsManager).idleClients.find {
+                        println("checkstyleTest.forkOptions.jvmOptions.minHeapSize == \${it.forkOptions.jvmOptions.minHeapSize}")
+                        println("checkstyleTest.forkOptions.jvmOptions.maxHeapSize == \${it.forkOptions.jvmOptions.maxHeapSize}")
+                        new File(it.forkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
+                        it.forkOptions.jvmOptions.minHeapSize == "256m" &&
+                        it.forkOptions.jvmOptions.maxHeapSize == "355m"
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds("checkstyleMain", "checkstyleTest")
+        outputContains("checkstyleMain.forkOptions.jvmOptions.minHeapSize == 122m")
+        outputContains("checkstyleMain.forkOptions.jvmOptions.maxHeapSize == 255m")
+        outputContains("checkstyleTest.forkOptions.jvmOptions.minHeapSize == 256m")
+        outputContains("checkstyleTest.forkOptions.jvmOptions.maxHeapSize == 355m")
+    }
+
+    private void goodCode() {
+        file('src/main/java/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
+        file('src/test/java/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
+    }
+
+    private void writeDummyConfig() {
+        file('config/checkstyle/checkstyle.xml') << """
+<!DOCTYPE module PUBLIC
+        "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
+        "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+<module name="Checker">
+</module>
+        """
+    }
 }

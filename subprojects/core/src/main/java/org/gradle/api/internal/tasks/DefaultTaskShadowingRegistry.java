@@ -26,11 +26,9 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.reflect.Instantiator;
 import org.jspecify.annotations.Nullable;
 
-import javax.annotation.CheckForNull;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
@@ -38,6 +36,11 @@ import java.util.function.BiFunction;
 public class DefaultTaskShadowingRegistry implements TaskShadowingRegistry {
     private final Map<Class<?>, Class<?>> shadowTypes = new ConcurrentHashMap<>();
     private final Map<Class<?>, BiFunction<Object, Class<?>, Object>> wrappers = new ConcurrentHashMap<>();
+    private final Instantiator instantiator;
+
+    public DefaultTaskShadowingRegistry(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
 
     @Override
     public <T extends Task, S extends Task> void registerShadowing(Class<T> publicType, Class<S> shadowType, BiFunction<Object, Class<T>, Object> wrapper) {
@@ -67,18 +70,17 @@ public class DefaultTaskShadowingRegistry implements TaskShadowingRegistry {
     public <T extends Task> TaskProvider<T> maybeWrapProvider(TaskProvider<T> provider, Class<T> requestedType) {
         BiFunction<Object, Class<?>, Object> wrapper = wrappers.get(requestedType);
         if (wrapper != null) {
-            return new DelegatingTaskProvider<>(provider, requestedType, wrapper);
+            return Cast.uncheckedCast(instantiator.newInstance(DelegatingTaskProvider.class, provider, requestedType, wrapper));
         }
         return provider;
     }
 
     @Override
     public <T extends Task> TaskCollection<T> maybeWrapCollection(TaskCollection<T> collection, Class<T> requestedType) {
-        BiFunction<Object, Class<?>, Object> wrapper = wrappers.get(requestedType);
-        if (wrapper != null) {
-            // TODO
-            throw new UnsupportedOperationException();
-        }
+        // BiFunction<Object, Class<?>, Object> wrapper = wrappers.get(requestedType);
+        // TODO
+        // if (wrapper != null) {
+        // }
         return collection;
     }
 
@@ -91,7 +93,7 @@ public class DefaultTaskShadowingRegistry implements TaskShadowingRegistry {
         return action;
     }
 
-    private static class DelegatingTaskProvider<T extends Task> extends AbstractMinimalProvider<T> implements TaskProvider<T> {
+    public static class DelegatingTaskProvider<T extends Task> extends AbstractMinimalProvider<T> implements TaskProvider<T> {
 
         private final TaskProvider<T> provider;
         private final Class<T> requestedType;
@@ -128,7 +130,6 @@ public class DefaultTaskShadowingRegistry implements TaskShadowingRegistry {
             return Cast.uncheckedCast(wrapper.apply(provider.get(), requestedType));
         }
 
-        @CheckForNull
         @Override
         public T getOrNull() {
             T task = provider.getOrNull();

@@ -281,8 +281,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected TaskShadowingRegistry createTaskShadowingRegistry() {
-        return new DefaultTaskShadowingRegistry();
+    protected TaskShadowingRegistry createTaskShadowingRegistry(Instantiator instantiator) {
+        return new DefaultTaskShadowingRegistry(instantiator);
     }
 
     @Provides

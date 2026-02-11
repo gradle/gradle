@@ -32,6 +32,7 @@ import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.plugins.quality.CodeQualityExtension;
+import org.gradle.api.plugins.quality.v2.CheckstyleV2;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -44,6 +45,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+@SuppressWarnings("unused")
 public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
     protected static ConventionMapping conventionMappingOf(Object object) {
         return ((IConventionAware) object).getConventionMapping();
@@ -162,12 +164,19 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
                     prunedName = task.getName();
                 }
                 prunedName = ("" + prunedName.charAt(0)).toLowerCase(Locale.ROOT) + prunedName.substring(1);
-                configureTaskDefaults((T) task, prunedName);
+                if (task instanceof CheckstyleV2) {
+                    configureTaskDefaults((CheckstyleV2) task, prunedName);
+                } else {
+                    configureTaskDefaults((T) task, prunedName);
+                }
             }
         });
     }
 
     protected void configureTaskDefaults(T task, String baseName) {
+    }
+
+    protected void configureTaskDefaults(CheckstyleV2 task, String baseName) {
     }
 
     @SuppressWarnings("rawtypes")

@@ -15,15 +15,15 @@
  */
 package org.gradle.api.plugins.quality;
 
-import com.google.common.util.concurrent.Callables;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskShadowingRegistry;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
+import org.gradle.api.plugins.quality.v2.CheckstyleV2;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.TextResource;
@@ -35,6 +35,7 @@ import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -78,19 +79,30 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     }
 
     @Override
+    protected void beforeApply() {
+        TaskShadowingRegistry shadowingRegistry = project.getServices().get(TaskShadowingRegistry.class);
+        TaskInstantiator taskInstantiator = project.getServices().get(TaskInstantiator.class);
+        shadowingRegistry.registerShadowing(
+            org.gradle.api.plugins.quality.Checkstyle.class,
+            CheckstyleV2.class,
+            (task, r) -> taskInstantiator.create(((CheckstyleV2) task).getName(), Checkstyle.class, new Object[]{task})
+        );
+        super.beforeApply();
+    }
+
+    @Override
     protected void configureConfiguration(Configuration configuration) {
         configureDefaultDependencies(configuration);
     }
 
     @Override
+    protected void configureTaskDefaults(CheckstyleV2 task, final String baseName) {
+        TaskInstantiator taskInstantiator = project.getServices().get(TaskInstantiator.class);
+        configureTaskDefaults(taskInstantiator.create(task.getName(), Checkstyle.class, new Object[]{task}), baseName);
+    }
+
+    @Override
     protected void configureTaskDefaults(Checkstyle task, final String baseName) {
-        TaskShadowingRegistry shadowingRegistry = project.getServices().get(TaskShadowingRegistry.class);
-        ObjectFactory objectFactory = project.getObjects();
-        shadowingRegistry.registerShadowing(
-            org.gradle.api.plugins.quality.Checkstyle.class,
-            org.gradle.api.plugins.quality.v2.Checkstyle.class,
-            (t, r) -> objectFactory.newInstance(Checkstyle.class, t)
-        );
         Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
@@ -104,16 +116,17 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
     }
 
     private void configureTaskConventionMapping(Configuration configuration, Checkstyle task) {
-        ConventionMapping taskMapping = task.getConventionMapping();
-        taskMapping.map("checkstyleClasspath", Callables.returning(configuration));
-        taskMapping.map("config", (Callable<TextResource>) () -> extension.getConfig());
-        taskMapping.map("configProperties", (Callable<Map<String, Object>>) () -> extension.getConfigProperties());
-        taskMapping.map("showViolations", (Callable<Boolean>) () -> extension.isShowViolations());
-        taskMapping.map("maxErrors", (Callable<Integer>) () -> extension.getMaxErrors());
-        taskMapping.map("maxWarnings", (Callable<Integer>) () -> extension.getMaxWarnings());
-        task.getConfigDirectory().convention(extension.getConfigDirectory());
-        task.getEnableExternalDtdLoad().convention(extension.getEnableExternalDtdLoad());
-        task.getIgnoreFailuresProperty().convention(project.provider(() -> extension.isIgnoreFailures()));
+        ProviderFactory providers = project.getProviders();
+        TextResource config = extension.getConfig();
+        task.delegate.getConfigFile().convention(Providers.of((RegularFile & Serializable) config::asFile));
+        task.delegate.getCheckstyleClasspath().convention(configuration);
+        task.delegate.getShowViolations().convention(providers.provider((Callable<Boolean> & Serializable) () -> extension.isShowViolations()));
+        task.delegate.getConfigProperties().convention(providers.provider((Callable<Map<String, Object>> & Serializable) () -> extension.getConfigProperties()));
+        task.delegate.getMaxErrors().convention(providers.provider((Callable<Integer> & Serializable) () -> extension.getMaxErrors()));
+        task.delegate.getMaxWarnings().convention(providers.provider((Callable<Integer> & Serializable) () -> extension.getMaxWarnings()));
+        task.delegate.getConfigDirectory().convention(extension.getConfigDirectory());
+        task.delegate.getEnableExternalDtdLoad().convention(extension.getEnableExternalDtdLoad());
+        task.delegate.getIgnoreFailuresProperty().convention(project.provider((Callable<Boolean> & Serializable) () -> extension.isIgnoreFailures()));
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {

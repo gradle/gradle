@@ -1,0 +1,123 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Constructor org.gradle.api.plugins.quality.Checkstyle()",
+            "acceptation": "Testing checkstyleV2",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Checkstyle",
+            "member": "Field delegate",
+            "acceptation": "Testing checkstyleV2",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
+            "member": "Class org.gradle.api.plugins.quality.v2.CheckstyleV2",
+            "acceptation": "Testing checkstyleV2",
+            "changes": [
+                "Interface has been added",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
+            "member": "Constructor org.gradle.api.plugins.quality.v2.CheckstyleV2()",
+            "acceptation": "Testing checkstyleV2",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getCheckstyleClasspath()",
+            "acceptation": "Testing checkstyleV2",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getClasspath()",
+            "acceptation": "Testing checkstyleV2",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getConfigDirectory()",
+            "acceptation": "Testing checkstyleV2",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getConfigFile()",
+            "acceptation": "Testing checkstyleV2",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getConfigProperties()",
+            "acceptation": "Testing checkstyleV2",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getEnableExternalDtdLoad()",
+            "acceptation": "Testing checkstyleV2",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getMaxErrors()",
+            "acceptation": "Testing checkstyleV2",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getMaxWarnings()",
+            "acceptation": "Testing checkstyleV2",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.getShowViolations()",
+            "acceptation": "Testing checkstyleV2",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.v2.CheckstyleV2",
+            "member": "Method org.gradle.api.plugins.quality.v2.CheckstyleV2.run()",
+            "acceptation": "Testing checkstyleV2",
+            "changes": [
+                "Method added to public class",
+                "ANNOTATION_ADDED"
+            ]
+        }
+    ]
+}
