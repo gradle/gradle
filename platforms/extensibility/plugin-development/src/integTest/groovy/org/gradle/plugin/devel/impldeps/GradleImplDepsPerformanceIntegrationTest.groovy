@@ -16,65 +16,45 @@
 
 package org.gradle.plugin.devel.impldeps
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.testing.internal.util.RetryUtil
 
 @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // Gradle API and TestKit JARs are not generated when running embedded
 class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
-    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FLAKY)
-    def "Gradle API JAR is generated in an acceptable time frame"() {
-        buildFile << """
+    def operations = new BuildOperationsFixture(executer, temporaryFolder)
+
+    def "#dependency JAR is generated in an acceptable time frame"() {
+        buildFile """
             configurations {
                 deps
             }
 
             dependencies {
-                deps gradleApi()
-            }
-        """
-        buildFile << resolveDependencies(5000)
-
-        expect:
-        RetryUtil.retry {
-            succeeds 'resolveDependencies'
-            executer.gradleUserHomeDir.deleteDir()
-        }
-    }
-
-    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FLAKY)
-    def "TestKit JAR is generated in an acceptable time frame"() {
-        buildFile << """
-            configurations {
-                deps
+                deps ${declaration}
             }
 
-            dependencies {
-                deps gradleTestKit()
-            }
-        """
-        buildFile << resolveDependencies(2000)
-
-        expect:
-        RetryUtil.retry {
-            succeeds 'resolveDependencies'
-            executer.gradleUserHomeDir.deleteDir()
-        }
-    }
-
-    static String resolveDependencies(long maxMillis) {
-        """
             task resolveDependencies {
+                def depsConf = configurations.named("deps")
                 doLast {
-                    def timeStart = new Date()
-                    configurations.deps.resolve()
-                    def timeStop = new Date()
-                    def duration = groovy.time.TimeCategory.minus(timeStop, timeStart)
-                    assert duration.toMilliseconds() < $maxMillis
+                    println("Resolved dependencies: " + depsConf.get().size())
                 }
             }
         """
+
+        when:
+        succeeds("resolveDependencies")
+
+        then:
+        def generation = operations.only("Generate $dependency jar")
+        def durationMs = generation.endTime - generation.startTime
+        durationMs < 8000
+
+        where:
+        dependency       | declaration
+        "Gradle API"     | "gradleApi()"
+        "Gradle TestKit" | "gradleTestKit()"
     }
 }
