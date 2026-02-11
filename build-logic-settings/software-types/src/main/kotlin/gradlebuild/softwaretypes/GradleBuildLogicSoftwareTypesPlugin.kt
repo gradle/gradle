@@ -18,6 +18,7 @@ package gradlebuild.softwaretypes
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.artifacts.dsl.Dependencies
@@ -53,6 +54,9 @@ open class KotlinBuildLogicProjectTypePlugin : Plugin<Project> {
                     configurations.getByName("implementation").dependencies.addAllLater(
                         definition.dependencies.implementation.dependencies
                     )
+                    configurations.getByName("api").dependencies.addAllLater(
+                        definition.dependencies.api.dependencies
+                    )
                 }
             }.withUnsafeDefinition()
         }
@@ -72,6 +76,7 @@ interface KotlinBuildLogicDefinition : Definition<BuildModel.None> {
 interface BuildLogicDependencies : Dependencies {
 
     val implementation: DependencyCollector
+    val api: DependencyCollector
 
     fun catalog(notation: String): ExternalModuleDependency =
         notation.split('.').let { parts ->
@@ -83,5 +88,7 @@ interface BuildLogicDependencies : Dependencies {
                 .get()
         }
 
+    fun platformProject(projectPath: String): Dependency =
+        project.dependencies.platform(project(projectPath))
 }
 
