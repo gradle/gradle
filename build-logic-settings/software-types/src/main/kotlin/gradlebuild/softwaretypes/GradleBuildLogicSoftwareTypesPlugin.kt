@@ -33,6 +33,7 @@ import org.gradle.api.internal.plugins.software.RegistersProjectFeatures
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Nested
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 
 @RegistersProjectFeatures(KotlinBuildLogicProjectTypePlugin::class)
 open class GradleBuildLogicSoftwareTypesPlugin : Plugin<Settings> {
@@ -51,6 +52,9 @@ open class KotlinBuildLogicProjectTypePlugin : Plugin<Project> {
                     afterEvaluate {
                         description = definition.description.get()
                     }
+                    configurations.getByName("compileOnly").dependencies.addAllLater(
+                        definition.dependencies.compileOnly.dependencies
+                    )
                     configurations.getByName("implementation").dependencies.addAllLater(
                         definition.dependencies.implementation.dependencies
                     )
@@ -75,6 +79,7 @@ interface KotlinBuildLogicDefinition : Definition<BuildModel.None> {
 
 interface BuildLogicDependencies : Dependencies {
 
+    val compileOnly: DependencyCollector
     val implementation: DependencyCollector
     val api: DependencyCollector
 
@@ -90,5 +95,8 @@ interface BuildLogicDependencies : Dependencies {
 
     fun platformProject(projectPath: String): Dependency =
         project.dependencies.platform(project(projectPath))
+
+    fun kotlinDlsGradlePlugin(): String =
+        "org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:$expectedKotlinDslPluginsVersion"
 }
 
