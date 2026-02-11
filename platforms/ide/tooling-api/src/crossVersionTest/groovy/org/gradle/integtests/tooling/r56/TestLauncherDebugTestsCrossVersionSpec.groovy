@@ -26,7 +26,7 @@ import spock.lang.Timeout
 
 @TargetGradleVersion(">=5.6")
 @Timeout(60)
-class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification implements WithOldConfigurationsSupport {
+class TestLauncherDebugTestsCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     @Rule
     JDWPUtil jdwpClient = new JDWPUtil()
 

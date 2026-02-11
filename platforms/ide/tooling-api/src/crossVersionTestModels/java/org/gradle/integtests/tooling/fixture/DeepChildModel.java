@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r32;
+package org.gradle.integtests.tooling.fixture;
 
-import java.io.File;
-import java.util.List;
+import org.gradle.tooling.ToolingModelContract;
 
-interface CustomArtifactModel {
-    Exception getFailure();
-    List<File> getFiles();
+@ToolingModelContract(subTypes = { VeryDeepChildModel.class })
+public interface DeepChildModel extends BaseModel {
+    String getDeepMessage();
 }

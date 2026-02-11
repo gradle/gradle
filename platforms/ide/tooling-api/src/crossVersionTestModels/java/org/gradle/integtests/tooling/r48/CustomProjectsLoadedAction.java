@@ -20,16 +20,15 @@ import org.gradle.api.Action;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.List;
 
 public class CustomProjectsLoadedAction implements BuildAction<String>, Serializable {
     // Task graph is not calculated yet. Plugins can add tasks to it.
 
-    @Nullable private final List<String> tasks;
+    private final List<String> tasks;
 
-    public CustomProjectsLoadedAction(@Nullable List<String> tasks) {
+    public CustomProjectsLoadedAction(List<String> tasks) {
         this.tasks = tasks;
     }
 
