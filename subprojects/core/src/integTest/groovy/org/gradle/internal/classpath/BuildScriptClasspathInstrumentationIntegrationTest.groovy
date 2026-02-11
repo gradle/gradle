@@ -22,14 +22,13 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.initialization.transform.utils.DefaultInstrumentationAnalysisSerializer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.operations.execution.ExecuteWorkBuildOperationType
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.GFileUtils
 import org.junit.Rule
 import spock.lang.Issue
@@ -345,10 +344,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         ]
     }
 
-    @Requires(
-        value = IntegTestPreconditions.NotConfigCached,
-        reason = "Cc doesn't get invalidated when file dependency changes"
-    )
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/33875")
     def "should re-instrument jar if classpath changes and class starts extending a Gradle core class transitively"() {
         given:
         multiProjectJavaBuild("subproject") {
@@ -384,10 +380,7 @@ class BuildScriptClasspathInstrumentationIntegrationTest extends AbstractIntegra
         gradleUserHomeOutputs("instrumented/instrumented-impl-1.0.jar").size() == 2
     }
 
-    @Requires(
-        value = IntegTestPreconditions.NotConfigCached,
-        reason = "Cc doesn't get invalidated when file dependency changes"
-    )
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/33875")
     def "should not re-instrument jar if classpath changes but class doesn't extend Gradle core class"() {
         given:
         multiProjectJavaBuild("subproject") {
