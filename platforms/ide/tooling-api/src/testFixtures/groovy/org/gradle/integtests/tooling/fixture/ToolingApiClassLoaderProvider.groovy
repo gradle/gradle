@@ -46,6 +46,7 @@ class ToolingApiClassLoaderProvider {
         // TODO: Why do we break classloading in the first place?
         File testClassClassFolder = ClasspathUtil.getClasspathForClass(target)
         testClassPath.add(testClassClassFolder.parentFile.parentFile.toPath().resolve("java/" + testClassClassFolder.name).toFile())
+        testClassPath.add(testClassClassFolder.parentFile.parentFile.toPath().resolve("java/" + testClassClassFolder.name + "Fixtures").toFile())
         testClassPath.addAll(collectAdditionalClasspath(toolingApi, target))
 
         getTestClassLoader(toolingApi, testClassPath)

@@ -80,6 +80,9 @@ dependencies {
     integTestImplementation(projects.kotlinDslToolingModels)
     integTestImplementation(testFixtures(projects.buildProcessServices))
 
+    crossVersionTestFixturesCompileOnly(project(path, "shadedRuntimeElements"))
+    crossVersionTestFixturesCompileOnly(libs.slf4jApi + ":2.0.17") // TODO: user version from version catalog
+
     crossVersionTestImplementation(projects.jvmServices)
     crossVersionTestImplementation(projects.internalTesting)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
