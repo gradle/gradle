@@ -39,6 +39,9 @@ if ("CI" in System.getenv() && project.name != "gradle-kotlin-dsl-accessors") {
     }
     if (project.path == ":") {
         project.gradle.serviceOf<BuildEventsListenerRegistry>().onTaskCompletion(testFilesCleanupServiceProvider)
+        project.gradle.taskGraph.whenReady {
+            testFilesCleanupServiceProvider.get().onTaskGraphReady()
+        }
     }
     val testFilesCleanupService = testFilesCleanupServiceProvider.get()
     testFilesCleanupService.addProjectState(project.path, project.layout.buildDirectory.asFile, testFilesCleanup.reportOnly)

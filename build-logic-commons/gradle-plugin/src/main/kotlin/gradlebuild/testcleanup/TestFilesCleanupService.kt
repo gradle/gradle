@@ -42,6 +42,7 @@ import java.util.stream.Collectors
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import javax.inject.Inject
+import kotlin.concurrent.Volatile
 
 
 typealias LeftoverFiles = Map<File, List<String>>
@@ -74,7 +75,14 @@ abstract class TestFilesCleanupService @Inject constructor(
     /**
      * Key is the path of a task, value is the possible report dirs it generates.
      */
-    private val taskPathToReports: ConcurrentHashMap<String, List<FileLocationProvider>> = ConcurrentHashMap()
+    @Volatile
+    private var taskPathToReports: Reports = Reports.Collecting()
+    private val resolvedTaskPathToReports: Map<String, List<File>> get() = taskPathToReports.let {
+        when (it) {
+            is Reports.Resolved -> it.taskPathToReports
+            is Reports.Collecting -> error("Expected resolved reports")
+        }
+    }
 
     /**
      * Key is the path of the test, value is Test.binaryResultsDir
@@ -94,13 +102,31 @@ abstract class TestFilesCleanupService @Inject constructor(
     }
 
     fun addTaskReports(taskPath: String, reports: Collection<FileLocationProvider>) {
-        taskPathToReports.merge(taskPath, reports.toList(), { prev, next -> prev + next })
+        taskPathToReports.let {
+            when (it) {
+                is Reports.Collecting -> it.add(taskPath, reports)
+                is Reports.Resolved -> error("Adding reports after realized")
+            }
+        }
+    }
+
+    fun onTaskGraphReady() {
+        // Some providers for the report files (Japicmp) are not memoizable internally and require project services to be resolved.
+        // That's why we have to manually resolve them at this point in time and explicitly memoize the results
+        val resolved = taskPathToReports.let {
+            when (it) {
+                is Reports.Collecting -> it.resolve()
+                is Reports.Resolved -> error("Adding reports after realized")
+            }
+        }
+
+        taskPathToReports = resolved
     }
 
     private val rootBuildDir: File get() = parameters.rootBuildDir.get().asFile
 
     override fun onFinish(event: FinishEvent) {
-        if (event is TaskFinishEvent && taskPathToReports.containsKey(event.descriptor.taskPath)) {
+        if (event is TaskFinishEvent && taskPathToReports.hasReportsFrom(event.descriptor.taskPath)) {
             val taskPath = event.descriptor.taskPath
             when (event.result) {
                 is TaskSuccessResult -> {
@@ -143,7 +169,6 @@ abstract class TestFilesCleanupService @Inject constructor(
     fun getExecutedTaskPaths(projectPath: String) = projectPathToExecutedTaskPaths.getOrEmpty(projectPath)
 
     override fun close() {
-        val startTimeMillis = System.currentTimeMillis()
         val projectPathToLeftoverFiles = mutableMapOf<String, LeftoverFiles>()
         // First run: delete any temporary directories used to extract resources from jars
         projectStates.values.forEach { projectState ->
@@ -174,7 +199,6 @@ abstract class TestFilesCleanupService @Inject constructor(
                 }
             }
 
-        println("TestFilesCleanupService at ${rootBuildDir.absolutePath} takes ${System.currentTimeMillis() - startTimeMillis} ms to close")
         when {
             exceptions.size == 1 -> throw exceptions.first()
             exceptions.isNotEmpty() -> throw DefaultMultiCauseException("Test files cleanup verification failed", exceptions)
@@ -242,10 +266,9 @@ abstract class TestFilesCleanupService @Inject constructor(
 
     private
     fun TestFilesCleanupProjectState.prepareReportsForCiPublishing(executedTaskPaths: Set<String>, tmpTestFiles: Collection<File>) {
+        val resolvedTaskPathToReports = resolvedTaskPathToReports
         val reports: List<File> = executedTaskPaths.asSequence()
-            .flatMap { taskPathToReports.getOrDefault(it, emptyList()) }
-            .filter { it.isPresent }
-            .map { it.get().asFile }
+            .flatMap { resolvedTaskPathToReports.getOrDefault(it, emptyList()) }
             .toList()
         if (isAnyTestTaskFailed(projectPath) || tmpTestFiles.isNotEmpty()) {
             prepareReportForCiPublishing(tmpTestFiles + reports)
@@ -352,5 +375,28 @@ abstract class TestFilesCleanupService @Inject constructor(
     private
     fun taskPathToProjectPath(taskPath: String): String {
         return taskPath.substringBeforeLast(":").ifEmpty { ":" }
+    }
+
+    private sealed interface Reports {
+
+        fun hasReportsFrom(taskPath: String): Boolean
+
+        class Collecting : Reports {
+            private val taskPathToReports: ConcurrentHashMap<String, List<FileLocationProvider>> = ConcurrentHashMap()
+
+            override fun hasReportsFrom(taskPath: String) = taskPathToReports.containsKey(taskPath)
+
+            fun add(taskPath: String, reports: Collection<FileLocationProvider>) {
+                taskPathToReports.merge(taskPath, reports.toList(), { prev, next -> prev + next })
+            }
+
+            fun resolve(): Resolved = Resolved(taskPathToReports.mapValues { it.value.map { it.get().asFile } })
+        }
+
+        class Resolved(
+            val taskPathToReports: Map<String, List<File>>
+        ) : Reports {
+            override fun hasReportsFrom(taskPath: String) = taskPathToReports.containsKey(taskPath)
+        }
     }
 }
