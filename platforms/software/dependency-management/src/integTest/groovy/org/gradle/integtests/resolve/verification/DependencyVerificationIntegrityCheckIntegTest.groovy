@@ -1138,7 +1138,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
                 implementation('org:monitor:1.0')
             }
             tasks.register('resolveCompileClasspath') {
-                configurations.compileClasspath.resolve()
+                configurations.compileClasspath.getFiles()
             }
         """
         mavenLocal(repoDir).module('org', 'monitor', '1.0').publish()

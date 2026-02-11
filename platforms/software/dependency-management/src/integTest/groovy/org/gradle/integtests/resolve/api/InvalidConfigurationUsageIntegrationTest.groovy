@@ -53,6 +53,9 @@ class InvalidConfigurationUsageIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        if (methodName == "resolve()") {
+            executer.expectDocumentedDeprecationWarning("The Configuration.resolve method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the getIncoming().getFiles() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_configuration_resolve")
+        }
         fails('help')
 
         then:
@@ -124,7 +127,6 @@ class InvalidConfigurationUsageIntegrationTest extends AbstractIntegrationSpec {
         where:
         methodName                                      | role                                                                                                          | methodCall
         'getResolvedConfiguration()'                    | 'migratingLocked("custom", ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)'   | 'getResolvedConfiguration()'
-        'resolve()'                                     | 'migratingLocked("custom", ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)'   | 'resolve()'
     }
 
     def "calling an invalid internal API method #methodName for role #role fails"() {

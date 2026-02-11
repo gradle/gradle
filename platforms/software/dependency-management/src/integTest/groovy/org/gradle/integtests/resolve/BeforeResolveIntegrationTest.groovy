@@ -293,7 +293,7 @@ task resolveDependencies {
                 bar {
                     incoming.beforeResolve {
                         println "resolving foo..."
-                        foo.resolve()
+                        foo.getFiles()
                         // bar should still be in an unresolved state, so we should be able to modify the
                         // things like dependency constraints here
                         bar.validateMutation(${MutationValidator.MutationType.class.name}.DEPENDENCIES)

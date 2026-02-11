@@ -369,7 +369,7 @@ class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
                 void apply(Project target) {
                     def classpath = target.configurations["compileClasspath"]
 
-                    def p = target.provider { classpath.resolve().join(", ") }
+                    def p = target.provider { classpath.getFiles().join(", ") }
 
                     flowScope.always(FlowActionInjection) {
                         parameters {

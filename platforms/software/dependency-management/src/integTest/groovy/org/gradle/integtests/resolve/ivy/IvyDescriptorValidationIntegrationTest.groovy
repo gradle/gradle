@@ -36,7 +36,7 @@ class IvyDescriptorValidationIntegrationTest extends AbstractDependencyResolutio
   }
   task resolve {
       doLast {
-          configurations.compile.resolve()
+          configurations.compile.getFiles()
       }
   }
   """
