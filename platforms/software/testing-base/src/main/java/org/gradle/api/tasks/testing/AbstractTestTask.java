@@ -61,6 +61,7 @@ import org.gradle.api.reporting.Reporting;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
@@ -691,7 +692,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     private boolean shouldFailOnNoMatchingTests() {
-        return patternFiltersSpecified() && filter.isFailOnNoMatchingTests();
+        return patternFiltersSpecified() && getFailOnNoMatchingTests().getOrElse(filter.isFailOnNoMatchingTests());
     }
 
     boolean testsAreNotFiltered() {
@@ -792,6 +793,25 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     public TestFilter getFilter() {
         return filter;
     }
+
+    /**
+     * Whether the task should fail when a filter was configured but no test matched the filter.
+     * Defaults to true.
+     *
+     * <p>
+     * If configured this takes precedence over {@link TestFilter#isFailOnNoMatchingTests()}.
+     * <p>
+     * The main use case for this property is the CLI and being able to invoke a generic test task with a filter that may or may not match tests depending on the project,
+     * and being able to not fail when it doesn't match any tests.
+     *
+     * @since 9.5.0
+     * @see TestFilter#isFailOnNoMatchingTests()
+     */
+    @Incubating
+    @Option(option = "fail-on-no-matching-tests", description = "Fail the task if a filter was specified but no tests matched.")
+    @Optional
+    @Input
+    public abstract Property<Boolean> getFailOnNoMatchingTests();
 
     /**
      * Whether the task should fail if test sources are present, but no tests are discovered during test execution.  Defaults to true.

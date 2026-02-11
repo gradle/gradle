@@ -274,6 +274,14 @@
         },
         {
             "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Class org.gradle.api.tasks.testing.Test",
+            "acceptation": "Added incubating property on AbstractTestTask",
+            "changes": [
+                "Abstract method has been added to a superclass"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
             "member": "Method org.gradle.api.tasks.testing.Test.getJavaLauncher()",
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
@@ -478,6 +486,14 @@
             "acceptation": "Make explicit properties into managed properties",
             "changes": [
                 "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.XCTest",
+            "member": "Class org.gradle.nativeplatform.test.xctest.tasks.XCTest",
+            "acceptation": "Added incubating property on AbstractTestTask",
+            "changes": [
+                "Abstract method has been added to a superclass"
             ]
         },
         {
