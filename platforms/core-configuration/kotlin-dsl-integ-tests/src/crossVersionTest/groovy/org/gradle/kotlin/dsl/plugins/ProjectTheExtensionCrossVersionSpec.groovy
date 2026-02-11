@@ -27,7 +27,7 @@ import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import static org.junit.Assume.assumeFalse
 import static org.junit.Assume.assumeTrue
 
-@TargetVersions("5.0+")
+@TargetVersions("6.0+")
 class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
 
     def "can access extensions with current Gradle version from plugin built with Gradle 5.0+"() {

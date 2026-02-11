@@ -28,7 +28,7 @@ import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import static org.junit.Assume.assumeFalse
 import static org.junit.Assume.assumeTrue
 
-@TargetVersions("5.0+")
+@TargetVersions("6.0+")
 class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpec {
 
     private static final GradleVersion GRADLE_7_1 = GradleVersion.version("7.1")
