@@ -143,6 +143,7 @@ abstract class TestFilesCleanupService @Inject constructor(
     fun getExecutedTaskPaths(projectPath: String) = projectPathToExecutedTaskPaths.getOrEmpty(projectPath)
 
     override fun close() {
+        val startTimeMillis = System.currentTimeMillis()
         val projectPathToLeftoverFiles = mutableMapOf<String, LeftoverFiles>()
         // First run: delete any temporary directories used to extract resources from jars
         projectStates.values.forEach { projectState ->
@@ -172,6 +173,8 @@ abstract class TestFilesCleanupService @Inject constructor(
                     exceptions.add(e)
                 }
             }
+
+        println("TestFilesCleanupService at ${rootBuildDir.absolutePath} takes ${System.currentTimeMillis() - startTimeMillis} ms to close")
         when {
             exceptions.size == 1 -> throw exceptions.first()
             exceptions.isNotEmpty() -> throw DefaultMultiCauseException("Test files cleanup verification failed", exceptions)
