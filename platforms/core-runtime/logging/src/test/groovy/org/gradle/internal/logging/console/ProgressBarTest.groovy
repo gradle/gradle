@@ -54,8 +54,8 @@ class ProgressBarTest extends Specification {
 
         where:
         unicode            | rendering
-        true               | "│·············│ 0% EXECUTING"
-        false              | "[-------------] 0% EXECUTING"
+        true               | "│···············│ 0% EXECUTING"
+        false              | "[---------------] 0% EXECUTING"
         id = unicode ? "unicode" : "ascii"
     }
 
@@ -84,9 +84,9 @@ class ProgressBarTest extends Specification {
         progress == rendering100
 
         where:
-        unicode            | rendering10                        | rendering20                       | rendering100
-        true               | "│█▎···········│ 10% EXECUTING"    | "│██▌··········│ 20% EXECUTING"   | "│█████████████│ 100% EXECUTING"
-        false              | "[=------------] 10% EXECUTING"    | "[==-----------] 20% EXECUTING"   | "[=============] 100% EXECUTING"
+        unicode            | rendering10                          | rendering20                         | rendering100
+        true               | "│█▌·············│ 10% EXECUTING"    | "│███············│ 20% EXECUTING"   | "│███████████████│ 100% EXECUTING"
+        false              | "[=--------------] 10% EXECUTING"    | "[===------------] 20% EXECUTING"   | "[===============] 100% EXECUTING"
         id = unicode ? "unicode" : "ascii"
     }
 
@@ -117,9 +117,9 @@ class ProgressBarTest extends Specification {
         progress == rendering200
 
         where:
-        unicode            | rendering100                       | rendering110                      | rendering200
-        true               | "│█████████████│ 100% EXECUTING"   | "│████████████·│ 110% EXECUTING"  | "│████████████·│ 200% EXECUTING"
-        false              | "[=============] 100% EXECUTING"   | "[============-] 110% EXECUTING"  | "[============-] 200% EXECUTING"
+        unicode            | rendering100                         | rendering110                        | rendering200
+        true               | "│███████████████│ 100% EXECUTING"   | "│██████████████·│ 110% EXECUTING"  | "│██████████████·│ 200% EXECUTING"
+        false              | "[===============] 100% EXECUTING"   | "[==============-] 110% EXECUTING"  | "[==============-] 200% EXECUTING"
         id = unicode ? "unicode" : "ascii"
     }
 
@@ -141,9 +141,9 @@ class ProgressBarTest extends Specification {
         progress == rendering10
 
         where:
-        unicode            | rendering10                        | rendering20
-        true               | "│█▎···········│ 10% EXECUTING"    | "│██▌··········│ 20% EXECUTING"
-        false              | "[=------------] 10% EXECUTING"    | "[==-----------] 20% EXECUTING"
+        unicode            | rendering10                          | rendering20
+        true               | "│█▌·············│ 10% EXECUTING"    | "│███············│ 20% EXECUTING"
+        false              | "[=--------------] 10% EXECUTING"    | "[===------------] 20% EXECUTING"
         id = unicode ? "unicode" : "ascii"
     }
 
@@ -191,8 +191,8 @@ class ProgressBarTest extends Specification {
 
         where:
         unicode            | rendering
-        true               | "│▏············│ 1% EXECUTING"
-        false              | "[-------------] 1% EXECUTING"
+        true               | "│▏··············│ 1% EXECUTING"
+        false              | "[---------------] 1% EXECUTING"
         id = unicode ? "unicode" : "ascii"
     }
 
@@ -208,8 +208,8 @@ class ProgressBarTest extends Specification {
 
         where:
         unicode            | rendering
-        true               | "\u001B]9;4;1;10\u0007│█▎···········│ 10% EXECUTING" // Should contain OSC 9;4 with state 1: ESC ] 9 ; 4 ; 2 ; 10 BEL
-        false              | "[=------------] 10% EXECUTING"
+        true               | "\u001B]9;4;1;10\u0007│█▌·············│ 10% EXECUTING" // Should contain OSC 9;4 with state 1: ESC ] 9 ; 4 ; 2 ; 10 BEL
+        false              | "[=--------------] 10% EXECUTING"
         id = unicode ? "unicode" : "ascii"
     }
 
@@ -225,8 +225,8 @@ class ProgressBarTest extends Specification {
 
         where:
         unicode            | rendering
-        true               | "\u001B]9;4;2;10\u0007│█▎···········│ 10% EXECUTING" // Should contain OSC 9;4 with state 2 (error): ESC ] 9 ; 4 ; 2 ; 10 BEL
-        false              | "[=------------] 10% EXECUTING"
+        true               | "\u001B]9;4;2;10\u0007│█▌·············│ 10% EXECUTING" // Should contain OSC 9;4 with state 2 (error): ESC ] 9 ; 4 ; 2 ; 10 BEL
+        false              | "[=--------------] 10% EXECUTING"
         id = unicode ? "unicode" : "ascii"
     }
 
@@ -243,8 +243,8 @@ class ProgressBarTest extends Specification {
 
         where:
         unicode            | rendering
-        true               | "│█▎···········│ 10% EXECUTING"
-        false              | "[=------------] 10% EXECUTING"
+        true               | "│█▌·············│ 10% EXECUTING"
+        false              | "[=--------------] 10% EXECUTING"
         id = unicode ? "unicode" : "ascii"
     }
 }

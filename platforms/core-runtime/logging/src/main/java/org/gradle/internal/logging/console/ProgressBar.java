@@ -35,7 +35,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 
 public class ProgressBar {
-    public static final int PROGRESS_BAR_WIDTH = 13;
+    public static final int PROGRESS_BAR_WIDTH = 15;
     // Unicode progress bar style (Linux/macOS) - avoids ligature-triggering sequences
     public static final String UNICODE_PROGRESS_BAR_PREFIX = "│";
     public static final String UNICODE_PROGRESS_BAR_SUFFIX = "│";
