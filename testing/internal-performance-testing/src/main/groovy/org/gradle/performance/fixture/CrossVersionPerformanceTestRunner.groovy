@@ -51,7 +51,7 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
 /**
  * Runs cross version performance tests using Gradle profiler.
  */
-class CrossVersionPerformanceTestRunner implements PerformanceTestRunner {
+class CrossVersionPerformanceTestRunner implements PerformanceTestRunner<CrossVersionPerformanceResults> {
 
     private final IntegrationTestBuildContext buildContext
     private final DataReporter<CrossVersionPerformanceResults> reporter
@@ -108,6 +108,7 @@ class CrossVersionPerformanceTestRunner implements PerformanceTestRunner {
         buildMutators.add(buildMutator)
     }
 
+    @Override
     CrossVersionPerformanceResults run() {
         assumeShouldRun()
 

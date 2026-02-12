@@ -32,7 +32,7 @@ import org.junit.Assume
 import java.util.function.Function
 
 @CompileStatic
-abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerformanceResults> implements PerformanceTestRunner {
+abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerformanceResults> implements PerformanceTestRunner<R> {
 
     private final List<ExecutionInterceptor> interceptors = []
     private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
@@ -133,6 +133,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
 
     abstract R newResult()
 
+    @Override
     R run() {
         assert !specs.empty
         assert testId

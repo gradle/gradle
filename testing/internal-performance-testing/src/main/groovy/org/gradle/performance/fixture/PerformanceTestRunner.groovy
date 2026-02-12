@@ -16,12 +16,15 @@
 
 package org.gradle.performance.fixture
 
+import groovy.transform.CompileStatic
+import org.gradle.performance.results.PerformanceTestResult
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 
 import java.util.function.Function
 
-interface PerformanceTestRunner {
+@CompileStatic
+interface PerformanceTestRunner<R extends PerformanceTestResult> {
 
     void addInterceptor(ExecutionInterceptor interceptor)
 
@@ -35,11 +38,14 @@ interface PerformanceTestRunner {
 
     void setTestClassName(String testClassName)
 
+    R run()
+
     /**
      * Modifies a runner prior to test execution
      */
     interface ExecutionInterceptor {
         void intercept(GradleBuildExperimentSpec.GradleBuilder gradleBuilder)
+
         default void handleFailure(Throwable failure, BuildExperimentSpec spec) {}
     }
 
