@@ -16,7 +16,7 @@
 = Composite Builds (Included Builds)
 :keywords: composite build, included build
 
-A composite build is a build that includes other builds, it is also known as an included build.
+A composite build is a build that includes other builds; those builds are known as included builds.
 
 [[composite_build_intro]]
 A composite build is similar to a Gradle multi-project build, except that instead of including `subprojects`, entire `builds` are included.
@@ -34,9 +34,6 @@ Or using the CLI flag `--include-build`:
 ----
 $ ./gradlew build --include-build my-utils
 ----
-
-WARNING: Including a build via `includeBuild` or the `--include-build` CLI flag only works for *project dependencies*. +
-For including builds that are *plugins*, you must include the build within the `pluginManagement {}` block of your settings file.
 
 [[defining_composite_builds]]
 == Composite Build Layout
