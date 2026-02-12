@@ -27,6 +27,8 @@ import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
 
 import java.time.Duration
+import java.nio.file.Files as NioFiles
+import java.nio.file.attribute.PosixFilePermission
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo
 
@@ -408,5 +410,23 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
 
     private static JavaVersion classFormat(TestFile path) {
         JavaVersion.forClassVersion(path.bytes[7] & 0xFF)
+    }
+
+    @Requires(UnitTestPreconditions.FilePermissions)
+    def "binary test result files have correct permissions"() {
+        given:
+        file('src/test/java/MyTest.java') << standaloneTestClass
+
+        when:
+        succeeds 'test'
+
+        then:
+        def binaryDir = file("build/test-results/test/binary")
+        binaryDir.listFiles().each { File f ->
+            assert f.canRead()
+            def perms = NioFiles.getPosixFilePermissions(f.toPath())
+            assert perms.contains(PosixFilePermission.OTHERS_READ)
+            assert perms.contains(PosixFilePermission.GROUP_READ)
+        }
     }
 }
