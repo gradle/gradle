@@ -22,7 +22,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.BuildOperationType
+import org.gradle.internal.operations.trace.BuildOperationRecord
+import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.test.fixtures.file.TestFile
 
@@ -220,5 +223,42 @@ public class ${className} implements Plugin<Project> {
         // which are after the build finished message
         def output = result.output
         assert output.contains(string.trim())
+    }
+
+    static void verifyBuildPathOperations(String prefix, List<BuildOperationRecord> operations, List<List> buildPathsToParentIds) {
+        assert operations.size() == buildPathsToParentIds.size()
+        buildPathsToParentIds.eachWithIndex { bp, i ->
+            def (buildPath, parentId) = bp
+            assert operations[i].displayName == "$prefix${buildPath == ":" ? "" : " ($buildPath)"}"
+            assert operations[i].details.buildPath == buildPath
+            assert operations[i].parentId == parentId
+        }
+    }
+
+    void verifyTaskGraphOps(
+        Map params
+    ) {
+        List<BuildOperationRecord> treeTaskGraphOps = params.operations
+        List<Long> expectedParents = params.expectedParents
+        List<List> expectedBuildPathsToParentIds = params.expectedBuildPaths
+        treeTaskGraphOps.every { it.displayName == "Calculate build tree task graph" }
+        for (int i = 0; i < expectedParents.size(); i++) {
+            assert treeTaskGraphOps[i].parentId == expectedParents[i]
+        }
+        if (GradleContextualExecuter.notConfigCache) {
+            assert treeTaskGraphOps.size() == expectedParents.size()
+        } else {
+            assert treeTaskGraphOps.size() == expectedParents.size() + 1
+            assert treeTaskGraphOps.last().parentId == operations.first("Load configuration cache state").id
+            def extraBuildPaths = params.extraBuildPathsWithCC ?: expectedBuildPathsToParentIds.collect { it[0] }
+            expectedBuildPathsToParentIds += extraBuildPaths.collect { [it, treeTaskGraphOps.last().id] }
+        }
+
+        def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
+        verifyBuildPathOperations(
+            "Calculate task graph",
+            taskGraphOps,
+            expectedBuildPathsToParentIds
+        )
     }
 }
