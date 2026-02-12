@@ -22,6 +22,7 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.dsl.GradleDslBaseScriptModel
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 @TargetGradleVersion(">=9.3")
 class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
@@ -96,42 +97,83 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
         listener.hasSeenSomeEvents && listener.configPhaseStartEvents.isEmpty()
     }
 
-    def "GradleDslBaseScriptModel can be obtained even after a failure"() {
+    def "GradleDslBaseScriptModel can be obtained even after a settings #typeOfFailure failure"() {
         given:
-        settingsFileKts << "broken !!!"
+        settingsFileKts << error
 
         when:
         def result = succeeds {
-            action(new FetchBaseModelLastAction())
+            action(new FetchBaseModelAfterSettingsEvaluationAction())
                 .run()
         }
 
         then:
-        result.gradleBuildFailures.size() == 1
-        result.gradleBuildFailures[0] =~ /Script compilation error:\s+Line 1: broken !!!/
+        println(result.errorsBeforeBaseModel[0])
+        result.errorsBeforeBaseModel.size() == 1
+        result.errorsBeforeBaseModel[0] =~ expectedReportedError
         result.baseModel != null
         result.baseModel.groovyDslBaseScriptModel != null
         result.baseModel.kotlinDslBaseScriptModel != null
+
+        where:
+        typeOfFailure | error                                    | expectedReportedError
+        "compilation" | "broken !!!"                             | /Script compilation error:\s+Line 1: broken !!!/
+        "runtime"     | "throw RuntimeException(\"broken !!!\")" | /Settings file '.*?' line: 1\s+broken !!!/
     }
 
-    static class FetchBaseModelLastAction implements BuildAction<FetchBaseModelLastActionResult>, Serializable {
+    def "GradleDslBaseScriptModel can be obtained even after a project #typeOfFailure failure"() {
+        given:
+        buildFileKts << error
+
+        when:
+        def result = succeeds {
+            action(new FetchBaseModelAfterProjectConfigurationAction())
+                .run()
+        }
+
+        then:
+        result.errorsBeforeBaseModel.size() == 1
+        result.errorsBeforeBaseModel[0].contains(expectedReportedError)
+        result.baseModel != null
+        result.baseModel.groovyDslBaseScriptModel != null
+        result.baseModel.kotlinDslBaseScriptModel != null
+
+        where:
+        typeOfFailure | error                                    | expectedReportedError
+        "compilation" | "broken !!!"                             | "A problem occurred configuring root project"
+        "runtime"     | "throw RuntimeException(\"broken !!!\")" | "A problem occurred configuring root project"
+    }
+
+    static class FetchBaseModelAfterSettingsEvaluationAction implements BuildAction<FetchBaseModelLastActionResult>, Serializable {
         @Override
         FetchBaseModelLastActionResult execute(BuildController controller) {
-            def gradleBuildResult = controller.fetch(GradleBuild)
-            def gradleBuildFailures = gradleBuildResult.failures.collect {
+            def result = controller.fetch(GradleBuild)
+            def settingsEvaulationFailures = result.failures.collect {
                 it.message
             }
-            def result = controller.fetch(GradleDslBaseScriptModel)
-            return new FetchBaseModelLastActionResult(gradleBuildFailures, result.model)
+            result = controller.fetch(GradleDslBaseScriptModel)
+            return new FetchBaseModelLastActionResult(settingsEvaulationFailures, result.model)
+        }
+    }
+
+    static class FetchBaseModelAfterProjectConfigurationAction implements BuildAction<FetchBaseModelLastActionResult>, Serializable {
+        @Override
+        FetchBaseModelLastActionResult execute(BuildController controller) {
+            def result = controller.fetch(KotlinDslScriptsModel)
+            def configurationFailures = result.failures.collect {
+                it.message
+            }
+            result = controller.fetch(GradleDslBaseScriptModel)
+            return new FetchBaseModelLastActionResult(configurationFailures, result.model)
         }
     }
 
     static class FetchBaseModelLastActionResult implements Serializable {
-        final List<String> gradleBuildFailures
+        final List<String> errorsBeforeBaseModel
         final GradleDslBaseScriptModel baseModel
 
-        FetchBaseModelLastActionResult(List<String> gradleBuildFailures, GradleDslBaseScriptModel baseModel) {
-            this.gradleBuildFailures = gradleBuildFailures
+        FetchBaseModelLastActionResult(List<String> errorsBeforeBaseModel, GradleDslBaseScriptModel baseModel) {
+            this.errorsBeforeBaseModel = errorsBeforeBaseModel
             this.baseModel = baseModel
         }
     }
